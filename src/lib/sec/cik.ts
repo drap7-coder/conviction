@@ -1,18 +1,143 @@
 /**
  * CIK (Central Index Key) mapping for SEC EDGAR.
  * SEC identifies companies by CIK, not ticker.
- * These are the primary watchlist companies plus emerging candidates.
+ *
+ * To add new companies: look up the CIK via SEC EDGAR company search
+ * or the SEC JSON API at https://data.sec.gov/submissions/CIK0000000000.json
+ *
+ * Long-term: this should be replaced with a dynamic CIK lookup that queries
+ * the SEC's company-concept API or a cached ticker→CIK dataset.
  */
+
 export const CIK_MAP: Record<string, string> = {
+  // Watchlist (standard)
   OXY: "0000797468",
   INTC: "0000050863",
   GOOG: "0001652044",
   NVO: "0000353278",
   PFE: "0000078003",
   NBIS: "0001712184",
+
+  // Extended emerging
   CRWD: "0001535527",
   ONON: "0001888965",
   PLTR: "0001321655",
   RXRX: "0001639155",
   AVAV: "0001368622",
+
+  // Major tech / growth
+  AAPL: "0000320193",
+  MSFT: "0000789019",
+  AMZN: "0001018724",
+  META: "0001326801",
+  NVDA: "0001045810",
+  TSLA: "0001318605",
+  NFLX: "0001065280",
+  AMD: "0000002488",
+  CRM: "0001108524",
+  ADBE: "0000796343",
+  ORCL: "0001341439",
+  IBM: "0000051143",
+  CSCO: "0000858877",
+  QCOM: "0000804328",
+  MU: "0000723125",
+  NOW: "0001373715",
+
+  // Major consumer / retail
+  WMT: "0000104169",
+  AMGN: "0000318154",
+  JPM: "0000019617",
+  BAC: "0000070858",
+  GME: "0001326380",
+  DIS: "0001744489",
+  BA: "0000012927",
+  CAT: "0000018230",
+  UNH: "0000731766",
+  HD: "0000354950",
+  NKE: "0000320187",
+  KO: "0000021344",
+  PEP: "0000077476",
+  MCD: "0000063908",
+  SBUX: "0000829224",
+  COST: "0000909832",
+
+  // Pharma / biotech
+  JNJ: "0000200406",
+  ABBV: "0001551152",
+  MRK: "0000310158",
+  TMO: "0000097745",
+  LLY: "0000059478",
+  BIIB: "0000875045",
+  GILD: "0000882095",
+  REGN: "0000872589",
+  MRNA: "0001682852",
+  VRTX: "0000875320",
+
+  // Transportation / energy
+  UPS: "0001090727",
+  FDX: "0001048911",
+  DAL: "0000027904",
+  AAL: "0000006201",
+  XOM: "0000034088",
+  CVX: "0000093410",
+  COP: "0001163165",
+  SLB: "0000087347",
+
+  // Financial
+  GS: "0000886982",
+  MS: "0000895421",
+  SCHW: "0000316709",
+  BLK: "0001364742",
+  V: "0001403161",
+  MA: "0001141391",
+  PYPL: "0001633917",
+  SQ: "0001512673",
+  HOOD: "0001783879",
+  COIN: "0001679788",
+
+  // Industrial / defense
+  LMT: "0000936468",
+  NOC: "0000076731",
+  RTX: "0000101829",
+  GD: "0000040533",
+  HON: "0000773840",
+  GE: "0000040545",
+  MMM: "0000066740",
+
+  // Telecom / media
+  T: "0000732717",
+  VZ: "0000732712",
+  TMUS: "0001283699",
+  CMCSA: "0001166691",
+  CHTR: "0001091667",
+  SIRI: "0000908937",
+  ROKU: "0001428439",
+  SNAP: "0001564408",
+  PINS: "0001506293",
+  UBER: "0001543151",
+  LYFT: "0001759924",
+
+  // Semiconductors (additional)
+  TSM: "0001046179",
+  ASML: "0000937260",
+
+  // AI / data infrastructure
+  SNOW: "0001640147",
+  DDOG: "0001561550",
+  MDB: "0001441816",
+  CFLT: "0001692739",
+  ESTC: "0001707753",
+  NET: "0001470493",
+  S: "0001598014",
+  CLOU: "0001535377",
+  WDAY: "0001327811",
+  TEAM: "0001650372",
+  ZS: "0001713683",
+  PANW: "0001327567",
+  OKTA: "0001660134",
+  DOCU: "0001265333",
+  TWLO: "0001447669",
+  HUBS: "0001404655",
+  SHOP: "0001594805",
+  SQSP: "0001517413",
 };

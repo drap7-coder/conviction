@@ -63,6 +63,44 @@ describe("validateTicker", () => {
     expect(result.valid).toBe(true);
     expect(result.isForeignIssuer).toBeFalsy();
   });
+
+  it("accepts TSLA (Tesla)", () => {
+    const result = validateTicker("TSLA");
+    expect(result.valid).toBe(true);
+    expect(result.ticker).toBe("TSLA");
+    expect(result.companyName).toBe("Tesla Inc.");
+    expect(result.cik).toBe("0001318605");
+  });
+
+  it("accepts tsla as lowercase", () => {
+    const result = validateTicker("tsla");
+    expect(result.valid).toBe(true);
+    expect(result.ticker).toBe("TSLA");
+  });
+
+  it("accepts 'Tesla' as company name", () => {
+    const result = validateTicker("Tesla");
+    expect(result.valid).toBe(true);
+    expect(result.ticker).toBe("TSLA");
+  });
+
+  it("accepts 'Apple' as company name", () => {
+    const result = validateTicker("Apple");
+    expect(result.valid).toBe(true);
+    expect(result.ticker).toBe("AAPL");
+  });
+
+  it("accepts 'NVIDIA' as ticker", () => {
+    const result = validateTicker("NVDA");
+    expect(result.valid).toBe(true);
+    expect(result.companyName).toBe("NVIDIA Corporation");
+  });
+
+  it("accepts 'AMZN' as ticker", () => {
+    const result = validateTicker("AMZN");
+    expect(result.valid).toBe(true);
+    expect(result.companyName).toBe("Amazon.com Inc.");
+  });
 });
 
 describe("SEED_WATCHLIST", () => {
