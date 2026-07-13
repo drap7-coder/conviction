@@ -39,6 +39,9 @@ yarn-error.log*
 # local persistence store
 .conviction/
 
+# debug / test scripts
+/scripts/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
