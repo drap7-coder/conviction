@@ -2,29 +2,30 @@ import { NextResponse } from "next/server";
 import { getStoredTransactions, getAllTrackedTickers, getAllDedupKeys } from "@/lib/sec/persist";
 import { getSyncLog } from "@/lib/sync/sync-log";
 import { SYNC_CONFIG } from "@/lib/sync/sync-config";
+import { getWatchlist, isKvEnabled } from "@/lib/watchlist/persist";
 
 /**
  * GET /api/admin/resources
- * Lightweight resource dashboard reporting:
+ * Lightweight resource dashboard.
+ *
+ * Reports:
  * - Database row counts by ticker
  * - Approximate stored payload size
  * - Sync execution history
- * - External requests (inferred from sync log)
- * - Inserted vs duplicate records
- * - Average sync duration
- * - Failures and retries
- *
- * No authentication — this is a local/admin tool for the MVP.
- * In production, add a simple API key check.
+ * - Watchlist count and entries
+ * - KV persistence status (vs local JSON fallback)
+ * - Unsupported/error tickers
+ * - Limits and infrastructure notes
  */
-
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const tickers = await getAllTrackedTickers();
   const syncLog = getSyncLog();
+  const watchlistEntries = await getWatchlist();
+  const kvEnabled = isKvEnabled();
 
-  // Compute per-ticker statistics
+  // Per-ticker statistics
   const byTicker: Record<string, {
     storedTransactions: number;
     lastFetch: string | null;
@@ -37,8 +38,6 @@ export async function GET() {
     const txs = await getStoredTransactions(ticker);
     const count = txs.length;
     totalStoredRows += count;
-
-    // Approximate payload size: each transaction record is ~400 bytes of JSON
     const estBytes = count * 400;
     totalPayloadBytes += estBytes;
 
@@ -50,7 +49,6 @@ export async function GET() {
     };
   }
 
-  // Dedup key stats
   const dedupKeys = await getAllDedupKeys();
 
   return NextResponse.json({
@@ -65,6 +63,25 @@ export async function GET() {
         utilizationPercent: Math.round((dedupKeys.size / SYNC_CONFIG.MAX_DEDUP_KEYS) * 100),
       },
       byTicker,
+    },
+    watchlist: {
+      count: watchlistEntries.length,
+      activeCount: watchlistEntries.filter((e) => e.status === "active").length,
+      unsupportedCount: watchlistEntries.filter((e) => e.status === "unsupported").length,
+      errorCount: watchlistEntries.filter((e) => e.status === "error").length,
+      entries: watchlistEntries.map((e) => ({
+        ticker: e.ticker,
+        companyName: e.companyName,
+        status: e.status,
+        statusMessage: e.statusMessage,
+        addedAt: e.addedAt,
+        lastSyncedAt: e.lastSyncedAt,
+      })),
+      kvEnabled,
+      persistence: kvEnabled ? "kv" : "local-json",
+      warning: kvEnabled
+        ? undefined
+        : "KV not configured — watchlist is stored in local JSON. Set KV_URL and KV_REST_API_URL for production durability.",
     },
     sync: {
       totalRuns: syncLog.totalRuns,
@@ -96,14 +113,17 @@ export async function GET() {
     },
     infrastructure: {
       database: "none (Vercel KV + local JSON fallback)",
+      kvStatus: kvEnabled ? "connected" : "not configured",
       neon: "not configured",
       postgresql: "not configured",
       redis: "Vercel KV (optional)",
       storagePath: ".conviction/store.json (local)",
+      watchlistStorage: kvEnabled ? "Vercel KV (conviction:watchlist)" : "local JSON (.conviction/watchlist.json)",
     },
     notes: [
       "Page loads read persisted data only — no external provider calls.",
       "Ingestion is incremental: only unseen filing IDs trigger new records.",
+      "Watchlist is editable at runtime and persisted independently of transaction data.",
       "Dedup keys are pruned to max 5,000 entries.",
       "Transaction records are capped at 100 per ticker (newest).",
       "Sync log entries are capped at 100 (oldest evicted).",

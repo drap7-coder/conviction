@@ -1,27 +1,42 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/cron/daily-sync
- * Daily scheduled synchronization endpoint for Vercel Cron Jobs.
+ * Daily scheduled synchronization for all active watchlist companies.
+ *
+ * Reads from the persisted watchlist and syncs least-recently-synced
+ * active companies first, respecting all sync-config limits.
  *
  * Vercel Hobby plan: native cron supports at most once per day.
- * Do not use cron expressions more frequent than "0 0 * * *" (daily at midnight)
- * or "0 12 * * *" (daily at noon) on Hobby.
- *
- * If using Vercel Pro, this can be configured for more frequent runs.
- * Alternatively, an external scheduler (e.g., cron-job.org, GitHub Actions)
- * can call this endpoint with a simple CRON_SECRET for authorization.
- *
- * The endpoint is idempotent: repeated calls within the same day
+ * This endpoint is idempotent: repeated calls within the same day
  * will only insert new transactions not previously seen.
+ *
+ * Security: Protected by CRON_SECRET environment variable.
+ * Requests without a valid `Authorization: Bearer <CRON_SECRET>` header
+ * are rejected. This prevents unauthorized triggering of full syncs.
+ *
+ * For external schedulers (e.g., cron-job.org, GitHub Actions):
+ * Send header: Authorization: Bearer ${CRON_SECRET}
+ * to this endpoint URL.
  */
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // CRON_SECRET verification
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const auth = request.headers.get("authorization") || "";
+    if (auth !== `Bearer ${cronSecret}`) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized — provide a valid CRON_SECRET" },
+        { status: 401 },
+      );
+    }
+  }
+
   try {
-    // Forward to the refresh endpoint with no ticker (syncs all watchlist)
     const origin = process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000";
@@ -47,6 +62,7 @@ export async function GET() {
       cronJob: "daily-sync",
       note: "Vercel Hobby: max once per day. Upgrade to Pro for sub-daily schedules.",
       results: data.summary,
+      lruOrder: data.summary?.lruOrder,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {

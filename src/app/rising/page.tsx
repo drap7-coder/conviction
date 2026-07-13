@@ -2,53 +2,60 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FIXTURE_EMERGING, FIXTURE_TICKERS, FIXTURE_COMPANIES, DEMO_LABEL } from "@/lib/evidence/fixtures";
-import type { EvidenceEvent, ReasonCode, EmergingIdea } from "@/lib/evidence/types";
+import type { EvidenceEvent, ReasonCode } from "@/lib/evidence/types";
+import type { EmergingIdea } from "@/lib/evidence/types";
 
-const SECTOR_LOOKUP: Record<string, string> = {
-  OXY: "Oil & Gas",
-  INTC: "Semiconductors",
-  GOOG: "Technology",
-  NVO: "Pharmaceuticals",
-  PFE: "Pharmaceuticals",
-  NBIS: "Technology",
-  CRWD: "Cybersecurity",
-  ONON: "Consumer",
-  PLTR: "Technology",
-  RXRX: "Biotechnology",
-  AVAV: "Defense",
-};
+interface WatchlistEntry {
+  ticker: string;
+  companyName: string;
+  status: string;
+  lastSyncedAt?: string;
+}
 
-export default function EmergingPage() {
-  const [realEmerging, setRealEmerging] = useState<EmergingIdea[]>([]);
+export default function RisingConvictionPage() {
+  const [ideas, setIdeas] = useState<EmergingIdea[]>([]);
   const [loading, setLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadRealData() {
+    async function loadRisingConviction() {
       try {
+        // Load watchlist first
+        const wlRes = await fetch("/api/watchlist");
+        if (!wlRes.ok) {
+          setError("Failed to load watchlist");
+          setLoading(false);
+          return;
+        }
+        const wlData = await wlRes.json();
+        const activeEntries: WatchlistEntry[] = (wlData.entries ?? []).filter(
+          (e: WatchlistEntry) => e.status === "active",
+        );
+
+        if (activeEntries.length === 0) {
+          setError("No active companies in watchlist to evaluate");
+          setLoading(false);
+          return;
+        }
+
+        // Fetch insider data for each active watchlist company
         const results = await Promise.all(
-          FIXTURE_TICKERS.map(async (ticker) => {
-            const res = await fetch(`/api/evidence/insider?ticker=${ticker}`);
+          activeEntries.map(async (entry) => {
+            const res = await fetch(`/api/evidence/insider?ticker=${entry.ticker}`);
             if (!res.ok) return null;
             const data = await res.json();
             if (!data.events?.length) return null;
 
-            const company = FIXTURE_COMPANIES[ticker];
-            if (!company) return null;
-
             const events = data.events as EvidenceEvent[];
 
-            // Use conviction-aware evaluation with new type system
+            // Evaluate conviction: only directional transactions matter
             const directional = events.filter(
               (e) => e.metadata?.transactionType === "purchase" ||
                      e.metadata?.transactionType === "sale",
             );
             if (directional.length === 0) return null;
 
-            const reasonCodes: ReasonCode[] = [];
-
-            // Net conviction
+            // Calculate net conviction score
             let netScore = 0;
             let netShares = 0;
             for (const e of directional) {
@@ -63,6 +70,9 @@ export default function EmergingPage() {
               }
             }
 
+            const reasonCodes: ReasonCode[] = [];
+
+            // Strong conviction signal
             if (netScore >= 200) {
               reasonCodes.push({
                 code: "insider-conviction",
@@ -85,7 +95,7 @@ export default function EmergingPage() {
             if (buyers.size >= 2 && purchases.length >= 2) {
               reasonCodes.push({
                 code: "clustered-insider",
-                label: "Clustered insider buying from SEC Form 4",
+                label: "Clustered insider buying",
                 positive: true,
                 strength: Math.min(1, netScore / 300 + 0.2),
               });
@@ -104,14 +114,24 @@ export default function EmergingPage() {
               }
             }
 
+            // Bearish signal (contradiction)
+            if (netScore <= -100) {
+              reasonCodes.push({
+                code: "insider-selling",
+                label: `Notable insider selling (${netScore})`,
+                positive: false,
+                strength: Math.min(1, Math.abs(netScore) / 400),
+              });
+            }
+
             if (reasonCodes.length === 0) return null;
 
             const topEvent = [...events].sort((a, b) => b.strength - a.strength)[0];
 
             return {
-              ticker,
-              name: company.name,
-              sector: SECTOR_LOOKUP[ticker] ?? "Unknown",
+              ticker: entry.ticker,
+              name: entry.companyName,
+              sector: "Watchlist",
               reasonCodes,
               topEvent,
             } as EmergingIdea;
@@ -119,66 +139,60 @@ export default function EmergingPage() {
         );
 
         const valid = results.filter((r): r is EmergingIdea => r !== null);
-        setRealEmerging(valid);
+        setIdeas(valid);
       } catch (err) {
-        console.warn("[emerging] Failed to load real data:", err);
-        setFetchError("Failed to load real insider data");
+        console.warn("[rising] Failed to load data:", err);
+        setError("Failed to load insider data");
       } finally {
         setLoading(false);
       }
     }
 
-    loadRealData();
+    loadRisingConviction();
   }, []);
-
-  const displayEmerging = loading
-    ? FIXTURE_EMERGING
-    : realEmerging.length > 0
-      ? realEmerging
-      : FIXTURE_EMERGING;
-
-  const hasRealData = !loading && realEmerging.length > 0;
 
   return (
     <div>
       <div className="section-header">
-        <h2 className="section-title">Emerging evidence</h2>
-        <div className="flex items-center gap-8">
-          <span className="section-count">
-            {displayEmerging.length} companies
-          </span>
-          {hasRealData ? (
-            <span className="demo-badge" style={{ background: "var(--green-dim)", color: "var(--green)" }}>
-              REAL DATA
-            </span>
-          ) : (
-            <span className="demo-badge">DEMO DATA</span>
-          )}
-        </div>
+        <h2 className="section-title">Rising conviction</h2>
+        <span className="section-count">
+          {loading ? "..." : `${ideas.length} companies`}
+        </span>
       </div>
 
-      {!loading && fetchError ? (
-        <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.55rem", color: "var(--muted)", marginBottom: 8 }}>
-          {fetchError}. Showing demo data.
-        </p>
-      ) : null}
+      <p style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.55rem",
+        color: "var(--quiet)",
+        marginBottom: 16,
+        maxWidth: 500,
+      }}>
+        Watchlist companies showing stronger or newer insider-buying signals.
+        The name <em>Emerging</em> is reserved for a future feature that scans
+        companies outside your watchlist.
+      </p>
 
       {loading ? (
         <div className="empty-state">
-          <p>Loading evidence data...</p>
+          <p>Evaluating insider signals...</p>
         </div>
-      ) : displayEmerging.length === 0 ? (
+      ) : error && ideas.length === 0 ? (
         <div className="empty-state">
-          <p>No emerging ideas right now.</p>
-          <small>New evidence is evaluated daily.</small>
+          <p>{error}</p>
+          <small>Add companies to your watchlist and sync their SEC data first.</small>
+        </div>
+      ) : ideas.length === 0 ? (
+        <div className="empty-state">
+          <p>No rising conviction signals right now.</p>
+          <small>This section highlights watchlist companies with notable insider buying activity.</small>
         </div>
       ) : (
         <div className="emerging-list">
-          {displayEmerging.map((idea) => (
+          {ideas.map((idea) => (
             <div key={idea.ticker} className="emerging-card">
               <div className="emerging-header">
                 <span className="card-ticker">{idea.ticker}</span>
-                <span className="card-name">{idea.name} · {idea.sector}</span>
+                <span className="card-name">{idea.name}</span>
               </div>
 
               <div className="reason-codes">
@@ -202,19 +216,6 @@ export default function EmergingPage() {
               ) : null}
 
               <div className="flex items-center gap-8 mt-8">
-                <span className="metric">
-                  <span className="metric-label">strength</span>
-                  <span className="metric-value strong">
-                    {(
-                      idea.reasonCodes
-                        .filter((r) => r.positive)
-                        .reduce((s, r) => s + r.strength, 0) /
-                      Math.max(idea.reasonCodes.filter((r) => r.positive).length, 1) *
-                      100
-                    ).toFixed(0)}
-                    %
-                  </span>
-                </span>
                 <Link
                   href={`/companies/${idea.ticker}`}
                   className="detail-back"
@@ -227,16 +228,14 @@ export default function EmergingPage() {
         </div>
       )}
 
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.55rem",
-          color: "var(--quiet)",
-          textAlign: "center",
-          marginTop: 16,
-        }}
-      >
-        {hasRealData ? "Powered by SEC EDGAR Form 4 data" : DEMO_LABEL}
+      <p style={{
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.55rem",
+        color: "var(--quiet)",
+        textAlign: "center",
+        marginTop: 16,
+      }}>
+        Powered by SEC EDGAR Form 4 insider data
       </p>
     </div>
   );
