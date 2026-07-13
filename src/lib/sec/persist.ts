@@ -1,18 +1,13 @@
 /**
  * Lightweight persistence layer for CONVICTION.
  * Uses Vercel KV when available, falls back to in-memory + JSON.
- *
- * Stores:
- * - Last fetch timestamp per ticker
- * - Deduplication keys (known transaction IDs)
- * - Normalized insider transactions
- * - Emerging evidence candidates
  */
 
 import { kv } from "@vercel/kv";
 import fs from "fs";
 import path from "path";
-import type { InsiderTransaction, TransactionCode } from "./types";
+import type { InsiderTransaction, TransactionCode, InsiderTransactionType } from "./types";
+import { isDirectionalType } from "./types";
 
 const KV_ENABLED = !!process.env.KV_URL && !!process.env.KV_REST_API_URL;
 
@@ -31,7 +26,7 @@ export interface TransactionRecord {
   ticker: string;
   insiderName: string;
   insiderRole: string | null;
-  transactionClass: string;
+  transactionType: string;
   transactionCode: string;
   transactionDate: string;
   filingDate: string;
@@ -102,9 +97,6 @@ async function kvSet(key: string, value: unknown): Promise<void> {
   }
 }
 
-/**
- * Get the last fetch timestamp for a ticker.
- */
 export async function getLastFetchTime(ticker: string): Promise<string | null> {
   if (KV_ENABLED) {
     const val = await kvGet<string>(`conviction:fetch:${ticker}`);
@@ -114,9 +106,6 @@ export async function getLastFetchTime(ticker: string): Promise<string | null> {
   return store.lastFetchByTicker[ticker] || null;
 }
 
-/**
- * Set the last fetch timestamp for a ticker.
- */
 export async function setLastFetchTime(ticker: string, timestamp: string): Promise<void> {
   if (KV_ENABLED) {
     await kvSet(`conviction:fetch:${ticker}`, timestamp);
@@ -126,9 +115,6 @@ export async function setLastFetchTime(ticker: string, timestamp: string): Promi
   writeLocalStore(store);
 }
 
-/**
- * Check if a transaction ID is already known (deduplication).
- */
 export async function isKnownTransaction(id: string): Promise<boolean> {
   if (KV_ENABLED) {
     const exists = await kvGet<boolean>(`conviction:dedup:${id}`);
@@ -138,9 +124,6 @@ export async function isKnownTransaction(id: string): Promise<boolean> {
   return store.dedupKeys.includes(id);
 }
 
-/**
- * Mark transaction IDs as known.
- */
 export async function markKnownTransactions(ids: string[]): Promise<void> {
   if (ids.length === 0) return;
 
@@ -161,9 +144,6 @@ export async function markKnownTransactions(ids: string[]): Promise<void> {
   writeLocalStore(store);
 }
 
-/**
- * Get stored transactions for a ticker.
- */
 export async function getStoredTransactions(ticker: string): Promise<TransactionRecord[]> {
   if (KV_ENABLED) {
     const val = await kvGet<TransactionRecord[]>(`conviction:tx:${ticker}`);
@@ -173,15 +153,11 @@ export async function getStoredTransactions(ticker: string): Promise<Transaction
   return store.transactionsByTicker[ticker] || [];
 }
 
-/**
- * Store transactions for a ticker, merging with existing data.
- */
 export async function storeTransactions(
   ticker: string,
   records: TransactionRecord[],
   dedupKeys: string[],
 ): Promise<void> {
-  // Merge with existing
   const existing = await getStoredTransactions(ticker);
   const existingIds = new Set(existing.map((t) => t.id));
   const merged = [...existing];
@@ -192,7 +168,6 @@ export async function storeTransactions(
     }
   }
 
-  // Sort by transaction date descending, keep last 100
   merged.sort((a, b) => b.transactionDate.localeCompare(a.transactionDate));
   const trimmed = merged.slice(0, 100);
 
@@ -203,25 +178,14 @@ export async function storeTransactions(
   store.transactionsByTicker[ticker] = trimmed;
   writeLocalStore(store);
 
-  // Mark dedup keys
   await markKnownTransactions(dedupKeys);
 }
 
-/**
- * Get all known dedup keys.
- */
 export async function getAllDedupKeys(): Promise<Set<string>> {
-  if (KV_ENABLED) {
-    // For KV we need a different approach — scan
-    // Fall back to local for this
-  }
   const store = readLocalStore();
   return new Set(store.dedupKeys);
 }
 
-/**
- * Get all tickers with stored transactions.
- */
 export async function getAllTrackedTickers(): Promise<string[]> {
   const store = readLocalStore();
   return Object.keys(store.transactionsByTicker);
@@ -236,7 +200,7 @@ export function txToRecord(tx: InsiderTransaction): TransactionRecord {
     ticker: tx.ticker,
     insiderName: tx.insiderName,
     insiderRole: tx.insiderRole,
-    transactionClass: tx.transactionClass,
+    transactionType: tx.transactionType,
     transactionCode: tx.transactionCode,
     transactionDate: tx.transactionDate,
     filingDate: tx.filingDate,
@@ -245,7 +209,7 @@ export function txToRecord(tx: InsiderTransaction): TransactionRecord {
     totalValue: tx.totalValue,
     sharesOwnedAfter: tx.sharesOwnedAfter,
     filingUrl: tx.filingUrl,
-    isDirectional: tx.transactionClass === "open-market-purchase" || tx.transactionClass === "open-market-sale",
+    isDirectional: isDirectionalType(tx.transactionType),
     cik: tx.cik,
     accessionNumber: tx.accessionNumber,
     isDirector: tx.isDirector,
@@ -274,7 +238,7 @@ export function recordToTx(record: TransactionRecord): InsiderTransaction {
     transactionDate: record.transactionDate,
     filingDate: record.filingDate,
     transactionCode: record.transactionCode as TransactionCode,
-    transactionClass: record.transactionClass as any,
+    transactionType: record.transactionType as InsiderTransactionType,
     shares: record.shares,
     pricePerShare: record.pricePerShare,
     totalValue: record.totalValue,

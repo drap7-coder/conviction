@@ -4,7 +4,7 @@
  */
 
 import type { InsiderTransaction } from "./types";
-import { isDirectionalTransaction } from "./types";
+import { isDirectionalType } from "./types";
 
 export interface MaterialityScore {
   score: number; // 0-1
@@ -23,11 +23,10 @@ export interface MaterialityFactor {
  *
  * Factors:
  * 1. Transaction value (larger = more material)
- * 2. Insider role (director/CEO > officer > 10% owner)
+ * 2. Insider role (CEO/CFO > director > officer > other)
  * 3. Open-market vs non-market (open-market carries more signal)
  * 4. Ownership change percentage (larger percentage = more material)
- * 5. Directional consistency (buys from directors more significant than sells)
- * 6. Filing freshness (faster disclosure = less preparation = more genuine)
+ * 5. Filing freshness (faster disclosure = more genuine)
  */
 export function calculateMateriality(tx: InsiderTransaction): MaterialityScore {
   const factors: MaterialityFactor[] = [];
@@ -58,11 +57,11 @@ export function calculateMateriality(tx: InsiderTransaction): MaterialityScore {
   totalScore += roleScore * 0.2;
 
   // 3. Market transaction factor (max contribution: 0.25)
-  const marketScore = isDirectionalTransaction(tx.transactionClass) ? 1.0 : 0.15;
+  const marketScore = isDirectionalType(tx.transactionType) ? 1.0 : 0.15;
   factors.push({
     name: "market-transaction",
     contribution: marketScore * 0.25,
-    description: isDirectionalTransaction(tx.transactionClass)
+    description: isDirectionalType(tx.transactionType)
       ? "Open-market transaction (high signal)"
       : "Non-market transaction (grant/award/exercise)",
   });
@@ -91,9 +90,6 @@ export function calculateMateriality(tx: InsiderTransaction): MaterialityScore {
   });
   totalScore += freshnessScore * 0.1;
 
-  // 6. Bonus: clustered activity (max bonus: 0.05)
-  // (handled at the company level, not per-transaction)
-
   // Normalize to 0-1
   totalScore = Math.min(1, Math.max(0, totalScore));
 
@@ -104,12 +100,10 @@ export function calculateMateriality(tx: InsiderTransaction): MaterialityScore {
 
 function calculateValueScore(value: number | null): number {
   if (!value || value <= 0) return 0;
-  // Logarithmic scale: $10K → 0.1, $100K → 0.3, $1M → 0.6, $10M+ → 1.0
   return Math.min(1.0, Math.log10(Math.max(10000, value) / 10000) / 3);
 }
 
 function calculateRoleScore(tx: InsiderTransaction): number {
-  // CEO/President: 1.0, Director: 0.8, Officer: 0.5, 10% owner: 0.4, Other: 0.2
   if (tx.insiderRole?.toLowerCase().includes("ceo") ||
       tx.insiderRole?.toLowerCase().includes("president") ||
       tx.insiderRole?.toLowerCase().includes("chief")) {
@@ -136,34 +130,29 @@ function formatValue(value: number | null): string {
 
 /**
  * Detect clustered insider buying for emerging evidence.
- * Returns true if there are multiple open-market purchases by different
- * insiders within a 30-day window.
  */
 export function detectClusteredBuying(
   transactions: InsiderTransaction[],
   windowDays: number = 30,
 ): boolean {
   const purchases = transactions.filter(
-    (t) => t.transactionClass === "open-market-purchase",
+    (t) => t.transactionType === "purchase",
   );
   if (purchases.length < 2) return false;
 
-  // Check if 2+ different insiders bought within the window
   const uniqueInsiders = new Set(purchases.map((p) => p.insiderName));
   if (uniqueInsiders.size < 2) {
-    // Single insider buying multiple times within window
     const dates = purchases.map((p) => new Date(p.transactionDate).getTime());
     const earliest = Math.min(...dates);
     const latest = Math.max(...dates);
     return (latest - earliest) / (1000 * 60 * 60 * 24) <= windowDays;
   }
-
   return true;
 }
 
 /**
  * Calculate total insider conviction score for a company.
- * Used for emerging evidence ranking.
+ * Legacy: prefer calculateConviction from conviction-engine.ts.
  */
 export function calculateInsiderConviction(
   transactions: InsiderTransaction[],
@@ -171,21 +160,18 @@ export function calculateInsiderConviction(
   if (transactions.length === 0) return 0;
 
   const directional = transactions.filter(
-    (t) => isDirectionalTransaction(t.transactionClass),
+    (t) => isDirectionalType(t.transactionType),
   );
   if (directional.length === 0) return 0;
 
-  // Ratio of purchases to total directional transactions
-  const purchases = directional.filter((t) => t.transactionClass === "open-market-purchase");
+  const purchases = directional.filter((t) => t.transactionType === "purchase");
   const buyRatio = purchases.length / directional.length;
 
-  // Average materiality of purchases
   const materialityScores = purchases.map((p) => calculateMateriality(p).score);
   const avgMateriality = materialityScores.length > 0
     ? materialityScores.reduce((a, b) => a + b, 0) / materialityScores.length
     : 0;
 
-  // Number of unique transacting insiders
   const uniqueInsiders = new Set(directional.map((t) => t.insiderName)).size;
 
   return (buyRatio * 0.5 + avgMateriality * 0.3 + Math.min(1, uniqueInsiders / 3) * 0.2);

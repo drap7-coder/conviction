@@ -39,38 +39,59 @@ export default function EmergingPage() {
 
             const events = data.events as EvidenceEvent[];
 
-            // Convert events to transactions for reason code evaluation
-            // We need to evaluate directional events
-            const directionalEvents = events.filter(
-              (e) => e.metadata?.transactionClass === "open-market-purchase" || 
-                     e.metadata?.transactionClass === "open-market-sale"
+            // Use conviction-aware evaluation with new type system
+            const directional = events.filter(
+              (e) => e.metadata?.transactionType === "purchase" ||
+                     e.metadata?.transactionType === "sale",
             );
-            if (directionalEvents.length === 0) return null;
+            if (directional.length === 0) return null;
 
-            // Get reason codes from the real events
             const reasonCodes: ReasonCode[] = [];
 
-            // Check for clustered buying
+            // Net conviction
+            let netScore = 0;
+            let netShares = 0;
+            for (const e of directional) {
+              const v = e.metadata?.totalValue || 0;
+              const s = e.metadata?.shares || 0;
+              if (e.metadata?.transactionType === "purchase") {
+                netScore += Math.round(v / 1000);
+                netShares += s;
+              } else {
+                netScore -= Math.round(v / 1000 * 0.4);
+                netShares -= s;
+              }
+            }
+
+            if (netScore >= 200) {
+              reasonCodes.push({
+                code: "insider-conviction",
+                label: `Strong insider conviction (${netScore > 0 ? "+" : ""}${netScore})`,
+                positive: true,
+                strength: Math.min(1, netScore / 500),
+              });
+            }
+
+            // Clustered buying
             const buyers = new Set(
               events
-                .filter((e) => e.metadata?.transactionClass === "open-market-purchase")
-                .map((e) => e.metadata?.insiderName)
+                .filter((e) => e.metadata?.transactionType === "purchase")
+                .map((e) => e.metadata?.insiderName),
             );
             const purchases = events.filter(
-              (e) => e.metadata?.transactionClass === "open-market-purchase"
+              (e) => e.metadata?.transactionType === "purchase",
             );
 
             if (buyers.size >= 2 && purchases.length >= 2) {
-              const avgStrength = purchases.reduce((s, e) => s + e.strength, 0) / purchases.length;
               reasonCodes.push({
                 code: "clustered-insider",
                 label: "Clustered insider buying from SEC Form 4",
                 positive: true,
-                strength: Math.min(1, avgStrength + 0.2),
+                strength: Math.min(1, netScore / 300 + 0.2),
               });
             }
 
-            // Check for large individual purchase
+            // Large individual purchase
             for (const purchase of purchases) {
               if (purchase.strength >= 0.7) {
                 reasonCodes.push({
@@ -85,7 +106,6 @@ export default function EmergingPage() {
 
             if (reasonCodes.length === 0) return null;
 
-            // Top event is the highest strength purchase event
             const topEvent = [...events].sort((a, b) => b.strength - a.strength)[0];
 
             return {
@@ -111,7 +131,6 @@ export default function EmergingPage() {
     loadRealData();
   }, []);
 
-  // Merge real emerging with fixtures — real data takes priority
   const displayEmerging = loading
     ? FIXTURE_EMERGING
     : realEmerging.length > 0

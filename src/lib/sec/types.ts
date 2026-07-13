@@ -2,7 +2,7 @@
  * Types for SEC EDGAR Form 4 insider transaction data.
  */
 
-export type TransactionCode = "P" | "S" | "A" | "D" | "F" | "I" | "M" | "W" | "U" | "X" | "G" | "J" | "L" | "K" | "Z";
+export type TransactionCode = "P" | "S" | "A" | "D" | "F" | "I" | "M" | "W" | "U" | "X" | "G" | "J" | "L" | "K" | "Z" | "C" | "V";
 
 export const TRANSACTION_CODE_LABELS: Record<TransactionCode, string> = {
   P: "Open-market purchase",
@@ -20,45 +20,72 @@ export const TRANSACTION_CODE_LABELS: Record<TransactionCode, string> = {
   L: "Small acquisition",
   K: "Equity swap",
   Z: "Other",
+  C: "Conversion/exercise",
+  V: "Other (voluntary reporting)",
 };
 
-export type TransactionClass =
-  | "open-market-purchase"
-  | "open-market-sale"
+/**
+ * Normalized insider transaction type — maps SEC codes to meaningful categories.
+ * Only P and S are economically directional.
+ */
+export type InsiderTransactionType =
+  | "purchase"
+  | "sale"
   | "grant"
-  | "exercise"
-  | "tax-withholding"
-  | "automatic-plan-sale"
-  | "disposition"
+  | "option_exercise"
   | "gift"
+  | "tax_withholding"
   | "other";
 
-export function classifyTransactionCode(code: TransactionCode): TransactionClass {
-  switch (code) {
-    case "P": return "open-market-purchase";
-    case "S": return "open-market-sale";
-    case "A": return "grant";
-    case "M":
-    case "X": return "exercise";
-    case "F": return "tax-withholding";
-    case "U": return "automatic-plan-sale";
-    case "D": return "disposition";
-    case "G": return "gift";
-    default: return "other";
-  }
+/** Mapping: SEC transaction code → InsiderTransactionType */
+export const CODE_TO_TYPE: Record<TransactionCode, InsiderTransactionType> = {
+  P: "purchase",
+  S: "sale",
+  D: "sale",
+  A: "grant",
+  M: "option_exercise",
+  C: "option_exercise",
+  G: "gift",
+  F: "tax_withholding",
+  V: "other",
+  I: "other",
+  W: "other",
+  U: "other",
+  X: "other",
+  J: "other",
+  L: "other",
+  K: "other",
+  Z: "other",
+};
+
+export const TX_TYPE_LABELS: Record<InsiderTransactionType, string> = {
+  purchase: "Open Market Purchase",
+  sale: "Open Market Sale",
+  grant: "Equity Grant",
+  option_exercise: "Option Exercise",
+  gift: "Gift",
+  tax_withholding: "Tax Withholding",
+  other: "Other",
+};
+
+export function codeToType(code: TransactionCode): InsiderTransactionType {
+  return CODE_TO_TYPE[code] || "other";
 }
 
-export function isDirectionalTransaction(cls: TransactionClass): boolean {
-  return cls === "open-market-purchase" || cls === "open-market-sale";
+export function isDirectionalType(txType: InsiderTransactionType): boolean {
+  return txType === "purchase" || txType === "sale";
 }
 
+/**
+ * Core normalized insider transaction — never exposes raw SEC XML.
+ */
 export interface InsiderTransaction {
   /** Unique deduplication key */
   id: string;
   ticker: string;
   cik: string;
   accessionNumber: string;
-  /** SEC filing URL */
+  /** SEC filing detail page URL */
   filingUrl: string;
 
   /** Insider info */
@@ -69,10 +96,10 @@ export interface InsiderTransaction {
   isTenPercentOwner: boolean;
 
   /** Transaction details */
-  transactionDate: string; // ISO date
+  transactionDate: string; // ISO date (trade date)
   filingDate: string; // ISO date
-  transactionCode: TransactionCode;
-  transactionClass: TransactionClass;
+  transactionCode: TransactionCode; // Original SEC code (for debugging)
+  transactionType: InsiderTransactionType; // Normalized type
   shares: number;
   pricePerShare: number | null;
   totalValue: number | null;
@@ -102,6 +129,7 @@ export interface InsiderTransactionEvent {
     insiderName: string;
     insiderRole: string | null;
     transactionClass: string;
+    transactionType: InsiderTransactionType;
     shares: number;
     totalValue: number | null;
     sharesOwnedAfter: number | null;
@@ -115,9 +143,9 @@ export interface SecSubmissionResult {
 }
 
 export interface SecProviderState {
-  lastFetchByTicker: Record<string, string>; // ticker → ISO timestamp
-  dedupKeys: string[]; // known transaction IDs
-  emergingCandidates: Record<string, EmergingInsiderCandidate>;
+  lastFetchByTicker: Record<string, string>;
+  dedupKeys: string[];
+  transactionsByTicker: Record<string, InsiderTransaction[]>;
 }
 
 export interface EmergingInsiderCandidate {

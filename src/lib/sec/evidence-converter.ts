@@ -4,8 +4,9 @@
  */
 
 import type { InsiderTransaction } from "./types";
-import { isDirectionalTransaction } from "./types";
+import { isDirectionalType, TX_TYPE_LABELS } from "./types";
 import { calculateMateriality } from "./materiality";
+import { calculateConviction, summarizeTransactions } from "./conviction-engine";
 import type { EvidenceEvent, ReasonCode, EmergingIdea } from "@/lib/evidence/types";
 
 /**
@@ -16,21 +17,18 @@ export function insiderToEvidenceEvent(
   aiExplanation?: string,
 ): EvidenceEvent {
   const materiality = calculateMateriality(tx);
-  const isDirectional = isDirectionalTransaction(tx.transactionClass);
-  const isBuy = tx.transactionClass === "open-market-purchase";
+  const isDirectional = isDirectionalType(tx.transactionType);
+  const isBuy = tx.transactionType === "purchase";
 
-  // Determine direction
   const direction = isDirectional
     ? isBuy ? "positive" as const : "negative" as const
     : "neutral" as const;
 
-  // Determine event type
   const type = isDirectional
     ? isBuy ? "insider-buy" as const : "insider-sell" as const
-    : "insider-buy" as const; // Non-directional still appears as insider event
+    : "insider-buy" as const;
 
-  // Build title
-  const actionLabel = getActionLabel(tx);
+  const actionLabel = TX_TYPE_LABELS[tx.transactionType] || "Insider transaction";
   const valueStr = tx.totalValue
     ? tx.totalValue >= 1_000_000
       ? `$${(tx.totalValue / 1_000_000).toFixed(1)}M`
@@ -39,31 +37,24 @@ export function insiderToEvidenceEvent(
 
   const title = `${actionLabel} — ${tx.insiderName} ${direction === "positive" ? "acquired" : direction === "negative" ? "disposed" : "transacted"} ${valueStr}`;
 
-  // Build summary
   const roleStr = tx.insiderRole ? ` (${tx.insiderRole})` : "";
   const ownershipStr = tx.sharesOwnedAfter
     ? `. Holds ${tx.sharesOwnedAfter.toLocaleString()} shares after.`
     : "";
   const summary = `${tx.insiderName}${roleStr} in ${tx.ticker}${ownershipStr}`;
 
-  // Calculate disclosure delay
   const delayMs = new Date(tx.filingDate).getTime() - new Date(tx.transactionDate).getTime();
   const disclosureDelay = Math.max(0, Math.round(delayMs / (1000 * 60 * 60 * 24)));
 
-  // Evidence strength comes from materiality
   const strength = materiality.score * (isDirectional ? 1.0 : 0.3);
-
-  // Contradiction: an insider sell is contradictory if most evidence is positive
-  // (True contradiction detection requires company-level context)
   const isContradiction = direction === "negative" && isDirectional;
 
-  // Default AI explanation if none provided
   const explanation = aiExplanation || generateDefaultExplanation(tx, materiality);
 
   return {
     id: tx.id,
     ticker: tx.ticker,
-    type: tx.transactionClass === "open-market-sale" ? "insider-sell" as any : "insider-buy" as any,
+    type,
     direction,
     title,
     summary,
@@ -78,7 +69,8 @@ export function insiderToEvidenceEvent(
     metadata: {
       insiderName: tx.insiderName,
       insiderRole: tx.insiderRole,
-      transactionClass: tx.transactionClass,
+      transactionClass: tx.transactionType,
+      transactionType: tx.transactionType,
       shares: tx.shares,
       totalValue: tx.totalValue,
       sharesOwnedAfter: tx.sharesOwnedAfter,
@@ -88,7 +80,6 @@ export function insiderToEvidenceEvent(
 
 /**
  * Generate a deterministic default explanation when AI is unavailable.
- * This ensures the system works without any AI dependency.
  */
 function generateDefaultExplanation(
   tx: InsiderTransaction,
@@ -96,14 +87,14 @@ function generateDefaultExplanation(
 ): string {
   const parts: string[] = [];
 
-  if (isDirectionalTransaction(tx.transactionClass)) {
-    if (tx.transactionClass === "open-market-purchase") {
+  if (isDirectionalType(tx.transactionType)) {
+    if (tx.transactionType === "purchase") {
       parts.push(`${tx.insiderName} purchased ${tx.shares.toLocaleString()} shares at market price.`);
     } else {
       parts.push(`${tx.insiderName} sold ${tx.shares.toLocaleString()} shares on the open market.`);
     }
   } else {
-    parts.push(`${tx.insiderName} reported a ${tx.transactionClass.replace(/-/g, " ")} transaction.`);
+    parts.push(`${tx.insiderName} reported a ${TX_TYPE_LABELS[tx.transactionType]?.toLowerCase() || "transaction"}.`);
   }
 
   if (tx.totalValue) {
@@ -123,23 +114,8 @@ function generateDefaultExplanation(
   return parts.join(" ");
 }
 
-function getActionLabel(tx: InsiderTransaction): string {
-  switch (tx.transactionClass) {
-    case "open-market-purchase": return "Open-market buy";
-    case "open-market-sale": return "Open-market sale";
-    case "grant": return "Grant received";
-    case "exercise": return "Option exercise";
-    case "tax-withholding": return "Tax withholding";
-    case "automatic-plan-sale": return "Plan sale";
-    case "disposition": return "Disposition";
-    case "gift": return "Gift";
-    default: return "Insider transaction";
-  }
-}
-
 /**
  * Check if a company qualifies for emerging evidence based on insider activity.
- * Returns reason codes if it does.
  */
 export function getEmergingReasonCodes(
   transactions: InsiderTransaction[],
@@ -148,30 +124,35 @@ export function getEmergingReasonCodes(
 ): { qualify: boolean; reasonCodes: ReasonCode[] } {
   if (transactions.length === 0) return { qualify: false, reasonCodes: [] };
 
+  const conviction = calculateConviction(transactions);
   const reasonCodes: ReasonCode[] = [];
-  const directional = transactions.filter((t) => isDirectionalTransaction(t.transactionClass));
-  const purchases = directional.filter((t) => t.transactionClass === "open-market-purchase");
-  const sales = directional.filter((t) => t.transactionClass === "open-market-sale");
 
-  // Clustered insider buying
-  const uniqueBuyers = new Set(purchases.map((p) => p.insiderName));
-  if (uniqueBuyers.size >= 2 && purchases.length >= 3) {
-    const avgStrength = purchases.reduce((s, p) => s + calculateMateriality(p).score, 0) / purchases.length;
+  if (conviction.label === "bullish") {
     reasonCodes.push({
-      code: "clustered-insider",
-      label: "Clustered insider buying",
+      code: "insider-conviction-bullish",
+      label: `Bullish insider conviction (${conviction.netScore > 0 ? "+" : ""}${conviction.netScore})`,
       positive: true,
-      strength: Math.min(1, avgStrength + 0.2),
+      strength: Math.min(1, conviction.netScore / 300),
     });
   }
 
-  // Unusually large purchase
+  const purchases = transactions.filter((t) => t.transactionType === "purchase");
+  const uniqueBuyers = new Set(purchases.map((p) => p.insiderName));
+  if (uniqueBuyers.size >= 2 && purchases.length >= 2) {
+    reasonCodes.push({
+      code: "clustered-insider",
+      label: "Clustered insider buying from SEC Form 4",
+      positive: true,
+      strength: Math.min(1, conviction.netScore / 200 + 0.2),
+    });
+  }
+
   for (const purchase of purchases) {
     const materiality = calculateMateriality(purchase);
     if (materiality.score >= 0.7) {
       reasonCodes.push({
         code: "large-insider-purchase",
-        label: `Large insider purchase (${purchase.insiderName})`,
+        label: `Large purchase by ${purchase.insiderName}`,
         positive: true,
         strength: materiality.score,
       });
@@ -179,24 +160,12 @@ export function getEmergingReasonCodes(
     }
   }
 
-  // Multiple insiders buying
-  if (uniqueBuyers.size >= 2 && reasonCodes.length === 0) {
+  if (conviction.label === "bearish") {
     reasonCodes.push({
-      code: "multiple-insiders",
-      label: "Multiple insiders accumulating",
-      positive: true,
-      strength: Math.min(0.8, uniqueBuyers.size * 0.25),
-    });
-  }
-
-  // Heavy insider selling (cautionary)
-  const uniqueSellers = new Set(sales.map((s) => s.insiderName));
-  if (uniqueSellers.size >= 2 && sales.length >= purchases.length * 2) {
-    reasonCodes.push({
-      code: "clustered-insider-selling",
-      label: "Clustered insider selling",
+      code: "insider-conviction-bearish",
+      label: `Bearish insider conviction (${conviction.netScore})`,
       positive: false,
-      strength: Math.min(0.8, sales.length * 0.15),
+      strength: Math.min(1, Math.abs(conviction.netScore) / 200),
     });
   }
 
@@ -218,13 +187,18 @@ export function insiderTransactionsToEmergingIdea(
   const { qualify, reasonCodes } = getEmergingReasonCodes(transactions, ticker, name);
   if (!qualify || reasonCodes.length === 0) return null;
 
-  // Pick the highest materiality directional purchase as the top event
-  const purchases = transactions
-    .filter((t) => t.transactionClass === "open-market-purchase")
-    .sort((a, b) => calculateMateriality(b).score - calculateMateriality(a).score);
+  const conviction = calculateConviction(transactions);
+  const topPurchases = transactions
+    .filter((t) => t.transactionType === "purchase")
+    .sort((a, b) => (b.totalValue ?? 0) - (a.totalValue ?? 0));
 
-  const topTx = purchases[0] || transactions[0];
+  const topTx = topPurchases[0] || transactions[0];
   const topEvent = insiderToEvidenceEvent(topTx);
+
+  topEvent.aiExplanation = `Net insider conviction: ${conviction.netScore > 0 ? "+" : ""}${conviction.netScore} (${conviction.label}). ` +
+    `Total purchased: $${(conviction.totalPurchased / 1_000_000).toFixed(1)}M. ` +
+    `Total sold: $${(conviction.totalSold / 1_000_000).toFixed(1)}M. ` +
+    `Net shares: ${conviction.netShares > 0 ? "+" : ""}${conviction.netShares.toLocaleString()}.`;
 
   return {
     ticker,

@@ -13,10 +13,9 @@ import { CIK_MAP } from "./cik";
 import type {
   InsiderTransaction,
   TransactionCode,
-  TransactionClass,
   SecSubmissionResult,
 } from "./types";
-import { classifyTransactionCode, isDirectionalTransaction } from "./types";
+import { codeToType } from "./types";
 
 const SEC_BASE = "https://data.sec.gov";
 const SEC_EDGAR = "https://www.sec.gov";
@@ -245,7 +244,7 @@ function parseNonDerivativeTransaction(
   if (!rawCode) return null;
 
   const transactionCode = rawCode.toUpperCase() as TransactionCode;
-  const transactionClass = classifyTransactionCode(transactionCode);
+  const transactionType = codeToType(transactionCode);
 
   // Shares
   const sharesRaw = extractXmlTag(section, "transactionShares");
@@ -293,7 +292,7 @@ function parseNonDerivativeTransaction(
     transactionDate,
     filingDate,
     transactionCode,
-    transactionClass,
+    transactionType,
     shares,
     pricePerShare,
     totalValue,
