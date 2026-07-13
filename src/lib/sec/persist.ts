@@ -1,6 +1,11 @@
 /**
  * Lightweight persistence layer for CONVICTION.
  * Uses Vercel KV when available, falls back to in-memory + JSON.
+ *
+ * Retention:
+ * - Transaction records: max 100 per ticker (newest)
+ * - Dedup keys: max 5,000 (oldest pruned)
+ * - Last fetch timestamps: one per ticker (never grows unboundedly)
  */
 
 import { kv } from "@vercel/kv";
@@ -8,6 +13,7 @@ import fs from "fs";
 import path from "path";
 import type { InsiderTransaction, TransactionCode, InsiderTransactionType } from "./types";
 import { isDirectionalType } from "./types";
+import { SYNC_CONFIG } from "../sync/sync-config";
 
 const KV_ENABLED = !!process.env.KV_URL && !!process.env.KV_REST_API_URL;
 
@@ -140,7 +146,15 @@ export async function markKnownTransactions(ids: string[]): Promise<void> {
   for (const id of ids) {
     existing.add(id);
   }
-  store.dedupKeys = Array.from(existing);
+  let dedupKeys = Array.from(existing);
+
+  // Prune oldest keys when over max limit
+  if (dedupKeys.length > SYNC_CONFIG.MAX_DEDUP_KEYS) {
+    dedupKeys.sort(); // chronological based on format: TICKER::ACCESSION::INDEX::CODE
+    dedupKeys = dedupKeys.slice(dedupKeys.length - SYNC_CONFIG.MAX_DEDUP_KEYS);
+  }
+
+  store.dedupKeys = dedupKeys;
   writeLocalStore(store);
 }
 
@@ -169,7 +183,7 @@ export async function storeTransactions(
   }
 
   merged.sort((a, b) => b.transactionDate.localeCompare(a.transactionDate));
-  const trimmed = merged.slice(0, 100);
+  const trimmed = merged.slice(0, SYNC_CONFIG.MAX_TRANSACTIONS_PER_TICKER);
 
   if (KV_ENABLED) {
     await kvSet(`conviction:tx:${ticker}`, trimmed);

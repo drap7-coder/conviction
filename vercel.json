@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-sync",
+      "schedule": "0 12 * * *"
+    }
+  ],
+  "functions": {
+    "api/cron/daily-sync/route.ts": {
+      "maxDuration": 60
+    },
+    "api/evidence/refresh/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
