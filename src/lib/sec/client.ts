@@ -60,7 +60,7 @@ export function resolveCIK(ticker: string): string | null {
  */
 export async function fetchCompanySubmissions(
   cik: string,
-): Promise<Record<string, unknown> | null> {
+): Promise<{ submissions: Record<string, unknown> | null; rawCik: string }> {
   const paddedCik = cik.padStart(10, "0");
   const url = `${SEC_BASE}/submissions/CIK${paddedCik}.json`;
 
@@ -68,35 +68,45 @@ export async function fetchCompanySubmissions(
     const response = await rateLimitedFetch(url);
     if (!response.ok) {
       console.warn(`[sec] CIK ${cik}: HTTP ${response.status}`);
-      return null;
+      return { submissions: null, rawCik: cik };
     }
-    const data = await response.json();
-    return data as Record<string, unknown>;
+    const data = (await response.json()) as Record<string, unknown>;
+    // The API sometimes returns CIK as string (without zeros); use it
+    const rawCik = (data?.cik as string) || cik;
+    return { submissions: data, rawCik };
   } catch (err) {
     console.warn(`[sec] CIK ${cik} fetch failed:`, err instanceof Error ? err.message : err);
-    return null;
+    return { submissions: null, rawCik: cik };
   }
 }
 
 /**
  * Extract recent Form 4 accession numbers from company submissions.
+ * SEC JSON API returns parallel arrays (form[], filingDate[], accessionNumber[], etc.).
  */
 export function extractForm4Accessions(
   data: Record<string, unknown>,
 ): Array<{ accession: string; filingDate: string; primaryDocument: string }> {
   const filings = data?.filings as Record<string, unknown> | undefined;
-  const recent = filings?.recent as Array<Record<string, unknown>> | undefined;
+  const recent = filings?.recent as Record<string, unknown[]> | undefined;
   if (!recent) return [];
+
+  const forms = recent.form as string[] | undefined;
+  const filingDates = recent.filingDate as string[] | undefined;
+  const accessions = recent.accessionNumber as string[] | undefined;
+  const primaryDocs = recent.primaryDocument as string[] | undefined;
+
+  if (!forms || !filingDates || !accessions || !primaryDocs) return [];
 
   const form4s: Array<{ accession: string; filingDate: string; primaryDocument: string }> = [];
 
-  for (const filing of recent) {
-    const form = filing?.form as string | undefined;
+  for (let i = 0; i < forms.length; i++) {
+    const form = forms[i];
     if (form !== "4") continue;
 
-    const accession = filing?.accessionNumber as string | undefined;
-    const filingDate = filing?.filingDate as string | undefined;
-    const primaryDoc = filing?.primaryDocument as string | undefined;
+    const accession = accessions[i];
+    const filingDate = filingDates[i];
+    const primaryDoc = primaryDocs[i];
 
     if (accession && filingDate && primaryDoc) {
       form4s.push({ accession, filingDate, primaryDocument: primaryDoc });
@@ -109,23 +119,48 @@ export function extractForm4Accessions(
 }
 
 /**
- * Build the SEC filing URL for a Form 4 document.
+ * Build the SEC filing detail page URL (not the raw document URL).
  */
-function buildFilingUrl(cik: string, accession: string, primaryDoc: string): string {
-  const paddedCik = cik.padStart(10, "0");
+function buildFilingUrl(cik: string, accession: string, _primaryDoc?: string): string {
+  // Strip leading zeros for EDGAR archive paths
+  const bareCik = cik.replace(/^0+/, "");
   const accessionNoDash = accession.replace(/-/g, "");
-  return `${SEC_EDGAR}/Archives/edgar/data/${paddedCik}/${accessionNoDash}/${primaryDoc}`;
+  return `${SEC_EDGAR}/Archives/edgar/data/${bareCik}/${accessionNoDash}/${accessionNoDash}-index.htm`;
 }
 
 /**
  * Parse the ownershipDocument XML (non-namespace SEC schema).
  * Returns the raw text of the document for text-based parsing.
+ * SEC stores Form 4 in two forms: an HTML-rendered version in a subdirectory
+ * and the raw XML at the top level. We try the raw XML first.
  */
 async function fetchForm4Document(
   cik: string,
   accession: string,
   primaryDoc: string,
 ): Promise<string | null> {
+  const bareCik = cik.replace(/^0+/, "");
+  const accessionNoDash = accession.replace(/-/g, "");
+
+  // Derive the raw XML filename by stripping any subdirectory prefix
+  const rawFilename = primaryDoc.includes("/") ? primaryDoc.split("/").pop()! : primaryDoc;
+
+  // Try raw XML data file first
+  const rawUrl = `${SEC_EDGAR}/Archives/edgar/data/${bareCik}/${accessionNoDash}/${rawFilename}`;
+  try {
+    const response = await rateLimitedFetch(rawUrl);
+    if (response.ok) {
+      const text = await response.text();
+      // Verify it's actual XML, not HTML
+      if (text.trim().startsWith("<?xml") || text.trim().startsWith("<ownershipDocument")) {
+        return text;
+      }
+    }
+  } catch {
+    // Fall through to try primary doc
+  }
+
+  // Fall back to the primary document
   const url = buildFilingUrl(cik, accession, primaryDoc);
   try {
     const response = await rateLimitedFetch(url);
@@ -141,19 +176,26 @@ async function fetchForm4Document(
 }
 
 /**
- * Extract a value from XML-like text using a tag pattern.
- * Handles both <tag>value</tag> and <tag attr="val">value</tag>.
+ * Extract a value from XML-like text.
+ * SEC Form 4 XML uses nested format: <tag><value>data</value></tag>
+ * Also handles <tag>data</tag> and <tag attr="val">data</tag>.
  */
 function extractXmlTag(xml: string, tag: string): string | null {
-  // Try with namespace prefix first
-  const patterns = [
-    new RegExp(`<ns[0-9]*:${tag}[^>]*>([^<]*)<\\/ns[0-9]*:${tag}>`, "i"),
-    new RegExp(`<${tag}[^>]*>([^<]*)<\\/${tag}>`, "i"),
-  ];
-  for (const pattern of patterns) {
-    const match = xml.match(pattern);
-    if (match) return match[1].trim();
-  }
+  // Match the section between opening and closing tag
+  // Then look for a nested <value> tag first, or use the raw content
+  const pattern = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, "i");
+  const match = xml.match(pattern);
+  if (!match) return null;
+
+  const content = match[1].trim();
+  if (!content) return null;
+
+  // If there's a nested <value> tag, use that
+  const valueMatch = content.match(/<value>([^<]*)<\/value>/i);
+  if (valueMatch) return valueMatch[1].trim();
+
+  // Otherwise use the raw content (but only if it doesn't contain nested XML tags)
+  if (!content.includes("<")) return content;
   return null;
 }
 
@@ -235,7 +277,7 @@ function parseNonDerivativeTransaction(
     : null;
 
   const id = `${ticker}::${accession}::${index}::${transactionCode}`;
-  const filingUrl = buildFilingUrl(cik, accession, formatAccession(accession, "primary"));
+  const filingUrl = buildFilingUrl(cik, accession);
 
   return {
     id,
@@ -261,13 +303,8 @@ function parseNonDerivativeTransaction(
   };
 }
 
-function formatAccession(accession: string, type: "primary"): string {
-  if (type === "primary") {
-    const noDash = accession.replace(/-/g, "");
-    return `${noDash}/${accession}-index.html`; // For the filing detail page
-  }
-  return accession;
-}
+// (formatAccession removed — filingUrl now uses buildFilingUrl directly)
+
 
 /**
  * Parse the reporting owner section from Form 4 XML.
@@ -375,7 +412,7 @@ export async function fetchInsiderTransactions(
   }
 
   // Fetch company submissions
-  const submissions = await fetchCompanySubmissions(cik);
+  const { submissions, rawCik } = await fetchCompanySubmissions(cik);
   if (!submissions) {
     errors.push(`Failed to fetch submissions for ${ticker} (CIK ${cik})`);
     return { newTransactions: [], allTransactions: [], errors, fetchedAt: new Date().toISOString() };
@@ -389,13 +426,13 @@ export async function fetchInsiderTransactions(
 
   // Fetch and parse each Form 4
   for (const form4 of form4s) {
-    const xml = await fetchForm4Document(cik, form4.accession, form4.primaryDocument);
+    const xml = await fetchForm4Document(rawCik, form4.accession, form4.primaryDocument);
     if (!xml) {
       errors.push(`Failed to fetch Form 4 ${form4.accession} for ${ticker}`);
       continue;
     }
 
-    const transactions = parseForm4Document(xml, ticker, cik, form4.accession, form4.filingDate);
+    const transactions = parseForm4Document(xml, ticker, rawCik, form4.accession, form4.filingDate);
     for (const tx of transactions) {
       allTransactions.push(tx);
       if (!knownDedupKeys.has(tx.id)) {
