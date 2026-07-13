@@ -40,6 +40,14 @@ export interface EvidenceEvent {
   strength: number; // 0-1
   isContradiction: boolean;
   aiExplanation: string;
+  metadata?: {
+    insiderName?: string;
+    insiderRole?: string | null;
+    transactionClass?: string;
+    shares?: number;
+    totalValue?: number | null;
+    sharesOwnedAfter?: number | null;
+  };
 }
 
 export interface ReasonCode {
