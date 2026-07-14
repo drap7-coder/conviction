@@ -13,6 +13,37 @@ interface WatchlistEntry {
   statusMessage?: string;
 }
 
+const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
+
+function readBrowserWatchlist(): WatchlistEntry[] | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(WATCHLIST_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return null;
+    return parsed.filter((entry): entry is WatchlistEntry =>
+      typeof entry?.ticker === "string" &&
+      typeof entry?.companyName === "string" &&
+      typeof entry?.addedAt === "string" &&
+      ["active", "unsupported", "error"].includes(entry?.status),
+    );
+  } catch {
+    return null;
+  }
+}
+
+function writeBrowserWatchlist(entries: WatchlistEntry[]) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(entries));
+  } catch {
+    // Browser persistence is best-effort; server persistence still runs.
+  }
+}
+
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [kvEnabled, setKvEnabled] = useState(false);
@@ -28,13 +59,28 @@ export default function WatchlistPage() {
   const [removing, setRemoving] = useState<string | null>(null);
 
   const loadWatchlist = useCallback(async () => {
+    const browserEntries = readBrowserWatchlist();
+    if (browserEntries) {
+      setEntries(browserEntries);
+      setLoading(false);
+    }
+
     try {
       const res = await fetch("/api/watchlist");
       const data = await res.json();
-      setEntries(data.entries ?? []);
+
+      const serverEntries = data.entries ?? [];
+      const nextEntries = data.kvEnabled || !browserEntries
+        ? serverEntries
+        : browserEntries;
+
+      setEntries(nextEntries);
+      writeBrowserWatchlist(nextEntries);
       setKvEnabled(data.kvEnabled ?? false);
     } catch {
-      setError("Failed to load watchlist");
+      if (!browserEntries) {
+        setError("Failed to load watchlist");
+      }
     } finally {
       setLoading(false);
     }
@@ -64,6 +110,7 @@ export default function WatchlistPage() {
         setAddMessage({ type: "error", text: data.error || "Failed to add" });
       } else {
         setEntries(data.entries);
+        writeBrowserWatchlist(data.entries);
         setAddInput("");
 
         if (data.initialSync?.skipped) {
@@ -90,11 +137,16 @@ export default function WatchlistPage() {
 
   const handleRemove = async (ticker: string) => {
     setRemoving(ticker);
+    const nextEntries = entries.filter((entry) => entry.ticker !== ticker);
+    setEntries(nextEntries);
+    writeBrowserWatchlist(nextEntries);
+
     try {
       const res = await fetch(`/api/watchlist/${ticker}`, { method: "DELETE" });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && kvEnabled) {
         setEntries(data.entries);
+        writeBrowserWatchlist(data.entries);
       }
     } catch {
       // ignore

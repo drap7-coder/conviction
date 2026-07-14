@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FIXTURE_COMPANIES, FIXTURE_TICKERS } from "@/lib/evidence/fixtures";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
+import { validateTicker } from "@/lib/watchlist/validate";
 
 export async function generateStaticParams() {
   return FIXTURE_TICKERS.map((ticker) => ({ ticker }));
@@ -14,13 +15,19 @@ export default async function CompanyPage({
   params: Promise<{ ticker: string }>;
 }) {
   const { ticker } = await params;
-  const company = FIXTURE_COMPANIES[ticker];
-  if (!company) notFound();
+  const upperTicker = ticker.toUpperCase();
+  const company = FIXTURE_COMPANIES[upperTicker];
+  let companyName = company?.name;
+  if (!company) {
+    const resolvedCompany = await validateTicker(upperTicker);
+    if (!resolvedCompany.valid) notFound();
+    companyName = resolvedCompany.companyName ?? upperTicker;
+  }
 
-  const positiveEvents = company.events.filter(
+  const positiveEvents = company?.events.filter(
     (e) => !e.isContradiction && e.direction === "positive"
-  );
-  const contradictions = company.events.filter((e) => e.isContradiction);
+  ) ?? [];
+  const contradictions = company?.events.filter((e) => e.isContradiction) ?? [];
 
   const strengthLabel = (s: number) => {
     if (s >= 0.7) return "strong";
@@ -37,12 +44,13 @@ export default async function CompanyPage({
           </Link>
           <span className="demo-badge">SEC 13F</span>
         </div>
-        <h1 className="detail-ticker">{ticker}</h1>
-        <p className="detail-name">{company.name}</p>
+        <h1 className="detail-ticker">{upperTicker}</h1>
+        <p className="detail-name">{companyName}</p>
       </div>
 
-      <InstitutionalConvictionSection ticker={ticker} priority="primary" />
+      <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
 
+      {company ? (
       <details className="legacy-context">
         <summary>Supporting context</summary>
         <div className="detail-overview mt-8">
@@ -139,16 +147,17 @@ export default async function CompanyPage({
           </div>
         </div>
       </details>
+      ) : null}
 
       <div className="secondary-evidence">
         <div className="section-header mt-16">
           <h2 className="section-title">Secondary signal</h2>
           <span className="section-count">Form 4</span>
         </div>
-        <InsiderActivitySection ticker={ticker} />
+        <InsiderActivitySection ticker={upperTicker} />
       </div>
 
-      {company.journalEntries.length > 0 ? (
+      {company && company.journalEntries.length > 0 ? (
         <>
           <div className="section-header mt-16">
             <h2 className="section-title">Decision journal</h2>

@@ -4,6 +4,7 @@ import {
   getInstitutionalAccumulationForCompany,
 } from "@/lib/sec/institutional";
 import { getWatchlist } from "@/lib/watchlist/persist";
+import { validateTicker } from "@/lib/watchlist/validate";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -22,18 +23,29 @@ export async function GET(request: NextRequest) {
 
   const entries = await getWatchlist();
   const entry = entries.find((item) => item.ticker === ticker);
-  if (!entry) {
-    return NextResponse.json(
-      { error: "ticker is not in the watchlist", ticker },
-      { status: 404 },
-    );
+  let resolvedTicker: string;
+  let resolvedCompanyName: string;
+
+  if (entry) {
+    resolvedTicker = entry.ticker;
+    resolvedCompanyName = entry.companyName;
+  } else {
+    const resolved = await validateTicker(ticker);
+    if (!resolved.valid) {
+      return NextResponse.json(
+        { error: "ticker is not supported", ticker },
+        { status: 404 },
+      );
+    }
+    resolvedTicker = resolved.ticker;
+    resolvedCompanyName = resolved.companyName ?? ticker;
   }
 
   if (refresh) clearInstitutionalCache();
 
   const result = await getInstitutionalAccumulationForCompany(
-    entry.ticker,
-    entry.companyName,
+    resolvedTicker,
+    resolvedCompanyName,
   );
 
   return NextResponse.json(result);
