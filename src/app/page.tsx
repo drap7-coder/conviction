@@ -159,24 +159,15 @@ export default function WatchlistPage() {
     if (e.key === "Enter") handleAdd();
   };
 
-  const strengthLabel = (s: number) => {
-    if (s >= 0.7) return "strong";
-    if (s >= 0.5) return "moderate";
-    return "weak";
-  };
-
-  const activeEntries = entries.filter((e) => e.status === "active");
-  const unsupportedEntries = entries.filter((e) => e.status !== "active");
-
   return (
     <div>
       <div className="section-header">
         <h2 className="section-title">Institutional watchlist</h2>
-        <div className="flex items-center gap-8">
+        <div className="watchlist-meta">
           <span className="section-count">{entries.length} companies</span>
           {!kvEnabled && (
-            <span className="demo-badge" title="Watchlist is stored locally and will not persist across deployments">
-              LOCAL STORE
+            <span className="storage-note" title="Saved in this browser when server storage is unavailable">
+              Saved here
             </span>
           )}
         </div>
@@ -192,14 +183,8 @@ export default function WatchlistPage() {
         </Link>
       </div>
 
-      {/* Add company control */}
-      <div style={{
-        display: "flex",
-        gap: 6,
-        marginBottom: 16,
-        alignItems: "center",
-      }}>
-        <div style={{ position: "relative", flex: 1, maxWidth: 300 }}>
+      <div className="watchlist-add">
+        <div className="watchlist-input-wrap">
           <input
             type="text"
             value={addInput}
@@ -207,52 +192,24 @@ export default function WatchlistPage() {
             onKeyDown={handleAddKeyDown}
             placeholder="Add company (ticker or name)"
             disabled={adding}
-            style={{
-              width: "100%",
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: "var(--radius)",
-              padding: "6px 10px",
-              fontFamily: "var(--font-mono)",
-              fontSize: "0.65rem",
-              color: "var(--ink)",
-              outline: "none",
-            }}
+            className="watchlist-input"
           />
         </div>
         <button
           onClick={handleAdd}
           disabled={adding || !addInput.trim()}
-          style={{
-            background: adding ? "var(--surface-elevated)" : "var(--accent)",
-            border: "none",
-            borderRadius: "var(--radius)",
-            padding: "6px 14px",
-            fontFamily: "var(--font-mono)",
-            fontSize: "0.6rem",
-            color: adding ? "var(--muted)" : "var(--ink)",
-            cursor: adding ? "wait" : "pointer",
-            whiteSpace: "nowrap",
-          }}
+          className="watchlist-add-button"
         >
-          {adding ? "Adding..." : "Add"}
+          {adding ? "Adding..." : "Track"}
         </button>
       </div>
 
-      {/* Add message */}
       {addMessage && (
-        <p style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.55rem",
-          color: addMessage.type === "error" ? "var(--red)" :
-                 addMessage.type === "info" ? "var(--amber)" : "var(--green)",
-          marginBottom: 8,
-        }}>
+        <p className={`watchlist-message ${addMessage.type}`}>
           {addMessage.text}
         </p>
       )}
 
-      {/* Main company grid */}
       {loading ? (
         <div className="empty-state">
           <p>Loading watchlist...</p>
@@ -263,24 +220,31 @@ export default function WatchlistPage() {
           <small>Add a ticker above to track institutional 13F changes.</small>
         </div>
       ) : (
-        <>
-          {/* Active companies */}
+        <div className="watchlist-scroll" aria-label="Tracked companies">
           <div className="company-grid">
-            {activeEntries.map((entry) => {
+            {entries.map((entry) => {
+              const isLimited = entry.status !== "active";
+              const statusText = isLimited
+                ? "Institutional 13F still available. Insider Form 4 may be limited."
+                : "Open the company page to see which tracked managers changed positions.";
+
               return (
-                <div key={entry.ticker} style={{ position: "relative" }}>
-                  <Link href={`/companies/${entry.ticker}`} className="company-card" style={{ paddingRight: 32 }}>
+                <div key={entry.ticker} className="company-card-wrap">
+                  <Link href={`/companies/${entry.ticker}`} className={`company-card ${isLimited ? "limited" : ""}`}>
                     <div className="card-header">
-                      <span className="card-ticker">{entry.ticker}</span>
-                      <span className="card-name">{entry.companyName}</span>
+                      <div>
+                        <span className="card-ticker">{entry.ticker}</span>
+                        <span className="card-name">{entry.companyName}</span>
+                      </div>
+                      <span className="card-arrow" aria-hidden="true">→</span>
                     </div>
 
-                    <div className="card-change" style={{ color: "var(--green)" }}>
-                      ◆ SEC 13F manager changes
+                    <div className={`card-change ${isLimited ? "limited" : ""}`}>
+                      SEC 13F manager changes
                     </div>
 
                     <div className="card-implication">
-                      Open the company page to see which tracked managers changed positions.
+                      {statusText}
                     </div>
 
                     <div className="card-metrics">
@@ -290,10 +254,15 @@ export default function WatchlistPage() {
                           institutional accumulation
                         </span>
                       </span>
+                      {isLimited && (
+                        <span className="metric">
+                          <span className="metric-label">insiders</span>
+                          <span className="metric-value warning">limited</span>
+                        </span>
+                      )}
                     </div>
                   </Link>
 
-                  {/* Remove button */}
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -301,84 +270,18 @@ export default function WatchlistPage() {
                     }}
                     disabled={removing === entry.ticker}
                     title={`Remove ${entry.ticker}`}
-                    style={{
-                      position: "absolute",
-                      top: 8,
-                      right: 8,
-                      background: "transparent",
-                      border: "none",
-                      color: "var(--quiet)",
-                      cursor: "pointer",
-                      fontFamily: "var(--font-mono)",
-                      fontSize: "0.6rem",
-                      padding: "2px 6px",
-                      borderRadius: 2,
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.color = "var(--red)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--quiet)")}
+                    className="remove-company"
                   >
-                    ✕
+                    Remove
                   </button>
                 </div>
               );
             })}
           </div>
-
-          {/* Unsupported/reference-only entries */}
-          {unsupportedEntries.length > 0 && (
-            <div style={{ marginTop: 24 }}>
-              <div className="section-header">
-                <h3 className="section-title" style={{ fontSize: "0.7rem" }}>Reference only</h3>
-                <span className="section-count">{unsupportedEntries.length} companies</span>
-              </div>
-              <div className="company-grid">
-                {unsupportedEntries.map((entry) => (
-                  <div key={entry.ticker} className="company-card" style={{ opacity: 0.6 }}>
-                    <div className="card-header">
-                      <span className="card-ticker">{entry.ticker}</span>
-                      <span className="card-name">{entry.companyName}</span>
-                    </div>
-                    <div className="card-change" style={{ color: "var(--amber)" }}>
-                      ◆ {entry.statusMessage || "Limited SEC coverage"}
-                    </div>
-                    <div className="card-metrics mt-8">
-                      <span className="metric">
-                        <span className="metric-label">status</span>
-                        <span className="metric-value warning">unsupported</span>
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleRemove(entry.ticker)}
-                      disabled={removing === entry.ticker}
-                      style={{
-                        marginTop: 8,
-                        background: "transparent",
-                        border: "1px solid var(--border)",
-                        borderRadius: "var(--radius)",
-                        padding: "3px 10px",
-                        fontFamily: "var(--font-mono)",
-                        fontSize: "0.5rem",
-                        color: "var(--quiet)",
-                        cursor: "pointer",
-                      }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
+        </div>
       )}
 
-      <p style={{
-        fontFamily: "var(--font-mono)",
-        fontSize: "0.55rem",
-        color: "var(--quiet)",
-        textAlign: "center",
-        marginTop: 16,
-      }}>
+      <p className="watchlist-footnote">
         Powered by SEC EDGAR Form 13F institutional data
       </p>
     </div>
