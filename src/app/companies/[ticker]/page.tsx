@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FIXTURE_COMPANIES, FIXTURE_TICKERS, DEMO_LABEL } from "@/lib/evidence/fixtures";
+import { FIXTURE_COMPANIES, FIXTURE_TICKERS } from "@/lib/evidence/fixtures";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 
@@ -35,116 +35,119 @@ export default async function CompanyPage({
           <Link href="/" className="detail-back">
             ← Watchlist
           </Link>
-          <span className="demo-badge">DEMO DATA</span>
+          <span className="demo-badge">SEC 13F</span>
         </div>
         <h1 className="detail-ticker">{ticker}</h1>
         <p className="detail-name">{company.name}</p>
       </div>
 
-      {/* Overview */}
-      <div className="detail-overview">
-        <div className="detail-overview-item">
-          <h3>What changed</h3>
-          <p>{company.latestChange}</p>
-        </div>
-        <div className="detail-overview-item">
-          <h3>Why it matters</h3>
-          <p>{company.implication}</p>
-        </div>
-        <div className="detail-overview-item">
-          <h3>Evidence strength</h3>
-          <p>
-            {(company.evidenceStrength * 100).toFixed(0)}% —{" "}
-            {strengthLabel(company.evidenceStrength)}
-          </p>
-        </div>
-        <div className="detail-overview-item">
-          <h3>Next catalyst</h3>
-          <p>{company.nextCatalyst}</p>
-        </div>
-        {company.contradiction ? (
+      <InstitutionalConvictionSection ticker={ticker} priority="primary" />
+
+      <details className="legacy-context">
+        <summary>Supporting context</summary>
+        <div className="detail-overview mt-8">
           <div className="detail-overview-item">
-            <h3>Strongest contradiction</h3>
-            <p className="contradiction">{company.contradiction}</p>
+            <h3>What changed before</h3>
+            <p>{company.latestChange}</p>
           </div>
-        ) : null}
-        <div className="detail-overview-item">
-          <h3>Invalidation signals</h3>
-          <p>{`Contradiction events: ${contradictions.length}. Watch for reversal of institutional accumulation or insider selling.`}</p>
-        </div>
-      </div>
-
-      {/* Supporting evidence */}
-      <div className="section-header">
-        <h2 className="section-title">Supporting evidence</h2>
-        <span className="section-count">{positiveEvents.length} events</span>
-      </div>
-
-      <div className="timeline">
-        {positiveEvents.map((e) => (
-          <div key={e.id} className={`timeline-item ${e.direction}`}>
-            <div className="timeline-date">{e.date}</div>
-            <div className="timeline-title">{e.title}</div>
-            <div className="timeline-source">{e.source}</div>
-            <div className="timeline-strength">
-              Strength: {(e.strength * 100).toFixed(0)}%
+          <div className="detail-overview-item">
+            <h3>Why it mattered</h3>
+            <p>{company.implication}</p>
+          </div>
+          <div className="detail-overview-item">
+            <h3>Legacy strength</h3>
+            <p>
+              {(company.evidenceStrength * 100).toFixed(0)}% —{" "}
+              {strengthLabel(company.evidenceStrength)}
+            </p>
+          </div>
+          <div className="detail-overview-item">
+            <h3>Next catalyst</h3>
+            <p>{company.nextCatalyst}</p>
+          </div>
+          {company.contradiction ? (
+            <div className="detail-overview-item">
+              <h3>Strongest contradiction</h3>
+              <p className="contradiction">{company.contradiction}</p>
             </div>
-            <div className="timeline-explanation">{e.aiExplanation}</div>
+          ) : null}
+          <div className="detail-overview-item">
+            <h3>Invalidation signals</h3>
+            <p>{`Contradiction events: ${contradictions.length}. Watch for reversal of institutional accumulation or insider selling.`}</p>
           </div>
-        ))}
-      </div>
+        </div>
 
-      {/* Contradictions */}
-      {contradictions.length > 0 ? (
-        <>
-          <div className="section-header mt-16">
-            <h2 className="section-title">Contradicting evidence</h2>
-            <span className="section-count">
-              {contradictions.length} events
-            </span>
-          </div>
-          <div className="timeline">
-            {contradictions.map((e) => (
-              <div key={e.id} className={`timeline-item ${e.direction}`}>
-                <div className="timeline-date">{e.date}</div>
-                <div className="timeline-title">{e.title}</div>
-                <div className="timeline-source">{e.source}</div>
-                <div className="timeline-strength">
-                  Strength: {(e.strength * 100).toFixed(0)}%
-                </div>
-                <div className="timeline-explanation">{e.aiExplanation}</div>
+        <div className="section-header">
+          <h2 className="section-title">Legacy evidence</h2>
+          <span className="section-count">{positiveEvents.length} events</span>
+        </div>
+
+        <div className="timeline">
+          {positiveEvents.map((e) => (
+            <div key={e.id} className={`timeline-item ${e.direction}`}>
+              <div className="timeline-date">{e.date}</div>
+              <div className="timeline-title">{e.title}</div>
+              <div className="timeline-source">{e.source}</div>
+              <div className="timeline-strength">
+                Strength: {(e.strength * 100).toFixed(0)}%
               </div>
-            ))}
+              <div className="timeline-explanation">{e.aiExplanation}</div>
+            </div>
+          ))}
+        </div>
+
+        {contradictions.length > 0 ? (
+          <>
+            <div className="section-header mt-16">
+              <h2 className="section-title">Contradicting evidence</h2>
+              <span className="section-count">
+                {contradictions.length} events
+              </span>
+            </div>
+            <div className="timeline">
+              {contradictions.map((e) => (
+                <div key={e.id} className={`timeline-item ${e.direction}`}>
+                  <div className="timeline-date">{e.date}</div>
+                  <div className="timeline-title">{e.title}</div>
+                  <div className="timeline-source">{e.source}</div>
+                  <div className="timeline-strength">
+                    Strength: {(e.strength * 100).toFixed(0)}%
+                  </div>
+                  <div className="timeline-explanation">{e.aiExplanation}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : null}
+
+        {/* What to watch next */}
+        <div className="section-header mt-16">
+          <h2 className="section-title">What to watch next</h2>
+        </div>
+        <div className="evidence-grid">
+          <div className="evidence-panel">
+            <h3>Upcoming catalyst</h3>
+            <p>{company.nextCatalyst}</p>
           </div>
-        </>
-      ) : null}
+          <div className="evidence-panel">
+            <h3>Invalidation watch</h3>
+            <p>
+              {contradictions.length > 0
+                ? `Monitor: ${contradictions.map((c) => c.title).join("; ")}`
+                : "No active contradictions. Monitor for insider selling or guidance changes."}
+            </p>
+          </div>
+        </div>
+      </details>
 
-      {/* What to watch next */}
-      <div className="section-header mt-16">
-        <h2 className="section-title">What to watch next</h2>
-      </div>
-      <div className="evidence-grid">
-        <div className="evidence-panel">
-          <h3>Upcoming catalyst</h3>
-          <p>{company.nextCatalyst}</p>
+      <div className="secondary-evidence">
+        <div className="section-header mt-16">
+          <h2 className="section-title">Secondary signal</h2>
+          <span className="section-count">Form 4</span>
         </div>
-        <div className="evidence-panel">
-          <h3>Invalidation watch</h3>
-          <p>
-            {contradictions.length > 0
-              ? `Monitor: ${contradictions.map((c) => c.title).join("; ")}`
-              : "No active contradictions. Monitor for insider selling or guidance changes."}
-          </p>
-        </div>
+        <InsiderActivitySection ticker={ticker} />
       </div>
 
-      {/* Primary institutional evidence */}
-      <InstitutionalConvictionSection ticker={ticker} />
-
-      {/* Supporting insider activity */}
-      <InsiderActivitySection ticker={ticker} />
-
-      {/* Journal entries for this company */}
       {company.journalEntries.length > 0 ? (
         <>
           <div className="section-header mt-16">
@@ -195,17 +198,6 @@ export default async function CompanyPage({
         </>
       ) : null}
 
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.55rem",
-          color: "var(--quiet)",
-          textAlign: "center",
-          marginTop: 16,
-        }}
-      >
-        {DEMO_LABEL}
-      </p>
     </div>
   );
 }

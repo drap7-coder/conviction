@@ -1,14 +1,12 @@
 const TICKER_ITEMS = [
-  { type: "filing" as const, ticker: "OXY", text: "New Form 4 filing — Director purchased $5.2M", dir: "pos" as const },
-  { type: "filing" as const, ticker: "INTC", text: "Third Point reported 3.8M share position", dir: "pos" as const },
-  { type: "contract" as const, ticker: "NBIS", text: "New AI cluster commissioned — 20MW GPU", dir: "pos" as const },
-  { type: "thesis" as const, ticker: "OXY", text: "Thesis strengthened — DAC Phase 2 validated", dir: "pos" as const },
-  { type: "filing" as const, ticker: "GOOG", text: "Point72 initiated $1.4B GOOG position", dir: "pos" as const },
-  { type: "thesis" as const, ticker: "INTC", text: "Thesis weakened — Q3 guidance below consensus", dir: "neg" as const },
-  { type: "contract" as const, ticker: "PFE", text: "BARDA awarded $2.4B pandemic contract", dir: "pos" as const },
-  { type: "filing" as const, ticker: "NVO", text: "Board member purchased $5.2M in open market", dir: "pos" as const },
-  { type: "catalyst" as const, ticker: "INTC", text: "Earnings in 6 days — Foundry revenue update", dir: "neutral" as const },
-  { type: "filing" as const, ticker: "NBIS", text: "Founder purchased $3M in open market", dir: "pos" as const },
+  { ticker: "13F", text: "15 tracked institutional managers", dir: "neutral" as const },
+  { ticker: "INTC", text: "2 new positions and 1 increase detected", dir: "pos" as const },
+  { ticker: "GOOG", text: "2 new positions among tracked managers", dir: "pos" as const },
+  { ticker: "OXY", text: "D. E. Shaw increased common shares", dir: "pos" as const },
+  { ticker: "PFE", text: "2 managers increased holdings", dir: "pos" as const },
+  { ticker: "NBIS", text: "Bridgewater increased common shares", dir: "pos" as const },
+  { ticker: "SEC", text: "Share changes, not market-value moves", dir: "neutral" as const },
+  { ticker: "QA", text: "Options and ambiguous share classes excluded", dir: "neutral" as const },
 ];
 
 export function BottomTicker() {

@@ -372,6 +372,52 @@ details[open] > summary::before {
 
 /* ── Emerging Evidence ── */
 
+.leaderboard-brief,
+.product-brief {
+  background: linear-gradient(135deg, var(--surface), var(--surface-elevated));
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.leaderboard-brief h1,
+.product-brief h2 {
+  font-size: 1.35rem;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.leaderboard-brief p {
+  font-size: 0.72rem;
+  color: var(--muted);
+  max-width: 560px;
+}
+
+.product-brief {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brief-link {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-dim);
+  border-radius: var(--radius);
+  padding: 7px 10px;
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 10px;
+}
+
 .emerging-list {
   display: grid;
   gap: 10px;
@@ -389,6 +435,69 @@ details[open] > summary::before {
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 8px;
+}
+
+.leaderboard-card-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.leaderboard-rank,
+.leaderboard-score {
+  font-family: var(--font-mono);
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-radius: var(--radius);
+  padding: 2px 7px;
+}
+
+.leaderboard-score {
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.leaderboard-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.leaderboard-facts div {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px;
+}
+
+.leaderboard-facts strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  color: var(--ink);
+}
+
+.leaderboard-facts span {
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  color: var(--quiet);
+  text-transform: uppercase;
+}
+
+.leaderboard-signals {
+  display: grid;
+  gap: 4px;
+}
+
+.leaderboard-signals span {
+  font-size: 0.68rem;
+  color: var(--muted);
+  background: var(--surface-elevated);
+  border-left: 2px solid var(--green);
+  padding: 5px 8px;
 }
 
 .reason-codes {
@@ -428,6 +537,106 @@ details[open] > summary::before {
   margin-top: 16px;
 }
 
+.institutional-section-primary {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.institutional-hero {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  background: radial-gradient(circle at top left, var(--green-dim), transparent 38%), var(--surface);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+}
+
+.institutional-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.institutional-hero h3 {
+  font-size: 1.25rem;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.institutional-hero p {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.institutional-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(78px, auto));
+  gap: 8px;
+}
+
+.institutional-hero-metrics div {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  min-width: 78px;
+}
+
+.institutional-hero-metrics strong {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--green);
+}
+
+.institutional-hero-metrics .negative strong {
+  color: var(--red);
+}
+
+.institutional-hero-metrics span {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  color: var(--quiet);
+  text-transform: uppercase;
+}
+
+.institutional-loading-bars {
+  display: grid;
+  gap: 5px;
+  width: 96px;
+}
+
+.institutional-loading-bars span {
+  display: block;
+  height: 5px;
+  background: var(--green-dim);
+  border-radius: 999px;
+  animation: loading-pulse 1.2s ease-in-out infinite;
+}
+
+.institutional-loading-bars span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.institutional-loading-bars span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.institutional-tape {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
 .institutional-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -459,6 +668,8 @@ details[open] > summary::before {
 
 .institutional-row {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 8px;
   padding: 8px 0;
   border-top: 1px solid var(--border);
@@ -506,6 +717,30 @@ details[open] > summary::before {
 .institutional-empty {
   font-size: 0.65rem;
   color: var(--quiet);
+}
+
+@keyframes loading-pulse {
+  0%, 100% { opacity: 0.35; transform: scaleX(0.72); transform-origin: left; }
+  50% { opacity: 1; transform: scaleX(1); transform-origin: left; }
+}
+
+.legacy-context,
+.secondary-evidence {
+  margin-top: 16px;
+}
+
+.legacy-context summary {
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--quiet);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 8px 0;
+}
+
+.secondary-evidence {
+  opacity: 0.78;
 }
 
 /* ── Journal ── */
@@ -716,6 +951,33 @@ details[open] > summary::before {
   .app-header {
     flex-wrap: wrap;
     gap: 8px;
+  }
+
+  .product-brief,
+  .institutional-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .product-brief {
+    align-items: flex-start;
+  }
+
+  .institutional-hero-metrics,
+  .leaderboard-facts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .institutional-hero-metrics div,
+  .leaderboard-facts div {
+    min-width: 0;
+  }
+
+  .institutional-row {
+    grid-template-columns: 1fr;
+  }
+
+  .institutional-metrics {
+    justify-content: flex-start;
   }
 
   .company-grid {

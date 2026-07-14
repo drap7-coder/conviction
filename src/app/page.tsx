@@ -13,21 +13,9 @@ interface WatchlistEntry {
   statusMessage?: string;
 }
 
-interface InsiderSummary {
-  ticker: string;
-  bullish: boolean;
-  bearish: boolean;
-  purchases: number;
-  sales: number;
-  netShares: number;
-  convictionScore: number;
-  breakdown: string;
-}
-
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [kvEnabled, setKvEnabled] = useState(false);
-  const [insiderSummaries, setInsiderSummaries] = useState<Record<string, InsiderSummary>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,78 +35,14 @@ export default function WatchlistPage() {
       setKvEnabled(data.kvEnabled ?? false);
     } catch {
       setError("Failed to load watchlist");
+    } finally {
+      setLoading(false);
     }
   }, []);
-
-  const loadInsiderData = useCallback(async () => {
-    if (entries.length === 0) return;
-
-    const results: Record<string, InsiderSummary> = {};
-    await Promise.all(
-      entries
-        .filter((e) => e.status === "active")
-        .map(async (entry) => {
-          try {
-            const res = await fetch(`/api/evidence/insider?ticker=${entry.ticker}`);
-            if (!res.ok) return;
-            const data = await res.json();
-            const events = data.events ?? [];
-            if (!events.length) return;
-
-            const byType = new Map<string, { count: number; shares: number; value: number }>();
-            for (const e of events) {
-              const t = e.metadata?.transactionType || "other";
-              const row = byType.get(t) || { count: 0, shares: 0, value: 0 };
-              row.count++;
-              row.shares += e.metadata?.shares || 0;
-              row.value += e.metadata?.totalValue || 0;
-              byType.set(t, row);
-            }
-
-            const purchases = byType.get("purchase");
-            const sales = byType.get("sale");
-            const netShares = (purchases?.shares || 0) - (sales?.shares || 0);
-            const purchaseValue = purchases?.value || 0;
-            const saleValue = (sales?.value || 0) * 0.4;
-            const convictionScore = Math.round((purchaseValue - saleValue) / 1000);
-
-            const parts: string[] = [];
-            const order = ["purchase", "sale", "grant", "option_exercise", "gift", "tax_withholding", "other"];
-            for (const t of order) {
-              const row = byType.get(t);
-              if (row) parts.push(`${row.count} ${t.replace(/_/g, " ")}`);
-            }
-
-            results[entry.ticker] = {
-              ticker: entry.ticker,
-              bullish: netShares > 0 && convictionScore > 0,
-              bearish: netShares < 0 || convictionScore < -50,
-              purchases: purchases?.count || 0,
-              sales: sales?.count || 0,
-              netShares,
-              convictionScore,
-              breakdown: parts.join(", "),
-            };
-          } catch {
-            // ignore fetch errors
-          }
-        }),
-    );
-    setInsiderSummaries(results);
-    setLoading(false);
-  }, [entries]);
 
   useEffect(() => {
     loadWatchlist();
   }, [loadWatchlist]);
-
-  useEffect(() => {
-    if (entries.length > 0) {
-      loadInsiderData();
-    } else {
-      setLoading(false);
-    }
-  }, [entries, loadInsiderData]);
 
   const handleAdd = async () => {
     const input = addInput.trim();
@@ -156,8 +80,6 @@ export default function WatchlistPage() {
           setAddMessage({ type: "success", text: `${data.added.companyName} (${data.added.ticker}) added. ${syncMsg}` });
         }
 
-        // Load insider data for the new entry
-        loadInsiderData();
       }
     } catch {
       setAddMessage({ type: "error", text: "Network error — try again" });
@@ -173,11 +95,6 @@ export default function WatchlistPage() {
       const data = await res.json();
       if (data.success) {
         setEntries(data.entries);
-        setInsiderSummaries((prev) => {
-          const next = { ...prev };
-          delete next[ticker];
-          return next;
-        });
       }
     } catch {
       // ignore
@@ -202,7 +119,7 @@ export default function WatchlistPage() {
   return (
     <div>
       <div className="section-header">
-        <h2 className="section-title">Watchlist</h2>
+        <h2 className="section-title">Institutional watchlist</h2>
         <div className="flex items-center gap-8">
           <span className="section-count">{entries.length} companies</span>
           {!kvEnabled && (
@@ -211,6 +128,16 @@ export default function WatchlistPage() {
             </span>
           )}
         </div>
+      </div>
+
+      <div className="product-brief">
+        <div>
+          <span className="institutional-eyebrow">Conviction engine</span>
+          <h2>Where sophisticated capital is building conviction.</h2>
+        </div>
+        <Link href="/rising" className="brief-link">
+          View leaderboard →
+        </Link>
       </div>
 
       {/* Add company control */}
@@ -281,14 +208,13 @@ export default function WatchlistPage() {
       ) : entries.length === 0 ? (
         <div className="empty-state">
           <p>Your watchlist is empty.</p>
-          <small>Add a ticker above to start tracking insider activity.</small>
+          <small>Add a ticker above to track institutional 13F changes.</small>
         </div>
       ) : (
         <>
           {/* Active companies */}
           <div className="company-grid">
             {activeEntries.map((entry) => {
-              const insider = insiderSummaries[entry.ticker];
               return (
                 <div key={entry.ticker} style={{ position: "relative" }}>
                   <Link href={`/companies/${entry.ticker}`} className="company-card" style={{ paddingRight: 32 }}>
@@ -297,47 +223,19 @@ export default function WatchlistPage() {
                       <span className="card-name">{entry.companyName}</span>
                     </div>
 
-                    {insider ? (
-                      <div className="card-change" style={{
-                        color: insider.bullish ? "var(--green)" : insider.bearish ? "var(--red)" : "var(--muted)",
-                      }}>
-                        {insider.bullish ? "▲" : insider.bearish ? "▼" : "◆"} Insider{" "}
-                        {insider.bullish ? "Bullish" : insider.bearish ? "Bearish" : "Neutral"}
-                        {insider.netShares !== 0 && (
-                          <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.55rem", marginLeft: 4 }}>
-                            ({insider.netShares > 0 ? "+" : ""}{insider.netShares.toLocaleString()} net shares)
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="card-change" style={{ color: "var(--quiet)" }}>
-                        No insider data yet
-                      </div>
-                    )}
-
-                    <div className="card-implication">
-                      {insider
-                        ? `Conviction score: ${insider.convictionScore > 0 ? "+" : ""}${insider.convictionScore}`
-                        : entry.lastSyncedAt
-                          ? "No directional insider activity"
-                          : "Sync pending — click Refresh from SEC"}
+                    <div className="card-change" style={{ color: "var(--green)" }}>
+                      ◆ SEC 13F manager changes
                     </div>
 
-                    {insider?.breakdown && (
-                      <div className="card-metrics mt-8" style={{ flexWrap: "wrap", gap: 4 }}>
-                        <span className="metric-label" style={{ fontSize: "0.5rem" }}>
-                          {insider.breakdown}
-                        </span>
-                      </div>
-                    )}
+                    <div className="card-implication">
+                      Open the company page to see which tracked managers changed positions.
+                    </div>
 
                     <div className="card-metrics">
                       <span className="metric">
-                        <span className="metric-label">status</span>
+                        <span className="metric-label">primary signal</span>
                         <span className="metric-value">
-                          {entry.lastSyncedAt
-                            ? `synced ${new Date(entry.lastSyncedAt).toLocaleDateString()}`
-                            : "not yet synced"}
+                          institutional accumulation
                         </span>
                       </span>
                     </div>
@@ -389,7 +287,7 @@ export default function WatchlistPage() {
                       <span className="card-name">{entry.companyName}</span>
                     </div>
                     <div className="card-change" style={{ color: "var(--amber)" }}>
-                      ◆ {entry.statusMessage || "No SEC Form 4 data available"}
+                      ◆ {entry.statusMessage || "Limited SEC coverage"}
                     </div>
                     <div className="card-metrics mt-8">
                       <span className="metric">
@@ -429,7 +327,7 @@ export default function WatchlistPage() {
         textAlign: "center",
         marginTop: 16,
       }}>
-        Watchlist powered by SEC EDGAR Form 4 insider data
+        Powered by SEC EDGAR Form 13F institutional data
       </p>
     </div>
   );

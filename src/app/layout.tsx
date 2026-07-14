@@ -33,7 +33,7 @@ export default function RootLayout({
               <h1 className="app-title">
                 CONVICTION<span className="accent-dot">.</span>
               </h1>
-              <span className="demo-badge">DEMO DATA</span>
+              <span className="demo-badge">SEC 13F</span>
             </div>
             <Nav />
           </header>

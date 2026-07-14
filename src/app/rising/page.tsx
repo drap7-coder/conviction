@@ -36,6 +36,15 @@ function signalLabel(signal: InstitutionalAccumulation) {
   return `${signal.displayName}: ${signal.status}`;
 }
 
+function whyRanked(idea: InstitutionalEmergingIdea) {
+  const parts = [];
+  if (idea.newPositions) parts.push(`${idea.newPositions} new`);
+  if (idea.increased) parts.push(`${idea.increased} increased`);
+  if (idea.reduced) parts.push(`${idea.reduced} reduced`);
+  if (idea.exited) parts.push(`${idea.exited} exited`);
+  return parts.join(" · ");
+}
+
 export default function RisingConvictionPage() {
   const [ideas, setIdeas] = useState<InstitutionalEmergingIdea[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,24 +76,16 @@ export default function RisingConvictionPage() {
   return (
     <div>
       <div className="section-header">
-        <h2 className="section-title">Rising conviction</h2>
+        <h2 className="section-title">Institutional leaderboard</h2>
         <span className="section-count">
           {loading ? "..." : `${ideas.length} companies`}
         </span>
       </div>
 
-      <p
-        style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.55rem",
-          color: "var(--quiet)",
-          marginBottom: 16,
-          maxWidth: 520,
-        }}
-      >
-        Watchlist companies where the 15 tracked institutional managers are
-        adding or opening positions in the latest SEC 13F filings.
-      </p>
+      <div className="leaderboard-brief">
+        <h1>Who is building conviction?</h1>
+        <p>Ranked by new and increased positions among 15 tracked institutional managers.</p>
+      </div>
 
       {loading ? (
         <div className="empty-state">
@@ -101,56 +102,53 @@ export default function RisingConvictionPage() {
           <small>This section uses 13F accumulation only.</small>
         </div>
       ) : (
-        <div className="emerging-list">
-          {ideas.map((idea) => (
+        <div className="leaderboard-list">
+          {ideas.map((idea, index) => (
             <div key={idea.ticker} className="emerging-card">
-              <div className="emerging-header">
-                <span className="card-ticker">{idea.ticker}</span>
-                <span className="card-name">{idea.name}</span>
+              <div className="leaderboard-card-header">
+                <span className="leaderboard-rank">#{index + 1}</span>
+                <div>
+                  <span className="card-ticker">{idea.ticker}</span>
+                  <span className="card-name">{idea.name}</span>
+                </div>
+                <span className="leaderboard-score">{Math.round(idea.score)}</span>
               </div>
 
-              <div className="reason-codes">
-                {idea.newPositions > 0 ? (
-                  <span className="reason-code positive">
-                    + {idea.newPositions} new position{idea.newPositions === 1 ? "" : "s"}
-                  </span>
-                ) : null}
-                {idea.increased > 0 ? (
-                  <span className="reason-code positive">
-                    + {idea.increased} increase{idea.increased === 1 ? "" : "s"}
-                  </span>
-                ) : null}
-                {idea.reduced > 0 ? (
-                  <span className="reason-code negative">
-                    − {idea.reduced} reduction{idea.reduced === 1 ? "" : "s"}
-                  </span>
-                ) : null}
-                {idea.exited > 0 ? (
-                  <span className="reason-code negative">
-                    − {idea.exited} exit{idea.exited === 1 ? "" : "s"}
-                  </span>
-                ) : null}
+              <div className="leaderboard-facts">
+                <div>
+                  <strong>{idea.newPositions}</strong>
+                  <span>new</span>
+                </div>
+                <div>
+                  <strong>{idea.increased}</strong>
+                  <span>increased</span>
+                </div>
+                <div>
+                  <strong>{idea.reduced + idea.exited}</strong>
+                  <span>reduced/exited</span>
+                </div>
               </div>
 
               <div className="emerging-event">
-                <strong>Net share change:</strong>{" "}
-                {idea.aggregateShareChange > 0 ? "+" : ""}
-                {formatShares(idea.aggregateShareChange)} shares
+                <strong>Why ranked:</strong> {whyRanked(idea)}
               </div>
               <div className="emerging-event mt-8">
+                <strong>Net shares:</strong>{" "}
+                {idea.aggregateShareChange > 0 ? "+" : ""}
+                {formatShares(idea.aggregateShareChange)} shares
+                {" · "}
                 <strong>Latest filing:</strong> {idea.latestFilingDate}
               </div>
 
               {idea.topSignals.length > 0 ? (
-                <div className="emerging-event mt-8">
-                  <strong>Top evidence:</strong>{" "}
-                  {idea.topSignals.map(signalLabel).join("; ")}
+                <div className="leaderboard-signals mt-8">
+                  {idea.topSignals.map((signal) => (
+                    <span key={`${signal.cik}-${signal.status}-${signal.cusip}`}>
+                      {signalLabel(signal)}
+                    </span>
+                  ))}
                 </div>
               ) : null}
-              <div className="emerging-event mt-8">
-                {idea.newPositions} new position{idea.newPositions === 1 ? "" : "s"} and{" "}
-                {idea.increased} manager{idea.increased === 1 ? "" : "s"} increased holdings.
-              </div>
 
               <div className="flex items-center gap-8 mt-8">
                 <Link href={`/companies/${idea.ticker}`} className="detail-back">
