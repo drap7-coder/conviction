@@ -96,6 +96,20 @@ describe("validateTicker", () => {
     expect(result.companyName).toBe("NVIDIA Corporation");
   });
 
+  it("accepts APLD as a supported company ticker", async () => {
+    const result = await validateTicker("APLD");
+    expect(result.valid).toBe(true);
+    expect(result.ticker).toBe("APLD");
+    expect(result.companyName).toBe("Applied Digital Corporation");
+    expect(result.cik).toBe("0001144879");
+  });
+
+  it("resolves Applied Digital by company name", async () => {
+    const result = await validateTicker("Applied Digital");
+    expect(result.valid).toBe(true);
+    expect(result.ticker).toBe("APLD");
+  });
+
   it("accepts 'AMZN' as ticker", async () => {
     const result = await validateTicker("AMZN");
     expect(result.valid).toBe(true);

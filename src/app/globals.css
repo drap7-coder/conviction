@@ -51,8 +51,8 @@ html, body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.62;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -90,7 +90,7 @@ details > summary::before {
 .app-shell {
   max-width: 960px;
   margin: 0 auto;
-  padding: 20px 24px 80px;
+  padding: 22px 26px 84px;
 }
 
 .app-header {
@@ -127,7 +127,7 @@ details > summary::before {
 }
 
 .app-nav a {
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   color: var(--quiet);
   letter-spacing: 0;
   text-transform: none;
@@ -141,7 +141,7 @@ details > summary::before {
 
 .demo-badge {
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   color: var(--amber);
   background: var(--amber-dim);
   padding: 2px 8px;
@@ -161,7 +161,7 @@ details > summary::before {
   gap: 5px;
   min-height: 26px;
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   color: var(--muted);
   background: var(--surface-elevated);
   border: 1px solid var(--border);
@@ -194,7 +194,7 @@ details > summary::before {
 }
 
 .section-title {
-  font-size: 0.95rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--ink);
   letter-spacing: 0;
@@ -202,7 +202,7 @@ details > summary::before {
 }
 
 .section-count {
-  font-size: 0.76rem;
+  font-size: 0.82rem;
   color: var(--muted);
   background: var(--surface-elevated);
   padding: 1px 6px;
@@ -269,7 +269,7 @@ details > summary::before {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 9px 12px;
-  font-size: 0.94rem;
+  font-size: 1rem;
   color: var(--ink);
   outline: none;
   transition: border-color 0.15s, background-color 0.15s;
@@ -303,7 +303,7 @@ details > summary::before {
 }
 
 .watchlist-message {
-  font-size: 0.86rem;
+  font-size: 0.92rem;
   margin-bottom: 10px;
 }
 
@@ -320,7 +320,7 @@ details > summary::before {
 }
 
 .watchlist-footnote {
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   color: var(--quiet);
   text-align: center;
   margin-top: 16px;
@@ -370,7 +370,7 @@ details > summary::before {
 
 .card-name {
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.94rem;
   color: var(--muted);
   margin-top: 3px;
 }
@@ -387,7 +387,7 @@ details > summary::before {
 }
 
 .card-change {
-  font-size: 0.9rem;
+  font-size: 0.98rem;
   color: var(--green);
   margin-bottom: 8px;
   line-height: 1.4;
@@ -399,8 +399,8 @@ details > summary::before {
 }
 
 .card-implication {
-  font-size: 0.94rem;
-  color: var(--muted);
+  font-size: 1rem;
+  color: var(--ink);
   margin-bottom: 12px;
   line-height: 1.45;
 }
@@ -415,7 +415,7 @@ details > summary::before {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 0.82rem;
+  font-size: 0.88rem;
 }
 
 .metric-label {
@@ -432,7 +432,7 @@ details > summary::before {
   left: 18px;
   bottom: 13px;
   color: var(--quiet);
-  font-size: 0.76rem;
+  font-size: 0.84rem;
   padding: 0;
   opacity: 0.7;
   transition: color 0.15s, opacity 0.15s;
@@ -450,7 +450,7 @@ details > summary::before {
 
 .event-count {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   color: var(--muted);
   background: var(--surface-elevated);
   padding: 1px 6px;
@@ -751,14 +751,14 @@ details > summary::before {
   background: radial-gradient(circle at top left, var(--green-dim), transparent 38%), var(--surface);
   border: 1px solid var(--border-active);
   border-radius: var(--radius);
-  padding: 16px;
+  padding: 18px;
   margin-bottom: 10px;
 }
 
 .institutional-eyebrow {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.66rem;
   color: var(--accent);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -766,14 +766,14 @@ details > summary::before {
 }
 
 .institutional-hero h3 {
-  font-size: 1.25rem;
-  line-height: 1.1;
+  font-size: 1.38rem;
+  line-height: 1.18;
   color: var(--ink);
   margin-bottom: 6px;
 }
 
 .institutional-hero p {
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   color: var(--muted);
 }
 
@@ -794,7 +794,7 @@ details > summary::before {
 .institutional-hero-metrics strong {
   display: block;
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--green);
 }
 
@@ -805,7 +805,7 @@ details > summary::before {
 .institutional-hero-metrics span {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.52rem;
+  font-size: 0.62rem;
   color: var(--quiet);
   text-transform: uppercase;
 }
@@ -856,7 +856,7 @@ details > summary::before {
   align-items: center;
   justify-content: space-between;
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   color: var(--quiet);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -872,20 +872,20 @@ details > summary::before {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  padding: 8px 0;
+  padding: 10px 0;
   border-top: 1px solid var(--border);
 }
 
 .institutional-row strong {
   display: block;
-  font-size: 0.7rem;
+  font-size: 0.86rem;
   color: var(--ink);
 }
 
 .institutional-row span {
   display: block;
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.66rem;
   color: var(--quiet);
 }
 
@@ -916,8 +916,142 @@ details > summary::before {
 }
 
 .institutional-empty {
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   color: var(--quiet);
+}
+
+.move-section {
+  margin-top: 18px;
+}
+
+.move-card {
+  background:
+    radial-gradient(circle at top left, var(--accent-dim), transparent 42%),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.move-card.loading {
+  background: var(--surface);
+}
+
+.move-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+
+.move-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--quiet);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 5px;
+}
+
+.move-card h3 {
+  color: var(--ink);
+  font-size: 1.16rem;
+  line-height: 1.32;
+}
+
+.move-confidence {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-radius: 999px;
+  padding: 5px 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.confidence-high .move-confidence {
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.confidence-medium .move-confidence {
+  color: var(--amber);
+  background: var(--amber-dim);
+}
+
+.move-answer {
+  color: var(--ink);
+  font-size: 1.02rem;
+  line-height: 1.5;
+  max-width: 780px;
+}
+
+.move-market {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+
+.move-details {
+  display: grid;
+  gap: 7px;
+  margin-top: 14px;
+  padding-left: 18px;
+}
+
+.move-details li {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.move-conviction-check {
+  display: grid;
+  gap: 4px;
+  margin-top: 16px;
+  padding: 12px;
+  background: var(--surface-elevated);
+  border-radius: var(--radius);
+}
+
+.move-conviction-check strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.move-conviction-check span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.move-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.move-sources a {
+  color: var(--quiet);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.move-sources a:hover {
+  color: var(--ink);
+  border-color: var(--accent);
 }
 
 @keyframes loading-pulse {
@@ -1045,14 +1179,14 @@ details > summary::before {
 
 .detail-ticker {
   font-family: var(--font-mono);
-  font-size: 1.4rem;
+  font-size: 1.62rem;
   font-weight: 800;
   color: var(--ink);
 }
 
 .detail-name {
-  font-size: 0.75rem;
-  color: var(--quiet);
+  font-size: 0.95rem;
+  color: var(--muted);
   margin-top: 2px;
 }
 
@@ -1072,7 +1206,7 @@ details > summary::before {
 
 .detail-overview-item h3 {
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.66rem;
   color: var(--quiet);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -1080,7 +1214,7 @@ details > summary::before {
 }
 
 .detail-overview-item p {
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   color: var(--muted);
   line-height: 1.4;
 }
@@ -1115,7 +1249,7 @@ details > summary::before {
 
 .ticker-item {
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.68rem;
   color: var(--muted);
   letter-spacing: 0.02em;
   flex-shrink: 0;
@@ -1157,12 +1291,12 @@ details > summary::before {
 }
 
 .empty-state p {
-  font-size: 0.75rem;
+  font-size: 0.92rem;
   color: var(--quiet);
 }
 
 .empty-state small {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 
@@ -1201,6 +1335,15 @@ details > summary::before {
   .section-header {
     align-items: flex-start;
     gap: 10px;
+  }
+
+  .move-card-top {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .move-confidence {
+    align-self: flex-start;
   }
 
   .watchlist-meta {

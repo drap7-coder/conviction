@@ -32,6 +32,8 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "PFIZER INC": "PFE",
   "NEBiUS": "NBIS",
   "NEBiUS GROUP": "NBIS",
+  "APPLIED DIGITAL": "APLD",
+  "APPLIED DIGITAL CORPORATION": "APLD",
 
   // Extended emerging
   "CROWDSTRIKE": "CRWD",
@@ -301,6 +303,7 @@ const KNOWN_NAMES: Record<string, string> = {
   NVO: "Novo Nordisk",
   PFE: "Pfizer Inc.",
   NBIS: "Nebius Group",
+  APLD: "Applied Digital Corporation",
   CRWD: "CrowdStrike Holdings",
   ONON: "On Holding AG",
   PLTR: "Palantir Technologies",

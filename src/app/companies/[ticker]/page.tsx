@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FIXTURE_COMPANIES, FIXTURE_TICKERS } from "@/lib/evidence/fixtures";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
+import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { validateTicker } from "@/lib/watchlist/validate";
 
 export async function generateStaticParams() {
@@ -47,6 +48,8 @@ export default async function CompanyPage({
         <h1 className="detail-ticker">{upperTicker}</h1>
         <p className="detail-name">{companyName}</p>
       </div>
+
+      <MoveExplanationSection ticker={upperTicker} />
 
       <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
 

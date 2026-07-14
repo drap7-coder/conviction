@@ -15,21 +15,38 @@ function getInitialTheme(): Theme {
 }
 
 function createTick(audioContext: AudioContext) {
+  const now = audioContext.currentTime;
   const oscillator = audioContext.createOscillator();
+  const subOscillator = audioContext.createOscillator();
+  const filter = audioContext.createBiquadFilter();
   const gain = audioContext.createGain();
 
   oscillator.type = "square";
-  oscillator.frequency.setValueAtTime(920, audioContext.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(620, audioContext.currentTime + 0.045);
+  oscillator.frequency.setValueAtTime(520, now);
+  oscillator.frequency.exponentialRampToValueAtTime(390, now + 0.055);
 
-  gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.028, audioContext.currentTime + 0.006);
-  gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.065);
+  subOscillator.type = "triangle";
+  subOscillator.frequency.setValueAtTime(260, now);
+  subOscillator.frequency.exponentialRampToValueAtTime(210, now + 0.07);
 
-  oscillator.connect(gain);
+  filter.type = "lowpass";
+  filter.frequency.setValueAtTime(1200, now);
+  filter.frequency.exponentialRampToValueAtTime(720, now + 0.08);
+  filter.Q.setValueAtTime(0.8, now);
+
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(0.018, now + 0.005);
+  gain.gain.exponentialRampToValueAtTime(0.003, now + 0.035);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+
+  oscillator.connect(filter);
+  subOscillator.connect(filter);
+  filter.connect(gain);
   gain.connect(audioContext.destination);
-  oscillator.start();
-  oscillator.stop(audioContext.currentTime + 0.07);
+  oscillator.start(now);
+  subOscillator.start(now + 0.012);
+  oscillator.stop(now + 0.075);
+  subOscillator.stop(now + 0.095);
 }
 
 export function ExperienceControls() {

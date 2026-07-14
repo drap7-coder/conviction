@@ -122,6 +122,7 @@ export const CIK_MAP: Record<string, string> = {
   ASML: "0000937260",
 
   // AI / data infrastructure
+  APLD: "0001144879",
   SNOW: "0001640147",
   DDOG: "0001561550",
   MDB: "0001441816",
