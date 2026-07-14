@@ -10,6 +10,7 @@ export type MoveEventConfidence = "high" | "medium" | "low";
 export interface MoveEventSource {
   label: string;
   url: string;
+  headline: string;
 }
 
 export interface MoveEvent {
@@ -48,14 +49,17 @@ const MOVE_EVENTS: Record<string, MoveEvent> = {
     sources: [
       {
         label: "AP",
+        headline: "IBM shares plunge after preliminary Q2 earnings warning",
         url: "https://apnews.com/article/2f28030dd13c572ad21a512da77d96cd",
       },
       {
         label: "Barron's",
+        headline: "IBM stock falls after surprise earnings miss",
         url: "https://www.barrons.com/articles/ibm-earnings-stock-price-f78641b2",
       },
       {
         label: "MarketWatch",
+        headline: "IBM heads for one of its worst trading days after earnings miss",
         url: "https://www.marketwatch.com/story/ibms-stock-dives-toward-worst-day-in-nearly-40-years-after-the-surprise-release-of-an-earnings-miss-8519741e",
       },
     ],
@@ -81,14 +85,17 @@ const MOVE_EVENTS: Record<string, MoveEvent> = {
     sources: [
       {
         label: "Zacks",
+        headline: "APLD dips sharply as investors weigh expansion risk",
         url: "https://www.zacks.com/stock/news/2952637/apld-dips-33-in-a-month-should-you-hold-or-fold-the-stock",
       },
       {
         label: "Applied Digital IR",
+        headline: "Applied Digital SEC filings and company disclosures",
         url: "https://ir.applieddigital.com/sec-filings",
       },
       {
         label: "Tickeron",
+        headline: "APLD shares drop amid debt load and customer-risk concerns",
         url: "https://tickeron.com/blogs/applied-digital-apld-shares-drop-32-amid-expanding-debt-load-and-customer-risks-14706/",
       },
     ],

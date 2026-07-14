@@ -97,15 +97,17 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           </div>
 
           {event.sources.length > 0 ? (
-            <div className="move-sources" aria-label="Sources">
-              {event.sources.map((source) => (
+            <div className="move-headlines" aria-label="Evidence headlines">
+              {event.sources.slice(0, 3).map((source) => (
                 <a
+                  className="move-headline-card"
                   href={source.url}
                   key={source.url}
                   rel="noreferrer"
                   target="_blank"
                 >
-                  {source.label}
+                  <span>{source.label}</span>
+                  <strong>{source.headline}</strong>
                 </a>
               ))}
             </div>
