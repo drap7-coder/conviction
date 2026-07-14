@@ -35,7 +35,7 @@ export interface CompanyTickerDataset {
 // User-Agent (SEC requires an identifiable one)
 // ---------------------------------------------------------------------------
 
-const UA = `Conviction (${process.env.SEC_CONTACT_EMAIL || "conviction@example.com"})`;
+const UA = `Conviction (${process.env.SEC_CONTACT_EMAIL ?? "configure-SEC_CONTACT_EMAIL"})`;
 const TICKER_URL = "https://www.sec.gov/files/company_tickers.json";
 
 // ---------------------------------------------------------------------------

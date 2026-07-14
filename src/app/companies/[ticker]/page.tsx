@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FIXTURE_COMPANIES, FIXTURE_TICKERS, DEMO_LABEL } from "@/lib/evidence/fixtures";
+import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 
 export async function generateStaticParams() {
@@ -137,7 +138,10 @@ export default async function CompanyPage({
         </div>
       </div>
 
-      {/* Real insider activity */}
+      {/* Primary institutional evidence */}
+      <InstitutionalConvictionSection ticker={ticker} />
+
+      {/* Supporting insider activity */}
       <InsiderActivitySection ticker={ticker} />
 
       {/* Journal entries for this company */}

@@ -19,14 +19,14 @@ import { codeToType } from "./types";
 
 const SEC_BASE = "https://data.sec.gov";
 const SEC_EDGAR = "https://www.sec.gov";
-const USER_AGENT = "CONVICTION Evidence Detection v1.0 (nathandrapkin@gmail.com)";
+const USER_AGENT = `CONVICTION Evidence Detection v1.0 (${process.env.SEC_CONTACT_EMAIL ?? "configure-SEC_CONTACT_EMAIL"})`;
 const REQUEST_DELAY_MS = 200; // 5 req/s max, well within SEC limits
 const MAX_FILINGS_TO_CHECK = 30;
 
 // In-memory request queue for rate limiting
 let lastRequestTime = 0;
 
-async function rateLimitedFetch(url: string): Promise<Response> {
+export async function secFetch(url: string): Promise<Response> {
   const now = Date.now();
   const elapsed = now - lastRequestTime;
   if (elapsed < REQUEST_DELAY_MS) {
@@ -64,7 +64,7 @@ export async function fetchCompanySubmissions(
   const url = `${SEC_BASE}/submissions/CIK${paddedCik}.json`;
 
   try {
-    const response = await rateLimitedFetch(url);
+    const response = await secFetch(url);
     if (!response.ok) {
       console.warn(`[sec] CIK ${cik}: HTTP ${response.status}`);
       return { submissions: null, rawCik: cik };
@@ -147,7 +147,7 @@ async function fetchForm4Document(
   // Try raw XML data file first
   const rawUrl = `${SEC_EDGAR}/Archives/edgar/data/${bareCik}/${accessionNoDash}/${rawFilename}`;
   try {
-    const response = await rateLimitedFetch(rawUrl);
+    const response = await secFetch(rawUrl);
     if (response.ok) {
       const text = await response.text();
       // Verify it's actual XML, not HTML
@@ -162,7 +162,7 @@ async function fetchForm4Document(
   // Fall back to the primary document
   const url = buildFilingUrl(cik, accession, primaryDoc);
   try {
-    const response = await rateLimitedFetch(url);
+    const response = await secFetch(url);
     if (!response.ok) {
       console.warn(`[sec] Form 4 fetch ${url}: HTTP ${response.status}`);
       return null;
