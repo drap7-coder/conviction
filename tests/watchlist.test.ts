@@ -3,101 +3,101 @@ import { validateTicker } from "@/lib/watchlist/validate";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 
 describe("validateTicker", () => {
-  it("accepts a valid ticker (OXY)", () => {
-    const result = validateTicker("OXY");
+  it("accepts a valid ticker (OXY)", async () => {
+    const result = await validateTicker("OXY");
     expect(result.valid).toBe(true);
     expect(result.ticker).toBe("OXY");
     expect(result.companyName).toBe("Occidental Petroleum");
     expect(result.cik).toBe("0000797468");
   });
 
-  it("normalizes ticker to uppercase", () => {
-    const result = validateTicker("intc");
+  it("normalizes ticker to uppercase", async () => {
+    const result = await validateTicker("intc");
     expect(result.valid).toBe(true);
     expect(result.ticker).toBe("INTC");
   });
 
-  it("resolves a company name to ticker", () => {
-    const result = validateTicker("Intel Corporation");
+  it("resolves a company name to ticker", async () => {
+    const result = await validateTicker("Intel Corporation");
     expect(result.valid).toBe(true);
     expect(result.ticker).toBe("INTC");
   });
 
-  it("resolves common company aliases", () => {
-    expect(validateTicker("Google").ticker).toBe("GOOG");
-    expect(validateTicker("Alphabet").ticker).toBe("GOOG");
-    expect(validateTicker("Occidental").ticker).toBe("OXY");
+  it("resolves common company aliases", async () => {
+    expect((await validateTicker("Google")).ticker).toBe("GOOG");
+    expect((await validateTicker("Alphabet")).ticker).toBe("GOOG");
+    expect((await validateTicker("Occidental")).ticker).toBe("OXY");
   });
 
-  it("rejects an empty string", () => {
-    const result = validateTicker("");
+  it("rejects an empty string", async () => {
+    const result = await validateTicker("");
     expect(result.valid).toBe(false);
     expect(result.error).toContain("Enter a ticker");
   });
 
-  it("rejects a ticker with invalid format", () => {
-    const result = validateTicker("TOOLONG");
+  it("rejects a ticker with invalid format", async () => {
+    const result = await validateTicker("TOOLONG");
     expect(result.valid).toBe(false);
     expect(result.error).toContain("not a valid ticker format");
   });
 
-  it("rejects special characters", () => {
-    const result = validateTicker("OXY!");
+  it("rejects special characters", async () => {
+    const result = await validateTicker("OXY!");
     expect(result.valid).toBe(false);
   });
 
-  it("rejects an unknown ticker not in CIK_MAP", () => {
-    const result = validateTicker("ZZZZ");
+  it("rejects an unknown ticker not in CIK_MAP or SEC dataset", async () => {
+    const result = await validateTicker("ZZZZ");
     expect(result.valid).toBe(false);
     expect(result.error).toContain("not a supported ticker");
   });
 
-  it("marks NVO as a foreign issuer", () => {
-    const result = validateTicker("NVO");
+  it("marks NVO as a foreign issuer", async () => {
+    const result = await validateTicker("NVO");
     expect(result.valid).toBe(true);
     expect(result.isForeignIssuer).toBe(true);
   });
 
-  it("does not mark OXY as foreign issuer", () => {
-    const result = validateTicker("OXY");
+  it("does not mark OXY as foreign issuer", async () => {
+    const result = await validateTicker("OXY");
     expect(result.valid).toBe(true);
     expect(result.isForeignIssuer).toBeFalsy();
   });
 
-  it("accepts TSLA (Tesla)", () => {
-    const result = validateTicker("TSLA");
+  it("accepts TSLA (Tesla)", async () => {
+    const result = await validateTicker("TSLA");
     expect(result.valid).toBe(true);
     expect(result.ticker).toBe("TSLA");
     expect(result.companyName).toBe("Tesla Inc.");
     expect(result.cik).toBe("0001318605");
   });
 
-  it("accepts tsla as lowercase", () => {
-    const result = validateTicker("tsla");
+  it("accepts tsla as lowercase", async () => {
+    const result = await validateTicker("tsla");
     expect(result.valid).toBe(true);
     expect(result.ticker).toBe("TSLA");
   });
 
-  it("accepts 'Tesla' as company name", () => {
-    const result = validateTicker("Tesla");
+  it("accepts 'Tesla' as company name", async () => {
+    const result = await validateTicker("Tesla");
     expect(result.valid).toBe(true);
     expect(result.ticker).toBe("TSLA");
   });
 
-  it("accepts 'Apple' as company name", () => {
-    const result = validateTicker("Apple");
+  it("accepts 'Apple' as company name", async () => {
+    const result = await validateTicker("Apple");
     expect(result.valid).toBe(true);
     expect(result.ticker).toBe("AAPL");
   });
 
-  it("accepts 'NVIDIA' as ticker", () => {
-    const result = validateTicker("NVDA");
+  it("accepts 'NVIDIA' as ticker", async () => {
+    const result = await validateTicker("NVDA");
     expect(result.valid).toBe(true);
     expect(result.companyName).toBe("NVIDIA Corporation");
   });
 
-  it("accepts 'AMZN' as ticker", () => {
-    const result = validateTicker("AMZN");
+  it("accepts 'AMZN' as ticker", async () => {
+    const result = await validateTicker("AMZN");
     expect(result.valid).toBe(true);
     expect(result.companyName).toBe("Amazon.com Inc.");
   });

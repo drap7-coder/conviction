@@ -360,7 +360,6 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
         .insider-tag-positive { color: var(--green); background: var(--green-dim); }
         .insider-tag-negative { color: var(--red); background: var(--red-dim); }
         .insider-tag-neutral { color: var(--muted); background: var(--surface-elevated); }
-        details summary::-webkit-details-marker { color: var(--quiet); }
       `}</style>
     </div>
   );

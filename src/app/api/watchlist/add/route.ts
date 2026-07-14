@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Validate and resolve ticker
-  const validation = validateTicker(input);
+  const validation = await validateTicker(input);
   if (!validation.valid) {
     return NextResponse.json(
       { success: false, error: validation.error, ticker: validation.ticker },

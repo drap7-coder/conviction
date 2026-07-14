@@ -51,6 +51,26 @@ button {
   cursor: pointer;
 }
 
+/* Normalize native <details>/<summary> disclosure markers.
+   These can appear as checkbox-like widgets in some browser UIs.
+   Replace with a custom triangle affordance. */
+details summary::-webkit-details-marker {
+  display: none;
+}
+details > summary {
+  list-style: none;
+}
+details > summary::before {
+  content: "▶";
+  display: inline-block;
+  margin-right: 4px;
+  font-size: 0.6rem;
+  transition: transform 0.15s;
+}
+details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
 /* ── Layout ── */
 
 .app-shell {

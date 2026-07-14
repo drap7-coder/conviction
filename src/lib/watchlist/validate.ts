@@ -1,11 +1,23 @@
 /**
  * Ticker validation for CONVICTION watchlist.
- * Validates ticker format and resolves to a known CIK/company.
+ *
+ * Resolves tickers and company names using:
+ *  1. SEC company_tickers.json dataset (dynamic, ~10K entries)
+ *  2. Hardcoded CIK_MAP / COMPANY_NAME_MAP (fallback)
+ *
+ * The SEC dataset is the primary source — the hardcoded map is kept
+ * as a fast path for well-known tickers and as a fallback when
+ * the SEC API is unreachable.
+ *
+ * DOES NOT classify ETFs, foreign issuers, or securities beyond
+ * what the hardcoded map explicitly marks (NVO is the only
+ * foreign-issuer flag today).
  */
 
 import { CIK_MAP } from "@/lib/sec/cik";
+import { resolveCompanyByTicker, resolveCompanyByName } from "@/lib/sec/company-tickers";
 
-// Known company names mapped to tickers
+// Known company names mapped to tickers (fast path)
 const COMPANY_NAME_MAP: Record<string, string> = {
   // Seed watchlist
   "OCCIDENTAL PETROLEUM": "OXY",
@@ -146,6 +158,7 @@ const COMPANY_NAME_MAP: Record<string, string> = {
 };
 
 const TICKER_REGEX = /^[A-Z]{1,5}$/;
+const SHARE_CLASS_REGEX = /^[A-Z]{1,4}[.\-][A-Z]{1,2}$/; // BRK.B, BF.A
 
 export interface TickerValidationResult {
   valid: boolean;
@@ -154,29 +167,44 @@ export interface TickerValidationResult {
   cik?: string;
   isForeignIssuer?: boolean;
   error?: string;
+  source?: "hardcoded" | "dataset" | "name_match" | "not_found";
 }
 
 /**
  * Validate and resolve a ticker or company name.
- * Accepts: "OXY", "intc", "Intel", "novo nordisk", etc.
+ *
+ * Accepts: "OXY", "intc", "Intel", "BRK.B", "novo nordisk", etc.
+ * Now async — fetches SEC company_tickers.json for dynamic resolution.
+ *
+ * Resolution order:
+ *  1. Hardcoded company name map (fast path)
+ *  2. Hardcoded CIK map (fast path)
+ *  3. SEC company tickers dataset (ticker match)
+ *  4. SEC company tickers dataset (name match)
  */
-export function validateTicker(input: string): TickerValidationResult {
+export async function validateTicker(input: string): Promise<TickerValidationResult> {
   const cleaned = input.trim();
 
   if (!cleaned) {
     return { valid: false, ticker: cleaned, error: "Enter a ticker or company name" };
   }
 
-  // Try exact company name match first (case-insensitive)
+  // 1. Try hardcoded company name match first (fast path)
   const upperName = cleaned.toUpperCase();
   const nameMatch = COMPANY_NAME_MAP[upperName];
   if (nameMatch) {
-    return resolveTicker(nameMatch);
+    return resolveTickerSync(nameMatch);
   }
 
-  // Try as ticker
+  // 2. Try as a ticker
   const upperTicker = cleaned.toUpperCase();
-  if (!TICKER_REGEX.test(upperTicker)) {
+
+  // Validate ticker format (allow share classes like BRK.B)
+  if (!TICKER_REGEX.test(upperTicker) && !SHARE_CLASS_REGEX.test(upperTicker)) {
+    // Before rejecting, try the SEC dataset — it might be a name
+    const nameResult = await resolveByName(upperName);
+    if (nameResult) return nameResult;
+
     return {
       valid: false,
       ticker: upperTicker,
@@ -184,8 +212,87 @@ export function validateTicker(input: string): TickerValidationResult {
     };
   }
 
-  return resolveTicker(upperTicker);
+  // 3. Try hardcoded ticker map first
+  const syncResult = resolveTickerSync(upperTicker);
+  if (syncResult.valid) return syncResult;
+
+  // 4. Try SEC dataset (dynamic)
+  return resolveTickerFromDataset(upperName);
 }
+
+/**
+ * Fast synchronous resolution against hardcoded maps only.
+ */
+function resolveTickerSync(ticker: string): TickerValidationResult {
+  // Handle share classes: BRK.B → BRKB for hardcoded lookup
+  const normalized = ticker.replace(/[.\-]/g, "");
+  const cik = CIK_MAP[ticker] || CIK_MAP[normalized];
+
+  if (!cik) {
+    return { valid: false, ticker, error: `"${ticker}" is not a supported ticker.` };
+  }
+
+  const isForeignIssuer = ticker === "NVO" || normalized === "NVO";
+  const name = KNOWN_NAMES[ticker] || KNOWN_NAMES[normalized] || ticker;
+
+  return { valid: true, ticker, cik, companyName: name, isForeignIssuer, source: "hardcoded" };
+}
+
+/**
+ * Resolve a ticker or name against the SEC dataset.
+ */
+async function resolveTickerFromDataset(input: string): Promise<TickerValidationResult> {
+  try {
+    // Try as ticker first
+    const tickerResult = await resolveCompanyByTicker(input);
+    if (tickerResult.found && tickerResult.ticker) {
+      return {
+        valid: true,
+        ticker: tickerResult.ticker,
+        cik: tickerResult.cik,
+        companyName: tickerResult.name || tickerResult.ticker,
+        source: tickerResult.source as "dataset" | "hardcoded",
+      };
+    }
+
+    // Try as company name
+    const nameResult = await resolveByName(input);
+    if (nameResult) return nameResult;
+
+    return {
+      valid: false,
+      ticker: input.toUpperCase(),
+      error: `"${input}" is not a supported ticker. Only SEC-reporting companies with ticker mappings are supported.`,
+    };
+  } catch {
+    return {
+      valid: false,
+      ticker: input.toUpperCase(),
+      error: `"${input}" is not a supported ticker. Only SEC-reporting companies with ticker mappings are supported.`,
+    };
+  }
+}
+
+/**
+ * Resolve by company name using the SEC dataset.
+ */
+async function resolveByName(input: string): Promise<TickerValidationResult | null> {
+  const result = await resolveCompanyByName(input, COMPANY_NAME_MAP, KNOWN_NAMES);
+  if (result.found && result.ticker && result.cik) {
+    return {
+      valid: true,
+      ticker: result.ticker,
+      cik: result.cik,
+      companyName: result.name || result.ticker,
+      source: result.source as "dataset" | "hardcoded" | "name_match",
+    };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// Display names for hardcoded tickers
+// ---------------------------------------------------------------------------
 
 const KNOWN_NAMES: Record<string, string> = {
   OXY: "Occidental Petroleum",
@@ -288,31 +395,3 @@ const KNOWN_NAMES: Record<string, string> = {
   DAL: "Delta Air Lines Inc.",
   AAL: "American Airlines Group Inc.",
 };
-
-/**
- * Resolve a validated ticker to CIK and company name.
- */
-function resolveTicker(ticker: string): TickerValidationResult {
-  const cik = CIK_MAP[ticker];
-
-  if (!cik) {
-    return {
-      valid: false,
-      ticker,
-      error: `"${ticker}" is not a supported ticker. Only SEC-reporting companies with CIK mappings are supported.`,
-    };
-  }
-
-  // NVO is a foreign issuer — doesn't file Form 4
-  const isForeignIssuer = ticker === "NVO";
-
-  const companyName = KNOWN_NAMES[ticker] ?? ticker;
-
-  return {
-    valid: true,
-    ticker,
-    companyName,
-    cik,
-    isForeignIssuer,
-  };
-}
