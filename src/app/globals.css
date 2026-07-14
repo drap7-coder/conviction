@@ -337,11 +337,11 @@ details > summary::before {
 
 .company-card {
   display: block;
-  min-height: 174px;
+  min-height: 244px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px 18px 42px;
+  padding: 20px 20px 46px;
   transition: border-color 0.15s, background-color 0.15s, transform 0.15s;
   cursor: pointer;
 }
@@ -361,13 +361,13 @@ details > summary::before {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .card-ticker {
   font-family: var(--font-mono);
   display: block;
-  font-size: 1.2rem;
+  font-size: 1.38rem;
   font-weight: 700;
   color: var(--ink);
   line-height: 1.1;
@@ -375,14 +375,14 @@ details > summary::before {
 
 .card-name {
   display: block;
-  font-size: 0.94rem;
+  font-size: 0.96rem;
   color: var(--muted);
   margin-top: 3px;
 }
 
 .card-arrow {
   color: var(--quiet);
-  font-size: 1rem;
+  font-size: 1.12rem;
   transition: color 0.15s, transform 0.15s;
 }
 
@@ -391,8 +391,40 @@ details > summary::before {
   transform: translateX(2px);
 }
 
+.card-quote {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 16px;
+  padding: 13px 14px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.card-price {
+  font-family: var(--font-mono);
+  color: var(--ink);
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.card-quote-change {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--quiet);
+}
+
+.card-quote-change.positive {
+  color: var(--green);
+}
+
+.card-quote-change.negative {
+  color: var(--red);
+}
+
 .card-change {
-  font-size: 0.98rem;
+  font-size: 1.04rem;
   color: var(--green);
   margin-bottom: 8px;
   line-height: 1.4;
@@ -414,6 +446,7 @@ details > summary::before {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  margin-top: 14px;
 }
 
 .metric {
@@ -434,8 +467,8 @@ details > summary::before {
 
 .remove-company {
   position: absolute;
-  left: 18px;
-  bottom: 13px;
+  left: 20px;
+  bottom: 15px;
   color: var(--quiet);
   font-size: 0.84rem;
   padding: 0;

@@ -13,6 +13,15 @@ interface WatchlistEntry {
   statusMessage?: string;
 }
 
+interface StockQuote {
+  ticker: string;
+  price: number | null;
+  change: number | null;
+  changePercent: number | null;
+  currency: string | null;
+  marketState: string | null;
+}
+
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
@@ -44,8 +53,23 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
   }
 }
 
+function formatPrice(value: number | null) {
+  if (value === null) return "—";
+  return value.toLocaleString(undefined, {
+    maximumFractionDigits: value >= 100 ? 2 : 3,
+    minimumFractionDigits: value >= 1 ? 2 : 3,
+  });
+}
+
+function formatChange(value: number | null, percent: number | null) {
+  if (value === null || percent === null) return "Quote unavailable";
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)} · ${sign}${percent.toFixed(2)}%`;
+}
+
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
+  const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [kvEnabled, setKvEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -89,6 +113,33 @@ export default function WatchlistPage() {
   useEffect(() => {
     loadWatchlist();
   }, [loadWatchlist]);
+
+  useEffect(() => {
+    if (entries.length === 0) return;
+    let cancelled = false;
+
+    async function loadQuotes() {
+      try {
+        const tickers = entries.map((entry) => entry.ticker).join(",");
+        const response = await fetch(`/api/market/quotes?tickers=${encodeURIComponent(tickers)}`);
+        if (!response.ok) return;
+        const data = (await response.json()) as { quotes?: StockQuote[] };
+        if (cancelled) return;
+        const nextQuotes: Record<string, StockQuote> = {};
+        for (const quote of data.quotes ?? []) {
+          nextQuotes[quote.ticker] = quote;
+        }
+        setQuotes(nextQuotes);
+      } catch {
+        if (!cancelled) setQuotes({});
+      }
+    }
+
+    void loadQuotes();
+    return () => {
+      cancelled = true;
+    };
+  }, [entries]);
 
   const handleAdd = async () => {
     const input = addInput.trim();
@@ -224,9 +275,17 @@ export default function WatchlistPage() {
           <div className="company-grid">
             {entries.map((entry) => {
               const isLimited = entry.status !== "active";
+              const quote = quotes[entry.ticker];
+              const quoteDirection = quote?.change === null || quote?.change === undefined
+                ? "neutral"
+                : quote.change > 0
+                  ? "positive"
+                  : quote.change < 0
+                    ? "negative"
+                    : "neutral";
               const statusText = isLimited
                 ? "Institutional 13F still available. Insider Form 4 may be limited."
-                : "Open the company page to see which tracked managers changed positions.";
+                : "Open the company page for recent catalysts and manager changes.";
 
               return (
                 <div key={entry.ticker} className="company-card-wrap">
@@ -239,8 +298,17 @@ export default function WatchlistPage() {
                       <span className="card-arrow" aria-hidden="true">→</span>
                     </div>
 
+                    <div className="card-quote">
+                      <span className="card-price">
+                        {quote ? `$${formatPrice(quote.price)}` : "Loading quote"}
+                      </span>
+                      <span className={`card-quote-change ${quoteDirection}`}>
+                        {quote ? formatChange(quote.change, quote.changePercent) : "Checking market"}
+                      </span>
+                    </div>
+
                     <div className={`card-change ${isLimited ? "limited" : ""}`}>
-                      SEC 13F manager changes
+                      Institutional conviction
                     </div>
 
                     <div className="card-implication">
@@ -249,9 +317,15 @@ export default function WatchlistPage() {
 
                     <div className="card-metrics">
                       <span className="metric">
-                        <span className="metric-label">primary signal</span>
+                        <span className="metric-label">primary</span>
                         <span className="metric-value">
-                          institutional accumulation
+                          13F accumulation
+                        </span>
+                      </span>
+                      <span className="metric">
+                        <span className="metric-label">move</span>
+                        <span className="metric-value">
+                          catalyst check
                         </span>
                       </span>
                       {isLimited && (
