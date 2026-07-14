@@ -116,7 +116,7 @@ export function ExperienceControls() {
         title={`Switch to ${nextTheme} mode`}
       >
         <span aria-hidden="true">{theme === "dark" ? "☾" : "☀"}</span>
-        <span>{theme === "dark" ? "Dark" : "Light"}</span>
+        <span>{theme === "dark" ? "Dark mode" : "Light mode"}</span>
       </button>
       <button
         type="button"
@@ -127,7 +127,7 @@ export function ExperienceControls() {
         title={soundEnabled ? "Turn sound off" : "Turn sound on"}
       >
         <span aria-hidden="true">{soundEnabled ? "♪" : "×"}</span>
-        <span>Sound</span>
+        <span>Interface sound</span>
       </button>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
+import { getTickerSignalSummary } from "@/lib/evidence/signal-summaries";
 
 interface WatchlistEntry {
   ticker: string;
@@ -283,9 +284,12 @@ export default function WatchlistPage() {
                   : quote.change < 0
                     ? "negative"
                     : "neutral";
-              const statusText = isLimited
+              const signal = getTickerSignalSummary(entry.ticker);
+              const signalText = signal?.cardText ?? (isLimited
                 ? "Institutional 13F still available. Insider Form 4 may be limited."
-                : "Open the company page for recent catalysts and manager changes.";
+                : "No tracked-manager signal cached yet.");
+              const signalBadge = signal?.badge ?? "13F: no change cached";
+              const signalDirection = signal?.direction ?? "neutral";
 
               return (
                 <div key={entry.ticker} className="company-card-wrap">
@@ -300,38 +304,30 @@ export default function WatchlistPage() {
 
                     <div className="card-quote">
                       <span className="card-price">
-                        {quote ? `$${formatPrice(quote.price)}` : "Loading quote"}
+                        {quote ? `$${formatPrice(quote.price)}` : "Quote pending"}
                       </span>
                       <span className={`card-quote-change ${quoteDirection}`}>
-                        {quote ? formatChange(quote.change, quote.changePercent) : "Checking market"}
+                        {quote ? formatChange(quote.change, quote.changePercent) : "Market data loading"}
                       </span>
-                    </div>
-
-                    <div className={`card-change ${isLimited ? "limited" : ""}`}>
-                      Institutional conviction
                     </div>
 
                     <div className="card-implication">
-                      {statusText}
+                      {signalText}
                     </div>
 
                     <div className="card-metrics">
-                      <span className="metric">
-                        <span className="metric-label">primary</span>
-                        <span className="metric-value">
-                          13F accumulation
-                        </span>
+                      <span className={`signal-badge ${signalDirection}`}>
+                        <span aria-hidden="true">◆</span>
+                        {signalBadge}
                       </span>
-                      <span className="metric">
-                        <span className="metric-label">move</span>
-                        <span className="metric-value">
-                          catalyst check
-                        </span>
+                      <span className="signal-badge neutral">
+                        <span aria-hidden="true">↗</span>
+                        Move context
                       </span>
                       {isLimited && (
-                        <span className="metric">
-                          <span className="metric-label">insiders</span>
-                          <span className="metric-value warning">limited</span>
+                        <span className="signal-badge negative">
+                          <span aria-hidden="true">!</span>
+                          Form 4 limited
                         </span>
                       )}
                     </div>

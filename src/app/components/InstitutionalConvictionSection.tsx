@@ -132,7 +132,7 @@ export function InstitutionalConvictionSection({
                 <p>
                   {lead
                     ? `${lead.displayName} ${describeStatus(lead)} ${ticker}: ${formatShares(Math.abs(lead.shareChange))} share${Math.abs(lead.shareChange) === 1 ? "" : "s"} changed.`
-                    : "No manager change selected."}
+                    : "No tracked-manager change found."}
                 </p>
               </div>
               <div className="institutional-hero-metrics">

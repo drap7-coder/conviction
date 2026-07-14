@@ -112,14 +112,12 @@ export function getMoveEvent(ticker: string, companyName?: string): MoveEvent {
     ticker: upperTicker,
     companyName: companyName ?? upperTicker,
     date: new Date().toISOString().slice(0, 10),
-    headline: "No clear move explanation loaded.",
+    headline: "No sourced same-day catalyst loaded.",
     answer:
       "Conviction does not have a sourced same-day catalyst for this move yet.",
     category: "no-clear-catalyst",
     confidence: "low",
-    details: [
-      "Check earnings, guidance, SEC filings, analyst notes, sector moves, and macro headlines before assuming the move is company-specific.",
-    ],
+    details: [],
     convictionQuestion:
       "Do not infer meaning from price alone. Compare the move against tracked manager activity before changing the thesis.",
     sources: [],

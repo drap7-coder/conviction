@@ -29,6 +29,8 @@ describe("getMoveEvent", () => {
     expect(event.companyName).toBe("Occidental Petroleum");
     expect(event.category).toBe("no-clear-catalyst");
     expect(event.confidence).toBe("low");
+    expect(event.details).toEqual([]);
+    expect(event.headline).toBe("No sourced same-day catalyst loaded.");
     expect(event.sources).toEqual([]);
   });
 });
