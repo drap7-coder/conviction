@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { BottomTicker } from "@/app/components/BottomTicker";
+import { ExperienceControls } from "@/app/components/ExperienceControls";
 import { Nav } from "@/app/components/Nav";
 
 const geistSans = Geist({
@@ -19,13 +20,30 @@ export const metadata: Metadata = {
   description: "Find material changes before they become obvious.",
 };
 
+const themeScript = `
+(() => {
+  try {
+    const saved = localStorage.getItem("conviction-theme");
+    const theme = saved === "light" || saved === "dark"
+      ? saved
+      : (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.dataset.theme = theme;
+  } catch {
+    document.documentElement.dataset.theme = "dark";
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <div className="app-shell">
           <header className="app-header">
@@ -35,7 +53,10 @@ export default function RootLayout({
               </h1>
               <span className="demo-badge">SEC 13F</span>
             </div>
-            <Nav />
+            <div className="header-actions">
+              <Nav />
+              <ExperienceControls />
+            </div>
           </header>
           {children}
         </div>

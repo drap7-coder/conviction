@@ -22,6 +22,25 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+[data-theme="light"] {
+  --bg: #f4f0e7;
+  --surface: #fffaf0;
+  --surface-elevated: #eee6d6;
+  --border: #ded2bd;
+  --border-active: #b7a583;
+  --ink: #17140f;
+  --muted: #5e584d;
+  --quiet: #847766;
+  --accent: #005dff;
+  --accent-dim: rgba(0, 93, 255, 0.12);
+  --green: #007844;
+  --green-dim: rgba(0, 120, 68, 0.12);
+  --red: #b3163f;
+  --red-dim: rgba(179, 22, 63, 0.12);
+  --amber: #9b6500;
+  --amber-dim: rgba(155, 101, 0, 0.14);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -35,6 +54,10 @@ html, body {
   font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+}
+
+body {
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
 
 a {
@@ -88,6 +111,12 @@ details[open] > summary::before {
   border-bottom: 1px solid var(--border);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .app-title {
   font-family: var(--font-mono);
   font-size: 1.2rem;
@@ -128,6 +157,41 @@ details[open] > summary::before {
   padding: 2px 8px;
   border-radius: var(--radius);
   letter-spacing: 0.08em;
+}
+
+.experience-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.control-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 26px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  color: var(--muted);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 7px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s, background-color 0.15s, transform 0.15s;
+}
+
+.control-button:hover {
+  color: var(--ink);
+  border-color: var(--border-active);
+  transform: translateY(-1px);
+}
+
+.control-button.active {
+  color: var(--green);
+  background: var(--green-dim);
+  border-color: var(--green-dim);
 }
 
 /* ── Section ── */
@@ -924,6 +988,20 @@ details[open] > summary::before {
   100% { transform: translateX(-50%); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  body,
+  .control-button,
+  .ticker-scroll,
+  .institutional-loading-bars span {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .control-button:hover {
+    transform: none;
+  }
+}
+
 /* ── Empty State ── */
 
 .empty-state {
@@ -951,6 +1029,26 @@ details[open] > summary::before {
   .app-header {
     flex-wrap: wrap;
     gap: 8px;
+  }
+
+  .header-actions {
+    width: 100%;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .app-nav {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .experience-controls {
+    flex-shrink: 0;
+  }
+
+  .control-button {
+    padding: 4px 6px;
   }
 
   .product-brief,
