@@ -45,6 +45,46 @@ function whyRanked(idea: InstitutionalEmergingIdea) {
   return parts.join(" · ");
 }
 
+function RisingBuildState() {
+  return (
+    <div className="rising-build" role="status" aria-live="polite">
+      <div className="rising-build-header">
+        <div>
+          <span className="institutional-eyebrow">Building conviction board</span>
+          <h3>Reading 13F filings</h3>
+          <p>Checking manager changes, share counts, and filing recency.</p>
+        </div>
+        <div className="rising-build-meter" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+
+      <div className="rising-build-grid" aria-hidden="true">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div className="rising-build-card" key={index}>
+            <div className="rising-scan-line" />
+            <div className="rising-build-row">
+              <span className="rising-build-chip" />
+              <span className="rising-build-title" />
+              <span className="rising-build-score" />
+            </div>
+            <div className="rising-build-facts">
+              <span />
+              <span />
+              <span />
+            </div>
+            <span className="rising-build-copy" />
+            <span className="rising-build-copy short" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function RisingConvictionPage() {
   const [ideas, setIdeas] = useState<InstitutionalEmergingIdea[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,9 +128,7 @@ export default function RisingConvictionPage() {
       </div>
 
       {loading ? (
-        <div className="empty-state">
-          <p>Reading institutional filings...</p>
-        </div>
+        <RisingBuildState />
       ) : error && ideas.length === 0 ? (
         <div className="empty-state">
           <p>{error}</p>
