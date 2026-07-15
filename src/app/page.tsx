@@ -136,6 +136,7 @@ export default function WatchlistPage() {
       const data = await fetchJsonWithTimeout<{
         authenticated?: boolean;
         entries?: WatchlistEntry[];
+        guestEntries?: WatchlistEntry[];
         user?: { name?: string | null; email?: string | null };
         authConfigured?: boolean;
         persistence?: "browser" | "neon" | "unconfigured";
@@ -144,7 +145,7 @@ export default function WatchlistPage() {
       const isAuthenticated = Boolean(data.authenticated);
       let nextEntries = isAuthenticated
         ? (data.entries ?? [])
-        : (browserEntries ?? []);
+        : (browserEntries ?? data.guestEntries ?? data.entries ?? []);
 
       if (isAuthenticated && browserEntries?.length && !hasMigratedBrowserWatchlist()) {
         const migrateResponse = await fetch("/api/watchlist/migrate", {
