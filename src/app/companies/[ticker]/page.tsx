@@ -37,8 +37,8 @@ export default async function CompanyPage({
         <TrackCompanyButton ticker={upperTicker} companyName={companyName} />
       </div>
 
-      <MoveExplanationSection ticker={upperTicker} />
       <PriceTrendCard ticker={upperTicker} />
+      <MoveExplanationSection ticker={upperTicker} />
       <PoliticalTradesSection ticker={upperTicker} />
 
       <div className="secondary-evidence">

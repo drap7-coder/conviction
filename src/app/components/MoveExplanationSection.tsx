@@ -422,6 +422,22 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       : latestDisclosure
         ? `${latestDisclosure.title}. Filed ${formatDate(latestDisclosure.filingDate)}.`
         : "No recent SEC corporate disclosures.";
+  const latestKnownEvent = materialNewsEvents[0]
+    ? {
+        title: materialNewsEvents[0].title,
+        detail: `${formatDate(materialNewsEvents[0].date)} · ${materialNewsEvents[0].summary}`,
+      }
+    : latestDisclosure
+      ? {
+          title: latestDisclosure.title,
+          detail: `${formatDate(latestDisclosure.filingDate)} · ${latestDisclosure.summary}`,
+        }
+      : corporateEvents[0]
+        ? {
+            title: corporateEvents[0].title,
+            detail: `${formatDate(corporateEvents[0].filingDate)} · ${corporateEvents[0].summary}`,
+          }
+        : null;
   const peerQuotes = getPeerTickers(ticker)
     .map((peerTicker) => quotes[peerTicker])
     .filter((peerQuote): peerQuote is StockQuote => !!peerQuote);
@@ -429,8 +445,8 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   return (
     <section className="move-section">
       <div className="section-header mt-16">
-        <h2 className="section-title">Why moved?</h2>
-        <span className="section-count">Price + 13F</span>
+        <h2 className="section-title">Move context</h2>
+        <span className="section-count">Catalyst + signals</span>
       </div>
 
       {status === "loading" || status === "idle" ? (
@@ -582,9 +598,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                 <p>Use this to separate company-specific moves from group pressure.</p>
               </div>
               <div>
-                <span className="move-eyebrow">Latest 13F</span>
-                <strong>{institutional.latestFilingDate ?? "No recent tracked filing"}</strong>
-                <p>{institutionalText}</p>
+                <span className="move-eyebrow">Latest known event</span>
+                <strong>{latestKnownEvent?.title ?? "No recent sourced event"}</strong>
+                <p>{latestKnownEvent ? latestKnownEvent.detail : "No headline or corporate disclosure is loaded yet."}</p>
               </div>
             </div>
           ) : (
@@ -608,17 +624,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           </ul>
           ) : null}
 
-          <div className={`move-institutional-support ${institutional.tone}`}>
-            <div>
-              <span className="move-eyebrow">{institutional.label}</span>
-              <strong>{institutionalText}</strong>
-            </div>
-            <div className="move-support-metrics">
-              <span>{institutional.activeRows.length} changes</span>
-              <span>{institutional.latestFilingDate ?? "No filing date"}</span>
-            </div>
-          </div>
-
           <div className="evidence-family-card material-news-card">
             <div className="evidence-family-header">
               <div>
@@ -639,34 +644,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                     <p>{newsEvent.aiExplanation}</p>
                   </a>
                 ))}
-              </div>
-            ) : null}
-          </div>
-
-          <div className={`evidence-family-card short-interest-card ${shortInterestDirection}`}>
-            <div className="evidence-family-header">
-              <div>
-                <span className="move-eyebrow">Short interest</span>
-                <strong>{shortInterestCopy}</strong>
-              </div>
-              <span className="move-confidence move-confidence-inline">
-                FINRA
-              </span>
-            </div>
-            {shortInterest ? (
-              <div className="short-interest-grid">
-                <span>
-                  <strong>{shortInterest.daysToCover.toFixed(2)}</strong>
-                  days to cover
-                </span>
-                <span>
-                  <strong>{shortInterest.changePercent > 0 ? "+" : ""}{shortInterest.changePercent.toFixed(2)}%</strong>
-                  change
-                </span>
-                <span>
-                  <strong>{formatDate(shortInterest.settlementDate)}</strong>
-                  settlement
-                </span>
               </div>
             ) : null}
           </div>
@@ -743,23 +720,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                   {latestDisclosure.sourceLabel}
                 </a>
               </div>
-            </div>
-          ) : null}
-
-          {event.sources.length > 0 ? (
-            <div className="move-headlines" aria-label="Evidence headlines">
-              {event.sources.slice(0, 3).map((source) => (
-                <a
-                  className="move-headline-card"
-                  href={source.url}
-                  key={source.url}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  <span>{source.label}</span>
-                  <strong>{source.headline}</strong>
-                </a>
-              ))}
             </div>
           ) : null}
 
