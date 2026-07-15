@@ -413,7 +413,7 @@ export default function WatchlistPage() {
 
               return (
                 <div key={entry.ticker} className="company-card-wrap">
-                  <div className={`company-card ${isLimited ? "limited" : ""}`}>
+                  <div className={`company-card card-tone-${verdict.tone} ${isLimited ? "limited" : ""}`}>
                     <div className="card-header">
                       <div>
                         <span className="card-ticker">{entry.ticker}</span>

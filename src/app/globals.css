@@ -530,6 +530,8 @@ details > summary::before {
 }
 
 .company-card {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -542,6 +544,69 @@ details > summary::before {
   box-shadow: 0 0 0 1px transparent, 0 0 28px rgba(0, 229, 255, 0.035);
   transition: border-color 0.15s, background-color 0.15s, transform 0.15s;
   cursor: pointer;
+}
+
+.company-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 5px;
+  background: var(--accent);
+  opacity: 0.58;
+}
+
+.company-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent 68%, var(--accent-dim));
+  opacity: 0.5;
+}
+
+.company-card.card-tone-positive {
+  border-color: color-mix(in srgb, var(--green) 34%, var(--border));
+}
+
+.company-card.card-tone-positive::after {
+  background: var(--green);
+}
+
+.company-card.card-tone-positive::before {
+  background: linear-gradient(90deg, transparent 68%, var(--green-dim));
+}
+
+.company-card.card-tone-negative {
+  border-color: color-mix(in srgb, var(--red) 34%, var(--border));
+}
+
+.company-card.card-tone-negative::after {
+  background: var(--red);
+}
+
+.company-card.card-tone-negative::before {
+  background: linear-gradient(90deg, transparent 68%, color-mix(in srgb, var(--red) 14%, transparent));
+}
+
+.company-card.card-tone-contested {
+  border-color: color-mix(in srgb, var(--amber) 36%, var(--border));
+}
+
+.company-card.card-tone-contested::after {
+  background: var(--amber);
+}
+
+.company-card.card-tone-contested::before {
+  background: linear-gradient(90deg, transparent 68%, var(--amber-dim));
+}
+
+.company-card.card-tone-quiet::after {
+  opacity: 0.32;
+}
+
+.company-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .company-card:hover {
