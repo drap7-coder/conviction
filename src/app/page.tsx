@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { getNewsEvidenceSummary } from "@/lib/evidence/news-evidence";
-import { getTickerSignalSummary } from "@/lib/evidence/signal-summaries";
+import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 
 interface WatchlistEntry {
@@ -81,56 +80,6 @@ function formatChange(value: number | null, percent: number | null) {
   if (value === null || percent === null) return "Quote unavailable";
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(2)} · ${sign}${percent.toFixed(2)}%`;
-}
-
-function daysAgo(value: string | undefined) {
-  if (!value) return "No sync yet";
-  const then = new Date(value).getTime();
-  if (!Number.isFinite(then)) return "No sync yet";
-  const days = Math.max(0, Math.floor((Date.now() - then) / (24 * 60 * 60 * 1000)));
-  if (days === 0) return "today";
-  if (days === 1) return "1 day ago";
-  return `${days} days ago`;
-}
-
-function getCardVerdict(entry: WatchlistEntry, quote?: StockQuote) {
-  const signal = getTickerSignalSummary(entry.ticker);
-  const newsEvents = getNewsEvidenceSummary(entry.ticker, entry.companyName).events;
-  const newsSupport = newsEvents.filter((event) => event.direction === "positive").length;
-  const newsContra = newsEvents.filter((event) => event.isContradiction || event.direction === "negative").length;
-  const support = (signal?.direction === "pos" ? 2 : 0) + newsSupport;
-  const contra = (signal?.direction === "neg" ? 1 : 0) + newsContra;
-  const quoteMove = quote?.changePercent ?? 0;
-  const base = support > contra ? 72 : contra > support ? 38 : signal?.direction === "pos" ? 72 : signal?.direction === "neg" ? 38 : 46;
-  const quoteAdjustment = Math.max(-8, Math.min(8, quoteMove * 1.4));
-  const strength = Math.max(0, Math.min(99, Math.round(base + quoteAdjustment)));
-  const state = support > 0 && contra > 0
-    ? "Contested"
-    : support > contra
-      ? "Strengthening"
-      : contra > support
-        ? "Weakening"
-        : "Quiet";
-  const tone = state === "Strengthening"
-    ? "positive"
-    : state === "Weakening"
-      ? "negative"
-      : state === "Contested"
-        ? "contested"
-        : "quiet";
-
-  return {
-    state,
-    tone,
-    strength,
-    support,
-    contra,
-    insight: newsEvents[0]?.summary ?? signal?.cardText ?? (entry.status !== "active"
-      ? "SEC coverage is limited for this issuer."
-      : "No high-conviction change cached yet."),
-    recency: daysAgo(entry.lastSyncedAt ?? entry.addedAt),
-    sortScore: strength + support * 8 - contra * 10 + Math.abs(quoteMove),
-  };
 }
 
 export default function WatchlistPage() {
@@ -476,7 +425,7 @@ export default function WatchlistPage() {
 
                     <div className="card-recency">
                       <span>{verdict.recency}</span>
-                      <span>{isLimited ? "Form 4 limited" : "SEC evidence"}</span>
+                      <span>{verdict.source}</span>
                     </div>
 
                     <div className="card-actions">

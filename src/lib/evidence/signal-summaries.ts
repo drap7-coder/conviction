@@ -6,6 +6,9 @@ export interface TickerSignalSummary {
   cardText: string;
   badge: string;
   direction: SignalDirection;
+  supportCount?: number;
+  contraCount?: number;
+  strength?: number;
 }
 
 export const TICKER_SIGNAL_SUMMARIES: TickerSignalSummary[] = [
@@ -15,6 +18,8 @@ export const TICKER_SIGNAL_SUMMARIES: TickerSignalSummary[] = [
     cardText: "2 new tracked-manager positions and 1 increase detected.",
     badge: "13F: accumulating",
     direction: "pos",
+    supportCount: 3,
+    strength: 0.78,
   },
   {
     ticker: "GOOG",
@@ -22,6 +27,8 @@ export const TICKER_SIGNAL_SUMMARIES: TickerSignalSummary[] = [
     cardText: "2 tracked managers opened positions.",
     badge: "13F: new positions",
     direction: "pos",
+    supportCount: 2,
+    strength: 0.72,
   },
   {
     ticker: "OXY",
@@ -29,6 +36,8 @@ export const TICKER_SIGNAL_SUMMARIES: TickerSignalSummary[] = [
     cardText: "D. E. Shaw increased common shares.",
     badge: "13F: accumulating",
     direction: "pos",
+    supportCount: 1,
+    strength: 0.68,
   },
   {
     ticker: "PFE",
@@ -36,6 +45,8 @@ export const TICKER_SIGNAL_SUMMARIES: TickerSignalSummary[] = [
     cardText: "2 tracked managers increased holdings.",
     badge: "13F: accumulating",
     direction: "pos",
+    supportCount: 2,
+    strength: 0.72,
   },
   {
     ticker: "NBIS",
@@ -43,6 +54,8 @@ export const TICKER_SIGNAL_SUMMARIES: TickerSignalSummary[] = [
     cardText: "Bridgewater increased common shares.",
     badge: "13F: accumulating",
     direction: "pos",
+    supportCount: 1,
+    strength: 0.68,
   },
 ];
 
