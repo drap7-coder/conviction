@@ -1467,7 +1467,14 @@ details > summary::before {
   border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
 }
 
-.convergence-card.convergence-none {
+.convergence-card.convergence-watch {
+  background:
+    radial-gradient(circle at top left, var(--amber-dim), transparent 38%),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--amber) 34%, var(--border));
+}
+
+.convergence-card.convergence-monitor {
   background:
     radial-gradient(circle at top left, color-mix(in srgb, var(--muted) 12%, transparent), transparent 40%),
     var(--surface);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { buildConvictionHeader } from "@/lib/conviction/header";
 import type { MoveEvent } from "@/lib/evidence/move-events";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
@@ -333,46 +334,39 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
     ? "Institutional filing data is temporarily unavailable. Retry later."
     : institutional.text;
   const insider = summarizeInsiders(insiderEvents);
-  const institutionalPositive = institutional.activeRows.some((row) => row.status === "New" || row.status === "Increased");
-  const hasRecentInsiderBuy = insider.purchases.length > 0;
+  const latestDisclosure = disclosureStatus === "success" ? disclosureSummary?.latestDisclosure ?? null : null;
+  const allCorporateEvents = disclosureStatus === "success" ? disclosureSummary?.corporateEvents ?? [] : [];
+  const corporateEvents = allCorporateEvents.slice(0, 3);
+  const corporateActivity = disclosureStatus === "success" ? summarizeCorporateEventActivity(allCorporateEvents) : null;
+  const shortInterest = shortInterestStatus === "success" ? shortInterestSummary?.latest ?? null : null;
+  const header = buildConvictionHeader({
+    institutionalRows,
+    insiderEvents,
+    politicalSummary,
+    shortInterest,
+    corporateActivity,
+  });
+  const institutionalPositive = header.supportingSignals.some((signal) => signal.kind === "institutional");
+  const hasRecentInsiderBuy = header.supportingSignals.some((signal) => signal.kind === "insider");
   const politicalPurchase = politicalSummary?.purchases[0] ?? null;
   const politicalSale = politicalSummary?.sales[0] ?? null;
-  const hasPoliticalPurchase = Boolean(politicalPurchase);
-  const hasInsiderOffset = insider.sales.length > 0;
-  const hasPoliticalOffset = Boolean(politicalSale);
+  const hasPoliticalPurchase = header.supportingSignals.some((signal) => signal.kind === "political");
+  const hasInsiderOffset = header.offsets.some((signal) => signal.kind === "insider");
+  const hasPoliticalOffset = header.offsets.some((signal) => signal.kind === "political");
   const hasCounterSignal = hasInsiderOffset || hasPoliticalOffset;
-  const positiveSignalCount = [institutionalPositive, hasRecentInsiderBuy, hasPoliticalPurchase].filter(Boolean).length;
-  const convergence = institutionalPositive && hasRecentInsiderBuy && hasPoliticalPurchase
-    ? {
-        level: "broad",
-        label: "Broad conviction",
-        detail: "Institutional accumulation + insider buying + political purchase",
-        tone: "positive",
-      }
-    : institutionalPositive && positiveSignalCount >= 2
-    ? {
-        level: "multi",
-        label: "Multi-signal conviction",
-        detail: `Institutional accumulation + ${hasRecentInsiderBuy ? "insider buying" : "political purchase"}`,
-        tone: "positive",
-      }
-    : institutionalPositive
-      ? {
-          level: "institutional",
-          label: "Institutional conviction",
-          detail: "Strong long-term positioning",
-          tone: "positive",
-        }
-      : {
-          level: "none",
-          label: "No active conviction",
-          detail: "No recent institutional, insider, or political conviction signal",
-          tone: "neutral",
-        };
+  const headerTone = header.status === "monitor" ? "neutral" : "positive";
+  const headerBadge = header.status === "broad"
+    ? "Broad alignment"
+    : header.status === "multi"
+      ? "Aligned signals"
+      : header.status === "institutional"
+        ? "13F signal"
+        : header.status === "watch"
+          ? "Watch signal"
+          : "No alignment";
   const quote = quotes[ticker];
   const ownershipFilings = ownershipStatus === "success" ? ownershipSummary?.filings.slice(0, 3) ?? [] : [];
   const materialNewsEvents = newsStatus === "success" ? newsEvents.slice(0, 1) : [];
-  const shortInterest = shortInterestStatus === "success" ? shortInterestSummary?.latest ?? null : null;
   const shortInterestDirection = shortInterest
     ? shortInterest.changePercent >= 10 || shortInterest.daysToCover >= 5
       ? "offset"
@@ -401,11 +395,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       : ownershipFilings.length > 0
         ? `${ownershipFilings.length} latest major ownership filing${ownershipFilings.length === 1 ? "" : "s"} found.`
         : "No 13D or 13G filings found.";
-  const latestDisclosure = disclosureStatus === "success" ? disclosureSummary?.latestDisclosure ?? null : null;
-  const allCorporateEvents = disclosureStatus === "success" ? disclosureSummary?.corporateEvents ?? [] : [];
-  const corporateEvents = allCorporateEvents.slice(0, 3);
-  const corporateActivity = disclosureStatus === "success" ? summarizeCorporateEventActivity(allCorporateEvents) : null;
-  const hasLeadershipChangeCluster = Boolean(corporateActivity?.hasRecentLeadershipCluster);
+  const hasLeadershipChangeCluster = header.offsets.some((signal) => signal.kind === "management");
   const corporateEventsCopy = disclosureStatus === "loading" || disclosureStatus === "idle"
     ? "Checking SEC 8-K corporate events."
     : disclosureStatus === "timeout" || disclosureStatus === "error"
@@ -491,15 +481,15 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <p className="move-answer">Data is not available at this moment. Retry in a moment.</p>
         </div>
       ) : event ? (
-        <div className={`move-card convergence-card convergence-${convergence.level} confidence-${event.confidence}`}>
+        <div className={`move-card convergence-card convergence-${header.status} confidence-${event.confidence}`}>
           <div className="move-card-top">
             <div>
               <span className="move-eyebrow">{formatDate(event.date)}</span>
-              <h3>{convergence.label}</h3>
-              <p className="convergence-detail">{convergence.detail}</p>
+              <h3>{header.headline}</h3>
+              <p className="convergence-detail">{header.reason}</p>
             </div>
-            <span className={`move-confidence convergence-badge ${convergence.tone}`}>
-              {convergence.level === "multi" ? "Aligned signals" : convergence.level === "institutional" ? "13F signal" : "No alignment"}
+            <span className={`move-confidence convergence-badge ${headerTone}`}>
+              {headerBadge}
             </span>
           </div>
 
