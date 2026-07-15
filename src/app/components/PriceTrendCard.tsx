@@ -50,14 +50,6 @@ function formatPercent(value: number | null | undefined) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function formatMarketCap(value: number | null | undefined) {
-  if (!value) return "—";
-  if (value >= 1_000_000_000_000) return `$${(value / 1_000_000_000_000).toFixed(2)}T`;
-  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B`;
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  return `$${value.toLocaleString()}`;
-}
-
 function buildPath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
   const width = 320;
@@ -146,21 +138,6 @@ export function PriceTrendCard({ ticker }: PriceTrendCardProps) {
         ) : (
           <span className="price-chart-empty">Market chart unavailable right now.</span>
         )}
-      </div>
-
-      <div className="price-trend-metrics">
-        <span>
-          <strong>{formatPrice(history?.fiftyTwoWeekLow)}</strong>
-          52w low
-        </span>
-        <span>
-          <strong>{formatPrice(history?.fiftyTwoWeekHigh)}</strong>
-          52w high
-        </span>
-        <span>
-          <strong>{formatMarketCap(history?.marketCap)}</strong>
-          market cap
-        </span>
       </div>
     </section>
   );

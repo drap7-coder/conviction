@@ -2400,31 +2400,6 @@ details > summary::before {
   font-size: 0.82rem;
 }
 
-.price-trend-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.price-trend-metrics span {
-  display: grid;
-  gap: 3px;
-  color: var(--quiet);
-  background: var(--surface-elevated);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  padding: 9px 10px;
-  text-transform: uppercase;
-}
-
-.price-trend-metrics strong {
-  color: var(--ink);
-  font-size: 0.82rem;
-  text-transform: none;
-}
-
 .evidence-family-header {
   display: flex;
   justify-content: space-between;
@@ -2962,10 +2937,6 @@ details > summary::before {
 
   .price-range-tabs {
     justify-content: flex-start;
-  }
-
-  .price-trend-metrics {
-    grid-template-columns: 1fr;
   }
 
   .move-confidence {
