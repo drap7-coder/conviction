@@ -5,9 +5,11 @@ import { useEffect, useState, useCallback } from "react";
 import { getTickerSignalSummary } from "@/lib/evidence/signal-summaries";
 
 interface WatchlistEntry {
+  id?: string;
   ticker: string;
   companyName: string;
   cik?: string;
+  note?: string;
   addedAt: string;
   lastSyncedAt?: string;
   status: "active" | "unsupported" | "error";
@@ -24,6 +26,7 @@ interface StockQuote {
 }
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
+const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
@@ -54,6 +57,16 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
   }
 }
 
+function hasMigratedBrowserWatchlist() {
+  if (typeof window === "undefined") return true;
+  return window.localStorage.getItem(WATCHLIST_MIGRATION_KEY) === "1";
+}
+
+function markBrowserWatchlistMigrated() {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(WATCHLIST_MIGRATION_KEY, "1");
+}
+
 function formatPrice(value: number | null) {
   if (value === null) return "—";
   return value.toLocaleString(undefined, {
@@ -71,7 +84,10 @@ function formatChange(value: number | null, percent: number | null) {
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
-  const [kvEnabled, setKvEnabled] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [authConfigured, setAuthConfigured] = useState(false);
+  const [accountLabel, setAccountLabel] = useState<string | null>(null);
+  const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,14 +110,30 @@ export default function WatchlistPage() {
       const res = await fetch("/api/watchlist");
       const data = await res.json();
 
-      const serverEntries = data.entries ?? [];
-      const nextEntries = data.kvEnabled || !browserEntries
-        ? serverEntries
-        : browserEntries;
+      const isAuthenticated = Boolean(data.authenticated);
+      let nextEntries = isAuthenticated
+        ? (data.entries ?? [])
+        : (browserEntries ?? []);
+
+      if (isAuthenticated && browserEntries?.length && !hasMigratedBrowserWatchlist()) {
+        const migrateResponse = await fetch("/api/watchlist/migrate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ entries: browserEntries }),
+        });
+        if (migrateResponse.ok) {
+          const migrated = await migrateResponse.json();
+          nextEntries = migrated.entries ?? nextEntries;
+          markBrowserWatchlistMigrated();
+        }
+      }
 
       setEntries(nextEntries);
-      writeBrowserWatchlist(nextEntries);
-      setKvEnabled(data.kvEnabled ?? false);
+      if (!isAuthenticated) writeBrowserWatchlist(nextEntries);
+      setAuthenticated(isAuthenticated);
+      setAuthConfigured(Boolean(data.authConfigured));
+      setAccountLabel(data.user?.name ?? data.user?.email ?? null);
+      setPersistence(data.persistence ?? (isAuthenticated ? "neon" : "browser"));
     } catch {
       if (!browserEntries) {
         setError("Failed to load watchlist");
@@ -161,8 +193,14 @@ export default function WatchlistPage() {
       if (!data.success) {
         setAddMessage({ type: "error", text: data.error || "Failed to add" });
       } else {
-        setEntries(data.entries);
-        writeBrowserWatchlist(data.entries);
+        const nextEntries = authenticated
+          ? data.entries
+          : [
+              ...entries.filter((entry) => entry.ticker !== data.added.ticker),
+              data.added,
+            ];
+        setEntries(nextEntries);
+        if (!authenticated) writeBrowserWatchlist(nextEntries);
         setAddInput("");
 
         if (data.initialSync?.skipped) {
@@ -191,14 +229,17 @@ export default function WatchlistPage() {
     setRemoving(ticker);
     const nextEntries = entries.filter((entry) => entry.ticker !== ticker);
     setEntries(nextEntries);
-    writeBrowserWatchlist(nextEntries);
+    if (!authenticated) {
+      writeBrowserWatchlist(nextEntries);
+      setRemoving(null);
+      return;
+    }
 
     try {
       const res = await fetch(`/api/watchlist/${ticker}`, { method: "DELETE" });
       const data = await res.json();
-      if (data.success && kvEnabled) {
+      if (data.success) {
         setEntries(data.entries);
-        writeBrowserWatchlist(data.entries);
       }
     } catch {
       // ignore
@@ -211,24 +252,69 @@ export default function WatchlistPage() {
     if (e.key === "Enter") handleAdd();
   };
 
+  const handleNoteChange = (ticker: string, note: string) => {
+    setEntries((current) =>
+      current.map((entry) => entry.ticker === ticker ? { ...entry, note } : entry),
+    );
+  };
+
+  const handleNoteBlur = async (ticker: string, note: string) => {
+    if (!authenticated) return;
+
+    try {
+      const res = await fetch(`/api/watchlist/${ticker}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note }),
+      });
+      const data = await res.json();
+      if (data.success) setEntries(data.entries);
+    } catch {
+      setAddMessage({ type: "error", text: `Could not save ${ticker} note` });
+    }
+  };
+
   return (
     <div>
       <div className="section-header">
         <h2 className="section-title">Institutional watchlist</h2>
         <div className="watchlist-meta">
           <span className="section-count">{entries.length} companies</span>
-          {!kvEnabled && (
-            <span className="storage-note" title="Saved in this browser when server storage is unavailable">
-              Saved here
-            </span>
-          )}
+          <span className="storage-note" title={authenticated ? "Synced privately across devices" : "Saved in this browser only"}>
+            {authenticated ? "Private sync" : "Saved here"}
+          </span>
         </div>
+      </div>
+
+      <div className="auth-strip">
+        <div>
+          <strong>{authenticated ? "Signed in" : "Guest mode"}</strong>
+          <span>
+            {authenticated
+              ? `${accountLabel ?? "Your account"} · private tickers and notes`
+              : authConfigured
+                ? "Browse freely. Sign in to sync tickers and notes across devices."
+                : "Browse freely. Private sync is ready once GitHub and Neon keys are configured."}
+          </span>
+        </div>
+        {authenticated || authConfigured ? (
+          <a className="auth-button" href={authenticated ? "/api/auth/signout" : "/api/auth/signin/github"}>
+            {authenticated ? "Sign out" : "Sign in with GitHub"}
+          </a>
+        ) : (
+          <span className="auth-button disabled" aria-disabled="true">
+            Sign-in setup needed
+          </span>
+        )}
       </div>
 
       <div className="product-brief">
         <div>
           <span className="institutional-eyebrow">Conviction engine</span>
           <h2>Where sophisticated capital is building conviction.</h2>
+          {persistence === "unconfigured" ? (
+            <p>Private sync needs Neon configured before sign-in watchlists can save.</p>
+          ) : null}
         </div>
         <Link href="/rising" className="brief-link">
           View leaderboard →
@@ -344,6 +430,17 @@ export default function WatchlistPage() {
                   >
                     Remove
                   </button>
+
+                  {authenticated ? (
+                    <textarea
+                      className="watchlist-note"
+                      value={entry.note ?? ""}
+                      onChange={(e) => handleNoteChange(entry.ticker, e.target.value)}
+                      onBlur={(e) => handleNoteBlur(entry.ticker, e.target.value)}
+                      placeholder={`Private note on ${entry.ticker}`}
+                      rows={2}
+                    />
+                  ) : null}
                 </div>
               );
             })}

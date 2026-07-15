@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getOptionalSession } from "@/lib/auth-session";
 import { addToWatchlist, updateWatchlistSync } from "@/lib/watchlist/persist";
 import { validateTicker } from "@/lib/watchlist/validate";
+import { addUserWatchlistEntry } from "@/lib/user-watchlist";
 import { fetchInsiderTransactions } from "@/lib/sec/client";
 import { txToRecord, storeTransactions, setLastFetchTime, getAllDedupKeys } from "@/lib/sec/persist";
 import { recordSync } from "@/lib/sync/sync-log";
@@ -52,6 +54,55 @@ export async function POST(request: NextRequest) {
   const statusMessage = isForeignIssuer
     ? `${companyName} is a foreign issuer and does not file SEC Form 4. Added for reference only.`
     : undefined;
+
+  const session = await getOptionalSession();
+  const userId = session?.user?.id;
+  if (userId) {
+    const result = await addUserWatchlistEntry(userId, {
+      ticker,
+      companyName,
+      cik,
+      addedAt: new Date().toISOString(),
+      status,
+      statusMessage,
+    });
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, error: result.error, entries: result.entries },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      added: { ticker, companyName, cik, status },
+      entries: result.entries,
+      persistence: "neon",
+      initialSync: isForeignIssuer
+        ? { skipped: true, reason: "Foreign issuer — does not file SEC Form 4" }
+        : { skipped: true, reason: "Saved privately. Institutional data is loaded from the shared evidence engine." },
+    });
+  }
+
+  if (!session) {
+    return NextResponse.json({
+      success: true,
+      added: {
+        ticker,
+        companyName,
+        cik,
+        addedAt: new Date().toISOString(),
+        status,
+        statusMessage,
+      },
+      entries: [],
+      persistence: "browser",
+      initialSync: isForeignIssuer
+        ? { skipped: true, reason: "Foreign issuer — does not file SEC Form 4" }
+        : { skipped: true, reason: "Saved in this browser. Sign in to sync across devices." },
+    });
+  }
 
   const result = await addToWatchlist({
     ticker,
