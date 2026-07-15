@@ -49,6 +49,30 @@ interface StockQuote {
   changePercent: number | null;
 }
 
+interface ShortInterestRecord {
+  ticker: string;
+  issueName: string;
+  settlementDate: string;
+  currentShortShares: number;
+  previousShortShares: number;
+  changeShares: number;
+  changePercent: number;
+  averageDailyVolume: number;
+  daysToCover: number;
+  marketClass: string | null;
+  source: "finra-consolidated-short-interest";
+}
+
+interface ShortInterestResponse {
+  ticker: string;
+  status?: "success" | "empty" | "unsupported" | "timeout" | "error";
+  latest: ShortInterestRecord | null;
+  previous: ShortInterestRecord | null;
+  message?: string;
+  fetchedAt: string;
+  source: "finra-consolidated-short-interest" | "timeout" | "error";
+}
+
 function confidenceLabel(confidence: MoveEvent["confidence"]) {
   if (confidence === "high") return "High confidence";
   if (confidence === "medium") return "Medium confidence";
@@ -71,6 +95,11 @@ function formatPercent(value: number | null | undefined) {
 
 function formatShares(value: number) {
   return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+
+function formatSignedNumber(value: number) {
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
 function describeStatus(row: InstitutionalAccumulation) {
@@ -157,10 +186,12 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [insiderEvents, setInsiderEvents] = useState<EvidenceEvent[]>([]);
   const [politicalSummary, setPoliticalSummary] = useState<PoliticalResponse | null>(null);
   const [newsEvents, setNewsEvents] = useState<EvidenceEvent[]>([]);
+  const [shortInterestSummary, setShortInterestSummary] = useState<ShortInterestResponse | null>(null);
   const [disclosureSummary, setDisclosureSummary] = useState<DisclosureResponse | null>(null);
   const [ownershipSummary, setOwnershipSummary] = useState<OwnershipResponse | null>(null);
   const [institutionalStatus, setInstitutionalStatus] = useState<EvidenceStatus>("idle");
   const [newsStatus, setNewsStatus] = useState<EvidenceStatus>("idle");
+  const [shortInterestStatus, setShortInterestStatus] = useState<EvidenceStatus>("idle");
   const [disclosureStatus, setDisclosureStatus] = useState<EvidenceStatus>("idle");
   const [ownershipStatus, setOwnershipStatus] = useState<EvidenceStatus>("idle");
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
@@ -175,6 +206,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       setStatus("loading");
       setInstitutionalStatus("loading");
       setNewsStatus("loading");
+      setShortInterestStatus("loading");
       setDisclosureStatus("loading");
       setOwnershipStatus("loading");
       setError(null);
@@ -187,7 +219,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           controller.signal,
         );
 
-        const [institutionalResult, insiderResult, politicalResult, quoteResult, ownershipResult, disclosureResult, newsResult] = await Promise.allSettled([
+        const [institutionalResult, insiderResult, politicalResult, quoteResult, ownershipResult, disclosureResult, newsResult, shortInterestResult] = await Promise.allSettled([
           fetchJsonWithTimeout<InstitutionalResponse>(`/api/evidence/institutional?ticker=${ticker}`, 26_000, controller.signal),
           fetchJsonWithTimeout<InsiderResponse>(`/api/evidence/insider?ticker=${ticker}`, 14_000, controller.signal),
           fetchJsonWithTimeout<PoliticalResponse>(`/api/evidence/political?ticker=${ticker}`, 10_000, controller.signal),
@@ -195,6 +227,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           fetchJsonWithTimeout<OwnershipResponse>(`/api/evidence/ownership?ticker=${ticker}`, 10_000, controller.signal),
           fetchJsonWithTimeout<DisclosureResponse>(`/api/evidence/disclosures?ticker=${ticker}`, 10_000, controller.signal),
           fetchJsonWithTimeout<NewsEvidenceResponse>(`/api/evidence/news?ticker=${ticker}`, 8_000, controller.signal),
+          fetchJsonWithTimeout<ShortInterestResponse>(`/api/market/short-interest?ticker=${ticker}`, 10_000, controller.signal),
         ]);
 
         const institutionalData = institutionalResult.status === "fulfilled"
@@ -214,6 +247,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         const newsData = newsResult.status === "fulfilled"
           ? newsResult.value
           : { events: [], status: classifyClientError(newsResult.reason) };
+        const shortInterestData = shortInterestResult.status === "fulfilled"
+          ? shortInterestResult.value
+          : { latest: null, previous: null, status: classifyClientError(shortInterestResult.reason) };
 
         if (!cancelled) {
           const quoteMap: Record<string, StockQuote> = {};
@@ -234,6 +270,14 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
             newsData.status === "timeout" || newsData.status === "error" || newsData.status === "unsupported"
               ? newsData.status
               : (newsData.events ?? []).length > 0
+                ? "success"
+                : "empty",
+          );
+          setShortInterestSummary(shortInterestData as ShortInterestResponse);
+          setShortInterestStatus(
+            shortInterestData.status === "timeout" || shortInterestData.status === "error" || shortInterestData.status === "unsupported"
+              ? shortInterestData.status
+              : shortInterestData.latest
                 ? "success"
                 : "empty",
           );
@@ -325,6 +369,21 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const quote = quotes[ticker];
   const ownershipFilings = ownershipStatus === "success" ? ownershipSummary?.filings.slice(0, 3) ?? [] : [];
   const materialNewsEvents = newsStatus === "success" ? newsEvents.slice(0, 1) : [];
+  const shortInterest = shortInterestStatus === "success" ? shortInterestSummary?.latest ?? null : null;
+  const shortInterestDirection = shortInterest
+    ? shortInterest.changePercent >= 10 || shortInterest.daysToCover >= 5
+      ? "offset"
+      : shortInterest.changePercent <= -10
+        ? "positive"
+        : "neutral"
+    : "neutral";
+  const shortInterestCopy = shortInterestStatus === "loading" || shortInterestStatus === "idle"
+    ? "Checking FINRA short interest."
+    : shortInterestStatus === "timeout" || shortInterestStatus === "error"
+      ? "Short interest is temporarily unavailable."
+      : shortInterest
+        ? `${formatShares(shortInterest.currentShortShares)} shares short, ${formatSignedNumber(shortInterest.changeShares)} from prior report.`
+        : "No FINRA short interest record found.";
   const materialNewsCopy = newsStatus === "loading" || newsStatus === "idle"
     ? "Checking for sourced material news."
     : newsStatus === "timeout" || newsStatus === "error"
@@ -417,6 +476,25 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                 {politicalPurchase
                   ? `${politicalPurchase.filerName} reported a ${politicalPurchase.amountRange} purchase, filed ${formatDate(politicalPurchase.filingDate)}.`
                   : "Political sales and exchanges do not count as positive conviction."}
+              </p>
+            </div>
+            <div className={`signal-tile ${shortInterestDirection}`}>
+              <span className="move-eyebrow">Short interest</span>
+              <strong>
+                {shortInterest
+                  ? shortInterestDirection === "offset"
+                    ? "Short pressure elevated"
+                    : shortInterestDirection === "positive"
+                      ? "Short pressure easing"
+                      : "Short pressure steady"
+                  : shortInterestStatus === "loading"
+                    ? "Checking"
+                    : "No record found"}
+              </strong>
+              <p>
+                {shortInterest
+                  ? `${shortInterest.changePercent > 0 ? "+" : ""}${shortInterest.changePercent.toFixed(2)}% vs prior report · ${shortInterest.daysToCover.toFixed(2)} days to cover.`
+                  : shortInterestCopy}
               </p>
             </div>
             {hasCounterSignal ? (
@@ -512,6 +590,34 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                     <p>{newsEvent.aiExplanation}</p>
                   </a>
                 ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className={`evidence-family-card short-interest-card ${shortInterestDirection}`}>
+            <div className="evidence-family-header">
+              <div>
+                <span className="move-eyebrow">Short interest</span>
+                <strong>{shortInterestCopy}</strong>
+              </div>
+              <span className="move-confidence move-confidence-inline">
+                FINRA
+              </span>
+            </div>
+            {shortInterest ? (
+              <div className="short-interest-grid">
+                <span>
+                  <strong>{shortInterest.daysToCover.toFixed(2)}</strong>
+                  days to cover
+                </span>
+                <span>
+                  <strong>{shortInterest.changePercent > 0 ? "+" : ""}{shortInterest.changePercent.toFixed(2)}%</strong>
+                  change
+                </span>
+                <span>
+                  <strong>{formatDate(shortInterest.settlementDate)}</strong>
+                  settlement
+                </span>
               </div>
             ) : null}
           </div>

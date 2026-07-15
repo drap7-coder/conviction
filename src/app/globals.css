@@ -1852,6 +1852,37 @@ details > summary::before {
   border-left-color: var(--amber);
 }
 
+.short-interest-card.offset {
+  border-left-color: var(--amber);
+}
+
+.short-interest-card.positive {
+  border-left-color: var(--green);
+}
+
+.short-interest-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.short-interest-grid span {
+  display: grid;
+  gap: 3px;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.short-interest-grid strong {
+  color: var(--ink);
+  font-size: 0.86rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .evidence-family-header {
   display: flex;
   justify-content: space-between;
