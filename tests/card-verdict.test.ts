@@ -49,4 +49,27 @@ describe("card verdict aggregation", () => {
     expect(verdict.contra).toBe(0);
     expect(verdict.insight).toBe("No high-conviction change cached yet.");
   });
+
+  it("reflects elevated short interest as a homepage contradiction", () => {
+    const verdict = getCardVerdict({
+      ...baseEntry,
+      ticker: "WEN",
+      companyName: "Wendy's Co",
+    }, { changePercent: 0 }, {
+      status: "success",
+      latest: {
+        settlementDate: "2026-06-30",
+        currentShortShares: 59_995_573,
+        changeShares: 8_326_648,
+        changePercent: 16.12,
+        daysToCover: 1.19,
+      },
+    });
+
+    expect(verdict.state).toBe("Weakening");
+    expect(verdict.support).toBe(0);
+    expect(verdict.contra).toBe(1);
+    expect(verdict.insight).toBe("Short interest rose +16.12% to 60.0M shares short.");
+    expect(verdict.source).toBe("FINRA short interest");
+  });
 });

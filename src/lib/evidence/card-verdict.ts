@@ -14,6 +14,17 @@ export interface CardVerdictQuote {
   changePercent: number | null;
 }
 
+export interface CardVerdictShortInterest {
+  status?: "success" | "empty" | "unsupported" | "timeout" | "error";
+  latest: {
+    settlementDate: string;
+    currentShortShares: number;
+    changeShares: number;
+    changePercent: number;
+    daysToCover: number;
+  } | null;
+}
+
 interface CardEvidence {
   id: string;
   text: string;
@@ -50,7 +61,38 @@ function topEvidence(evidence: CardEvidence[]) {
   })[0] ?? null;
 }
 
-export function getCardEvidence(entry: CardVerdictEntry): CardEvidence[] {
+function formatShares(value: number) {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+
+function shortInterestEvidence(ticker: string, summary?: CardVerdictShortInterest): CardEvidence | null {
+  const latest = summary?.status === "success" ? summary.latest : null;
+  if (!latest) return null;
+
+  const isPressureElevated = latest.changePercent >= 10 || latest.daysToCover >= 5;
+  const isPressureEasing = latest.changePercent <= -10;
+  if (!isPressureElevated && !isPressureEasing) return null;
+
+  const direction: EvidenceDirection = isPressureElevated ? "negative" : "positive";
+  const changeText = `${latest.changePercent > 0 ? "+" : ""}${latest.changePercent.toFixed(2)}%`;
+  const sharesText = formatShares(latest.currentShortShares);
+
+  return {
+    id: `${ticker}-short-interest-${latest.settlementDate}`,
+    text: isPressureElevated
+      ? `Short interest rose ${changeText} to ${sharesText} shares short.`
+      : `Short interest fell ${changeText} to ${sharesText} shares short.`,
+    date: latest.settlementDate,
+    direction,
+    strength: Math.min(0.82, 0.58 + Math.min(Math.abs(latest.changePercent), 40) / 100 + Math.min(latest.daysToCover, 8) / 100),
+    supportCount: isPressureEasing ? 1 : 0,
+    contraCount: isPressureElevated ? 1 : 0,
+    provider: "FINRA short interest",
+  };
+}
+
+export function getCardEvidence(entry: CardVerdictEntry, shortInterest?: CardVerdictShortInterest): CardEvidence[] {
   const evidence: CardEvidence[] = [];
   const signal = getTickerSignalSummary(entry.ticker);
   if (signal) {
@@ -80,11 +122,18 @@ export function getCardEvidence(entry: CardVerdictEntry): CardEvidence[] {
     });
   }
 
+  const shortInterestItem = shortInterestEvidence(entry.ticker, shortInterest);
+  if (shortInterestItem) evidence.push(shortInterestItem);
+
   return evidence;
 }
 
-export function getCardVerdict(entry: CardVerdictEntry, quote?: CardVerdictQuote) {
-  const evidence = getCardEvidence(entry);
+export function getCardVerdict(
+  entry: CardVerdictEntry,
+  quote?: CardVerdictQuote,
+  shortInterest?: CardVerdictShortInterest,
+) {
+  const evidence = getCardEvidence(entry, shortInterest);
   const support = evidence.reduce((sum, item) => sum + item.supportCount, 0);
   const contra = evidence.reduce((sum, item) => sum + item.contraCount, 0);
   const lead = topEvidence(evidence);

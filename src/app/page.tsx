@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { getCardVerdict } from "@/lib/evidence/card-verdict";
+import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 
 interface WatchlistEntry {
@@ -85,6 +85,7 @@ function formatChange(value: number | null, percent: number | null) {
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
+  const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -175,6 +176,30 @@ export default function WatchlistPage() {
     }
 
     void loadQuotes();
+    return () => {
+      cancelled = true;
+    };
+  }, [entries]);
+
+  useEffect(() => {
+    if (entries.length === 0) return;
+    let cancelled = false;
+
+    async function loadShortInterest() {
+      const nextShortInterest: Record<string, CardVerdictShortInterest> = {};
+      await Promise.all(entries.map(async (entry) => {
+        try {
+          const response = await fetch(`/api/market/short-interest?ticker=${encodeURIComponent(entry.ticker)}`);
+          if (!response.ok) return;
+          nextShortInterest[entry.ticker] = await response.json() as CardVerdictShortInterest;
+        } catch {
+          // Short interest is optional evidence; don't block the card.
+        }
+      }));
+      if (!cancelled) setShortInterest(nextShortInterest);
+    }
+
+    void loadShortInterest();
     return () => {
       cancelled = true;
     };
@@ -281,8 +306,8 @@ export default function WatchlistPage() {
   };
 
   const sortedEntries = [...entries].sort((a, b) => {
-    const aVerdict = getCardVerdict(a, quotes[a.ticker]);
-    const bVerdict = getCardVerdict(b, quotes[b.ticker]);
+    const aVerdict = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
+    const bVerdict = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
     return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
   });
 
@@ -384,7 +409,7 @@ export default function WatchlistPage() {
                   : quote.change < 0
                   ? "negative"
                   : "neutral";
-              const verdict = getCardVerdict(entry, quote);
+              const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
 
               return (
                 <div key={entry.ticker} className="company-card-wrap">
