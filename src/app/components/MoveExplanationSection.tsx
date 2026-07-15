@@ -5,7 +5,10 @@ import type { MoveEvent } from "@/lib/evidence/move-events";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
-import type { CorporateDisclosureSummary } from "@/lib/sec/corporate-disclosures";
+import {
+  type CorporateDisclosureSummary,
+} from "@/lib/sec/corporate-disclosures";
+import { summarizeCorporateEventActivity } from "@/lib/sec/corporate-disclosure-activity";
 import type { MajorOwnershipSummary } from "@/lib/sec/major-ownership";
 import { getPeerTickers } from "@/lib/market/peers";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
@@ -399,13 +402,18 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         ? `${ownershipFilings.length} latest major ownership filing${ownershipFilings.length === 1 ? "" : "s"} found.`
         : "No 13D or 13G filings found.";
   const latestDisclosure = disclosureStatus === "success" ? disclosureSummary?.latestDisclosure ?? null : null;
-  const corporateEvents = disclosureStatus === "success" ? disclosureSummary?.corporateEvents.slice(0, 3) ?? [] : [];
+  const allCorporateEvents = disclosureStatus === "success" ? disclosureSummary?.corporateEvents ?? [] : [];
+  const corporateEvents = allCorporateEvents.slice(0, 3);
+  const corporateActivity = disclosureStatus === "success" ? summarizeCorporateEventActivity(allCorporateEvents) : null;
+  const hasLeadershipChangeCluster = Boolean(corporateActivity?.hasRecentLeadershipCluster);
   const corporateEventsCopy = disclosureStatus === "loading" || disclosureStatus === "idle"
     ? "Checking SEC 8-K corporate events."
     : disclosureStatus === "timeout" || disclosureStatus === "error"
       ? "SEC corporate events are temporarily unavailable."
-      : corporateEvents.length > 0
-        ? `${corporateEvents.length} latest leadership or acquisition event${corporateEvents.length === 1 ? "" : "s"} found.`
+      : corporateActivity?.hasRecentActivity
+        ? corporateActivity.copy
+        : corporateEvents.length > 0
+          ? `${corporateEvents.length} latest leadership or acquisition event${corporateEvents.length === 1 ? "" : "s"} found.`
         : "No 8-K leadership or acquisition events found.";
   const disclosureWatchCopy = disclosureStatus === "loading" || disclosureStatus === "idle"
     ? "Checking recent SEC filings."
@@ -426,9 +434,40 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       </div>
 
       {status === "loading" || status === "idle" ? (
-        <div className="move-card loading">
-          <span className="move-eyebrow">Checking catalyst evidence...</span>
-          <h3>Looking for a sourced explanation.</h3>
+        <div className="detail-build-panel" aria-live="polite">
+          <div className="move-card loading detail-build-hero">
+            <div>
+              <span className="move-eyebrow">Building evidence</span>
+              <h3>Checking primary-source conviction signals.</h3>
+              <p>SEC filings, short interest, market context, and sourced catalysts are loading.</p>
+            </div>
+            <div className="rising-build-meter" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+          </div>
+          <div className="detail-build-grid" aria-hidden="true">
+            {["13F managers", "Form 4 insiders", "FINRA shorts", "SEC 8-K events"].map((label) => (
+              <div className="rising-build-card detail-build-card" key={label}>
+                <span className="rising-scan-line" />
+                <span className="move-eyebrow">{label}</span>
+                <div className="rising-build-row">
+                  <span className="rising-build-chip" />
+                  <span className="rising-build-title" />
+                  <span className="rising-build-score" />
+                </div>
+                <div className="rising-build-facts">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+                <span className="rising-build-copy" />
+                <span className="rising-build-copy short" />
+              </div>
+            ))}
+          </div>
         </div>
       ) : error ? (
         <div className="move-card">
@@ -497,6 +536,16 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                   : shortInterestCopy}
               </p>
             </div>
+            {hasLeadershipChangeCluster ? (
+              <div className="signal-tile offset">
+                <span className="move-eyebrow">Management</span>
+                <strong>Leadership changes active</strong>
+                <p>
+                  {corporateActivity?.copy}
+                  {corporateActivity?.latestEventDate ? ` Latest filed ${formatDate(corporateActivity.latestEventDate)}.` : ""}
+                </p>
+              </div>
+            ) : null}
             {hasCounterSignal ? (
               <div className="signal-tile offset">
                 <span className="move-eyebrow">Signal offset</span>

@@ -1579,6 +1579,41 @@ details > summary::before {
   background: var(--surface);
 }
 
+.detail-build-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-build-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, var(--accent-dim), transparent 42%),
+    var(--surface);
+  border-color: var(--border-active);
+}
+
+.detail-build-hero p {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+  margin-top: 6px;
+  max-width: 620px;
+}
+
+.detail-build-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detail-build-card {
+  min-height: 146px;
+}
+
 .move-card-top {
   display: flex;
   justify-content: space-between;
@@ -2394,6 +2429,15 @@ details > summary::before {
   .move-card-top {
     flex-direction: column;
     gap: 10px;
+  }
+
+  .detail-build-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .detail-build-grid {
+    grid-template-columns: 1fr;
   }
 
   .move-confidence {

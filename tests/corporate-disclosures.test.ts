@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseCorporateDisclosuresFromSubmissions } from "@/lib/sec/corporate-disclosures";
+import { summarizeCorporateEventActivity } from "@/lib/sec/corporate-disclosure-activity";
 
 describe("SEC corporate disclosures", () => {
   it("detects 8-K Item 2.02 earnings releases, corporate events, and periodic reports", () => {
@@ -60,5 +61,37 @@ describe("SEC corporate disclosures", () => {
     expect(summary.status).toBe("empty");
     expect(summary.latestDisclosure).toBeNull();
     expect(summary.disclosures).toHaveLength(0);
+  });
+
+  it("summarizes recent leadership-change clusters without parsing filing prose", () => {
+    const summary = parseCorporateDisclosuresFromSubmissions("WEN", "0000030697", {
+      filings: {
+        recent: {
+          form: ["8-K", "8-K", "8-K", "8-K"],
+          filingDate: ["2026-06-23", "2026-06-09", "2026-05-22", "2026-02-01"],
+          reportDate: ["2026-06-19", "2026-06-04", "2026-05-20", "2026-01-30"],
+          accessionNumber: [
+            "0001193125-26-278576",
+            "0001193125-26-263775",
+            "0001193125-26-236835",
+            "0001193125-26-100000",
+          ],
+          primaryDocument: [
+            "d278576d8k.htm",
+            "d263775d8k.htm",
+            "d236835d8k.htm",
+            "d100000d8k.htm",
+          ],
+          items: ["5.02", "5.02", "5.02", "5.02"],
+        },
+      },
+    });
+
+    const activity = summarizeCorporateEventActivity(summary.corporateEvents, new Date("2026-07-15T12:00:00Z"));
+
+    expect(activity.recentLeadershipCount).toBe(3);
+    expect(activity.hasRecentLeadershipCluster).toBe(true);
+    expect(activity.latestEventDate).toBe("2026-06-23");
+    expect(activity.copy).toBe("3 leadership-change 8-K filings in the last 90 days.");
   });
 });
