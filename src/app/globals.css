@@ -1695,6 +1695,44 @@ details > summary::before {
   line-height: 1.45;
 }
 
+.disclosure-watch-card,
+.disclosure-evidence-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-top: 12px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.disclosure-watch-card strong,
+.disclosure-evidence-card strong {
+  color: var(--ink);
+  display: block;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.disclosure-watch-card p,
+.disclosure-evidence-card p {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+.disclosure-evidence-card.supporting {
+  border-left-color: var(--green);
+}
+
+.disclosure-evidence-card.context {
+  border-left-color: var(--accent);
+}
+
 .move-support-metrics {
   display: flex;
   gap: 8px;
@@ -1703,7 +1741,8 @@ details > summary::before {
   min-width: 150px;
 }
 
-.move-support-metrics span {
+.move-support-metrics span,
+.move-support-metrics a {
   color: var(--quiet);
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -1711,6 +1750,12 @@ details > summary::before {
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 3px 7px;
+  text-decoration: none;
+}
+
+.move-support-metrics a:hover {
+  border-color: var(--accent);
+  color: var(--ink);
 }
 
 .move-headlines {
@@ -2143,7 +2188,9 @@ details > summary::before {
   }
 
   .move-fallback-grid,
-  .move-institutional-support {
+  .move-institutional-support,
+  .disclosure-watch-card,
+  .disclosure-evidence-card {
     grid-template-columns: 1fr;
   }
 
@@ -2153,7 +2200,9 @@ details > summary::before {
   }
 
   .move-fallback-grid,
-  .move-institutional-support {
+  .move-institutional-support,
+  .disclosure-watch-card,
+  .disclosure-evidence-card {
     display: grid;
   }
 

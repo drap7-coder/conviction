@@ -5,6 +5,7 @@ import type { MoveEvent } from "@/lib/evidence/move-events";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import type { CorporateDisclosureSummary } from "@/lib/sec/corporate-disclosures";
 import { getPeerTickers } from "@/lib/market/peers";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 
@@ -23,6 +24,11 @@ interface InsiderResponse {
 }
 
 type PoliticalResponse = PoliticalTradeSummary;
+type DisclosureResponse = Omit<CorporateDisclosureSummary, "status" | "source"> & {
+  status: CorporateDisclosureSummary["status"] | "timeout" | "error";
+  source: CorporateDisclosureSummary["source"] | "timeout" | "error";
+  message?: string;
+};
 
 interface StockQuote {
   ticker: string;
@@ -138,7 +144,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [institutionalRows, setInstitutionalRows] = useState<InstitutionalAccumulation[]>([]);
   const [insiderEvents, setInsiderEvents] = useState<EvidenceEvent[]>([]);
   const [politicalSummary, setPoliticalSummary] = useState<PoliticalResponse | null>(null);
+  const [disclosureSummary, setDisclosureSummary] = useState<DisclosureResponse | null>(null);
   const [institutionalStatus, setInstitutionalStatus] = useState<EvidenceStatus>("idle");
+  const [disclosureStatus, setDisclosureStatus] = useState<EvidenceStatus>("idle");
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -150,6 +158,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
     async function load() {
       setStatus("loading");
       setInstitutionalStatus("loading");
+      setDisclosureStatus("loading");
       setError(null);
       try {
         const peerTickers = getPeerTickers(ticker);
@@ -160,11 +169,12 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           controller.signal,
         );
 
-        const [institutionalResult, insiderResult, politicalResult, quoteResult] = await Promise.allSettled([
+        const [institutionalResult, insiderResult, politicalResult, quoteResult, disclosureResult] = await Promise.allSettled([
           fetchJsonWithTimeout<InstitutionalResponse>(`/api/evidence/institutional?ticker=${ticker}`, 26_000, controller.signal),
           fetchJsonWithTimeout<InsiderResponse>(`/api/evidence/insider?ticker=${ticker}`, 14_000, controller.signal),
           fetchJsonWithTimeout<PoliticalResponse>(`/api/evidence/political?ticker=${ticker}`, 10_000, controller.signal),
           fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(`/api/market/quotes?tickers=${encodeURIComponent(quoteTickers)}`, 8_000, controller.signal),
+          fetchJsonWithTimeout<DisclosureResponse>(`/api/evidence/disclosures?ticker=${ticker}`, 10_000, controller.signal),
         ]);
 
         const institutionalData = institutionalResult.status === "fulfilled"
@@ -175,6 +185,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           : { events: [] };
         const politicalData = politicalResult.status === "fulfilled" ? politicalResult.value : null;
         const quoteData = quoteResult.status === "fulfilled" ? quoteResult.value : { quotes: [] };
+        const disclosureData = disclosureResult.status === "fulfilled"
+          ? disclosureResult.value
+          : null;
 
         if (!cancelled) {
           const quoteMap: Record<string, StockQuote> = {};
@@ -190,6 +203,16 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           );
           setInsiderEvents(insiderData.events ?? []);
           setPoliticalSummary(politicalData);
+          setDisclosureSummary(disclosureData);
+          setDisclosureStatus(
+            disclosureData?.status === "timeout" || disclosureData?.status === "error"
+              ? disclosureData.status
+              : disclosureData?.status === "unsupported"
+                ? "unsupported"
+                : disclosureData?.status === "success"
+                  ? "success"
+                  : "empty",
+          );
           setQuotes(quoteMap);
           setStatus("success");
         }
@@ -256,6 +279,14 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           tone: "neutral",
         };
   const quote = quotes[ticker];
+  const latestDisclosure = disclosureStatus === "success" ? disclosureSummary?.latestDisclosure ?? null : null;
+  const disclosureWatchCopy = disclosureStatus === "loading" || disclosureStatus === "idle"
+    ? "Checking recent SEC filings."
+    : disclosureStatus === "timeout" || disclosureStatus === "error"
+      ? "SEC corporate disclosures are temporarily unavailable."
+      : latestDisclosure
+        ? `${latestDisclosure.title}. Filed ${formatDate(latestDisclosure.filingDate)}.`
+        : "No recent SEC corporate disclosures.";
   const peerQuotes = getPeerTickers(ticker)
     .map((peerTicker) => quotes[peerTicker])
     .filter((peerQuote): peerQuote is StockQuote => !!peerQuote);
@@ -392,6 +423,35 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               <span>{institutional.latestFilingDate ?? "No filing date"}</span>
             </div>
           </div>
+
+          <div className="disclosure-watch-card">
+            <div>
+              <span className="move-eyebrow">What to watch next</span>
+              <strong>Corporate disclosures</strong>
+              <p>{disclosureWatchCopy}</p>
+            </div>
+            <span className="move-confidence move-confidence-inline">
+              {latestDisclosure ? latestDisclosure.sourceLabel : disclosureStatus === "loading" ? "Checking" : "SEC"}
+            </span>
+          </div>
+
+          {latestDisclosure ? (
+            <div className={`disclosure-evidence-card ${latestDisclosure.direction}`}>
+              <div>
+                <span className="move-eyebrow">
+                  {latestDisclosure.direction === "supporting" ? "Supporting evidence" : "Context evidence"} · {formatDate(latestDisclosure.filingDate)}
+                </span>
+                <strong>{latestDisclosure.title}</strong>
+                <p>{latestDisclosure.summary} Reported {formatDate(latestDisclosure.filingDate)}.</p>
+              </div>
+              <div className="move-support-metrics">
+                <span>{latestDisclosure.form}{latestDisclosure.item ? ` ${latestDisclosure.item}` : ""}</span>
+                <a href={latestDisclosure.sourceUrl} rel="noreferrer" target="_blank">
+                  {latestDisclosure.sourceLabel}
+                </a>
+              </div>
+            </div>
+          ) : null}
 
           {event.sources.length > 0 ? (
             <div className="move-headlines" aria-label="Evidence headlines">
