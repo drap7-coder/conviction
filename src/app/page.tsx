@@ -82,6 +82,53 @@ function formatChange(value: number | null, percent: number | null) {
   return `${sign}${value.toFixed(2)} · ${sign}${percent.toFixed(2)}%`;
 }
 
+function daysAgo(value: string | undefined) {
+  if (!value) return "No sync yet";
+  const then = new Date(value).getTime();
+  if (!Number.isFinite(then)) return "No sync yet";
+  const days = Math.max(0, Math.floor((Date.now() - then) / (24 * 60 * 60 * 1000)));
+  if (days === 0) return "today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+
+function getCardVerdict(entry: WatchlistEntry, quote?: StockQuote) {
+  const signal = getTickerSignalSummary(entry.ticker);
+  const support = signal?.direction === "pos" ? 2 : 0;
+  const contra = signal?.direction === "neg" ? 1 : 0;
+  const quoteMove = quote?.changePercent ?? 0;
+  const base = signal?.direction === "pos" ? 72 : signal?.direction === "neg" ? 38 : 46;
+  const quoteAdjustment = Math.max(-8, Math.min(8, quoteMove * 1.4));
+  const strength = Math.max(0, Math.min(99, Math.round(base + quoteAdjustment)));
+  const state = support > 0 && contra > 0
+    ? "Contested"
+    : support > contra
+      ? "Strengthening"
+      : contra > support
+        ? "Weakening"
+        : "Quiet";
+  const tone = state === "Strengthening"
+    ? "positive"
+    : state === "Weakening"
+      ? "negative"
+      : state === "Contested"
+        ? "contested"
+        : "quiet";
+
+  return {
+    state,
+    tone,
+    strength,
+    support,
+    contra,
+    insight: signal?.cardText ?? (entry.status !== "active"
+      ? "SEC coverage is limited for this issuer."
+      : "No high-conviction change cached yet."),
+    recency: daysAgo(entry.lastSyncedAt ?? entry.addedAt),
+    sortScore: strength + support * 8 - contra * 10 + Math.abs(quoteMove),
+  };
+}
+
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
@@ -280,10 +327,16 @@ export default function WatchlistPage() {
     }
   };
 
+  const sortedEntries = [...entries].sort((a, b) => {
+    const aVerdict = getCardVerdict(a, quotes[a.ticker]);
+    const bVerdict = getCardVerdict(b, quotes[b.ticker]);
+    return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
+  });
+
   return (
     <div>
       <div className="section-header">
-        <h2 className="section-title">Institutional watchlist</h2>
+        <h2 className="section-title">Conviction watchlist</h2>
         <div className="watchlist-meta">
           <span className="section-count">{entries.length} companies</span>
           <span className="storage-note" title={authenticated ? "Synced privately across devices" : "Saved in this browser only"}>
@@ -292,7 +345,7 @@ export default function WatchlistPage() {
         </div>
       </div>
 
-      <div className="auth-strip">
+      <div className={`auth-strip ${entries.length > 0 ? "compact" : ""}`}>
         <div>
           <strong>{authenticated ? "Signed in" : "Guest mode"}</strong>
           <span>
@@ -312,15 +365,17 @@ export default function WatchlistPage() {
         )}
       </div>
 
-      <div className="product-brief">
-        <div>
-          <span className="institutional-eyebrow">Conviction engine</span>
-          <h2>Where sophisticated capital is building conviction.</h2>
+      {entries.length === 0 ? (
+        <div className="product-brief">
+          <div>
+            <span className="institutional-eyebrow">Conviction engine</span>
+            <h2>Where sophisticated capital is building conviction.</h2>
+          </div>
+          <Link href="/rising" className="brief-link">
+            View leaderboard →
+          </Link>
         </div>
-        <Link href="/rising" className="brief-link">
-          View leaderboard →
-        </Link>
-      </div>
+      ) : null}
 
       <div className="watchlist-add">
         <div className="watchlist-input-wrap">
@@ -356,7 +411,7 @@ export default function WatchlistPage() {
       ) : entries.length === 0 ? (
         <div className="empty-state">
           <p>Your watchlist is empty.</p>
-          <small>Add a ticker above to track institutional 13F changes.</small>
+          <small>Add a ticker above to track primary-source evidence.</small>
         </div>
       ) : (
         <div className="watchlist-carousel">
@@ -366,7 +421,7 @@ export default function WatchlistPage() {
           </div>
           <div className="watchlist-scroll" aria-label="Tracked companies carousel">
             <div className="company-grid">
-              {entries.map((entry) => {
+              {sortedEntries.map((entry) => {
               const isLimited = entry.status !== "active";
               const quote = quotes[entry.ticker];
               const quoteDirection = quote?.change === null || quote?.change === undefined
@@ -374,18 +429,13 @@ export default function WatchlistPage() {
                 : quote.change > 0
                   ? "positive"
                   : quote.change < 0
-                    ? "negative"
-                    : "neutral";
-              const signal = getTickerSignalSummary(entry.ticker);
-              const signalText = signal?.cardText ?? (isLimited
-                ? "Institutional 13F still available. Insider Form 4 may be limited."
-                : "No tracked-manager signal cached yet.");
-              const signalBadge = signal?.badge ?? "13F: no change cached";
-              const signalDirection = signal?.direction ?? "neutral";
+                  ? "negative"
+                  : "neutral";
+              const verdict = getCardVerdict(entry, quote);
 
               return (
                 <div key={entry.ticker} className="company-card-wrap">
-                  <Link href={`/companies/${entry.ticker}`} className={`company-card ${isLimited ? "limited" : ""}`}>
+                  <div className={`company-card ${isLimited ? "limited" : ""}`}>
                     <div className="card-header">
                       <div>
                         <span className="card-ticker">{entry.ticker}</span>
@@ -403,39 +453,45 @@ export default function WatchlistPage() {
                       </span>
                     </div>
 
+                    <div className={`card-verdict ${verdict.tone}`}>
+                      <div className="verdict-line">
+                        <span>Conviction: {verdict.state}</span>
+                        <strong>{verdict.strength}%</strong>
+                      </div>
+                      <div className="verdict-meter" aria-hidden="true">
+                        <span style={{ width: `${verdict.strength}%` }} />
+                      </div>
+                      <div className="verdict-evidence">
+                        {verdict.support} support · {verdict.contra} contra
+                      </div>
+                    </div>
+
                     <div className="card-implication">
-                      {signalText}
+                      {verdict.insight}
                     </div>
 
-                    <div className="card-metrics">
-                      <span className={`signal-badge ${signalDirection}`}>
-                        <span aria-hidden="true">◆</span>
-                        {signalBadge}
-                      </span>
-                      <span className="signal-badge neutral">
-                        <span aria-hidden="true">↗</span>
-                        Move context
-                      </span>
-                      {isLimited && (
-                        <span className="signal-badge negative">
-                          <span aria-hidden="true">!</span>
-                          Form 4 limited
-                        </span>
-                      )}
+                    <div className="card-recency">
+                      <span>{verdict.recency}</span>
+                      <span>{isLimited ? "Form 4 limited" : "SEC evidence"}</span>
                     </div>
-                  </Link>
 
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleRemove(entry.ticker);
-                    }}
-                    disabled={removing === entry.ticker}
-                    title={`Remove ${entry.ticker}`}
-                    className="remove-company"
-                  >
-                    Remove
-                  </button>
+                    <div className="card-actions">
+                      <Link href={`/companies/${entry.ticker}`} className="card-action primary">
+                        More detail
+                      </Link>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleRemove(entry.ticker);
+                        }}
+                        disabled={removing === entry.ticker}
+                        title={`Remove ${entry.ticker}`}
+                        className="card-action danger"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
 
                   {authenticated ? (
                     <textarea
@@ -456,7 +512,7 @@ export default function WatchlistPage() {
       )}
 
       <p className="watchlist-footnote">
-        Powered by SEC EDGAR Form 13F institutional data
+        Powered by SEC EDGAR primary-source filings
       </p>
     </div>
   );
