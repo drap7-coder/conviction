@@ -16,8 +16,34 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://conviction-orpin.vercel.app"),
   title: "CONVICTION — Evidence Detection",
   description: "Find material changes before they become obvious.",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+  openGraph: {
+    title: "CONVICTION — Evidence Detection",
+    description: "Find material changes before they become obvious.",
+    url: "https://conviction-orpin.vercel.app",
+    siteName: "CONVICTION",
+    images: [
+      {
+        url: "/conviction-og.png",
+        width: 1200,
+        height: 630,
+        alt: "CONVICTION pixel bull logo",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CONVICTION — Evidence Detection",
+    description: "Find material changes before they become obvious.",
+    images: ["/conviction-og.png"],
+  },
 };
 
 const themeScript = `
@@ -48,9 +74,17 @@ export default function RootLayout({
         <div className="app-shell">
           <header className="app-header">
             <div className="flex items-center gap-8">
-              <h1 className="app-title">
-                CONVICTION<span className="accent-dot">.</span>
-              </h1>
+              <a className="app-brand" href="/" aria-label="CONVICTION home">
+                <img
+                  alt=""
+                  aria-hidden="true"
+                  className="app-logo"
+                  src="/conviction-logo.png"
+                />
+                <h1 className="app-title">
+                  CONVICTION<span className="accent-dot">.</span>
+                </h1>
+              </a>
               <span className="demo-badge">SEC 13F</span>
             </div>
             <div className="header-actions">
