@@ -8,7 +8,7 @@ export function Nav() {
 
   const links = [
     { href: "/", label: "Watchlist" },
-    { href: "/rising", label: "Rising Conviction" },
+    { href: "/rising", label: "Trending" },
     { href: "/journal", label: "Journal" },
   ];
 

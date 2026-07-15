@@ -28,25 +28,6 @@ interface StockQuote {
   marketState: string | null;
 }
 
-interface TrendingCompany {
-  ticker: string;
-  companyName: string;
-  cik?: string;
-  quote: StockQuote;
-  activityRank: number;
-  activityLabel: string;
-}
-
-interface ConvictionTransition {
-  id: string;
-  ticker: string;
-  type: "status_upgrade" | "new_signal_type" | "manager_breadth_increase" | "status_downgrade" | "signal_expired";
-  previousStatus: string;
-  currentStatus: string;
-  reason: string;
-  createdAt: string;
-}
-
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
 
@@ -107,9 +88,6 @@ export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
-  const [transitions, setTransitions] = useState<ConvictionTransition[]>([]);
-  const [trending, setTrending] = useState<TrendingCompany[]>([]);
-  const [trendingStatus, setTrendingStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -178,55 +156,6 @@ export default function WatchlistPage() {
   useEffect(() => {
     loadWatchlist();
   }, [loadWatchlist]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadTrending() {
-      setTrendingStatus("loading");
-      try {
-        const data = await fetchJsonWithTimeout<{ companies?: TrendingCompany[] }>(
-          "/api/market/trending?limit=8",
-          10_000,
-        );
-        if (!cancelled) {
-          setTrending(data.companies ?? []);
-          setTrendingStatus("success");
-        }
-      } catch {
-        if (!cancelled) {
-          setTrending([]);
-          setTrendingStatus("error");
-        }
-      }
-    }
-
-    void loadTrending();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadTransitions() {
-      try {
-        const data = await fetchJsonWithTimeout<{ transitions?: ConvictionTransition[] }>(
-          "/api/conviction/transitions",
-          8_000,
-        );
-        if (!cancelled) setTransitions(data.transitions ?? []);
-      } catch {
-        if (!cancelled) setTransitions([]);
-      }
-    }
-
-    void loadTransitions();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   useEffect(() => {
     if (entries.length === 0) return;
@@ -388,9 +317,6 @@ export default function WatchlistPage() {
     const bVerdict = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
     return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
   });
-  const savedTickers = new Set(entries.map((entry) => entry.ticker));
-  const trendingIdeas = trending.filter((idea) => !savedTickers.has(idea.ticker));
-  const displayedTrending = trendingIdeas.length > 0 ? trendingIdeas : trending;
 
   return (
     <div>
@@ -431,144 +357,9 @@ export default function WatchlistPage() {
             <h2>Where sophisticated capital is building conviction.</h2>
           </div>
           <Link href="/rising" className="brief-link">
-            View leaderboard →
+            View trending →
           </Link>
         </div>
-      ) : null}
-
-      {transitions.length > 0 ? (
-        <section className="rising-strip" aria-label="Rising conviction">
-          <div className="rising-strip-header">
-            <div>
-              <span className="institutional-eyebrow">Rising conviction</span>
-              <h2>New evidence shifts</h2>
-            </div>
-            <Link href="/rising" className="brief-link">
-              View board →
-            </Link>
-          </div>
-          <div className="rising-strip-list">
-            {transitions.slice(0, 3).map((transition) => (
-              <Link href={`/companies/${transition.ticker}`} className={`rising-strip-card ${transition.type}`} key={transition.id}>
-                <span>{transition.type.replace(/_/g, " ")}</span>
-                <strong>{transition.ticker}: {transition.previousStatus} → {transition.currentStatus}</strong>
-                <p>{transition.reason}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      {trendingStatus !== "error" && (displayedTrending.length > 0 || trendingStatus === "loading") ? (
-        <section className="trending-section" aria-label="Trending companies">
-          <div className="section-header trending-header">
-            <div>
-              <h2 className="section-title">Trending</h2>
-              <p className="section-subtitle">Active market names to inspect. Not a conviction signal by itself.</p>
-            </div>
-            <Link href="/rising" className="brief-link">
-              Rising board →
-            </Link>
-          </div>
-          {trendingStatus === "loading" && displayedTrending.length === 0 ? (
-            <div className="empty-state compact">
-              <p>Finding active names...</p>
-            </div>
-          ) : (
-            <div className="watchlist-carousel trending-carousel">
-              <div className="carousel-hint" aria-hidden="true">
-                <span>Daily ideas</span>
-                <strong>Scroll trending →</strong>
-              </div>
-              <div className="watchlist-scroll" aria-label="Trending companies carousel">
-                <div className="company-grid">
-                  {displayedTrending.map((idea) => {
-                    const quote = idea.quote;
-                    const quoteDirection = quote.change === null || quote.change === undefined
-                      ? "neutral"
-                      : quote.change > 0
-                        ? "positive"
-                        : quote.change < 0
-                        ? "negative"
-                        : "neutral";
-                    const verdict = getCardVerdict({
-                      ticker: idea.ticker,
-                      companyName: idea.companyName,
-                      addedAt: new Date().toISOString(),
-                      status: "active",
-                    }, quote);
-
-                    return (
-                      <div key={idea.ticker} className="company-card-wrap">
-                        <div className="company-card trending-card">
-                          <div className="card-header">
-                            <div>
-                              <span className="card-rank">#{idea.activityRank} trending</span>
-                              <span className="card-ticker">{idea.ticker}</span>
-                              <span className="card-name">{idea.companyName}</span>
-                            </div>
-                            <span className="card-arrow" aria-hidden="true">→</span>
-                          </div>
-
-                          <div className="card-quote">
-                            <span className="card-price">
-                              ${formatPrice(quote.price)}
-                            </span>
-                            <span className={`card-quote-change ${quoteDirection}`}>
-                              {formatChange(quote.change, quote.changePercent)}
-                            </span>
-                          </div>
-
-                          <div className={`card-verdict ${verdict.tone}`}>
-                            <div className="verdict-line">
-                              <span>Conviction: {verdict.state}</span>
-                              <strong>{verdict.strength}%</strong>
-                            </div>
-                            <div className="verdict-meter" aria-hidden="true">
-                              <span style={{ width: `${verdict.strength}%` }} />
-                            </div>
-                            <div className="verdict-evidence">
-                              {idea.activityLabel} · {verdict.support} support · {verdict.contra} contra
-                            </div>
-                          </div>
-
-                          <div className="card-implication">
-                            {verdict.insight}
-                          </div>
-
-                          <div className="card-recency">
-                            <span>Market activity today</span>
-                            <span>{verdict.source}</span>
-                          </div>
-
-                          <div className="card-actions">
-                            <Link href={`/companies/${idea.ticker}`} className="card-action primary">
-                              More detail
-                            </Link>
-                            {savedTickers.has(idea.ticker) ? (
-                              <span className="card-action muted">Tracked</span>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  setAddInput(idea.ticker);
-                                  void handleAddValue(idea.ticker);
-                                }}
-                                disabled={adding}
-                                className="card-action"
-                              >
-                                Track
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
       ) : null}
 
       <div className="watchlist-add">
