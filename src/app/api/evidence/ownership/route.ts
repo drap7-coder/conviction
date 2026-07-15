@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCorporateDisclosureSummary } from "@/lib/sec/corporate-disclosures";
+import { getMajorOwnershipSummary } from "@/lib/sec/major-ownership";
 import { isRequestTimeout } from "@/lib/request-timeout";
 import { validateTicker } from "@/lib/watchlist/validate";
 
@@ -21,37 +21,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       ticker,
       status: "unsupported",
-      lastEarningsRelease: null,
-      lastQuarterlyReport: null,
-      lastAnnualReport: null,
-      corporateEvents: [],
-      latestDisclosure: null,
-      disclosures: [],
+      filings: [],
+      latestFiling: null,
       fetchedAt: new Date().toISOString(),
       source: "sec-submissions",
     }, { status: 200 });
   }
 
   try {
-    const summary = await getCorporateDisclosureSummary(
-      resolved.ticker,
-      resolved.cik,
-    );
+    const summary = await getMajorOwnershipSummary(resolved.ticker, resolved.cik);
     return NextResponse.json(summary);
   } catch (error) {
     const timedOut = isRequestTimeout(error);
     return NextResponse.json({
       ticker: resolved.ticker,
       status: timedOut ? "timeout" : "error",
-      lastEarningsRelease: null,
-      lastQuarterlyReport: null,
-      lastAnnualReport: null,
-      corporateEvents: [],
-      latestDisclosure: null,
-      disclosures: [],
+      filings: [],
+      latestFiling: null,
       message: timedOut
-        ? "SEC corporate disclosures are temporarily unavailable."
-        : "SEC corporate disclosures could not be loaded.",
+        ? "SEC major ownership filings are temporarily unavailable."
+        : "SEC major ownership filings could not be loaded.",
       fetchedAt: new Date().toISOString(),
       source: timedOut ? "timeout" : "error",
     }, { status: 200 });

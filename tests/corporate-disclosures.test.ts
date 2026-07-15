@@ -2,21 +2,30 @@ import { describe, expect, it } from "vitest";
 import { parseCorporateDisclosuresFromSubmissions } from "@/lib/sec/corporate-disclosures";
 
 describe("SEC corporate disclosures", () => {
-  it("detects 8-K Item 2.02 earnings releases and periodic reports", () => {
+  it("detects 8-K Item 2.02 earnings releases, corporate events, and periodic reports", () => {
     const summary = parseCorporateDisclosuresFromSubmissions("IBM", "0000051143", {
       filings: {
         recent: {
-          form: ["8-K", "10-Q", "10-K", "8-K"],
-          filingDate: ["2026-07-24", "2026-05-05", "2026-02-25", "2026-01-10"],
-          reportDate: ["2026-07-24", "2026-03-31", "2025-12-31", "2026-01-10"],
+          form: ["8-K", "10-Q", "10-K", "8-K", "8-K", "8-K"],
+          filingDate: ["2026-07-24", "2026-05-05", "2026-02-25", "2026-07-20", "2026-06-15", "2026-01-10"],
+          reportDate: ["2026-07-24", "2026-03-31", "2025-12-31", "2026-07-20", "2026-06-15", "2026-01-10"],
           accessionNumber: [
             "0000051143-26-000090",
             "0000051143-26-000055",
             "0000051143-26-000020",
+            "0000051143-26-000080",
+            "0000051143-26-000060",
             "0000051143-26-000001",
           ],
-          primaryDocument: ["ibm-20260724.htm", "ibm-20260331.htm", "ibm-20251231.htm", "ibm-20260110.htm"],
-          items: ["2.02", "", "", "8.01"],
+          primaryDocument: [
+            "ibm-20260724.htm",
+            "ibm-20260331.htm",
+            "ibm-20251231.htm",
+            "ibm-20260720.htm",
+            "ibm-20260615.htm",
+            "ibm-20260110.htm",
+          ],
+          items: ["2.02", "", "", "5.02", "2.01", "8.01"],
         },
       },
     });
@@ -27,6 +36,11 @@ describe("SEC corporate disclosures", () => {
     expect(summary.lastQuarterlyReport?.form).toBe("10-Q");
     expect(summary.lastAnnualReport?.form).toBe("10-K");
     expect(summary.latestDisclosure?.kind).toBe("earnings-release");
+    expect(summary.corporateEvents).toHaveLength(2);
+    expect(summary.corporateEvents[0].title).toBe("◆ 8-K: leadership change");
+    expect(summary.corporateEvents[0].item).toBe("Item 5.02");
+    expect(summary.corporateEvents[1].title).toBe("◆ 8-K: acquisition completed");
+    expect(summary.corporateEvents[1].item).toBe("Item 2.01");
     expect(summary.latestDisclosure?.sourceUrl).toContain("000005114326000090");
   });
 

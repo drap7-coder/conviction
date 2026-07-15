@@ -1,7 +1,12 @@
 import { fetchCompanySubmissions, resolveCIK } from "./client";
 
 export type CorporateDisclosureStatus = "success" | "empty" | "unsupported";
-export type CorporateDisclosureKind = "earnings-release" | "quarterly-report" | "annual-report";
+export type CorporateDisclosureKind =
+  | "earnings-release"
+  | "quarterly-report"
+  | "annual-report"
+  | "leadership-change"
+  | "acquisition-completed";
 export type CorporateDisclosureDirection = "supporting" | "context";
 
 export interface CorporateDisclosure {
@@ -27,6 +32,7 @@ export interface CorporateDisclosureSummary {
   lastEarningsRelease: CorporateDisclosure | null;
   lastQuarterlyReport: CorporateDisclosure | null;
   lastAnnualReport: CorporateDisclosure | null;
+  corporateEvents: CorporateDisclosure[];
   latestDisclosure: CorporateDisclosure | null;
   disclosures: CorporateDisclosure[];
   fetchedAt: string;
@@ -92,9 +98,19 @@ function hasItem202(row: RecentSubmissionRow) {
   return row.form.startsWith("8-K") && /\b2\.02\b/.test(row.items ?? "");
 }
 
+function hasItem502(row: RecentSubmissionRow) {
+  return row.form.startsWith("8-K") && /\b5\.02\b/.test(row.items ?? "");
+}
+
+function hasItem201(row: RecentSubmissionRow) {
+  return row.form.startsWith("8-K") && /\b2\.01\b/.test(row.items ?? "");
+}
+
 function buildDisclosure(ticker: string, cik: string, row: RecentSubmissionRow, kind: CorporateDisclosureKind): CorporateDisclosure {
   const isEarningsRelease = kind === "earnings-release";
   const isQuarterly = kind === "quarterly-report";
+  const isLeadership = kind === "leadership-change";
+  const isAcquisition = kind === "acquisition-completed";
 
   return {
     id: `${ticker}-${row.accession}-${kind}`,
@@ -105,19 +121,39 @@ function buildDisclosure(ticker: string, cik: string, row: RecentSubmissionRow, 
       ? "Quarterly results furnished"
       : isQuarterly
         ? "Quarterly report filed"
-        : "Annual report filed",
+        : isLeadership
+          ? "◆ 8-K: leadership change"
+          : isAcquisition
+            ? "◆ 8-K: acquisition completed"
+            : "Annual report filed",
     summary: isEarningsRelease
       ? "Company furnished quarterly results in an SEC Form 8-K."
       : isQuarterly
         ? "Company filed its latest Form 10-Q."
-        : "Company filed its latest Form 10-K.",
+        : isLeadership
+          ? "Company reported a director or officer event in an SEC Form 8-K."
+          : isAcquisition
+            ? "Company reported completion of an acquisition or disposition in an SEC Form 8-K."
+            : "Company filed its latest Form 10-K.",
     form: row.form,
-    item: isEarningsRelease ? "Item 2.02" : null,
+    item: isEarningsRelease
+      ? "Item 2.02"
+      : isLeadership
+        ? "Item 5.02"
+        : isAcquisition
+          ? "Item 2.01"
+          : null,
     filingDate: row.filingDate,
     reportDate: row.reportDate,
     accession: row.accession,
     source: "sec",
-    sourceLabel: isEarningsRelease ? "SEC Form 8-K Item 2.02" : `SEC ${row.form}`,
+    sourceLabel: isEarningsRelease
+      ? "SEC Form 8-K Item 2.02"
+      : isLeadership
+        ? "SEC Form 8-K Item 5.02"
+        : isAcquisition
+          ? "SEC Form 8-K Item 2.01"
+          : `SEC ${row.form}`,
     sourceUrl: filingUrl(cik, row.accession, row.primaryDocument),
   };
 }
@@ -140,11 +176,16 @@ export function parseCorporateDisclosuresFromSubmissions(
   const earningsRow = latestByDate(rows.filter(hasItem202));
   const quarterlyRow = latestByDate(rows.filter((row) => row.form === "10-Q" || row.form === "10-Q/A"));
   const annualRow = latestByDate(rows.filter((row) => row.form === "10-K" || row.form === "10-K/A"));
+  const corporateEventRows = [
+    ...rows.filter(hasItem502).map((row) => buildDisclosure(upperTicker, cik, row, "leadership-change")),
+    ...rows.filter(hasItem201).map((row) => buildDisclosure(upperTicker, cik, row, "acquisition-completed")),
+  ].sort((a, b) => b.filingDate.localeCompare(a.filingDate));
 
   const disclosures = [
     earningsRow ? buildDisclosure(upperTicker, cik, earningsRow, "earnings-release") : null,
     quarterlyRow ? buildDisclosure(upperTicker, cik, quarterlyRow, "quarterly-report") : null,
     annualRow ? buildDisclosure(upperTicker, cik, annualRow, "annual-report") : null,
+    ...corporateEventRows,
   ].filter((disclosure): disclosure is CorporateDisclosure => disclosure !== null)
     .sort((a, b) => b.filingDate.localeCompare(a.filingDate));
 
@@ -154,6 +195,7 @@ export function parseCorporateDisclosuresFromSubmissions(
     lastEarningsRelease: disclosures.find((disclosure) => disclosure.kind === "earnings-release") ?? null,
     lastQuarterlyReport: disclosures.find((disclosure) => disclosure.kind === "quarterly-report") ?? null,
     lastAnnualReport: disclosures.find((disclosure) => disclosure.kind === "annual-report") ?? null,
+    corporateEvents: corporateEventRows,
     latestDisclosure: disclosures[0] ?? null,
     disclosures,
     fetchedAt: new Date().toISOString(),
@@ -168,6 +210,7 @@ export function buildUnsupportedCorporateDisclosureSummary(ticker: string): Corp
     lastEarningsRelease: null,
     lastQuarterlyReport: null,
     lastAnnualReport: null,
+    corporateEvents: [],
     latestDisclosure: null,
     disclosures: [],
     fetchedAt: new Date().toISOString(),
