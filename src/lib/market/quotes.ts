@@ -5,6 +5,8 @@ export interface StockQuote {
   price: number | null;
   change: number | null;
   changePercent: number | null;
+  volume: number | null;
+  dollarVolume: number | null;
   currency: string | null;
   marketState: string | null;
   source: "yahoo-chart";
@@ -36,6 +38,7 @@ interface YahooChartResult {
     symbol?: string;
     regularMarketPrice?: number;
     chartPreviousClose?: number;
+    regularMarketVolume?: number;
     fiftyTwoWeekHigh?: number;
     fiftyTwoWeekLow?: number;
     marketCap?: number;
@@ -75,6 +78,7 @@ function rangeToYahooParams(range: StockHistoryRange) {
 function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
   const price = toFiniteNumber(result?.meta?.regularMarketPrice);
   const previousClose = toFiniteNumber(result?.meta?.chartPreviousClose);
+  const volume = toFiniteNumber(result?.meta?.regularMarketVolume);
   const change = price !== null && previousClose !== null
     ? price - previousClose
     : null;
@@ -86,6 +90,8 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     changePercent: change !== null && previousClose && previousClose !== 0
       ? (change / previousClose) * 100
       : null,
+    volume,
+    dollarVolume: price !== null && volume !== null ? price * volume : null,
     currency: result?.meta?.currency ?? null,
     marketState: result?.meta?.marketState ?? null,
     source: "yahoo-chart",

@@ -325,6 +325,46 @@ details > summary::before {
   gap: 8px;
 }
 
+.trending-section {
+  margin: 18px 0 22px;
+}
+
+.trending-header {
+  align-items: flex-start;
+}
+
+.section-subtitle {
+  margin-top: 2px;
+  color: var(--quiet);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.trending-card {
+  min-height: 294px;
+}
+
+.card-rank {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 7px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
+.card-action.muted {
+  cursor: default;
+  color: var(--quiet);
+  background: color-mix(in srgb, var(--surface-elevated) 68%, transparent);
+}
+
 .storage-note {
   font-size: 0.74rem;
   color: var(--quiet);
