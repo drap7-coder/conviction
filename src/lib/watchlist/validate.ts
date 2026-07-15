@@ -2,23 +2,56 @@
  * Ticker validation for CONVICTION watchlist.
  *
  * Resolves tickers and company names using:
- *  1. SEC company_tickers.json dataset (dynamic, ~10K entries)
- *  2. Hardcoded CIK_MAP / COMPANY_NAME_MAP (fallback)
+ *  1. Hardcoded CIK_MAP (fast path for well-known tickers)
+ *  2. SEC company_tickers.json dataset (dynamic, ~10K entries)
+ *  3. Minimal alias/fallback maps for edge cases
  *
- * The SEC dataset is the primary source — the hardcoded map is kept
- * as a fast path for well-known tickers and as a fallback when
- * the SEC API is unreachable.
- *
- * DOES NOT classify ETFs, foreign issuers, or securities beyond
- * what the hardcoded map explicitly marks (NVO is the only
- * foreign-issuer flag today).
+ * The SEC dataset is the primary source for display names and name resolution.
+ * The hardcoded fallback maps exist only for:
+ *  - Offline/test environments where the SEC dataset is unreachable
+ *  - True aliases (product names, foreign issuers) that the SEC dataset cannot match
  */
 
 import { CIK_MAP } from "@/lib/sec/cik";
-import { resolveCompanyByTicker, resolveCompanyByName } from "@/lib/sec/company-tickers";
+import { resolveCompanyByTicker, resolveCompanyByName, getCompanyTickerDataset } from "@/lib/sec/company-tickers";
 
-// Known company names mapped to tickers (fast path)
-const COMPANY_NAME_MAP: Record<string, string> = {
+// ---------------------------------------------------------------------------
+// Alias map — only for common names that the SEC dataset cannot resolve.
+// Most company names (APPLE, MICROSOFT, etc.) are handled by the SEC
+// dataset's prefix/word-overlap matching. Only add entries here when the
+// name is a true alias (product name, legacy name, foreign issuer, etc.).
+// ---------------------------------------------------------------------------
+const ALIAS_MAP: Record<string, string> = {
+  // Seed watchlist — foreign issuer
+  "NOVO NORDISK": "NVO",
+
+  // Product names / legacy brands
+  "GOOGLE": "GOOG",
+  "ALPHABET": "GOOG",
+  "FACEBOOK": "META",
+  "SQUARE": "SQ",
+
+  // Non-standard names not in SEC dataset
+  "NEBiUS": "NBIS",
+  "NEBiUS GROUP": "NBIS",
+  "APPLIED DIGITAL": "APLD",
+  "APPLIED DIGITAL CORPORATION": "APLD",
+
+  // Punctuation variants that confuse the SEC name matcher
+  "AT&T": "T",
+  "MCDONALD'S": "MCD",
+  "COCA COLA": "KO",
+  "3M": "MMM",
+  "DOW JONES": "DD",
+  "JOHNSON & JOHNSON": "JNJ",
+};
+
+// ---------------------------------------------------------------------------
+// Fallback name resolution — used when the SEC dataset is unreachable
+// (e.g., tests, offline, cold start). Maps common names to tickers.
+// The SEC dataset is the primary source when available.
+// ---------------------------------------------------------------------------
+const FALLBACK_NAME_MAP: Record<string, string> = {
   // Seed watchlist
   "OCCIDENTAL PETROLEUM": "OXY",
   "OCCIDENTAL": "OXY",
@@ -26,27 +59,10 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "INTEL CORPORATION": "INTC",
   "ALPHABET": "GOOG",
   "ALPHABET INC": "GOOG",
-  "GOOGLE": "GOOG",
-  "NOVO NORDISK": "NVO",
   "PFIZER": "PFE",
   "PFIZER INC": "PFE",
-  "NEBiUS": "NBIS",
-  "NEBiUS GROUP": "NBIS",
-  "APPLIED DIGITAL": "APLD",
-  "APPLIED DIGITAL CORPORATION": "APLD",
 
-  // Extended emerging
-  "CROWDSTRIKE": "CRWD",
-  "CROWDSTRIKE HOLDINGS": "CRWD",
-  "ON HOLDING": "ONON",
-  "ON RUNNING": "ONON",
-  "PALANTIR": "PLTR",
-  "PALANTIR TECHNOLOGIES": "PLTR",
-  "RECURSION PHARMACEUTICALS": "RXRX",
-  "RECURSION": "RXRX",
-  "AEROVIRONMENT": "AVAV",
-
-  // Major tech
+  // Common company names
   "APPLE": "AAPL",
   "APPLE INC": "AAPL",
   "MICROSOFT": "MSFT",
@@ -55,8 +71,8 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "AMAZON.COM": "AMZN",
   "META": "META",
   "META PLATFORMS": "META",
-  "FACEBOOK": "META",
   "NVIDIA": "NVDA",
+  "NVIDIA CORPORATION": "NVDA",
   "TESLA": "TSLA",
   "TESLA INC": "TSLA",
   "NETFLIX": "NFLX",
@@ -75,11 +91,9 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "HOME DEPOT": "HD",
   "NIKE": "NKE",
   "COCA-COLA": "KO",
-  "COCA COLA": "KO",
   "PEPSICO": "PEP",
   "PEPSI": "PEP",
   "MCDONALDS": "MCD",
-  "MCDONALD'S": "MCD",
   "STARBUCKS": "SBUX",
   "DISNEY": "DIS",
   "WALT DISNEY": "DIS",
@@ -89,7 +103,6 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "UNITEDHEALTH": "UNH",
 
   // Pharma
-  "JOHNSON & JOHNSON": "JNJ",
   "ABBVIE": "ABBV",
   "MERCK": "MRK",
   "THERMO FISHER": "TMO",
@@ -113,7 +126,6 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "VISA": "V",
   "MASTERCARD": "MA",
   "PAYPAL": "PYPL",
-  "SQUARE": "SQ",
   "ROBINHOOD": "HOOD",
   "COINBASE": "COIN",
 
@@ -131,15 +143,22 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "GENERAL DYNAMICS": "GD",
   "HONEYWELL": "HON",
   "GENERAL ELECTRIC": "GE",
-  "3M": "MMM",
 
   // Telecom
-  "AT&T": "T",
   "VERIZON": "VZ",
   "T-MOBILE": "TMUS",
   "COMCAST": "CMCSA",
 
   // AI / cloud
+  "CROWDSTRIKE": "CRWD",
+  "CROWDSTRIKE HOLDINGS": "CRWD",
+  "ON HOLDING": "ONON",
+  "ON RUNNING": "ONON",
+  "PALANTIR": "PLTR",
+  "PALANTIR TECHNOLOGIES": "PLTR",
+  "RECURSION PHARMACEUTICALS": "RXRX",
+  "RECURSION": "RXRX",
+  "AEROVIRONMENT": "AVAV",
   "SNOWFLAKE": "SNOW",
   "DATADOG": "DDOG",
   "MONGODB": "MDB",
@@ -153,150 +172,16 @@ const COMPANY_NAME_MAP: Record<string, string> = {
   "SHOPIFY": "SHOP",
   "UBER": "UBER",
   "LYFT": "LYFT",
-  "DOW JONES": "DD",
   "SNAP INC": "SNAP",
   "PINTEREST": "PINS",
   "ROKU": "ROKU",
 };
 
-const TICKER_REGEX = /^[A-Z]{1,5}$/;
-const SHARE_CLASS_REGEX = /^[A-Z]{1,4}[.\-][A-Z]{1,2}$/; // BRK.B, BF.A
-
-export interface TickerValidationResult {
-  valid: boolean;
-  ticker: string;
-  companyName?: string;
-  cik?: string;
-  isForeignIssuer?: boolean;
-  error?: string;
-  source?: "hardcoded" | "dataset" | "name_match" | "not_found";
-}
-
-/**
- * Validate and resolve a ticker or company name.
- *
- * Accepts: "OXY", "intc", "Intel", "BRK.B", "novo nordisk", etc.
- * Now async — fetches SEC company_tickers.json for dynamic resolution.
- *
- * Resolution order:
- *  1. Hardcoded company name map (fast path)
- *  2. Hardcoded CIK map (fast path)
- *  3. SEC company tickers dataset (ticker match)
- *  4. SEC company tickers dataset (name match)
- */
-export async function validateTicker(input: string): Promise<TickerValidationResult> {
-  const cleaned = input.trim();
-
-  if (!cleaned) {
-    return { valid: false, ticker: cleaned, error: "Enter a ticker or company name" };
-  }
-
-  // 1. Try hardcoded company name match first (fast path)
-  const upperName = cleaned.toUpperCase();
-  const nameMatch = COMPANY_NAME_MAP[upperName];
-  if (nameMatch) {
-    return resolveTickerSync(nameMatch);
-  }
-
-  // 2. Try as a ticker
-  const upperTicker = cleaned.toUpperCase();
-
-  // Validate ticker format (allow share classes like BRK.B)
-  if (!TICKER_REGEX.test(upperTicker) && !SHARE_CLASS_REGEX.test(upperTicker)) {
-    // Before rejecting, try the SEC dataset — it might be a name
-    const nameResult = await resolveByName(upperName);
-    if (nameResult) return nameResult;
-
-    return {
-      valid: false,
-      ticker: upperTicker,
-      error: `"${cleaned}" is not a valid ticker format. Enter 1–5 uppercase letters or a company name.`,
-    };
-  }
-
-  // 3. Try hardcoded ticker map first
-  const syncResult = resolveTickerSync(upperTicker);
-  if (syncResult.valid) return syncResult;
-
-  // 4. Try SEC dataset (dynamic)
-  return resolveTickerFromDataset(upperName);
-}
-
-/**
- * Fast synchronous resolution against hardcoded maps only.
- */
-function resolveTickerSync(ticker: string): TickerValidationResult {
-  // Handle share classes: BRK.B → BRKB for hardcoded lookup
-  const normalized = ticker.replace(/[.\-]/g, "");
-  const cik = CIK_MAP[ticker] || CIK_MAP[normalized];
-
-  if (!cik) {
-    return { valid: false, ticker, error: `"${ticker}" is not a supported ticker.` };
-  }
-
-  const isForeignIssuer = ticker === "NVO" || normalized === "NVO";
-  const name = KNOWN_NAMES[ticker] || KNOWN_NAMES[normalized] || ticker;
-
-  return { valid: true, ticker, cik, companyName: name, isForeignIssuer, source: "hardcoded" };
-}
-
-/**
- * Resolve a ticker or name against the SEC dataset.
- */
-async function resolveTickerFromDataset(input: string): Promise<TickerValidationResult> {
-  try {
-    // Try as ticker first
-    const tickerResult = await resolveCompanyByTicker(input);
-    if (tickerResult.found && tickerResult.ticker) {
-      return {
-        valid: true,
-        ticker: tickerResult.ticker,
-        cik: tickerResult.cik,
-        companyName: tickerResult.name || tickerResult.ticker,
-        source: tickerResult.source as "dataset" | "hardcoded",
-      };
-    }
-
-    // Try as company name
-    const nameResult = await resolveByName(input);
-    if (nameResult) return nameResult;
-
-    return {
-      valid: false,
-      ticker: input.toUpperCase(),
-      error: `"${input}" is not a supported ticker. Only SEC-reporting companies with ticker mappings are supported.`,
-    };
-  } catch {
-    return {
-      valid: false,
-      ticker: input.toUpperCase(),
-      error: `"${input}" is not a supported ticker. Only SEC-reporting companies with ticker mappings are supported.`,
-    };
-  }
-}
-
-/**
- * Resolve by company name using the SEC dataset.
- */
-async function resolveByName(input: string): Promise<TickerValidationResult | null> {
-  const result = await resolveCompanyByName(input, COMPANY_NAME_MAP, KNOWN_NAMES);
-  if (result.found && result.ticker && result.cik) {
-    return {
-      valid: true,
-      ticker: result.ticker,
-      cik: result.cik,
-      companyName: result.name || result.ticker,
-      source: result.source as "dataset" | "hardcoded" | "name_match",
-    };
-  }
-  return null;
-}
-
 // ---------------------------------------------------------------------------
-// Display names for hardcoded tickers
+// Fallback display names — used when the SEC dataset is unreachable.
+// The SEC dataset is the primary source for display names.
 // ---------------------------------------------------------------------------
-
-const KNOWN_NAMES: Record<string, string> = {
+const FALLBACK_DISPLAY_NAMES: Record<string, string> = {
   OXY: "Occidental Petroleum",
   INTC: "Intel Corporation",
   GOOG: "Alphabet Inc.",
@@ -397,4 +282,200 @@ const KNOWN_NAMES: Record<string, string> = {
   FDX: "FedEx Corporation",
   DAL: "Delta Air Lines Inc.",
   AAL: "American Airlines Group Inc.",
+  BRKB: "Berkshire Hathaway Inc.",
 };
+
+const TICKER_REGEX = /^[A-Z]{1,5}$/;
+const SHARE_CLASS_REGEX = /^[A-Z]{1,4}[.\-][A-Z]{1,2}$/; // BRK.B, BF.A
+
+export interface TickerValidationResult {
+  valid: boolean;
+  ticker: string;
+  companyName?: string;
+  cik?: string;
+  isForeignIssuer?: boolean;
+  error?: string;
+  source?: "hardcoded" | "dataset" | "name_match" | "alias" | "fallback" | "not_found";
+}
+
+/**
+ * Validate and resolve a ticker or company name.
+ *
+ * Accepts: "OXY", "intc", "Intel", "BRK.B", "novo nordisk", etc.
+ *
+ * Resolution order:
+ *  1. Alias map (fast path for common names that SEC can't resolve)
+ *  2. Hardcoded CIK map (fast path)
+ *  3. Fallback name map (for offline/test environments)
+ *  4. SEC company tickers dataset (ticker match)
+ *  5. SEC company tickers dataset (name match)
+ */
+export async function validateTicker(input: string): Promise<TickerValidationResult> {
+  const cleaned = input.trim();
+
+  if (!cleaned) {
+    return { valid: false, ticker: cleaned, error: "Enter a ticker or company name" };
+  }
+
+  const upperName = cleaned.toUpperCase();
+
+  // 1. Try alias map first (fast path for common aliases)
+  const aliasMatch = ALIAS_MAP[upperName];
+  if (aliasMatch) {
+    return resolveTickerFromCikMap(aliasMatch);
+  }
+
+  const upperTicker = cleaned.toUpperCase();
+
+  // 2. Validate ticker format (allow share classes like BRK.B)
+  if (!TICKER_REGEX.test(upperTicker) && !SHARE_CLASS_REGEX.test(upperTicker)) {
+    // Not a ticker format — try name resolution
+    const nameResult = await resolveByName(upperName);
+    if (nameResult) return nameResult;
+
+    return {
+      valid: false,
+      ticker: upperTicker,
+      error: `"${cleaned}" is not a valid ticker format. Enter 1–5 uppercase letters or a company name.`,
+    };
+  }
+
+  // 3. Try hardcoded CIK map first (fast path)
+  const syncResult = await resolveTickerFromCikMap(upperTicker);
+  if (syncResult.valid) return syncResult;
+
+  // 4. Try fallback name map (offline/test fallback)
+  const fallbackName = FALLBACK_NAME_MAP[upperName];
+  if (fallbackName && CIK_MAP[fallbackName]) {
+    return resolveTickerFromCikMap(fallbackName);
+  }
+
+  // 5. Try SEC dataset (dynamic)
+  return resolveTickerFromDataset(upperName);
+}
+
+/**
+ * Resolve a ticker from the hardcoded CIK_MAP, deriving display name
+ * from the SEC dataset when possible.
+ */
+async function resolveTickerFromCikMap(ticker: string): Promise<TickerValidationResult> {
+  const normalized = ticker.replace(/[.\-]/g, "");
+  const cik = CIK_MAP[ticker] || CIK_MAP[normalized];
+
+  if (!cik) {
+    return { valid: false, ticker, error: `"${ticker}" is not a supported ticker.` };
+  }
+
+  const isForeignIssuer = ticker === "NVO" || normalized === "NVO";
+  const name = await resolveDisplayName(ticker, normalized);
+
+  return {
+    valid: true,
+    ticker,
+    cik,
+    companyName: name,
+    isForeignIssuer,
+    source: "hardcoded",
+  };
+}
+
+/**
+ * Resolve a display name for a ticker from the curated fallback map
+ * (preferred for well-known companies), falling back to the SEC dataset.
+ *
+ * The fallback map has proper-case names (e.g., "NVIDIA Corporation")
+ * while the SEC dataset returns all-caps shortened names (e.g., "NVIDIA CORP").
+ * For tickers in the curated CIK_MAP, the fallback name is authoritative.
+ */
+async function resolveDisplayName(ticker: string, normalized?: string): Promise<string> {
+  // 1. Curated fallback display names (proper-case, authoritative for CIK_MAP tickers)
+  const fallback = FALLBACK_DISPLAY_NAMES[ticker]
+    || (normalized ? FALLBACK_DISPLAY_NAMES[normalized] : undefined);
+  if (fallback) return fallback;
+
+  // 2. Try SEC dataset (for tickers outside the curated CIK_MAP)
+  try {
+    const ds = await getCompanyTickerDataset();
+    const entry = ds.byTicker.get(ticker) || (normalized ? ds.byTicker.get(normalized) : undefined);
+    if (entry) return entry.name;
+  } catch {
+    // Fall through
+  }
+
+  return ticker;
+}
+
+/**
+ * Resolve a ticker or name against the SEC dataset.
+ */
+async function resolveTickerFromDataset(input: string): Promise<TickerValidationResult> {
+  try {
+    // Try as ticker first
+    const tickerResult = await resolveCompanyByTicker(input);
+    if (tickerResult.found && tickerResult.ticker) {
+      return {
+        valid: true,
+        ticker: tickerResult.ticker,
+        cik: tickerResult.cik,
+        companyName: tickerResult.name || tickerResult.ticker,
+        source: tickerResult.source as "dataset" | "hardcoded",
+      };
+    }
+
+    // Try as company name
+    const nameResult = await resolveByName(input);
+    if (nameResult) return nameResult;
+
+    return {
+      valid: false,
+      ticker: input.toUpperCase(),
+      error: `"${input}" is not a supported ticker. Only SEC-reporting companies with ticker mappings are supported.`,
+    };
+  } catch {
+    return {
+      valid: false,
+      ticker: input.toUpperCase(),
+      error: `"${input}" is not a supported ticker. Only SEC-reporting companies with ticker mappings are supported.`,
+    };
+  }
+}
+
+/**
+ * Resolve by company name using the SEC dataset, with fallback
+ * to the hardcoded fallback name map for offline/test environments.
+ */
+async function resolveByName(input: string): Promise<TickerValidationResult | null> {
+  // Try SEC dataset first
+  try {
+    const result = await resolveCompanyByName(input, {}, {});
+    if (result.found && result.ticker && result.cik) {
+      return {
+        valid: true,
+        ticker: result.ticker,
+        cik: result.cik,
+        companyName: result.name || result.ticker,
+        source: result.source as "dataset" | "hardcoded" | "name_match",
+      };
+    }
+  } catch {
+    // Fall through to fallback map
+  }
+
+  // Fallback to hardcoded name map (for offline/test environments)
+  const upper = input.toUpperCase();
+  const mapped = FALLBACK_NAME_MAP[upper];
+  if (mapped && CIK_MAP[mapped]) {
+    const cik = CIK_MAP[mapped];
+    const name = FALLBACK_DISPLAY_NAMES[mapped] || mapped;
+    return {
+      valid: true,
+      ticker: mapped,
+      cik,
+      companyName: name,
+      isForeignIssuer: mapped === "NVO",
+      source: "fallback",
+    };
+  }
+
+  return null;
+}

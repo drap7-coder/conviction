@@ -26,7 +26,7 @@ export function insiderToEvidenceEvent(
 
   const type = isDirectional
     ? isBuy ? "insider-buy" as const : "insider-sell" as const
-    : "insider-buy" as const;
+    : "insider-transaction" as const;
 
   const actionLabel = TX_TYPE_LABELS[tx.transactionType] || "Insider transaction";
   const valueStr = tx.totalValue

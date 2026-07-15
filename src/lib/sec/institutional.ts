@@ -324,16 +324,27 @@ export async function getInstitutionalAccumulationForCompany(
   companyName: string,
   options: { forceRefresh?: boolean } = {},
 ): Promise<InstitutionalCompanyResult> {
+  // Fetch all manager submissions in parallel.
+  // The secFetch rate limiter (200ms delay) naturally serializes requests,
+  // so Promise.all batches them without exceeding SEC's 10 req/s limit.
+  const managerEntries = await Promise.all(
+    INSTITUTIONAL_MANAGERS.map(async (manager) => {
+      const filings = await fetchManagerSubmissions(manager);
+      return { manager, filings };
+    }),
+  );
+
   const results: InstitutionalAccumulation[] = [];
 
-  for (const manager of INSTITUTIONAL_MANAGERS) {
-    const filings = await fetchManagerSubmissions(manager);
+  for (const { manager, filings } of managerEntries) {
     if (filings.length < 1) continue;
 
-    const latest = await getParsedFiling(manager, filings[0], options.forceRefresh);
-    const previous = filings[1]
-      ? await getParsedFiling(manager, filings[1], options.forceRefresh)
-      : null;
+    // Fetch latest and previous filings in parallel per manager.
+    // The secFetch rate limiter keeps us within SEC bounds.
+    const [latest, previous] = await Promise.all([
+      getParsedFiling(manager, filings[0], options.forceRefresh),
+      filings[1] ? getParsedFiling(manager, filings[1], options.forceRefresh) : Promise.resolve(null),
+    ]);
     if (!latest) continue;
 
     const latestMatch = resolveCompanyHolding(latest, companyName);

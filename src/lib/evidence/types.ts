@@ -14,6 +14,7 @@ export type EvidenceSource = "sec-edgar" | "market-price" | "usaspending" | "pub
 export type EventType =
   | "insider-buy"
   | "insider-sell"
+  | "insider-transaction"
   | "institutional-buy"
   | "institutional-sell"
   | "federal-award"
