@@ -27,6 +27,22 @@ interface InstitutionalEmergingResponse {
   fetchedAt: string;
 }
 
+interface ConvictionTransition {
+  id: string;
+  ticker: string;
+  type: "status_upgrade" | "new_signal_type" | "manager_breadth_increase" | "status_downgrade" | "signal_expired";
+  previousStatus: string;
+  currentStatus: string;
+  reason: string;
+  createdAt: string;
+}
+
+interface ConvictionTransitionResponse {
+  transitions: ConvictionTransition[];
+  count: number;
+  fetchedAt: string;
+}
+
 function formatShares(value: number) {
   return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
@@ -89,10 +105,41 @@ function RisingBuildState() {
 }
 
 export default function RisingConvictionPage() {
+  const [transitions, setTransitions] = useState<ConvictionTransition[]>([]);
+  const [transitionStatus, setTransitionStatus] = useState<EvidenceStatus>("idle");
   const [ideas, setIdeas] = useState<InstitutionalEmergingIdea[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [requestKey, setRequestKey] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadTransitions() {
+      setTransitionStatus("loading");
+      try {
+        const data = await fetchJsonWithTimeout<ConvictionTransitionResponse>(
+          "/api/conviction/transitions",
+          8_000,
+          controller.signal,
+        );
+        if (!cancelled) {
+          setTransitions(data.transitions ?? []);
+          setTransitionStatus((data.transitions ?? []).length > 0 ? "success" : "empty");
+        }
+      } catch (err) {
+        console.warn("[rising] Failed to load conviction transitions:", err);
+        if (!cancelled) setTransitionStatus(classifyClientError(err));
+      }
+    }
+
+    void loadTransitions();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [requestKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -138,30 +185,70 @@ export default function RisingConvictionPage() {
   return (
     <div>
       <div className="section-header">
+        <h2 className="section-title">Rising conviction</h2>
+        <span className="section-count">
+          {transitionStatus === "loading" || transitionStatus === "idle" ? "..." : `${transitions.length} transitions`}
+        </span>
+      </div>
+
+      <div className="leaderboard-brief">
+        <h1>What changed?</h1>
+        <p>Verified conviction shifts from successful evidence refreshes. No provider outage can create a fake alert.</p>
+      </div>
+
+      <section className="rising-transition-panel">
+        {transitionStatus === "loading" || transitionStatus === "idle" ? (
+          <div className="rising-transition-empty" role="status" aria-live="polite">
+            <span className="institutional-eyebrow">Checking transition log</span>
+            <p>Reading verified conviction shifts.</p>
+          </div>
+        ) : transitions.length === 0 ? (
+          <div className="rising-transition-empty">
+            <span className="institutional-eyebrow">Tracking</span>
+            <p>Waiting for the first verified conviction shift.</p>
+            <small>First snapshots create a silent baseline. The next successful evidence change can appear here.</small>
+          </div>
+        ) : (
+          <div className="rising-transition-list">
+            {transitions.map((transition) => (
+              <Link href={`/companies/${transition.ticker}`} className={`rising-transition-card ${transition.type}`} key={transition.id}>
+                <span>{transition.type.replace(/_/g, " ")}</span>
+                <strong>{transition.ticker}: {transition.previousStatus} → {transition.currentStatus}</strong>
+                <p>{transition.reason}</p>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <div className="section-header mt-16">
         <h2 className="section-title">Institutional leaderboard</h2>
         <span className="section-count">
           {status === "loading" || status === "idle" ? "..." : `${ideas.length} companies`}
         </span>
       </div>
 
-      <div className="leaderboard-brief">
-        <h1>Who is building conviction?</h1>
+      <div className="leaderboard-brief secondary">
+        <h1>Institutional context</h1>
         <p>Ranked by new and increased positions among 15 tracked institutional managers.</p>
       </div>
 
       {status === "loading" || status === "idle" ? (
         <RisingBuildState />
       ) : error && ideas.length === 0 ? (
-        <div className="empty-state">
-          <p>{error}</p>
+        <div className="leaderboard-warning">
+          <div>
+            <span className="institutional-eyebrow">13F board unavailable</span>
+            <p>{error}</p>
+          </div>
           <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
             Retry
           </button>
         </div>
       ) : ideas.length === 0 ? (
         <div className="empty-state">
-          <p>No rising conviction signals right now.</p>
-          <small>This section uses 13F accumulation only.</small>
+          <p>No institutional leaderboard entries right now.</p>
+          <small>This secondary section uses 13F accumulation only.</small>
         </div>
       ) : (
         <div className="leaderboard-list">
