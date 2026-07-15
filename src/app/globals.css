@@ -2578,6 +2578,14 @@ details > summary::before {
   margin-top: 8px;
 }
 
+.ownership-details .move-confidence-inline {
+  margin-top: 8px;
+}
+
+.ownership-details .evidence-line-list {
+  margin-top: 10px;
+}
+
 @keyframes loading-pulse {
   0%, 100% { opacity: 0.35; transform: scaleX(0.72); transform-origin: left; }
   50% { opacity: 1; transform: scaleX(1); transform-origin: left; }

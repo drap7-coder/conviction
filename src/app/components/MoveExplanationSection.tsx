@@ -641,29 +641,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <div className="evidence-family-card">
             <div className="evidence-family-header">
               <div>
-                <span className="move-eyebrow">Major ownership</span>
-                <strong>{ownershipCopy}</strong>
-              </div>
-              <span className="move-confidence move-confidence-inline">
-                {ownershipStatus === "loading" ? "Checking" : "13D / 13G"}
-              </span>
-            </div>
-            {ownershipFilings.length > 0 ? (
-              <div className="evidence-line-list">
-                {ownershipFilings.map((filing) => (
-                  <a className="evidence-line" href={filing.sourceUrl} key={filing.id} rel="noreferrer" target="_blank">
-                    <span>{filing.title}</span>
-                    <strong>{filing.summary} Filed {formatDate(filing.filingDate)}.</strong>
-                    <small>{filing.sourceLabel}</small>
-                  </a>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="evidence-family-card">
-            <div className="evidence-family-header">
-              <div>
                 <span className="move-eyebrow">Corporate events</span>
                 <strong>{corporateEventsCopy}</strong>
               </div>
@@ -716,6 +693,25 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <details className="move-hint">
             <summary>Conviction check</summary>
             <p>{event.convictionQuestion}</p>
+          </details>
+
+          <details className="move-hint ownership-details">
+            <summary>Major ownership filings</summary>
+            <p>{ownershipCopy}</p>
+            <span className="move-confidence move-confidence-inline">
+              {ownershipStatus === "loading" ? "Checking" : "13D / 13G"}
+            </span>
+            {ownershipFilings.length > 0 ? (
+              <div className="evidence-line-list">
+                {ownershipFilings.map((filing) => (
+                  <a className="evidence-line" href={filing.sourceUrl} key={filing.id} rel="noreferrer" target="_blank">
+                    <span>{filing.title}</span>
+                    <strong>{filing.summary} Filed {formatDate(filing.filingDate)}.</strong>
+                    <small>{filing.sourceLabel}</small>
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </details>
         </div>
       ) : null}
