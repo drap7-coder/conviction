@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "@/lib/request-timeout";
+
 export interface StockQuote {
   ticker: string;
   price: number | null;
@@ -59,7 +61,7 @@ export async function fetchStockQuotes(tickers: string[]): Promise<StockQuote[]>
   const responses = await Promise.all(
     uniqueTickers.map(async (ticker) => {
       try {
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1d&interval=1m`,
           {
             headers: {
@@ -68,6 +70,7 @@ export async function fetchStockQuotes(tickers: string[]): Promise<StockQuote[]>
             },
             next: { revalidate: 60 },
           },
+          6_000,
         );
 
         if (!response.ok) return buildQuote(ticker);

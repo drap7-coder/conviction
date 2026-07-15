@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from "@/lib/request-timeout";
+
 export type PoliticalTradeDirection = "purchase" | "sale" | "exchange" | "other";
 
 export interface PoliticalTrade {
@@ -109,10 +111,10 @@ async function fetchPoliticalTrades(): Promise<PoliticalTrade[]> {
     return cache.trades;
   }
 
-  const response = await fetch(KADOA_TRADES_URL, {
+  const response = await fetchWithTimeout(KADOA_TRADES_URL, {
     headers: { Accept: "application/json" },
     cache: "no-store",
-  });
+  }, 8_000);
   if (!response.ok) throw new Error(`Political trade source returned ${response.status}`);
 
   const rows = (await response.json()) as RawPoliticalTrade[];

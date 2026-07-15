@@ -3,6 +3,7 @@ import {
   clearInstitutionalCache,
   getInstitutionalAccumulationForCompany,
 } from "@/lib/sec/institutional";
+import { isRequestTimeout, withTimeout } from "@/lib/request-timeout";
 import { getWatchlist } from "@/lib/watchlist/persist";
 import { validateTicker } from "@/lib/watchlist/validate";
 
@@ -43,10 +44,27 @@ export async function GET(request: NextRequest) {
 
   if (refresh) clearInstitutionalCache();
 
-  const result = await getInstitutionalAccumulationForCompany(
-    resolvedTicker,
-    resolvedCompanyName,
-  );
-
-  return NextResponse.json(result);
+  try {
+    const result = await withTimeout(
+      getInstitutionalAccumulationForCompany(
+        resolvedTicker,
+        resolvedCompanyName,
+      ),
+      22_000,
+    );
+    return NextResponse.json({ ...result, status: "success" });
+  } catch (error) {
+    const timedOut = isRequestTimeout(error);
+    return NextResponse.json({
+      ticker: resolvedTicker,
+      companyName: resolvedCompanyName,
+      results: [],
+      fetchedAt: new Date().toISOString(),
+      source: timedOut ? "timeout" : "error",
+      status: timedOut ? "timeout" : "error",
+      message: timedOut
+        ? "Institutional filing data is temporarily unavailable."
+        : "Institutional filing data could not be loaded.",
+    });
+  }
 }

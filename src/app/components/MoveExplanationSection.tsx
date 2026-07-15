@@ -6,6 +6,7 @@ import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 import { getPeerTickers } from "@/lib/market/peers";
+import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 
 interface MoveExplanationSectionProps {
   ticker: string;
@@ -13,6 +14,8 @@ interface MoveExplanationSectionProps {
 
 interface InstitutionalResponse {
   results: InstitutionalAccumulation[];
+  status?: "success" | "timeout" | "error";
+  message?: string;
 }
 
 interface InsiderResponse {
@@ -80,9 +83,11 @@ function summarizeInstitutional(rows: InstitutionalAccumulation[], ticker: strin
     };
   }
 
-  const label = positiveRows.length >= negativeRows.length
-    ? "Supporting 13F signal"
-    : "Contradicting 13F signal";
+  const label = positiveRows.length > 0 && negativeRows.length > 0
+    ? "Mixed 13F signal"
+    : positiveRows.length > 0
+      ? "Supporting 13F signal"
+      : "Counter 13F signal";
   const text = lead
     ? `${lead.displayName} ${describeStatus(lead)} ${ticker}: ${formatShares(Math.abs(lead.shareChange))} share${Math.abs(lead.shareChange) === 1 ? "" : "s"} changed${latestFilingDate ? `, filed ${latestFilingDate}` : ""}.`
     : `${activeRows.length} tracked-manager changes${latestFilingDate ? `, latest filed ${latestFilingDate}` : ""}.`;
@@ -93,7 +98,11 @@ function summarizeInstitutional(rows: InstitutionalAccumulation[], ticker: strin
     latestFilingDate: latestFilingDate ?? null,
     label,
     text,
-    tone: positiveRows.length >= negativeRows.length ? "positive" : "negative",
+    tone: positiveRows.length > 0 && negativeRows.length > 0
+      ? "neutral"
+      : positiveRows.length > 0
+        ? "positive"
+        : "negative",
   };
 }
 
@@ -129,66 +138,86 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [institutionalRows, setInstitutionalRows] = useState<InstitutionalAccumulation[]>([]);
   const [insiderEvents, setInsiderEvents] = useState<EvidenceEvent[]>([]);
   const [politicalSummary, setPoliticalSummary] = useState<PoliticalResponse | null>(null);
+  const [institutionalStatus, setInstitutionalStatus] = useState<EvidenceStatus>("idle");
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function load() {
-      setLoading(true);
+      setStatus("loading");
+      setInstitutionalStatus("loading");
       setError(null);
       try {
         const peerTickers = getPeerTickers(ticker);
         const quoteTickers = [ticker, ...peerTickers].join(",");
-        const [moveResponse, institutionalResponse, insiderResponse, politicalResponse, quotesResponse] = await Promise.all([
-          fetch(`/api/evidence/move?ticker=${ticker}`),
-          fetch(`/api/evidence/institutional?ticker=${ticker}`),
-          fetch(`/api/evidence/insider?ticker=${ticker}`),
-          fetch(`/api/evidence/political?ticker=${ticker}`),
-          fetch(`/api/market/quotes?tickers=${encodeURIComponent(quoteTickers)}`),
-        ]);
-        if (!moveResponse.ok) throw new Error("Failed to load move evidence");
+        const moveData = await fetchJsonWithTimeout<MoveEvent>(
+          `/api/evidence/move?ticker=${ticker}`,
+          8_000,
+          controller.signal,
+        );
 
-        const moveData = (await moveResponse.json()) as MoveEvent;
-        const institutionalData = institutionalResponse.ok
-          ? ((await institutionalResponse.json()) as InstitutionalResponse)
-          : { results: [] };
-        const insiderData = insiderResponse.ok
-          ? ((await insiderResponse.json()) as InsiderResponse)
+        const [institutionalResult, insiderResult, politicalResult, quoteResult] = await Promise.allSettled([
+          fetchJsonWithTimeout<InstitutionalResponse>(`/api/evidence/institutional?ticker=${ticker}`, 26_000, controller.signal),
+          fetchJsonWithTimeout<InsiderResponse>(`/api/evidence/insider?ticker=${ticker}`, 14_000, controller.signal),
+          fetchJsonWithTimeout<PoliticalResponse>(`/api/evidence/political?ticker=${ticker}`, 10_000, controller.signal),
+          fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(`/api/market/quotes?tickers=${encodeURIComponent(quoteTickers)}`, 8_000, controller.signal),
+        ]);
+
+        const institutionalData = institutionalResult.status === "fulfilled"
+          ? institutionalResult.value
+          : { results: [], status: classifyClientError(institutionalResult.reason) };
+        const insiderData = insiderResult.status === "fulfilled"
+          ? insiderResult.value
           : { events: [] };
-        const politicalData = politicalResponse.ok
-          ? ((await politicalResponse.json()) as PoliticalResponse)
-          : null;
-        const quoteData = quotesResponse.ok
-          ? ((await quotesResponse.json()) as { quotes?: StockQuote[] })
-          : { quotes: [] };
+        const politicalData = politicalResult.status === "fulfilled" ? politicalResult.value : null;
+        const quoteData = quoteResult.status === "fulfilled" ? quoteResult.value : { quotes: [] };
 
         if (!cancelled) {
           const quoteMap: Record<string, StockQuote> = {};
           for (const quote of quoteData.quotes ?? []) quoteMap[quote.ticker] = quote;
           setEvent(moveData);
           setInstitutionalRows(institutionalData.results ?? []);
+          setInstitutionalStatus(
+            institutionalData.status === "timeout" || institutionalData.status === "error"
+              ? institutionalData.status
+              : (institutionalData.results ?? []).length > 0
+                ? "success"
+                : "empty",
+          );
           setInsiderEvents(insiderData.events ?? []);
           setPoliticalSummary(politicalData);
           setQuotes(quoteMap);
+          setStatus("success");
         }
-      } catch {
-        if (!cancelled) setError("Move explanation unavailable.");
-      } finally {
-        if (!cancelled) setLoading(false);
+      } catch (caught) {
+        if (!cancelled) {
+          const nextStatus = classifyClientError(caught);
+          setStatus(nextStatus === "idle" ? "error" : nextStatus);
+          setError(nextStatus === "timeout"
+            ? "Move evidence is temporarily unavailable."
+            : nextStatus === "unsupported"
+              ? "This issuer is not currently supported."
+              : "Move explanation unavailable.");
+        }
       }
     }
 
     void load();
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [ticker]);
 
   const isFallback = event?.category === "no-clear-catalyst";
   const institutional = summarizeInstitutional(institutionalRows, ticker);
+  const institutionalText = institutionalStatus === "timeout" || institutionalStatus === "error"
+    ? "Institutional filing data is temporarily unavailable. Retry later."
+    : institutional.text;
   const insider = summarizeInsiders(insiderEvents);
   const institutionalPositive = institutional.activeRows.some((row) => row.status === "New" || row.status === "Increased");
   const hasRecentInsiderBuy = insider.purchases.length > 0;
@@ -238,7 +267,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         <span className="section-count">Price + 13F</span>
       </div>
 
-      {loading ? (
+      {status === "loading" || status === "idle" ? (
         <div className="move-card loading">
           <span className="move-eyebrow">Checking catalyst evidence...</span>
           <h3>Looking for a sourced explanation.</h3>
@@ -246,7 +275,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       ) : error ? (
         <div className="move-card">
           <h3>{error}</h3>
-          <p className="move-answer">No sourced move explanation is available right now.</p>
+          <p className="move-answer">Data is not available at this moment. Retry in a moment.</p>
         </div>
       ) : event ? (
         <div className={`move-card convergence-card convergence-${convergence.level} confidence-${event.confidence}`}>
@@ -264,8 +293,14 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <div className="convergence-signal-grid" aria-label="Conviction signals">
             <div className={institutionalPositive ? "signal-tile positive" : "signal-tile neutral"}>
               <span className="move-eyebrow">Institutional</span>
-              <strong>{institutionalPositive ? "Accumulating" : "No accumulation"}</strong>
-              <p>{institutional.text}</p>
+              <strong>
+                {institutionalStatus === "timeout" || institutionalStatus === "error"
+                  ? "Data unavailable"
+                  : institutionalPositive
+                    ? "Accumulating"
+                    : "No accumulation"}
+              </strong>
+              <p>{institutionalText}</p>
             </div>
             <div className={hasRecentInsiderBuy ? "signal-tile positive" : "signal-tile neutral"}>
               <span className="move-eyebrow">Insider</span>
@@ -323,7 +358,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               <div>
                 <span className="move-eyebrow">Latest 13F</span>
                 <strong>{institutional.latestFilingDate ?? "No recent tracked filing"}</strong>
-                <p>{institutional.text}</p>
+                <p>{institutionalText}</p>
               </div>
             </div>
           ) : (
@@ -350,7 +385,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <div className={`move-institutional-support ${institutional.tone}`}>
             <div>
               <span className="move-eyebrow">{institutional.label}</span>
-              <strong>{institutional.text}</strong>
+              <strong>{institutionalText}</strong>
             </div>
             <div className="move-support-metrics">
               <span>{institutional.activeRows.length} changes</span>

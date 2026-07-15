@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { PoliticalTrade, PoliticalTradeSummary } from "@/lib/political-trades";
+import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 
 interface PoliticalTradesSectionProps {
   ticker: string;
@@ -31,32 +32,46 @@ function tradeVerb(trade: PoliticalTrade) {
 
 export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) {
   const [summary, setSummary] = useState<PoliticalTradeSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function load() {
-      setLoading(true);
+      setStatus("loading");
       setError(null);
       try {
-        const response = await fetch(`/api/evidence/political?ticker=${ticker}`);
-        if (!response.ok) throw new Error("Failed to load political trades");
-        const data = (await response.json()) as PoliticalTradeSummary;
-        if (!cancelled) setSummary(data);
-      } catch {
-        if (!cancelled) setError("Political trade data unavailable.");
-      } finally {
-        if (!cancelled) setLoading(false);
+        const data = await fetchJsonWithTimeout<PoliticalTradeSummary>(
+          `/api/evidence/political?ticker=${ticker}`,
+          10_000,
+          controller.signal,
+        );
+        if (!cancelled) {
+          setSummary(data);
+          setStatus(data.trades.length > 0 ? "success" : "empty");
+        }
+      } catch (caught) {
+        if (!cancelled) {
+          const nextStatus = classifyClientError(caught);
+          setStatus(nextStatus === "idle" ? "error" : nextStatus);
+          setError(nextStatus === "timeout"
+            ? "Political disclosure data is temporarily unavailable."
+            : nextStatus === "unsupported"
+              ? "This issuer is not currently supported."
+              : "Political trade data could not be loaded.");
+        }
       }
     }
 
     void load();
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [ticker]);
+  }, [ticker, requestKey]);
 
   const leadTrade = useMemo(() => {
     if (!summary) return null;
@@ -70,7 +85,7 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
         <span className="section-count">STOCK Act</span>
       </div>
 
-      {loading ? (
+      {status === "loading" || status === "idle" ? (
         <div className="political-card loading">
           <span className="move-eyebrow">Checking disclosures...</span>
           <h3>Looking for reported political trades.</h3>
@@ -79,6 +94,9 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
         <div className="political-card">
           <h3>{error}</h3>
           <p>Congressional disclosures are delayed and source availability can vary.</p>
+          <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+            Retry
+          </button>
         </div>
       ) : !summary || summary.trades.length === 0 ? (
         <div className="political-card">

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { getTickerSignalSummary } from "@/lib/evidence/signal-summaries";
+import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 
 interface WatchlistEntry {
   id?: string;
@@ -107,8 +108,13 @@ export default function WatchlistPage() {
     }
 
     try {
-      const res = await fetch("/api/watchlist");
-      const data = await res.json();
+      const data = await fetchJsonWithTimeout<{
+        authenticated?: boolean;
+        entries?: WatchlistEntry[];
+        user?: { name?: string | null; email?: string | null };
+        authConfigured?: boolean;
+        persistence?: "browser" | "neon" | "unconfigured";
+      }>("/api/watchlist", 8_000);
 
       const isAuthenticated = Boolean(data.authenticated);
       let nextEntries = isAuthenticated
@@ -292,18 +298,16 @@ export default function WatchlistPage() {
           <span>
             {authenticated
               ? `${accountLabel ?? "Your account"} · private tickers and notes`
-              : authConfigured
-                ? "Browse freely. Sign in to sync tickers and notes across devices."
-                : "Browse freely. Private sync is ready once GitHub and Neon keys are configured."}
+              : "Browse freely. Sign in to save a private watchlist across devices."}
           </span>
         </div>
         {authenticated || authConfigured ? (
           <a className="auth-button" href={authenticated ? "/api/auth/signout" : "/api/auth/signin/github"}>
-            {authenticated ? "Sign out" : "Sign in with GitHub"}
+            {authenticated ? "Sign out" : "Sign in"}
           </a>
         ) : (
           <span className="auth-button disabled" aria-disabled="true">
-            Sign-in setup needed
+            Sign in coming soon
           </span>
         )}
       </div>
@@ -312,9 +316,6 @@ export default function WatchlistPage() {
         <div>
           <span className="institutional-eyebrow">Conviction engine</span>
           <h2>Where sophisticated capital is building conviction.</h2>
-          {persistence === "unconfigured" ? (
-            <p>Private sync needs Neon configured before sign-in watchlists can save.</p>
-          ) : null}
         </div>
         <Link href="/rising" className="brief-link">
           View leaderboard →

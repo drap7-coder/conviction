@@ -395,16 +395,18 @@ details > summary::before {
   gap: 8px;
   align-items: center;
   margin-bottom: 14px;
+  max-width: 560px;
 }
 
 .watchlist-input-wrap {
   position: relative;
-  flex: 1;
-  max-width: 420px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .watchlist-input {
   width: 100%;
+  min-width: 0;
   min-height: 42px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -413,6 +415,7 @@ details > summary::before {
   font-size: 1rem;
   color: var(--ink);
   outline: none;
+  text-overflow: ellipsis;
   transition: border-color 0.15s, background-color 0.15s;
 }
 
@@ -432,6 +435,27 @@ details > summary::before {
   cursor: pointer;
   white-space: nowrap;
   transition: opacity 0.15s, transform 0.15s;
+}
+
+.retry-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  margin-top: 10px;
+  border: 1px solid var(--border-active);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.retry-button:hover {
+  border-color: var(--accent);
 }
 
 .watchlist-add-button:disabled {
@@ -1768,29 +1792,8 @@ details > summary::before {
   100% { background-position: 200% 50%; opacity: 0.65; }
 }
 
-.legacy-context,
 .secondary-evidence {
   margin-top: 16px;
-}
-
-.legacy-context summary {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  color: var(--quiet);
-  padding: 10px 0;
-}
-
-.legacy-context summary::after {
-  content: "+";
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.legacy-context[open] summary::after {
-  content: "−";
 }
 
 .secondary-evidence {
@@ -1899,6 +1902,18 @@ details > summary::before {
   margin-top: 2px;
 }
 
+.track-company-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.track-company-action span {
+  color: var(--quiet);
+  font-size: 0.78rem;
+}
+
 .detail-overview {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1939,12 +1954,14 @@ details > summary::before {
   bottom: 0;
   left: 0;
   right: 0;
+  max-width: 100vw;
   height: 28px;
   background: var(--surface-elevated);
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
   overflow: hidden;
+  contain: layout paint;
   z-index: 100;
   box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
 }
@@ -1984,7 +2001,10 @@ details > summary::before {
 }
 
 .ticker-scroll {
+  position: absolute;
+  inset: 0 auto 0 0;
   display: flex;
+  align-items: center;
   gap: 32px;
   padding: 0 16px 0 128px;
   animation: ticker-scroll 45s linear infinite;
@@ -2157,10 +2177,22 @@ details > summary::before {
 
   .watchlist-add {
     align-items: stretch;
+    gap: 6px;
   }
 
   .watchlist-input-wrap {
     max-width: none;
+    min-width: 0;
+  }
+
+  .watchlist-input {
+    font-size: 0.92rem;
+    padding-inline: 10px;
+  }
+
+  .watchlist-add-button {
+    flex: 0 0 auto;
+    padding-inline: 12px;
   }
 
   .watchlist-scroll {
@@ -2181,6 +2213,12 @@ details > summary::before {
 
   .product-brief {
     align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .brief-link {
+    max-width: 100%;
+    padding-inline: 8px;
   }
 
   .rising-build-header {

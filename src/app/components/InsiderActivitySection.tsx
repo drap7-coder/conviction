@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { EvidenceEvent } from "@/lib/evidence/types";
+import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 
 interface InsiderActivitySectionProps {
   ticker: string;
@@ -87,25 +88,39 @@ function groupEvents(events: EvidenceEvent[]): {
 
 export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
   const [fetching, setFetching] = useState(false);
   const [fetchMessage, setFetchMessage] = useState<string | null>(null);
 
-  const loadEvents = async () => {
-    setLoading(true);
+  const loadEvents = async (signal?: AbortSignal) => {
+    setStatus("loading");
     setError(null);
     try {
-      const res = await fetch(`/api/evidence/insider?ticker=${ticker}`);
-      const data = await res.json();
+      const data = await fetchJsonWithTimeout<{ events?: EvidenceEvent[]; source?: string }>(
+        `/api/evidence/insider?ticker=${ticker}`,
+        14_000,
+        signal,
+      );
       setEvents(data.events ?? []);
       if (!data.events?.length) {
-        setError("No insider activity found yet. Try refreshing.");
+        setStatus(data.source === "error" ? "error" : "empty");
+        setError(data.source === "error"
+          ? "Insider transaction data is temporarily unavailable."
+          : "No qualifying insider purchases found in the current window.");
+      } else {
+        setStatus("success");
       }
-    } catch {
-      setError("Failed to load insider data");
-    } finally {
-      setLoading(false);
+    } catch (caught) {
+      const nextStatus = classifyClientError(caught);
+      if (nextStatus !== "idle") {
+        setStatus(nextStatus);
+        setError(nextStatus === "timeout"
+          ? "Insider transaction data is temporarily unavailable."
+          : nextStatus === "unsupported"
+            ? "This issuer is not currently supported."
+            : "Insider transaction data could not be loaded.");
+      }
     }
   };
 
@@ -142,7 +157,9 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
   };
 
   useEffect(() => {
-    loadEvents();
+    const controller = new AbortController();
+    loadEvents(controller.signal);
+    return () => controller.abort();
   }, [ticker]);
 
   const { grouped, netScore, netShares, label } = groupEvents(events);
@@ -182,7 +199,7 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
         </p>
       ) : null}
 
-      {loading ? (
+      {status === "loading" || status === "idle" ? (
         <div className="evidence-panel">
           <p style={{ color: "var(--quiet)", fontSize: "0.65rem" }}>
             Loading insider transactions...
@@ -193,6 +210,11 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
           <p style={{ color: "var(--muted)", fontSize: "0.65rem" }}>
             {error}
           </p>
+          {(status === "timeout" || status === "error") ? (
+            <button className="retry-button" type="button" onClick={() => loadEvents()}>
+              Retry
+            </button>
+          ) : null}
         </div>
       ) : events.length === 0 ? (
         <div className="evidence-panel">

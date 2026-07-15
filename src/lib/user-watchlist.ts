@@ -54,7 +54,7 @@ export async function addUserWatchlistEntry(
   entry: WatchlistEntry,
 ): Promise<{ success: boolean; entries: UserWatchlistEntry[]; error?: string }> {
   if (!isDatabaseConfigured()) {
-    return { success: false, entries: [], error: "Sign-in storage is not configured yet" };
+    return { success: false, entries: [], error: "Private watchlist storage is temporarily unavailable" };
   }
 
   const result = await query<UserWatchlistRow>(
@@ -78,7 +78,7 @@ export async function removeUserWatchlistEntry(
   ticker: string,
 ): Promise<{ success: boolean; entries: UserWatchlistEntry[]; error?: string }> {
   if (!isDatabaseConfigured()) {
-    return { success: false, entries: [], error: "Sign-in storage is not configured yet" };
+    return { success: false, entries: [], error: "Private watchlist storage is temporarily unavailable" };
   }
 
   const result = await query(
@@ -101,7 +101,7 @@ export async function updateUserWatchlistNote(
   note: string,
 ): Promise<{ success: boolean; entries: UserWatchlistEntry[]; error?: string }> {
   if (!isDatabaseConfigured()) {
-    return { success: false, entries: [], error: "Sign-in storage is not configured yet" };
+    return { success: false, entries: [], error: "Private watchlist storage is temporarily unavailable" };
   }
 
   const result = await query(

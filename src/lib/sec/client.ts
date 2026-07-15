@@ -16,6 +16,7 @@ import type {
   SecSubmissionResult,
 } from "./types";
 import { codeToType } from "./types";
+import { fetchWithTimeout } from "@/lib/request-timeout";
 
 const SEC_BASE = "https://data.sec.gov";
 const SEC_EDGAR = "https://www.sec.gov";
@@ -34,12 +35,12 @@ export async function secFetch(url: string): Promise<Response> {
   }
   lastRequestTime = Date.now();
 
-  const response = await fetch(url, {
+  const response = await fetchWithTimeout(url, {
     headers: {
       "User-Agent": USER_AGENT,
       Accept: "application/json, text/xml, application/xml, text/html",
     },
-  });
+  }, 12_000);
 
   return response;
 }

@@ -33,7 +33,7 @@ export async function GET() {
         suggestions: SEED_WATCHLIST,
         warning: isUserWatchlistAvailable()
           ? undefined
-          : "DATABASE_URL is not configured — signed-in watchlists are unavailable.",
+          : "Private watchlist storage is temporarily unavailable.",
       });
     }
 

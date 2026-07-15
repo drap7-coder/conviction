@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 
 interface InstitutionalConvictionSectionProps {
   ticker: string;
@@ -11,6 +12,8 @@ interface InstitutionalConvictionSectionProps {
 interface InstitutionalResponse {
   results: InstitutionalAccumulation[];
   fetchedAt: string;
+  status?: "success" | "timeout" | "error";
+  message?: string;
 }
 
 const GROUPS: Array<{ status: InstitutionalAccumulation["status"]; label: string }> = [
@@ -43,32 +46,51 @@ export function InstitutionalConvictionSection({
   priority = "compact",
 }: InstitutionalConvictionSectionProps) {
   const [rows, setRows] = useState<InstitutionalAccumulation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function load() {
-      setLoading(true);
+      setStatus("loading");
       setError(null);
       try {
-        const response = await fetch(`/api/evidence/institutional?ticker=${ticker}`);
-        if (!response.ok) throw new Error("Failed to load institutional data");
-        const data = (await response.json()) as InstitutionalResponse;
-        if (!cancelled) setRows(data.results ?? []);
-      } catch {
-        if (!cancelled) setError("Institutional data unavailable.");
-      } finally {
-        if (!cancelled) setLoading(false);
+        const data = await fetchJsonWithTimeout<InstitutionalResponse>(
+          `/api/evidence/institutional?ticker=${ticker}`,
+          26_000,
+          controller.signal,
+        );
+        if (!cancelled) {
+          setRows(data.results ?? []);
+          if (data.status === "timeout" || data.status === "error") {
+            setStatus(data.status);
+            setError(data.message ?? "Institutional filing data is temporarily unavailable.");
+          } else {
+            setStatus((data.results ?? []).length > 0 ? "success" : "empty");
+          }
+        }
+      } catch (caught) {
+        if (!cancelled) {
+          const nextStatus = classifyClientError(caught);
+          setStatus(nextStatus === "idle" ? "error" : nextStatus);
+          setError(nextStatus === "timeout"
+            ? "Institutional filing data is temporarily unavailable."
+            : nextStatus === "unsupported"
+              ? "This issuer is not currently supported."
+              : "Institutional data could not be loaded.");
+        }
       }
     }
 
     void load();
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [ticker]);
+  }, [ticker, requestKey]);
 
   const grouped = useMemo(() => {
     const activeRows = rows.filter((row) => row.status !== "Unchanged");
@@ -90,10 +112,10 @@ export function InstitutionalConvictionSection({
     <section className={sectionClass}>
       <div className="section-header mt-16">
         <h2 className="section-title">Institutional conviction</h2>
-        <span className="section-count">{loading ? "..." : `${activeCount} changes`}</span>
+        <span className="section-count">{status === "loading" || status === "idle" ? "..." : `${activeCount} changes`}</span>
       </div>
 
-      {loading ? (
+      {status === "loading" || status === "idle" ? (
         <div className="institutional-hero loading">
           <div>
             <span className="institutional-eyebrow">SEC Form 13F</span>
@@ -106,9 +128,12 @@ export function InstitutionalConvictionSection({
             <span />
           </div>
         </div>
-      ) : error ? (
+      ) : status === "timeout" || status === "error" || status === "unsupported" ? (
         <div className="evidence-panel">
           <p>{error}</p>
+          <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+            Retry
+          </button>
         </div>
       ) : activeCount === 0 ? (
         <div className="institutional-hero">

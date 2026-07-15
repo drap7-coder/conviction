@@ -4,6 +4,7 @@ import {
   getInstitutionalAccumulationForCompany,
   summarizeInstitutionalEvidence,
 } from "@/lib/sec/institutional";
+import { isRequestTimeout, withTimeout } from "@/lib/request-timeout";
 import { getWatchlist } from "@/lib/watchlist/persist";
 
 export const dynamic = "force-dynamic";
@@ -23,49 +24,67 @@ export async function GET(request: NextRequest) {
   const entries = (await getWatchlist()).filter((entry) => entry.status === "active");
   if (refresh) clearInstitutionalCache();
 
-  const ideas = [];
-  for (const entry of entries) {
-    const result = await getInstitutionalAccumulationForCompany(
-      entry.ticker,
-      entry.companyName,
-    );
-    const summary = summarizeInstitutionalEvidence(result.results);
-    if (summary.positiveCount === 0) continue;
+  try {
+    const ideas = await withTimeout((async () => {
+      const nextIdeas = [];
+      for (const entry of entries) {
+        const result = await getInstitutionalAccumulationForCompany(
+          entry.ticker,
+          entry.companyName,
+        );
+        const summary = summarizeInstitutionalEvidence(result.results);
+        if (summary.positiveCount === 0) continue;
 
-    const latestFilingDate = result.results.reduce(
-      (latest, item) => (item.filingDate > latest ? item.filingDate : latest),
-      "1970-01-01",
-    );
-    const shareAccumulationScore = Math.min(
-      30,
-      Math.max(0, summary.aggregateShareChange) / 100_000,
-    );
-    const score =
-      summary.newPositions.length * 100 +
-      summary.increased.length * 40 +
-      shareAccumulationScore +
-      filingRecencyScore(latestFilingDate);
+        const latestFilingDate = result.results.reduce(
+          (latest, item) => (item.filingDate > latest ? item.filingDate : latest),
+          "1970-01-01",
+        );
+        const shareAccumulationScore = Math.min(
+          30,
+          Math.max(0, summary.aggregateShareChange) / 100_000,
+        );
+        const score =
+          summary.newPositions.length * 100 +
+          summary.increased.length * 40 +
+          shareAccumulationScore +
+          filingRecencyScore(latestFilingDate);
 
-    ideas.push({
-      ticker: entry.ticker,
-      name: entry.companyName,
-      score,
-      aggregateShareChange: summary.aggregateShareChange,
-      newPositions: summary.newPositions.length,
-      increased: summary.increased.length,
-      reduced: summary.reduced.length,
-      exited: summary.exited.length,
-      latestFilingDate,
-      topSignals: [...summary.newPositions, ...summary.increased].slice(0, 3),
+        nextIdeas.push({
+          ticker: entry.ticker,
+          name: entry.companyName,
+          score,
+          aggregateShareChange: summary.aggregateShareChange,
+          newPositions: summary.newPositions.length,
+          increased: summary.increased.length,
+          reduced: summary.reduced.length,
+          exited: summary.exited.length,
+          latestFilingDate,
+          topSignals: [...summary.newPositions, ...summary.increased].slice(0, 3),
+        });
+      }
+      return nextIdeas;
+    })(), 28_000);
+
+    ideas.sort((a, b) => b.score - a.score);
+
+    return NextResponse.json({
+      ideas,
+      total: ideas.length,
+      source: "sec-13f",
+      status: "success",
+      fetchedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    const timedOut = isRequestTimeout(error);
+    return NextResponse.json({
+      ideas: [],
+      total: 0,
+      source: timedOut ? "timeout" : "error",
+      status: timedOut ? "timeout" : "error",
+      message: timedOut
+        ? "Institutional filing data is temporarily unavailable."
+        : "Institutional evidence could not be loaded.",
+      fetchedAt: new Date().toISOString(),
     });
   }
-
-  ideas.sort((a, b) => b.score - a.score);
-
-  return NextResponse.json({
-    ideas,
-    total: ideas.length,
-    source: "sec-13f",
-    fetchedAt: new Date().toISOString(),
-  });
 }

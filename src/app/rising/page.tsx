@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 
 interface InstitutionalEmergingIdea {
   ticker: string;
@@ -20,7 +21,9 @@ interface InstitutionalEmergingIdea {
 interface InstitutionalEmergingResponse {
   ideas: InstitutionalEmergingIdea[];
   total: number;
-  source: "sec-13f";
+  source: "sec-13f" | "timeout" | "error";
+  status?: "success" | "timeout" | "error";
+  message?: string;
   fetchedAt: string;
 }
 
@@ -87,38 +90,57 @@ function RisingBuildState() {
 
 export default function RisingConvictionPage() {
   const [ideas, setIdeas] = useState<InstitutionalEmergingIdea[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function loadRisingConviction() {
+      setStatus("loading");
+      setError(null);
       try {
-        const response = await fetch("/api/evidence/institutional/emerging");
-        if (!response.ok) throw new Error("Failed to load institutional evidence");
-        const data = (await response.json()) as InstitutionalEmergingResponse;
-        if (!cancelled) setIdeas(data.ideas ?? []);
+        const data = await fetchJsonWithTimeout<InstitutionalEmergingResponse>(
+          "/api/evidence/institutional/emerging",
+          32_000,
+          controller.signal,
+        );
+        if (!cancelled) {
+          setIdeas(data.ideas ?? []);
+          if (data.status === "timeout" || data.status === "error") {
+            setStatus(data.status);
+            setError(data.message ?? "Institutional evidence is temporarily unavailable.");
+          } else {
+            setStatus((data.ideas ?? []).length > 0 ? "success" : "empty");
+          }
+        }
       } catch (err) {
         console.warn("[rising] Failed to load institutional evidence:", err);
-        if (!cancelled) setError("Institutional evidence is unavailable.");
-      } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          const nextStatus = classifyClientError(err);
+          setStatus(nextStatus === "idle" ? "error" : nextStatus);
+          setError(nextStatus === "timeout"
+            ? "Institutional filing data is temporarily unavailable."
+            : "Institutional evidence could not be loaded.");
+        }
       }
     }
 
     void loadRisingConviction();
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, []);
+  }, [requestKey]);
 
   return (
     <div>
       <div className="section-header">
         <h2 className="section-title">Institutional leaderboard</h2>
         <span className="section-count">
-          {loading ? "..." : `${ideas.length} companies`}
+          {status === "loading" || status === "idle" ? "..." : `${ideas.length} companies`}
         </span>
       </div>
 
@@ -127,12 +149,14 @@ export default function RisingConvictionPage() {
         <p>Ranked by new and increased positions among 15 tracked institutional managers.</p>
       </div>
 
-      {loading ? (
+      {status === "loading" || status === "idle" ? (
         <RisingBuildState />
       ) : error && ideas.length === 0 ? (
         <div className="empty-state">
           <p>{error}</p>
-          <small>Add active companies to the watchlist and try again.</small>
+          <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+            Retry
+          </button>
         </div>
       ) : ideas.length === 0 ? (
         <div className="empty-state">
