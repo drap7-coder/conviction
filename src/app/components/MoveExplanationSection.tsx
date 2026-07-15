@@ -24,6 +24,12 @@ interface InsiderResponse {
   events: EvidenceEvent[];
 }
 
+interface NewsEvidenceResponse {
+  events: EvidenceEvent[];
+  status?: "success" | "empty" | "unsupported" | "timeout" | "error";
+  message?: string;
+}
+
 type PoliticalResponse = PoliticalTradeSummary;
 type DisclosureResponse = Omit<CorporateDisclosureSummary, "status" | "source"> & {
   status: CorporateDisclosureSummary["status"] | "timeout" | "error";
@@ -150,9 +156,11 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [institutionalRows, setInstitutionalRows] = useState<InstitutionalAccumulation[]>([]);
   const [insiderEvents, setInsiderEvents] = useState<EvidenceEvent[]>([]);
   const [politicalSummary, setPoliticalSummary] = useState<PoliticalResponse | null>(null);
+  const [newsEvents, setNewsEvents] = useState<EvidenceEvent[]>([]);
   const [disclosureSummary, setDisclosureSummary] = useState<DisclosureResponse | null>(null);
   const [ownershipSummary, setOwnershipSummary] = useState<OwnershipResponse | null>(null);
   const [institutionalStatus, setInstitutionalStatus] = useState<EvidenceStatus>("idle");
+  const [newsStatus, setNewsStatus] = useState<EvidenceStatus>("idle");
   const [disclosureStatus, setDisclosureStatus] = useState<EvidenceStatus>("idle");
   const [ownershipStatus, setOwnershipStatus] = useState<EvidenceStatus>("idle");
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
@@ -166,6 +174,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
     async function load() {
       setStatus("loading");
       setInstitutionalStatus("loading");
+      setNewsStatus("loading");
       setDisclosureStatus("loading");
       setOwnershipStatus("loading");
       setError(null);
@@ -178,13 +187,14 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           controller.signal,
         );
 
-        const [institutionalResult, insiderResult, politicalResult, quoteResult, ownershipResult, disclosureResult] = await Promise.allSettled([
+        const [institutionalResult, insiderResult, politicalResult, quoteResult, ownershipResult, disclosureResult, newsResult] = await Promise.allSettled([
           fetchJsonWithTimeout<InstitutionalResponse>(`/api/evidence/institutional?ticker=${ticker}`, 26_000, controller.signal),
           fetchJsonWithTimeout<InsiderResponse>(`/api/evidence/insider?ticker=${ticker}`, 14_000, controller.signal),
           fetchJsonWithTimeout<PoliticalResponse>(`/api/evidence/political?ticker=${ticker}`, 10_000, controller.signal),
           fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(`/api/market/quotes?tickers=${encodeURIComponent(quoteTickers)}`, 8_000, controller.signal),
           fetchJsonWithTimeout<OwnershipResponse>(`/api/evidence/ownership?ticker=${ticker}`, 10_000, controller.signal),
           fetchJsonWithTimeout<DisclosureResponse>(`/api/evidence/disclosures?ticker=${ticker}`, 10_000, controller.signal),
+          fetchJsonWithTimeout<NewsEvidenceResponse>(`/api/evidence/news?ticker=${ticker}`, 8_000, controller.signal),
         ]);
 
         const institutionalData = institutionalResult.status === "fulfilled"
@@ -201,6 +211,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         const disclosureData = disclosureResult.status === "fulfilled"
           ? disclosureResult.value
           : null;
+        const newsData = newsResult.status === "fulfilled"
+          ? newsResult.value
+          : { events: [], status: classifyClientError(newsResult.reason) };
 
         if (!cancelled) {
           const quoteMap: Record<string, StockQuote> = {};
@@ -216,6 +229,14 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           );
           setInsiderEvents(insiderData.events ?? []);
           setPoliticalSummary(politicalData);
+          setNewsEvents(newsData.events ?? []);
+          setNewsStatus(
+            newsData.status === "timeout" || newsData.status === "error" || newsData.status === "unsupported"
+              ? newsData.status
+              : (newsData.events ?? []).length > 0
+                ? "success"
+                : "empty",
+          );
           setOwnershipSummary(ownershipData);
           setOwnershipStatus(
             ownershipData?.status === "timeout" || ownershipData?.status === "error"
@@ -303,6 +324,14 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         };
   const quote = quotes[ticker];
   const ownershipFilings = ownershipStatus === "success" ? ownershipSummary?.filings.slice(0, 3) ?? [] : [];
+  const materialNewsEvents = newsStatus === "success" ? newsEvents.slice(0, 1) : [];
+  const materialNewsCopy = newsStatus === "loading" || newsStatus === "idle"
+    ? "Checking for sourced material news."
+    : newsStatus === "timeout" || newsStatus === "error"
+      ? "Material news evidence is temporarily unavailable."
+      : materialNewsEvents.length > 0
+        ? `${materialNewsEvents.length} sourced material news event found.`
+        : "No material news events found.";
   const ownershipCopy = ownershipStatus === "loading" || ownershipStatus === "idle"
     ? "Checking SEC 13D and 13G filings."
     : ownershipStatus === "timeout" || ownershipStatus === "error"
@@ -461,6 +490,30 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               <span>{institutional.activeRows.length} changes</span>
               <span>{institutional.latestFilingDate ?? "No filing date"}</span>
             </div>
+          </div>
+
+          <div className="evidence-family-card material-news-card">
+            <div className="evidence-family-header">
+              <div>
+                <span className="move-eyebrow">Material news</span>
+                <strong>{materialNewsCopy}</strong>
+              </div>
+              <span className="move-confidence move-confidence-inline">
+                {newsStatus === "loading" ? "Checking" : "Sourced only"}
+              </span>
+            </div>
+            {materialNewsEvents.length > 0 ? (
+              <div className="evidence-line-list">
+                {materialNewsEvents.map((newsEvent) => (
+                  <a className={`evidence-line ${newsEvent.isContradiction ? "contradicting" : "supporting"}`} href={newsEvent.sourceUrl} key={newsEvent.id} rel="noreferrer" target="_blank">
+                    <span>{newsEvent.isContradiction ? "Contradicting evidence" : "Context evidence"} · {formatDate(newsEvent.date)}</span>
+                    <strong>{newsEvent.title}</strong>
+                    <small>{newsEvent.metadata?.transactionClass ?? "Source"} · Strength: {Math.round(newsEvent.strength * 100)}</small>
+                    <p>{newsEvent.aiExplanation}</p>
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="evidence-family-card">

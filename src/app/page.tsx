@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
+import { getNewsEvidenceSummary } from "@/lib/evidence/news-evidence";
 import { getTickerSignalSummary } from "@/lib/evidence/signal-summaries";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 
@@ -94,10 +95,13 @@ function daysAgo(value: string | undefined) {
 
 function getCardVerdict(entry: WatchlistEntry, quote?: StockQuote) {
   const signal = getTickerSignalSummary(entry.ticker);
-  const support = signal?.direction === "pos" ? 2 : 0;
-  const contra = signal?.direction === "neg" ? 1 : 0;
+  const newsEvents = getNewsEvidenceSummary(entry.ticker, entry.companyName).events;
+  const newsSupport = newsEvents.filter((event) => event.direction === "positive").length;
+  const newsContra = newsEvents.filter((event) => event.isContradiction || event.direction === "negative").length;
+  const support = (signal?.direction === "pos" ? 2 : 0) + newsSupport;
+  const contra = (signal?.direction === "neg" ? 1 : 0) + newsContra;
   const quoteMove = quote?.changePercent ?? 0;
-  const base = signal?.direction === "pos" ? 72 : signal?.direction === "neg" ? 38 : 46;
+  const base = support > contra ? 72 : contra > support ? 38 : signal?.direction === "pos" ? 72 : signal?.direction === "neg" ? 38 : 46;
   const quoteAdjustment = Math.max(-8, Math.min(8, quoteMove * 1.4));
   const strength = Math.max(0, Math.min(99, Math.round(base + quoteAdjustment)));
   const state = support > 0 && contra > 0
@@ -121,7 +125,7 @@ function getCardVerdict(entry: WatchlistEntry, quote?: StockQuote) {
     strength,
     support,
     contra,
-    insight: signal?.cardText ?? (entry.status !== "active"
+    insight: newsEvents[0]?.summary ?? signal?.cardText ?? (entry.status !== "active"
       ? "SEC coverage is limited for this issuer."
       : "No high-conviction change cached yet."),
     recency: daysAgo(entry.lastSyncedAt ?? entry.addedAt),

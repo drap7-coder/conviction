@@ -1848,6 +1848,10 @@ details > summary::before {
   padding: 12px;
 }
 
+.material-news-card {
+  border-left-color: var(--amber);
+}
+
 .evidence-family-header {
   display: flex;
   justify-content: space-between;
@@ -1885,6 +1889,14 @@ details > summary::before {
   transform: translateY(-1px);
 }
 
+.evidence-line.contradicting {
+  border-left: 3px solid var(--red);
+}
+
+.evidence-line.supporting {
+  border-left: 3px solid var(--green);
+}
+
 .evidence-line span {
   color: var(--accent);
   font-family: var(--font-mono);
@@ -1903,6 +1915,12 @@ details > summary::before {
   color: var(--quiet);
   font-family: var(--font-mono);
   font-size: 0.68rem;
+}
+
+.evidence-line p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .move-support-metrics {

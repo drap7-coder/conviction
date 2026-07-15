@@ -10,7 +10,7 @@ export interface CompanyProfile {
 }
 
 export type EvidenceDirection = "positive" | "negative" | "neutral";
-export type EvidenceSource = "sec-edgar" | "market-price" | "usaspending";
+export type EvidenceSource = "sec-edgar" | "market-price" | "usaspending" | "publisher";
 export type EventType =
   | "insider-buy"
   | "insider-sell"
@@ -23,7 +23,8 @@ export type EventType =
   | "estimate-revision"
   | "relative-strength"
   | "capacity-announcement"
-  | "upcoming-catalyst";
+  | "upcoming-catalyst"
+  | "material-news";
 
 export interface EvidenceEvent {
   id: string;
