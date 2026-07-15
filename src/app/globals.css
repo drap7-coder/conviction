@@ -95,7 +95,7 @@ details > summary::before {
 
 .app-header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   padding-bottom: 20px;
   margin-bottom: 20px;
@@ -111,15 +111,17 @@ details > summary::before {
 .app-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .app-logo {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
   object-fit: cover;
-  box-shadow: 0 0 18px rgba(0, 255, 136, 0.16);
+  box-shadow:
+    0 0 0 1px var(--border),
+    0 0 24px rgba(0, 255, 136, 0.2);
 }
 
 .app-title {
@@ -138,20 +140,37 @@ details > summary::before {
 
 .app-nav {
   display: flex;
-  gap: 20px;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-elevated) 78%, transparent);
 }
 
 .app-nav a {
-  font-size: 0.9rem;
-  color: var(--quiet);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--muted);
   letter-spacing: 0;
   text-transform: none;
-  transition: color 0.15s;
+  transition: color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
-.app-nav a:hover,
+.app-nav a:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
 .app-nav a.active {
   color: var(--ink);
+  background: var(--accent-dim);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .demo-badge {
@@ -235,10 +254,52 @@ details > summary::before {
   gap: 12px;
 }
 
+.watchlist-carousel {
+  position: relative;
+}
+
+.carousel-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 2px 8px;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+.carousel-hint strong {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.watchlist-carousel::before,
+.watchlist-carousel::after {
+  content: "";
+  position: absolute;
+  top: 32px;
+  bottom: 12px;
+  width: 42px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.watchlist-carousel::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg), transparent);
+}
+
+.watchlist-carousel::after {
+  right: 0;
+  background: linear-gradient(270deg, var(--bg), transparent);
+}
+
 .watchlist-scroll {
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 2px 2px 12px;
+  padding: 2px 34px 14px 2px;
   margin-bottom: 24px;
   scroll-snap-type: x mandatory;
   scrollbar-color: var(--border-active) transparent;
@@ -249,11 +310,12 @@ details > summary::before {
 }
 
 .watchlist-scroll::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--surface);
+  border-radius: 999px;
 }
 
 .watchlist-scroll::-webkit-scrollbar-thumb {
-  background: var(--border-active);
+  background: linear-gradient(90deg, var(--accent), var(--green));
   border-radius: 999px;
 }
 
@@ -1782,12 +1844,47 @@ details > summary::before {
   align-items: center;
   overflow: hidden;
   z-index: 100;
+  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
+}
+
+.bottom-ticker::before,
+.bottom-ticker::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.bottom-ticker::before {
+  left: 0;
+  width: 116px;
+  background: linear-gradient(90deg, var(--surface-elevated) 0 58px, transparent);
+}
+
+.bottom-ticker::after {
+  right: 0;
+  width: 56px;
+  background: linear-gradient(270deg, var(--surface-elevated), transparent);
+}
+
+.bottom-ticker::before {
+  content: "LIVE TAPE";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: var(--green);
+  letter-spacing: 0.08em;
 }
 
 .ticker-scroll {
   display: flex;
   gap: 32px;
-  padding: 0 16px;
+  padding: 0 16px 0 128px;
   animation: ticker-scroll 45s linear infinite;
   white-space: nowrap;
 }
@@ -1864,19 +1961,36 @@ details > summary::before {
     gap: 8px;
   }
 
+  .app-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+  }
+
   .header-actions {
     width: 100%;
+    flex-direction: column;
     align-items: flex-start;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 10px;
   }
 
   .app-nav {
-    gap: 12px;
-    flex-wrap: wrap;
+    width: 100%;
+    gap: 4px;
+    flex-wrap: nowrap;
+    border-radius: var(--radius);
+  }
+
+  .app-nav a {
+    flex: 1 1 0;
+    min-height: 28px;
+    padding: 4px 8px;
+    font-size: 0.78rem;
   }
 
   .experience-controls {
+    width: 100%;
     flex-shrink: 0;
   }
 
@@ -1942,7 +2056,12 @@ details > summary::before {
   .watchlist-scroll {
     overflow-x: auto;
     overflow-y: hidden;
-    padding-right: 2px;
+    padding-right: 30px;
+  }
+
+  .watchlist-carousel::before,
+  .watchlist-carousel::after {
+    width: 24px;
   }
 
   .product-brief,

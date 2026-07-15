@@ -358,9 +358,14 @@ export default function WatchlistPage() {
           <small>Add a ticker above to track institutional 13F changes.</small>
         </div>
       ) : (
-        <div className="watchlist-scroll" aria-label="Tracked companies">
-          <div className="company-grid">
-            {entries.map((entry) => {
+        <div className="watchlist-carousel">
+          <div className="carousel-hint" aria-hidden="true">
+            <span>Saved companies</span>
+            <strong>Scroll cards →</strong>
+          </div>
+          <div className="watchlist-scroll" aria-label="Tracked companies carousel">
+            <div className="company-grid">
+              {entries.map((entry) => {
               const isLimited = entry.status !== "active";
               const quote = quotes[entry.ticker];
               const quoteDirection = quote?.change === null || quote?.change === undefined
@@ -443,7 +448,8 @@ export default function WatchlistPage() {
                   ) : null}
                 </div>
               );
-            })}
+              })}
+            </div>
           </div>
         </div>
       )}
