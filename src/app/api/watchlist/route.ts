@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
+import { isAuthConfigured } from "@/lib/auth-readiness";
 import { getWatchlist, isKvEnabled } from "@/lib/watchlist/persist";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { getUserWatchlist, isUserWatchlistAvailable } from "@/lib/user-watchlist";
@@ -9,15 +10,6 @@ import { getUserWatchlist, isUserWatchlistAvailable } from "@/lib/user-watchlist
  * Returns the current watchlist with sync status and conviction context.
  */
 export const dynamic = "force-dynamic";
-
-function isAuthConfigured() {
-  return Boolean(
-    process.env.AUTH_SECRET &&
-      process.env.AUTH_GITHUB_ID &&
-      process.env.AUTH_GITHUB_SECRET &&
-      process.env.DATABASE_URL,
-  );
-}
 
 export async function GET() {
   try {
