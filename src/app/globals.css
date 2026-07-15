@@ -817,6 +817,22 @@ details > summary::before {
   border-color: var(--accent);
 }
 
+.card-action.add {
+  color: var(--green);
+  border-color: var(--green-dim);
+  background: var(--green-dim);
+}
+
+.card-action.add:hover {
+  border-color: var(--green);
+}
+
+.card-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
+}
+
 .card-action.danger:hover {
   color: var(--red);
   border-color: var(--red-dim);
