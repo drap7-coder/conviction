@@ -1,4 +1,4 @@
-import { fetchStockQuotes, type StockQuote } from "@/lib/market/quotes";
+import { fetchStockHistory, fetchStockQuotes, type StockHistoryPoint, type StockQuote } from "@/lib/market/quotes";
 import { validateTicker } from "@/lib/watchlist/validate";
 
 const TRENDING_UNIVERSE = [
@@ -39,6 +39,7 @@ export interface TrendingCompany {
   companyName: string;
   cik?: string;
   quote: StockQuote;
+  sparkline: StockHistoryPoint[];
   activityRank: number;
   activityScore: number;
   activityLabel: string;
@@ -71,11 +72,13 @@ export async function fetchTrendingCompanies(limit = 8): Promise<TrendingCompany
     ranked.map(async ({ quote, score }) => {
       const validation = await validateTicker(quote.ticker);
       if (!validation.valid) return null;
+      const history = await fetchStockHistory(quote.ticker, "1d");
       return {
         ticker: validation.ticker,
         companyName: validation.companyName ?? validation.ticker,
         cik: validation.cik,
         quote,
+        sparkline: history.points.slice(-42),
         activityScore: score,
         activityLabel: formatDollarVolume(quote.dollarVolume),
       };

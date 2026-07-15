@@ -16,11 +16,17 @@ interface StockQuote {
   marketState: string | null;
 }
 
+interface StockHistoryPoint {
+  date: string;
+  close: number;
+}
+
 interface TrendingCompany {
   ticker: string;
   companyName: string;
   cik?: string;
   quote: StockQuote;
+  sparkline?: StockHistoryPoint[];
   activityRank: number;
   activityLabel: string;
 }
@@ -78,6 +84,23 @@ function formatChange(value: number | null, percent: number | null) {
   if (value === null || percent === null) return "Quote unavailable";
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(2)} · ${sign}${percent.toFixed(2)}%`;
+}
+
+function buildSparklinePath(points: StockHistoryPoint[]) {
+  if (points.length < 2) return "";
+  const width = 240;
+  const height = 42;
+  const padding = 3;
+  const closes = points.map((point) => point.close);
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const spread = max - min || 1;
+
+  return points.map((point, index) => {
+    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
+    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
+    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).join(" ");
 }
 
 export default function RisingConvictionPage() {
@@ -236,6 +259,7 @@ export default function RisingConvictionPage() {
                     addedAt: new Date().toISOString(),
                     status: "active",
                   }, quote);
+                  const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
 
                   return (
                     <div key={idea.ticker} className="company-card-wrap">
@@ -256,6 +280,17 @@ export default function RisingConvictionPage() {
                           <span className={`card-quote-change ${quoteDirection}`}>
                             {formatChange(quote.change, quote.changePercent)}
                           </span>
+                        </div>
+
+                        <div className={`trending-sparkline ${quoteDirection}`} aria-label={`${idea.ticker} intraday micro chart`}>
+                          {sparklinePath ? (
+                            <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
+                              <path className="sparkline-glow" d={sparklinePath} />
+                              <path className="sparkline-line" d={sparklinePath} />
+                            </svg>
+                          ) : (
+                            <span>Chart loading</span>
+                          )}
                         </div>
 
                         <div className={`card-verdict ${verdict.tone}`}>
