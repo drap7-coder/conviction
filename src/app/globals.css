@@ -1918,6 +1918,177 @@ details > summary::before {
   text-transform: none;
 }
 
+.price-trend-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  background:
+    radial-gradient(circle at top right, var(--accent-dim), transparent 36%),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+
+.price-trend-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.price-trend-top strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  line-height: 1.1;
+}
+
+.price-trend-top p {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.price-trend-top p.trend-positive {
+  color: var(--green);
+}
+
+.price-trend-top p.trend-negative {
+  color: var(--red);
+}
+
+.price-range-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.price-range-tabs button {
+  color: var(--muted);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  padding: 6px 8px;
+  text-transform: uppercase;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.15s;
+}
+
+.price-range-tabs button:hover,
+.price-range-tabs button.active {
+  color: var(--ink);
+  background: var(--accent-dim);
+  border-color: var(--border-active);
+  transform: translateY(-1px);
+}
+
+.price-chart {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 112px;
+  overflow: hidden;
+  background:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px),
+    var(--surface-elevated);
+  background-size: 100% 28px, 40px 100%, 100% 100%;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.price-chart svg {
+  width: 100%;
+  height: 112px;
+}
+
+.price-chart-line,
+.price-chart-glow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.price-chart-line {
+  stroke: var(--green);
+  stroke-width: 3;
+}
+
+.price-chart-glow {
+  stroke: var(--green);
+  stroke-width: 8;
+  opacity: 0.16;
+}
+
+.price-chart.negative .price-chart-line,
+.price-chart.negative .price-chart-glow {
+  stroke: var(--red);
+}
+
+.price-chart-build {
+  display: grid;
+  grid-template-columns: repeat(4, 16px);
+  gap: 7px;
+  align-items: end;
+  height: 48px;
+}
+
+.price-chart-build span {
+  display: block;
+  height: 32px;
+  background: var(--accent-dim);
+  border-radius: 999px;
+  animation: rising-meter 1s ease-in-out infinite;
+}
+
+.price-chart-build span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.price-chart-build span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.price-chart-build span:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+.price-chart-empty {
+  color: var(--quiet);
+  font-size: 0.82rem;
+}
+
+.price-trend-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.price-trend-metrics span {
+  display: grid;
+  gap: 3px;
+  color: var(--quiet);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 9px 10px;
+  text-transform: uppercase;
+}
+
+.price-trend-metrics strong {
+  color: var(--ink);
+  font-size: 0.82rem;
+  text-transform: none;
+}
+
 .evidence-family-header {
   display: flex;
   justify-content: space-between;
@@ -2340,6 +2511,7 @@ details > summary::before {
   .ticker-scroll,
   .institutional-loading-bars span,
   .rising-build-meter span,
+  .price-chart-build span,
   .rising-scan-line,
   .rising-build-chip,
   .rising-build-title,
@@ -2437,6 +2609,18 @@ details > summary::before {
   }
 
   .detail-build-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .price-trend-top {
+    flex-direction: column;
+  }
+
+  .price-range-tabs {
+    justify-content: flex-start;
+  }
+
+  .price-trend-metrics {
     grid-template-columns: 1fr;
   }
 

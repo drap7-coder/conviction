@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
+import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
@@ -37,6 +38,7 @@ export default async function CompanyPage({
       </div>
 
       <MoveExplanationSection ticker={upperTicker} />
+      <PriceTrendCard ticker={upperTicker} />
       <PoliticalTradesSection ticker={upperTicker} />
 
       <div className="secondary-evidence">
