@@ -66,7 +66,7 @@ export async function fetchTrendingCompanies(limit = 8): Promise<TrendingCompany
     .filter((quote) => quote.price !== null)
     .map((quote) => ({ quote, score: activityScore(quote) }))
     .sort((a, b) => b.score - a.score)
-    .slice(0, Math.max(1, Math.min(limit * 2, TRENDING_UNIVERSE.length)));
+    .slice(0, Math.max(1, Math.min(limit, TRENDING_UNIVERSE.length)));
 
   const resolved: Array<TrendingCompanyCandidate | null> = await Promise.all(
     ranked.map(async ({ quote, score }) => {

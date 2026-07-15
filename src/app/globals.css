@@ -329,6 +329,15 @@ details > summary::before {
   margin: 18px 0 22px;
 }
 
+.trending-shelves {
+  display: grid;
+  gap: 18px;
+}
+
+.trending-shelves .watchlist-scroll {
+  margin-bottom: 0;
+}
+
 .trending-header {
   align-items: flex-start;
 }

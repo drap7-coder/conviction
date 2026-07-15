@@ -42,6 +42,13 @@ interface WatchlistEntry {
 }
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
+const TRENDING_ROW_SIZE = 8;
+
+const TRENDING_ROW_LABELS = [
+  "Most active now",
+  "Biggest attention shifts",
+  "More names moving",
+];
 
 function readBrowserWatchlist(): WatchlistEntry[] {
   if (typeof window === "undefined") return [];
@@ -103,6 +110,12 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
   }).join(" ");
 }
 
+function chunkTrendingRows(companies: TrendingCompany[]) {
+  return Array.from({ length: 3 }, (_, index) =>
+    companies.slice(index * TRENDING_ROW_SIZE, (index + 1) * TRENDING_ROW_SIZE),
+  ).filter((row) => row.length > 0);
+}
+
 export default function RisingConvictionPage() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
@@ -147,7 +160,7 @@ export default function RisingConvictionPage() {
       setTrendingStatus("loading");
       try {
         const data = await fetchJsonWithTimeout<{ companies?: TrendingCompany[] }>(
-          "/api/market/trending?limit=8",
+          "/api/market/trending?limit=24",
           10_000,
           controller.signal,
         );
@@ -202,6 +215,8 @@ export default function RisingConvictionPage() {
     }
   };
 
+  const trendingRows = chunkTrendingRows(trending);
+
   return (
     <div>
       <div className="section-header">
@@ -236,14 +251,16 @@ export default function RisingConvictionPage() {
             </button>
           </div>
         ) : (
-          <div className="watchlist-carousel trending-carousel">
-            <div className="carousel-hint" aria-hidden="true">
-              <span>Daily ideas</span>
-              <strong>Scroll trending →</strong>
-            </div>
-            <div className="watchlist-scroll" aria-label="Trending companies carousel">
-              <div className="company-grid">
-                {trending.map((idea) => {
+          <div className="trending-shelves">
+            {trendingRows.map((row, rowIndex) => (
+              <div className="watchlist-carousel trending-carousel" key={TRENDING_ROW_LABELS[rowIndex] ?? rowIndex}>
+                <div className="carousel-hint" aria-hidden="true">
+                  <span>{TRENDING_ROW_LABELS[rowIndex] ?? "More trending"}</span>
+                  <strong>Scroll row →</strong>
+                </div>
+                <div className="watchlist-scroll" aria-label={`${TRENDING_ROW_LABELS[rowIndex] ?? "Trending"} carousel`}>
+                  <div className="company-grid">
+                    {row.map((idea) => {
                   const isTracked = trackedTickers.has(idea.ticker);
                   const quote = idea.quote;
                   const quoteDirection = quote.change === null || quote.change === undefined
@@ -335,9 +352,11 @@ export default function RisingConvictionPage() {
                       </div>
                     </div>
                   );
-                })}
+                    })}
+                  </div>
+                </div>
               </div>
-            </div>
+            ))}
           </div>
         )}
       </section>
