@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { FIXTURE_COMPANIES, FIXTURE_TICKERS } from "@/lib/evidence/fixtures";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
+import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { validateTicker } from "@/lib/watchlist/validate";
 
 export async function generateStaticParams() {
@@ -49,6 +50,7 @@ export default async function CompanyPage({
       </div>
 
       <MoveExplanationSection ticker={upperTicker} />
+      <PoliticalTradesSection ticker={upperTicker} />
 
       {company ? (
       <details className="legacy-context">

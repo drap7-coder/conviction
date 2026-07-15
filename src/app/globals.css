@@ -1237,6 +1237,108 @@ details > summary::before {
   padding: 20px;
 }
 
+.political-card {
+  background:
+    radial-gradient(circle at top left, var(--amber-dim), transparent 40%),
+    var(--surface);
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+.political-card.loading {
+  background: var(--surface);
+}
+
+.political-lead {
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.political-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.political-facts div {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+.political-facts strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+.political-facts span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.political-trade-list {
+  display: grid;
+  gap: 7px;
+}
+
+.political-trade-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface-elevated);
+  transition: border-color 0.15s, background-color 0.15s, transform 0.15s;
+}
+
+.political-trade-row.purchase {
+  border-left-color: var(--green);
+}
+
+.political-trade-row.sale {
+  border-left-color: var(--red);
+}
+
+.political-trade-row:hover {
+  border-color: var(--border-active);
+  transform: translateY(-1px);
+}
+
+.political-trade-row strong,
+.political-trade-row span {
+  display: block;
+}
+
+.political-trade-row strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.political-trade-row span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.political-note {
+  color: var(--quiet);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin-top: 12px;
+}
+
 .move-card.loading {
   background: var(--surface);
 }
@@ -1783,6 +1885,11 @@ details > summary::before {
 
   .move-fallback-grid,
   .move-institutional-support {
+    grid-template-columns: 1fr;
+  }
+
+  .political-facts,
+  .political-trade-row {
     grid-template-columns: 1fr;
   }
 
