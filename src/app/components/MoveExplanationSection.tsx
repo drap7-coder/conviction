@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { MoveEvent } from "@/lib/evidence/move-events";
+import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 import { getPeerTickers } from "@/lib/market/peers";
 
@@ -11,6 +12,10 @@ interface MoveExplanationSectionProps {
 
 interface InstitutionalResponse {
   results: InstitutionalAccumulation[];
+}
+
+interface InsiderResponse {
+  events: EvidenceEvent[];
 }
 
 interface StockQuote {
@@ -89,9 +94,37 @@ function summarizeInstitutional(rows: InstitutionalAccumulation[], ticker: strin
   };
 }
 
+function daysSince(value: string) {
+  const then = new Date(`${value}T12:00:00`).getTime();
+  if (!Number.isFinite(then)) return Number.POSITIVE_INFINITY;
+  return Math.floor((Date.now() - then) / (24 * 60 * 60 * 1000));
+}
+
+function formatMoney(value: number | null | undefined) {
+  if (!value) return null;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
+  return `$${(value / 1_000).toFixed(0)}K`;
+}
+
+function summarizeInsiders(events: EvidenceEvent[]) {
+  const recentEvents = events.filter((event) => daysSince(event.date) <= 90);
+  const purchases = recentEvents.filter((event) => event.metadata?.transactionType === "purchase");
+  const sales = recentEvents.filter((event) => event.metadata?.transactionType === "sale");
+  const leadPurchase = purchases[0] ?? null;
+  const leadSale = sales[0] ?? null;
+
+  return {
+    purchases,
+    sales,
+    leadPurchase,
+    leadSale,
+  };
+}
+
 export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) {
   const [event, setEvent] = useState<MoveEvent | null>(null);
   const [institutionalRows, setInstitutionalRows] = useState<InstitutionalAccumulation[]>([]);
+  const [insiderEvents, setInsiderEvents] = useState<EvidenceEvent[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,9 +138,10 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       try {
         const peerTickers = getPeerTickers(ticker);
         const quoteTickers = [ticker, ...peerTickers].join(",");
-        const [moveResponse, institutionalResponse, quotesResponse] = await Promise.all([
+        const [moveResponse, institutionalResponse, insiderResponse, quotesResponse] = await Promise.all([
           fetch(`/api/evidence/move?ticker=${ticker}`),
           fetch(`/api/evidence/institutional?ticker=${ticker}`),
+          fetch(`/api/evidence/insider?ticker=${ticker}`),
           fetch(`/api/market/quotes?tickers=${encodeURIComponent(quoteTickers)}`),
         ]);
         if (!moveResponse.ok) throw new Error("Failed to load move evidence");
@@ -116,6 +150,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         const institutionalData = institutionalResponse.ok
           ? ((await institutionalResponse.json()) as InstitutionalResponse)
           : { results: [] };
+        const insiderData = insiderResponse.ok
+          ? ((await insiderResponse.json()) as InsiderResponse)
+          : { events: [] };
         const quoteData = quotesResponse.ok
           ? ((await quotesResponse.json()) as { quotes?: StockQuote[] })
           : { quotes: [] };
@@ -125,6 +162,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           for (const quote of quoteData.quotes ?? []) quoteMap[quote.ticker] = quote;
           setEvent(moveData);
           setInstitutionalRows(institutionalData.results ?? []);
+          setInsiderEvents(insiderData.events ?? []);
           setQuotes(quoteMap);
         }
       } catch {
@@ -142,6 +180,30 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
 
   const isFallback = event?.category === "no-clear-catalyst";
   const institutional = summarizeInstitutional(institutionalRows, ticker);
+  const insider = summarizeInsiders(insiderEvents);
+  const institutionalPositive = institutional.activeRows.some((row) => row.status === "New" || row.status === "Increased");
+  const hasRecentInsiderBuy = insider.purchases.length > 0;
+  const hasCounterSignal = insider.sales.length > 0;
+  const convergence = institutionalPositive && hasRecentInsiderBuy
+    ? {
+        level: "multi",
+        label: "Multi-signal conviction",
+        detail: "Institutional accumulation + insider buying",
+        tone: "positive",
+      }
+    : institutionalPositive
+      ? {
+          level: "institutional",
+          label: "Institutional conviction",
+          detail: "Strong long-term positioning",
+          tone: "positive",
+        }
+      : {
+          level: "none",
+          label: "No active conviction",
+          detail: "No recent institutional or insider conviction signal",
+          tone: "neutral",
+        };
   const quote = quotes[ticker];
   const peerQuotes = getPeerTickers(ticker)
     .map((peerTicker) => quotes[peerTicker])
@@ -165,15 +227,44 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <p className="move-answer">No sourced move explanation is available right now.</p>
         </div>
       ) : event ? (
-        <div className={`move-card confidence-${event.confidence}`}>
+        <div className={`move-card convergence-card convergence-${convergence.level} confidence-${event.confidence}`}>
           <div className="move-card-top">
             <div>
               <span className="move-eyebrow">{formatDate(event.date)}</span>
-              <h3>{event.headline}</h3>
+              <h3>{convergence.label}</h3>
+              <p className="convergence-detail">{convergence.detail}</p>
             </div>
-            <span className="move-confidence">
-              {confidenceLabel(event.confidence)}
+            <span className={`move-confidence convergence-badge ${convergence.tone}`}>
+              {convergence.level === "multi" ? "Aligned signals" : convergence.level === "institutional" ? "13F signal" : "No alignment"}
             </span>
+          </div>
+
+          <div className="convergence-signal-grid" aria-label="Conviction signals">
+            <div className={institutionalPositive ? "signal-tile positive" : "signal-tile neutral"}>
+              <span className="move-eyebrow">Institutional</span>
+              <strong>{institutionalPositive ? "Accumulating" : "No accumulation"}</strong>
+              <p>{institutional.text}</p>
+            </div>
+            <div className={hasRecentInsiderBuy ? "signal-tile positive" : "signal-tile neutral"}>
+              <span className="move-eyebrow">Insider</span>
+              <strong>{hasRecentInsiderBuy ? "Open-market buying" : "No recent open-market buy"}</strong>
+              <p>
+                {insider.leadPurchase
+                  ? `${insider.leadPurchase.metadata?.insiderName ?? "Insider"} bought ${insider.leadPurchase.metadata?.shares?.toLocaleString() ?? "shares"}${formatMoney(insider.leadPurchase.metadata?.totalValue) ? ` / ${formatMoney(insider.leadPurchase.metadata?.totalValue)}` : ""}.`
+                  : "Grants, tax withholding, and option exercises do not count as conviction."}
+              </p>
+            </div>
+            {hasCounterSignal ? (
+              <div className="signal-tile offset">
+                <span className="move-eyebrow">Signal offset</span>
+                <strong>Insider selling present</strong>
+                <p>
+                  {insider.leadSale
+                    ? `${insider.leadSale.metadata?.insiderName ?? "Insider"} sold ${insider.leadSale.metadata?.shares?.toLocaleString() ?? "shares"}${formatMoney(insider.leadSale.metadata?.totalValue) ? ` / ${formatMoney(insider.leadSale.metadata?.totalValue)}` : ""}.`
+                    : `${insider.sales.length} open-market sale${insider.sales.length === 1 ? "" : "s"} in the last 90 days.`}
+                </p>
+              </div>
+            ) : null}
           </div>
 
           {isFallback ? (
@@ -181,7 +272,11 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               <div>
                 <span className="move-eyebrow">Today</span>
                 <strong>{ticker} {formatPercent(quote?.changePercent)}</strong>
-                <p>No sourced same-day catalyst is loaded for this move.</p>
+                <p>
+                  {hasRecentInsiderBuy
+                    ? "No sourced same-day catalyst found. Recent insider buying is the strongest current signal."
+                    : "No sourced same-day catalyst is loaded for this move."}
+                </p>
               </div>
               <div>
                 <span className="move-eyebrow">Peers</span>
@@ -199,7 +294,12 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               </div>
             </div>
           ) : (
-            <p className="move-answer">{event.answer}</p>
+            <>
+              <p className="move-answer">{event.answer}</p>
+              <span className="move-confidence move-confidence-inline">
+                Catalyst: {confidenceLabel(event.confidence)}
+              </span>
+            </>
           )}
 
           {!isFallback && event.marketMove ? (

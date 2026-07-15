@@ -1314,6 +1314,27 @@ details > summary::before {
   padding: 20px;
 }
 
+.convergence-card.convergence-multi {
+  background:
+    radial-gradient(circle at top left, var(--green-dim), transparent 38%),
+    radial-gradient(circle at bottom right, var(--accent-dim), transparent 34%),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--green) 34%, var(--border));
+}
+
+.convergence-card.convergence-institutional {
+  background:
+    radial-gradient(circle at top left, var(--accent-dim), transparent 40%),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+}
+
+.convergence-card.convergence-none {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--muted) 12%, transparent), transparent 40%),
+    var(--surface);
+}
+
 .political-card {
   background:
     radial-gradient(circle at top left, var(--amber-dim), transparent 40%),
@@ -1456,6 +1477,16 @@ details > summary::before {
   letter-spacing: 0.05em;
 }
 
+.convergence-badge.positive {
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.convergence-badge.neutral {
+  color: var(--muted);
+  background: var(--surface-elevated);
+}
+
 .confidence-high .move-confidence {
   color: var(--green);
   background: var(--green-dim);
@@ -1466,11 +1497,72 @@ details > summary::before {
   background: var(--amber-dim);
 }
 
+.move-confidence.convergence-badge.positive {
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.move-confidence.convergence-badge.neutral {
+  color: var(--muted);
+  background: var(--surface-elevated);
+}
+
 .move-answer {
   color: var(--ink);
   font-size: 1.02rem;
   line-height: 1.5;
   max-width: 780px;
+}
+
+.convergence-detail {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+.convergence-signal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.signal-tile {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-active);
+  border-radius: var(--radius);
+  min-height: 128px;
+  padding: 12px;
+}
+
+.signal-tile.positive {
+  border-left-color: var(--green);
+}
+
+.signal-tile.offset {
+  border-left-color: var(--amber);
+}
+
+.signal-tile strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.signal-tile p {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  margin-top: 6px;
+}
+
+.move-confidence-inline {
+  display: inline-flex;
+  margin-top: 10px;
 }
 
 .move-market {
@@ -2010,6 +2102,14 @@ details > summary::before {
 
   .move-confidence {
     align-self: flex-start;
+  }
+
+  .convergence-signal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .signal-tile {
+    min-height: auto;
   }
 
   .move-fallback-grid,
