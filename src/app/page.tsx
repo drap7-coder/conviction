@@ -26,6 +26,16 @@ interface StockQuote {
   marketState: string | null;
 }
 
+interface ConvictionTransition {
+  id: string;
+  ticker: string;
+  type: "status_upgrade" | "new_signal_type" | "manager_breadth_increase" | "status_downgrade" | "signal_expired";
+  previousStatus: string;
+  currentStatus: string;
+  reason: string;
+  createdAt: string;
+}
+
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
 
@@ -86,6 +96,7 @@ export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
+  const [transitions, setTransitions] = useState<ConvictionTransition[]>([]);
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -153,6 +164,27 @@ export default function WatchlistPage() {
   useEffect(() => {
     loadWatchlist();
   }, [loadWatchlist]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTransitions() {
+      try {
+        const data = await fetchJsonWithTimeout<{ transitions?: ConvictionTransition[] }>(
+          "/api/conviction/transitions",
+          8_000,
+        );
+        if (!cancelled) setTransitions(data.transitions ?? []);
+      } catch {
+        if (!cancelled) setTransitions([]);
+      }
+    }
+
+    void loadTransitions();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (entries.length === 0) return;
@@ -353,6 +385,29 @@ export default function WatchlistPage() {
             View leaderboard →
           </Link>
         </div>
+      ) : null}
+
+      {transitions.length > 0 ? (
+        <section className="rising-strip" aria-label="Rising conviction">
+          <div className="rising-strip-header">
+            <div>
+              <span className="institutional-eyebrow">Rising conviction</span>
+              <h2>New evidence shifts</h2>
+            </div>
+            <Link href="/rising" className="brief-link">
+              View board →
+            </Link>
+          </div>
+          <div className="rising-strip-list">
+            {transitions.slice(0, 3).map((transition) => (
+              <Link href={`/companies/${transition.ticker}`} className={`rising-strip-card ${transition.type}`} key={transition.id}>
+                <span>{transition.type.replace(/_/g, " ")}</span>
+                <strong>{transition.ticker}: {transition.previousStatus} → {transition.currentStatus}</strong>
+                <p>{transition.reason}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
       ) : null}
 
       <div className="watchlist-add">

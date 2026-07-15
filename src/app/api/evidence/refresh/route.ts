@@ -25,6 +25,7 @@ import {
 import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
 import { recordSync } from "@/lib/sync/sync-log";
 import { getWatchlistSortedBySyncPriority, updateWatchlistSync } from "@/lib/watchlist/persist";
+import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
     totalEvents: number;
     errors: string[];
     fetchedAt: string;
+    transition?: Awaited<ReturnType<typeof refreshConvictionTransitionForTicker>>;
   }> = {};
 
   let allNewEventsCount = 0;
@@ -96,6 +98,10 @@ export async function POST(request: NextRequest) {
       errors: result.errors.length,
       errorMessages: result.errors,
     });
+
+    if (result.errors.length === 0) {
+      results[tickersToProcess[0]].transition = await refreshConvictionTransitionForTicker(tickersToProcess[0]);
+    }
 
     return NextResponse.json({
       success: true,
@@ -161,6 +167,10 @@ export async function POST(request: NextRequest) {
       errors: result.errors,
       fetchedAt: result.fetchedAt,
     };
+
+    if (result.errors.length === 0) {
+      results[t].transition = await refreshConvictionTransitionForTicker(t);
+    }
 
     allNewEventsCount += result.newTransactions.length;
     totalErrors += result.errors.length;

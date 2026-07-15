@@ -7,6 +7,7 @@ import { fetchInsiderTransactions } from "@/lib/sec/client";
 import { txToRecord, storeTransactions, setLastFetchTime, getAllDedupKeys } from "@/lib/sec/persist";
 import { recordSync } from "@/lib/sync/sync-log";
 import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
+import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
 
 /**
  * POST /api/watchlist
@@ -153,6 +154,9 @@ export async function POST(request: NextRequest) {
         errors: fetchResult.errors.length,
         errorMessages: fetchResult.errors,
       });
+      const transition = fetchResult.errors.length === 0
+        ? await refreshConvictionTransitionForTicker(ticker)
+        : undefined;
 
       return NextResponse.json({
         success: true,
@@ -163,6 +167,7 @@ export async function POST(request: NextRequest) {
           totalTransactions: fetchResult.allTransactions.length,
           errors: fetchResult.errors,
           durationMs: elapsedMs,
+          transition,
         },
         _limits: {
           maxFilingsPerCompany: SYNC_CONFIG.MAX_FILINGS_PER_COMPANY,

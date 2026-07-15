@@ -1035,6 +1035,82 @@ details > summary::before {
   gap: 16px;
 }
 
+.rising-strip {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  background:
+    radial-gradient(circle at top left, var(--green-dim), transparent 34%),
+    var(--surface);
+  border: 1px solid color-mix(in srgb, var(--green) 26%, var(--border));
+  border-radius: calc(var(--radius) + 6px);
+  box-shadow: 0 0 34px color-mix(in srgb, var(--green) 9%, transparent), var(--shadow);
+  padding: 16px;
+}
+
+.rising-strip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.rising-strip-header h2 {
+  color: var(--ink);
+  font-size: 1.18rem;
+  line-height: 1.2;
+}
+
+.rising-strip-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rising-strip-card {
+  display: grid;
+  gap: 6px;
+  color: inherit;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--green);
+  border-radius: var(--radius);
+  padding: 12px;
+  transition: border-color 0.15s, transform 0.15s, background-color 0.15s;
+}
+
+.rising-strip-card.status_downgrade,
+.rising-strip-card.signal_expired {
+  border-left-color: var(--amber);
+}
+
+.rising-strip-card:hover {
+  border-color: var(--border-active);
+  background: color-mix(in srgb, var(--surface-elevated) 86%, var(--accent-dim));
+  transform: translateY(-1px);
+}
+
+.rising-strip-card span {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.rising-strip-card strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.rising-strip-card p {
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 .brief-link {
   flex-shrink: 0;
   font-family: var(--font-mono);
@@ -2796,6 +2872,15 @@ details > summary::before {
   .rising-build-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .rising-strip-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .rising-strip-list {
+    grid-template-columns: 1fr;
   }
 
   .institutional-hero-metrics,
