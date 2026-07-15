@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { MoveEvent } from "@/lib/evidence/move-events";
 import type { EvidenceEvent } from "@/lib/evidence/types";
+import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 import { getPeerTickers } from "@/lib/market/peers";
 
@@ -17,6 +18,8 @@ interface InstitutionalResponse {
 interface InsiderResponse {
   events: EvidenceEvent[];
 }
+
+type PoliticalResponse = PoliticalTradeSummary;
 
 interface StockQuote {
   ticker: string;
@@ -125,6 +128,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [event, setEvent] = useState<MoveEvent | null>(null);
   const [institutionalRows, setInstitutionalRows] = useState<InstitutionalAccumulation[]>([]);
   const [insiderEvents, setInsiderEvents] = useState<EvidenceEvent[]>([]);
+  const [politicalSummary, setPoliticalSummary] = useState<PoliticalResponse | null>(null);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -138,10 +142,11 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       try {
         const peerTickers = getPeerTickers(ticker);
         const quoteTickers = [ticker, ...peerTickers].join(",");
-        const [moveResponse, institutionalResponse, insiderResponse, quotesResponse] = await Promise.all([
+        const [moveResponse, institutionalResponse, insiderResponse, politicalResponse, quotesResponse] = await Promise.all([
           fetch(`/api/evidence/move?ticker=${ticker}`),
           fetch(`/api/evidence/institutional?ticker=${ticker}`),
           fetch(`/api/evidence/insider?ticker=${ticker}`),
+          fetch(`/api/evidence/political?ticker=${ticker}`),
           fetch(`/api/market/quotes?tickers=${encodeURIComponent(quoteTickers)}`),
         ]);
         if (!moveResponse.ok) throw new Error("Failed to load move evidence");
@@ -153,6 +158,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         const insiderData = insiderResponse.ok
           ? ((await insiderResponse.json()) as InsiderResponse)
           : { events: [] };
+        const politicalData = politicalResponse.ok
+          ? ((await politicalResponse.json()) as PoliticalResponse)
+          : null;
         const quoteData = quotesResponse.ok
           ? ((await quotesResponse.json()) as { quotes?: StockQuote[] })
           : { quotes: [] };
@@ -163,6 +171,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           setEvent(moveData);
           setInstitutionalRows(institutionalData.results ?? []);
           setInsiderEvents(insiderData.events ?? []);
+          setPoliticalSummary(politicalData);
           setQuotes(quoteMap);
         }
       } catch {
@@ -183,12 +192,25 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const insider = summarizeInsiders(insiderEvents);
   const institutionalPositive = institutional.activeRows.some((row) => row.status === "New" || row.status === "Increased");
   const hasRecentInsiderBuy = insider.purchases.length > 0;
-  const hasCounterSignal = insider.sales.length > 0;
-  const convergence = institutionalPositive && hasRecentInsiderBuy
+  const politicalPurchase = politicalSummary?.purchases[0] ?? null;
+  const politicalSale = politicalSummary?.sales[0] ?? null;
+  const hasPoliticalPurchase = Boolean(politicalPurchase);
+  const hasInsiderOffset = insider.sales.length > 0;
+  const hasPoliticalOffset = Boolean(politicalSale);
+  const hasCounterSignal = hasInsiderOffset || hasPoliticalOffset;
+  const positiveSignalCount = [institutionalPositive, hasRecentInsiderBuy, hasPoliticalPurchase].filter(Boolean).length;
+  const convergence = institutionalPositive && hasRecentInsiderBuy && hasPoliticalPurchase
+    ? {
+        level: "broad",
+        label: "Broad conviction",
+        detail: "Institutional accumulation + insider buying + political purchase",
+        tone: "positive",
+      }
+    : institutionalPositive && positiveSignalCount >= 2
     ? {
         level: "multi",
         label: "Multi-signal conviction",
-        detail: "Institutional accumulation + insider buying",
+        detail: `Institutional accumulation + ${hasRecentInsiderBuy ? "insider buying" : "political purchase"}`,
         tone: "positive",
       }
     : institutionalPositive
@@ -201,7 +223,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       : {
           level: "none",
           label: "No active conviction",
-          detail: "No recent institutional or insider conviction signal",
+          detail: "No recent institutional, insider, or political conviction signal",
           tone: "neutral",
         };
   const quote = quotes[ticker];
@@ -254,13 +276,24 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                   : "Grants, tax withholding, and option exercises do not count as conviction."}
               </p>
             </div>
+            <div className={hasPoliticalPurchase ? "signal-tile positive" : "signal-tile neutral"}>
+              <span className="move-eyebrow">Political</span>
+              <strong>{hasPoliticalPurchase ? "Disclosed purchase" : "No political purchase"}</strong>
+              <p>
+                {politicalPurchase
+                  ? `${politicalPurchase.filerName} reported a ${politicalPurchase.amountRange} purchase, filed ${formatDate(politicalPurchase.filingDate)}.`
+                  : "Political sales and exchanges do not count as positive conviction."}
+              </p>
+            </div>
             {hasCounterSignal ? (
               <div className="signal-tile offset">
                 <span className="move-eyebrow">Signal offset</span>
-                <strong>Insider selling present</strong>
+                <strong>{hasInsiderOffset && hasPoliticalOffset ? "Selling present" : hasInsiderOffset ? "Insider selling present" : "Political sale present"}</strong>
                 <p>
                   {insider.leadSale
                     ? `${insider.leadSale.metadata?.insiderName ?? "Insider"} sold ${insider.leadSale.metadata?.shares?.toLocaleString() ?? "shares"}${formatMoney(insider.leadSale.metadata?.totalValue) ? ` / ${formatMoney(insider.leadSale.metadata?.totalValue)}` : ""}.`
+                    : politicalSale
+                      ? `${politicalSale.filerName} reported a ${politicalSale.amountRange} sale, filed ${formatDate(politicalSale.filingDate)}.`
                     : `${insider.sales.length} open-market sale${insider.sales.length === 1 ? "" : "s"} in the last 90 days.`}
                 </p>
               </div>

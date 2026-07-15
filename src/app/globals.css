@@ -1314,6 +1314,16 @@ details > summary::before {
   padding: 20px;
 }
 
+.convergence-card.convergence-broad {
+  background:
+    radial-gradient(circle at top left, var(--green-dim), transparent 34%),
+    radial-gradient(circle at center right, var(--amber-dim), transparent 30%),
+    radial-gradient(circle at bottom right, var(--accent-dim), transparent 34%),
+    var(--surface);
+  border-color: color-mix(in srgb, var(--green) 46%, var(--border));
+  box-shadow: 0 0 34px color-mix(in srgb, var(--green) 12%, transparent), var(--shadow);
+}
+
 .convergence-card.convergence-multi {
   background:
     radial-gradient(circle at top left, var(--green-dim), transparent 38%),
