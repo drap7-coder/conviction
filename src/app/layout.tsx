@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { BottomTicker } from "@/app/components/BottomTicker";
-import { ExperienceControls } from "@/app/components/ExperienceControls";
+import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
 import { Nav } from "@/app/components/Nav";
 
 const geistSans = Geist({
@@ -89,7 +89,7 @@ export default function RootLayout({
             </div>
             <div className="header-actions">
               <Nav />
-              <ExperienceControls />
+              <WatchlistSettingsMenu />
             </div>
           </header>
           {children}

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
+import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 
 interface WatchlistEntry {
   id?: string;
@@ -102,6 +103,23 @@ export default function WatchlistPage() {
 
   // Removal state
   const [removing, setRemoving] = useState<string | null>(null);
+
+  // Scroll-hint visibility
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
+  // Check whether the card row overflows (i.e. is scrollable)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => {
+      setHasOverflow(el.scrollWidth > el.clientWidth);
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [entries]);
 
   const loadWatchlist = useCallback(async () => {
     const browserEntries = readBrowserWatchlist();
@@ -320,8 +338,8 @@ export default function WatchlistPage() {
 
   return (
     <div>
-      <div className="section-header">
-        <h2 className="section-title">Conviction watchlist</h2>
+      <div className="watchlist-header">
+        <h2 className="section-title">Watchlist</h2>
         <div className="watchlist-meta">
           <span className="section-count">{entries.length} companies</span>
           <span className="storage-note" title={authenticated ? "Synced privately across devices" : "Saved in this browser only"}>
@@ -330,25 +348,11 @@ export default function WatchlistPage() {
         </div>
       </div>
 
-      <div className={`auth-strip ${entries.length > 0 ? "compact" : ""}`}>
-        <div>
-          <strong>{authenticated ? "Signed in" : "Guest mode"}</strong>
-          <span>
-            {authenticated
-              ? `${accountLabel ?? "Your account"} · private tickers and notes`
-              : "Browse freely. Sign in to save a private watchlist across devices."}
-          </span>
-        </div>
-        {authenticated || authConfigured ? (
-          <a className="auth-button" href={authenticated ? "/api/auth/signout" : "/api/auth/signin/github"}>
-            {authenticated ? "Sign out" : "Sign in"}
-          </a>
-        ) : (
-          <span className="auth-button disabled" aria-disabled="true">
-            Sign in coming soon
-          </span>
-        )}
-      </div>
+      <GuestModeBanner
+        authenticated={authenticated}
+        authConfigured={authConfigured}
+        accountLabel={accountLabel}
+      />
 
       {entries.length === 0 ? (
         <div className="product-brief">
@@ -400,11 +404,13 @@ export default function WatchlistPage() {
         </div>
       ) : (
         <div className="watchlist-carousel">
-          <div className="carousel-hint" aria-hidden="true">
-            <span>Saved companies</span>
-            <strong>Scroll cards →</strong>
-          </div>
-          <div className="watchlist-scroll" aria-label="Tracked companies carousel">
+          {hasOverflow && sortedEntries.length > 1 ? (
+            <div className="carousel-hint" aria-hidden="true">
+              <span>Saved companies</span>
+              <strong>Scroll cards →</strong>
+            </div>
+          ) : null}
+          <div className="watchlist-scroll" ref={scrollRef} aria-label="Tracked companies carousel">
             <div className="company-grid">
               {sortedEntries.map((entry) => {
               const isLimited = entry.status !== "active";

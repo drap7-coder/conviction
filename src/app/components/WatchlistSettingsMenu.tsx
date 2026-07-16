@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Theme = "dark" | "light";
 
@@ -49,9 +49,12 @@ function createTick(audioContext: AudioContext) {
   subOscillator.stop(now + 0.095);
 }
 
-export function ExperienceControls() {
+export function WatchlistSettingsMenu() {
   const [theme, setTheme] = useState<Theme>("dark");
   const [soundEnabled, setSoundEnabled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const audioRef = useRef<AudioContext | null>(null);
   const soundEnabledRef = useRef(false);
 
@@ -106,29 +109,71 @@ export function ExperienceControls() {
     window.localStorage.setItem(SOUND_KEY, nextSound ? "on" : "off");
   }
 
+  const handleOutsideClick = useCallback((e: MouseEvent) => {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      setOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      document.addEventListener("mousedown", handleOutsideClick);
+      return () => document.removeEventListener("mousedown", handleOutsideClick);
+    }
+  }, [open, handleOutsideClick]);
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Escape") {
+      setOpen(false);
+      buttonRef.current?.focus();
+    }
+  }
+
   return (
-    <div className="experience-controls" aria-label="Display and sound controls">
+    <div className="watchlist-settings" ref={menuRef}>
       <button
+        ref={buttonRef}
         type="button"
-        className="control-button"
-        onClick={toggleTheme}
-        aria-label={`Switch to ${nextTheme} mode`}
-        title={`Switch to ${nextTheme} mode`}
+        className="settings-gear"
+        onClick={() => setOpen((prev) => !prev)}
+        aria-label="Watchlist settings"
+        aria-expanded={open}
+        aria-haspopup="true"
       >
-        <span aria-hidden="true">{theme === "dark" ? "☾" : "☀"}</span>
-        <span>{theme === "dark" ? "Dark mode" : "Light mode"}</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+        </svg>
       </button>
-      <button
-        type="button"
-        className={`control-button ${soundEnabled ? "active" : ""}`}
-        onClick={toggleSound}
-        aria-pressed={soundEnabled}
-        aria-label={soundEnabled ? "Turn sound off" : "Turn sound on"}
-        title={soundEnabled ? "Turn sound off" : "Turn sound on"}
-      >
-        <span aria-hidden="true">{soundEnabled ? "♪" : "×"}</span>
-        <span>Interface sound</span>
-      </button>
+
+      {open && (
+        <div
+          className="settings-popover"
+          role="dialog"
+          aria-label="Settings"
+          onKeyDown={handleKeyDown}
+        >
+          <button
+            type="button"
+            className="settings-option"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${nextTheme} mode`}
+          >
+            <span aria-hidden="true">{theme === "dark" ? "☾" : "☀"}</span>
+            <span>{theme === "dark" ? "Dark mode" : "Light mode"}</span>
+          </button>
+          <button
+            type="button"
+            className={`settings-option ${soundEnabled ? "active" : ""}`}
+            onClick={toggleSound}
+            aria-pressed={soundEnabled}
+            aria-label={soundEnabled ? "Turn sound off" : "Turn sound on"}
+          >
+            <span aria-hidden="true">{soundEnabled ? "♪" : "×"}</span>
+            <span>Interface sound</span>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
