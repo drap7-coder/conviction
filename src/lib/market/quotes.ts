@@ -10,6 +10,8 @@ export interface StockQuote {
   currency: string | null;
   marketState: string | null;
   source: "yahoo-chart";
+  /** Intraday sparkline points (up to ~42) extracted from the same chart response */
+  sparkline: StockHistoryPoint[];
 }
 
 export type StockHistoryRange = "1d" | "1w" | "1m" | "6m" | "1y";
@@ -83,6 +85,23 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     ? price - previousClose
     : null;
 
+  // Extract intraday sparkline from the same chart response
+  const sparkline: StockHistoryPoint[] = [];
+  if (result) {
+    const timestamps = result.timestamp ?? [];
+    const closes = result.indicators?.quote?.[0]?.close ?? [];
+    for (let i = 0; i < timestamps.length; i++) {
+      const close = toFiniteNumber(closes[i]);
+      const timestamp = timestamps[i];
+      if (close !== null && timestamp) {
+        sparkline.push({
+          date: new Date(timestamp * 1000).toISOString(),
+          close,
+        });
+      }
+    }
+  }
+
   return {
     ticker,
     price,
@@ -95,6 +114,7 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     currency: result?.meta?.currency ?? null,
     marketState: result?.meta?.marketState ?? null,
     source: "yahoo-chart",
+    sparkline: sparkline.slice(-42),
   };
 }
 

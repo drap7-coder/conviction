@@ -332,7 +332,13 @@ details > summary::before {
   gap: 18px;
 }
 
-.trending-shelves .watchlist-scroll {
+.watchlist-shelves {
+  display: grid;
+  gap: 18px;
+}
+
+.trending-shelves .watchlist-scroll,
+.watchlist-shelves .watchlist-scroll {
   margin-bottom: 0;
 }
 
