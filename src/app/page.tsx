@@ -6,6 +6,7 @@ import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/ca
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import { CardFooter } from "@/app/components/CardFooter";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 
 interface WatchlistEntry {
   id?: string;
@@ -477,9 +478,12 @@ export default function WatchlistPage() {
                     <div key={entry.ticker} className="company-card-wrap">
                       <div className={`company-card ${isLimited ? "limited" : ""}`}>
                         <div className="card-header">
-                          <div>
-                            <span className="card-ticker">{entry.ticker}</span>
-                            <span className="card-name">{entry.companyName}</span>
+                          <div className="card-header-left">
+                            <LogoDisplay ticker={entry.ticker} size="card" />
+                            <div>
+                              <span className="card-ticker">{entry.ticker}</span>
+                              <span className="card-name">{entry.companyName}</span>
+                            </div>
                           </div>
                           <span className="card-arrow" aria-hidden="true">→</span>
                         </div>

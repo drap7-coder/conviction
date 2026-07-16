@@ -973,6 +973,98 @@ details > summary::before {
   margin-bottom: 16px;
 }
 
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* ── Logo Image ── */
+
+.card-logo {
+  display: block;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.card-logo-card {
+  width: 28px;
+  height: 28px;
+}
+
+.card-logo-badge {
+  width: 20px;
+  height: 20px;
+}
+
+.card-logo-detail {
+  width: 36px;
+  height: 36px;
+}
+
+/* ── Logo Fallback Badge ── */
+
+.logo-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 6px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 18%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.logo-badge-card {
+  width: 28px;
+  height: 28px;
+  font-size: 0.68rem;
+}
+
+.logo-badge-badge {
+  width: 20px;
+  height: 20px;
+  font-size: 0.55rem;
+}
+
+.logo-badge-detail {
+  width: 36px;
+  height: 36px;
+  font-size: 0.82rem;
+}
+
+/* ── Detail Page Header Row ── */
+
+.detail-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.detail-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.detail-logo {
+  display: block;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
 .card-ticker {
   font-family: var(--font-mono);
   display: block;

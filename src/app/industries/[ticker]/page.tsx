@@ -4,6 +4,7 @@ import { MarketPanel } from "@/app/components/MarketPanel";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { getSectorByTicker, SECTORS } from "@/lib/market/industries";
+import { getLogoPath } from "@/lib/market/logos";
 import "@/app/dashboard.css";
 
 export function generateStaticParams() {
@@ -29,8 +30,19 @@ export default async function SectorPage({
           </Link>
           <span className="demo-badge">S&P sector</span>
         </div>
-        <h1 className="detail-ticker">{sector.ticker}</h1>
-        <p className="detail-name">{sector.name}</p>
+        <div className="detail-header-row">
+          <div className="detail-header-left">
+            {getLogoPath(upperTicker) ? (
+              <img src={getLogoPath(upperTicker)!} alt="" className="detail-logo" />
+            ) : (
+              <div className="logo-badge logo-badge-detail">{upperTicker.charAt(0)}</div>
+            )}
+            <div>
+              <h1 className="detail-ticker">{sector.ticker}</h1>
+              <p className="detail-name">{sector.name}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <CompanyDashboard

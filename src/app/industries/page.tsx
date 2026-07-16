@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 
 interface StockHistoryPoint {
   date: string;
@@ -158,9 +159,12 @@ export default function IndustriesPage() {
                 >
                 <div className="industry-card">
                   <div className="card-header">
-                    <div>
-                      <span className="card-ticker">{sector.ticker}</span>
-                      <span className="card-name">{sector.name}</span>
+                    <div className="card-header-left">
+                      <LogoDisplay ticker={sector.ticker} size="card" />
+                      <div>
+                        <span className="card-ticker">{sector.ticker}</span>
+                        <span className="card-name">{sector.name}</span>
+                      </div>
                     </div>
                   </div>
 

@@ -10,6 +10,7 @@ import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
+import { getLogoPath } from "@/lib/market/logos";
 import "@/app/dashboard.css";
 
 export async function generateStaticParams() {
@@ -36,9 +37,20 @@ export default async function CompanyPage({
           </Link>
           <span className="demo-badge">Live data</span>
         </div>
-        <h1 className="detail-ticker">{upperTicker}</h1>
-        <p className="detail-name">{companyName}</p>
-        <TrackCompanyButton ticker={upperTicker} companyName={companyName} />
+        <div className="detail-header-row">
+          <div className="detail-header-left">
+            {getLogoPath(upperTicker) ? (
+              <img src={getLogoPath(upperTicker)!} alt="" className="detail-logo" />
+            ) : (
+              <div className="logo-badge logo-badge-detail">{upperTicker.charAt(0)}</div>
+            )}
+            <div>
+              <h1 className="detail-ticker">{upperTicker}</h1>
+              <p className="detail-name">{companyName}</p>
+            </div>
+          </div>
+          <TrackCompanyButton ticker={upperTicker} companyName={companyName} />
+        </div>
       </div>
 
       <CompanyDashboard
