@@ -130,13 +130,8 @@ export default function ActivityPage() {
         </div>
         <div className="empty-state">
           <p>Sign in to see conviction activity for your watchlist.</p>
-          <div className="mt-16">
-            <Link href="/api/auth/signin/github" className="auth-button">
-              Sign in
-            </Link>
-          </div>
-          <small className="mt-8 block">
-            Tracked companies produce events when conviction changes, new signals appear, or evidence expires.
+          <small className="mt-8 block" style={{ marginTop: 12 }}>
+            Coming soon.
           </small>
         </div>
       </div>
