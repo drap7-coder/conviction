@@ -365,13 +365,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
         ? `${ownershipFilings.length} latest major ownership filing${ownershipFilings.length === 1 ? "" : "s"} found.`
         : "No 13D or 13G filings found.";
   const hasLeadershipChangeCluster = header.offsets.some((signal) => signal.kind === "management");
-  const disclosureCopy = disclosureStatus === "loading" || disclosureStatus === "idle"
-    ? "Checking recent SEC filings."
-    : disclosureStatus === "timeout" || disclosureStatus === "error"
-      ? "SEC corporate disclosures are temporarily unavailable."
-      : latestDisclosure
-        ? `${latestDisclosure.title}. Filed ${formatDate(latestDisclosure.filingDate)}.`
-        : "No recent SEC corporate disclosures.";
   const latestKnownEvent = latestDisclosure
       ? {
           title: latestDisclosure.title,
@@ -520,24 +513,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           {isFallback ? (
             <div className="move-fallback-grid">
               <div>
-                <span className="move-eyebrow">Today</span>
-                <strong>{ticker} {formatPercent(quote?.changePercent)}</strong>
-                <p>
-                  {hasRecentInsiderBuy
-                    ? "No sourced same-day catalyst found. Recent insider buying is the strongest current signal."
-                    : "No sourced same-day catalyst is loaded for this move."}
-                </p>
-              </div>
-              <div>
-                <span className="move-eyebrow">Peers</span>
-                <strong>
-                  {peerQuotes.length
-                    ? peerQuotes.map((peerQuote) => `${peerQuote.ticker} ${formatPercent(peerQuote.changePercent)}`).join(" · ")
-                    : "Peer quotes unavailable"}
-                </strong>
-                <p>Use this to separate company-specific moves from group pressure.</p>
-              </div>
-              <div>
                 <span className="move-eyebrow">Latest known event</span>
                 <strong>{latestKnownEvent?.title ?? "No recent sourced event"}</strong>
                 <p>{latestKnownEvent ? latestKnownEvent.detail : "No headline or corporate disclosure is loaded yet."}</p>
@@ -562,35 +537,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               <li key={detail}>{detail}</li>
             ))}
           </ul>
-          ) : null}
-
-          <div className="disclosure-watch-card">
-            <div>
-              <span className="move-eyebrow">What to watch next</span>
-              <strong>Corporate disclosures</strong>
-              <p>{disclosureCopy}</p>
-            </div>
-            <span className="move-confidence move-confidence-inline">
-              {latestDisclosure ? latestDisclosure.sourceLabel : disclosureStatus === "loading" ? "Checking" : "SEC"}
-            </span>
-          </div>
-
-          {latestDisclosure ? (
-            <div className={`disclosure-evidence-card ${latestDisclosure.direction}`}>
-              <div>
-                <span className="move-eyebrow">
-                  {latestDisclosure.direction === "supporting" ? "Supporting evidence" : "Context evidence"} · {formatDate(latestDisclosure.filingDate)}
-                </span>
-                <strong>{latestDisclosure.title}</strong>
-                <p>{latestDisclosure.summary} Reported {formatDate(latestDisclosure.filingDate)}.</p>
-              </div>
-              <div className="move-support-metrics">
-                <span>{latestDisclosure.form}{latestDisclosure.item ? ` ${latestDisclosure.item}` : ""}</span>
-                <a href={latestDisclosure.sourceUrl} rel="noreferrer" target="_blank">
-                  {latestDisclosure.sourceLabel}
-                </a>
-              </div>
-            </div>
           ) : null}
 
           <details className="move-hint">

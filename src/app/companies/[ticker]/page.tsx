@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
+import { MarketPanel } from "@/app/components/MarketPanel";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
-import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
@@ -41,7 +42,9 @@ export default async function CompanyPage({
       </div>
 
       <CompanyDashboard
-        briefing={<PriceTrendCard ticker={upperTicker} />}
+        briefing={
+          <MarketPanel ticker={upperTicker} />
+        }
       >
         <DashboardCard className="dashboard-card-news">
           <MaterialNewsCard ticker={upperTicker} />
@@ -58,6 +61,7 @@ export default async function CompanyPage({
             <span className="section-count">Form 4</span>
           </div>
           <InsiderActivitySection ticker={upperTicker} />
+          <CorporateDisclosuresSection ticker={upperTicker} />
         </DashboardCard>
       </CompanyDashboard>
     </div>

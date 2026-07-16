@@ -2522,6 +2522,114 @@ details > summary::before {
   stroke: var(--red);
 }
 
+/* ── Chart SMA Overlays ── */
+
+.price-chart-sma50 {
+  fill: none;
+  stroke: #3b82f6;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.price-chart-sma200 {
+  fill: none;
+  stroke: #ef4444;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* ── Technical State Card ── */
+
+.technical-state-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+
+.technical-state-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.technical-state-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.technical-state-label .state-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.technical-state-label.state-bullish .state-dot { background: var(--green); }
+.technical-state-label.state-bearish .state-dot { background: var(--red); }
+.technical-state-label.state-neutral .state-dot { background: var(--amber); }
+.technical-state-label.state-insufficient .state-dot { background: var(--quiet); }
+
+.technical-state-interp {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin-bottom: 10px;
+}
+
+.technical-state-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+}
+
+.technical-state-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+}
+
+.technical-state-stat .stat-label {
+  display: block;
+  color: var(--quiet);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.technical-state-stat .stat-value {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.technical-state-stat .stat-signal {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 1px;
+}
+
+.technical-state-stat .stat-signal.signal-positive { color: var(--green); }
+.technical-state-stat .stat-signal.signal-negative { color: var(--red); }
+.technical-state-stat .stat-signal.signal-neutral { color: var(--amber); }
+
 .price-chart-build {
   display: grid;
   grid-template-columns: repeat(4, 16px);

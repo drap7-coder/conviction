@@ -5,10 +5,43 @@
   gap: 10px;
 }
 
-/* ── Company Briefing (PriceTrendCard on top) ── */
+/* ── Company Briefing (PriceTrendCard + Today/Peers on top) ── */
 
 .company-briefing {
+  display: grid;
+  gap: 8px;
   min-width: 0;
+}
+
+/* ── Today & Peers Card ── */
+
+.today-peers-card {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.today-peers-slot {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+}
+
+.today-peers-slot strong {
+  display: block;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+
+.today-peers-slot p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin-top: 4px;
 }
 
 /* ── Evidence Section Header ── */
@@ -106,7 +139,6 @@
 
 .dashboard-card .political-card {
   min-height: auto;
-  background: transparent;
   border: none;
   padding: 0;
   box-shadow: none;

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
+import { computeSma, buildSmaPath } from "@/lib/market/technical-state";
 
 type TrendRange = "1d" | "1w" | "1m" | "6m" | "1y";
 
@@ -29,6 +30,11 @@ interface HistoryResponse {
 
 interface PriceTrendCardProps {
   ticker: string;
+  /** Optional external history — if provided, the card won't fetch on its own */
+  history?: StockHistory | null;
+  status?: EvidenceStatus;
+  onRangeChange?: (range: TrendRange) => void;
+  activeRange?: TrendRange;
 }
 
 const RANGES: Array<{ label: string; value: TrendRange }> = [
@@ -66,36 +72,67 @@ function buildPath(points: StockHistoryPoint[]) {
   }).join(" ");
 }
 
-export function PriceTrendCard({ ticker }: PriceTrendCardProps) {
-  const [range, setRange] = useState<TrendRange>("1m");
-  const [history, setHistory] = useState<StockHistory | null>(null);
-  const [status, setStatus] = useState<EvidenceStatus>("idle");
+export function PriceTrendCard({
+  ticker,
+  history: externalHistory,
+  status: externalStatus,
+  onRangeChange,
+  activeRange,
+}: PriceTrendCardProps) {
+  const [internalRange, setInternalRange] = useState<TrendRange>("1m");
+  const [internalHistory, setInternalHistory] = useState<StockHistory | null>(null);
+  const [internalStatus, setInternalStatus] = useState<EvidenceStatus>("idle");
+
+  const range = activeRange ?? internalRange;
+  const history = externalHistory ?? internalHistory;
+  const status = externalStatus ?? internalStatus;
+
+  const setRange = onRangeChange ?? setInternalRange;
 
   useEffect(() => {
+    // If external history is provided, skip internal fetch
+    if (externalHistory !== undefined) return;
     const controller = new AbortController();
 
     async function load() {
-      setStatus("loading");
+      setInternalStatus("loading");
       try {
         const data = await fetchJsonWithTimeout<HistoryResponse>(
           `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=${range}`,
           8_000,
           controller.signal,
         );
-        setHistory(data.history);
-        setStatus(data.history.points.length >= 2 ? "success" : "empty");
+        setInternalHistory(data.history);
+        setInternalStatus(data.history.points.length >= 2 ? "success" : "empty");
       } catch {
-        setHistory(null);
-        setStatus("error");
+        setInternalHistory(null);
+        setInternalStatus("error");
       }
     }
 
     void load();
     return () => controller.abort();
-  }, [ticker, range]);
+  }, [ticker, range, externalHistory]);
 
   const path = useMemo(() => buildPath(history?.points ?? []), [history]);
   const isPositive = (history?.change ?? 0) >= 0;
+
+  // Compute SMA overlays
+  const smaPaths = useMemo(() => {
+    if (!history || history.points.length < 2) return { sma50: "", sma200: "" };
+    const closes = history.points.map((p) => p.close);
+    const width = 320;
+    const height = 96;
+    const padding = 6;
+
+    const sma50Values = computeSma(closes, 50);
+    const sma200Values = computeSma(closes, 200);
+
+    return {
+      sma50: buildSmaPath(closes, sma50Values, width, height, padding),
+      sma200: buildSmaPath(closes, sma200Values, width, height, padding),
+    };
+  }, [history]);
 
   return (
     <section className="price-trend-card" aria-label={`${ticker} price trend`}>
@@ -132,6 +169,12 @@ export function PriceTrendCard({ ticker }: PriceTrendCardProps) {
           </div>
         ) : path ? (
           <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
+            {smaPaths.sma200 ? (
+              <path className="price-chart-sma200" d={smaPaths.sma200} />
+            ) : null}
+            {smaPaths.sma50 ? (
+              <path className="price-chart-sma50" d={smaPaths.sma50} />
+            ) : null}
             <path className="price-chart-glow" d={path} />
             <path className="price-chart-line" d={path} />
           </svg>
