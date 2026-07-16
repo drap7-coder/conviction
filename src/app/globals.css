@@ -287,6 +287,12 @@ details > summary::before {
 .watchlist-carousel::before {
   left: 0;
   background: linear-gradient(90deg, var(--bg), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.watchlist-carousel.scrolled::before {
+  opacity: 1;
 }
 
 .watchlist-carousel::after {
@@ -741,6 +747,7 @@ details > summary::before {
   right: 0;
   z-index: 50;
   min-width: 180px;
+  max-width: calc(100vw - 24px);
   background: var(--surface-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -3671,6 +3678,12 @@ details > summary::before {
   .watchlist-carousel::before,
   .watchlist-carousel::after {
     width: 24px;
+  }
+
+  /* Settings popover: anchor to left on mobile so it doesn't overflow off-screen */
+  .settings-popover {
+    right: auto;
+    left: 0;
   }
 
   .product-brief,

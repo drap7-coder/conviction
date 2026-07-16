@@ -8,6 +8,30 @@ import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import { CardFooter } from "@/app/components/CardFooter";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 
+/**
+ * Attaches scroll listeners to all .watchlist-scroll containers
+ * so the left fade gradient only appears when scrolled right.
+ */
+function useCarouselGradients() {
+  useEffect(() => {
+    const containers = document.querySelectorAll<HTMLElement>(".watchlist-scroll");
+    const handlers: Array<() => void> = [];
+
+    containers.forEach((el) => {
+      const parent = el.closest<HTMLElement>(".watchlist-carousel");
+      const handler = () => {
+        if (!parent) return;
+        parent.classList.toggle("scrolled", el.scrollLeft > 0);
+      };
+      handler();
+      el.addEventListener("scroll", handler, { passive: true });
+      handlers.push(() => el.removeEventListener("scroll", handler));
+    });
+
+    return () => handlers.forEach((fn) => fn());
+  });
+}
+
 interface WatchlistEntry {
   id?: string;
   ticker: string;
@@ -127,6 +151,7 @@ function chunkRows<T>(items: T[], size: number): T[][] {
 }
 
 export default function WatchlistPage() {
+  useCarouselGradients();
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
