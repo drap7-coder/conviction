@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
+import { CardFooter } from "@/app/components/CardFooter";
 
 interface WatchlistEntry {
   id?: string;
@@ -224,6 +225,29 @@ export default function WatchlistPage() {
     return () => {
       cancelled = true;
     };
+  }, [entries]);
+
+  // Consolidated batch news fetch (single request, not N+1)
+  const [batchNews, setBatchNews] = useState<Record<string, { headline: string | null; url: string | null; date: string | null }>>({});
+
+  useEffect(() => {
+    if (entries.length === 0) return;
+    let cancelled = false;
+
+    async function loadBatchNews() {
+      const tickers = entries.map((e) => e.ticker).join(",");
+      try {
+        const res = await fetch(`/api/evidence/news-batch?tickers=${encodeURIComponent(tickers)}`);
+        if (!res.ok) return;
+        const data = await res.json() as { news: Record<string, { headline: string | null; url: string | null; date: string | null }> };
+        if (!cancelled) setBatchNews(data.news);
+      } catch {
+        // Silent degradation — evidence footer shows without news
+      }
+    }
+
+    void loadBatchNews();
+    return () => { cancelled = true; };
   }, [entries]);
 
   const handleAddValue = async (value?: string) => {
@@ -461,10 +485,13 @@ export default function WatchlistPage() {
                       {verdict.insight}
                     </div>
 
-                    <div className="card-recency">
-                      <span>{verdict.recency}</span>
-                      <span>{verdict.source}</span>
-                    </div>
+                    <CardFooter
+                      ticker={entry.ticker}
+                      recency={verdict.recency}
+                      source={verdict.source}
+                      insight={verdict.insight}
+                      news={batchNews[entry.ticker]}
+                    />
 
                     <div className="card-actions">
                       <Link href={`/companies/${entry.ticker}`} className="card-action primary">
