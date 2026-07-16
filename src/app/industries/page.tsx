@@ -148,7 +148,15 @@ export default function IndustriesPage() {
               const isPositive = quoteDirection === "positive";
 
               return (
-                <div key={sector.ticker} className="industry-card">
+                <div
+                  key={sector.ticker}
+                  className="industry-card-link"
+                  onClick={() => { window.location.href = "/industries/" + sector.ticker; }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter") window.location.href = "/industries/" + sector.ticker; }}
+                >
+                <div className="industry-card">
                   <div className="card-header">
                     <div>
                       <span className="card-ticker">{sector.ticker}</span>
@@ -189,6 +197,7 @@ export default function IndustriesPage() {
                         rel="noreferrer"
                         className="industry-news-link"
                         title={batchNews[sector.ticker].headline ?? undefined}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {batchNews[sector.ticker].headline}
                       </a>
@@ -211,6 +220,7 @@ export default function IndustriesPage() {
                             key={rq.ticker}
                             href={"/companies/" + rq.ticker}
                             className={"industry-rep-chip " + rqDirection}
+                            onClick={(e) => e.stopPropagation()}
                           >
                             {rq.ticker}
                             <span className="industry-rep-change">
@@ -224,6 +234,7 @@ export default function IndustriesPage() {
                     </div>
                   </div>
                 </div>
+              </div>
               );
             })}
           </div>

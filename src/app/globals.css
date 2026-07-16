@@ -353,9 +353,23 @@ details > summary::before {
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
-.industry-card:hover {
+.industry-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.industry-card-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+.industry-card-link:hover .industry-card {
   border-color: var(--border-active);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent),
