@@ -3,7 +3,6 @@ import { query, isDatabaseConfigured } from "@/lib/db";
 export type ConvictionEventType =
   | "conviction_upgrade"
   | "conviction_downgrade"
-  | "new_signal"
   | "signal_expired"
   | "institutional_buying";
 

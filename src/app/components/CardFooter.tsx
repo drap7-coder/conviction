@@ -22,14 +22,31 @@ interface CardFooterProps {
 
 /**
  * Signal hierarchy footer:
- * 1. Yahoo Finance headline (if valid, recent) → external link
- * 2. Evidence signal (insight from verdict) → link to company page
+ * 1. Material evidence (insight from verdict) → link to company page
+ * 2. Yahoo Finance headline (if valid, recent) → external link
  * 3. Metadata fallback → plain text "[recency] · [source]"
  *
  * Occupies exactly one line. Truncates gracefully.
  */
 export function CardFooter({ ticker, recency, source, insight, news }: CardFooterProps) {
-  // Priority 1: News headline
+  // Priority 1: Material evidence signal
+  const hasEvidence = insight && !insight.startsWith("No high-conviction") && !insight.startsWith("SEC coverage is limited");
+  if (hasEvidence) {
+    return (
+      <div className="card-recency">
+        <Link
+          href={`/companies/${ticker}`}
+          className="card-footer-link"
+          onClick={(e) => e.stopPropagation()}
+          title={insight}
+        >
+          <span className="card-footer-evidence">{recency} — {insight}</span>
+        </Link>
+      </div>
+    );
+  }
+
+  // Priority 2: Yahoo Finance headline
   if (news?.headline && news?.url) {
     return (
       <div className="card-recency">
@@ -43,23 +60,6 @@ export function CardFooter({ ticker, recency, source, insight, news }: CardFoote
         >
           <span className="card-footer-news">{news.headline}</span>
         </a>
-      </div>
-    );
-  }
-
-  // Priority 2: Evidence signal (if not the default "no change" message)
-  const hasEvidence = insight && !insight.startsWith("No high-conviction") && !insight.startsWith("SEC coverage is limited");
-  if (hasEvidence) {
-    return (
-      <div className="card-recency">
-        <Link
-          href={`/companies/${ticker}`}
-          className="card-footer-link"
-          onClick={(e) => e.stopPropagation()}
-          title={insight}
-        >
-          <span className="card-footer-evidence">{recency} — {insight}</span>
-        </Link>
       </div>
     );
   }

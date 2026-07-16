@@ -2,14 +2,33 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { fetchJsonWithTimeout } from "./evidence-request";
 
 export function Nav() {
   const pathname = usePathname();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadUnread() {
+      try {
+        const data = await fetchJsonWithTimeout<{ authenticated: boolean; unreadCount: number }>("/api/activity?limit=0", 5_000);
+        if (!cancelled && data.authenticated) {
+          setUnreadCount(data.unreadCount ?? 0);
+        }
+      } catch {
+        // unread badge is optional
+      }
+    }
+    void loadUnread();
+    return () => { cancelled = true; };
+  }, [pathname]);
 
   const links = [
     { href: "/", label: "Watchlist" },
     { href: "/rising", label: "Trending" },
-    { href: "/journal", label: "Journal" },
+    { href: "/activity", label: "Activity" },
   ];
 
   return (
@@ -21,6 +40,9 @@ export function Nav() {
           className={pathname === link.href ? "active" : ""}
         >
           {link.label}
+          {link.href === "/activity" && unreadCount > 0 && (
+            <span className="nav-badge">{unreadCount > 99 ? "99+" : unreadCount}</span>
+          )}
         </Link>
       ))}
     </nav>

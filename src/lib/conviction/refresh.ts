@@ -69,11 +69,6 @@ export async function refreshConvictionTransitionForTicker(ticker: string): Prom
       await recordActivityEventForTransition(resolved, transition);
     }
 
-    // Also record an event for the baseline (first snapshot) so the feed isn't empty
-    if (!previous && !transition) {
-      await recordBaselineEvent(resolved, current);
-    }
-
     return {
       ticker: resolved.ticker,
       baselineCreated: !previous,
@@ -90,10 +85,7 @@ export async function refreshConvictionTransitionForTicker(ticker: string): Prom
   }
 }
 
-/**
- * Generate a global activity event from a conviction transition.
- * Deterministic event_key = ticker + type + evidenceFingerprint.
- */
+/** Generate a global activity event from a conviction transition. */
 async function recordActivityEventForTransition(
   resolved: { ticker: string; companyName?: string },
   transition: ConvictionTransition,
@@ -143,35 +135,6 @@ async function recordActivityEventForTransition(
       currentStatus: transition.currentStatus,
       transitionType: transition.type,
       evidenceFingerprint: transition.evidenceFingerprint,
-    },
-  });
-}
-
-/**
- * Record a baseline event when a company is first tracked.
- */
-async function recordBaselineEvent(
-  resolved: { ticker: string; companyName?: string },
-  snapshot: import("./snapshot").ConvictionSnapshot,
-): Promise<void> {
-  const eventKey = buildEventKey(resolved.ticker, "baseline", snapshot.evidenceFingerprint);
-
-  await insertConvictionEvent({
-    event_key: eventKey,
-    ticker: resolved.ticker,
-    company_name: resolved.companyName ?? resolved.ticker,
-    event_type: "new_signal",
-    severity: "low",
-    headline: `${resolved.ticker} now being tracked — ${snapshot.status} conviction baseline established.`,
-    description: `Status: ${snapshot.status}, Confidence: ${snapshot.confidence}, Signals: ${snapshot.supportingSignalTypes.join(", ") || "none"}.`,
-    source_url: `/companies/${resolved.ticker}`,
-    source: "sec-edgar",
-    metadata: {
-      status: snapshot.status,
-      confidence: snapshot.confidence,
-      supportingSignalTypes: snapshot.supportingSignalTypes,
-      accumulatingManagerCount: snapshot.accumulatingManagerCount,
-      insiderPurchaseCount: snapshot.insiderPurchaseCount,
     },
   });
 }
