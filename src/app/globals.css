@@ -243,84 +243,18 @@ details > summary::before {
 
 /* ── Company Card ── */
 
-.company-grid {
+/* ── Watchlist Grid (replaces old carousel) ── */
+
+.watchlist-grid {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: calc((100% - 24px) / 3);
-  grid-template-columns: none;
-  align-items: stretch;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
 }
 
-.watchlist-carousel {
-  position: relative;
-}
-
-.carousel-hint {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.trending-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
-  margin: 0 2px 6px;
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-}
-
-.carousel-hint strong {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.watchlist-carousel::before,
-.watchlist-carousel::after {
-  content: "";
-  position: absolute;
-  top: 32px;
-  bottom: 12px;
-  width: 42px;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.watchlist-carousel::before {
-  left: 0;
-  background: linear-gradient(90deg, var(--bg), transparent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.watchlist-carousel.scrolled::before {
-  opacity: 1;
-}
-
-.watchlist-carousel::after {
-  right: 0;
-  background: linear-gradient(270deg, var(--bg), transparent);
-}
-
-.watchlist-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 2px 34px 14px 2px;
-  margin-bottom: 24px;
-  scroll-snap-type: x mandatory;
-  scrollbar-color: var(--border-active) transparent;
-}
-
-.watchlist-scroll::-webkit-scrollbar {
-  height: 8px;
-}
-
-.watchlist-scroll::-webkit-scrollbar-track {
-  background: var(--surface);
-  border-radius: 999px;
-}
-
-.watchlist-scroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(90deg, var(--accent), var(--green));
-  border-radius: 999px;
 }
 
 .watchlist-meta {
@@ -478,21 +412,6 @@ details > summary::before {
 
 .industry-rep-change {
   font-size: 0.68rem;
-}
-
-.trending-shelves {
-  display: grid;
-  gap: 18px;
-}
-
-.watchlist-shelves {
-  display: grid;
-  gap: 18px;
-}
-
-.trending-shelves .watchlist-scroll,
-.watchlist-shelves .watchlist-scroll {
-  margin-bottom: 0;
 }
 
 .trending-header {
@@ -3669,17 +3588,6 @@ details > summary::before {
     padding-inline: 12px;
   }
 
-  .watchlist-scroll {
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-right: 30px;
-  }
-
-  .watchlist-carousel::before,
-  .watchlist-carousel::after {
-    width: 24px;
-  }
-
   /* Settings popover: anchor to left on mobile so it doesn't overflow off-screen */
   .settings-popover {
     right: auto;
@@ -3738,8 +3646,12 @@ details > summary::before {
     justify-content: flex-start;
   }
 
-  .company-grid {
-    grid-auto-columns: minmax(270px, 84%);
+  .watchlist-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trending-grid {
+    grid-template-columns: 1fr;
   }
 
   .company-card {
@@ -3772,8 +3684,12 @@ details > summary::before {
 }
 
 @media (min-width: 641px) and (max-width: 820px) {
-  .company-grid {
-    grid-auto-columns: calc((100% - 12px) / 2);
+  .watchlist-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .trending-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

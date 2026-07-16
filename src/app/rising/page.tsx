@@ -42,13 +42,6 @@ interface WatchlistEntry {
 }
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
-const TRENDING_ROW_SIZE = 8;
-
-const TRENDING_ROW_LABELS = [
-  "Most active now",
-  "Biggest attention shifts",
-  "More names moving",
-];
 
 function readBrowserWatchlist(): WatchlistEntry[] {
   if (typeof window === "undefined") return [];
@@ -108,12 +101,6 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
     const y = padding + ((max - point.close) / spread) * (height - padding * 2);
     return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
   }).join(" ");
-}
-
-function chunkTrendingRows(companies: TrendingCompany[]) {
-  return Array.from({ length: 3 }, (_, index) =>
-    companies.slice(index * TRENDING_ROW_SIZE, (index + 1) * TRENDING_ROW_SIZE),
-  ).filter((row) => row.length > 0);
 }
 
 export default function RisingConvictionPage() {
@@ -215,8 +202,6 @@ export default function RisingConvictionPage() {
     }
   };
 
-  const trendingRows = chunkTrendingRows(trending);
-
   return (
     <div>
       <div className="section-header">
@@ -251,112 +236,100 @@ export default function RisingConvictionPage() {
             </button>
           </div>
         ) : (
-          <div className="trending-shelves">
-            {trendingRows.map((row, rowIndex) => (
-              <div className="watchlist-carousel trending-carousel" key={TRENDING_ROW_LABELS[rowIndex] ?? rowIndex}>
-                <div className="carousel-hint" aria-hidden="true">
-                  <span>{TRENDING_ROW_LABELS[rowIndex] ?? "More trending"}</span>
-                  <strong>Scroll row →</strong>
-                </div>
-                <div className="watchlist-scroll" aria-label={`${TRENDING_ROW_LABELS[rowIndex] ?? "Trending"} carousel`}>
-                  <div className="company-grid">
-                    {row.map((idea) => {
-                  const isTracked = trackedTickers.has(idea.ticker);
-                  const quote = idea.quote;
-                  const quoteDirection = quote.change === null || quote.change === undefined
-                    ? "neutral"
-                    : quote.change > 0
-                      ? "positive"
-                      : quote.change < 0
-                      ? "negative"
-                      : "neutral";
-                  const verdict = getCardVerdict({
-                    ticker: idea.ticker,
-                    companyName: idea.companyName,
-                    addedAt: new Date().toISOString(),
-                    status: "active",
-                  }, quote);
-                  const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
+          <div className="trending-grid">
+            {trending.map((idea) => {
+              const isTracked = trackedTickers.has(idea.ticker);
+              const quote = idea.quote;
+              const quoteDirection = quote.change === null || quote.change === undefined
+                ? "neutral"
+                : quote.change > 0
+                  ? "positive"
+                  : quote.change < 0
+                  ? "negative"
+                  : "neutral";
+              const verdict = getCardVerdict({
+                ticker: idea.ticker,
+                companyName: idea.companyName,
+                addedAt: new Date().toISOString(),
+                status: "active",
+              }, quote);
+              const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
 
-                  return (
-                    <div key={idea.ticker} className="company-card-wrap">
-                      <div className="company-card trending-card">
-                        <div className="card-header">
-                          <div>
-                            <span className="card-rank">#{idea.activityRank} trending</span>
-                            <span className="card-ticker">{idea.ticker}</span>
-                            <span className="card-name">{idea.companyName}</span>
-                          </div>
-                          <span className="card-arrow" aria-hidden="true">→</span>
-                        </div>
+              return (
+                <div key={idea.ticker} className="company-card-wrap">
+                  <div className="company-card trending-card">
+                    <div className="card-header">
+                      <div>
+                        <span className="card-rank">#{idea.activityRank} trending</span>
+                        <span className="card-ticker">{idea.ticker}</span>
+                        <span className="card-name">{idea.companyName}</span>
+                      </div>
+                      <span className="card-arrow" aria-hidden="true">→</span>
+                    </div>
 
-                        <div className="card-quote">
-                          <span className="card-price">
-                            ${formatPrice(quote.price)}
-                          </span>
-                          <span className={`card-quote-change ${quoteDirection}`}>
-                            {formatChange(quote.change, quote.changePercent)}
-                          </span>
-                        </div>
+                    <div className="card-quote">
+                      <span className="card-price">
+                        ${formatPrice(quote.price)}
+                      </span>
+                      <span className={`card-quote-change ${quoteDirection}`}>
+                        {formatChange(quote.change, quote.changePercent)}
+                      </span>
+                    </div>
 
-                        <div className={`trending-sparkline ${quoteDirection}`} aria-label={`${idea.ticker} intraday micro chart`}>
-                          {sparklinePath ? (
-                            <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                              <path className="sparkline-glow" d={sparklinePath} />
-                              <path className="sparkline-line" d={sparklinePath} />
-                            </svg>
-                          ) : (
-                            <span>Chart loading</span>
-                          )}
-                        </div>
+                    <div className={`trending-sparkline ${quoteDirection}`} aria-label={`${idea.ticker} intraday micro chart`}>
+                      {sparklinePath ? (
+                        <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
+                          <path className="sparkline-glow" d={sparklinePath} />
+                          <path className="sparkline-line" d={sparklinePath} />
+                        </svg>
+                      ) : (
+                        <span>Chart loading</span>
+                      )}
+                    </div>
 
-                        <div className={`card-verdict ${verdict.tone}`}>
-                          <div className="verdict-line">
-                            <span>Conviction: {verdict.state}</span>
-                            <strong>{verdict.strength}%</strong>
-                          </div>
-                          <div className="verdict-meter" aria-hidden="true">
-                            <span style={{ width: `${verdict.strength}%` }} />
-                          </div>
-                          <div className="verdict-evidence">
-                            {idea.activityLabel} · {verdict.support} support · {verdict.contra} contra
-                          </div>
-                        </div>
-
-                        <div className="card-implication">
-                          {verdict.insight}
-                        </div>
-
-                        <div className="card-recency">
-                          <span>Market activity today</span>
-                          <span>{verdict.source}</span>
-                        </div>
-
-                        <div className="card-actions">
-                          <Link href={`/companies/${idea.ticker}`} className="card-action primary">
-                            More detail
-                          </Link>
-                          {isTracked ? (
-                            <span className="card-action muted">Added</span>
-                          ) : (
-                            <button
-                              className="card-action add"
-                              disabled={addingTicker === idea.ticker}
-                              onClick={() => handleAddTrending(idea)}
-                              type="button"
-                            >
-                              {addingTicker === idea.ticker ? "Adding..." : "Add"}
-                            </button>
-                          )}
-                        </div>
+                    <div className={`card-verdict ${verdict.tone}`}>
+                      <div className="verdict-line">
+                        <span>Conviction: {verdict.state}</span>
+                        <strong>{verdict.strength}%</strong>
+                      </div>
+                      <div className="verdict-meter" aria-hidden="true">
+                        <span style={{ width: `${verdict.strength}%` }} />
+                      </div>
+                      <div className="verdict-evidence">
+                        {idea.activityLabel} · {verdict.support} support · {verdict.contra} contra
                       </div>
                     </div>
-                  );
-                    })}
+
+                    <div className="card-implication">
+                      {verdict.insight}
+                    </div>
+
+                    <div className="card-recency">
+                      <span>Market activity today</span>
+                      <span>{verdict.source}</span>
+                    </div>
+
+                    <div className="card-actions">
+                      <Link href={`/companies/${idea.ticker}`} className="card-action primary">
+                        More detail
+                      </Link>
+                      {isTracked ? (
+                        <span className="card-action muted">Added</span>
+                      ) : (
+                        <button
+                          className="card-action add"
+                          disabled={addingTicker === idea.ticker}
+                          onClick={() => handleAddTrending(idea)}
+                          type="button"
+                        >
+                          {addingTicker === idea.ticker ? "Adding..." : "Add"}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </section>

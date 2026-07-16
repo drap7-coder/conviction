@@ -1,36 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import { CardFooter } from "@/app/components/CardFooter";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
-
-/**
- * Attaches scroll listeners to all .watchlist-scroll containers
- * so the left fade gradient only appears when scrolled right.
- */
-function useCarouselGradients() {
-  useEffect(() => {
-    const containers = document.querySelectorAll<HTMLElement>(".watchlist-scroll");
-    const handlers: Array<() => void> = [];
-
-    containers.forEach((el) => {
-      const parent = el.closest<HTMLElement>(".watchlist-carousel");
-      const handler = () => {
-        if (!parent) return;
-        parent.classList.toggle("scrolled", el.scrollLeft > 0);
-      };
-      handler();
-      el.addEventListener("scroll", handler, { passive: true });
-      handlers.push(() => el.removeEventListener("scroll", handler));
-    });
-
-    return () => handlers.forEach((fn) => fn());
-  });
-}
 
 interface WatchlistEntry {
   id?: string;
@@ -63,7 +39,6 @@ interface StockQuote {
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
-const ROW_SIZE = 8;
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
@@ -142,16 +117,7 @@ function formatDollarVolume(value: number | null) {
   return "";
 }
 
-function chunkRows<T>(items: T[], size: number): T[][] {
-  const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += size) {
-    rows.push(items.slice(i, i + size));
-  }
-  return rows;
-}
-
 export default function WatchlistPage() {
-  useCarouselGradients();
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
@@ -408,8 +374,6 @@ export default function WatchlistPage() {
     return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
   });
 
-  const rows = chunkRows(sortedEntries, ROW_SIZE);
-
   return (
     <div>
       <div className="watchlist-header">
@@ -477,122 +441,110 @@ export default function WatchlistPage() {
           <small>Add a ticker above to track primary-source evidence.</small>
         </div>
       ) : (
-        <div className="watchlist-shelves">
-          {rows.map((row, rowIndex) => (
-            <div className="watchlist-carousel" key={rowIndex}>
-              <div className="carousel-hint" aria-hidden="true">
-                <span>{rowIndex === 0 ? "Watchlist" : "Watchlist continued"}</span>
-                <strong>Scroll row →</strong>
-              </div>
-              <div className="watchlist-scroll" aria-label={`Watchlist row ${rowIndex + 1}`}>
-                <div className="company-grid">
-                  {row.map((entry) => {
-                  const isLimited = entry.status !== "active";
-                  const quote = quotes[entry.ticker];
-                  const quoteDirection = quote?.change === null || quote?.change === undefined
-                    ? "neutral"
-                    : quote.change > 0
-                      ? "positive"
-                      : quote.change < 0
-                      ? "negative"
-                      : "neutral";
-                  const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
-                  const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
+        <div className="watchlist-grid">
+          {sortedEntries.map((entry) => {
+            const isLimited = entry.status !== "active";
+            const quote = quotes[entry.ticker];
+            const quoteDirection = quote?.change === null || quote?.change === undefined
+              ? "neutral"
+              : quote.change > 0
+                ? "positive"
+                : quote.change < 0
+                ? "negative"
+                : "neutral";
+            const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
+            const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
 
-                  return (
-                    <div key={entry.ticker} className="company-card-wrap">
-                      <div className={`company-card ${isLimited ? "limited" : ""}`}>
-                        <div className="card-header">
-                          <div className="card-header-left">
-                            <LogoDisplay ticker={entry.ticker} size="card" />
-                            <div>
-                              <span className="card-ticker">{entry.ticker}</span>
-                              <span className="card-name">{entry.companyName}</span>
-                            </div>
-                          </div>
-                          <span className="card-arrow" aria-hidden="true">→</span>
-                        </div>
-
-                        <div className="card-quote">
-                          <span className="card-price">
-                            {quote ? `$${formatPrice(quote.price)}` : "Quote pending"}
-                          </span>
-                          <span className={`card-quote-change ${quoteDirection}`}>
-                            {quote ? formatChange(quote.change, quote.changePercent) : "Market data loading"}
-                          </span>
-                        </div>
-
-                        <div className={`trending-sparkline ${quoteDirection}`} aria-label={`${entry.ticker} intraday micro chart`}>
-                          {sparklinePath ? (
-                            <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                              <path className="sparkline-glow" d={sparklinePath} />
-                              <path className="sparkline-line" d={sparklinePath} />
-                            </svg>
-                          ) : (
-                            <span>Chart loading</span>
-                          )}
-                        </div>
-
-                        <div className={`card-verdict ${verdict.tone}`}>
-                          <div className="verdict-line">
-                            <span>Conviction: {verdict.state}</span>
-                            <strong>{verdict.strength}%</strong>
-                          </div>
-                          <div className="verdict-meter" aria-hidden="true">
-                            <span style={{ width: `${verdict.strength}%` }} />
-                          </div>
-                          <div className="verdict-evidence">
-                            {formatDollarVolume(quote?.dollarVolume)}{formatDollarVolume(quote?.dollarVolume) ? " · " : ""}{verdict.support} support · {verdict.contra} contra
-                          </div>
-                        </div>
-
-                        <div className="card-implication">
-                          {verdict.insight}
-                        </div>
-
-                        <CardFooter
-                          ticker={entry.ticker}
-                          recency={verdict.recency}
-                          source={verdict.source}
-                          insight={verdict.insight}
-                          news={batchNews[entry.ticker]}
-                        />
+            return (
+              <div key={entry.ticker} className="company-card-wrap">
+                <div className={`company-card ${isLimited ? "limited" : ""}`}>
+                  <div className="card-header">
+                    <div className="card-header-left">
+                      <LogoDisplay ticker={entry.ticker} size="card" />
+                      <div>
+                        <span className="card-ticker">{entry.ticker}</span>
+                        <span className="card-name">{entry.companyName}</span>
                       </div>
-
-                      <div className="card-actions">
-                        <Link href={`/companies/${entry.ticker}`} className="card-action primary">
-                          More detail
-                        </Link>
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleRemove(entry.ticker);
-                          }}
-                          disabled={removing === entry.ticker}
-                          title={`Remove ${entry.ticker}`}
-                          className="card-action danger"
-                        >
-                          Remove
-                        </button>
-                      </div>
-
-                      {authenticated ? (
-                        <textarea
-                          className="watchlist-note"
-                          value={entry.note ?? ""}
-                          onChange={(e) => handleNoteChange(entry.ticker, e.target.value)}
-                          onBlur={(e) => handleNoteBlur(entry.ticker, e.target.value)}
-                          placeholder={`Private note on ${entry.ticker}`}
-                          rows={2}
-                        />
-                      ) : null}
                     </div>
-                  );
-                  })}
+                    <span className="card-arrow" aria-hidden="true">→</span>
+                  </div>
+
+                  <div className="card-quote">
+                    <span className="card-price">
+                      {quote ? `$${formatPrice(quote.price)}` : "Quote pending"}
+                    </span>
+                    <span className={`card-quote-change ${quoteDirection}`}>
+                      {quote ? formatChange(quote.change, quote.changePercent) : "Market data loading"}
+                    </span>
+                  </div>
+
+                  <div className={`trending-sparkline ${quoteDirection}`} aria-label={`${entry.ticker} intraday micro chart`}>
+                    {sparklinePath ? (
+                      <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
+                        <path className="sparkline-glow" d={sparklinePath} />
+                        <path className="sparkline-line" d={sparklinePath} />
+                      </svg>
+                    ) : (
+                      <span>Chart loading</span>
+                    )}
+                  </div>
+
+                  <div className={`card-verdict ${verdict.tone}`}>
+                    <div className="verdict-line">
+                      <span>Conviction: {verdict.state}</span>
+                      <strong>{verdict.strength}%</strong>
+                    </div>
+                    <div className="verdict-meter" aria-hidden="true">
+                      <span style={{ width: `${verdict.strength}%` }} />
+                    </div>
+                    <div className="verdict-evidence">
+                      {formatDollarVolume(quote?.dollarVolume)}{formatDollarVolume(quote?.dollarVolume) ? " · " : ""}{verdict.support} support · {verdict.contra} contra
+                    </div>
+                  </div>
+
+                  <div className="card-implication">
+                    {verdict.insight}
+                  </div>
+
+                  <CardFooter
+                    ticker={entry.ticker}
+                    recency={verdict.recency}
+                    source={verdict.source}
+                    insight={verdict.insight}
+                    news={batchNews[entry.ticker]}
+                  />
                 </div>
+
+                <div className="card-actions">
+                  <Link href={`/companies/${entry.ticker}`} className="card-action primary">
+                    More detail
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleRemove(entry.ticker);
+                    }}
+                    disabled={removing === entry.ticker}
+                    title={`Remove ${entry.ticker}`}
+                    className="card-action danger"
+                  >
+                    Remove
+                  </button>
+                </div>
+
+                {authenticated ? (
+                  <textarea
+                    className="watchlist-note"
+                    value={entry.note ?? ""}
+                    onChange={(e) => handleNoteChange(entry.ticker, e.target.value)}
+                    onBlur={(e) => handleNoteBlur(entry.ticker, e.target.value)}
+                    placeholder={`Private note on ${entry.ticker}`}
+                    rows={2}
+                  />
+                ) : null}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
