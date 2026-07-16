@@ -6,7 +6,7 @@ import { MoveExplanationSection } from "@/app/components/MoveExplanationSection"
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
-import { CompanyDashboard, DashboardPage } from "@/app/components/company-dashboard";
+import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
 import "@/app/dashboard.css";
@@ -42,21 +42,23 @@ export default async function CompanyPage({
 
       <CompanyDashboard
         briefing={<PriceTrendCard ticker={upperTicker} />}
-        news={<MaterialNewsCard ticker={upperTicker} />}
       >
-        <DashboardPage className="dashboard-page-conviction">
+        <DashboardCard className="dashboard-card-news">
+          <MaterialNewsCard ticker={upperTicker} />
+        </DashboardCard>
+        <DashboardCard className="dashboard-card-conviction">
           <MoveExplanationSection ticker={upperTicker} />
-        </DashboardPage>
-        <DashboardPage className="dashboard-page-political">
+        </DashboardCard>
+        <DashboardCard className="dashboard-card-political">
           <PoliticalTradesSection ticker={upperTicker} />
-        </DashboardPage>
-        <DashboardPage className="dashboard-page-insider">
+        </DashboardCard>
+        <DashboardCard className="dashboard-card-insider">
           <div className="section-header">
             <h2 className="section-title">Secondary signal</h2>
             <span className="section-count">Form 4</span>
           </div>
           <InsiderActivitySection ticker={upperTicker} />
-        </DashboardPage>
+        </DashboardCard>
       </CompanyDashboard>
     </div>
   );

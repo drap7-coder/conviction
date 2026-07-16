@@ -11,13 +11,7 @@
   min-width: 0;
 }
 
-/* ── Material news (always visible under chart) ── */
-
-.company-news {
-  min-width: 0;
-}
-
-/* ── Evidence Pages Header ── */
+/* ── Evidence Section Header ── */
 
 .detail-pages-header {
   margin-top: 4px;
@@ -43,30 +37,103 @@
   scroll-snap-align: start;
 }
 
-/* ── Dashboard Pages ── */
+/* ── Dashboard Card (same look/feel as homepage company-card) ── */
 
-.dashboard-page {
-  min-width: 0;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  hyphens: auto;
+.dashboard-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 314px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 74%, transparent), transparent 42%),
+    var(--surface);
+  border: 1px solid color-mix(in srgb, var(--border-active) 42%, var(--border));
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
+    0 14px 34px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.018);
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
-.dashboard-page img,
-.dashboard-page table,
-.dashboard-page pre,
-.dashboard-page code {
-  max-width: 100%;
-  overflow-x: auto;
+.dashboard-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 42%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--ink) 8%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent);
+  opacity: 0.72;
 }
 
-/* Fix section headers inside evidence pages */
-.dashboard-page .section-header.mt-16 {
+.dashboard-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.dashboard-card:hover {
+  border-color: var(--border-active);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), transparent 46%),
+    var(--surface-elevated);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent),
+    0 18px 44px rgba(0, 0, 0, 0.28),
+    0 0 0 1px var(--accent-dim);
+  transform: translateY(-4px);
+}
+
+/* ── Card overrides for inner content ── */
+
+.dashboard-card .section-header.mt-16 {
   margin-top: 0;
 }
 
-.dashboard-page .political-card {
-  min-height: 100%;
+.dashboard-card .evidence-family-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.dashboard-card .evidence-family-header {
+  margin-bottom: 12px;
+}
+
+.dashboard-card .political-card {
+  min-height: auto;
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.dashboard-card .insider-section {
+  background: transparent;
+  border: none;
+  padding: 0;
+  box-shadow: none;
+}
+
+.dashboard-card .move-section {
+  margin-top: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-card .move-section > .move-card {
+  margin-top: 0;
+}
+
+/* Override evidence-panel background inside cards */
+.dashboard-card .evidence-panel {
+  background: transparent;
+  border-color: var(--border);
 }
 
 /* ── Responsive ── */
@@ -91,6 +158,12 @@
     gap: 8px;
     margin-inline: -2px;
     padding-bottom: 14px;
+    grid-auto-columns: 78vw;
+  }
+
+  .dashboard-card {
+    min-height: 280px;
+    padding: 14px;
   }
 }
 

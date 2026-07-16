@@ -4,11 +4,9 @@ import type { ReactNode } from "react";
 
 export function CompanyDashboard({
   briefing,
-  news,
   children,
 }: {
   briefing: ReactNode;
-  news: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -16,21 +14,20 @@ export function CompanyDashboard({
       <div className="company-briefing" aria-label="Company briefing">
         {briefing}
       </div>
-      <div className="company-news">{news}</div>
       <div className="section-header detail-pages-header">
-        <h2 className="section-title">Evidence pages</h2>
+        <h2 className="section-title">Evidence</h2>
         <span className="section-count">Scroll sideways</span>
       </div>
-      <div className="dashboard-evidence-row" aria-label="Supporting evidence pages">
+      <div className="dashboard-evidence-row" aria-label="Evidence cards">
         {children}
       </div>
     </div>
   );
 }
 
-/* ── DashboardPage ── */
+/* ── DashboardCard — same look/feel as homepage company-card ── */
 
-export function DashboardPage({
+export function DashboardCard({
   children,
   className,
 }: {
@@ -38,7 +35,7 @@ export function DashboardPage({
   className?: string;
 }) {
   return (
-    <div className={`dashboard-page ${className ?? ""}`}>
+    <div className={`dashboard-card ${className ?? ""}`}>
       {children}
     </div>
   );
