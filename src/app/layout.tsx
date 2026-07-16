@@ -85,7 +85,7 @@ export default function RootLayout({
                   CONVICTION<span className="accent-dot">.</span>
                 </h1>
               </a>
-              <span className="demo-badge">SEC 13F</span>
+              <span className="demo-badge">Live data</span>
             </div>
             <div className="header-actions">
               <Nav />

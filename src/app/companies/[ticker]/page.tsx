@@ -34,7 +34,7 @@ export default async function CompanyPage({
           <Link href="/" className="detail-back">
             ← Watchlist
           </Link>
-          <span className="demo-badge">SEC 13F</span>
+          <span className="demo-badge">Live data</span>
         </div>
         <h1 className="detail-ticker">{upperTicker}</h1>
         <p className="detail-name">{companyName}</p>
