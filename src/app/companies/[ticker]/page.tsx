@@ -5,7 +5,7 @@ import { MoveExplanationSection } from "@/app/components/MoveExplanationSection"
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
-import { CompanyDashboard } from "@/app/components/company-dashboard";
+import { CompanyDashboard, DashboardPage } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
 import "@/app/dashboard.css";
@@ -40,27 +40,24 @@ export default async function CompanyPage({
       </div>
 
       <CompanyDashboard
-        conviction={
+        briefing={
+          <PriceTrendCard ticker={upperTicker} />
+        }
+      >
+        <DashboardPage className="dashboard-page-conviction">
           <MoveExplanationSection ticker={upperTicker} />
-        }
-        market={
-          <>
-            <PriceTrendCard ticker={upperTicker} />
-          </>
-        }
-        evidence={
-          <>
-            <PoliticalTradesSection ticker={upperTicker} />
-            <div className="secondary-evidence">
-              <div className="section-header mt-16">
-                <h2 className="section-title">Secondary signal</h2>
-                <span className="section-count">Form 4</span>
-              </div>
-              <InsiderActivitySection ticker={upperTicker} />
-            </div>
-          </>
-        }
-      />
+        </DashboardPage>
+        <DashboardPage className="dashboard-page-political">
+          <PoliticalTradesSection ticker={upperTicker} />
+        </DashboardPage>
+        <DashboardPage className="dashboard-page-insider">
+          <div className="section-header">
+            <h2 className="section-title">Secondary signal</h2>
+            <span className="section-count">Form 4</span>
+          </div>
+          <InsiderActivitySection ticker={upperTicker} />
+        </DashboardPage>
+      </CompanyDashboard>
     </div>
   );
 }

@@ -2,34 +2,22 @@
 
 .company-dashboard {
   display: grid;
-  gap: 18px;
+  gap: 10px;
 }
 
-.company-briefing-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
-  gap: 18px;
-  align-items: start;
-}
+/* ── Company Briefing (PriceTrendCard on top) ── */
 
-.dashboard-panel {
+.company-briefing {
   min-width: 0;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  hyphens: auto;
 }
 
-.dashboard-panel img,
-.dashboard-panel table,
-.dashboard-panel pre,
-.dashboard-panel code {
-  max-width: 100%;
-  overflow-x: auto;
-}
+/* ── Evidence Pages Header ── */
 
 .detail-pages-header {
   margin-top: 4px;
 }
+
+/* ── Horizontal Evidence Row ── */
 
 .dashboard-evidence-row {
   display: grid;
@@ -49,26 +37,36 @@
   scroll-snap-align: start;
 }
 
-.dashboard-evidence-row .section-header.mt-16 {
+/* ── Dashboard Pages ── */
+
+.dashboard-page {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.dashboard-page img,
+.dashboard-page table,
+.dashboard-page pre,
+.dashboard-page code {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Fix section headers inside evidence pages */
+.dashboard-page .section-header.mt-16 {
   margin-top: 0;
 }
 
-.dashboard-evidence-row .political-section,
-.dashboard-evidence-row .secondary-evidence {
-  display: grid;
-  align-content: start;
-}
-
-.dashboard-evidence-row .political-card,
-.dashboard-evidence-row .evidence-panel {
+.dashboard-page .political-card,
+.dashboard-page .evidence-panel {
   min-height: 100%;
 }
 
-@media (max-width: 900px) {
-  .company-briefing-grid {
-    grid-template-columns: 1fr;
-  }
+/* ── Responsive ── */
 
+@media (max-width: 900px) {
   .dashboard-evidence-row {
     grid-auto-columns: minmax(300px, 86vw);
   }
@@ -76,11 +74,7 @@
 
 @media (max-width: 640px) {
   .company-dashboard {
-    gap: 14px;
-  }
-
-  .company-briefing-grid {
-    gap: 14px;
+    gap: 8px;
   }
 
   .detail-pages-header {
