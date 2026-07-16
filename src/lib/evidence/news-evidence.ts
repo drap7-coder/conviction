@@ -1,4 +1,5 @@
 import { getMoveEvent, type MoveEvent, type MoveEventCategory, type MoveEventConfidence } from "./move-events";
+import { fetchRssNews } from "./news-rss";
 import type { EvidenceDirection, EvidenceEvent } from "./types";
 
 export type NewsEvidenceStatus = "success" | "empty" | "unsupported";
@@ -8,7 +9,7 @@ export interface NewsEvidenceSummary {
   status: NewsEvidenceStatus;
   events: EvidenceEvent[];
   fetchedAt: string;
-  source: "curated-material-news";
+  source: "curated-material-news" | "yahoo-finance-rss";
 }
 
 const MATERIAL_CATEGORIES = new Set<MoveEventCategory>([
@@ -83,7 +84,7 @@ export function moveEventToNewsEvidence(event: MoveEvent): EvidenceEvent[] {
   }];
 }
 
-export function getNewsEvidenceSummary(ticker: string, companyName?: string): NewsEvidenceSummary {
+export async function getNewsEvidenceSummary(ticker: string, companyName?: string): Promise<NewsEvidenceSummary> {
   const upperTicker = normalizeTicker(ticker);
   if (!upperTicker) {
     return {
@@ -95,12 +96,39 @@ export function getNewsEvidenceSummary(ticker: string, companyName?: string): Ne
     };
   }
 
-  const events = moveEventToNewsEvidence(getMoveEvent(upperTicker, companyName));
+  // 1. Try curated move events first (authoritative, hand-curated)
+  const curatedEvents = moveEventToNewsEvidence(getMoveEvent(upperTicker, companyName));
+  if (curatedEvents.length > 0) {
+    return {
+      ticker: upperTicker,
+      status: "success",
+      events: curatedEvents,
+      fetchedAt: new Date().toISOString(),
+      source: "curated-material-news",
+    };
+  }
+
+  // 2. Fall back to live RSS headlines from Yahoo Finance
+  try {
+    const rssEvents = await fetchRssNews(upperTicker, 5);
+    if (rssEvents.length > 0) {
+      return {
+        ticker: upperTicker,
+        status: "success",
+        events: rssEvents,
+        fetchedAt: new Date().toISOString(),
+        source: "yahoo-finance-rss",
+      };
+    }
+  } catch {
+    // RSS fetch failed, fall through to empty
+  }
+
   return {
     ticker: upperTicker,
-    status: events.length > 0 ? "success" : "empty",
-    events,
+    status: "empty",
+    events: [],
     fetchedAt: new Date().toISOString(),
-    source: "curated-material-news",
+    source: "yahoo-finance-rss",
   };
 }

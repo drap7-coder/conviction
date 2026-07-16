@@ -31,6 +31,7 @@ interface InsiderResponse {
 interface NewsEvidenceResponse {
   events: EvidenceEvent[];
   status?: "success" | "empty" | "unsupported" | "timeout" | "error";
+  source?: "curated-material-news" | "yahoo-finance-rss";
   message?: string;
 }
 
@@ -190,6 +191,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [insiderEvents, setInsiderEvents] = useState<EvidenceEvent[]>([]);
   const [politicalSummary, setPoliticalSummary] = useState<PoliticalResponse | null>(null);
   const [newsEvents, setNewsEvents] = useState<EvidenceEvent[]>([]);
+  const [newsSource, setNewsSource] = useState<string | null>(null);
   const [shortInterestSummary, setShortInterestSummary] = useState<ShortInterestResponse | null>(null);
   const [disclosureSummary, setDisclosureSummary] = useState<DisclosureResponse | null>(null);
   const [ownershipSummary, setOwnershipSummary] = useState<OwnershipResponse | null>(null);
@@ -250,7 +252,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           : null;
         const newsData = newsResult.status === "fulfilled"
           ? newsResult.value
-          : { events: [], status: classifyClientError(newsResult.reason) };
+          : { events: [], status: classifyClientError(newsResult.reason), source: undefined as string | undefined };
         const shortInterestData = shortInterestResult.status === "fulfilled"
           ? shortInterestResult.value
           : { latest: null, previous: null, status: classifyClientError(shortInterestResult.reason) };
@@ -270,6 +272,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           setInsiderEvents(insiderData.events ?? []);
           setPoliticalSummary(politicalData);
           setNewsEvents(newsData.events ?? []);
+          setNewsSource(newsData.source ?? null);
           setNewsStatus(
             newsData.status === "timeout" || newsData.status === "error" || newsData.status === "unsupported"
               ? newsData.status
@@ -384,8 +387,10 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
     : newsStatus === "timeout" || newsStatus === "error"
       ? "Material news evidence is temporarily unavailable."
       : materialNewsEvents.length > 0
-        ? `${materialNewsEvents.length} sourced material news event found.`
-        : "No material news events found.";
+        ? newsSource === "yahoo-finance-rss"
+          ? `${materialNewsEvents.length} recent headline${materialNewsEvents.length === 1 ? "" : "s"} from Yahoo Finance RSS.`
+          : `${materialNewsEvents.length} sourced material news event found.`
+        : "No recent headlines found.";
   const ownershipCopy = ownershipStatus === "loading" || ownershipStatus === "idle"
     ? "Checking SEC 13D and 13G filings."
     : ownershipStatus === "timeout" || ownershipStatus === "error"
@@ -605,7 +610,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                 <strong>{materialNewsCopy}</strong>
               </div>
               <span className="move-confidence move-confidence-inline">
-                {newsStatus === "loading" ? "Checking" : "Sourced only"}
+                {newsStatus === "loading" ? "Checking" : newsSource === "yahoo-finance-rss" ? "RSS" : "Sourced"}
               </span>
             </div>
             {materialNewsEvents.length > 0 ? (

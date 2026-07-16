@@ -1,4 +1,3 @@
-import { getNewsEvidenceSummary } from "./news-evidence";
 import { getTickerSignalSummary } from "./signal-summaries";
 import type { EvidenceDirection } from "./types";
 
@@ -106,19 +105,6 @@ export function getCardEvidence(entry: CardVerdictEntry, shortInterest?: CardVer
       supportCount: signal.supportCount ?? (direction === "positive" ? 1 : 0),
       contraCount: signal.contraCount ?? (direction === "negative" ? 1 : 0),
       provider: "SEC 13F",
-    });
-  }
-
-  for (const event of getNewsEvidenceSummary(entry.ticker, entry.companyName).events) {
-    evidence.push({
-      id: event.id,
-      text: event.summary,
-      date: event.date,
-      direction: event.direction,
-      strength: event.strength,
-      supportCount: event.direction === "positive" ? 1 : 0,
-      contraCount: event.isContradiction || event.direction === "negative" ? 1 : 0,
-      provider: event.metadata?.transactionClass ?? "Material news",
     });
   }
 

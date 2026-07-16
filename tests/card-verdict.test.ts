@@ -9,18 +9,18 @@ const baseEntry = {
 };
 
 describe("card verdict aggregation", () => {
-  it("aggregates 13F support and material news contradiction independently from the visible insight", () => {
+  it("aggregates 13F support and short interest contradiction independently from the visible insight", () => {
     const verdict = getCardVerdict({
       ...baseEntry,
-      ticker: "IBM",
-      companyName: "International Business Machines",
+      ticker: "INTC",
+      companyName: "Intel Corporation",
     }, { changePercent: -2 });
 
-    expect(verdict.state).toBe("Weakening");
-    expect(verdict.support).toBe(0);
-    expect(verdict.contra).toBe(1);
-    expect(verdict.insight).toContain("preliminary Q2 revenue");
-    expect(verdict.source).toBe("AP");
+    expect(verdict.state).toBe("Strengthening");
+    expect(verdict.support).toBe(3);
+    expect(verdict.contra).toBe(0);
+    expect(verdict.insight).toContain("2 new tracked-manager");
+    expect(verdict.source).toBe("SEC 13F");
   });
 
   it("uses explicit 13F evidence counts instead of parsing the display sentence", () => {

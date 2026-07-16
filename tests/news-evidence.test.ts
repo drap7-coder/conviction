@@ -3,8 +3,8 @@ import { getNewsEvidenceSummary, moveEventToNewsEvidence } from "@/lib/evidence/
 import type { MoveEvent } from "@/lib/evidence/move-events";
 
 describe("news evidence", () => {
-  it("converts a sourced IBM earnings warning into contradicting material evidence", () => {
-    const summary = getNewsEvidenceSummary("IBM");
+  it("converts a sourced IBM earnings warning into contradicting material evidence", async () => {
+    const summary = await getNewsEvidenceSummary("IBM");
 
     expect(summary.status).toBe("success");
     expect(summary.events).toHaveLength(1);
@@ -19,11 +19,22 @@ describe("news evidence", () => {
     expect(summary.events[0].strength).toBeGreaterThanOrEqual(0.8);
   });
 
-  it("does not create evidence from fallback no-catalyst events", () => {
-    const summary = getNewsEvidenceSummary("OXY", "Occidental Petroleum");
+  it("falls back to RSS for tickers without curated events", async () => {
+    const summary = await getNewsEvidenceSummary("OXY", "Occidental Petroleum");
 
-    expect(summary.status).toBe("empty");
-    expect(summary.events).toEqual([]);
+    // Should find RSS headlines for a major company
+    // If RSS fails (e.g. offline), it should still return "empty" gracefully
+    expect(["success", "empty"]).toContain(summary.status);
+    if (summary.status === "success") {
+      expect(summary.source).toBe("yahoo-finance-rss");
+      expect(summary.events.length).toBeGreaterThan(0);
+      expect(summary.events[0]).toMatchObject({
+        ticker: "OXY",
+        type: "material-news",
+        source: "publisher",
+      });
+      expect(summary.events[0].sourceUrl).toBeTruthy();
+    }
   });
 
   it("does not lower the bar for low-confidence or unsourced events", () => {

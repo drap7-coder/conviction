@@ -22,15 +22,16 @@ export async function GET(request: NextRequest) {
       status: "unsupported",
       events: [],
       fetchedAt: new Date().toISOString(),
-      source: "curated-material-news",
+      source: "yahoo-finance-rss",
     }, { status: 200 });
   }
 
   try {
-    return NextResponse.json(getNewsEvidenceSummary(
+    const summary = await getNewsEvidenceSummary(
       resolved.ticker,
       resolved.companyName ?? resolved.ticker,
-    ));
+    );
+    return NextResponse.json(summary);
   } catch {
     return NextResponse.json({
       ticker: resolved.ticker,
