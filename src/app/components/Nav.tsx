@@ -27,6 +27,7 @@ export function Nav() {
 
   const links = [
     { href: "/", label: "Watchlist" },
+    { href: "/industries", label: "Industries" },
     { href: "/rising", label: "Trending" },
     { href: "/activity", label: "Activity" },
   ];
