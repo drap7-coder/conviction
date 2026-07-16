@@ -1,0 +1,139 @@
+/* ── Company Dashboard Layout ── */
+
+.company-dashboard {
+  /* Desktop: no scroller, CSS grid. Mobile: scroller with snap panels. */
+}
+
+/* ── Dashboard Tabs (mobile only) ── */
+
+.dashboard-tabs {
+  display: none; /* hidden on desktop */
+}
+
+@media (max-width: 640px) {
+  .dashboard-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: color-mix(in srgb, var(--surface-elevated) 78%, transparent);
+  }
+
+  .dashboard-tab {
+    flex: 1 1 0;
+    min-height: 32px;
+    border-radius: calc(var(--radius) - 4px);
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
+  }
+
+  .dashboard-tab.active {
+    color: var(--ink);
+    background: var(--accent-dim);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 16%, transparent);
+  }
+
+  .dashboard-tab:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+/* ── Dashboard Scroller (mobile only) ── */
+
+@media (max-width: 640px) {
+  .dashboard-scroller {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+  }
+
+  .dashboard-scroller::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dashboard-panel {
+    flex: 0 0 calc(100vw - 3rem);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    min-height: 60vh;
+    padding-right: 1rem;
+  }
+
+  /* Next panel slightly visible */
+  .dashboard-panel:not(:last-child) {
+    margin-right: 0.5rem;
+  }
+
+  .dashboard-panel:last-child {
+    padding-right: 0;
+  }
+}
+
+/* ── Desktop Grid ── */
+
+@media (min-width: 641px) {
+  .company-dashboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .dashboard-panel {
+    min-width: 0;
+  }
+
+  .dashboard-panel[aria-label="conviction panel"] {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  .dashboard-panel[aria-label="market panel"] {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+  }
+
+  .dashboard-panel[aria-label="evidence panel"] {
+    grid-column: 1 / -1;
+    grid-row: 2 / 3;
+  }
+}
+
+/* ── Safe overflow ── */
+
+.dashboard-panel {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.dashboard-panel img,
+.dashboard-panel table,
+.dashboard-panel pre,
+.dashboard-panel code {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* ── Prevent page-level overflow ── */
+html {
+  overflow-x: hidden;
+}
+body {
+  overflow-x: hidden;
+}

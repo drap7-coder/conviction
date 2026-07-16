@@ -5,8 +5,10 @@ import { MoveExplanationSection } from "@/app/components/MoveExplanationSection"
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
+import { CompanyDashboard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
+import "@/app/dashboard.css";
 
 export async function generateStaticParams() {
   return SEED_WATCHLIST.map((entry) => ({ ticker: entry.ticker }));
@@ -37,18 +39,28 @@ export default async function CompanyPage({
         <TrackCompanyButton ticker={upperTicker} companyName={companyName} />
       </div>
 
-      <PriceTrendCard ticker={upperTicker} />
-      <MoveExplanationSection ticker={upperTicker} />
-      <PoliticalTradesSection ticker={upperTicker} />
-
-      <div className="secondary-evidence">
-        <div className="section-header mt-16">
-          <h2 className="section-title">Secondary signal</h2>
-          <span className="section-count">Form 4</span>
-        </div>
-        <InsiderActivitySection ticker={upperTicker} />
-      </div>
-
+      <CompanyDashboard
+        conviction={
+          <MoveExplanationSection ticker={upperTicker} />
+        }
+        market={
+          <>
+            <PriceTrendCard ticker={upperTicker} />
+          </>
+        }
+        evidence={
+          <>
+            <PoliticalTradesSection ticker={upperTicker} />
+            <div className="secondary-evidence">
+              <div className="section-header mt-16">
+                <h2 className="section-title">Secondary signal</h2>
+                <span className="section-count">Form 4</span>
+              </div>
+              <InsiderActivitySection ticker={upperTicker} />
+            </div>
+          </>
+        }
+      />
     </div>
   );
 }
