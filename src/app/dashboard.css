@@ -11,6 +11,12 @@
   min-width: 0;
 }
 
+/* ── Material news (always visible under chart) ── */
+
+.company-news {
+  min-width: 0;
+}
+
 /* ── Evidence Pages Header ── */
 
 .detail-pages-header {
@@ -22,8 +28,8 @@
 .dashboard-evidence-row {
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(360px, calc((100% - 18px) / 2));
-  gap: 18px;
+  grid-auto-columns: 75vw;
+  gap: 8px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
   padding: 2px 2px 18px;
@@ -59,8 +65,7 @@
   margin-top: 0;
 }
 
-.dashboard-page .political-card,
-.dashboard-page .evidence-panel {
+.dashboard-page .political-card {
   min-height: 100%;
 }
 
@@ -68,7 +73,7 @@
 
 @media (max-width: 900px) {
   .dashboard-evidence-row {
-    grid-auto-columns: minmax(300px, 86vw);
+    grid-auto-columns: 75vw;
   }
 }
 
@@ -83,8 +88,7 @@
   }
 
   .dashboard-evidence-row {
-    grid-auto-columns: minmax(280px, 88vw);
-    gap: 12px;
+    gap: 8px;
     margin-inline: -2px;
     padding-bottom: 14px;
   }

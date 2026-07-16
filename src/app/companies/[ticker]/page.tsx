@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
+import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
@@ -40,9 +41,8 @@ export default async function CompanyPage({
       </div>
 
       <CompanyDashboard
-        briefing={
-          <PriceTrendCard ticker={upperTicker} />
-        }
+        briefing={<PriceTrendCard ticker={upperTicker} />}
+        news={<MaterialNewsCard ticker={upperTicker} />}
       >
         <DashboardPage className="dashboard-page-conviction">
           <MoveExplanationSection ticker={upperTicker} />
