@@ -224,14 +224,10 @@ export default function RisingConvictionPage() {
   return (
     <div>
       <div className="section-header">
-        <h2 className="section-title">Trending</h2>
+        <h2 className="section-title">Daily idea flow</h2>
         <span className="section-count">
           {trendingStatus === "loading" || trendingStatus === "idle" ? "..." : `${trending.length} ideas`}
         </span>
-      </div>
-
-      <div className="leaderboard-brief">
-        <h1>Daily idea flow.</h1>
       </div>
 
       {addMessage ? (
