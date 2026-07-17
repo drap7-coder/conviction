@@ -3927,6 +3927,12 @@ details > summary::before {
     repeating-linear-gradient(90deg, transparent 0 31px, color-mix(in srgb, var(--border) 45%, transparent) 32px);
 }
 
+.knowledge-provider-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .knowledge-show-body {
   display: flex;
   flex-direction: column;
@@ -3946,6 +3952,14 @@ details > summary::before {
   font-size: 0.78rem;
   color: var(--muted);
   margin-bottom: 2px;
+}
+
+.knowledge-show-latest {
+  color: var(--ink);
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.4;
+  margin: 4px 0;
 }
 
 .knowledge-show-desc {

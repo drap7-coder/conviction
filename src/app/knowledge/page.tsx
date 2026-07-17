@@ -1,9 +1,48 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import type { KnowledgeItem } from "@/lib/knowledge/types";
+
 interface KnowledgeShow {
+  id: string;
   name: string;
   host: string;
   description: string;
   url: string;
   mark: string;
+}
+
+function KnowledgeArtwork({
+  url,
+  title,
+  mark,
+  kind,
+}: {
+  url?: string | null;
+  title: string;
+  mark: string;
+  kind: "AUDIO" | "LIBRARY";
+}) {
+  const [failed, setFailed] = useState(false);
+  if (url && !failed) {
+    return (
+      // Provider artwork hosts vary, so a native image is intentionally used.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={url}
+        alt={`${title} artwork`}
+        className="knowledge-provider-art"
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return (
+    <>
+      <span className="knowledge-art-kicker">CONVICTION / {kind}</span>
+      <span className="knowledge-art-mark">{mark}</span>
+      <span className="knowledge-art-title">{title}</span>
+    </>
+  );
 }
 
 interface KnowledgeBook {
@@ -16,6 +55,7 @@ interface KnowledgeBook {
 
 const SHOWS: KnowledgeShow[] = [
   {
+    id: "invest-like-the-best",
     name: "Invest Like the Best",
     host: "Patrick O'Shaughnessy",
     description:
@@ -24,6 +64,7 @@ const SHOWS: KnowledgeShow[] = [
     mark: "ILT",
   },
   {
+    id: "compound-and-friends",
     name: "Compound and Friends",
     host: "Josh Brown & Michael Batnick",
     description:
@@ -32,6 +73,7 @@ const SHOWS: KnowledgeShow[] = [
     mark: "C&F",
   },
   {
+    id: "we-study-billionaires",
     name: "We Study Billionaires",
     host: "Stig Brodersen, Preston Pysh & Clay Finck",
     description:
@@ -40,6 +82,7 @@ const SHOWS: KnowledgeShow[] = [
     mark: "WSB",
   },
   {
+    id: "the-acquirers-podcast",
     name: "The Acquirers Podcast",
     host: "Tobias Carlisle",
     description:
@@ -48,6 +91,7 @@ const SHOWS: KnowledgeShow[] = [
     mark: "AQ",
   },
   {
+    id: "capital-allocators",
     name: "Capital Allocators",
     host: "Ted Seides",
     description:
@@ -77,6 +121,20 @@ const BOOKS: KnowledgeBook[] = [
 ];
 
 export default function KnowledgePage() {
+  const [podcasts, setPodcasts] = useState<Record<string, KnowledgeItem>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/knowledge")
+      .then((response) => response.json())
+      .then((data: { items?: KnowledgeItem[] }) => {
+        if (cancelled) return;
+        setPodcasts(Object.fromEntries((data.items ?? []).map((item) => [item.id, item])));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <div className="knowledge-page">
       <div className="knowledge-header">
@@ -89,27 +147,36 @@ export default function KnowledgePage() {
         <h3 className="knowledge-section-title">Shows</h3>
         <div className="knowledge-show-grid">
           {SHOWS.map((show) => (
+            (() => {
+              const live = podcasts[show.id];
+              return (
             <a
               key={show.name}
-              href={show.url}
+              href={live?.latestItem?.canonicalUrl ?? live?.canonicalUrl ?? show.url}
               target="_blank"
               rel="noopener noreferrer"
               className="knowledge-show-card group"
             >
               <div className="knowledge-show-art-wrap">
-                <span className="knowledge-art-kicker">CONVICTION / AUDIO</span>
-                <span className="knowledge-art-mark">{show.mark}</span>
-                <span className="knowledge-art-title">{show.name}</span>
+                <KnowledgeArtwork url={live?.artworkUrl} title={show.name} mark={show.mark} kind="AUDIO" />
               </div>
               <div className="knowledge-show-body">
                 <span className="knowledge-show-name">{show.name}</span>
                 <span className="knowledge-show-host">{show.host}</span>
+                {live?.latestItem ? (
+                  <p className="knowledge-show-latest">
+                    Latest: {live.latestItem.title}
+                    {live.latestItem.duration ? ` · ${live.latestItem.duration}` : ""}
+                  </p>
+                ) : null}
                 <p className="knowledge-show-desc">{show.description}</p>
                 <span className="knowledge-show-action">
                   [LISTEN]
                 </span>
               </div>
             </a>
+              );
+            })()
           ))}
         </div>
       </div>
@@ -127,9 +194,7 @@ export default function KnowledgePage() {
               className="knowledge-book-card group"
             >
               <div className="knowledge-book-cover-wrap">
-                <span className="knowledge-art-kicker">CONVICTION / LIBRARY</span>
-                <span className="knowledge-art-mark">{book.mark}</span>
-                <span className="knowledge-art-title">{book.title}</span>
+                <KnowledgeArtwork title={book.title} mark={book.mark} kind="LIBRARY" />
               </div>
               <div className="knowledge-book-body">
                 <span className="knowledge-book-tag">Book</span>
