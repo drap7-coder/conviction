@@ -915,6 +915,18 @@ details > summary::before {
   border-radius: 6px;
 }
 
+.card-logo.sector-badge {
+  object-fit: none;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-logo.sector-badge svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .card-logo-card {
   width: 28px;
   height: 28px;
@@ -989,6 +1001,18 @@ details > summary::before {
   height: 36px;
   object-fit: contain;
   border-radius: 8px;
+}
+
+.detail-logo.sector-badge {
+  object-fit: none;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.detail-logo.sector-badge svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .card-ticker {
