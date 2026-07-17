@@ -73,7 +73,6 @@ export function TodayAndPeersCard({ ticker }: { ticker: string }) {
       <div className="today-peers-slot">
         <span className="move-eyebrow">Today</span>
         <strong>{ticker} {formatPercent(quote?.changePercent)}</strong>
-        <p>Separation from group pressure helps identify company-specific signals.</p>
       </div>
       <div className="today-peers-slot">
         <span className="move-eyebrow">Peers</span>
@@ -82,8 +81,8 @@ export function TodayAndPeersCard({ ticker }: { ticker: string }) {
             ? peerQuotes.map((pq) => `${pq.ticker} ${formatPercent(pq.changePercent)}`).join(" · ")
             : "Peer quotes unavailable"}
         </strong>
-        <p>Use this to separate company-specific moves from group pressure.</p>
       </div>
+      <p className="today-peers-explain">Separation from group pressure helps identify company-specific signals vs. broad market moves.</p>
     </div>
   );
 }

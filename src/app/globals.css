@@ -2807,6 +2807,36 @@ details > summary::before {
   margin-bottom: 2px;
 }
 
+.technical-state-stat .stat-verdict {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.technical-state-stat .stat-verdict.signal-positive { color: var(--green); }
+.technical-state-stat .stat-verdict.signal-negative { color: var(--red); }
+.technical-state-stat .stat-verdict.signal-neutral { color: var(--amber); }
+
+.technical-state-stat .stat-delta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  margin-top: 1px;
+}
+
+.technical-state-stat .stat-delta.signal-positive { color: var(--green); }
+.technical-state-stat .stat-delta.signal-negative { color: var(--red); }
+
+.technical-state-stat .stat-signal {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--quiet);
+  margin-top: 2px;
+}
+
 .technical-state-stat .stat-value {
   display: block;
   color: var(--ink);
@@ -2814,16 +2844,6 @@ details > summary::before {
   font-size: 0.85rem;
   font-weight: 600;
 }
-
-.technical-state-stat .stat-signal {
-  display: block;
-  font-size: 0.7rem;
-  margin-top: 1px;
-}
-
-.technical-state-stat .stat-signal.signal-positive { color: var(--green); }
-.technical-state-stat .stat-signal.signal-negative { color: var(--red); }
-.technical-state-stat .stat-signal.signal-neutral { color: var(--amber); }
 
 .price-chart-build {
   display: grid;

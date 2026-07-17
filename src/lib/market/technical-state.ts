@@ -16,12 +16,18 @@ export interface TechnicalState {
   sma50Relation: "above" | "below" | "equal" | null;
   /** Price relation to SMA-200 */
   sma200Relation: "above" | "below" | "equal" | null;
+  /** Percentage delta from current price to SMA-50 */
+  sma50Delta: number | null;
+  /** Percentage delta from current price to SMA-200 */
+  sma200Delta: number | null;
   /** Whether SMA-50 has crossed SMA-200 */
   smaCrossRelation: "golden-cross" | "death-cross" | "above" | "below" | "equal" | null;
   /** 0–100 percentile within 52-week range */
   fiftyTwoWeekPercentile: number | null;
   fiftyTwoWeekHigh: number | null;
   fiftyTwoWeekLow: number | null;
+  /** Short-term trend: % change over last 5 trading days */
+  shortTermTrend: number | null;
 }
 
 /**
@@ -69,10 +75,13 @@ export function deriveTechnicalState(
       sma200: null,
       sma50Relation: null,
       sma200Relation: null,
+      sma50Delta: null,
+      sma200Delta: null,
       smaCrossRelation: null,
       fiftyTwoWeekPercentile: null,
       fiftyTwoWeekHigh: fiftyTwoWeekHigh ?? null,
       fiftyTwoWeekLow: fiftyTwoWeekLow ?? null,
+      shortTermTrend: null,
     };
   }
 
@@ -131,6 +140,22 @@ export function deriveTechnicalState(
     }
   }
 
+  // SMA deltas: percentage difference from price to SMA
+  const sma50Delta = sma50 !== null && latestPrice !== null
+    ? ((latestPrice - sma50) / sma50) * 100
+    : null;
+  const sma200Delta = sma200 !== null && latestPrice !== null
+    ? ((latestPrice - sma200) / sma200) * 100
+    : null;
+
+  // Short-term trend: % change over last 5 trading days
+  let shortTermTrend: number | null = null;
+  if (closes.length >= 6) {
+    shortTermTrend = ((closes[closes.length - 1] - closes[closes.length - 6]) / closes[closes.length - 6]) * 100;
+  } else if (closes.length >= 2) {
+    shortTermTrend = ((closes[closes.length - 1] - closes[0]) / closes[0]) * 100;
+  }
+
   // Determine state label + interpretation
   let label: string;
   let interpretation: string;
@@ -159,6 +184,11 @@ export function deriveTechnicalState(
     } else {
       label = "Trend Lagging";
       interpretation = "Price is below both short-term and long-term moving averages. Downside momentum persists.";
+      if (shortTermTrend !== null && shortTermTrend > 0.5) {
+        interpretation += ` But short-term trend shows +${shortTermTrend.toFixed(1)}% over the last 5 trading days.`;
+      } else if (shortTermTrend !== null && shortTermTrend < -0.5) {
+        interpretation += ` Short-term trend confirms downside with ${shortTermTrend.toFixed(1)}% over the last 5 days.`;
+      }
     }
   } else {
     label = "Mixed Signal";
@@ -180,10 +210,13 @@ export function deriveTechnicalState(
     sma200,
     sma50Relation,
     sma200Relation,
+    sma50Delta,
+    sma200Delta,
     smaCrossRelation,
     fiftyTwoWeekPercentile,
     fiftyTwoWeekHigh,
     fiftyTwoWeekLow,
+    shortTermTrend,
   };
 }
 
