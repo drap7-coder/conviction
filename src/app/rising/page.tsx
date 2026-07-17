@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getCardVerdict } from "@/lib/evidence/card-verdict";
+import { getCardVerdict, getCardEvidence, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
+import type { WatchlistCardEvidencePill, WatchlistCardActivityLine } from "@/app/components/WatchlistCard";
 
 interface StockQuote {
   ticker: string;
@@ -72,20 +74,6 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
   }
 }
 
-function formatPrice(value: number | null) {
-  if (value === null) return "—";
-  return value.toLocaleString(undefined, {
-    maximumFractionDigits: value >= 100 ? 2 : 3,
-    minimumFractionDigits: value >= 1 ? 2 : 3,
-  });
-}
-
-function formatChange(value: number | null, percent: number | null) {
-  if (value === null || percent === null) return "Quote unavailable";
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)} · ${sign}${percent.toFixed(2)}%`;
-}
-
 function buildSparklinePath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
   const width = 240;
@@ -101,6 +89,21 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
     const y = padding + ((max - point.close) / spread) * (height - padding * 2);
     return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
   }).join(" ");
+}
+
+function buildEvidencePills(entry: CardVerdictEntry, quote?: StockQuote): WatchlistCardEvidencePill[] {
+  const pills: WatchlistCardEvidencePill[] = [];
+  const evidence = getCardEvidence(entry);
+
+  for (const item of evidence) {
+    if (item.provider === "SEC 13F") {
+      pills.push({ type: "13F", direction: item.direction === "positive" ? "positive" : item.direction === "negative" ? "negative" : "neutral" });
+    } else if (item.provider === "FINRA short interest") {
+      pills.push({ type: "SI", direction: item.direction === "positive" ? "positive" : "negative" });
+    }
+  }
+
+  return pills;
 }
 
 export default function RisingConvictionPage() {
@@ -236,7 +239,7 @@ export default function RisingConvictionPage() {
             </button>
           </div>
         ) : (
-          <div className="trending-grid">
+          <div className="terminal-grid">
             {trending.map((idea) => {
               const isTracked = trackedTickers.has(idea.ticker);
               const quote = idea.quote;
@@ -251,82 +254,97 @@ export default function RisingConvictionPage() {
                 ticker: idea.ticker,
                 companyName: idea.companyName,
                 addedAt: new Date().toISOString(),
-                status: "active",
+                status: "active" as const,
               }, quote);
               const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
+              const evidencePills = buildEvidencePills({
+                ticker: idea.ticker,
+                companyName: idea.companyName,
+                addedAt: new Date().toISOString(),
+                status: "active" as const,
+              }, quote);
+
+              const changeText = quote.change !== null && quote.changePercent !== null
+                ? (quote.change > 0 ? "+" : "") + quote.change.toFixed(2) + " (" + (quote.changePercent > 0 ? "+" : "") + quote.changePercent.toFixed(2) + "%)"
+                : null;
 
               return (
-                <div key={idea.ticker} className="company-card-wrap">
-                  <div className="company-card trending-card">
-                    <div className="card-header">
-                      <div>
-                        <span className="card-rank">#{idea.activityRank} trending</span>
-                        <span className="card-ticker">{idea.ticker}</span>
-                        <span className="card-name">{idea.companyName}</span>
+                <div key={idea.ticker} className="terminal-card-wrap group">
+                  <Link
+                    href={`/companies/${idea.ticker}`}
+                    className={"terminal-card terminal-card-" + verdict.tone}
+                  >
+                    <div className="terminal-card-header">
+                      <div className="terminal-card-header-left">
+                        <LogoDisplay ticker={idea.ticker} size="card" />
+                        <span className="terminal-card-ticker">{idea.ticker}</span>
                       </div>
-                      <span className="card-arrow" aria-hidden="true">→</span>
+                      <span className="terminal-card-price">
+                        {quote.price !== null ? "$" + quote.price.toLocaleString(undefined, {
+                          maximumFractionDigits: quote.price >= 100 ? 2 : 3,
+                          minimumFractionDigits: quote.price >= 1 ? 2 : 3,
+                        }) : "\u2014"}
+                      </span>
+                      <div className="terminal-card-conviction">
+                        <span className="terminal-card-score">{verdict.strength}</span>
+                        <span className="terminal-card-state">/ {verdict.state}</span>
+                      </div>
                     </div>
 
-                    <div className="card-quote">
-                      <span className="card-price">
-                        ${formatPrice(quote.price)}
-                      </span>
-                      <span className={`card-quote-change ${quoteDirection}`}>
-                        {formatChange(quote.change, quote.changePercent)}
-                      </span>
-                    </div>
-
-                    <div className={`trending-sparkline ${quoteDirection}`} aria-label={`${idea.ticker} intraday micro chart`}>
-                      {sparklinePath ? (
+                    {sparklinePath ? (
+                      <div className={"terminal-card-sparkline " + quoteDirection} aria-label={`${idea.ticker} intraday micro chart`}>
                         <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
                           <path className="sparkline-glow" d={sparklinePath} />
                           <path className="sparkline-line" d={sparklinePath} />
                         </svg>
-                      ) : (
-                        <span>Chart loading</span>
-                      )}
-                    </div>
-
-                    <div className={`card-verdict ${verdict.tone}`}>
-                      <div className="verdict-line">
-                        <span>Conviction: {verdict.state}</span>
-                        <strong>{verdict.strength}%</strong>
                       </div>
-                      <div className="verdict-meter" aria-hidden="true">
-                        <span style={{ width: `${verdict.strength}%` }} />
-                      </div>
-                      <div className="verdict-evidence">
-                        {idea.activityLabel} · {verdict.support} support · {verdict.contra} contra
-                      </div>
-                    </div>
+                    ) : (
+                      <div className="terminal-card-sparkline terminal-card-sparkline-empty" />
+                    )}
 
-                    <div className="card-implication">
-                      {verdict.insight}
-                    </div>
-
-                    <div className="card-recency">
-                      <span>Market activity today</span>
-                      <span>{verdict.source}</span>
-                    </div>
-
-                    <div className="card-actions">
-                      <Link href={`/companies/${idea.ticker}`} className="card-action primary">
-                        More detail
-                      </Link>
-                      {isTracked ? (
-                        <span className="card-action muted">Added</span>
-                      ) : (
-                        <button
-                          className="card-action add"
-                          disabled={addingTicker === idea.ticker}
-                          onClick={() => handleAddTrending(idea)}
-                          type="button"
+                    <div className="terminal-card-pills">
+                      {evidencePills.map((pill) => (
+                        <span
+                          key={pill.type}
+                          className={"terminal-card-pill terminal-card-pill-" + pill.type.toLowerCase() + " terminal-card-pill-" + pill.direction}
                         >
-                          {addingTicker === idea.ticker ? "Adding..." : "Add"}
-                        </button>
+                          {pill.type}
+                        </span>
+                      ))}
+                      {changeText && (
+                        <span className={"terminal-card-change " + (quoteDirection === "positive" ? "positive" : quoteDirection === "negative" ? "negative" : "")}>
+                          {changeText}
+                        </span>
                       )}
                     </div>
-                  </div>
+
+                    <div className="terminal-card-activity">
+                      <span className="terminal-card-activity-muted">#{idea.activityRank} trending · {idea.activityLabel}</span>
+                    </div>
+                  </Link>
+
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isTracked) handleAddTrending(idea);
+                    }}
+                    disabled={addingTicker === idea.ticker}
+                    title={isTracked ? "Already tracked" : "Add " + idea.ticker}
+                    className={"terminal-card-delete " + (isTracked ? "terminal-card-delete-added" : "")}
+                    aria-label={isTracked ? idea.ticker + " is tracked" : "Add " + idea.ticker}
+                  >
+                    {isTracked ? (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <line x1="12" y1="5" x2="12" y2="19" />
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                      </svg>
+                    )}
+                  </button>
                 </div>
               );
             })}

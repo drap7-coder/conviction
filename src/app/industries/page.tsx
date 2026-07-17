@@ -30,17 +30,6 @@ interface IndustriesResponse {
   fetchedAt: string;
 }
 
-function formatPrice(value: number | null) {
-  if (value === null) return "\u2014";
-  return "$" + value.toFixed(value >= 100 ? 2 : 2);
-}
-
-function formatChange(value: number | null, percent: number | null) {
-  if (value === null || percent === null) return "";
-  const sign = value > 0 ? "+" : "";
-  return sign + value.toFixed(2) + " \u00b7 " + sign + percent.toFixed(2) + "%";
-}
-
 function buildSparklinePath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
   const width = 240;
@@ -57,10 +46,15 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
   }).join(" ");
 }
 
+function formatChange(value: number | null, percent: number | null) {
+  if (value === null || percent === null) return null;
+  const sign = value > 0 ? "+" : "";
+  return sign + value.toFixed(2) + " (" + sign + percent.toFixed(2) + "%)";
+}
+
 export default function IndustriesPage() {
   const [sectors, setSectors] = useState<SectorCard[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
-  const [batchNews, setBatchNews] = useState<Record<string, { headline: string | null; url: string | null }>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -87,33 +81,6 @@ export default function IndustriesPage() {
     return () => { cancelled = true; controller.abort(); };
   }, []);
 
-  // Fetch batch news for sector tickers
-  useEffect(() => {
-    if (sectors.length === 0) return;
-    let cancelled = false;
-
-    async function loadNews() {
-      const tickers = sectors.map((s) => s.ticker).join(",");
-      try {
-        const res = await fetch("/api/evidence/news-batch?tickers=" + encodeURIComponent(tickers));
-        if (!res.ok) return;
-        const data = await res.json() as { news: Record<string, { headline: string | null; url: string | null; date: string | null }> };
-        if (!cancelled) {
-          const newsMap: Record<string, { headline: string | null; url: string | null }> = {};
-          for (const [t, n] of Object.entries(data.news)) {
-            newsMap[t] = { headline: n?.headline ?? null, url: n?.url ?? null };
-          }
-          setBatchNews(newsMap);
-        }
-      } catch {
-        // silent degradation
-      }
-    }
-
-    void loadNews();
-    return () => { cancelled = true; };
-  }, [sectors]);
-
   return (
     <div>
       <div className="section-header">
@@ -137,7 +104,7 @@ export default function IndustriesPage() {
             <small>Market data provider may be rate-limited. Retry in a moment.</small>
           </div>
         ) : (
-          <div className="industries-grid">
+          <div className="terminal-grid">
             {sectors.map((sector) => {
               const quote = sector.quote;
               const quoteDirection = !quote || !quote.change
@@ -146,99 +113,53 @@ export default function IndustriesPage() {
                   ? "positive"
                   : "negative";
               const sparklinePath = buildSparklinePath(sector.sparkline);
-              const isPositive = quoteDirection === "positive";
+              const changeText = formatChange(quote?.change ?? null, quote?.changePercent ?? null);
 
               return (
-                <div
-                  key={sector.ticker}
-                  className="industry-card-link"
-                  onClick={() => { window.location.href = "/industries/" + sector.ticker; }}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter") window.location.href = "/industries/" + sector.ticker; }}
-                >
-                <div className="industry-card">
-                  <div className="card-header">
-                    <div className="card-header-left">
-                      <LogoDisplay ticker={sector.ticker} size="card" />
-                      <div>
-                        <span className="card-ticker">{sector.ticker}</span>
-                        <span className="card-name">{sector.name}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="card-quote">
-                    <span className="card-price">
-                      {quote ? formatPrice(quote.price) : "Quote pending"}
-                    </span>
-                    <span className={"card-quote-change " + quoteDirection}>
-                      {quote ? formatChange(quote.change, quote.changePercent) : "Loading"}
-                    </span>
-                  </div>
-
-                  <div
-                    className={"trending-sparkline " + (isPositive ? "positive" : "negative")}
-                    aria-label={sector.ticker + " intraday chart"}
+                <div key={sector.ticker} className="terminal-card-wrap group">
+                  <Link
+                    href={"/industries/" + sector.ticker}
+                    className="terminal-card"
                   >
-                    {sparklinePath ? (
-                      <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                        <path className="sparkline-glow" d={sparklinePath} />
-                        <path className="sparkline-line" d={sparklinePath} />
-                      </svg>
-                    ) : (
-                      <span>Chart loading</span>
-                    )}
-                  </div>
-
-                  <p className="industry-description">{sector.description}</p>
-
-                  <div className="industry-news-footer">
-                    {batchNews[sector.ticker]?.headline ? (
-                      <a
-                        href={batchNews[sector.ticker].url || "#"}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="industry-news-link"
-                        title={batchNews[sector.ticker].headline ?? undefined}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {batchNews[sector.ticker].headline}
-                      </a>
-                    ) : (
-                      <span className="industry-news-empty">{sector.ticker} — sector ETF</span>
-                    )}
-                  </div>
-
-                  <div className="industry-reps">
-                    <span className="industry-reps-label">Representative</span>
-                    <div className="industry-rep-tickers">
-                      {sector.representativeQuotes.map((rq) => {
-                        const rqDirection = !rq.change
-                          ? "neutral"
-                          : rq.change > 0
-                            ? "positive"
-                            : "negative";
-                        return (
-                          <Link
-                            key={rq.ticker}
-                            href={"/companies/" + rq.ticker}
-                            className={"industry-rep-chip " + rqDirection}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {rq.ticker}
-                            <span className="industry-rep-change">
-                              {rq.changePercent !== null
-                                ? (rq.changePercent > 0 ? "+" : "") + rq.changePercent.toFixed(1) + "%"
-                                : "\u2014"}
-                            </span>
-                          </Link>
-                        );
-                      })}
+                    <div className="terminal-card-header">
+                      <div className="terminal-card-header-left">
+                        <LogoDisplay ticker={sector.ticker} size="card" />
+                        <span className="terminal-card-ticker">{sector.ticker}</span>
+                      </div>
+                      <span className="terminal-card-price">
+                        {quote?.price !== null && quote?.price !== undefined ? "$" + quote.price.toFixed(2) : "\u2014"}
+                      </span>
+                      <span className="terminal-card-conviction">
+                        <span className="terminal-card-score">{sector.name}</span>
+                      </span>
                     </div>
-                  </div>
+
+                    {sparklinePath ? (
+                      <div className={"terminal-card-sparkline " + quoteDirection} aria-label={sector.ticker + " intraday chart"}>
+                        <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
+                          <path className="sparkline-glow" d={sparklinePath} />
+                          <path className="sparkline-line" d={sparklinePath} />
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="terminal-card-sparkline terminal-card-sparkline-empty" />
+                    )}
+
+                    <div className="terminal-card-pills">
+                      {changeText && (
+                        <span className={"terminal-card-change " + (quoteDirection === "positive" ? "positive" : quoteDirection === "negative" ? "negative" : "")}>
+                          {changeText}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="terminal-card-activity">
+                      <span className="terminal-card-activity-muted">
+                        {sector.representativeTickers.slice(0, 4).join(", ")}
+                      </span>
+                    </div>
+                  </Link>
                 </div>
-              </div>
               );
             })}
           </div>

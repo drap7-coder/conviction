@@ -913,6 +913,52 @@ details > summary::before {
   display: none;
 }
 
+.terminal-card-sparkline.positive .sparkline-line {
+  stroke: var(--green);
+}
+
+.terminal-card-sparkline.positive .sparkline-glow {
+  stroke: var(--green);
+}
+
+.terminal-card-sparkline.negative .sparkline-line {
+  stroke: var(--red);
+}
+
+.terminal-card-sparkline.negative .sparkline-glow {
+  stroke: var(--red);
+}
+
+/* ── Terminal Card Conviction State ── */
+
+.terminal-card-positive .terminal-card-score {
+  color: var(--green);
+}
+
+.terminal-card-positive .terminal-card-state {
+  color: color-mix(in srgb, var(--green) 70%, var(--muted));
+}
+
+.terminal-card-negative .terminal-card-score {
+  color: var(--red);
+}
+
+.terminal-card-negative .terminal-card-state {
+  color: color-mix(in srgb, var(--red) 70%, var(--muted));
+}
+
+.terminal-card-contested .terminal-card-score {
+  color: var(--amber);
+}
+
+.terminal-card-contested .terminal-card-state {
+  color: color-mix(in srgb, var(--amber) 70%, var(--muted));
+}
+
+.terminal-card-quiet .terminal-card-score {
+  color: var(--muted);
+}
+
 /* ── Terminal Card Evidence Pills ── */
 
 .terminal-card-pills {
@@ -1046,6 +1092,11 @@ details > summary::before {
   .terminal-card-delete {
     opacity: 0.6;
   }
+}
+
+.terminal-card-delete-added {
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  color: var(--green);
 }
 
 /* ── Terminal Grid ── */
