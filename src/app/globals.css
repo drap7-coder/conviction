@@ -131,7 +131,8 @@ details > summary::before {
   left: 0;
   z-index: var(--ticker-z);
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 180px));
+  justify-content: center;
   height: var(--ticker-height);
   overflow: hidden;
   border-top: 1px solid var(--border);
@@ -3588,6 +3589,10 @@ details > summary::before {
 /* ── Responsive ── */
 
 @media (max-width: 640px) {
+  .market-ticker {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .app-shell {
     padding: 12px 12px calc(var(--ticker-height) + 8px + env(safe-area-inset-bottom));
   }
