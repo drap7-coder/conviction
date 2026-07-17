@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
-import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine } from "@/app/components/WatchlistCard";
+import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
 
 interface WatchlistEntry {
   id?: string;
@@ -131,6 +131,7 @@ function buildActivityLine(recency: string, insight: string, source: string): Wa
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
+  const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
@@ -225,6 +226,47 @@ export default function WatchlistPage() {
     void loadQuotes();
     return () => {
       cancelled = true;
+    };
+  }, [entries]);
+
+  useEffect(() => {
+    if (entries.length === 0) {
+      setHeadlines({});
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadHeadlines() {
+      const batches = Array.from(
+        { length: Math.ceil(entries.length / 10) },
+        (_, index) => entries.slice(index * 10, index * 10 + 10),
+      );
+      const responses = await Promise.all(batches.map((batch) =>
+        fetchJsonWithTimeout<{
+          news?: Record<string, { headlines?: WatchlistCardHeadline[] }>;
+        }>(
+          `/api/evidence/news-batch?tickers=${batch.map((entry) => entry.ticker).join(",")}`,
+          10_000,
+          controller.signal,
+        ).catch(() => ({ news: {} })),
+      ));
+      if (cancelled) return;
+
+      const nextHeadlines: Record<string, WatchlistCardHeadline[]> = {};
+      for (const response of responses) {
+        const news = response.news as Record<string, { headlines?: WatchlistCardHeadline[] }> | undefined;
+        for (const [ticker, item] of Object.entries(news ?? {})) {
+          nextHeadlines[ticker] = item.headlines ?? [];
+        }
+      }
+      setHeadlines(nextHeadlines);
+    }
+
+    void loadHeadlines();
+    return () => {
+      cancelled = true;
+      controller.abort();
     };
   }, [entries]);
 
@@ -434,6 +476,7 @@ export default function WatchlistPage() {
                 convictionTone={verdict.tone}
                 evidencePills={evidencePills}
                 activityLine={activityLine}
+                headlines={headlines[entry.ticker] ?? []}
                 sparklinePath={sparklinePath}
                 sparklineDirection={quoteDirection}
                 onRemove={handleRemove}

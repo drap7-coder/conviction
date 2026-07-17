@@ -30,6 +30,13 @@ interface IndustriesResponse {
   fetchedAt: string;
 }
 
+interface IndustryHeadline {
+  headline: string;
+  url: string | null;
+  date: string;
+  ticker: string;
+}
+
 function buildSparklinePath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
   const width = 320;
@@ -48,6 +55,7 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
 
 export default function IndustriesPage() {
   const [sectors, setSectors] = useState<SectorCard[]>([]);
+  const [headlines, setHeadlines] = useState<Record<string, IndustryHeadline[]>>({});
   const [status, setStatus] = useState<EvidenceStatus>("idle");
 
   useEffect(() => {
@@ -65,6 +73,41 @@ export default function IndustriesPage() {
         if (!cancelled) {
           setSectors(data.sectors);
           setStatus(data.sectors.length > 0 ? "success" : "empty");
+
+          const leaderTickers = [...new Set(
+            data.sectors.flatMap((sector) => sector.representativeTickers.slice(0, 4)),
+          )];
+          const batches = Array.from(
+            { length: Math.ceil(leaderTickers.length / 10) },
+            (_, index) => leaderTickers.slice(index * 10, index * 10 + 10),
+          );
+          const responses = await Promise.all(batches.map((batch) =>
+            fetchJsonWithTimeout<{
+              news?: Record<string, { headlines?: Omit<IndustryHeadline, "ticker">[] }>;
+            }>(
+              `/api/evidence/news-batch?tickers=${batch.join(",")}`,
+              10_000,
+              controller.signal,
+            ).catch(() => ({ news: {} })),
+          ));
+          if (!cancelled) {
+            const leaderHeadlines: Record<string, IndustryHeadline[]> = {};
+            for (const response of responses) {
+              const news = response.news as Record<string, { headlines?: Omit<IndustryHeadline, "ticker">[] }> | undefined;
+              for (const [ticker, item] of Object.entries(news ?? {})) {
+                leaderHeadlines[ticker] = (item.headlines ?? []).map((headline) => ({ ...headline, ticker }));
+              }
+            }
+            const nextHeadlines: Record<string, IndustryHeadline[]> = {};
+            for (const sector of data.sectors) {
+              nextHeadlines[sector.ticker] = sector.representativeTickers
+                .slice(0, 4)
+                .flatMap((ticker) => leaderHeadlines[ticker] ?? [])
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .slice(0, 3);
+            }
+            setHeadlines(nextHeadlines);
+          }
         }
       } catch {
         if (!cancelled) setStatus("error");
@@ -107,6 +150,7 @@ export default function IndustriesPage() {
                   ? "positive"
                   : "negative";
               const sparklinePath = buildSparklinePath(sector.sparkline);
+              const sectorHeadlines = headlines[sector.ticker] ?? [];
               return (
                 <div key={sector.ticker} className="terminal-card-wrap group">
                   <Link
@@ -143,7 +187,17 @@ export default function IndustriesPage() {
                       </div>
                     ) : null}
 
-                    <p className="watchlist-row-driver">{sector.description}</p>
+                    {sectorHeadlines.length > 0 ? (
+                      <ol className="summary-headlines" aria-label={`${sector.ticker} recent headlines`}>
+                        {sectorHeadlines.slice(0, 3).map((item) => (
+                          <li key={`${item.ticker}-${item.date}-${item.headline}`}>
+                            <span><b>{item.ticker}</b> · {item.headline}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="watchlist-row-driver">Recent headlines unavailable.</p>
+                    )}
                     <div className="watchlist-row-evidence">
                       <span className="watchlist-row-evidence-item"><b>Leaders</b> · {sector.representativeTickers.slice(0, 4).join(", ")}</span>
                     </div>

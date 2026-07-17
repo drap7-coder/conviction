@@ -16,6 +16,12 @@ export interface WatchlistCardActivityLine {
   source?: string;
 }
 
+export interface WatchlistCardHeadline {
+  headline: string;
+  url: string | null;
+  date: string;
+}
+
 export interface WatchlistCardProps {
   ticker: string;
   companyName: string;
@@ -26,6 +32,7 @@ export interface WatchlistCardProps {
   convictionTone: string;
   evidencePills: WatchlistCardEvidencePill[];
   activityLine: WatchlistCardActivityLine | null;
+  headlines: WatchlistCardHeadline[];
   sparklinePath: string;
   sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
@@ -59,6 +66,7 @@ export function WatchlistCard({
   convictionTone,
   evidencePills,
   activityLine,
+  headlines,
   sparklinePath,
   sparklineDirection,
   onRemove,
@@ -166,12 +174,20 @@ export function WatchlistCard({
             </div>
           ) : null}
 
-          <p className="watchlist-row-driver">
-            {activityLine?.source ? (
-              <span className="watchlist-row-driver-source">{activityLine.source}</span>
-            ) : null}
-            {activityLine?.text ?? "No material evidence change detected yet."}
-          </p>
+          {headlines.length > 0 ? (
+            <ol className="summary-headlines" aria-label={`${ticker} recent headlines`}>
+              {headlines.slice(0, 3).map((item) => (
+                <li key={`${item.date}-${item.headline}`}>{item.headline}</li>
+              ))}
+            </ol>
+          ) : (
+            <p className="watchlist-row-driver">
+              {activityLine?.source ? (
+                <span className="watchlist-row-driver-source">{activityLine.source}</span>
+              ) : null}
+              {activityLine?.text ?? "Recent headlines unavailable."}
+            </p>
+          )}
 
           {supportingEvidence.length > 0 && (
             <div className="watchlist-row-evidence">
@@ -187,7 +203,7 @@ export function WatchlistCard({
             </div>
           )}
 
-          {activityLine ? (
+          {activityLine && headlines.length === 0 ? (
             <span className="watchlist-row-recency">Updated {activityLine.timestamp}</span>
           ) : null}
         </Link>

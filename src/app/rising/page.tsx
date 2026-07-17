@@ -311,7 +311,7 @@ export default function RisingConvictionPage() {
                     ) : null}
 
                     {ideaHeadlines.length > 0 ? (
-                      <ol className="trending-headlines" aria-label={`${idea.ticker} recent headlines`}>
+                      <ol className="summary-headlines" aria-label={`${idea.ticker} recent headlines`}>
                         {ideaHeadlines.slice(0, 3).map((item) => (
                           <li key={`${item.date}-${item.headline}`}>{item.headline}</li>
                         ))}

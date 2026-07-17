@@ -768,7 +768,7 @@ details > summary::before {
   line-height: 1.4;
 }
 
-.trending-headlines {
+.summary-headlines {
   display: grid;
   gap: 5px;
   margin: 0;
@@ -779,13 +779,13 @@ details > summary::before {
   list-style: none;
 }
 
-.trending-headlines li {
+.summary-headlines li {
   display: grid;
   grid-template-columns: 12px minmax(0, 1fr);
   gap: 3px;
 }
 
-.trending-headlines li::before {
+.summary-headlines li::before {
   color: var(--accent);
   content: "•";
 }
