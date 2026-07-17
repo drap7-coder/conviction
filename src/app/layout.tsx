@@ -4,6 +4,7 @@ import "./globals.css";
 import { BottomTicker } from "@/app/components/BottomTicker";
 import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
 import { Nav } from "@/app/components/Nav";
+import { MarketTicker } from "@/app/components/MarketTicker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -91,6 +92,7 @@ export default function RootLayout({
               <WatchlistSettingsMenu />
             </div>
           </header>
+          <MarketTicker />
           {children}
         </div>
         <BottomTicker />

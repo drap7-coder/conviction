@@ -62,7 +62,7 @@ interface YahooChartResponse {
 }
 
 function normalizeTicker(ticker: string) {
-  return ticker.trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+  return ticker.trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "");
 }
 
 function toFiniteNumber(value: unknown): number | null {
