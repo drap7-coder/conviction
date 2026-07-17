@@ -156,12 +156,12 @@ export function WatchlistCard({
 
           {sparklinePath ? (
             <div
-              className={`watchlist-row-chart terminal-card-sparkline ${sparklineDirection}`}
+              className={`watchlist-row-chart price-chart ${sparklineDirection}`}
               aria-label={`${ticker} intraday chart`}
             >
-              <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                <path className="sparkline-glow" d={sparklinePath} />
-                <path className="sparkline-line" d={sparklinePath} />
+              <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
+                <path className="price-chart-glow" d={sparklinePath} />
+                <path className="price-chart-line" d={sparklinePath} />
               </svg>
               <span>Today</span>
             </div>

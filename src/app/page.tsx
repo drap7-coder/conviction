@@ -36,9 +36,9 @@ const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
 
 function buildSparklinePath(points: Array<{ close: number }>) {
   if (points.length < 2) return "";
-  const width = 240;
-  const height = 42;
-  const padding = 3;
+  const width = 320;
+  const height = 96;
+  const padding = 6;
   const closes = points.map((point) => point.close);
   const min = Math.min(...closes);
   const max = Math.max(...closes);
