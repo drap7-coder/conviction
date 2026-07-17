@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import type { WatchlistEntry, ThesisStatus } from "@/lib/watchlist/types";
-import { getPriorityReviewItems, type PriorityReviewItem } from "@/lib/watchlist/priority-review";
+import { getPriorityReviewItems, type PriorityReviewItem, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
 
 interface NeedsYourAttentionProps {
   entries: WatchlistEntry[];
@@ -12,7 +12,9 @@ interface NeedsYourAttentionProps {
 
 export function NeedsYourAttention({ entries, now = new Date() }: NeedsYourAttentionProps) {
   const priorityItems = useMemo(() => {
-    return getPriorityReviewItems(entries, now);
+    // Normalize entries to ensure thesis fields are present with defaults
+    const normalizedEntries = entries.map(normalizeEntryForThesis);
+    return getPriorityReviewItems(normalizedEntries, now);
   }, [entries, now]);
 
   if (priorityItems.length === 0) {

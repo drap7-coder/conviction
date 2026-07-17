@@ -8,6 +8,7 @@ import { MultiVectorSummary } from "@/app/components/MultiVectorSummary";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
+import { ThesisTracker } from "@/app/components/ThesisTracker";
 import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
@@ -76,6 +77,7 @@ export default async function CompanyPage({
             <ConvictionHeader ticker={upperTicker} companyName={companyName} />
             <MultiVectorSummary ticker={upperTicker} />
             <MarketPanel ticker={upperTicker} />
+            <ThesisTracker ticker={upperTicker} companyName={companyName} />
           </>
         }
       >

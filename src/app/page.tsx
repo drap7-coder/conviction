@@ -1,23 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
-
-interface WatchlistEntry {
-  id?: string;
-  ticker: string;
-  companyName: string;
-  cik?: string;
-  note?: string;
-  addedAt: string;
-  lastSyncedAt?: string;
-  status: "active" | "unsupported" | "error";
-  statusMessage?: string;
-}
+import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
+import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
+import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
+import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
 
 interface StockQuote {
   ticker: string;
@@ -33,6 +25,11 @@ interface StockQuote {
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
+
+// Extend WatchlistEntry to include optional thesis field from localStorage
+interface WatchlistEntryWithThesis extends WatchlistEntry {
+  thesis?: WatchlistThesis;
+}
 
 function buildSparklinePath(points: Array<{ close: number }>) {
   if (points.length < 2) return "";
@@ -129,7 +126,7 @@ function buildActivityLine(recency: string, insight: string, source: string): Wa
 }
 
 export default function WatchlistPage() {
-  const [entries, setEntries] = useState<WatchlistEntry[]>([]);
+  const [entries, setEntries] = useState<WatchlistEntryWithThesis[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
@@ -353,6 +350,10 @@ export default function WatchlistPage() {
     setRemoving(ticker);
     const nextEntries = entries.filter((entry) => entry.ticker !== ticker);
     setEntries(nextEntries);
+
+    // Remove thesis data from localStorage when removing from guest watchlist
+    removeGuestThesis(ticker);
+
     if (!authenticated) {
       writeBrowserWatchlist(nextEntries);
       setRemoving(null);
@@ -382,6 +383,15 @@ export default function WatchlistPage() {
     return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
   });
 
+  // Get entries with normalized thesis for NeedsYourAttention
+  const entriesForAttention = useMemo(() => {
+    return entries.map(normalizeEntryForThesis);
+  }, [entries]);
+
+  const priorityItems = useMemo(() => {
+    return getPriorityReviewItems(entriesForAttention);
+  }, [entriesForAttention]);
+
   return (
     <div>
       <div className="watchlist-header">
@@ -393,6 +403,8 @@ export default function WatchlistPage() {
           </span>
         </div>
       </div>
+
+      <NeedsYourAttention entries={entriesForAttention} />
 
       <GuestModeBanner
         authenticated={authenticated}

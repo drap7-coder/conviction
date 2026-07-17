@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
+import { getGuestThesis, saveGuestThesis, normalizeThesis } from "@/lib/watchlist/guest-persistence";
 
 interface ThesisTrackerProps {
   ticker: string;
   companyName: string;
-  thesis?: WatchlistThesis;
-  onSave: (thesis: WatchlistThesis) => Promise<{ success: boolean; error?: string }>;
 }
 
 const THESIS_LENGTH_LIMIT = 1000;
@@ -20,40 +19,35 @@ const STATUS_LABELS: Record<ThesisStatus, string> = {
   broken: "Broken",
 };
 
-export function ThesisTracker({ ticker, companyName, thesis, onSave }: ThesisTrackerProps) {
-  const [localThesis, setLocalThesis] = useState<WatchlistThesis>(
-    thesis ?? {
-      thesis: "",
-      invalidation: "",
-      reviewAt: null,
-      status: "building",
-    },
-  );
+export function ThesisTracker({ ticker, companyName }: ThesisTrackerProps) {
+  const [localThesis, setLocalThesis] = useState<WatchlistThesis>(() => getDefaultThesis());
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [originalThesis, setOriginalThesis] = useState<WatchlistThesis | null>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const originalThesisRef = useRef<WatchlistThesis | null>(null);
 
-  // Sync local state when thesis prop changes
+  // Load thesis from localStorage on mount
   useEffect(() => {
-    if (thesis) {
-      setLocalThesis(thesis);
+    const loaded = getGuestThesis(ticker);
+    if (loaded) {
+      setLocalThesis(normalizeThesis(loaded));
+    } else {
+      setLocalThesis(getDefaultThesis());
     }
-  }, [thesis]);
+  }, [ticker]);
 
   const startEdit = () => {
-    setOriginalThesis(localThesis);
+    originalThesisRef.current = localThesis;
     setIsEditing(true);
     setHasUnsavedChanges(false);
     setSaveError(null);
   };
 
   const cancelEdit = () => {
-    if (originalThesis) {
-      setLocalThesis(originalThesis);
-      setOriginalThesis(null);
+    if (originalThesisRef.current) {
+      setLocalThesis(originalThesisRef.current);
+      originalThesisRef.current = null;
     }
     setIsEditing(false);
     setHasUnsavedChanges(false);
@@ -81,7 +75,7 @@ export function ThesisTracker({ ticker, companyName, thesis, onSave }: ThesisTra
     return text.slice(0, max);
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (isSaving) return;
 
     // Validate
@@ -98,23 +92,19 @@ export function ThesisTracker({ ticker, companyName, thesis, onSave }: ThesisTra
     setSaveError(null);
 
     try {
-      // Cancel any pending requests
-      abortControllerRef.current?.abort();
-      abortControllerRef.current = new AbortController();
-
-      const result = await onSave({
+      const success = saveGuestThesis(ticker, {
         thesis: truncateText(localThesis.thesis, THESIS_LENGTH_LIMIT),
         invalidation: truncateText(localThesis.invalidation, THESIS_LENGTH_LIMIT),
         reviewAt: localThesis.reviewAt,
         status: localThesis.status,
       });
 
-      if (result.success) {
+      if (success) {
         setIsEditing(false);
         setHasUnsavedChanges(false);
-        setOriginalThesis(null);
+        originalThesisRef.current = null;
       } else {
-        setSaveError(result.error ?? "Save failed");
+        setSaveError("Failed to save thesis");
       }
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Save failed");
@@ -236,4 +226,13 @@ export function ThesisTracker({ ticker, companyName, thesis, onSave }: ThesisTra
       )}
     </div>
   );
+}
+
+function getDefaultThesis(): WatchlistThesis {
+  return {
+    thesis: "",
+    invalidation: "",
+    reviewAt: null,
+    status: "building",
+  };
 }
