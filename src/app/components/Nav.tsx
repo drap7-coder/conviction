@@ -30,6 +30,7 @@ export function Nav() {
     { href: "/industries", label: "Industries" },
     { href: "/rising", label: "Trending" },
     { href: "/activity", label: "Activity" },
+    { href: "/knowledge", label: "Knowledge" },
   ];
 
   return (
