@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { KNOWLEDGE_BOOKS } from "@/lib/knowledge/catalog";
 import type { KnowledgeItem } from "@/lib/knowledge/types";
 
 interface KnowledgeShow {
@@ -43,14 +44,6 @@ function KnowledgeArtwork({
       <span className="knowledge-art-title">{title}</span>
     </>
   );
-}
-
-interface KnowledgeBook {
-  title: string;
-  author: string;
-  url: string;
-  description: string;
-  mark: string;
 }
 
 const SHOWS: KnowledgeShow[] = [
@@ -101,27 +94,8 @@ const SHOWS: KnowledgeShow[] = [
   },
 ];
 
-const BOOKS: KnowledgeBook[] = [
-  {
-    title: "Superforecasting",
-    author: "Philip Tetlock & Dan Gardner",
-    url: "https://www.amazon.com/Superforecasting-Science-Prediction-Philip-Tetlock/dp/0804136696",
-    description:
-      "The art and science of prediction. How to quantify uncertainty, weigh competing signals, and calibrate conviction — the theoretical bedrock of evidence-based investing.",
-    mark: "SF",
-  },
-  {
-    title: "The Outsiders",
-    author: "William N. Thorndike",
-    url: "https://www.amazon.com/Outsiders-Unconventional-Radically-Rational-Blueprint/dp/1422162672",
-    description:
-      "Eight unconventional CEOs and their radically rational approach to capital allocation. Essential reading for understanding the institutional signals your 13F data is tracking.",
-    mark: "OUT",
-  },
-];
-
 export default function KnowledgePage() {
-  const [podcasts, setPodcasts] = useState<Record<string, KnowledgeItem>>({});
+  const [items, setItems] = useState<Record<string, KnowledgeItem>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -129,7 +103,7 @@ export default function KnowledgePage() {
       .then((response) => response.json())
       .then((data: { items?: KnowledgeItem[] }) => {
         if (cancelled) return;
-        setPodcasts(Object.fromEntries((data.items ?? []).map((item) => [item.id, item])));
+        setItems(Object.fromEntries((data.items ?? []).map((item) => [item.id, item])));
       })
       .catch(() => {});
     return () => { cancelled = true; };
@@ -148,7 +122,7 @@ export default function KnowledgePage() {
         <div className="knowledge-show-grid">
           {SHOWS.map((show) => (
             (() => {
-              const live = podcasts[show.id];
+              const live = items[show.id];
               return (
             <a
               key={show.name}
@@ -185,28 +159,36 @@ export default function KnowledgePage() {
       <div className="knowledge-section">
         <h3 className="knowledge-section-title">Foundational books</h3>
         <div className="knowledge-book-grid">
-          {BOOKS.map((book) => (
+          {KNOWLEDGE_BOOKS.map((book) => {
+            const live = items[book.id];
+            return (
             <a
-              key={book.title}
-              href={book.url}
+              key={book.id}
+              href={live?.canonicalUrl ?? book.canonicalUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="knowledge-book-card group"
             >
               <div className="knowledge-book-cover-wrap">
-                <KnowledgeArtwork title={book.title} mark={book.mark} kind="LIBRARY" />
+                <KnowledgeArtwork
+                  url={live?.artworkUrl}
+                  title={live?.title ?? book.title}
+                  mark={book.mark}
+                  kind="LIBRARY"
+                />
               </div>
               <div className="knowledge-book-body">
                 <span className="knowledge-book-tag">Book</span>
-                <h3 className="knowledge-book-title">{book.title}</h3>
-                <p className="knowledge-book-author">{book.author}</p>
-                <p className="knowledge-book-desc">{book.description}</p>
+                <h3 className="knowledge-book-title">{live?.title ?? book.title}</h3>
+                <p className="knowledge-book-author">{live?.creator ?? book.creator}</p>
+                <p className="knowledge-book-desc">{live?.description ?? book.description}</p>
                 <span className="knowledge-book-action">
                   [READ ON AMAZON]
                 </span>
               </div>
             </a>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
