@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
-import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
+import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
-import { CardFooter } from "@/app/components/CardFooter";
-import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine } from "@/app/components/WatchlistCard";
 
 interface WatchlistEntry {
   id?: string;
@@ -79,20 +78,6 @@ function markBrowserWatchlistMigrated() {
   window.localStorage.setItem(WATCHLIST_MIGRATION_KEY, "1");
 }
 
-function formatPrice(value: number | null) {
-  if (value === null) return "—";
-  return value.toLocaleString(undefined, {
-    maximumFractionDigits: value >= 100 ? 2 : 3,
-    minimumFractionDigits: value >= 1 ? 2 : 3,
-  });
-}
-
-function formatChange(value: number | null, percent: number | null) {
-  if (value === null || percent === null) return "Quote unavailable";
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)} · ${sign}${percent.toFixed(2)}%`;
-}
-
 function buildSparklinePath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
   const width = 240;
@@ -110,11 +95,29 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
   }).join(" ");
 }
 
-function formatDollarVolume(value: number | null) {
-  if (value === null) return "";
-  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)}B vol`;
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)}M vol`;
-  return "";
+function buildEvidencePills(entry: CardVerdictEntry, shortInterest?: CardVerdictShortInterest): WatchlistCardEvidencePill[] {
+  const pills: WatchlistCardEvidencePill[] = [];
+  const evidence = getCardEvidence(entry, shortInterest);
+
+  for (const item of evidence) {
+    if (item.provider === "SEC 13F") {
+      pills.push({ type: "13F", direction: item.direction === "positive" ? "positive" : item.direction === "negative" ? "negative" : "neutral" });
+    } else if (item.provider === "FINRA short interest") {
+      pills.push({ type: "SI", direction: item.direction === "positive" ? "positive" : "negative" });
+    }
+  }
+
+  return pills;
+}
+
+function buildActivityLine(recency: string, insight: string): WatchlistCardActivityLine | null {
+  if (!insight || insight.startsWith("No high-conviction") || insight.startsWith("SEC coverage is limited")) {
+    return null;
+  }
+
+  // Shorten the insight to fit a single line
+  const short = insight.replace(/\.$/, "");
+  return { timestamp: recency.replace(" days ago", "d").replace(" day ago", "d").replace("today", "0d"), text: short };
 }
 
 export default function WatchlistPage() {
@@ -241,29 +244,6 @@ export default function WatchlistPage() {
     };
   }, [entries]);
 
-  // Consolidated batch news fetch (single request, not N+1)
-  const [batchNews, setBatchNews] = useState<Record<string, { headline: string | null; url: string | null; date: string | null }>>({});
-
-  useEffect(() => {
-    if (entries.length === 0) return;
-    let cancelled = false;
-
-    async function loadBatchNews() {
-      const tickers = entries.map((e) => e.ticker).join(",");
-      try {
-        const res = await fetch(`/api/evidence/news-batch?tickers=${encodeURIComponent(tickers)}`);
-        if (!res.ok) return;
-        const data = await res.json() as { news: Record<string, { headline: string | null; url: string | null; date: string | null }> };
-        if (!cancelled) setBatchNews(data.news);
-      } catch {
-        // Silent degradation — evidence footer shows without news
-      }
-    }
-
-    void loadBatchNews();
-    return () => { cancelled = true; };
-  }, [entries]);
-
   const handleAddValue = async (value?: string) => {
     const input = (value ?? addInput).trim();
     if (!input) return;
@@ -346,28 +326,6 @@ export default function WatchlistPage() {
     if (e.key === "Enter") handleAdd();
   };
 
-  const handleNoteChange = (ticker: string, note: string) => {
-    setEntries((current) =>
-      current.map((entry) => entry.ticker === ticker ? { ...entry, note } : entry),
-    );
-  };
-
-  const handleNoteBlur = async (ticker: string, note: string) => {
-    if (!authenticated) return;
-
-    try {
-      const res = await fetch(`/api/watchlist/${ticker}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note }),
-      });
-      const data = await res.json();
-      if (data.success) setEntries(data.entries);
-    } catch {
-      setAddMessage({ type: "error", text: `Could not save ${ticker} note` });
-    }
-  };
-
   const sortedEntries = [...entries].sort((a, b) => {
     const aVerdict = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
     const bVerdict = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
@@ -441,108 +399,39 @@ export default function WatchlistPage() {
           <small>Add a ticker above to track primary-source evidence.</small>
         </div>
       ) : (
-        <div className="watchlist-grid">
+        <div className="terminal-grid">
           {sortedEntries.map((entry) => {
-            const isLimited = entry.status !== "active";
             const quote = quotes[entry.ticker];
             const quoteDirection = quote?.change === null || quote?.change === undefined
               ? "neutral"
               : quote.change > 0
                 ? "positive"
                 : quote.change < 0
-                ? "negative"
-                : "neutral";
+                  ? "negative"
+                  : "neutral";
             const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
             const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
+            const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
+            const activityLine = buildActivityLine(verdict.recency, verdict.insight);
 
             return (
-              <div key={entry.ticker} className="company-card-wrap">
-                <div className={`company-card ${isLimited ? "limited" : ""}`}>
-                  <div className="card-header">
-                    <div className="card-header-left">
-                      <LogoDisplay ticker={entry.ticker} size="card" />
-                      <div>
-                        <span className="card-ticker">{entry.ticker}</span>
-                        <span className="card-name">{entry.companyName}</span>
-                      </div>
-                    </div>
-                    <span className="card-arrow" aria-hidden="true">→</span>
-                  </div>
-
-                  <div className="card-quote">
-                    <span className="card-price">
-                      {quote ? `$${formatPrice(quote.price)}` : "Quote pending"}
-                    </span>
-                    <span className={`card-quote-change ${quoteDirection}`}>
-                      {quote ? formatChange(quote.change, quote.changePercent) : "Market data loading"}
-                    </span>
-                  </div>
-
-                  <div className={`trending-sparkline ${quoteDirection}`} aria-label={`${entry.ticker} intraday micro chart`}>
-                    {sparklinePath ? (
-                      <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                        <path className="sparkline-glow" d={sparklinePath} />
-                        <path className="sparkline-line" d={sparklinePath} />
-                      </svg>
-                    ) : (
-                      <span>Chart loading</span>
-                    )}
-                  </div>
-
-                  <div className={`card-verdict ${verdict.tone}`}>
-                    <div className="verdict-line">
-                      <span>Conviction: {verdict.state}</span>
-                      <strong>{verdict.strength}%</strong>
-                    </div>
-                    <div className="verdict-meter" aria-hidden="true">
-                      <span style={{ width: `${verdict.strength}%` }} />
-                    </div>
-                    <div className="verdict-evidence">
-                      {formatDollarVolume(quote?.dollarVolume)}{formatDollarVolume(quote?.dollarVolume) ? " · " : ""}{verdict.support} support · {verdict.contra} contra
-                    </div>
-                  </div>
-
-                  <div className="card-implication">
-                    {verdict.insight}
-                  </div>
-
-                  <CardFooter
-                    ticker={entry.ticker}
-                    recency={verdict.recency}
-                    source={verdict.source}
-                    insight={verdict.insight}
-                    news={batchNews[entry.ticker]}
-                  />
-                </div>
-
-                <div className="card-actions">
-                  <Link href={`/companies/${entry.ticker}`} className="card-action primary">
-                    More detail
-                  </Link>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleRemove(entry.ticker);
-                    }}
-                    disabled={removing === entry.ticker}
-                    title={`Remove ${entry.ticker}`}
-                    className="card-action danger"
-                  >
-                    Remove
-                  </button>
-                </div>
-
-                {authenticated ? (
-                  <textarea
-                    className="watchlist-note"
-                    value={entry.note ?? ""}
-                    onChange={(e) => handleNoteChange(entry.ticker, e.target.value)}
-                    onBlur={(e) => handleNoteBlur(entry.ticker, e.target.value)}
-                    placeholder={`Private note on ${entry.ticker}`}
-                    rows={2}
-                  />
-                ) : null}
-              </div>
+              <WatchlistCard
+                key={entry.ticker}
+                ticker={entry.ticker}
+                companyName={entry.companyName}
+                price={quote?.price ?? null}
+                change={quote?.change ?? null}
+                changePercent={quote?.changePercent ?? null}
+                convictionScore={verdict.strength}
+                convictionState={verdict.state}
+                convictionTone={verdict.tone}
+                evidencePills={evidencePills}
+                activityLine={activityLine}
+                sparklinePath={sparklinePath}
+                sparklineDirection={quoteDirection}
+                onRemove={handleRemove}
+                isRemoving={removing === entry.ticker}
+              />
             );
           })}
         </div>

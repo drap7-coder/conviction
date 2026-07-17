@@ -224,12 +224,6 @@ details > summary::before {
 
 /* ── Watchlist Grid (replaces old carousel) ── */
 
-.watchlist-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 12px;
-}
-
 .trending-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -788,56 +782,39 @@ details > summary::before {
   margin-top: 16px;
 }
 
-.company-card-wrap {
+/* ── Terminal Card ── */
+
+.terminal-card-wrap {
   position: relative;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  scroll-snap-align: start;
 }
 
-.watchlist-note {
-  width: 100%;
-  min-height: 58px;
-  margin-top: 8px;
-  resize: vertical;
-  border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface-elevated) 72%, transparent);
-  color: var(--ink);
-  padding: 9px 10px;
-  font: 0.84rem/1.35 var(--font-sans);
-  outline: none;
-}
-
-.watchlist-note:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
-}
-
-.company-card {
+.terminal-card {
   position: relative;
   overflow: hidden;
   display: flex;
-  flex: 1;
   flex-direction: column;
+  gap: 10px;
   height: 100%;
-  min-height: 314px;
+  text-decoration: none;
+  color: inherit;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 74%, transparent), transparent 42%),
     var(--surface);
   border: 1px solid color-mix(in srgb, var(--border-active) 42%, var(--border));
   border-radius: var(--radius);
-  padding: 18px;
+  padding: 16px;
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
     0 14px 34px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(255, 255, 255, 0.018);
-  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition: all 0.2s;
   cursor: pointer;
 }
 
-.company-card::before {
+.terminal-card::before {
   content: "";
   position: absolute;
   inset: 0 0 auto 0;
@@ -849,40 +826,252 @@ details > summary::before {
   opacity: 0.72;
 }
 
-.company-card > * {
+.terminal-card > * {
   position: relative;
   z-index: 1;
 }
 
-.company-card:hover {
+.terminal-card:hover {
+  transform: translateY(-2px);
   border-color: var(--border-active);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), transparent 46%),
-    var(--surface-elevated);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent),
     0 18px 44px rgba(0, 0, 0, 0.28),
     0 0 0 1px var(--accent-dim);
-  transform: translateY(-2px);
 }
 
-.company-card.limited {
-  border-color: var(--amber-dim);
+/* ── Terminal Card Header ── */
+
+.terminal-card-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
 }
 
-.card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.card-header-left {
+.terminal-card-header-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
+}
+
+.terminal-card-ticker {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.terminal-card-price {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.terminal-card-conviction {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.terminal-card-score {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.terminal-card-state {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* ── Terminal Card Sparkline ── */
+
+.terminal-card-sparkline {
+  height: 36px;
+  margin: 0 -2px;
+}
+
+.terminal-card-sparkline svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.terminal-card-sparkline-empty {
+  display: none;
+}
+
+/* ── Terminal Card Evidence Pills ── */
+
+.terminal-card-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+}
+
+.terminal-card-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.terminal-card-pill-positive {
+  background: color-mix(in srgb, var(--positive) 16%, transparent);
+  color: var(--positive);
+  border: 1px solid color-mix(in srgb, var(--positive) 22%, transparent);
+}
+
+.terminal-card-pill-negative {
+  background: color-mix(in srgb, var(--negative) 16%, transparent);
+  color: var(--negative);
+  border: 1px solid color-mix(in srgb, var(--negative) 22%, transparent);
+}
+
+.terminal-card-pill-neutral {
+  background: color-mix(in srgb, var(--muted) 14%, transparent);
+  color: var(--muted);
+  border: 1px solid color-mix(in srgb, var(--muted) 16%, transparent);
+}
+
+.terminal-card-pill-contested {
+  background: color-mix(in srgb, var(--amber) 16%, transparent);
+  color: var(--amber);
+  border: 1px solid color-mix(in srgb, var(--amber) 22%, transparent);
+}
+
+/* ── Terminal Card Change Badge ── */
+
+.terminal-card-change {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.terminal-card-change.positive {
+  color: var(--positive);
+}
+
+.terminal-card-change.negative {
+  color: var(--negative);
+}
+
+/* ── Terminal Card Activity Line ── */
+
+.terminal-card-activity {
+  font-size: 0.74rem;
+  font-family: var(--font-mono);
+  color: var(--quiet);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+  min-height: 1.1em;
+  margin-top: auto;
+}
+
+.terminal-card-activity-ts {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.terminal-card-activity-sep {
+  color: var(--quiet);
+}
+
+.terminal-card-activity-text {
+  color: var(--quiet);
+}
+
+.terminal-card-activity-muted {
+  color: var(--quiet);
+  opacity: 0.6;
+}
+
+/* ── Terminal Card Delete Button ── */
+
+.terminal-card-delete {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--negative) 14%, transparent);
+  color: var(--negative);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
+  padding: 0;
+}
+
+.terminal-card-wrap:hover .terminal-card-delete {
+  opacity: 1;
+}
+
+.terminal-card-delete:active {
+  opacity: 1;
+  background: color-mix(in srgb, var(--negative) 24%, transparent);
+}
+
+@media (max-width: 640px) {
+  .terminal-card-delete {
+    opacity: 0.6;
+  }
+}
+
+/* ── Terminal Grid ── */
+
+.terminal-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 641px) {
+  .terminal-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .terminal-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .terminal-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* ── Logo Image ── */
@@ -907,8 +1096,8 @@ details > summary::before {
 }
 
 .card-logo-card {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
 }
 
 .card-logo-badge {
@@ -939,9 +1128,9 @@ details > summary::before {
 }
 
 .logo-badge-card {
-  width: 28px;
-  height: 28px;
-  font-size: 0.68rem;
+  width: 22px;
+  height: 22px;
+  font-size: 0.6rem;
 }
 
 .logo-badge-badge {
@@ -994,6 +1183,23 @@ details > summary::before {
   height: 100%;
 }
 
+/* ── Shared Card Header (industry cards) ── */
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
 .card-ticker {
   font-family: var(--font-mono);
   display: block;
@@ -1020,9 +1226,65 @@ details > summary::before {
   flex: 1;
 }
 
-.company-card:hover .card-arrow {
-  color: var(--accent);
-  transform: translateX(2px);
+/* ── Legacy card classes (trending / industry pages) ── */
+
+.company-card-wrap {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  scroll-snap-align: start;
+}
+
+.company-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  height: 100%;
+  min-height: 314px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 74%, transparent), transparent 42%),
+    var(--surface);
+  border: 1px solid color-mix(in srgb, var(--border-active) 42%, var(--border));
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
+    0 14px 34px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(255, 255, 255, 0.018);
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  cursor: pointer;
+}
+
+.company-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 42%;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--ink) 8%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent);
+  opacity: 0.72;
+}
+
+.company-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.company-card:hover {
+  border-color: var(--border-active);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), transparent 46%),
+    var(--surface-elevated);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent),
+    0 18px 44px rgba(0, 0, 0, 0.28),
+    0 0 0 1px var(--accent-dim);
+  transform: translateY(-2px);
 }
 
 .card-quote {
@@ -1112,25 +1374,6 @@ details > summary::before {
   font-size: 0.72rem;
 }
 
-.card-change {
-  font-size: 1.04rem;
-  color: var(--green);
-  margin-bottom: 8px;
-  line-height: 1.4;
-  font-weight: 700;
-}
-
-.card-change.limited {
-  color: var(--amber);
-}
-
-.card-implication {
-  font-size: 0.94rem;
-  color: var(--ink);
-  margin-bottom: 10px;
-  line-height: 1.45;
-}
-
 .card-recency {
   display: flex;
   gap: 8px;
@@ -1194,6 +1437,7 @@ details > summary::before {
   font-weight: 750;
   line-height: 1;
   transition: color 0.15s, border-color 0.15s, background-color 0.15s, transform 0.15s;
+  cursor: pointer;
 }
 
 .card-action:hover {
@@ -1232,25 +1476,9 @@ details > summary::before {
   background: var(--red-dim);
 }
 
-.card-metrics {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 14px;
-}
-
-.signal-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 24px;
-  border-radius: 999px;
-  background: var(--surface-elevated);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  padding: 3px 8px;
+.company-card:hover .card-arrow {
+  color: var(--accent);
+  transform: translateX(2px);
 }
 
 .signal-badge.pos {
@@ -3667,10 +3895,6 @@ details > summary::before {
 
   .institutional-metrics {
     justify-content: flex-start;
-  }
-
-  .watchlist-grid {
-    grid-template-columns: 1fr;
   }
 
   .trending-grid {
