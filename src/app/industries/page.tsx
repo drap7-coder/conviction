@@ -121,13 +121,8 @@ export default function IndustriesPage() {
   return (
     <div>
       <div className="section-header">
-        <h2 className="section-title">Industries</h2>
+        <h2 className="section-title">S&amp;P Sector Overview</h2>
         <span className="section-count">{status === "success" ? sectors.length + " sectors" : "S&P 500"}</span>
-      </div>
-
-      <div className="leaderboard-brief">
-        <h1>S&P sector overview.</h1>
-        <p>Real-time quotes and intraday sparklines for every major sector.</p>
       </div>
 
       <section className="industries-section" aria-label="S&P industry sectors">
