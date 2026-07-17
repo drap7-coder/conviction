@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { BottomTicker } from "@/app/components/BottomTicker";
 import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
 import { Nav } from "@/app/components/Nav";
 import { MarketTicker } from "@/app/components/MarketTicker";
@@ -92,10 +91,9 @@ export default function RootLayout({
               <WatchlistSettingsMenu />
             </div>
           </header>
-          <MarketTicker />
           {children}
         </div>
-        <BottomTicker />
+        <MarketTicker />
       </body>
     </html>
   );
