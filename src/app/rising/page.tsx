@@ -32,6 +32,12 @@ interface TrendingCompany {
   activityLabel: string;
 }
 
+interface TrendingHeadline {
+  headline: string;
+  url: string | null;
+  date: string;
+}
+
 interface WatchlistEntry {
   id?: string;
   ticker: string;
@@ -92,6 +98,7 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
 
 export default function RisingConvictionPage() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
+  const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
@@ -139,8 +146,33 @@ export default function RisingConvictionPage() {
           controller.signal,
         );
         if (!cancelled) {
-          setTrending(data.companies ?? []);
-          setTrendingStatus((data.companies ?? []).length > 0 ? "success" : "empty");
+          const companies = data.companies ?? [];
+          setTrending(companies);
+          setTrendingStatus(companies.length > 0 ? "success" : "empty");
+
+          const batches = Array.from(
+            { length: Math.ceil(companies.length / 10) },
+            (_, index) => companies.slice(index * 10, index * 10 + 10),
+          );
+          const responses = await Promise.all(batches.map((batch) =>
+            fetchJsonWithTimeout<{
+              news?: Record<string, { headlines?: TrendingHeadline[] }>;
+            }>(
+              `/api/evidence/news-batch?tickers=${batch.map((company) => company.ticker).join(",")}`,
+              10_000,
+              controller.signal,
+            ).catch(() => ({ news: {} })),
+          ));
+          if (!cancelled) {
+            const nextHeadlines: Record<string, TrendingHeadline[]> = {};
+            for (const response of responses) {
+              const news = response.news as Record<string, { headlines?: TrendingHeadline[] }> | undefined;
+              for (const [ticker, item] of Object.entries(news ?? {})) {
+                nextHeadlines[ticker] = item.headlines ?? [];
+              }
+            }
+            setHeadlines(nextHeadlines);
+          }
         }
       } catch (err) {
         console.warn("[rising] Failed to load trending companies:", err);
@@ -241,6 +273,7 @@ export default function RisingConvictionPage() {
                 status: "active" as const,
               }, quote);
               const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
+              const ideaHeadlines = headlines[idea.ticker] ?? [];
               return (
                 <div key={idea.ticker} className="terminal-card-wrap group">
                   <Link
@@ -277,7 +310,15 @@ export default function RisingConvictionPage() {
                       </div>
                     ) : null}
 
-                    <p className="watchlist-row-driver">{idea.activityLabel}</p>
+                    {ideaHeadlines.length > 0 ? (
+                      <ol className="trending-headlines" aria-label={`${idea.ticker} recent headlines`}>
+                        {ideaHeadlines.slice(0, 3).map((item) => (
+                          <li key={`${item.date}-${item.headline}`}>{item.headline}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <p className="watchlist-row-driver">Recent headlines unavailable.</p>
+                    )}
                     <div className="watchlist-row-evidence">
                       <span className="watchlist-row-evidence-item"><b>Signal</b> · {verdict.state}</span>
                     </div>

@@ -24,29 +24,40 @@ export async function GET(request: NextRequest) {
     headline: string | null;
     url: string | null;
     date: string | null;
+    headlines: Array<{
+      headline: string;
+      url: string | null;
+      date: string;
+    }>;
   }> = {};
 
   await Promise.all(tickers.map(async (ticker) => {
     try {
       const resolved = await validateTicker(ticker);
       if (!resolved.valid) {
-        results[ticker] = { headline: null, url: null, date: null };
+        results[ticker] = { headline: null, url: null, date: null, headlines: [] };
         return;
       }
       const summary = await getNewsEvidenceSummary(resolved.ticker, resolved.companyName ?? resolved.ticker);
       const event = summary.events[0];
+      const headlines = summary.events.slice(0, 3).map((newsEvent) => ({
+        headline: newsEvent.title.slice(0, 200),
+        url: newsEvent.sourceUrl ?? null,
+        date: newsEvent.date,
+      }));
       if (event) {
         results[ticker] = {
           headline: event.title.slice(0, 200),
           url: event.sourceUrl ?? null,
           date: event.date,
+          headlines,
         };
       } else {
-        results[ticker] = { headline: null, url: null, date: null };
+        results[ticker] = { headline: null, url: null, date: null, headlines: [] };
       }
     } catch {
       // Silent degradation: no news = fall through to evidence signal
-      results[ticker] = { headline: null, url: null, date: null };
+      results[ticker] = { headline: null, url: null, date: null, headlines: [] };
     }
   }));
 
