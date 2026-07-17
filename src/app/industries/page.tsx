@@ -32,9 +32,9 @@ interface IndustriesResponse {
 
 function buildSparklinePath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
-  const width = 240;
-  const height = 42;
-  const padding = 3;
+  const width = 320;
+  const height = 96;
+  const padding = 6;
   const closes = points.map((point) => point.close);
   const min = Math.min(...closes);
   const max = Math.max(...closes);
@@ -44,12 +44,6 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
     const y = padding + ((max - point.close) / spread) * (height - padding * 2);
     return (index === 0 ? "M" : "L") + " " + x.toFixed(2) + " " + y.toFixed(2);
   }).join(" ");
-}
-
-function formatChange(value: number | null, percent: number | null) {
-  if (value === null || percent === null) return null;
-  const sign = value > 0 ? "+" : "";
-  return sign + value.toFixed(2) + " (" + sign + percent.toFixed(2) + "%)";
 }
 
 export default function IndustriesPage() {
@@ -104,7 +98,7 @@ export default function IndustriesPage() {
             <small>Market data provider may be rate-limited. Retry in a moment.</small>
           </div>
         ) : (
-          <div className="terminal-grid">
+          <div className="watchlist-list">
             {sectors.map((sector) => {
               const quote = sector.quote;
               const quoteDirection = !quote || !quote.change
@@ -113,50 +107,41 @@ export default function IndustriesPage() {
                   ? "positive"
                   : "negative";
               const sparklinePath = buildSparklinePath(sector.sparkline);
-              const changeText = formatChange(quote?.change ?? null, quote?.changePercent ?? null);
-
               return (
                 <div key={sector.ticker} className="terminal-card-wrap group">
                   <Link
                     href={"/industries/" + sector.ticker}
-                    className="terminal-card"
+                    className="watchlist-row"
                   >
-                    <div className="terminal-card-header">
-                      <div className="terminal-card-header-left">
+                    <div className="watchlist-row-main">
+                      <div className="watchlist-row-company">
                         <LogoDisplay ticker={sector.ticker} size="card" />
-                        <span className="terminal-card-ticker">{sector.ticker}</span>
+                        <div>
+                          <strong className="watchlist-row-ticker">{sector.ticker}</strong>
+                          <span className="watchlist-row-name">{sector.name}</span>
+                        </div>
                       </div>
-                      <span className="terminal-card-price">
-                        {quote?.price !== null && quote?.price !== undefined ? "$" + quote.price.toFixed(2) : "\u2014"}
-                      </span>
-                      <span className="terminal-card-conviction">
-                        <span className="terminal-card-score">{sector.name}</span>
-                      </span>
+                      <div className="watchlist-row-move">
+                        <span className="watchlist-row-period">Today</span>
+                        <strong className={quoteDirection}>{quote?.changePercent != null ? `${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "—"}</strong>
+                        <span>{quote?.price != null ? `$${quote.price.toFixed(2)}` : "—"}{quote?.change != null ? ` · ${quote.change > 0 ? "+" : ""}${quote.change.toFixed(2)}` : ""}</span>
+                      </div>
+                      <span className="watchlist-row-state watchlist-row-state-quiet">Sector ETF</span>
                     </div>
 
                     {sparklinePath ? (
-                      <div className={"terminal-card-sparkline " + quoteDirection} aria-label={sector.ticker + " intraday chart"}>
-                        <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                          <path className="sparkline-glow" d={sparklinePath} />
-                          <path className="sparkline-line" d={sparklinePath} />
+                      <div className={"watchlist-row-chart price-chart " + quoteDirection} aria-label={sector.ticker + " intraday chart"}>
+                        <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
+                          <path className="price-chart-glow" d={sparklinePath} />
+                          <path className="price-chart-line" d={sparklinePath} />
                         </svg>
+                        <span>Today</span>
                       </div>
-                    ) : (
-                      <div className="terminal-card-sparkline terminal-card-sparkline-empty" />
-                    )}
+                    ) : null}
 
-                    <div className="terminal-card-pills">
-                      {changeText && (
-                        <span className={"terminal-card-change " + (quoteDirection === "positive" ? "positive" : quoteDirection === "negative" ? "negative" : "")}>
-                          {changeText}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="terminal-card-activity">
-                      <span className="terminal-card-activity-muted">
-                        {sector.representativeTickers.slice(0, 4).join(", ")}
-                      </span>
+                    <p className="watchlist-row-driver">{sector.description}</p>
+                    <div className="watchlist-row-evidence">
+                      <span className="watchlist-row-evidence-item"><b>Leaders</b> · {sector.representativeTickers.slice(0, 4).join(", ")}</span>
                     </div>
                   </Link>
                 </div>

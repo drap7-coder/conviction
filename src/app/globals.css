@@ -696,6 +696,10 @@ details > summary::before {
   color: var(--red);
 }
 
+.watchlist-row-move strong.neutral {
+  color: var(--muted);
+}
+
 .watchlist-row-move > span:last-child {
   color: var(--muted);
   font-size: 0.68rem;
@@ -1179,6 +1183,11 @@ details > summary::before {
 }
 
 .terminal-card-inner:hover .terminal-card-delete {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.terminal-card-wrap:hover .terminal-card-delete {
   opacity: 1;
   pointer-events: auto;
 }

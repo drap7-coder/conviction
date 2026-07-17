@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getCardVerdict, getCardEvidence, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
+import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
-import type { WatchlistCardEvidencePill, WatchlistCardActivityLine } from "@/app/components/WatchlistCard";
 
 interface StockQuote {
   ticker: string;
@@ -76,9 +75,9 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
 
 function buildSparklinePath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
-  const width = 240;
-  const height = 42;
-  const padding = 3;
+  const width = 320;
+  const height = 96;
+  const padding = 6;
   const closes = points.map((point) => point.close);
   const min = Math.min(...closes);
   const max = Math.max(...closes);
@@ -89,21 +88,6 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
     const y = padding + ((max - point.close) / spread) * (height - padding * 2);
     return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
   }).join(" ");
-}
-
-function buildEvidencePills(entry: CardVerdictEntry, quote?: StockQuote): WatchlistCardEvidencePill[] {
-  const pills: WatchlistCardEvidencePill[] = [];
-  const evidence = getCardEvidence(entry);
-
-  for (const item of evidence) {
-    if (item.provider === "SEC 13F") {
-      pills.push({ type: "13F", direction: item.direction === "positive" ? "positive" : item.direction === "negative" ? "negative" : "neutral" });
-    } else if (item.provider === "FINRA short interest") {
-      pills.push({ type: "SI", direction: item.direction === "positive" ? "positive" : "negative" });
-    }
-  }
-
-  return pills;
 }
 
 export default function RisingConvictionPage() {
@@ -239,7 +223,7 @@ export default function RisingConvictionPage() {
             </button>
           </div>
         ) : (
-          <div className="terminal-grid">
+          <div className="watchlist-list">
             {trending.map((idea) => {
               const isTracked = trackedTickers.has(idea.ticker);
               const quote = idea.quote;
@@ -257,69 +241,41 @@ export default function RisingConvictionPage() {
                 status: "active" as const,
               }, quote);
               const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
-              const evidencePills = buildEvidencePills({
-                ticker: idea.ticker,
-                companyName: idea.companyName,
-                addedAt: new Date().toISOString(),
-                status: "active" as const,
-              }, quote);
-
-              const changeText = quote.change !== null && quote.changePercent !== null
-                ? (quote.change > 0 ? "+" : "") + quote.change.toFixed(2) + " (" + (quote.changePercent > 0 ? "+" : "") + quote.changePercent.toFixed(2) + "%)"
-                : null;
-
               return (
                 <div key={idea.ticker} className="terminal-card-wrap group">
                   <Link
                     href={`/companies/${idea.ticker}`}
-                    className={"terminal-card terminal-card-" + verdict.tone}
+                    className={"watchlist-row watchlist-row-" + verdict.tone}
                   >
-                    <div className="terminal-card-header">
-                      <div className="terminal-card-header-left">
+                    <div className="watchlist-row-main">
+                      <div className="watchlist-row-company">
                         <LogoDisplay ticker={idea.ticker} size="card" />
-                        <span className="terminal-card-ticker">{idea.ticker}</span>
+                        <div>
+                          <strong className="watchlist-row-ticker">{idea.ticker}</strong>
+                          <span className="watchlist-row-name">{idea.companyName}</span>
+                        </div>
                       </div>
-                      <span className="terminal-card-price">
-                        {quote.price !== null ? "$" + quote.price.toLocaleString(undefined, {
-                          maximumFractionDigits: quote.price >= 100 ? 2 : 3,
-                          minimumFractionDigits: quote.price >= 1 ? 2 : 3,
-                        }) : "\u2014"}
-                      </span>
-                      <div className="terminal-card-conviction">
-                        <span className="terminal-card-score">{verdict.strength}</span>
-                        <span className="terminal-card-state">/ {verdict.state}</span>
+                      <div className="watchlist-row-move">
+                        <span className="watchlist-row-period">Today</span>
+                        <strong className={quoteDirection}>{quote.changePercent != null ? `${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "—"}</strong>
+                        <span>{quote.price != null ? `$${quote.price.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}{quote.change != null ? ` · ${quote.change > 0 ? "+" : ""}${quote.change.toFixed(2)}` : ""}</span>
                       </div>
+                      <span className={`watchlist-row-state watchlist-row-state-${verdict.tone}`}>#{idea.activityRank} Trending</span>
                     </div>
 
                     {sparklinePath ? (
-                      <div className={"terminal-card-sparkline " + quoteDirection} aria-label={`${idea.ticker} intraday micro chart`}>
-                        <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                          <path className="sparkline-glow" d={sparklinePath} />
-                          <path className="sparkline-line" d={sparklinePath} />
+                      <div className={"watchlist-row-chart price-chart " + quoteDirection} aria-label={`${idea.ticker} intraday chart`}>
+                        <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
+                          <path className="price-chart-glow" d={sparklinePath} />
+                          <path className="price-chart-line" d={sparklinePath} />
                         </svg>
+                        <span>Today</span>
                       </div>
-                    ) : (
-                      <div className="terminal-card-sparkline terminal-card-sparkline-empty" />
-                    )}
+                    ) : null}
 
-                    <div className="terminal-card-pills">
-                      {evidencePills.map((pill) => (
-                        <span
-                          key={pill.type}
-                          className={"terminal-card-pill terminal-card-pill-" + pill.type.toLowerCase() + " terminal-card-pill-" + pill.direction}
-                        >
-                          {pill.type}
-                        </span>
-                      ))}
-                      {changeText && (
-                        <span className={"terminal-card-change " + (quoteDirection === "positive" ? "positive" : quoteDirection === "negative" ? "negative" : "")}>
-                          {changeText}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="terminal-card-activity">
-                      <span className="terminal-card-activity-muted">#{idea.activityRank} trending · {idea.activityLabel}</span>
+                    <p className="watchlist-row-driver">{idea.activityLabel}</p>
+                    <div className="watchlist-row-evidence">
+                      <span className="watchlist-row-evidence-item"><b>Signal</b> · {verdict.state}</span>
                     </div>
                   </Link>
 
