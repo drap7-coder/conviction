@@ -4201,3 +4201,258 @@ details > summary::before {
 .knowledge-book-card:focus-visible .knowledge-book-action {
   opacity: 1;
 }
+
+/* ── Thesis Tracker ── */
+
+.thesis-tracker-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.thesis-display {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thesis-field {
+  font-size: 0.84rem;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.thesis-field strong {
+  color: var(--muted);
+}
+
+.thesis-edit-button {
+  align-self: flex-start;
+  margin-top: 8px;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.thesis-edit-button:hover {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border-color: var(--accent);
+}
+
+.thesis-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.thesis-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thesis-form-group label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.thesis-form-group textarea,
+.thesis-form-group input {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-sans);
+  resize: vertical;
+}
+
+.thesis-form-group textarea:focus,
+.thesis-form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.thesis-counter {
+  font-size: 0.62rem;
+  color: var(--quiet);
+  text-align: right;
+}
+
+.thesis-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.thesis-button {
+  flex: 1;
+  min-height: 36px;
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.thesis-button-secondary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.thesis-button-secondary:hover {
+  background: var(--surface-elevated);
+  color: var(--ink);
+}
+
+.thesis-button-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.thesis-button-primary {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #071014;
+  font-weight: 700;
+}
+
+.thesis-button-primary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+}
+
+.thesis-button-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.thesis-error {
+  font-size: 0.72rem;
+  color: var(--red);
+  padding: 6px 10px;
+  background: var(--red-dim);
+  border-radius: 6px;
+}
+
+/* ── Needs Your Attention ── */
+
+.needs-your-attention {
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+
+.attention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.attention-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--amber);
+  border-radius: var(--radius);
+  padding: 14px;
+  transition: border-color 0.15s, background-color 0.15s;
+}
+
+.attention-item:hover {
+  background: var(--surface-elevated);
+  border-color: var(--border-active);
+}
+
+.attention-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.attention-ticker {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.attention-ticker:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.attention-status {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.attention-status-building {
+  background: var(--muted);
+  color: var(--ink);
+}
+
+.attention-status-supported {
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+.attention-status-review {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+.attention-status-weakening {
+  background: var(--amber-dim);
+  color: var(--amber);
+}
+
+.attention-status-broken {
+  background: var(--red-dim);
+  color: var(--red);
+}
+
+.attention-thesis {
+  font-size: 0.85rem;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.attention-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.attention-reason {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.attention-review-date {
+  font-size: 0.68rem;
+  color: var(--quiet);
+}

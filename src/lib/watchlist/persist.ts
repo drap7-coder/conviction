@@ -15,6 +15,7 @@ import fs from "fs";
 import path from "path";
 import type { WatchlistEntry } from "./types";
 import { SEED_WATCHLIST } from "./types";
+import { getDefaultThesis } from "./priority-review";
 
 const KV_KEY = "conviction:watchlist";
 const KV_ENABLED = !!process.env.KV_URL && !!process.env.KV_REST_API_URL;
@@ -24,15 +25,21 @@ const LOCAL_STORE_FILE = path.join(LOCAL_STORE_DIR, "watchlist.json");
 
 let inMemoryCache: WatchlistEntry[] | null = null;
 
+function normalizeEntry(entry: WatchlistEntry): WatchlistEntry {
+  if (entry.thesis) return entry;
+  return { ...entry, thesis: getDefaultThesis() };
+}
+
 function getDefaultEntries(): WatchlistEntry[] {
-  return SEED_WATCHLIST.map((e) => ({ ...e }));
+  return SEED_WATCHLIST.map((e) => normalizeEntry({ ...e }));
 }
 
 function readLocalEntries(): WatchlistEntry[] {
   try {
     if (fs.existsSync(LOCAL_STORE_FILE)) {
       const raw = fs.readFileSync(LOCAL_STORE_FILE, "utf-8");
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw) as WatchlistEntry[];
+      return parsed.map(normalizeEntry);
     }
   } catch {
     // Ignore read errors
@@ -56,19 +63,20 @@ function writeLocalEntries(entries: WatchlistEntry[]): void {
  * Returns seed entries if nothing is stored yet (first run migration).
  */
 export async function getWatchlist(): Promise<WatchlistEntry[]> {
-  if (inMemoryCache) return inMemoryCache;
+  if (inMemoryCache) return inMemoryCache.map(normalizeEntry);
 
   if (KV_ENABLED) {
     try {
       const stored = await kv.get<WatchlistEntry[]>(KV_KEY);
       if (stored && Array.isArray(stored) && stored.length > 0) {
         inMemoryCache = stored;
-        return stored;
+        return stored.map(normalizeEntry);
       }
       // First run — seed the watchlist
-      await kv.set(KV_KEY, SEED_WATCHLIST);
-      inMemoryCache = SEED_WATCHLIST.map((e) => ({ ...e }));
-      return inMemoryCache;
+      const seeded = getDefaultEntries();
+      await kv.set(KV_KEY, seeded);
+      inMemoryCache = seeded;
+      return seeded;
     } catch (err) {
       console.warn("[watchlist] KV read failed, falling back to local:", err);
     }
