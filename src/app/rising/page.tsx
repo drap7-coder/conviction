@@ -257,8 +257,12 @@ export default function RisingConvictionPage() {
                       </div>
                       <div className="watchlist-row-move">
                         <span className="watchlist-row-period">Today</span>
-                        <strong className={quoteDirection}>{quote.changePercent != null ? `${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%` : "—"}</strong>
-                        <span>{quote.price != null ? `$${quote.price.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}{quote.change != null ? ` · ${quote.change > 0 ? "+" : ""}${quote.change.toFixed(2)}` : ""}</span>
+                        <strong className={quoteDirection}>{quote.price != null ? `$${quote.price.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}</strong>
+                        <span>
+                          {quote.change != null && quote.changePercent != null
+                            ? `${quote.change > 0 ? "+" : quote.change < 0 ? "-" : ""}$${Math.abs(quote.change).toFixed(2)} · ${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%`
+                            : "—"}
+                        </span>
                       </div>
                       <span className={`watchlist-row-state watchlist-row-state-${verdict.tone}`}>#{idea.activityRank} Trending</span>
                     </div>

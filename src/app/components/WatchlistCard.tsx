@@ -42,10 +42,10 @@ function formatPrice(value: number | null) {
 
 function formatChange(value: number | null, percent: number | null) {
   if (value === null || percent === null) return null;
-  const sign = value > 0 ? "+" : "";
+  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
   return {
-    dollars: `${sign}${value.toFixed(2)}`,
-    percent: `${sign}${percent.toFixed(2)}%`,
+    dollars: `${sign}$${Math.abs(value).toFixed(2)}`,
+    percent: `${percent > 0 ? "+" : ""}${percent.toFixed(2)}%`,
   };
 }
 
@@ -140,12 +140,11 @@ export function WatchlistCard({
 
             <div className="watchlist-row-move">
               <span className="watchlist-row-period">Today</span>
-              <strong className={change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : ""}>
-                {changeText?.percent ?? "—"}
+              <strong className={change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "neutral"}>
+                {price !== null ? `$${formatPrice(price)}` : "—"}
               </strong>
               <span>
-                {price !== null ? `$${formatPrice(price)}` : "—"}
-                {changeText ? ` · ${changeText.dollars}` : ""}
+                {changeText ? `${changeText.dollars} · ${changeText.percent}` : "—"}
               </span>
             </div>
 

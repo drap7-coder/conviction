@@ -694,7 +694,7 @@ details > summary::before {
 }
 
 .watchlist-row-move strong.neutral {
-  color: var(--muted);
+  color: var(--amber);
 }
 
 .watchlist-row-move > span:last-child {
