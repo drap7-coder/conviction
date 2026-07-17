@@ -130,6 +130,11 @@ details > summary::before {
   gap: 16px;
 }
 
+.header-brand-row {
+  display: flex;
+  align-items: center;
+}
+
 .app-brand {
   display: inline-flex;
   align-items: center;
@@ -3620,8 +3625,15 @@ details > summary::before {
   }
 
   .app-header {
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
+  }
+
+  .header-brand-row {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
   }
 
   .app-logo {
@@ -3630,14 +3642,19 @@ details > summary::before {
   }
 
   .header-actions {
-    width: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: 10px;
+    display: contents;
+  }
+
+  .header-actions .watchlist-settings {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    justify-self: end;
   }
 
   .app-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
     width: 100%;
     gap: 4px;
     flex-wrap: nowrap;

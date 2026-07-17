@@ -73,7 +73,7 @@ export default function RootLayout({
       <body>
         <div className="app-shell">
           <header className="app-header">
-            <div className="flex items-center gap-8">
+            <div className="header-brand-row">
               <a className="app-brand" href="/" aria-label="CONVICTION home">
                 <img
                   alt=""
@@ -85,7 +85,6 @@ export default function RootLayout({
                   CONVICTION<span className="accent-dot">.</span>
                 </h1>
               </a>
-              <span className="demo-badge">Live data</span>
             </div>
             <div className="header-actions">
               <Nav />

@@ -232,7 +232,6 @@ export default function RisingConvictionPage() {
 
       <div className="leaderboard-brief">
         <h1>Daily idea flow.</h1>
-        <p>Active market names to inspect, then click into the evidence trail. Trending is discovery, not conviction by itself.</p>
       </div>
 
       {addMessage ? (
