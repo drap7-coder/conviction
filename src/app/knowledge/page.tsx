@@ -11,6 +11,19 @@ interface KnowledgeBook {
   description: string;
 }
 
+function formatPubDate(raw: string): string {
+  if (!raw) return "";
+  const d = new Date(raw);
+  if (!Number.isFinite(d.getTime())) return "";
+  const now = Date.now();
+  const diffMs = now - d.getTime();
+  const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 const BOOKS: KnowledgeBook[] = [
   {
     title: "Superforecasting",
@@ -101,7 +114,7 @@ export default function KnowledgePage() {
                   <span className="knowledge-episode-show">{ep.showName}</span>
                   <span className="knowledge-episode-title">{ep.title}</span>
                   <span className="knowledge-episode-meta">
-                    {ep.duration}{ep.duration ? " · " : ""}{ep.showName}
+                    {ep.duration}{ep.duration ? " · " : ""}{ep.pubDate ? formatPubDate(ep.pubDate) : ""}
                   </span>
                 </div>
               </a>

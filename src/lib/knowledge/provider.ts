@@ -20,8 +20,7 @@ const PODCAST_FEEDS = [
 ];
 
 const FETCH_TIMEOUT_MS = 8_000;
-const MAX_EPISODES_PER_FEED = 4;
-const MAX_TOTAL_EPISODES = 8;
+const EPISODES_PER_FEED = 3;
 
 function extractTag(xml: string, tag: string): string | null {
   const match = xml.match(
@@ -94,6 +93,8 @@ function parseEpisode(itemXml: string, showName: string): PodcastEpisode | null 
     "";
   const duration = parseDuration(rawDuration);
 
+  const pubDate = extractTag(itemXml, "pubDate") || "";
+
   const audioUrl =
     extractTagAttr(itemXml, "enclosure", "url") || "";
   if (!audioUrl) return null;
@@ -114,6 +115,7 @@ function parseEpisode(itemXml: string, showName: string): PodcastEpisode | null 
     showName,
     description,
     duration,
+    pubDate,
     audioUrl,
     linkUrl,
     artworkUrl,
@@ -139,7 +141,7 @@ async function fetchAndParseFeed(
     const response = await fetch(feed.feedUrl, {
       signal: controller.signal,
       headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; Conviction/1.0)",
+        "User-Agent": "Mozilla/5.0 (Compatible; Conviction-Bot/1.0)",
         Accept: "application/rss+xml, application/xml, text/xml",
       },
     });
@@ -155,7 +157,7 @@ async function fetchAndParseFeed(
     const items = extractItems(xml);
     const episodes: PodcastEpisode[] = [];
 
-    for (const itemXml of items.slice(0, MAX_EPISODES_PER_FEED)) {
+    for (const itemXml of items.slice(0, EPISODES_PER_FEED)) {
       const ep = parseEpisode(itemXml, feed.showName);
       if (ep && isValidEpisode(ep)) {
         episodes.push(ep);
@@ -180,8 +182,9 @@ async function fetchAndParseFeed(
 
 /**
  * Fetch investment podcast episodes from all configured RSS feeds.
- * Failures are isolated per-feed. Returns at most MAX_TOTAL_EPISODES
- * valid, deduplicated episodes, or an empty array if none are available.
+ * Takes 3 episodes from each feed, then sorts by publication date so
+ * episodes from different shows interleave in the rail.
+ * Failures are isolated per-feed.
  */
 export async function fetchKnowledgePodcastEpisodes(): Promise<PodcastEpisode[]> {
   const results = await Promise.allSettled(
@@ -203,5 +206,14 @@ export async function fetchKnowledgePodcastEpisodes(): Promise<PodcastEpisode[]>
     return true;
   });
 
-  return deduplicated.slice(0, MAX_TOTAL_EPISODES);
+  // Sort by publication date descending so the rail interleaves shows
+  return deduplicated.sort((a, b) => {
+    const aTime = new Date(a.pubDate).getTime();
+    const bTime = new Date(b.pubDate).getTime();
+    if (Number.isFinite(aTime) && Number.isFinite(bTime)) {
+      return bTime - aTime;
+    }
+    // Fall back to stable sort by id
+    return a.id.localeCompare(b.id);
+  });
 }

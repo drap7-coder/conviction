@@ -4,6 +4,7 @@ export interface PodcastEpisode {
   showName: string;
   description: string;
   duration: string;
+  pubDate: string;
   audioUrl: string;
   linkUrl: string;
   artworkUrl: string | null;
