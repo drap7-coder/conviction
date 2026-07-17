@@ -162,8 +162,8 @@ export default function IndustriesPage() {
                       </div>
                       <div className="watchlist-row-move">
                         <span className="watchlist-row-period">Today</span>
-                        <strong className={quoteDirection}>{quote?.price != null ? `$${quote.price.toFixed(2)}` : "—"}</strong>
-                        <span>
+                        <strong>{quote?.price != null ? `$${quote.price.toFixed(2)}` : "—"}</strong>
+                        <span className={quoteDirection}>
                           {quote?.change != null && quote.changePercent != null
                             ? `${quote.change > 0 ? "+" : quote.change < 0 ? "-" : ""}$${Math.abs(quote.change).toFixed(2)} · ${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%`
                             : "—"}

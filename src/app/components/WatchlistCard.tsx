@@ -148,10 +148,10 @@ export function WatchlistCard({
 
             <div className="watchlist-row-move">
               <span className="watchlist-row-period">Today</span>
-              <strong className={change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "neutral"}>
+              <strong>
                 {price !== null ? `$${formatPrice(price)}` : "—"}
               </strong>
-              <span>
+              <span className={change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "neutral"}>
                 {changeText ? `${changeText.dollars} · ${changeText.percent}` : "—"}
               </span>
             </div>

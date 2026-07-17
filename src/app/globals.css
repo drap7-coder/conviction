@@ -746,22 +746,22 @@ details > summary::before {
   font-size: 1rem;
 }
 
-.watchlist-row-move strong.positive {
-  color: var(--green);
-}
-
-.watchlist-row-move strong.negative {
-  color: var(--red);
-}
-
-.watchlist-row-move strong.neutral {
-  color: var(--amber);
-}
-
 .watchlist-row-move > span:last-child {
   color: var(--muted);
   font-size: 0.68rem;
   white-space: nowrap;
+}
+
+.watchlist-row-move > span:last-child.positive {
+  color: var(--green);
+}
+
+.watchlist-row-move > span:last-child.negative {
+  color: var(--red);
+}
+
+.watchlist-row-move > span:last-child.neutral {
+  color: var(--amber);
 }
 
 .watchlist-row-state {
