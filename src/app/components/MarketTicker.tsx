@@ -55,26 +55,33 @@ export function MarketTicker() {
   }, []);
 
   return (
-    <div className="market-ticker" aria-label="Live market ticker">
-      {MARKETS.map((market) => {
-        const quote = quotes[market.ticker];
-        const direction = !quote?.change
-          ? "neutral"
-          : quote.change > 0
-            ? "positive"
-            : "negative";
-        return (
-          <div className="market-ticker-item" key={market.ticker}>
-            <strong>{market.label}</strong>
-            <span>{formatLevel(quote?.price ?? null)}</span>
-            <b className={direction}>
-              {quote?.changePercent != null
-                ? `${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%`
-                : "—"}
-            </b>
+    <div className="market-ticker" role="marquee" aria-label="Live market ticker">
+      <div className="market-ticker-track">
+        {[0, 1].map((copy) => (
+          <div className="market-ticker-group" key={copy} aria-hidden={copy === 1 ? "true" : undefined}>
+            {MARKETS.map((market) => {
+              const quote = quotes[market.ticker];
+              const direction = !quote?.change
+                ? "neutral"
+                : quote.change > 0
+                  ? "positive"
+                  : "negative";
+              return (
+                <div className="market-ticker-item" key={market.ticker}>
+                  <span className="market-ticker-sep">◆</span>
+                  <strong>{market.label}</strong>
+                  <span>{formatLevel(quote?.price ?? null)}</span>
+                  <b className={direction}>
+                    {quote?.changePercent != null
+                      ? `${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%`
+                      : "—"}
+                  </b>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
+        ))}
+      </div>
     </div>
   );
 }
