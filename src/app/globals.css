@@ -125,8 +125,8 @@ details > summary::before {
 }
 
 .market-ticker {
-  position: relative;
-  height: 30px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: 14px;
   overflow: hidden;
   border: 1px solid var(--border);
@@ -134,35 +134,20 @@ details > summary::before {
   background: color-mix(in srgb, var(--surface-elevated) 72%, transparent);
 }
 
-.market-ticker-track {
-  position: absolute;
-  inset: 0 auto 0 0;
-  display: flex;
-  width: max-content;
-  animation: market-ticker-scroll 20s linear infinite;
-}
-
-.market-ticker-group {
-  display: flex;
-  align-items: stretch;
-  gap: 28px;
-  padding: 0 28px 0 10px;
-}
-
 .market-ticker-item {
   display: flex;
   align-items: baseline;
   justify-content: center;
   gap: 7px;
+  min-width: 0;
   padding: 5px 10px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
   white-space: nowrap;
 }
 
-.market-ticker-sep {
-  color: var(--accent);
-  font-size: 0.5rem;
+.market-ticker-item + .market-ticker-item {
+  border-left: 1px solid var(--border);
 }
 
 .market-ticker-item strong {
@@ -187,11 +172,6 @@ details > summary::before {
 
 .market-ticker-item b.neutral {
   color: var(--amber);
-}
-
-@keyframes market-ticker-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 }
 
 .header-actions {
@@ -3472,10 +3452,16 @@ details > summary::before {
   inset: 0 auto 0 0;
   display: flex;
   align-items: center;
-  gap: 32px;
-  padding: 0 16px 0 128px;
+  width: max-content;
   animation: ticker-scroll 45s linear infinite;
   white-space: nowrap;
+}
+
+.ticker-scroll-group {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding-right: 32px;
 }
 
 .ticker-item {
@@ -3516,7 +3502,6 @@ details > summary::before {
 
 @media (prefers-reduced-motion: reduce) {
   body,
-  .market-ticker-track,
   .ticker-scroll,
   .institutional-loading-bars span,
   .rising-build-meter span,
@@ -3747,17 +3732,7 @@ details > summary::before {
   }
 
   .market-ticker {
-    height: 28px;
     margin-bottom: 10px;
-  }
-
-  .market-ticker-track {
-    animation-duration: 16s;
-  }
-
-  .market-ticker-group {
-    gap: 18px;
-    padding-right: 18px;
   }
 
   .market-ticker-item {

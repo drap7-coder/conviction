@@ -56,43 +56,46 @@ export function BottomTicker() {
   const tapeCompanies = companies.length > 0
     ? companies
     : [{ ticker: "MARKET", companyName: "Loading daily idea flow", quote: { price: null, change: null, changePercent: null } }];
-  const items = [...tapeCompanies, ...tapeCompanies];
 
   return (
     <div className="bottom-ticker" role="marquee" aria-label="Trending stock tape">
       <div className="ticker-scroll">
-        {items.map((company, index) => {
-          const direction = !company.quote.change
-            ? "neutral"
-            : company.quote.change > 0
-              ? "pos"
-              : "neg";
-          const content = (
-            <>
-              <span className="ticker-sep">◆</span>
-              <strong className={`ticker-${direction}`}>{company.ticker}</strong>
-              <span className="ticker-price">${formatPrice(company.quote.price)}</span>
-              <b className={`ticker-${direction}`}>
-                {company.quote.changePercent != null
-                  ? `${company.quote.changePercent > 0 ? "+" : ""}${company.quote.changePercent.toFixed(2)}%`
-                  : "Loading…"}
-              </b>
-            </>
-          );
+        {[0, 1].map((copy) => (
+          <div className="ticker-scroll-group" key={copy} aria-hidden={copy === 1 ? "true" : undefined}>
+            {tapeCompanies.map((company) => {
+              const direction = !company.quote.change
+                ? "neutral"
+                : company.quote.change > 0
+                  ? "pos"
+                  : "neg";
+              const content = (
+                <>
+                  <span className="ticker-sep">◆</span>
+                  <strong className={`ticker-${direction}`}>{company.ticker}</strong>
+                  <span className="ticker-price">${formatPrice(company.quote.price)}</span>
+                  <b className={`ticker-${direction}`}>
+                    {company.quote.changePercent != null
+                      ? `${company.quote.changePercent > 0 ? "+" : ""}${company.quote.changePercent.toFixed(2)}%`
+                      : "Loading…"}
+                  </b>
+                </>
+              );
 
-          return company.ticker === "MARKET" ? (
-            <span className="ticker-item" key={`${company.ticker}-${index}`}>{content}</span>
-          ) : (
-            <Link
-              className="ticker-item ticker-stock-link"
-              href={`/companies/${company.ticker}`}
-              key={`${company.ticker}-${index}`}
-              title={company.companyName}
-            >
-              {content}
-            </Link>
-          );
-        })}
+              return company.ticker === "MARKET" ? (
+                <span className="ticker-item" key={company.ticker}>{content}</span>
+              ) : (
+                <Link
+                  className="ticker-item ticker-stock-link"
+                  href={`/companies/${company.ticker}`}
+                  key={company.ticker}
+                  title={company.companyName}
+                >
+                  {content}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </div>
     </div>
   );
