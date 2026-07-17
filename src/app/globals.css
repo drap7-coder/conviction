@@ -137,13 +137,10 @@ details > summary::before {
 }
 
 .app-logo {
-  width: 58px;
+  width: 64px;
   height: 58px;
-  border-radius: 14px;
-  object-fit: cover;
-  box-shadow:
-    0 0 0 1px var(--border),
-    0 0 24px rgba(0, 255, 136, 0.2);
+  object-fit: contain;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14));
 }
 
 .app-title {
@@ -3606,9 +3603,8 @@ details > summary::before {
   }
 
   .app-logo {
-    width: 50px;
+    width: 56px;
     height: 50px;
-    border-radius: 12px;
   }
 
   .header-actions {

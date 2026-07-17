@@ -79,7 +79,7 @@ export default function RootLayout({
                   alt=""
                   aria-hidden="true"
                   className="app-logo"
-                  src="/conviction-logo.png"
+                  src="/conviction-bull.png"
                 />
                 <h1 className="app-title">
                   CONVICTION<span className="accent-dot">.</span>
