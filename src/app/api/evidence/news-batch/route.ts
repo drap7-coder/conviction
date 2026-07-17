@@ -55,8 +55,11 @@ export async function GET(request: NextRequest) {
       } else {
         results[ticker] = { headline: null, url: null, date: null, headlines: [] };
       }
-    } catch {
-      // Silent degradation: no news = fall through to evidence signal
+    } catch (error) {
+      console.error("[news-batch] provider request failed", {
+        ticker,
+        error: error instanceof Error ? error.message : String(error),
+      });
       results[ticker] = { headline: null, url: null, date: null, headlines: [] };
     }
   }));

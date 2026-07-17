@@ -40,8 +40,10 @@ export function MarketTicker() {
         );
         if (cancelled) return;
         setQuotes(Object.fromEntries((data.quotes ?? []).map((quote) => [quote.ticker, quote])));
-      } catch {
-        // The ticker remains visible with placeholders when the provider is unavailable.
+      } catch (error) {
+        console.error("[MarketTicker] provider request failed", {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 

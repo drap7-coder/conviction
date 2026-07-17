@@ -20,14 +20,23 @@ import { fetchWithTimeout } from "@/lib/request-timeout";
 
 const SEC_BASE = "https://data.sec.gov";
 const SEC_EDGAR = "https://www.sec.gov";
-const USER_AGENT = `CONVICTION Evidence Detection v1.0 (${process.env.SEC_CONTACT_EMAIL ?? "configure-SEC_CONTACT_EMAIL"})`;
+
+const contactEmail = process.env.SEC_CONTACT_EMAIL;
+const USER_AGENT = `CONVICTION Evidence Detection v1.0 (${contactEmail ?? "development"})`;
 const REQUEST_DELAY_MS = 200; // 5 req/s max, well within SEC limits
 const MAX_FILINGS_TO_CHECK = 30;
 
 // In-memory request queue for rate limiting
 let lastRequestTime = 0;
 
+function assertSecContactEmail() {
+  if (process.env.NODE_ENV === "production" && !contactEmail) {
+    throw new Error("SEC_CONTACT_EMAIL must be configured in production for SEC API calls");
+  }
+}
+
 export async function secFetch(url: string): Promise<Response> {
+  assertSecContactEmail();
   const now = Date.now();
   const elapsed = now - lastRequestTime;
   if (elapsed < REQUEST_DELAY_MS) {
