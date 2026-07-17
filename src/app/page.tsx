@@ -34,6 +34,23 @@ interface StockQuote {
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
 
+function buildSparklinePath(points: Array<{ close: number }>) {
+  if (points.length < 2) return "";
+  const width = 240;
+  const height = 42;
+  const padding = 3;
+  const closes = points.map((point) => point.close);
+  const min = Math.min(...closes);
+  const max = Math.max(...closes);
+  const spread = max - min || 1;
+
+  return points.map((point, index) => {
+    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
+    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
+    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).join(" ");
+}
+
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
 
@@ -393,7 +410,15 @@ export default function WatchlistPage() {
         <div className="watchlist-list">
           {sortedEntries.map((entry) => {
             const quote = quotes[entry.ticker];
+            const quoteDirection = quote?.change === null || quote?.change === undefined
+              ? "neutral"
+              : quote.change > 0
+                ? "positive"
+                : quote.change < 0
+                  ? "negative"
+                  : "neutral";
             const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
+            const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
             const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
             const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
 
@@ -409,6 +434,8 @@ export default function WatchlistPage() {
                 convictionTone={verdict.tone}
                 evidencePills={evidencePills}
                 activityLine={activityLine}
+                sparklinePath={sparklinePath}
+                sparklineDirection={quoteDirection}
                 onRemove={handleRemove}
                 isRemoving={removing === entry.ticker}
               />

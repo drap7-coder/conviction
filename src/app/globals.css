@@ -598,6 +598,12 @@ details > summary::before {
   gap: 8px;
 }
 
+@media (min-width: 641px) {
+  .watchlist-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .watchlist-row {
   position: relative;
   display: grid;
@@ -619,9 +625,9 @@ details > summary::before {
 
 .watchlist-row-main {
   display: grid;
-  grid-template-columns: minmax(170px, 1fr) minmax(150px, 0.7fr) auto;
+  grid-template-columns: minmax(130px, 1fr) auto;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -655,6 +661,7 @@ details > summary::before {
 }
 
 .watchlist-row-move {
+  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: auto auto;
   justify-content: start;
@@ -691,12 +698,33 @@ details > summary::before {
 }
 
 .watchlist-row-state {
+  grid-column: 2;
+  grid-row: 1;
   justify-self: end;
   padding: 4px 8px;
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 700;
+  text-transform: uppercase;
+}
+
+.watchlist-row-chart {
+  position: relative;
+  height: 46px;
+  margin: 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.watchlist-row-chart > span {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 

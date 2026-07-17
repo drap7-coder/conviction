@@ -26,6 +26,8 @@ export interface WatchlistCardProps {
   convictionTone: string;
   evidencePills: WatchlistCardEvidencePill[];
   activityLine: WatchlistCardActivityLine | null;
+  sparklinePath: string;
+  sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
   isRemoving: boolean;
 }
@@ -57,6 +59,8 @@ export function WatchlistCard({
   convictionTone,
   evidencePills,
   activityLine,
+  sparklinePath,
+  sparklineDirection,
   onRemove,
   isRemoving,
 }: WatchlistCardProps) {
@@ -149,6 +153,19 @@ export function WatchlistCard({
               {convictionState}
             </span>
           </div>
+
+          {sparklinePath ? (
+            <div
+              className={`watchlist-row-chart terminal-card-sparkline ${sparklineDirection}`}
+              aria-label={`${ticker} intraday chart`}
+            >
+              <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
+                <path className="sparkline-glow" d={sparklinePath} />
+                <path className="sparkline-line" d={sparklinePath} />
+              </svg>
+              <span>Today</span>
+            </div>
+          ) : null}
 
           <p className="watchlist-row-driver">
             {activityLine?.source ? (
