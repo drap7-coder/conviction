@@ -3456,7 +3456,7 @@ details > summary::before {
 }
 
 .bottom-ticker::before {
-  content: "LIVE TAPE";
+  content: "TRENDING";
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3479,6 +3479,9 @@ details > summary::before {
 }
 
 .ticker-item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
   color: var(--muted);
@@ -3488,7 +3491,18 @@ details > summary::before {
 
 .ticker-item .ticker-sep {
   color: var(--accent);
-  margin-right: 4px;
+}
+
+.ticker-price {
+  color: var(--muted);
+}
+
+.ticker-stock-link {
+  transition: color 0.12s ease;
+}
+
+.ticker-stock-link:hover {
+  color: var(--ink);
 }
 
 .ticker-item .ticker-pos { color: var(--green); }
