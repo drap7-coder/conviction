@@ -15,7 +15,7 @@ export const SECTORS: Sector[] = [
     ticker: "XLK",
     name: "Technology",
     description: "Software, hardware, semiconductors, and IT services.",
-    representativeTickers: ["AAPL", "MSFT", "NVDA", "AVGO", "CRM"],
+    representativeTickers: ["AAPL", "MSFT", "NVDA", "AVGO", "CRM", "INTC"],
   },
   {
     ticker: "XLF",
@@ -81,6 +81,13 @@ export const SECTORS: Sector[] = [
 
 export function getSectorByTicker(ticker: string): Sector | undefined {
   return SECTORS.find((s) => s.ticker === ticker.toUpperCase());
+}
+
+export function getSectorForCompany(ticker: string): Sector | undefined {
+  const upperTicker = ticker.toUpperCase();
+  return SECTORS.find((sector) =>
+    sector.representativeTickers.includes(upperTicker),
+  );
 }
 
 export function getAllSectorTickers(): string[] {

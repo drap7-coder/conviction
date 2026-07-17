@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { PriceTrendCard } from "./PriceTrendCard";
 import { TechnicalStateCard } from "./TechnicalStateCard";
-import { TodayAndPeersCard } from "./TodayAndPeersCard";
+import { TodayAndIndustryCard } from "./TodayAndPeersCard";
 
 interface StockHistoryPoint {
   date: string;
@@ -69,7 +69,7 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
         status={status}
         currentPrice={history?.endPrice ?? null}
       />
-      <TodayAndPeersCard ticker={ticker} />
+      <TodayAndIndustryCard ticker={ticker} />
     </>
   );
 }

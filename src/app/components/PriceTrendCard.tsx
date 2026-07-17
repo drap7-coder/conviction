@@ -56,6 +56,12 @@ function formatPercent(value: number | null | undefined) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+function formatChange(value: number | null | undefined) {
+  if (value === null || value === undefined) return "—";
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)}`;
+}
+
 function buildPath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
   const width = 320;
@@ -137,12 +143,15 @@ export function PriceTrendCard({
   return (
     <section className="price-trend-card" aria-label={`${ticker} price trend`}>
       <div className="price-trend-top">
-        <div>
-          <span className="move-eyebrow">Price trend</span>
+        <div className="price-trend-quote">
           <strong>{history?.endPrice ? formatPrice(history.endPrice) : status === "loading" ? "Loading market tape" : "Trend unavailable"}</strong>
-          <p className={isPositive ? "trend-positive" : "trend-negative"}>
-            {status === "success" ? `${formatPercent(history?.changePercent)} over selected range` : "Uses the existing quote provider. No extra market-data system."}
-          </p>
+          {status === "success" ? (
+            <span className={isPositive ? "trend-positive" : "trend-negative"}>
+              {formatChange(history?.change)}
+              <span aria-hidden="true"> · </span>
+              {formatPercent(history?.changePercent)}
+            </span>
+          ) : null}
         </div>
         <div className="price-range-tabs" aria-label="Price range">
           {RANGES.map((option) => (

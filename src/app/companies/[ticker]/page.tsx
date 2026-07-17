@@ -12,7 +12,8 @@ import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
-import { getLogoUrl } from "@/lib/market/logos";
+import { getSectorForCompany } from "@/lib/market/industries";
+import { getLogoUrl, getSectorColors } from "@/lib/market/logos";
 import "@/app/dashboard.css";
 
 export async function generateStaticParams() {
@@ -29,6 +30,8 @@ export default async function CompanyPage({
   const resolvedCompany = await validateTicker(upperTicker);
   if (!resolvedCompany.valid) notFound();
   const companyName = resolvedCompany.companyName ?? upperTicker;
+  const sector = getSectorForCompany(upperTicker);
+  const sectorColors = sector ? getSectorColors(sector.ticker) : undefined;
 
   return (
     <div>
@@ -46,8 +49,20 @@ export default async function CompanyPage({
             ) : (
               <div className="logo-badge logo-badge-detail">{upperTicker.charAt(0)}</div>
             )}
-            <div>
-              <h1 className="detail-ticker">{upperTicker}</h1>
+            <div className="detail-identity">
+              <div className="detail-title-row">
+                <h1 className="detail-ticker">{upperTicker}</h1>
+                {sector ? (
+                  <span
+                    className="company-sector-tag"
+                    style={sectorColors ? {
+                      background: `linear-gradient(135deg, ${sectorColors.c1}, ${sectorColors.c2})`,
+                    } : undefined}
+                  >
+                    {sector.name}
+                  </span>
+                ) : null}
+              </div>
               <p className="detail-name">{companyName}</p>
             </div>
           </div>

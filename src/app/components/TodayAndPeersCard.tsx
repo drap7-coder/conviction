@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPeerTickers } from "@/lib/market/peers";
+import { getSectorForCompany } from "@/lib/market/industries";
 import { fetchJsonWithTimeout } from "./evidence-request";
 
 interface StockQuote {
@@ -17,9 +17,10 @@ function formatPercent(value: number | null | undefined) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-export function TodayAndPeersCard({ ticker }: { ticker: string }) {
+export function TodayAndIndustryCard({ ticker }: { ticker: string }) {
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [loading, setLoading] = useState(true);
+  const sector = getSectorForCompany(ticker);
 
   useEffect(() => {
     let cancelled = false;
@@ -28,8 +29,7 @@ export function TodayAndPeersCard({ ticker }: { ticker: string }) {
     async function load() {
       setLoading(true);
       try {
-        const peerTickers = getPeerTickers(ticker);
-        const allTickers = [ticker, ...peerTickers].join(",");
+        const allTickers = [ticker, sector?.ticker].filter(Boolean).join(",");
         const data = await fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(
           `/api/market/quotes?tickers=${encodeURIComponent(allTickers)}`,
           8_000,
@@ -49,13 +49,10 @@ export function TodayAndPeersCard({ ticker }: { ticker: string }) {
 
     void load();
     return () => { cancelled = true; controller.abort(); };
-  }, [ticker]);
+  }, [ticker, sector?.ticker]);
 
   const quote = quotes[ticker];
-  const peerTickers = getPeerTickers(ticker);
-  const peerQuotes = peerTickers
-    .map((pt) => quotes[pt])
-    .filter((q): q is StockQuote => !!q);
+  const sectorQuote = sector ? quotes[sector.ticker] : undefined;
 
   if (loading) {
     return (
@@ -75,14 +72,13 @@ export function TodayAndPeersCard({ ticker }: { ticker: string }) {
         <strong>{ticker} {formatPercent(quote?.changePercent)}</strong>
       </div>
       <div className="today-peers-slot">
-        <span className="move-eyebrow">Peers</span>
+        <span className="move-eyebrow">Industry change</span>
         <strong>
-          {peerQuotes.length
-            ? peerQuotes.map((pq) => `${pq.ticker} ${formatPercent(pq.changePercent)}`).join(" · ")
-            : "Peer quotes unavailable"}
+          {sector
+            ? `${sector.name} (${sector.ticker}) ${formatPercent(sectorQuote?.changePercent)}`
+            : "Industry unavailable"}
         </strong>
       </div>
-      <p className="today-peers-explain">Separation from group pressure helps identify company-specific signals vs. broad market moves.</p>
     </div>
   );
 }

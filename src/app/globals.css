@@ -1066,6 +1066,32 @@ details > summary::before {
   min-width: 0;
 }
 
+.detail-identity {
+  min-width: 0;
+}
+
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+.company-sector-tag {
+  overflow: hidden;
+  max-width: 180px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .detail-logo {
   display: block;
   flex-shrink: 0;
@@ -2434,28 +2460,37 @@ details > summary::before {
   display: flex;
   justify-content: space-between;
   gap: 14px;
-  align-items: flex-start;
+  align-items: center;
 }
 
-.price-trend-top strong {
-  display: block;
+.price-trend-quote {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.price-trend-quote strong {
   color: var(--ink);
   font-family: var(--font-mono);
   font-size: 1.45rem;
   line-height: 1.1;
 }
 
-.price-trend-top p {
-  font-size: 0.82rem;
+.price-trend-quote > span {
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
   color: var(--muted);
-  margin-top: 5px;
 }
 
-.price-trend-top p.trend-positive {
+.price-trend-quote > span.trend-positive {
   color: var(--green);
 }
 
-.price-trend-top p.trend-negative {
+.price-trend-quote > span.trend-negative {
   color: var(--red);
 }
 

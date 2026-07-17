@@ -5,7 +5,7 @@
   gap: 10px;
 }
 
-/* ── Company Briefing (PriceTrendCard + Today/Peers on top) ── */
+/* ── Company Briefing ── */
 
 .company-briefing {
   display: grid;
@@ -13,7 +13,7 @@
   min-width: 0;
 }
 
-/* ── Today & Peers Card ── */
+/* ── Today & Industry Card ── */
 
 .today-peers-card {
   display: grid;
