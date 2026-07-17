@@ -1025,49 +1025,6 @@ details > summary::before {
   height: 100%;
 }
 
-/* ── Shared Card Header (industry cards) ── */
-
-.card-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.card-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.card-ticker {
-  font-family: var(--font-mono);
-  display: block;
-  font-size: 1.38rem;
-  font-weight: 700;
-  color: var(--ink);
-  line-height: 1.1;
-}
-
-.card-name {
-  display: block;
-  font-size: 0.96rem;
-  color: var(--muted);
-  margin-top: 3px;
-}
-
-.card-arrow {
-  color: var(--quiet);
-  font-size: 1.12rem;
-  transition: color 0.15s, transform 0.15s;
-}
-
-.card-implication {
-  flex: 1;
-}
-
 .signal-badge.pos {
   color: var(--green);
   border-color: var(--green-dim);
