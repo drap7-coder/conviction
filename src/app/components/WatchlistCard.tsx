@@ -6,12 +6,14 @@ import { useRef, useState, useCallback } from "react";
 
 export interface WatchlistCardEvidencePill {
   type: string;
+  text?: string;
   direction: "positive" | "negative" | "neutral" | "contested";
 }
 
 export interface WatchlistCardActivityLine {
   timestamp: string;
   text: string;
+  source?: string;
 }
 
 export interface WatchlistCardProps {
@@ -20,13 +22,10 @@ export interface WatchlistCardProps {
   price: number | null;
   change: number | null;
   changePercent: number | null;
-  convictionScore: number;
   convictionState: string;
   convictionTone: string;
   evidencePills: WatchlistCardEvidencePill[];
   activityLine: WatchlistCardActivityLine | null;
-  sparklinePath: string;
-  sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
   isRemoving: boolean;
 }
@@ -42,7 +41,10 @@ function formatPrice(value: number | null) {
 function formatChange(value: number | null, percent: number | null) {
   if (value === null || percent === null) return null;
   const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(2)} (${sign}${percent.toFixed(2)}%)`;
+  return {
+    dollars: `${sign}${value.toFixed(2)}`,
+    percent: `${sign}${percent.toFixed(2)}%`,
+  };
 }
 
 export function WatchlistCard({
@@ -51,13 +53,10 @@ export function WatchlistCard({
   price,
   change,
   changePercent,
-  convictionScore,
   convictionState,
   convictionTone,
   evidencePills,
   activityLine,
-  sparklinePath,
-  sparklineDirection,
   onRemove,
   isRemoving,
 }: WatchlistCardProps) {
@@ -102,6 +101,9 @@ export function WatchlistCard({
   const wrapStyle = isRemoving
     ? ({ opacity: 0.4, pointerEvents: "none" as const } as React.CSSProperties)
     : undefined;
+  const supportingEvidence = evidencePills.filter(
+    (pill) => pill.text?.replace(/\.$/, "") !== activityLine?.text,
+  );
 
   return (
     <div
@@ -120,67 +122,58 @@ export function WatchlistCard({
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
-          className={`terminal-card terminal-card-${convictionTone}`}
+          className={`watchlist-row watchlist-row-${convictionTone}`}
           title={companyName}
         >
-          {/* Header Row: Logo + Ticker | Price | Conviction Score */}
-          <div className="terminal-card-header">
-            <div className="terminal-card-header-left">
+          <div className="watchlist-row-main">
+            <div className="watchlist-row-company">
               <LogoDisplay ticker={ticker} size="card" />
-              <span className="terminal-card-ticker">{ticker}</span>
+              <div>
+                <strong className="watchlist-row-ticker">{ticker}</strong>
+                <span className="watchlist-row-name">{companyName}</span>
+              </div>
             </div>
-            <span className="terminal-card-price">
-              {price !== null ? `$${formatPrice(price)}` : "—"}
+
+            <div className="watchlist-row-move">
+              <span className="watchlist-row-period">Today</span>
+              <strong className={change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : ""}>
+                {changeText?.percent ?? "—"}
+              </strong>
+              <span>
+                {price !== null ? `$${formatPrice(price)}` : "—"}
+                {changeText ? ` · ${changeText.dollars}` : ""}
+              </span>
+            </div>
+
+            <span className={`watchlist-row-state watchlist-row-state-${convictionTone}`}>
+              {convictionState}
             </span>
-            <div className="terminal-card-conviction">
-              <span className="terminal-card-score">{convictionScore}</span>
-              <span className="terminal-card-state">/ {convictionState}</span>
-            </div>
           </div>
 
-          {/* Sparkline */}
-          {sparklinePath ? (
-            <div className={`terminal-card-sparkline ${sparklineDirection}`} aria-label={`${ticker} intraday micro chart`}>
-              <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 240 42">
-                <path className="sparkline-glow" d={sparklinePath} />
-                <path className="sparkline-line" d={sparklinePath} />
-              </svg>
-            </div>
-          ) : (
-            <div className="terminal-card-sparkline terminal-card-sparkline-empty" />
-          )}
+          <p className="watchlist-row-driver">
+            {activityLine?.source ? (
+              <span className="watchlist-row-driver-source">{activityLine.source}</span>
+            ) : null}
+            {activityLine?.text ?? "No material evidence change detected yet."}
+          </p>
 
-          {/* Evidence Pills */}
-          {evidencePills.length > 0 && (
-            <div className="terminal-card-pills">
-              {evidencePills.map((pill) => (
+          {supportingEvidence.length > 0 && (
+            <div className="watchlist-row-evidence">
+              {supportingEvidence.map((pill) => (
                 <span
                   key={pill.type}
-                  className={`terminal-card-pill terminal-card-pill-${pill.type.toLowerCase()} terminal-card-pill-${pill.direction}`}
+                  className={`watchlist-row-evidence-item watchlist-row-evidence-${pill.direction}`}
                 >
-                  {pill.type}
+                  <b>{pill.type}</b>
+                  {pill.text ? ` · ${pill.text}` : ""}
                 </span>
               ))}
-              {changeText && (
-                <span className={`terminal-card-change ${change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : ""}`}>
-                  {changeText}
-                </span>
-              )}
             </div>
           )}
 
-          {/* Activity Line */}
-          <div className="terminal-card-activity">
-            {activityLine ? (
-              <>
-                <span className="terminal-card-activity-ts">{activityLine.timestamp}</span>
-                <span className="terminal-card-activity-sep"> • </span>
-                <span className="terminal-card-activity-text">{activityLine.text}</span>
-              </>
-            ) : (
-              <span className="terminal-card-activity-muted">Awaiting evidence</span>
-            )}
-          </div>
+          {activityLine ? (
+            <span className="watchlist-row-recency">Updated {activityLine.timestamp}</span>
+          ) : null}
         </Link>
 
         {/* Desktop hover-reveal delete button */}

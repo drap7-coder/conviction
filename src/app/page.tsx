@@ -19,11 +19,6 @@ interface WatchlistEntry {
   statusMessage?: string;
 }
 
-interface StockHistoryPoint {
-  date: string;
-  close: number;
-}
-
 interface StockQuote {
   ticker: string;
   price: number | null;
@@ -33,7 +28,7 @@ interface StockQuote {
   dollarVolume: number | null;
   currency: string | null;
   marketState: string | null;
-  sparkline: StockHistoryPoint[];
+  sparkline: Array<{ date: string; close: number }>;
 }
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
@@ -78,46 +73,42 @@ function markBrowserWatchlistMigrated() {
   window.localStorage.setItem(WATCHLIST_MIGRATION_KEY, "1");
 }
 
-function buildSparklinePath(points: StockHistoryPoint[]) {
-  if (points.length < 2) return "";
-  const width = 240;
-  const height = 42;
-  const padding = 3;
-  const closes = points.map((point) => point.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const spread = max - min || 1;
-
-  return points.map((point, index) => {
-    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
-    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join(" ");
-}
-
 function buildEvidencePills(entry: CardVerdictEntry, shortInterest?: CardVerdictShortInterest): WatchlistCardEvidencePill[] {
   const pills: WatchlistCardEvidencePill[] = [];
   const evidence = getCardEvidence(entry, shortInterest);
 
   for (const item of evidence) {
     if (item.provider === "SEC 13F") {
-      pills.push({ type: "13F", direction: item.direction === "positive" ? "positive" : item.direction === "negative" ? "negative" : "neutral" });
+      pills.push({
+        type: "13F",
+        text: item.text,
+        direction: item.direction === "positive" ? "positive" : item.direction === "negative" ? "negative" : "neutral",
+      });
     } else if (item.provider === "FINRA short interest") {
-      pills.push({ type: "SI", direction: item.direction === "positive" ? "positive" : "negative" });
+      pills.push({
+        type: "SI",
+        text: item.text,
+        direction: item.direction === "positive" ? "positive" : "negative",
+      });
     }
   }
 
   return pills;
 }
 
-function buildActivityLine(recency: string, insight: string): WatchlistCardActivityLine | null {
+function buildActivityLine(recency: string, insight: string, source: string): WatchlistCardActivityLine | null {
   if (!insight || insight.startsWith("No high-conviction") || insight.startsWith("SEC coverage is limited")) {
     return null;
   }
 
   // Shorten the insight to fit a single line
   const short = insight.replace(/\.$/, "");
-  return { timestamp: recency.replace(" days ago", "d").replace(" day ago", "d").replace("today", "0d"), text: short };
+  const sourceLabel = source === "SEC 13F"
+    ? "13F"
+    : source === "FINRA short interest"
+      ? "SI"
+      : source;
+  return { timestamp: recency, text: short, source: sourceLabel };
 }
 
 export default function WatchlistPage() {
@@ -399,20 +390,12 @@ export default function WatchlistPage() {
           <small>Add a ticker above to track primary-source evidence.</small>
         </div>
       ) : (
-        <div className="terminal-grid">
+        <div className="watchlist-list">
           {sortedEntries.map((entry) => {
             const quote = quotes[entry.ticker];
-            const quoteDirection = quote?.change === null || quote?.change === undefined
-              ? "neutral"
-              : quote.change > 0
-                ? "positive"
-                : quote.change < 0
-                  ? "negative"
-                  : "neutral";
             const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
-            const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
             const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
-            const activityLine = buildActivityLine(verdict.recency, verdict.insight);
+            const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
 
             return (
               <WatchlistCard
@@ -422,13 +405,10 @@ export default function WatchlistPage() {
                 price={quote?.price ?? null}
                 change={quote?.change ?? null}
                 changePercent={quote?.changePercent ?? null}
-                convictionScore={verdict.strength}
                 convictionState={verdict.state}
                 convictionTone={verdict.tone}
                 evidencePills={evidencePills}
                 activityLine={activityLine}
-                sparklinePath={sparklinePath}
-                sparklineDirection={quoteDirection}
                 onRemove={handleRemove}
                 isRemoving={removing === entry.ticker}
               />
