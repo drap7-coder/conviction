@@ -3740,7 +3740,11 @@ details > summary::before {
 /* ── Knowledge Hub ── */
 
 .knowledge-page {
-  margin: 18px 0 22px;
+  margin: 14px 0 22px;
+}
+
+.knowledge-header {
+  margin-bottom: 18px;
 }
 
 .knowledge-subtitle {
@@ -3750,65 +3754,148 @@ details > summary::before {
   line-height: 1.35;
 }
 
-.knowledge-featured-card {
-  display: block;
+/* ── Section ── */
+
+.knowledge-section {
+  margin-bottom: 22px;
+}
+
+.knowledge-section-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+}
+
+.knowledge-loading {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.knowledge-loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  animation: knowledge-pulse 1.2s ease-in-out infinite;
+}
+
+.knowledge-loading-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.knowledge-loading-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes knowledge-pulse {
+  0%, 80%, 100% { opacity: 0.3; }
+  40% { opacity: 1; }
+}
+
+.knowledge-empty {
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 20px 0;
+}
+
+/* ── Episode rail ── */
+
+.knowledge-rail {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+
+.knowledge-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.knowledge-episode-card {
+  flex: 0 0 280px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
   text-decoration: none;
   color: inherit;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 64%),
-    var(--surface);
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 22px 24px;
-  margin-top: 14px;
+  overflow: hidden;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
-.knowledge-featured-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 20%, transparent), 0 18px 44px rgba(0, 0, 0, 0.28);
+.knowledge-episode-card:hover {
+  border-color: var(--border-active);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.018);
   transform: translateY(-2px);
 }
 
-.knowledge-featured-tag {
-  display: inline-block;
-  font-size: 0.7rem;
+.knowledge-episode-art {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  display: block;
+  background: var(--surface-alt);
+}
+
+.knowledge-episode-art-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  color: var(--muted);
+  background: var(--surface-alt);
+}
+
+.knowledge-episode-art-fallback svg {
+  width: 36px;
+  height: 36px;
+  opacity: 0.5;
+}
+
+.knowledge-episode-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px 12px;
+}
+
+.knowledge-episode-show {
+  font-size: 0.68rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.knowledge-featured-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--ink);
-  margin-bottom: 6px;
-}
-
-.knowledge-featured-desc {
-  color: var(--muted);
-  font-size: 0.88rem;
-  line-height: 1.5;
-}
-
-.knowledge-featured-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  font-size: 0.82rem;
+.knowledge-episode-title {
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--accent);
-  transition: gap 0.15s;
+  color: var(--ink);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
 }
 
-.knowledge-featured-card:hover .knowledge-featured-action {
-  gap: 10px;
+.knowledge-episode-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Knowledge Grid ── */
