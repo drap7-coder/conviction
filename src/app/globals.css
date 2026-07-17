@@ -748,9 +748,7 @@ details > summary::before {
 
 .watchlist-row-move > span:last-child {
   color: var(--muted);
-  font-size: 0.88rem;
-  font-weight: 700;
-  line-height: 1.2;
+  font-size: 0.68rem;
   white-space: nowrap;
 }
 
