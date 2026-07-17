@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
+import { ConvictionHeader } from "@/app/components/ConvictionHeader";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MarketPanel } from "@/app/components/MarketPanel";
+import { MultiVectorSummary } from "@/app/components/MultiVectorSummary";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
@@ -55,7 +57,11 @@ export default async function CompanyPage({
 
       <CompanyDashboard
         briefing={
-          <MarketPanel ticker={upperTicker} />
+          <>
+            <ConvictionHeader ticker={upperTicker} companyName={companyName} />
+            <MultiVectorSummary ticker={upperTicker} />
+            <MarketPanel ticker={upperTicker} />
+          </>
         }
       >
         <DashboardCard className="dashboard-card-news">
