@@ -118,6 +118,20 @@ function buildActivityLine(recency: string, insight: string, source: string): Wa
   return { timestamp: recency, text: short, source: sourceLabel };
 }
 
+function highlightMatch(text: string, query: string) {
+  const q = query.trim();
+  if (!q) return text;
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="ticker-suggestion-match">{text.slice(idx, idx + q.length)}</mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
 export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntryWithThesis[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
@@ -140,7 +154,9 @@ export default function WatchlistPage() {
   const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const [suggestStatus, setSuggestStatus] = useState<"idle" | "results" | "empty">("idle");
   const suggestDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestCacheRef = useRef<Map<string, CompanySuggestion[]>>(new Map());
 
   // Removal state
   const [removing, setRemoving] = useState<string | null>(null);
@@ -353,8 +369,16 @@ export default function WatchlistPage() {
     setShowSuggestions(false);
     setSuggestions([]);
     setActiveSuggestion(-1);
+    setSuggestStatus("idle");
     setAddInput("");
     void handleAddValue(suggestion.ticker);
+  };
+
+  const applySuggestions = (next: CompanySuggestion[]) => {
+    setSuggestions(next);
+    setSuggestStatus(next.length > 0 ? "results" : "empty");
+    setShowSuggestions(true);
+    setActiveSuggestion(-1);
   };
 
   // Debounced type-ahead search against the SEC company dataset.
@@ -364,6 +388,15 @@ export default function WatchlistPage() {
       setSuggestions([]);
       setShowSuggestions(false);
       setActiveSuggestion(-1);
+      setSuggestStatus("idle");
+      return;
+    }
+
+    // Serve from the in-session cache instantly (e.g. when backspacing).
+    const cacheKey = query.toLowerCase();
+    const cached = suggestCacheRef.current.get(cacheKey);
+    if (cached) {
+      applySuggestions(cached);
       return;
     }
 
@@ -378,9 +411,8 @@ export default function WatchlistPage() {
         if (!res.ok) return;
         const data = (await res.json()) as { suggestions?: CompanySuggestion[] };
         const next = data.suggestions ?? [];
-        setSuggestions(next);
-        setShowSuggestions(next.length > 0);
-        setActiveSuggestion(-1);
+        suggestCacheRef.current.set(cacheKey, next);
+        applySuggestions(next);
       } catch {
         // Type-ahead is best-effort; fall back to typing the full ticker/name.
       }
@@ -420,6 +452,11 @@ export default function WatchlistPage() {
   };
 
   const handleAddKeyDown = (e: React.KeyboardEvent) => {
+    if (showSuggestions && e.key === "Escape") {
+      e.preventDefault();
+      setShowSuggestions(false);
+      return;
+    }
     if (showSuggestions && suggestions.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -434,11 +471,6 @@ export default function WatchlistPage() {
       if (e.key === "Enter" && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
         e.preventDefault();
         handleSelectSuggestion(suggestions[activeSuggestion]);
-        return;
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        setShowSuggestions(false);
         return;
       }
     }
@@ -578,7 +610,7 @@ export default function WatchlistPage() {
             aria-autocomplete="list"
             autoComplete="off"
           />
-          {showSuggestions && suggestions.length > 0 ? (
+          {showSuggestions && suggestStatus === "results" && suggestions.length > 0 ? (
             <ul className="ticker-suggestions" role="listbox">
               {suggestions.map((s, i) => (
                 <li
@@ -589,11 +621,15 @@ export default function WatchlistPage() {
                   onMouseDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
                   onMouseEnter={() => setActiveSuggestion(i)}
                 >
-                  <span className="ticker-suggestion-ticker">{s.ticker}</span>
-                  <span className="ticker-suggestion-name">{s.name}</span>
+                  <span className="ticker-suggestion-ticker">{highlightMatch(s.ticker, addInput)}</span>
+                  <span className="ticker-suggestion-name">{highlightMatch(s.name, addInput)}</span>
                 </li>
               ))}
             </ul>
+          ) : showSuggestions && suggestStatus === "empty" ? (
+            <div className="ticker-suggestions ticker-suggestions-empty">
+              No matches — press Enter to search anyway
+            </div>
           ) : null}
         </div>
         <button

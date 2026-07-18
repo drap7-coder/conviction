@@ -50,12 +50,11 @@ const themeScript = `
 (() => {
   try {
     const saved = localStorage.getItem("conviction-theme");
-    const theme = saved === "light" || saved === "dark"
-      ? saved
-      : (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    // Light is the default; only honor an explicit saved "dark" preference.
+    const theme = saved === "dark" ? "dark" : "light";
     document.documentElement.dataset.theme = theme;
   } catch {
-    document.documentElement.dataset.theme = "dark";
+    document.documentElement.dataset.theme = "light";
   }
 })();
 `;
