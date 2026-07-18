@@ -10,6 +10,7 @@ import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
 import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
 import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
 import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
+import { calculateRelativeVolatility } from "@/lib/market/volatility";
 
 interface StockQuote {
   ticker: string;
@@ -130,6 +131,7 @@ export default function WatchlistPage() {
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
+  const [indexQuotes, setIndexQuotes] = useState<Record<string, StockQuote>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -146,6 +148,7 @@ export default function WatchlistPage() {
   // Removal state
   const [removing, setRemoving] = useState<string | null>(null);
   const [focusedCardIndex, setFocusedCardIndex] = useState(-1);
+  const [focusedTicker, setFocusedTicker] = useState<string | null>(null);
   const watchlistListRef = useRef<HTMLDivElement>(null);
 
   const loadWatchlist = useCallback(async () => {
@@ -201,42 +204,6 @@ export default function WatchlistPage() {
   useEffect(() => {
     loadWatchlist();
   }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'K' || event.key === 'k') {
-        event.preventDefault();
-        addInputRef.current?.focus();
-      } else if (['ArrowUp', 'ArrowDown', 'j', 'k'].includes(event.key)) {
-        event.preventDefault();
-
-        setFocusedCardIndex((prevIndex) => {
-          let newIndex = prevIndex;
-          const maxIndex = sortedEntries.length - 1;
-
-          if (event.key === 'j' || event.key === 'ArrowDown') {
-            newIndex = Math.min(prevIndex + 1, maxIndex);
-          } else if (event.key === 'k' || event.key === 'ArrowUp') {
-            newIndex = Math.max(prevIndex - 1, 0);
-          }
-
-          // Scroll the focused card into view
-          if (watchlistListRef.current && newIndex !== prevIndex) {
-            const focusedCardElement = watchlistListRef.current.children[newIndex] as HTMLElement;
-            if (focusedCardElement) {
-              focusedCardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-          }
-          return newIndex;
-        });
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [addInputRef, sortedEntries]);
 
   useEffect(() => {
     if (entries.length === 0) return;
@@ -305,6 +272,32 @@ export default function WatchlistPage() {
       controller.abort();
     };
   }, [entries]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadIndexQuotes() {
+      try {
+        // Fetch quotes for a major index like SPX
+        const response = await fetch(`/api/market/quotes?tickers=${encodeURIComponent('^SPX')}`);
+        if (!response.ok) return;
+        const data = (await response.json()) as { quotes?: StockQuote[] };
+        if (cancelled) return;
+        const nextQuotes: Record<string, StockQuote> = {};
+        for (const quote of data.quotes ?? []) {
+          nextQuotes[quote.ticker] = quote;
+        }
+        setIndexQuotes(nextQuotes);
+      } catch {
+        if (!cancelled) setIndexQuotes({});
+      }
+    }
+
+    void loadIndexQuotes();
+    return () => {
+      cancelled = true;
+    };
+  }, []); // Run once on component mount
 
   useEffect(() => {
     if (entries.length === 0) return;
@@ -422,6 +415,16 @@ export default function WatchlistPage() {
     return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
   });
 
+  const filteredEntries = useMemo(() => {
+    if (!addInput) return sortedEntries;
+    const lowerCaseInput = addInput.toLowerCase();
+    return sortedEntries.filter(
+      (entry) =>
+        entry.ticker.toLowerCase().includes(lowerCaseInput) ||
+        entry.companyName.toLowerCase().includes(lowerCaseInput)
+    );
+  }, [sortedEntries, addInput]);
+
   // Get entries with normalized thesis for NeedsYourAttention
   const entriesForAttention = useMemo(() => {
     return entries.map(normalizeEntryForThesis);
@@ -430,6 +433,52 @@ export default function WatchlistPage() {
   const priorityItems = useMemo(() => {
     return getPriorityReviewItems(entriesForAttention);
   }, [entriesForAttention]);
+
+  // Keyboard navigation effect
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'K' || event.key === 'k') {
+        event.preventDefault();
+        addInputRef.current?.focus();
+      } else if (['ArrowUp', 'ArrowDown', 'j', 'k'].includes(event.key)) {
+        event.preventDefault();
+
+        setFocusedCardIndex((prevIndex) => {
+          let newIndex = prevIndex;
+          const maxIndex = filteredEntries.length - 1;
+
+          if (event.key === 'j' || event.key === 'ArrowDown') {
+            newIndex = Math.min(prevIndex + 1, maxIndex);
+          } else if (event.key === 'k' || event.key === 'ArrowUp') {
+            newIndex = Math.max(prevIndex - 1, 0);
+          }
+
+          // Ensure index is valid for current filtered list
+          if (maxIndex < 0) return -1; // No cards to focus
+          if (newIndex > maxIndex) newIndex = maxIndex; // Adjust if filtered list is shorter
+          if (newIndex < 0) newIndex = 0;
+
+          // Scroll the focused card into view
+          if (watchlistListRef.current && newIndex !== prevIndex) {
+            const focusedCardElement = watchlistListRef.current.children[newIndex] as HTMLElement;
+            if (focusedCardElement) {
+              focusedCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }
+          return newIndex;
+        });
+      } else if (event.key === 'Enter' && focusedCardIndex !== -1 && filteredEntries[focusedCardIndex]) {
+        setFocusedTicker(filteredEntries[focusedCardIndex].ticker);
+      } else if (event.key === 'Escape') {
+        setFocusedTicker(null);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [addInputRef, filteredEntries, focusedCardIndex, focusedTicker, watchlistListRef]);
 
   return (
     <div>
@@ -500,9 +549,51 @@ export default function WatchlistPage() {
           <p>Your watchlist is empty.</p>
           <small>Add a ticker above to track primary-source evidence.</small>
         </div>
+      ) : focusedTicker ? (
+        <div className="focused-card-container">
+          {filteredEntries
+            .filter((entry) => entry.ticker === focusedTicker)
+            .map((entry) => {
+              const quote = quotes[entry.ticker];
+              const quoteDirection = quote?.change === null || quote?.change === undefined
+                ? "neutral"
+                : quote.change > 0
+                  ? "positive"
+                  : quote.change < 0
+                    ? "negative"
+                    : "neutral";
+              const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
+              const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
+              const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
+              const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
+
+              return (
+                <WatchlistCard
+                  key={entry.ticker}
+                  ticker={entry.ticker}
+                  companyName={entry.companyName}
+                  price={quote?.price ?? null}
+                  change={quote?.change ?? null}
+                  changePercent={quote?.changePercent ?? null}
+                  convictionState={verdict.state}
+                  convictionTone={verdict.tone}
+                  evidencePills={evidencePills}
+                  activityLine={activityLine}
+                  headlines={headlines[entry.ticker] ?? []}
+                  sparklinePath={sparklinePath}
+                  sparklineDirection={quoteDirection}
+                  onRemove={handleRemove}
+                  isRemoving={removing === entry.ticker}
+                  thesisStatus={entry.thesis?.status}
+                  macroCorrelationHighlight={calculateRelativeVolatility(quote, indexQuotes['^SPX'])}
+                  isFocused={true}
+                />
+              );
+            })}
+        </div>
       ) : (
-        <div className="watchlist-list">
-          {sortedEntries.map((entry) => {
+        <div className="watchlist-list" ref={watchlistListRef}>
+          {filteredEntries.map((entry, index) => {
             const quote = quotes[entry.ticker];
             const quoteDirection = quote?.change === null || quote?.change === undefined
               ? "neutral"
@@ -515,6 +606,8 @@ export default function WatchlistPage() {
             const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
             const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
             const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
+
+            const isCardFocused = focusedCardIndex === index;
 
             return (
               <WatchlistCard
@@ -534,7 +627,8 @@ export default function WatchlistPage() {
                 onRemove={handleRemove}
                 isRemoving={removing === entry.ticker}
                 thesisStatus={entry.thesis?.status}
-                macroCorrelationHighlight={true}
+                macroCorrelationHighlight={calculateRelativeVolatility(quote, indexQuotes['^SPX'])}
+                isFocused={isCardFocused}
               />
             );
           })}
