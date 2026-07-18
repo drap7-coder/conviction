@@ -6,9 +6,11 @@ import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type Ca
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
-import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
+// Needs Your Attention module temporarily suppressed — restore this import when re-enabling:
+// import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
 import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
-import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
+// Needs Your Attention module temporarily suppressed — restore this import when re-enabling:
+// import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
 import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
 import type { StockQuote } from "@/lib/market/types";
 
@@ -387,14 +389,14 @@ export default function WatchlistPage() {
     );
   }, [sortedEntries, addInput]);
 
-  // Get entries with normalized thesis for NeedsYourAttention
-  const entriesForAttention = useMemo(() => {
-    return entries.map(normalizeEntryForThesis);
-  }, [entries]);
-
-  const priorityItems = useMemo(() => {
-    return getPriorityReviewItems(entriesForAttention);
-  }, [entriesForAttention]);
+  // Needs Your Attention module temporarily suppressed — restore when ready:
+  // const entriesForAttention = useMemo(() => {
+  //   return entries.map(normalizeEntryForThesis);
+  // }, [entries]);
+  //
+  // const priorityItems = useMemo(() => {
+  //   return getPriorityReviewItems(entriesForAttention);
+  // }, [entriesForAttention]);
 
   // Keyboard navigation effect
   useEffect(() => {
@@ -454,7 +456,8 @@ export default function WatchlistPage() {
         </div>
       </div>
 
-      <NeedsYourAttention entries={entriesForAttention} />
+      {/* Needs Your Attention module temporarily suppressed — restore when ready:
+      <NeedsYourAttention entries={entriesForAttention} /> */}
 
       <GuestModeBanner
         authenticated={authenticated}
