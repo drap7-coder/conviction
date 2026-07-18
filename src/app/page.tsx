@@ -13,6 +13,7 @@ import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchl
 // import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
 import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
 import type { StockQuote } from "@/lib/market/types";
+import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
@@ -134,6 +135,12 @@ export default function WatchlistPage() {
   const addInputRef = useRef<HTMLInputElement>(null);
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
+
+  // Type-ahead suggestion state
+  const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const suggestDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Removal state
   const [removing, setRemoving] = useState<string | null>(null);
@@ -342,6 +349,49 @@ export default function WatchlistPage() {
     await handleAddValue();
   };
 
+  const handleSelectSuggestion = (suggestion: CompanySuggestion) => {
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setActiveSuggestion(-1);
+    setAddInput("");
+    void handleAddValue(suggestion.ticker);
+  };
+
+  // Debounced type-ahead search against the SEC company dataset.
+  useEffect(() => {
+    const query = addInput.trim();
+    if (query.length < 1) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setActiveSuggestion(-1);
+      return;
+    }
+
+    if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
+    const controller = new AbortController();
+    suggestDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/companies/search?q=${encodeURIComponent(query)}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { suggestions?: CompanySuggestion[] };
+        const next = data.suggestions ?? [];
+        setSuggestions(next);
+        setShowSuggestions(next.length > 0);
+        setActiveSuggestion(-1);
+      } catch {
+        // Type-ahead is best-effort; fall back to typing the full ticker/name.
+      }
+    }, 150);
+
+    return () => {
+      controller.abort();
+      if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
+    };
+  }, [addInput]);
+
   const handleRemove = async (ticker: string) => {
     setRemoving(ticker);
     const nextEntries = entries.filter((entry) => entry.ticker !== ticker);
@@ -370,6 +420,28 @@ export default function WatchlistPage() {
   };
 
   const handleAddKeyDown = (e: React.KeyboardEvent) => {
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveSuggestion((i) => Math.min(i + 1, suggestions.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveSuggestion((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === "Enter" && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+        e.preventDefault();
+        handleSelectSuggestion(suggestions[activeSuggestion]);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setShowSuggestions(false);
+        return;
+      }
+    }
     if (e.key === "Enter") handleAdd();
   };
 
@@ -401,6 +473,17 @@ export default function WatchlistPage() {
   // Keyboard navigation effect
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Ignore shortcuts while the user is typing in a field (e.g. the add box).
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
       if (event.key === 'K' || event.key === 'k') {
         event.preventDefault();
         addInputRef.current?.focus();
@@ -485,10 +568,33 @@ export default function WatchlistPage() {
             value={addInput}
             onChange={(e) => setAddInput(e.target.value)}
             onKeyDown={handleAddKeyDown}
+            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+            onBlur={() => { window.setTimeout(() => setShowSuggestions(false), 120); }}
             placeholder="Add company (ticker or name)"
             disabled={adding}
             className="watchlist-input"
+            role="combobox"
+            aria-expanded={showSuggestions}
+            aria-autocomplete="list"
+            autoComplete="off"
           />
+          {showSuggestions && suggestions.length > 0 ? (
+            <ul className="ticker-suggestions" role="listbox">
+              {suggestions.map((s, i) => (
+                <li
+                  key={`${s.ticker}-${s.cik}`}
+                  role="option"
+                  aria-selected={i === activeSuggestion}
+                  className={`ticker-suggestion ${i === activeSuggestion ? "active" : ""}`}
+                  onMouseDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
+                  onMouseEnter={() => setActiveSuggestion(i)}
+                >
+                  <span className="ticker-suggestion-ticker">{s.ticker}</span>
+                  <span className="ticker-suggestion-name">{s.name}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
         <button
           onClick={handleAdd}

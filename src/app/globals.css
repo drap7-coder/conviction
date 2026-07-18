@@ -587,6 +587,57 @@ details > summary::before {
   background: var(--surface-elevated);
 }
 
+/* ── Ticker type-ahead suggestions ── */
+
+.ticker-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 60;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--rounded-xl);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.ticker-suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.ticker-suggestion.active,
+.ticker-suggestion:hover {
+  background: var(--accent-dim);
+}
+
+.ticker-suggestion-ticker {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+.ticker-suggestion-name {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .watchlist-add-button {
   min-height: 42px;
   background: var(--accent);

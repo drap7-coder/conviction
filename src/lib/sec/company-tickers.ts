@@ -190,6 +190,83 @@ export async function resolveCompanyByTicker(raw: string): Promise<TickerResolut
   return { found: false, source: "not_found" };
 }
 
+export interface CompanySuggestion {
+  ticker: string;
+  name: string;
+  cik: string;
+}
+
+/**
+ * Search the SEC dataset for companies matching a query (ticker or name).
+ * Returns up to `limit` ranked suggestions for type-ahead.
+ *
+ * Ranking (best first):
+ *   1. Exact ticker match
+ *   2. Ticker prefix match
+ *   3. Normalized name prefix match
+ *   4. Normalized name word-boundary match
+ *   5. Ticker/name substring match
+ * Ties broken by shorter name, then alphabetically.
+ */
+export async function searchCompanies(raw: string, limit = 8): Promise<CompanySuggestion[]> {
+  const query = raw.trim();
+  if (query.length < 1) return [];
+
+  const upper = query.toUpperCase();
+  const normQuery = normalizeCompanyName(query);
+
+  let ds: CompanyTickerDataset;
+  try {
+    ds = await getCompanyTickerDataset();
+  } catch {
+    return [];
+  }
+
+  const scored: Array<{ entry: CompanyTickerEntry; score: number }> = [];
+
+  for (const entry of ds.byTicker.values()) {
+    const ticker = entry.ticker;
+    const normName = normalizeCompanyName(entry.name);
+    let score = 0;
+
+    if (ticker === upper) {
+      score = 100;
+    } else if (ticker.startsWith(upper)) {
+      score = 85;
+    } else if (normName.startsWith(normQuery)) {
+      score = 70;
+    } else if (new RegExp(`\\b${escapeRegExp(normQuery)}`).test(normName)) {
+      score = 55;
+    } else if (ticker.includes(upper)) {
+      score = 35;
+    } else if (normName.includes(normQuery)) {
+      score = 25;
+    } else {
+      continue;
+    }
+
+    scored.push({ entry, score });
+  }
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.entry.name.length !== b.entry.name.length) {
+      return a.entry.name.length - b.entry.name.length;
+    }
+    return a.entry.ticker.localeCompare(b.entry.ticker);
+  });
+
+  return scored.slice(0, limit).map(({ entry }) => ({
+    ticker: entry.ticker,
+    name: entry.name,
+    cik: entry.cik,
+  }));
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 /**
  * Resolve a company name to ticker, CIK, and full name.
  * Tries: hardcoded name map → SEC dataset name match.
