@@ -4219,6 +4219,13 @@ details > summary::before {
 .border-l-4 { border-left-width: 4px; }
 .border-amber-400 { border-color: var(--amber-400); }
 
+.focused-card {
+  outline: none; /* Remove default focus outline */
+  box-shadow: 0 0 0 3px var(--amber-400), var(--shadow-sm); /* Custom amber glow */
+}
+
+
+
 .thesis-display {
   display: flex;
   flex-direction: column;

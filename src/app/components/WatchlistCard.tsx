@@ -142,7 +142,7 @@ export function WatchlistCard({
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
-          className={`watchlist-row watchlist-row-${convictionTone} ${macroCorrelationHighlight ? "border-l-4 border-amber-400" : ""}`}
+          className={`watchlist-row watchlist-row-${convictionTone} ${macroCorrelationHighlight ? "border-l-4 border-amber-400" : ""} ${isFocused ? "focused-card" : ""}`}
           title={companyName}
         >
           {thesisStatus && <StatusBadge status={thesisStatus} />}
