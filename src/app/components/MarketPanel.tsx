@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { PriceTrendCard } from "./PriceTrendCard";
 import { TechnicalStateCard } from "./TechnicalStateCard";
-import { TodayAndIndustryCard } from "./TodayAndPeersCard";
+// Today & industry change temporarily suppressed — restore this import when re-enabling:
+// import { TodayAndIndustryCard } from "./TodayAndPeersCard";
 
 interface StockHistoryPoint {
   date: string;
@@ -69,7 +70,8 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
         status={status}
         currentPrice={history?.endPrice ?? null}
       />
-      <TodayAndIndustryCard ticker={ticker} />
+      {/* Today & industry change temporarily suppressed — restore when ready:
+      <TodayAndIndustryCard ticker={ticker} /> */}
     </>
   );
 }
