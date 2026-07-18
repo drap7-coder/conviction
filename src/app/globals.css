@@ -17,8 +17,11 @@
   --red-dim: rgba(255, 56, 106, 0.12);
   --amber: #ffb000;
   --amber-dim: rgba(255, 176, 0, 0.12);
+  --amber-400: #fbbf24;
   --positive: #00ff88;
   --negative: #ff386a;
+  --rounded-xl: 12px; /* New: consistent border radius */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* New: subtle shadow */
   --radius: 12px;
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -39,11 +42,11 @@
   --bg: #f4f0e7;
   --surface: #fffaf0;
   --surface-elevated: #eee6d6;
-  --border: #ded2bd;
-  --border-active: #b7a583;
-  --ink: #17140f;
-  --muted: #5e584d;
-  --quiet: #847766;
+  --border: #e0e0e0;
+  --border-active: #a8a8a8;
+  --ink: #262626;
+  --muted: #737373;
+  --quiet: #a3a3a3;
   --accent: #005dff;
   --accent-dim: rgba(0, 93, 255, 0.12);
   --green: #007844;
@@ -52,8 +55,11 @@
   --red-dim: rgba(179, 22, 63, 0.12);
   --amber: #9b6500;
   --amber-dim: rgba(155, 101, 0, 0.14);
+  --amber-400: #fbbf24;
   --positive: #007844;
   --negative: #b3163f;
+  --rounded-xl: 12px; /* New: consistent border radius */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* New: subtle shadow */
 
   /* Chart theme (light mode) */
   --chart-surface: #f0ece1;
@@ -291,7 +297,6 @@ details > summary::before {
 .section-count {
   font-size: 0.82rem;
   color: var(--muted);
-  background: var(--surface-elevated);
   padding: 1px 6px;
   border-radius: var(--radius);
 }
@@ -319,7 +324,7 @@ details > summary::before {
 .industries-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 12px;
+  gap: 24px;
 }
 
 .trending-header {
@@ -653,7 +658,7 @@ details > summary::before {
 
 .watchlist-list {
   display: grid;
-  gap: 8px;
+  gap: 24px;
 }
 
 @media (min-width: 641px) {
@@ -671,8 +676,8 @@ details > summary::before {
   text-decoration: none;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 7%, transparent);
+  border-radius: var(--rounded-xl);
+  box-shadow: var(--shadow-sm);
   transition: border-color 0.15s, background-color 0.15s;
   height: 100%;
 }
@@ -982,12 +987,9 @@ details > summary::before {
     linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 74%, transparent), transparent 42%),
     var(--surface);
   border: 1px solid color-mix(in srgb, var(--border-active) 42%, var(--border));
-  border-radius: var(--radius);
+  border-radius: var(--rounded-xl);
   padding: 16px;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
-    0 14px 34px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(255, 255, 255, 0.018);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s;
   cursor: pointer;
 }
@@ -4207,10 +4209,15 @@ details > summary::before {
 .thesis-tracker-panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: var(--rounded-xl);
   padding: 16px;
   margin-top: 16px;
+  box-shadow: var(--shadow-sm);
 }
+
+/* -- Tailwind-like custom classes -- */
+.border-l-4 { border-left-width: 4px; }
+.border-amber-400 { border-color: var(--amber-400); }
 
 .thesis-display {
   display: flex;
@@ -4368,8 +4375,9 @@ details > summary::before {
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 4px solid var(--amber);
-  border-radius: var(--radius);
+  border-radius: var(--rounded-xl);
   padding: 14px;
+  box-shadow: var(--shadow-sm);
   transition: border-color 0.15s, background-color 0.15s;
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
@@ -139,11 +139,14 @@ export default function WatchlistPage() {
 
   // Add company state
   const [addInput, setAddInput] = useState("");
+  const addInputRef = useRef<HTMLInputElement>(null);
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
 
   // Removal state
   const [removing, setRemoving] = useState<string | null>(null);
+  const [focusedCardIndex, setFocusedCardIndex] = useState(-1);
+  const watchlistListRef = useRef<HTMLDivElement>(null);
 
   const loadWatchlist = useCallback(async () => {
     const browserEntries = readBrowserWatchlist();
@@ -197,7 +200,43 @@ export default function WatchlistPage() {
 
   useEffect(() => {
     loadWatchlist();
-  }, [loadWatchlist]);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'K' || event.key === 'k') {
+        event.preventDefault();
+        addInputRef.current?.focus();
+      } else if (['ArrowUp', 'ArrowDown', 'j', 'k'].includes(event.key)) {
+        event.preventDefault();
+
+        setFocusedCardIndex((prevIndex) => {
+          let newIndex = prevIndex;
+          const maxIndex = sortedEntries.length - 1;
+
+          if (event.key === 'j' || event.key === 'ArrowDown') {
+            newIndex = Math.min(prevIndex + 1, maxIndex);
+          } else if (event.key === 'k' || event.key === 'ArrowUp') {
+            newIndex = Math.max(prevIndex - 1, 0);
+          }
+
+          // Scroll the focused card into view
+          if (watchlistListRef.current && newIndex !== prevIndex) {
+            const focusedCardElement = watchlistListRef.current.children[newIndex] as HTMLElement;
+            if (focusedCardElement) {
+              focusedCardElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }
+          return newIndex;
+        });
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [addInputRef, sortedEntries]);
 
   useEffect(() => {
     if (entries.length === 0) return;
@@ -427,6 +466,7 @@ export default function WatchlistPage() {
       <div className="watchlist-add">
         <div className="watchlist-input-wrap">
           <input
+            ref={addInputRef}
             type="text"
             value={addInput}
             onChange={(e) => setAddInput(e.target.value)}
@@ -493,6 +533,8 @@ export default function WatchlistPage() {
                 sparklineDirection={quoteDirection}
                 onRemove={handleRemove}
                 isRemoving={removing === entry.ticker}
+                thesisStatus={entry.thesis?.status}
+                macroCorrelationHighlight={true}
               />
             );
           })}

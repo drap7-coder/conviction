@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { LogoDisplay } from "./LogoDisplay";
+import { StatusBadge } from "./StatusBadge";
 import { useRef, useState, useCallback } from "react";
+import type { ThesisStatus } from "@/lib/watchlist/types";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -37,6 +39,8 @@ export interface WatchlistCardProps {
   sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
   isRemoving: boolean;
+  thesisStatus?: ThesisStatus;
+  macroCorrelationHighlight?: boolean;
 }
 
 function formatPrice(value: number | null) {
@@ -71,6 +75,8 @@ export function WatchlistCard({
   sparklineDirection,
   onRemove,
   isRemoving,
+  thesisStatus,
+  macroCorrelationHighlight,
 }: WatchlistCardProps) {
   const changeText = formatChange(change, changePercent);
   const [swipeOffset, setSwipeOffset] = useState(0);
@@ -134,9 +140,10 @@ export function WatchlistCard({
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
-          className={`watchlist-row watchlist-row-${convictionTone}`}
+          className={`watchlist-row watchlist-row-${convictionTone} ${macroCorrelationHighlight ? "border-l-4 border-amber-400" : ""}`}
           title={companyName}
         >
+          {thesisStatus && <StatusBadge status={thesisStatus} />}
           <div className="watchlist-row-main">
             <div className="watchlist-row-company">
               <LogoDisplay ticker={ticker} size="card" />
