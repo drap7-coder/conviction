@@ -922,21 +922,29 @@ details > summary::before {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 0;
-  }
-
-  .watchlist-row-move strong {
-    font-size: 0.8rem;
+    gap: 2px 8px;
   }
 
   .watchlist-row-period {
     align-self: flex-start;
     font-size: 0.5rem;
+    grid-column: auto;
   }
 
-  .watchlist-row-move > span:last-child {
+  .watchlist-row-move-amounts {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--font-mono);
+  }
+
+  .watchlist-row-move-amounts strong {
+    font-size: 0.8rem;
+  }
+
+  .watchlist-row-move-amounts > span {
     font-size: 0.6rem;
-    white-space: normal; /* Allow wrapping */
+    white-space: nowrap;
   }
 
   .watchlist-row-evidence {
@@ -4235,7 +4243,7 @@ details > summary::before {
 
 /* -- Tailwind-like custom classes -- */
 .border-l-4 { border-left-width: 4px; }
-.border-amber-400 { border-color: var(--amber-400); }
+.border-amber-400 { border-left-color: var(--amber-400); }
 
 .focused-card {
   outline: none; /* Remove default focus outline */
