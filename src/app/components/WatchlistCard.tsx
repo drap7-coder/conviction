@@ -41,6 +41,7 @@ export interface WatchlistCardProps {
   isRemoving: boolean;
   thesisStatus?: ThesisStatus;
   macroCorrelationHighlight?: boolean;
+  isFocused?: boolean; // Added for focus mode
 }
 
 function formatPrice(value: number | null) {
@@ -77,6 +78,7 @@ export function WatchlistCard({
   isRemoving,
   thesisStatus,
   macroCorrelationHighlight,
+  isFocused,
 }: WatchlistCardProps) {
   const changeText = formatChange(change, changePercent);
   const [swipeOffset, setSwipeOffset] = useState(0);
