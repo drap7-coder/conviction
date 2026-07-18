@@ -919,6 +919,24 @@ details > summary::before {
   .watchlist-row-move {
     grid-column: 1 / -1;
     grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0;
+  }
+
+  .watchlist-row-move strong {
+    font-size: 0.8rem;
+  }
+
+  .watchlist-row-period {
+    align-self: flex-start;
+    font-size: 0.5rem;
+  }
+
+  .watchlist-row-move > span:last-child {
+    font-size: 0.6rem;
+    white-space: normal; /* Allow wrapping */
   }
 
   .watchlist-row-evidence {
