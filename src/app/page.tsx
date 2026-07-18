@@ -10,19 +10,9 @@ import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
 import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
 import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
 import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
-import { calculateRelativeVolatility } from "../../lib/market/volatility";
+import { calculateRelativeVolatility } from "@/lib/market/volatility";
+import type { StockQuote } from "@/lib/market/types";
 
-interface StockQuote {
-  ticker: string;
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
-  volume: number | null;
-  dollarVolume: number | null;
-  currency: string | null;
-  marketState: string | null;
-  sparkline: Array<{ date: string; close: number }>;
-}
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
