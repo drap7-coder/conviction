@@ -11,7 +11,8 @@ import { MoveExplanationSection } from "@/app/components/MoveExplanationSection"
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 // Thesis section temporarily suppressed — restore this import when re-enabling:
 // import { ThesisTracker } from "@/app/components/ThesisTracker";
-import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
+// Track/Tracked button temporarily suppressed — restore this import when re-enabling:
+// import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
@@ -69,7 +70,8 @@ export default async function CompanyPage({
               <p className="detail-name">{companyName}</p>
             </div>
           </div>
-          <TrackCompanyButton ticker={upperTicker} companyName={companyName} />
+          {/* Track/Tracked button temporarily suppressed — restore when ready:
+          <TrackCompanyButton ticker={upperTicker} companyName={companyName} /> */}
         </div>
       </div>
 
