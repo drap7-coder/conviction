@@ -87,11 +87,17 @@ export function TrackCompanyButton({ ticker, companyName }: TrackCompanyButtonPr
     }
   }
 
+  // Already-tracked companies don't need a redundant "Tracked" button.
+  // Only surface the "Track" action when the company isn't on the watchlist yet.
+  if (tracked && !message) return null;
+
   return (
     <div className="track-company-action">
-      <button className="watchlist-add-button" disabled={busy} onClick={toggleTracked} type="button">
-        {busy ? "Saving..." : tracked ? "Tracked" : "Track"}
-      </button>
+      {!tracked ? (
+        <button className="watchlist-add-button" disabled={busy} onClick={toggleTracked} type="button">
+          {busy ? "Saving..." : "Track"}
+        </button>
+      ) : null}
       {message ? <span>{message}</span> : null}
     </div>
   );
