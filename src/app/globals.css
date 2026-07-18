@@ -732,7 +732,7 @@ details > summary::before {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: auto auto;
-  justify-content: start;
+  justify-content: end;
   align-items: baseline;
   gap: 2px 8px;
   font-family: var(--font-mono);
@@ -4240,10 +4240,6 @@ details > summary::before {
   margin-top: 16px;
   box-shadow: var(--shadow-sm);
 }
-
-/* -- Tailwind-like custom classes -- */
-.border-l-4 { border-left-width: 4px; }
-.border-amber-400 { border-left-color: var(--amber-400); }
 
 .focused-card {
   outline: none; /* Remove default focus outline */

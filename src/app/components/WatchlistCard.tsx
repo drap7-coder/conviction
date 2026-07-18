@@ -40,7 +40,6 @@ export interface WatchlistCardProps {
   onRemove: (ticker: string) => void;
   isRemoving: boolean;
   thesisStatus?: ThesisStatus;
-  macroCorrelationHighlight?: boolean;
   isFocused?: boolean; // Added for focus mode
 }
 
@@ -77,7 +76,6 @@ export function WatchlistCard({
   onRemove,
   isRemoving,
   thesisStatus,
-  macroCorrelationHighlight,
   isFocused,
 }: WatchlistCardProps) {
   const changeText = formatChange(change, changePercent);
@@ -142,7 +140,7 @@ export function WatchlistCard({
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
-          className={`watchlist-row watchlist-row-${convictionTone} ${macroCorrelationHighlight ? "border-l-4 border-amber-400" : ""} ${isFocused ? "focused-card" : ""}`}
+          className={`watchlist-row watchlist-row-${convictionTone} ${isFocused ? "focused-card" : ""}`}
           title={companyName}
         >
           {thesisStatus && <StatusBadge status={thesisStatus} />}

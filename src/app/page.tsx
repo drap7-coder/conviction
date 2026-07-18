@@ -10,7 +10,6 @@ import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
 import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
 import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
 import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
-import { calculateRelativeVolatility } from "@/lib/market/volatility";
 import type { StockQuote } from "@/lib/market/types";
 
 
@@ -121,7 +120,6 @@ export default function WatchlistPage() {
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
-  const [indexQuotes, setIndexQuotes] = useState<Record<string, StockQuote>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -262,32 +260,6 @@ export default function WatchlistPage() {
       controller.abort();
     };
   }, [entries]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadIndexQuotes() {
-      try {
-        // Fetch quotes for a major index like SPX
-        const response = await fetch(`/api/market/quotes?tickers=${encodeURIComponent('^SPX')}`);
-        if (!response.ok) return;
-        const data = (await response.json()) as { quotes?: StockQuote[] };
-        if (cancelled) return;
-        const nextQuotes: Record<string, StockQuote> = {};
-        for (const quote of data.quotes ?? []) {
-          nextQuotes[quote.ticker] = quote;
-        }
-        setIndexQuotes(nextQuotes);
-      } catch {
-        if (!cancelled) setIndexQuotes({});
-      }
-    }
-
-    void loadIndexQuotes();
-    return () => {
-      cancelled = true;
-    };
-  }, []); // Run once on component mount
 
   useEffect(() => {
     if (entries.length === 0) return;
@@ -575,7 +547,6 @@ export default function WatchlistPage() {
                   onRemove={handleRemove}
                   isRemoving={removing === entry.ticker}
                   thesisStatus={entry.thesis?.status}
-                  macroCorrelationHighlight={calculateRelativeVolatility(quote, indexQuotes['^SPX'])}
                   isFocused={true}
                 />
               );
@@ -617,7 +588,6 @@ export default function WatchlistPage() {
                 onRemove={handleRemove}
                 isRemoving={removing === entry.ticker}
                 thesisStatus={entry.thesis?.status}
-                macroCorrelationHighlight={calculateRelativeVolatility(quote, indexQuotes['^SPX'])}
                 isFocused={isCardFocused}
               />
             );
