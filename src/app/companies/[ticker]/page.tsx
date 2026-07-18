@@ -86,7 +86,7 @@ export default async function CompanyPage({
         }
       >
         <DashboardCard className="dashboard-card-news">
-          <MaterialNewsCard ticker={upperTicker} />
+          <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
         </DashboardCard>
         <DashboardCard className="dashboard-card-conviction">
           <MoveExplanationSection ticker={upperTicker} />

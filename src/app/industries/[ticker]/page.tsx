@@ -66,7 +66,7 @@ export default async function SectorPage({
         }
       >
         <DashboardCard className="dashboard-card-news">
-          <MaterialNewsCard ticker={upperTicker} />
+          <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
         </DashboardCard>
       </CompanyDashboard>
     </div>
