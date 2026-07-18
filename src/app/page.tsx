@@ -10,7 +10,7 @@ import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
 import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
 import { getPriorityReviewItems, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
 import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
-import { calculateRelativeVolatility } from "@/lib/market/volatility";
+import { calculateRelativeVolatility } from "../../lib/market/volatility";
 
 interface StockQuote {
   ticker: string;
