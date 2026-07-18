@@ -546,7 +546,6 @@ export default function WatchlistPage() {
                   sparklineDirection={quoteDirection}
                   onRemove={handleRemove}
                   isRemoving={removing === entry.ticker}
-                  thesisStatus={entry.thesis?.status}
                   isFocused={true}
                 />
               );
@@ -587,7 +586,6 @@ export default function WatchlistPage() {
                 sparklineDirection={quoteDirection}
                 onRemove={handleRemove}
                 isRemoving={removing === entry.ticker}
-                thesisStatus={entry.thesis?.status}
                 isFocused={isCardFocused}
               />
             );

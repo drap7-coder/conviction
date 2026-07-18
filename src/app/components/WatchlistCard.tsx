@@ -2,9 +2,7 @@
 
 import Link from "next/link";
 import { LogoDisplay } from "./LogoDisplay";
-import { StatusBadge } from "./StatusBadge";
 import { useRef, useState, useCallback } from "react";
-import type { ThesisStatus } from "@/lib/watchlist/types";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -39,7 +37,6 @@ export interface WatchlistCardProps {
   sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
   isRemoving: boolean;
-  thesisStatus?: ThesisStatus;
   isFocused?: boolean; // Added for focus mode
 }
 
@@ -75,7 +72,6 @@ export function WatchlistCard({
   sparklineDirection,
   onRemove,
   isRemoving,
-  thesisStatus,
   isFocused,
 }: WatchlistCardProps) {
   const changeText = formatChange(change, changePercent);
@@ -143,7 +139,6 @@ export function WatchlistCard({
           className={`watchlist-row watchlist-row-${convictionTone} ${isFocused ? "focused-card" : ""}`}
           title={companyName}
         >
-          {thesisStatus && <StatusBadge status={thesisStatus} />}
           <div className="watchlist-row-main">
             <div className="watchlist-row-company">
               <LogoDisplay ticker={ticker} size="card" />
