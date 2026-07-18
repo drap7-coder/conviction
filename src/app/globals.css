@@ -4388,24 +4388,39 @@ details > summary::before {
 }
 
 .thesis-form-group textarea,
-.thesis-form-group input {
+.thesis-form-group input,
+.thesis-form-group select {
   width: 100%;
   min-height: 44px;
   padding: 8px 10px;
   font-size: 0.85rem;
   color: var(--ink);
   background: var(--surface-elevated);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-active);
   border-radius: 6px;
   font-family: var(--font-sans);
+}
+
+.thesis-form-group textarea,
+.thesis-form-group input {
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.thesis-form-group textarea {
   resize: vertical;
 }
 
+.thesis-form-group select {
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
 .thesis-form-group textarea:focus,
-.thesis-form-group input:focus {
+.thesis-form-group input:focus,
+.thesis-form-group select:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
 }
 
 .thesis-counter {
