@@ -6,6 +6,7 @@ import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, 
 import { getSectorForCompany } from "@/lib/market/industries";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
+import { getLogoUrl } from "@/lib/market/logos";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -220,67 +221,10 @@ export default function PortfolioPage() {
 
   return (
     <div>
-      {/* ── Add / Edit Position Form ── */}
-      <div className="portfolio-add-card">
-        <h2 className="portfolio-add-title">{editingTicker ? "Edit Position" : "Add Position"}</h2>
-        <form className="portfolio-add-form" onSubmit={handleAdd}>
-          <div className="portfolio-add-field">
-            <label className="portfolio-add-label" htmlFor="ticker">Ticker</label>
-            <input
-              id="ticker"
-              className="portfolio-add-input"
-              type="text"
-              placeholder="AAPL"
-              value={formTicker}
-              onChange={(e) => setFormTicker(e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-              maxLength={5}
-              disabled={editingTicker != null}
-            />
-          </div>
-          <div className="portfolio-add-field">
-            <label className="portfolio-add-label" htmlFor="shares">Shares</label>
-            <input
-              id="shares"
-              className="portfolio-add-input"
-              type="number"
-              placeholder="10"
-              min="0"
-              step="any"
-              value={formShares}
-              onChange={(e) => setFormShares(e.target.value)}
-            />
-          </div>
-          <div className="portfolio-add-field">
-            <label className="portfolio-add-label" htmlFor="cost">Avg Cost (optional)</label>
-            <input
-              id="cost"
-              className="portfolio-add-input"
-              type="number"
-              placeholder="150.00"
-              min="0"
-              step="any"
-              value={formCost}
-              onChange={(e) => setFormCost(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="portfolio-add-btn">
-            {editingTicker ? "Update" : "Add"}
-          </button>
-          {editingTicker && (
-            <button type="button" className="portfolio-cancel-btn" onClick={handleCancelEdit}>
-              Cancel
-            </button>
-          )}
-        </form>
-        {formError && <p className="portfolio-add-error">{formError}</p>}
-      </div>
-
       {/* ── Empty state ── */}
       {!hasData && !loading && (
         <div className="portfolio-empty-state">
-          <p className="portfolio-empty-text">No positions yet. Add one above to see your portfolio.</p>
+          <p className="portfolio-empty-text">No positions yet. Add one below to see your portfolio.</p>
         </div>
       )}
 
@@ -425,6 +369,11 @@ export default function PortfolioPage() {
             )}
           </div>
 
+          {/* ── Positions heading ── */}
+          <div className="section-header" style={{ marginTop: 20 }}>
+            <h2 className="section-title">Positions</h2>
+          </div>
+
           {/* ── Holdings Table ── */}
           <div className="portfolio-table-wrap">
             <table className="portfolio-table">
@@ -446,12 +395,26 @@ export default function PortfolioPage() {
                   const dailyPct = pos.currentPrice != null && pos.previousClose != null
                     ? ((pos.currentPrice - pos.previousClose) / pos.previousClose) * 100
                     : null;
+                  const logoUrl = getLogoUrl(pos.companyId);
 
                   return (
                     <tr key={pos.companyId}>
                       <td className="portfolio-cell-company">
-                        <strong className="portfolio-ticker">{pos.companyId.toUpperCase()}</strong>
-                        {pos.note && <span className="portfolio-name">{pos.note}</span>}
+                        <div className="portfolio-cell-company-inner">
+                          {logoUrl && (
+                            <img
+                              src={logoUrl}
+                              alt=""
+                              className="portfolio-logo"
+                              width={20}
+                              height={20}
+                            />
+                          )}
+                          <div>
+                            <strong className="portfolio-ticker">{pos.companyId.toUpperCase()}</strong>
+                            {pos.note && <span className="portfolio-name">{pos.note}</span>}
+                          </div>
+                        </div>
                       </td>
                       <td className="portfolio-cell-num">{pos.currentPrice != null ? currency(pos.currentPrice) : "—"}</td>
                       <td className={`portfolio-cell-num ${(dailyPct ?? 0) >= 0 ? "positive" : "negative"}`}>
@@ -483,13 +446,27 @@ export default function PortfolioPage() {
               const dailyPct = pos.currentPrice != null && pos.previousClose != null
                 ? ((pos.currentPrice - pos.previousClose) / pos.previousClose) * 100
                 : null;
+              const logoUrl = getLogoUrl(pos.companyId);
 
               return (
                 <div key={pos.companyId} className="portfolio-card">
                   <div className="portfolio-card-header">
                     <div className="portfolio-card-company">
-                      <strong className="portfolio-ticker">{pos.companyId.toUpperCase()}</strong>
-                      {pos.note && <span className="portfolio-name">{pos.note}</span>}
+                      <div className="portfolio-cell-company-inner">
+                        {logoUrl && (
+                          <img
+                            src={logoUrl}
+                            alt=""
+                            className="portfolio-logo"
+                            width={20}
+                            height={20}
+                          />
+                        )}
+                        <div>
+                          <strong className="portfolio-ticker">{pos.companyId.toUpperCase()}</strong>
+                          {pos.note && <span className="portfolio-name">{pos.note}</span>}
+                        </div>
+                      </div>
                     </div>
                     <div className="portfolio-row-actions">
                       <button className="portfolio-edit-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit shares/cost">✎</button>
@@ -543,6 +520,63 @@ export default function PortfolioPage() {
           )}
         </>
       )}
+
+      {/* ── Add / Edit Position Form (bottom) ── */}
+      <div className="portfolio-add-card">
+        <h2 className="portfolio-add-title">{editingTicker ? "Edit Position" : "Add Position"}</h2>
+        <form className="portfolio-add-form" onSubmit={handleAdd}>
+          <div className="portfolio-add-field">
+            <label className="portfolio-add-label" htmlFor="ticker">Ticker</label>
+            <input
+              id="ticker"
+              className="portfolio-add-input"
+              type="text"
+              placeholder="AAPL"
+              value={formTicker}
+              onChange={(e) => setFormTicker(e.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+              maxLength={5}
+              disabled={editingTicker != null}
+            />
+          </div>
+          <div className="portfolio-add-field">
+            <label className="portfolio-add-label" htmlFor="shares">Shares</label>
+            <input
+              id="shares"
+              className="portfolio-add-input"
+              type="number"
+              placeholder="10"
+              min="0"
+              step="any"
+              value={formShares}
+              onChange={(e) => setFormShares(e.target.value)}
+            />
+          </div>
+          <div className="portfolio-add-field">
+            <label className="portfolio-add-label" htmlFor="cost">Avg Cost (optional)</label>
+            <input
+              id="cost"
+              className="portfolio-add-input"
+              type="number"
+              placeholder="150.00"
+              min="0"
+              step="any"
+              value={formCost}
+              onChange={(e) => setFormCost(e.target.value)}
+            />
+          </div>
+          <button type="submit" className="portfolio-add-btn">
+            {editingTicker ? "Update" : "Add"}
+          </button>
+          {editingTicker && (
+            <button type="button" className="portfolio-cancel-btn" onClick={handleCancelEdit}>
+              Cancel
+            </button>
+          )}
+        </form>
+        {formError && <p className="portfolio-add-error">{formError}</p>}
+      </div>
     </div>
   );
 }
