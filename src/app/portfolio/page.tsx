@@ -232,20 +232,17 @@ export default function PortfolioPage() {
         <>
           {/* ── Portfolio Summary ── */}
           <div className="portfolio-summary">
-            <div className="portfolio-summary-card">
-              <span className="portfolio-summary-label">Total Value</span>
-              <strong className="portfolio-summary-value">{currency(portfolioMetrics.totalMarketValue)}</strong>
-            </div>
-            <div className="portfolio-summary-card">
-              <span className="portfolio-summary-label">Daily Change</span>
-              <strong className={`portfolio-summary-value ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "positive" : "negative"}`}>
-                {currency(portfolioMetrics.dailyChange)}
-                <span className="portfolio-summary-pct">{percent(portfolioMetrics.dailyChangePercent)}</span>
+            <div className="portfolio-summary-card portfolio-summary-card-hero">
+              <span className="portfolio-summary-label">Portfolio</span>
+              <strong className="portfolio-summary-value">
+                {currency(portfolioMetrics.totalMarketValue)}
+                {(portfolioMetrics.dailyChange ?? null) !== null && (
+                  <span className={`portfolio-summary-pct ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "positive" : "negative"}`}>
+                    {currency(portfolioMetrics.dailyChange)}{" "}
+                    {percent(portfolioMetrics.dailyChangePercent)}
+                  </span>
+                )}
               </strong>
-            </div>
-            <div className="portfolio-summary-card">
-              <span className="portfolio-summary-label">Positions</span>
-              <strong className="portfolio-summary-value">{portfolioMetrics.positionCount}</strong>
             </div>
           </div>
 

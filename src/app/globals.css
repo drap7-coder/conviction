@@ -3719,17 +3719,14 @@ details > summary::before {
 /* ── Summary Cards ── */
 
 .portfolio-summary {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
   margin-bottom: 16px;
 }
 
-.portfolio-summary-card {
+.portfolio-summary-card-hero {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--rounded-xl);
-  padding: 14px;
+  padding: 18px 20px;
   display: grid;
   gap: 4px;
 }
@@ -3742,26 +3739,27 @@ details > summary::before {
 }
 
 .portfolio-summary-value {
-  font-size: 1.35rem;
+  font-size: 2rem;
   font-weight: 800;
   font-family: var(--font-mono);
   color: var(--ink);
   display: flex;
   align-items: baseline;
-  gap: 8px;
-}
-
-.portfolio-summary-value.positive {
-  color: var(--green);
-}
-
-.portfolio-summary-value.negative {
-  color: var(--red);
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .portfolio-summary-pct {
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.portfolio-summary-pct.positive {
+  color: var(--green);
+}
+
+.portfolio-summary-pct.negative {
+  color: var(--red);
 }
 
 /* ── Daily Contributors ── */
@@ -4611,9 +4609,6 @@ details > summary::before {
   }
 
   /* ── Portfolio mobile ── */
-  .portfolio-summary {
-    grid-template-columns: 1fr;
-  }
 
   .portfolio-stat-grid {
     grid-template-columns: 1fr;
