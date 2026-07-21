@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { loadPositions, upsertPosition, removePosition, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
-import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, computeConcentration } from "@/lib/portfolio/calculations";
+import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, computeConcentration, computeSectorAllocation } from "@/lib/portfolio/calculations";
+import { getSectorForCompany } from "@/lib/market/industries";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 
@@ -126,6 +127,23 @@ export default function PortfolioPage() {
   const portfolioMetrics = useMemo(() => computePortfolioMetrics(enriched), [enriched]);
   const weightMap = useMemo(() => buildWeightMap(enriched), [enriched]);
   const concentration = useMemo(() => computeConcentration(weightMap, 15), [weightMap]);
+  const sectorAllocation = useMemo(() => {
+    const cmap = new Map<string, { id: string; ticker: string; name: string; assetType: "stock" | "etf" | "other"; sector?: string; industry?: string }>();
+    for (const p of enriched) {
+      const ticker = p.companyId.toUpperCase();
+      if (cmap.has(ticker)) continue;
+      const sector = getSectorForCompany(ticker);
+      cmap.set(ticker, {
+        id: ticker,
+        ticker,
+        name: ticker,
+        assetType: "stock",
+        sector: sector?.name,
+        industry: undefined,
+      });
+    }
+    return computeSectorAllocation(enriched, cmap);
+  }, [enriched]);
   const contributors = useMemo(
     () => getDailyContributors(enriched, portfolioMetrics.dailyChange),
     [portfolioMetrics.dailyChange],
@@ -332,6 +350,50 @@ export default function PortfolioPage() {
                 {concentration.positionsAboveThreshold.length === 1
                   ? `${concentration.positionsAboveThreshold[0].ticker} exceeds the ${concentration.threshold}% concentration display threshold at ${concentration.positionsAboveThreshold[0].weight.toFixed(1)}%.`
                   : `${concentration.positionsAboveThreshold.map((p) => `${p.ticker} (${p.weight.toFixed(1)}%)`).join(", ")} exceed the ${concentration.threshold}% concentration display threshold.`}
+              </p>
+            )}
+          </div>
+
+          {/* ── Sector Allocation ── */}
+          <div className="portfolio-section">
+            <div className="section-header">
+              <h2 className="section-title">Sector Allocation</h2>
+            </div>
+            {sectorAllocation.sectors.length > 0 ? (
+              <div className="portfolio-sector-list">
+                {sectorAllocation.sectors.map((s) => (
+                  <div key={s.sector} className="portfolio-sector-row">
+                    <span className="portfolio-sector-name">{s.sector}</span>
+                    <div className="portfolio-sector-bar-wrap">
+                      <div
+                        className="portfolio-sector-bar"
+                        style={{ width: `${Math.max(s.weight, 2)}%` }}
+                      />
+                    </div>
+                    <span className="portfolio-sector-weight">{s.weight.toFixed(1)}%</span>
+                    <span className="portfolio-sector-count">{s.positionCount} position{s.positionCount !== 1 ? "s" : ""}</span>
+                  </div>
+                ))}
+                {sectorAllocation.unclassifiedPositionCount > 0 && (
+                  <div className="portfolio-sector-row">
+                    <span className="portfolio-sector-name">Unclassified</span>
+                    <div className="portfolio-sector-bar-wrap">
+                      <div
+                        className="portfolio-sector-bar portfolio-sector-bar-unclassified"
+                        style={{ width: `${Math.max(sectorAllocation.unclassifiedWeight, 2)}%` }}
+                      />
+                    </div>
+                    <span className="portfolio-sector-weight">{sectorAllocation.unclassifiedWeight.toFixed(1)}%</span>
+                    <span className="portfolio-sector-count">{sectorAllocation.unclassifiedPositionCount} position{sectorAllocation.unclassifiedPositionCount !== 1 ? "s" : ""}</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="portfolio-empty">Sector data not available.</p>
+            )}
+            {sectorAllocation.sectors.length > 0 && (
+              <p className="portfolio-insight">
+                The three largest sectors represent {sectorAllocation.sectors.slice(0, 3).reduce((s, sec) => s + sec.weight, 0).toFixed(0)}% of your portfolio.
               </p>
             )}
           </div>
