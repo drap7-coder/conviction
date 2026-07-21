@@ -75,11 +75,12 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Form state ──
+  // ── Add form state ──
   const [formTicker, setFormTicker] = useState("");
   const [formShares, setFormShares] = useState("");
   const [formCost, setFormCost] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  const [editingTicker, setEditingTicker] = useState<string | null>(null);
 
   // Load positions from localStorage on mount
   useEffect(() => {
@@ -197,13 +198,31 @@ export default function PortfolioPage() {
     setQuotes([]);
   }
 
+  function handleStartEdit(ticker: string) {
+    const pos = positions.find((p) => p.ticker.toUpperCase() === ticker.toUpperCase());
+    if (!pos) return;
+    setFormTicker(pos.ticker);
+    setFormShares(String(pos.shares));
+    setFormCost(pos.averageCost != null ? String(pos.averageCost) : "");
+    setEditingTicker(ticker);
+    setFormError(null);
+  }
+
+  function handleCancelEdit() {
+    setEditingTicker(null);
+    setFormTicker("");
+    setFormShares("");
+    setFormCost("");
+    setFormError(null);
+  }
+
   // ── Render ──
 
   return (
     <div>
-      {/* ── Add Position Form ── */}
+      {/* ── Add / Edit Position Form ── */}
       <div className="portfolio-add-card">
-        <h2 className="portfolio-add-title">Add Position</h2>
+        <h2 className="portfolio-add-title">{editingTicker ? "Edit Position" : "Add Position"}</h2>
         <form className="portfolio-add-form" onSubmit={handleAdd}>
           <div className="portfolio-add-field">
             <label className="portfolio-add-label" htmlFor="ticker">Ticker</label>
@@ -217,6 +236,7 @@ export default function PortfolioPage() {
               autoComplete="off"
               spellCheck={false}
               maxLength={5}
+              disabled={editingTicker != null}
             />
           </div>
           <div className="portfolio-add-field">
@@ -245,7 +265,14 @@ export default function PortfolioPage() {
               onChange={(e) => setFormCost(e.target.value)}
             />
           </div>
-          <button type="submit" className="portfolio-add-btn">Add</button>
+          <button type="submit" className="portfolio-add-btn">
+            {editingTicker ? "Update" : "Add"}
+          </button>
+          {editingTicker && (
+            <button type="button" className="portfolio-cancel-btn" onClick={handleCancelEdit}>
+              Cancel
+            </button>
+          )}
         </form>
         {formError && <p className="portfolio-add-error">{formError}</p>}
       </div>
@@ -437,13 +464,10 @@ export default function PortfolioPage() {
                         {metrics.totalGainLoss != null ? currency(metrics.totalGainLoss) : "—"}
                       </td>
                       <td>
-                        <button
-                          className="portfolio-remove-btn"
-                          onClick={() => handleRemove(pos.companyId)}
-                          title="Remove position"
-                        >
-                          ✕
-                        </button>
+                        <div className="portfolio-row-actions">
+                          <button className="portfolio-edit-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit shares/cost">✎</button>
+                          <button className="portfolio-remove-btn" onClick={() => handleRemove(pos.companyId)} title="Remove position">✕</button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -467,13 +491,16 @@ export default function PortfolioPage() {
                       <strong className="portfolio-ticker">{pos.companyId.toUpperCase()}</strong>
                       {pos.note && <span className="portfolio-name">{pos.note}</span>}
                     </div>
-                    <button
-                      className="portfolio-remove-btn"
-                      onClick={() => handleRemove(pos.companyId)}
-                      title="Remove position"
-                    >
-                      ✕
-                    </button>
+                    <div className="portfolio-row-actions">
+                      <button className="portfolio-edit-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit shares/cost">✎</button>
+                      <button
+                        className="portfolio-remove-btn"
+                        onClick={() => handleRemove(pos.companyId)}
+                        title="Remove position"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   </div>
                   <div className="portfolio-card-stats">
                     <div className="portfolio-card-stat">

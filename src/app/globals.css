@@ -4281,6 +4281,50 @@ details > summary::before {
   background: var(--red-dim);
 }
 
+/* ── Row Actions ── */
+
+.portfolio-row-actions {
+  display: flex;
+  gap: 2px;
+  justify-content: flex-end;
+}
+
+.portfolio-edit-btn {
+  padding: 3px 8px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--quiet);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.portfolio-edit-btn:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── Cancel Button ── */
+
+.portfolio-cancel-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.portfolio-cancel-btn:hover {
+  color: var(--ink);
+  border-color: var(--border-active);
+}
+
 /* ── Clear All ── */
 
 .portfolio-clear-wrap {
