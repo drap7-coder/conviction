@@ -39,6 +39,7 @@ export interface PortfolioPositionInput {
 
 export interface PortfolioPosition extends PortfolioPositionInput {
   /** Derived display fields — computed by pure functions, stored for convenience */
+  ticker?: string;
   currentPrice?: number | null;
   previousClose?: number | null;
 }
