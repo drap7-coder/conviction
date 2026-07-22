@@ -467,6 +467,16 @@ export default function PortfolioPage() {
 
           {/* ── Mobile Cards ── */}
           <div className="pf-cards-mobile">
+            <div className="pf-card-header-row">
+              <span className="pf-card-header-empty"></span>
+              <span className="pf-card-header-stat">Price</span>
+              <span className="pf-card-header-stat">Chg</span>
+              <span className="pf-card-header-stat">Value</span>
+              <span className="pf-card-header-stat">Alloc</span>
+              <span className="pf-card-header-stat">Cost</span>
+              <span className="pf-card-header-stat">G/L</span>
+              <span className="pf-card-header-empty"></span>
+            </div>
             {enriched.map((pos) => {
               const metrics = computePositionMetrics(pos, portfolioMetrics.totalMarketValue, portfolioMetrics.dailyChange);
               const dailyPct = pos.currentPrice != null && pos.previousClose != null
@@ -486,8 +496,12 @@ export default function PortfolioPage() {
                   <span className={`pf-card-inline-stat ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
                     {dailyPct != null ? percent(dailyPct) : "—"}
                   </span>
-                  <span className="pf-card-inline-stat">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
                   <span className="pf-card-inline-stat">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</span>
+                  <span className="pf-card-inline-stat">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
+                  <span className="pf-card-inline-stat">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</span>
+                  <span className={`pf-card-inline-stat ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
+                    {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
+                  </span>
                   <div className="pf-card-actions">
                     <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)}>✎</button>
                     <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)}>✕</button>

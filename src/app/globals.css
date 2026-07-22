@@ -4218,6 +4218,28 @@ details > summary::before {
   margin-bottom: 16px;
 }
 
+.pf-card-header-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--quiet);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pf-card-header-empty {
+  flex-shrink: 0;
+  width: 58px;
+}
+
+.pf-card-header-stat {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 .pf-card-row {
   display: flex;
   align-items: center;
