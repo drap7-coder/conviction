@@ -4321,14 +4321,13 @@ details > summary::before {
 
   .app-header {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto auto;
     gap: 8px;
   }
 
   .header-brand-row {
     grid-column: 1;
     grid-row: 1;
-    min-width: 0;
   }
 
   .app-logo {
