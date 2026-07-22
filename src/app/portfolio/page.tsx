@@ -16,29 +16,29 @@ function currency(value: number | null): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(value);
 }
 
 function compactCurrency(value: number | null): string {
   if (value === null) return "—";
   if (Math.abs(value) >= 1_000_000) {
-    return "$" + (value / 1_000_000).toFixed(0) + "M";
+    return "$" + (value / 1_000_000).toFixed(2) + "M";
   }
   if (Math.abs(value) >= 1_000) {
-    return "$" + (value / 1_000).toFixed(0) + "K";
+    return "$" + (value / 1_000).toFixed(1) + "K";
   }
   return "$" + value.toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 }
 
 function percent(value: number | null): string {
   if (value === null) return "—";
   const sign = value >= 0 ? "+" : "";
-  return `${sign}${value.toFixed(1)}%`;
+  return `${sign}${value.toFixed(2)}%`;
 }
 
 function round2(v: number): number {

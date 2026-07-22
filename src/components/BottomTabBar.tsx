@@ -4,44 +4,53 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navTabs } from "@/lib/nav-config";
 
-export default function BottomTabBar() {
+function useIsActive(href: string) {
   const pathname = usePathname();
+  return pathname === href || pathname.startsWith(href + "/");
+}
 
+/* ── Mobile bottom tab bar ── */
+
+export function MobileTabBar() {
   return (
-    <>
-      {/* ── Mobile: fixed bottom bar (hidden on desktop) ── */}
-      <nav className="bottom-tab-bar">
-        {navTabs.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`bottom-tab-item ${active ? "active" : ""}`}
-            >
-              <Icon size={20} />
-              <span className="bottom-tab-label">{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      {/* ── Desktop: horizontal top nav (hidden on mobile) ── */}
-      <nav className="desktop-nav">
-        {navTabs.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || pathname.startsWith(href + "/");
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={`desktop-nav-item ${active ? "active" : ""}`}
-            >
-              <Icon size={16} />
-              <span className="desktop-nav-label">{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </>
+    <nav className="bottom-tab-bar">
+      {navTabs.map(({ href, label, icon: Icon }) => {
+        const active = useIsActive(href);
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={`bottom-tab-item ${active ? "active" : ""}`}
+          >
+            <Icon size={20} />
+            <span className="bottom-tab-label">{label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }
+
+/* ── Desktop horizontal nav ── */
+
+export function DesktopNav() {
+  return (
+    <nav className="desktop-nav">
+      {navTabs.map(({ href, label, icon: Icon }) => {
+        const active = useIsActive(href);
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={`desktop-nav-item ${active ? "active" : ""}`}
+          >
+            <Icon size={16} />
+            <span className="desktop-nav-label">{label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export default MobileTabBar;
