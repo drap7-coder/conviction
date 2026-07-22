@@ -152,7 +152,6 @@ export default function PortfolioPage() {
   const enriched = useMemo(() => enrichWithPrices(positions, quotes), [positions, quotes]);
   const portfolioMetrics = useMemo(() => computePortfolioMetrics(enriched), [enriched]);
   const weightMap = useMemo(() => buildWeightMap(enriched), [enriched]);
-  const concentration = useMemo(() => computeConcentration(weightMap, 15), [weightMap]);
   const sectorAllocation = useMemo(() => {
     const cmap = new Map<string, { id: string; ticker: string; name: string; assetType: "stock" | "etf" | "other"; sector?: string; industry?: string }>();
     for (const p of enriched) {
@@ -367,17 +366,6 @@ export default function PortfolioPage() {
                   </div>
                 ))}
               </div>
-              {concentration.largestPosition && (
-                <p className="pf-insight">
-                  {concentration.largestPosition.ticker} is your largest position at {concentration.largestPosition.weight.toFixed(1)}%.
-                  {concentration.topThreeWeight > 50
-                    ? ` Your top three holdings represent ${concentration.topThreeWeight.toFixed(0)}% of the portfolio.`
-                    : ""}
-                  {concentration.positionsAboveThreshold.length > 1
-                    ? ` ${concentration.positionsAboveThreshold.length} positions exceed ${concentration.threshold}%.`
-                    : ""}
-                </p>
-              )}
             </div>
           )}
 
