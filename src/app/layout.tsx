@@ -82,6 +82,7 @@ export default function RootLayout({
                 />
                 <AnimatedTitle />
               </a>
+              <BottomTabBar />
             </div>
             <div className="header-actions">
               <WatchlistSettingsMenu />

@@ -121,6 +121,12 @@ details > summary::before {
   padding: 22px 26px calc(80px + env(safe-area-inset-bottom));
 }
 
+@media (min-width: 768px) {
+  .app-shell {
+    padding-bottom: 26px;
+  }
+}
+
 .app-header {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -137,7 +143,7 @@ details > summary::before {
   }
 }
 
-/* ── Bottom Tab Bar ── */
+/* ── Bottom Tab Bar (mobile) ── */
 
 .bottom-tab-bar {
   display: flex;
@@ -155,12 +161,8 @@ details > summary::before {
   -webkit-backdrop-filter: blur(12px);
 }
 
-@media (max-width: 640px) {
+@media (min-width: 768px) {
   .bottom-tab-bar {
-    display: flex;
-  }
-
-  .app-nav {
     display: none;
   }
 }
@@ -188,6 +190,50 @@ details > summary::before {
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+/* ── Desktop Nav ── */
+
+.desktop-nav {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .desktop-nav {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 12px;
+  }
+}
+
+.desktop-nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--quiet);
+  text-decoration: none;
+  transition: color 0.15s, background-color 0.15s;
+  white-space: nowrap;
+}
+
+.desktop-nav-item:hover {
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.desktop-nav-item.active {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.desktop-nav-label {
+  font-size: 0.82rem;
+  font-weight: 600;
 }
 
 .header-actions {
