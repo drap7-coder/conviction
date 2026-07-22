@@ -31,6 +31,9 @@ export interface WatchlistCardProps {
   marketCap: number | null;
   /** "Pre-Market" or "After Hours" when applicable, null during regular hours */
   sessionLabel: string | null;
+  sessionPrice: number | null;
+  sessionChange: number | null;
+  sessionChangePercent: number | null;
   convictionState: string;
   convictionTone: string;
   evidencePills: WatchlistCardEvidencePill[];
@@ -82,6 +85,9 @@ export function WatchlistCard({
   changePercent,
   marketCap,
   sessionLabel,
+  sessionPrice,
+  sessionChange,
+  sessionChangePercent,
   convictionState,
   convictionTone,
   evidencePills,
@@ -93,7 +99,12 @@ export function WatchlistCard({
   isRemoving,
   isFocused,
 }: WatchlistCardProps) {
-  const changeText = formatChange(change, changePercent);
+  const hasExtendedSession = sessionLabel !== null && sessionPrice !== null;
+  const displayedPrice = hasExtendedSession ? sessionPrice : price;
+  const displayedChange = hasExtendedSession ? sessionChange : change;
+  const displayedChangePercent = hasExtendedSession ? sessionChangePercent : changePercent;
+  const displayedChangeText = formatChange(displayedChange, displayedChangePercent);
+  const regularChangeText = formatChange(change, changePercent);
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -221,16 +232,17 @@ export function WatchlistCard({
             </div>
 
             <div className="watchlist-row-move">
-              <span className="watchlist-row-period">Today</span>
+              <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
               <strong>
-                {price !== null ? `$${formatPrice(price)}` : "—"}
+                {displayedPrice !== null ? `$${formatPrice(displayedPrice)}` : "—"}
               </strong>
-              <span className={"watchlist-row-change " + (change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "neutral")}>
-                {changeText ? `${changeText.dollars} · ${changeText.percent}` : "—"}
+              <span className={"watchlist-row-change " + (displayedChange !== null && displayedChange > 0 ? "positive" : displayedChange !== null && displayedChange < 0 ? "negative" : "neutral")}>
+                {displayedChangeText ? `${displayedChangeText.dollars} · ${displayedChangeText.percent}` : "—"}
               </span>
-              {sessionLabel && changeText && (
-                <span className={"watchlist-row-session " + (change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "")}>
-                  {sessionLabel}: {changeText.dollars} · {changeText.percent}
+              {hasExtendedSession && price !== null && (
+                <span className="watchlist-row-session">
+                  Prior close ${formatPrice(price)}
+                  {regularChangeText ? ` · yesterday ${regularChangeText.percent}` : ""}
                 </span>
               )}
             </div>

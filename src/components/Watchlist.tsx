@@ -637,11 +637,12 @@ export default function Watchlist() {
             .filter((entry) => entry.ticker === focusedTicker)
             .map((entry) => {
               const quote = quotes[entry.ticker];
-              const quoteDirection = quote?.change === null || quote?.change === undefined
+              const live = quote ? getLivePrice(quote) : null;
+              const quoteDirection = live?.change === null || live?.change === undefined
                 ? "neutral"
-                : quote.change > 0
+                : live.change > 0
                   ? "positive"
-                  : quote.change < 0
+                  : live.change < 0
                     ? "negative"
                     : "neutral";
               const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
@@ -658,7 +659,10 @@ export default function Watchlist() {
                   change={quote?.change ?? null}
                   changePercent={quote?.changePercent ?? null}
                   marketCap={quote?.marketCap ?? null}
-                  sessionLabel={quote ? getLivePrice(quote).label : null}
+                  sessionLabel={live?.label ?? null}
+                  sessionPrice={live?.label ? live.price : null}
+                  sessionChange={live?.label ? live.change : null}
+                  sessionChangePercent={live?.label ? live.changePercent : null}
                   convictionState={verdict.state}
                   convictionTone={verdict.tone}
                   evidencePills={evidencePills}
@@ -677,11 +681,12 @@ export default function Watchlist() {
         <div className="watchlist-list" ref={watchlistListRef}>
           {filteredEntries.map((entry, index) => {
             const quote = quotes[entry.ticker];
-            const quoteDirection = quote?.change === null || quote?.change === undefined
+            const live = quote ? getLivePrice(quote) : null;
+            const quoteDirection = live?.change === null || live?.change === undefined
               ? "neutral"
-              : quote.change > 0
+              : live.change > 0
                 ? "positive"
-                : quote.change < 0
+                : live.change < 0
                   ? "negative"
                   : "neutral";
             const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
@@ -700,7 +705,10 @@ export default function Watchlist() {
                 change={quote?.change ?? null}
                 changePercent={quote?.changePercent ?? null}
                 marketCap={quote?.marketCap ?? null}
-                sessionLabel={quote ? getLivePrice(quote).label : null}
+                sessionLabel={live?.label ?? null}
+                sessionPrice={live?.label ? live.price : null}
+                sessionChange={live?.label ? live.change : null}
+                sessionChangePercent={live?.label ? live.changePercent : null}
                 convictionState={verdict.state}
                 convictionTone={verdict.tone}
                 evidencePills={evidencePills}

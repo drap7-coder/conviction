@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
+import { CompanyVerdict } from "@/app/components/CompanyVerdict";
+import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
+import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 // Conviction header & multi-vector cards temporarily suppressed — restore these imports when re-enabling:
 // import { ConvictionHeader } from "@/app/components/ConvictionHeader";
 // import { MultiVectorSummary } from "@/app/components/MultiVectorSummary";
@@ -79,28 +82,34 @@ export default async function CompanyPage({
             {/* Conviction header & multi-vector cards temporarily suppressed — restore when ready:
             <ConvictionHeader ticker={upperTicker} companyName={companyName} />
             <MultiVectorSummary ticker={upperTicker} /> */}
+            <CompanyVerdict ticker={upperTicker} />
             <MarketPanel ticker={upperTicker} />
             {/* Thesis section temporarily suppressed — restore when ready:
             <ThesisTracker ticker={upperTicker} companyName={companyName} /> */}
           </>
         }
       >
+        <DashboardCard className="dashboard-card-institutional">
+          <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
+        </DashboardCard>
+        <DashboardCard className="dashboard-card-insider">
+          <InsiderActivitySection ticker={upperTicker} />
+        </DashboardCard>
+        <DashboardCard className="dashboard-card-earnings">
+          <EarningsMomentumSection ticker={upperTicker} />
+        </DashboardCard>
+        <DashboardCard className="dashboard-card-political">
+          <PoliticalTradesSection ticker={upperTicker} />
+        </DashboardCard>
         <DashboardCard className="dashboard-card-news">
           <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
         </DashboardCard>
         <DashboardCard className="dashboard-card-conviction">
           <MoveExplanationSection ticker={upperTicker} />
-        </DashboardCard>
-        <DashboardCard className="dashboard-card-political">
-          <PoliticalTradesSection ticker={upperTicker} />
-        </DashboardCard>
-        <DashboardCard className="dashboard-card-insider">
-          <div className="section-header">
-            <h2 className="section-title">Secondary signal</h2>
-            <span className="section-count">Form 4</span>
-          </div>
-          <InsiderActivitySection ticker={upperTicker} />
-          <CorporateDisclosuresSection ticker={upperTicker} />
+          <details className="other-events">
+            <summary>Other filings &amp; events</summary>
+            <CorporateDisclosuresSection ticker={upperTicker} />
+          </details>
         </DashboardCard>
       </CompanyDashboard>
     </div>

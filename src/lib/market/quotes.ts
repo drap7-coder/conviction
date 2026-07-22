@@ -62,6 +62,11 @@ interface YahooChartResult {
     postMarketPrice?: number;
     postMarketChange?: number;
     postMarketChangePercent?: number;
+    currentTradingPeriod?: {
+      pre?: { start?: number; end?: number };
+      regular?: { start?: number; end?: number };
+      post?: { start?: number; end?: number };
+    };
   };
   timestamp?: number[];
   indicators?: {
@@ -69,6 +74,46 @@ interface YahooChartResult {
       close?: Array<number | null>;
     }>;
   };
+}
+
+type TradingPeriod = { start?: number; end?: number } | undefined;
+type TradingPeriods = {
+  pre?: { start?: number; end?: number };
+  regular?: { start?: number; end?: number };
+  post?: { start?: number; end?: number };
+} | undefined;
+
+function isWithinPeriod(epochSeconds: number, period: TradingPeriod) {
+  return Boolean(
+    period?.start &&
+      period?.end &&
+      epochSeconds >= period.start &&
+      epochSeconds < period.end,
+  );
+}
+
+export function inferMarketState(
+  periods: TradingPeriods,
+  epochSeconds = Math.floor(Date.now() / 1000),
+) {
+  if (isWithinPeriod(epochSeconds, periods?.pre)) return "PRE";
+  if (isWithinPeriod(epochSeconds, periods?.regular)) return "REGULAR";
+  if (isWithinPeriod(epochSeconds, periods?.post)) return "POST";
+  return "CLOSED";
+}
+
+function lastPriceWithinPeriod(result: YahooChartResult | undefined, period: TradingPeriod) {
+  if (!period?.start || !period?.end) return null;
+  const timestamps = result?.timestamp ?? [];
+  const closes = result?.indicators?.quote?.[0]?.close ?? [];
+
+  for (let index = timestamps.length - 1; index >= 0; index -= 1) {
+    const timestamp = timestamps[index];
+    if (timestamp < period.start || timestamp >= period.end) continue;
+    const close = toFiniteNumber(closes[index]);
+    if (close !== null) return close;
+  }
+  return null;
 }
 
 interface YahooChartResponse {
@@ -102,14 +147,22 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     : null;
 
   // Pre-market
-  const preMarketPrice = toFiniteNumber(result?.meta?.preMarketPrice);
-  const preMarketChange = toFiniteNumber(result?.meta?.preMarketChange);
-  const preMarketChangePercent = toFiniteNumber(result?.meta?.preMarketChangePercent);
+  const periods = result?.meta?.currentTradingPeriod;
+  const marketState = result?.meta?.marketState ?? inferMarketState(periods);
+  const derivedPreMarketPrice = lastPriceWithinPeriod(result, periods?.pre);
+  const preMarketPrice = toFiniteNumber(result?.meta?.preMarketPrice) ?? derivedPreMarketPrice;
+  const preMarketChange = toFiniteNumber(result?.meta?.preMarketChange) ??
+    (preMarketPrice !== null && previousClose !== null ? preMarketPrice - previousClose : null);
+  const preMarketChangePercent = toFiniteNumber(result?.meta?.preMarketChangePercent) ??
+    (preMarketChange !== null && previousClose ? (preMarketChange / previousClose) * 100 : null);
 
   // After-hours
-  const postMarketPrice = toFiniteNumber(result?.meta?.postMarketPrice);
-  const postMarketChange = toFiniteNumber(result?.meta?.postMarketChange);
-  const postMarketChangePercent = toFiniteNumber(result?.meta?.postMarketChangePercent);
+  const derivedPostMarketPrice = lastPriceWithinPeriod(result, periods?.post);
+  const postMarketPrice = toFiniteNumber(result?.meta?.postMarketPrice) ?? derivedPostMarketPrice;
+  const postMarketChange = toFiniteNumber(result?.meta?.postMarketChange) ??
+    (postMarketPrice !== null && price !== null ? postMarketPrice - price : null);
+  const postMarketChangePercent = toFiniteNumber(result?.meta?.postMarketChangePercent) ??
+    (postMarketChange !== null && price ? (postMarketChange / price) * 100 : null);
 
   // Extract intraday sparkline from the same chart response
   const sparkline: StockHistoryPoint[] = [];
@@ -139,7 +192,7 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     volume,
     dollarVolume: price !== null && volume !== null ? price * volume : null,
     currency: result?.meta?.currency ?? null,
-    marketState: result?.meta?.marketState ?? null,
+    marketState,
     marketCap: toFiniteNumber(result?.meta?.marketCap),
     preMarketPrice,
     preMarketChange,
@@ -196,7 +249,7 @@ export async function fetchStockQuotes(tickers: string[]): Promise<StockQuote[]>
     uniqueTickers.map(async (ticker) => {
       try {
         const response = await fetchWithTimeout(
-          `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1d&interval=1m`,
+          `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1d&interval=1m&includePrePost=true`,
           {
             headers: {
               "User-Agent": "Conviction/1.0",

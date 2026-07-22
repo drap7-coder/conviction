@@ -372,16 +372,16 @@ export default function RisingConvictionPage() {
                         </div>
                       </div>
                       <div className="watchlist-row-move">
-                        <span className="watchlist-row-period">Today</span>
+                        <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
                         <strong>{livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}</strong>
                         <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
                           {liveChange != null && liveChangePercent != null
                             ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%`
                             : "—"}
                         </span>
-                        {sessionLabel && (
-                          <span className={"watchlist-row-session " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "")}>
-                            {sessionLabel}: {liveChange != null ? `${liveChange > 0 ? "+" : ""}$${Math.abs(liveChange).toFixed(2)}` : "—"} · {liveChangePercent != null ? `${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%` : "—"}
+                        {sessionLabel && quote.price !== null && (
+                          <span className="watchlist-row-session">
+                            Prior close ${quote.price.toFixed(2)}{quote.changePercent != null ? ` · yesterday ${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%` : ""}
                           </span>
                         )}
                       </div>

@@ -1211,6 +1211,14 @@ details > summary::before {
     gap: 2px 8px;
   }
 
+  .watchlist-row-session {
+    max-width: 100%;
+    margin-top: 2px;
+    font-size: 0.56rem;
+    white-space: normal;
+    text-align: right;
+  }
+
   .watchlist-row-period {
     align-self: flex-start;
     font-size: 0.5rem;

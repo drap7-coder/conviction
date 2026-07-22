@@ -13,6 +13,53 @@
   min-width: 0;
 }
 
+/* ── Verdict: one calm, legible decision surface ── */
+
+.verdict-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(18px, 3vw, 30px);
+  border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
+  border-radius: calc(var(--radius) * 1.35);
+  background:
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 94%, black), var(--surface));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 48px rgba(0,0,0,.22);
+}
+
+.verdict-topline { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.verdict-eyebrow { color: var(--accent); font: 600 .61rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.verdict-topline h2 { margin-top: 8px; color: var(--ink); font-size: clamp(1.45rem, 3.3vw, 2.25rem); line-height: 1.04; letter-spacing: -.04em; }
+.verdict-topline p { max-width: 680px; margin-top: 8px; color: var(--muted); font-size: .88rem; line-height: 1.5; }
+.verdict-score { flex: 0 0 92px; text-align: center; }
+.verdict-score strong { display: block; color: var(--ink); font: 500 clamp(2rem, 5vw, 3.35rem)/.95 var(--font-mono); letter-spacing: -.08em; }
+.verdict-score span { color: var(--quiet); font: .57rem/1 var(--font-mono); text-transform: uppercase; }
+.verdict-score.bullish strong { color: var(--positive); }
+.verdict-score.bearish strong { color: var(--negative); }
+.verdict-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; padding-top: 13px; border-top: 1px solid var(--border); color: var(--quiet); font: .62rem/1.4 var(--font-mono); }
+.verdict-meta b { color: var(--ink); font-weight: 600; }
+.signal-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
+.signal-pill { display: flex; justify-content: space-between; gap: 8px; padding: 9px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in srgb, var(--surface-elevated) 76%, transparent); font: .58rem/1.25 var(--font-mono); }
+.signal-pill span { color: var(--muted); }
+.signal-pill strong.positive, .earnings-row .positive { color: var(--positive); }
+.signal-pill strong.negative, .earnings-row .negative { color: var(--negative); }
+.signal-pill strong.neutral { color: var(--ink); }
+.signal-pill strong.missing { color: var(--quiet); }
+.verdict-explainer { margin-top: 11px; color: var(--quiet); font-size: .67rem; }
+.verdict-explainer summary, .other-events > summary { cursor: pointer; color: var(--muted); font: .61rem/1.4 var(--font-mono); }
+.verdict-explainer p { max-width: 780px; margin-top: 7px; line-height: 1.45; }
+
+.earnings-hero { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-top: 18px; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-elevated); }
+.earnings-hero span { display: block; color: var(--quiet); font: .57rem/1.2 var(--font-mono); text-transform: uppercase; }
+.earnings-hero strong { display: block; margin-top: 6px; color: var(--ink); font-size: 1.05rem; }
+.evidence-help { margin: 12px 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
+.earnings-table { border-top: 1px solid var(--border); }
+.earnings-row { display: grid; grid-template-columns: 1.4fr repeat(3, .7fr); gap: 8px; padding: 8px 2px; border-bottom: 1px solid var(--border); color: var(--muted); font: .61rem/1.2 var(--font-mono); }
+.earnings-row.header { color: var(--quiet); font-size: .54rem; text-transform: uppercase; }
+.evidence-source { margin-top: 12px; color: var(--quiet); font: .54rem/1.4 var(--font-mono); }
+.evidence-empty { margin-top: 18px; color: var(--muted); font-size: .72rem; line-height: 1.5; }
+.other-events { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border); }
+
 /* ── Today & Industry Card ── */
 
 .today-peers-card {
@@ -197,6 +244,11 @@
     min-height: 280px;
     padding: 14px;
   }
+
+  .verdict-topline { align-items: flex-start; gap: 12px; }
+  .verdict-score { flex-basis: 64px; }
+  .signal-strip { grid-template-columns: 1fr 1fr; }
+  .signal-pill { display: grid; }
 }
 
 /* ── Prevent page-level overflow ── */
