@@ -170,6 +170,21 @@ export default function PortfolioPage() {
     }
     return computeSectorAllocation(enriched, cmap);
   }, [enriched]);
+  const sectorDonutData = useMemo(() => {
+    if (sectorAllocation.unclassifiedWeight <= 0) {
+      return sectorAllocation.sectors;
+    }
+
+    return [
+      ...sectorAllocation.sectors,
+      {
+        sector: "Other",
+        weight: sectorAllocation.unclassifiedWeight,
+        marketValue: sectorAllocation.unclassifiedMarketValue,
+        positionCount: sectorAllocation.unclassifiedPositionCount,
+      },
+    ];
+  }, [sectorAllocation]);
   const contributors = useMemo(
     () => getDailyContributors(enriched, portfolioMetrics.dailyChange),
     [portfolioMetrics.dailyChange],
@@ -371,10 +386,10 @@ export default function PortfolioPage() {
           )}
 
           {/* ── Sector Allocation (donut chart) ── */}
-          {sectorAllocation.sectors.length > 0 && (
+          {sectorDonutData.length > 0 && (
             <div className="pf-section">
               <h2 className="pf-section-title">Sectors</h2>
-              <SectorDonut sectors={sectorAllocation.sectors} />
+              <SectorDonut sectors={sectorDonutData} />
             </div>
           )}
 
