@@ -475,38 +475,22 @@ export default function PortfolioPage() {
               const logoUrl = getLogoUrl(pos.companyId);
 
               return (
-                <div key={pos.companyId} className="pf-card">
-                  <div className="pf-card-top">
-                    <div className="pf-card-name">
-                      {logoUrl && (
-                        <img src={logoUrl} alt="" className="pf-logo" width={18} height={18} />
-                      )}
-                      <span className="pf-ticker">{pos.companyId.toUpperCase()}</span>
-                    </div>
-                    <div className="pf-card-actions">
-                      <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)}>✎</button>
-                      <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)}>✕</button>
-                    </div>
+                <div key={pos.companyId} className="pf-card pf-card-row">
+                  <div className="pf-card-name">
+                    {logoUrl && (
+                      <img src={logoUrl} alt="" className="pf-logo" width={18} height={18} />
+                    )}
+                    <span className="pf-ticker">{pos.companyId.toUpperCase()}</span>
                   </div>
-                  <div className="pf-card-stats">
-                    <div className="pf-card-stat">
-                      <span className="pf-card-stat-label">Price</span>
-                      <span className="pf-card-stat-value">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</span>
-                    </div>
-                    <div className="pf-card-stat">
-                      <span className="pf-card-stat-label">Daily</span>
-                      <span className={`pf-card-stat-value ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
-                        {dailyPct != null ? percent(dailyPct) : "—"}
-                      </span>
-                    </div>
-                    <div className="pf-card-stat">
-                      <span className="pf-card-stat-label">Alloc</span>
-                      <span className="pf-card-stat-value">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
-                    </div>
-                    <div className="pf-card-stat">
-                      <span className="pf-card-stat-label">Value</span>
-                      <span className="pf-card-stat-value">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</span>
-                    </div>
+                  <span className="pf-card-inline-stat">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</span>
+                  <span className={`pf-card-inline-stat ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
+                    {dailyPct != null ? percent(dailyPct) : "—"}
+                  </span>
+                  <span className="pf-card-inline-stat">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
+                  <span className="pf-card-inline-stat">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</span>
+                  <div className="pf-card-actions">
+                    <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)}>✎</button>
+                    <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)}>✕</button>
                   </div>
                 </div>
               );
