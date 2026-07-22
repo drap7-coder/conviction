@@ -5,6 +5,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { getLivePrice } from "@/lib/market/live-quote";
 
 interface StockQuote {
   ticker: string;
@@ -16,6 +17,12 @@ interface StockQuote {
   currency: string | null;
   marketState: string | null;
   marketCap: number | null;
+  preMarketPrice: number | null;
+  preMarketChange: number | null;
+  preMarketChangePercent: number | null;
+  postMarketPrice: number | null;
+  postMarketChange: number | null;
+  postMarketChangePercent: number | null;
 }
 
 interface StockHistoryPoint {
@@ -326,11 +333,13 @@ export default function RisingConvictionPage() {
             {trending.map((idea) => {
               const isTracked = trackedTickers.has(idea.ticker);
               const quote = idea.quote;
-              const quoteDirection = quote.change === null || quote.change === undefined
+              const live = getLivePrice(quote);
+              const liveChange = live.change;
+              const quoteDirection = liveChange === null || liveChange === undefined
                 ? "neutral"
-                : quote.change > 0
+                : liveChange > 0
                   ? "positive"
-                  : quote.change < 0
+                  : liveChange < 0
                   ? "negative"
                   : "neutral";
               const verdict = getCardVerdict({
@@ -342,6 +351,9 @@ export default function RisingConvictionPage() {
               const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
               const ideaHeadlines = headlines[idea.ticker] ?? [];
               const marketCapText = formatMarketCap(quote.marketCap);
+              const livePrice = live.price;
+              const liveChangePercent = live.changePercent;
+              const sessionLabel = live.label;
               const menuOpen = menuOpenTicker === idea.ticker;
               const confirmRemove = confirmRemoveTicker === idea.ticker;
 
@@ -361,12 +373,17 @@ export default function RisingConvictionPage() {
                       </div>
                       <div className="watchlist-row-move">
                         <span className="watchlist-row-period">Today</span>
-                        <strong>{quote.price != null ? `$${quote.price.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}</strong>
-                        <span className={quoteDirection}>
-                          {quote.change != null && quote.changePercent != null
-                            ? `${quote.change > 0 ? "+" : quote.change < 0 ? "-" : ""}$${Math.abs(quote.change).toFixed(2)} · ${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%`
+                        <strong>{livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}</strong>
+                        <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
+                          {liveChange != null && liveChangePercent != null
+                            ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%`
                             : "—"}
                         </span>
+                        {sessionLabel && (
+                          <span className={"watchlist-row-session " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "")}>
+                            {sessionLabel}: {liveChange != null ? `${liveChange > 0 ? "+" : ""}$${Math.abs(liveChange).toFixed(2)}` : "—"} · {liveChangePercent != null ? `${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%` : "—"}
+                          </span>
+                        )}
                       </div>
 
                       {/* ── State area + kebab ── */}

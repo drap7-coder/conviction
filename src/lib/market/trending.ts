@@ -1,4 +1,5 @@
 import { fetchStockHistory, fetchStockQuotes, type StockHistoryPoint, type StockQuote } from "@/lib/market/quotes";
+import { getLivePrice } from "@/lib/market/live-quote";
 import { validateTicker } from "@/lib/watchlist/validate";
 
 const TRENDING_UNIVERSE = [
@@ -62,9 +63,24 @@ function formatDollarVolume(value: number | null) {
 
 export async function fetchTrendingCompanies(limit = 8): Promise<TrendingCompany[]> {
   const quotes = await fetchStockQuotes(TRENDING_UNIVERSE);
+
+  // Score using whichever price is live (pre-market → regular → after-hours)
+  // so ranking catches extended-hours moves too.
   const ranked = quotes
-    .filter((quote) => quote.price !== null)
-    .map((quote) => ({ quote, score: activityScore(quote) }))
+    .filter((quote) => {
+      const live = getLivePrice(quote);
+      return live.price !== null;
+    })
+    .map((quote) => {
+      const live = getLivePrice(quote);
+      const scoreQuote: StockQuote = {
+        ...quote,
+        price: live.price ?? quote.price,
+        change: live.change ?? quote.change,
+        changePercent: live.changePercent ?? quote.changePercent,
+      };
+      return { quote, score: activityScore(scoreQuote) };
+    })
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.max(1, Math.min(limit, TRENDING_UNIVERSE.length)));
 

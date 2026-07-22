@@ -29,6 +29,8 @@ export interface WatchlistCardProps {
   change: number | null;
   changePercent: number | null;
   marketCap: number | null;
+  /** "Pre-Market" or "After Hours" when applicable, null during regular hours */
+  sessionLabel: string | null;
   convictionState: string;
   convictionTone: string;
   evidencePills: WatchlistCardEvidencePill[];
@@ -79,6 +81,7 @@ export function WatchlistCard({
   change,
   changePercent,
   marketCap,
+  sessionLabel,
   convictionState,
   convictionTone,
   evidencePills,
@@ -222,9 +225,14 @@ export function WatchlistCard({
               <strong>
                 {price !== null ? `$${formatPrice(price)}` : "—"}
               </strong>
-              <span className={change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "neutral"}>
+              <span className={"watchlist-row-change " + (change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "neutral")}>
                 {changeText ? `${changeText.dollars} · ${changeText.percent}` : "—"}
               </span>
+              {sessionLabel && changeText && (
+                <span className={"watchlist-row-session " + (change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : "")}>
+                  {sessionLabel}: {changeText.dollars} · {changeText.percent}
+                </span>
+              )}
             </div>
 
             {/* ── State pill + kebab (grid-column 2, row 1) ── */}

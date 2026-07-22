@@ -10,6 +10,7 @@ import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchl
 import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
 import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
+import { getLivePrice } from "@/lib/market/live-quote";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -657,6 +658,7 @@ export default function Watchlist() {
                   change={quote?.change ?? null}
                   changePercent={quote?.changePercent ?? null}
                   marketCap={quote?.marketCap ?? null}
+                  sessionLabel={quote ? getLivePrice(quote).label : null}
                   convictionState={verdict.state}
                   convictionTone={verdict.tone}
                   evidencePills={evidencePills}
@@ -698,6 +700,7 @@ export default function Watchlist() {
                 change={quote?.change ?? null}
                 changePercent={quote?.changePercent ?? null}
                 marketCap={quote?.marketCap ?? null}
+                sessionLabel={quote ? getLivePrice(quote).label : null}
                 convictionState={verdict.state}
                 convictionTone={verdict.tone}
                 evidencePills={evidencePills}

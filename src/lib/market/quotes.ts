@@ -11,6 +11,14 @@ export interface StockQuote {
   currency: string | null;
   marketState: string | null;
   marketCap: number | null;
+  /** Pre-market price (populated ~4:00–9:30am ET) */
+  preMarketPrice: number | null;
+  preMarketChange: number | null;
+  preMarketChangePercent: number | null;
+  /** After-hours price (populated ~4:00–8:00pm ET) */
+  postMarketPrice: number | null;
+  postMarketChange: number | null;
+  postMarketChangePercent: number | null;
   source: "yahoo-chart";
   /** Intraday sparkline points (up to ~42) extracted from the same chart response */
   sparkline: StockHistoryPoint[];
@@ -48,6 +56,12 @@ interface YahooChartResult {
     marketCap?: number;
     currency?: string;
     marketState?: string;
+    preMarketPrice?: number;
+    preMarketChange?: number;
+    preMarketChangePercent?: number;
+    postMarketPrice?: number;
+    postMarketChange?: number;
+    postMarketChangePercent?: number;
   };
   timestamp?: number[];
   indicators?: {
@@ -87,6 +101,16 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     ? price - previousClose
     : null;
 
+  // Pre-market
+  const preMarketPrice = toFiniteNumber(result?.meta?.preMarketPrice);
+  const preMarketChange = toFiniteNumber(result?.meta?.preMarketChange);
+  const preMarketChangePercent = toFiniteNumber(result?.meta?.preMarketChangePercent);
+
+  // After-hours
+  const postMarketPrice = toFiniteNumber(result?.meta?.postMarketPrice);
+  const postMarketChange = toFiniteNumber(result?.meta?.postMarketChange);
+  const postMarketChangePercent = toFiniteNumber(result?.meta?.postMarketChangePercent);
+
   // Extract intraday sparkline from the same chart response
   const sparkline: StockHistoryPoint[] = [];
   if (result) {
@@ -117,6 +141,12 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     currency: result?.meta?.currency ?? null,
     marketState: result?.meta?.marketState ?? null,
     marketCap: toFiniteNumber(result?.meta?.marketCap),
+    preMarketPrice,
+    preMarketChange,
+    preMarketChangePercent,
+    postMarketPrice,
+    postMarketChange,
+    postMarketChangePercent,
     source: "yahoo-chart",
     sparkline: sparkline.slice(-42),
   };

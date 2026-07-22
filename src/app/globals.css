@@ -907,22 +907,40 @@ details > summary::before {
   font-size: 1rem;
 }
 
-.watchlist-row-move > span:last-child {
+.watchlist-row-change {
   color: var(--muted);
   font-size: 0.68rem;
   white-space: nowrap;
 }
 
-.watchlist-row-move > span:last-child.positive {
+.watchlist-row-change.positive {
   color: var(--green);
 }
 
-.watchlist-row-move > span:last-child.negative {
+.watchlist-row-change.negative {
   color: var(--red);
 }
 
-.watchlist-row-move > span:last-child.neutral {
+.watchlist-row-change.neutral {
   color: var(--amber);
+}
+
+/* ── Pre-market / After-hours session label ── */
+
+.watchlist-row-session {
+  grid-column: 1 / -1;
+  color: var(--quiet);
+  font-size: 0.6rem;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.watchlist-row-session.positive {
+  color: var(--green);
+}
+
+.watchlist-row-session.negative {
+  color: var(--red);
 }
 
 .watchlist-row-state {
