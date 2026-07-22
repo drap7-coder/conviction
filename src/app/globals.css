@@ -3801,28 +3801,6 @@ details > summary::before {
 
 /* ── Daily Contributors ── */
 
-.pf-contrib-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
-}
-
-.pf-contrib-group {
-  padding: 0;
-}
-
-.pf-contrib-heading {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 6px;
-  font-family: var(--font-mono);
-}
-
-.pf-contrib-heading.up { color: var(--green); }
-.pf-contrib-heading.down { color: var(--red); }
-
 .pf-contrib-list {
   display: grid;
 }
@@ -4531,10 +4509,6 @@ details > summary::before {
 
   .pf-cards-mobile {
     display: grid;
-  }
-
-  .pf-contrib-grid {
-    grid-template-columns: 1fr;
   }
 
   .pf-add-form {

@@ -320,36 +320,22 @@ export default function PortfolioPage() {
           {/* ── Daily Contributors ── */}
           {contributors.positive.length > 0 || contributors.negative.length > 0 ? (
             <div className="pf-section">
-              <h2 className="pf-section-title">Today&apos;s Contributors</h2>
-              <div className="pf-contrib-grid">
-                {contributors.positive.length > 0 && (
-                  <div className="pf-contrib-group">
-                    <h3 className="pf-contrib-heading up">Largest Gains</h3>
-                    <div className="pf-contrib-list">
-                      {contributors.positive.slice(0, 3).map((c) => (
-                        <div key={c.ticker} className="pf-contrib-row">
-                          <span className="pf-contrib-ticker">{c.ticker}</span>
-                          <span className="pf-contrib-dollar up">{currency(c.dollarChange)}</span>
-                          <span className="pf-contrib-pct up">{percent(c.percentChange)}</span>
-                        </div>
-                      ))}
+              <h2 className="pf-section-title">Today&apos;s Biggest Movers</h2>
+              <div className="pf-contrib-list">
+                {[...contributors.positive, ...contributors.negative]
+                  .sort((a, b) => Math.abs(b.dollarChange) - Math.abs(a.dollarChange))
+                  .slice(0, 3)
+                  .map((c) => (
+                    <div key={c.ticker} className="pf-contrib-row">
+                      <span className="pf-contrib-ticker">{c.ticker}</span>
+                      <span className={`pf-contrib-dollar ${c.dollarChange >= 0 ? "up" : "down"}`}>
+                        {currency(c.dollarChange)}
+                      </span>
+                      <span className={`pf-contrib-pct ${c.dollarChange >= 0 ? "up" : "down"}`}>
+                        {percent(c.percentChange)}
+                      </span>
                     </div>
-                  </div>
-                )}
-                {contributors.negative.length > 0 && (
-                  <div className="pf-contrib-group">
-                    <h3 className="pf-contrib-heading down">Largest Losses</h3>
-                    <div className="pf-contrib-list">
-                      {contributors.negative.slice(0, 3).map((c) => (
-                        <div key={c.ticker} className="pf-contrib-row">
-                          <span className="pf-contrib-ticker">{c.ticker}</span>
-                          <span className="pf-contrib-dollar down">{currency(c.dollarChange)}</span>
-                          <span className="pf-contrib-pct down">{percent(c.percentChange)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  ))}
               </div>
             </div>
           ) : null}
