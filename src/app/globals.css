@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 :root {
   --bg: #0d0d0d;
@@ -121,12 +122,19 @@ details > summary::before {
 }
 
 .app-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 16px;
   margin-bottom: 14px;
   border-bottom: 1px solid var(--border);
+}
+
+@media (min-width: 641px) {
+  .app-header {
+    display: flex;
+  }
 }
 
 /* ── Bottom Tab Bar ── */
@@ -207,14 +215,34 @@ details > summary::before {
 }
 
 .app-title {
-  font-family: var(--font-sans);
+  font-family: 'Courier Prime', 'Courier New', monospace;
   font-size: 1.8rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--ink);
   line-height: 1;
   padding-bottom: 2px;
+}
+
+.app-title.typewriter {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.5rem;
+  background: var(--accent);
+  margin-left: 2px;
+  animation: blink-cursor 0.8s step-end infinite;
+  vertical-align: text-bottom;
+}
+
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .app-title .accent-dot {

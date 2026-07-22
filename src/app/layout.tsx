@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
 import BottomTabBar from "@/components/BottomTabBar";
+import AnimatedTitle from "@/components/AnimatedTitle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,9 +80,7 @@ export default function RootLayout({
                   className="app-logo"
                   src="/conviction-bull.png"
                 />
-                <h1 className="app-title">
-                  CONVICTION<span className="accent-dot">.</span>
-                </h1>
+                <AnimatedTitle />
               </a>
             </div>
             <div className="header-actions">
