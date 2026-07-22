@@ -465,18 +465,8 @@ export default function PortfolioPage() {
             </table>
           </div>
 
-          {/* ── Mobile Cards ── */}
+          {/* ── Mobile Cards (stacked) ── */}
           <div className="pf-cards-mobile">
-            <div className="pf-card-header-row">
-              <span className="pf-card-header-empty"></span>
-              <span className="pf-card-header-stat">Price</span>
-              <span className="pf-card-header-stat">Chg</span>
-              <span className="pf-card-header-stat">Value</span>
-              <span className="pf-card-header-stat">Alloc</span>
-              <span className="pf-card-header-stat">Cost</span>
-              <span className="pf-card-header-stat">G/L</span>
-              <span className="pf-card-header-empty"></span>
-            </div>
             {enriched.map((pos) => {
               const metrics = computePositionMetrics(pos, portfolioMetrics.totalMarketValue, portfolioMetrics.dailyChange);
               const dailyPct = pos.currentPrice != null && pos.previousClose != null
@@ -485,26 +475,49 @@ export default function PortfolioPage() {
               const logoUrl = getLogoUrl(pos.companyId);
 
               return (
-                <div key={pos.companyId} className="pf-card pf-card-row">
-                  <div className="pf-card-name">
-                    {logoUrl && (
-                      <img src={logoUrl} alt="" className="pf-logo" width={18} height={18} />
-                    )}
-                    <span className="pf-ticker">{pos.companyId.toUpperCase()}</span>
+                <div key={pos.companyId} className="pf-stacked-card">
+                  {/* Top row: ticker + logo | price + daily */}
+                  <div className="pf-sc-top">
+                    <div className="pf-sc-identity">
+                      {logoUrl && (
+                        <img src={logoUrl} alt="" className="pf-sc-logo" width={22} height={22} />
+                      )}
+                      <span className="pf-sc-ticker">{pos.companyId.toUpperCase()}</span>
+                    </div>
+                    <div className="pf-sc-quote">
+                      <span className="pf-sc-price">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</span>
+                      <span className={`pf-sc-daily ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
+                        {dailyPct != null ? percent(dailyPct) : "—"}
+                      </span>
+                    </div>
                   </div>
-                  <span className="pf-card-inline-stat">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</span>
-                  <span className={`pf-card-inline-stat ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
-                    {dailyPct != null ? percent(dailyPct) : "—"}
-                  </span>
-                  <span className="pf-card-inline-stat">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</span>
-                  <span className="pf-card-inline-stat">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
-                  <span className="pf-card-inline-stat">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</span>
-                  <span className={`pf-card-inline-stat ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
-                    {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
-                  </span>
-                  <div className="pf-card-actions">
-                    <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)}>✎</button>
-                    <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)}>✕</button>
+
+                  {/* Mid row: two-column mini-grid */}
+                  <div className="pf-sc-grid">
+                    <div className="pf-sc-grid-item">
+                      <span className="pf-sc-label">Value</span>
+                      <span className="pf-sc-value">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</span>
+                    </div>
+                    <div className="pf-sc-grid-item">
+                      <span className="pf-sc-label">Alloc</span>
+                      <span className="pf-sc-value">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
+                    </div>
+                    <div className="pf-sc-grid-item">
+                      <span className="pf-sc-label">Cost Basis</span>
+                      <span className="pf-sc-value">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</span>
+                    </div>
+                    <div className="pf-sc-grid-item">
+                      <span className="pf-sc-label">Gain/Loss</span>
+                      <span className={`pf-sc-value ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
+                        {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Bottom row: actions */}
+                  <div className="pf-sc-actions">
+                    <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit">✎</button>
+                    <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)} title="Remove">✕</button>
                   </div>
                 </div>
               );
