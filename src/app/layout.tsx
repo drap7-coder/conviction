@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
-import DesktopNav from "@/components/DesktopNav";
 import BottomTabBar from "@/components/BottomTabBar";
 
 const geistSans = Geist({
@@ -86,7 +85,6 @@ export default function RootLayout({
               </a>
             </div>
             <div className="header-actions">
-              <DesktopNav />
               <WatchlistSettingsMenu />
             </div>
           </header>

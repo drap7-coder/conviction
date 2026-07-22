@@ -20,6 +20,20 @@ function currency(value: number | null): string {
   }).format(value);
 }
 
+function compactCurrency(value: number | null): string {
+  if (value === null) return "—";
+  if (Math.abs(value) >= 1_000_000) {
+    return (value / 1_000_000).toFixed(2) + "M";
+  }
+  if (Math.abs(value) >= 1_000) {
+    return (value / 1_000).toFixed(1) + "K";
+  }
+  return value.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 function percent(value: number | null): string {
   if (value === null) return "—";
   const sign = value >= 0 ? "+" : "";
@@ -29,6 +43,14 @@ function percent(value: number | null): string {
 function round2(v: number): number {
   return Math.round(v * 100) / 100;
 }
+
+// ── Color palette for allocation bar segments ────────────────────────────────
+
+const SEGMENT_COLORS = [
+  "#5eead4", "#2dd4bf", "#22d3ee", "#38bdf8", "#818cf8",
+  "#a78bfa", "#c084fc", "#e879f9", "#fb7185", "#f87171",
+  "#fb923c", "#fbbf24", "#a3e635", "#4ade80",
+];
 
 // ── Convert persisted positions to PortfolioPosition with live prices ───────
 
@@ -75,6 +97,7 @@ export default function PortfolioPage() {
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
 
   // ── Add form state ──
   const [formTicker, setFormTicker] = useState("");
@@ -152,6 +175,24 @@ export default function PortfolioPage() {
   );
   const hasData = enriched.length > 0;
 
+  // ── Allocation bar data ──
+
+  const allocationSegments = useMemo(() => {
+    const total = portfolioMetrics.totalMarketValue ?? 0;
+    if (total <= 0) return [];
+    return enriched
+      .map((pos, i) => {
+        const mv = pos.currentPrice != null ? pos.shares * pos.currentPrice : 0;
+        const w = total > 0 ? (mv / total) * 100 : 0;
+        return {
+          ticker: pos.companyId.toUpperCase(),
+          weight: round2(w),
+          color: SEGMENT_COLORS[i % SEGMENT_COLORS.length],
+        };
+      })
+      .sort((a, b) => b.weight - a.weight);
+  }, [enriched, portfolioMetrics.totalMarketValue]);
+
   // ── Handlers ──
 
   function handleAdd(e: React.FormEvent) {
@@ -181,6 +222,7 @@ export default function PortfolioPage() {
     setFormTicker("");
     setFormShares("");
     setFormCost("");
+    setShowAddForm(false);
   }
 
   function handleRemove(ticker: string) {
@@ -207,6 +249,7 @@ export default function PortfolioPage() {
     setFormCost(pos.averageCost != null ? String(pos.averageCost) : "");
     setEditingTicker(ticker);
     setFormError(null);
+    setShowAddForm(true);
   }
 
   function handleCancelEdit() {
@@ -215,174 +258,196 @@ export default function PortfolioPage() {
     setFormShares("");
     setFormCost("");
     setFormError(null);
+    setShowAddForm(false);
   }
 
   // ── Render ──
 
   return (
-    <div>
+    <div className="pf">
       {/* ── Empty state ── */}
       {!hasData && !loading && (
-        <div className="portfolio-empty-state">
-          <p className="portfolio-empty-text">No positions yet. Add one below to see your portfolio.</p>
+        <div className="pf-empty">
+          <p className="pf-empty-text">No positions yet.</p>
+          <button className="pf-add-toggle" onClick={() => setShowAddForm(true)}>
+            + Add position
+          </button>
+          {showAddForm && (
+            <div className="pf-add-form-wrap">
+              <AddForm
+                editingTicker={editingTicker}
+                formTicker={formTicker}
+                formShares={formShares}
+                formCost={formCost}
+                formError={formError}
+                onTickerChange={setFormTicker}
+                onSharesChange={setFormShares}
+                onCostChange={setFormCost}
+                onSubmit={handleAdd}
+                onCancel={handleCancelEdit}
+              />
+            </div>
+          )}
         </div>
       )}
 
       {hasData && (
         <>
-          {/* ── Portfolio Summary ── */}
-          <div className="portfolio-summary">
-            <div className="portfolio-summary-card portfolio-summary-card-hero">
-              <span className="portfolio-summary-label">Portfolio</span>
-              <strong className="portfolio-summary-value">
-                {currency(portfolioMetrics.totalMarketValue)}
-                {(portfolioMetrics.dailyChange ?? null) !== null && (
-                  <span className={`portfolio-summary-pct ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "positive" : "negative"}`}>
-                    {currency(portfolioMetrics.dailyChange)}{" "}
-                    {percent(portfolioMetrics.dailyChangePercent)}
-                  </span>
-                )}
-              </strong>
+          {/* ── Hero ── */}
+          <div className="pf-hero">
+            <span className="pf-hero-label">Portfolio</span>
+            <div className="pf-hero-value">
+              {currency(portfolioMetrics.totalMarketValue)}
+              {(portfolioMetrics.dailyChange ?? null) !== null && (
+                <span className={`pf-hero-change ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "up" : "down"}`}>
+                  {currency(portfolioMetrics.dailyChange)}{" "}
+                  {percent(portfolioMetrics.dailyChangePercent)}
+                </span>
+              )}
             </div>
           </div>
 
           {/* ── Loading / Error / Refresh ── */}
-          <div className="portfolio-toolbar">
-            {loading && <span className="portfolio-loading">Loading prices…</span>}
-            {error && <span className="portfolio-error">{error}</span>}
-            <button className="portfolio-refresh-btn" onClick={handleRefresh} disabled={loading}>
-              {loading ? "Loading…" : "Refresh Prices"}
+          <div className="pf-toolbar">
+            {loading && <span className="pf-loading">Loading prices…</span>}
+            {error && <span className="pf-error">{error}</span>}
+            <button className="pf-refresh-btn" onClick={handleRefresh} disabled={loading}>
+              {loading ? "Loading…" : "Refresh"}
             </button>
           </div>
 
           {/* ── Daily Contributors ── */}
           {contributors.positive.length > 0 || contributors.negative.length > 0 ? (
-            <div className="portfolio-contributors">
-              <div className="section-header">
-                <h2 className="section-title">Today&apos;s Contributors</h2>
-              </div>
-              <div className="portfolio-contributor-grid">
+            <div className="pf-section">
+              <h2 className="pf-section-title">Today&apos;s Contributors</h2>
+              <div className="pf-contrib-grid">
                 {contributors.positive.length > 0 && (
-                  <div className="portfolio-contributor-group">
-                    <h3 className="portfolio-contributor-heading positive">Largest Gains</h3>
-                    {contributors.positive.slice(0, 3).map((c) => (
-                      <div key={c.ticker} className="portfolio-contributor-row">
-                        <span className="portfolio-contributor-ticker">{c.ticker}</span>
-                        <span className="portfolio-contributor-value positive">{currency(c.dollarChange)}</span>
-                        <span className="portfolio-contributor-pct positive">{percent(c.percentChange)}</span>
-                      </div>
-                    ))}
+                  <div className="pf-contrib-group">
+                    <h3 className="pf-contrib-heading up">Largest Gains</h3>
+                    <div className="pf-contrib-list">
+                      {contributors.positive.slice(0, 3).map((c) => (
+                        <div key={c.ticker} className="pf-contrib-row">
+                          <span className="pf-contrib-ticker">{c.ticker}</span>
+                          <span className="pf-contrib-dollar up">{currency(c.dollarChange)}</span>
+                          <span className="pf-contrib-pct up">{percent(c.percentChange)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {contributors.negative.length > 0 && (
-                  <div className="portfolio-contributor-group">
-                    <h3 className="portfolio-contributor-heading negative">Largest Losses</h3>
-                    {contributors.negative.slice(0, 3).map((c) => (
-                      <div key={c.ticker} className="portfolio-contributor-row">
-                        <span className="portfolio-contributor-ticker">{c.ticker}</span>
-                        <span className="portfolio-contributor-value negative">{currency(c.dollarChange)}</span>
-                        <span className="portfolio-contributor-pct negative">{percent(c.percentChange)}</span>
-                      </div>
-                    ))}
+                  <div className="pf-contrib-group">
+                    <h3 className="pf-contrib-heading down">Largest Losses</h3>
+                    <div className="pf-contrib-list">
+                      {contributors.negative.slice(0, 3).map((c) => (
+                        <div key={c.ticker} className="pf-contrib-row">
+                          <span className="pf-contrib-ticker">{c.ticker}</span>
+                          <span className="pf-contrib-dollar down">{currency(c.dollarChange)}</span>
+                          <span className="pf-contrib-pct down">{percent(c.percentChange)}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           ) : null}
 
-          {/* ── Concentration ── */}
-          <div className="portfolio-section">
-            <div className="section-header">
-              <h2 className="section-title">Concentration</h2>
-            </div>
-            <div className="portfolio-stat-grid">
-              {concentration.largestPosition && (
-                <div className="portfolio-stat-card">
-                  <span className="portfolio-stat-label">Largest Position</span>
-                  <strong className="portfolio-stat-value">
-                    {concentration.largestPosition.ticker} — {concentration.largestPosition.weight.toFixed(1)}%
-                  </strong>
-                </div>
-              )}
-              <div className="portfolio-stat-card">
-                <span className="portfolio-stat-label">Top 3 Holdings</span>
-                <strong className="portfolio-stat-value">{concentration.topThreeWeight.toFixed(1)}%</strong>
+          {/* ── Allocation Bar ── */}
+          {allocationSegments.length > 0 && (
+            <div className="pf-section">
+              <h2 className="pf-section-title">Allocation</h2>
+              <div className="pf-stacked-bar">
+                {allocationSegments.map((seg) => (
+                  <div
+                    key={seg.ticker}
+                    className="pf-stacked-bar-seg"
+                    style={{
+                      flex: seg.weight,
+                      backgroundColor: seg.color,
+                      minWidth: seg.weight > 0 ? 2 : 0,
+                    }}
+                    title={`${seg.ticker} ${seg.weight.toFixed(1)}%`}
+                  />
+                ))}
               </div>
-              <div className="portfolio-stat-card">
-                <span className="portfolio-stat-label">Top 5 Holdings</span>
-                <strong className="portfolio-stat-value">{concentration.topFiveWeight.toFixed(1)}%</strong>
-              </div>
-            </div>
-            {concentration.positionsAboveThreshold.length > 0 && (
-              <p className="portfolio-insight">
-                {concentration.positionsAboveThreshold.length === 1
-                  ? `${concentration.positionsAboveThreshold[0].ticker} exceeds the ${concentration.threshold}% concentration display threshold at ${concentration.positionsAboveThreshold[0].weight.toFixed(1)}%.`
-                  : `${concentration.positionsAboveThreshold.map((p) => `${p.ticker} (${p.weight.toFixed(1)}%)`).join(", ")} exceed the ${concentration.threshold}% concentration display threshold.`}
-              </p>
-            )}
-          </div>
-
-          {/* ── Sector Allocation ── */}
-          <div className="portfolio-section">
-            <div className="section-header">
-              <h2 className="section-title">Sector Allocation</h2>
-            </div>
-            {sectorAllocation.sectors.length > 0 ? (
-              <div className="portfolio-sector-list">
-                {sectorAllocation.sectors.map((s) => (
-                  <div key={s.sector} className="portfolio-sector-row">
-                    <span className="portfolio-sector-name">{s.sector}</span>
-                    <div className="portfolio-sector-bar-wrap">
-                      <div
-                        className="portfolio-sector-bar"
-                        style={{ width: `${Math.max(s.weight, 2)}%` }}
-                      />
-                    </div>
-                    <span className="portfolio-sector-weight">{s.weight.toFixed(1)}%</span>
-                    <span className="portfolio-sector-count">{s.positionCount} position{s.positionCount !== 1 ? "s" : ""}</span>
+              <div className="pf-stacked-legend">
+                {allocationSegments.map((seg) => (
+                  <div key={seg.ticker} className="pf-stacked-legend-item">
+                    <span className="pf-stacked-legend-dot" style={{ backgroundColor: seg.color }} />
+                    <span className="pf-stacked-legend-ticker">{seg.ticker}</span>
+                    <span className="pf-stacked-legend-weight">{seg.weight.toFixed(1)}%</span>
                   </div>
                 ))}
-                {sectorAllocation.unclassifiedPositionCount > 0 && (
-                  <div className="portfolio-sector-row">
-                    <span className="portfolio-sector-name">Unclassified</span>
-                    <div className="portfolio-sector-bar-wrap">
-                      <div
-                        className="portfolio-sector-bar portfolio-sector-bar-unclassified"
-                        style={{ width: `${Math.max(sectorAllocation.unclassifiedWeight, 2)}%` }}
-                      />
-                    </div>
-                    <span className="portfolio-sector-weight">{sectorAllocation.unclassifiedWeight.toFixed(1)}%</span>
-                    <span className="portfolio-sector-count">{sectorAllocation.unclassifiedPositionCount} position{sectorAllocation.unclassifiedPositionCount !== 1 ? "s" : ""}</span>
-                  </div>
-                )}
               </div>
-            ) : (
-              <p className="portfolio-empty">Sector data not available.</p>
-            )}
-            {sectorAllocation.sectors.length > 0 && (
-              <p className="portfolio-insight">
-                The three largest sectors represent {sectorAllocation.sectors.slice(0, 3).reduce((s, sec) => s + sec.weight, 0).toFixed(0)}% of your portfolio.
-              </p>
-            )}
+              {concentration.largestPosition && (
+                <p className="pf-insight">
+                  {concentration.largestPosition.ticker} is your largest position at {concentration.largestPosition.weight.toFixed(1)}%.
+                  {concentration.topThreeWeight > 50
+                    ? ` Your top three holdings represent ${concentration.topThreeWeight.toFixed(0)}% of the portfolio.`
+                    : ""}
+                  {concentration.positionsAboveThreshold.length > 1
+                    ? ` ${concentration.positionsAboveThreshold.length} positions exceed ${concentration.threshold}%.`
+                    : ""}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* ── Sector Allocation (only when data exists) ── */}
+          {sectorAllocation.sectors.length > 0 && (
+            <div className="pf-section">
+              <h2 className="pf-section-title">Sectors</h2>
+              {sectorAllocation.sectors.map((s) => (
+                <div key={s.sector} className="pf-sector-row">
+                  <span className="pf-sector-name">{s.sector}</span>
+                  <div className="pf-sector-bar-wrap">
+                    <div className="pf-sector-bar" style={{ width: `${Math.max(s.weight, 2)}%` }} />
+                  </div>
+                  <span className="pf-sector-weight">{s.weight.toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── Positions header + add toggle ── */}
+          <div className="pf-positions-header">
+            <h2 className="pf-section-title">Positions</h2>
+            <button className="pf-add-toggle" onClick={() => setShowAddForm((v) => !v)}>
+              {showAddForm ? "–" : "+"} Add position
+            </button>
           </div>
 
-          {/* ── Positions heading ── */}
-          <div className="section-header" style={{ marginTop: 20 }}>
-            <h2 className="section-title">Positions</h2>
-          </div>
+          {/* ── Add / Edit Form (collapsible) ── */}
+          {showAddForm && (
+            <div className="pf-add-form-wrap">
+              <AddForm
+                editingTicker={editingTicker}
+                formTicker={formTicker}
+                formShares={formShares}
+                formCost={formCost}
+                formError={formError}
+                onTickerChange={setFormTicker}
+                onSharesChange={setFormShares}
+                onCostChange={setFormCost}
+                onSubmit={handleAdd}
+                onCancel={handleCancelEdit}
+              />
+            </div>
+          )}
 
           {/* ── Holdings Table ── */}
-          <div className="portfolio-table-wrap">
-            <table className="portfolio-table">
+          <div className="pf-table-wrap">
+            <table className="pf-table">
               <thead>
                 <tr>
                   <th>Company</th>
-                  <th>Price</th>
-                  <th>Change</th>
-                  <th>Mkt Value</th>
-                  <th>Alloc</th>
-                  <th>Cost</th>
-                  <th>Gain/Loss</th>
+                  <th className="pf-num">Price</th>
+                  <th className="pf-num">Chg</th>
+                  <th className="pf-num">Value</th>
+                  <th className="pf-num">Alloc</th>
+                  <th className="pf-num">Cost</th>
+                  <th className="pf-num">Gain/Loss</th>
                   <th></th>
                 </tr>
               </thead>
@@ -396,38 +461,27 @@ export default function PortfolioPage() {
 
                   return (
                     <tr key={pos.companyId}>
-                      <td className="portfolio-cell-company">
-                        <div className="portfolio-cell-company-inner">
+                      <td className="pf-cell-name">
+                        <div className="pf-cell-name-inner">
                           {logoUrl && (
-                            <img
-                              src={logoUrl}
-                              alt=""
-                              className="portfolio-logo"
-                              width={20}
-                              height={20}
-                            />
+                            <img src={logoUrl} alt="" className="pf-logo" width={18} height={18} />
                           )}
-                          <div>
-                            <strong className="portfolio-ticker">{pos.companyId.toUpperCase()}</strong>
-                            {pos.note && <span className="portfolio-name">{pos.note}</span>}
-                          </div>
+                          <span className="pf-ticker">{pos.companyId.toUpperCase()}</span>
                         </div>
                       </td>
-                      <td className="portfolio-cell-num">{pos.currentPrice != null ? currency(pos.currentPrice) : "—"}</td>
-                      <td className={`portfolio-cell-num ${(dailyPct ?? 0) >= 0 ? "positive" : "negative"}`}>
+                      <td className="pf-num">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</td>
+                      <td className={`pf-num ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
                         {dailyPct != null ? percent(dailyPct) : "—"}
                       </td>
-                      <td className="portfolio-cell-num">{metrics.marketValue != null ? currency(metrics.marketValue) : "—"}</td>
-                      <td className="portfolio-cell-num">{metrics.weight != null ? `${metrics.weight.toFixed(1)}%` : "—"}</td>
-                      <td className="portfolio-cell-num">{metrics.totalCost != null ? currency(metrics.totalCost) : "—"}</td>
-                      <td className={`portfolio-cell-num ${(metrics.totalGainLoss ?? 0) >= 0 ? "positive" : "negative"}`}>
-                        {metrics.totalGainLoss != null ? currency(metrics.totalGainLoss) : "—"}
+                      <td className="pf-num">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</td>
+                      <td className="pf-num">{metrics.weight != null ? `${metrics.weight.toFixed(1)}%` : "—"}</td>
+                      <td className="pf-num">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</td>
+                      <td className={`pf-num ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
+                        {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
                       </td>
-                      <td>
-                        <div className="portfolio-row-actions">
-                          <button className="portfolio-edit-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit shares/cost">✎</button>
-                          <button className="portfolio-remove-btn" onClick={() => handleRemove(pos.companyId)} title="Remove position">✕</button>
-                        </div>
+                      <td className="pf-cell-actions">
+                        <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit">✎</button>
+                        <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)} title="Remove">✕</button>
                       </td>
                     </tr>
                   );
@@ -437,7 +491,7 @@ export default function PortfolioPage() {
           </div>
 
           {/* ── Mobile Cards ── */}
-          <div className="portfolio-cards-mobile">
+          <div className="pf-cards-mobile">
             {enriched.map((pos) => {
               const metrics = computePositionMetrics(pos, portfolioMetrics.totalMarketValue, portfolioMetrics.dailyChange);
               const dailyPct = pos.currentPrice != null && pos.previousClose != null
@@ -446,62 +500,39 @@ export default function PortfolioPage() {
               const logoUrl = getLogoUrl(pos.companyId);
 
               return (
-                <div key={pos.companyId} className="portfolio-card">
-                  <div className="portfolio-card-header">
-                    <div className="portfolio-card-company">
-                      <div className="portfolio-cell-company-inner">
-                        {logoUrl && (
-                          <img
-                            src={logoUrl}
-                            alt=""
-                            className="portfolio-logo"
-                            width={20}
-                            height={20}
-                          />
-                        )}
-                        <div>
-                          <strong className="portfolio-ticker">{pos.companyId.toUpperCase()}</strong>
-                          {pos.note && <span className="portfolio-name">{pos.note}</span>}
-                        </div>
-                      </div>
+                <div key={pos.companyId} className="pf-card">
+                  <div className="pf-card-top">
+                    <div className="pf-card-name">
+                      {logoUrl && (
+                        <img src={logoUrl} alt="" className="pf-logo" width={18} height={18} />
+                      )}
+                      <span className="pf-ticker">{pos.companyId.toUpperCase()}</span>
                     </div>
-                    <div className="portfolio-row-actions">
-                      <button className="portfolio-edit-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit shares/cost">✎</button>
-                      <button
-                        className="portfolio-remove-btn"
-                        onClick={() => handleRemove(pos.companyId)}
-                        title="Remove position"
-                      >
-                        ✕
-                      </button>
+                    <div className="pf-card-actions">
+                      <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)}>✎</button>
+                      <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)}>✕</button>
                     </div>
                   </div>
-                  <div className="portfolio-card-stats">
-                    <div className="portfolio-card-stat">
-                      <span className="portfolio-card-stat-label">Price</span>
-                      <span className="portfolio-card-stat-value">{pos.currentPrice != null ? currency(pos.currentPrice) : "—"}</span>
+                  <div className="pf-card-stats">
+                    <div className="pf-card-stat">
+                      <span className="pf-card-stat-label">Price</span>
+                      <span className="pf-card-stat-value">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</span>
                     </div>
-                    <div className="portfolio-card-stat">
-                      <span className="portfolio-card-stat-label">Daily</span>
-                      <span className={`portfolio-card-stat-value ${(dailyPct ?? 0) >= 0 ? "positive" : "negative"}`}>
+                    <div className="pf-card-stat">
+                      <span className="pf-card-stat-label">Daily</span>
+                      <span className={`pf-card-stat-value ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
                         {dailyPct != null ? percent(dailyPct) : "—"}
                       </span>
                     </div>
-                    <div className="portfolio-card-stat">
-                      <span className="portfolio-card-stat-label">Alloc</span>
-                      <span className="portfolio-card-stat-value">{metrics.weight != null ? `${metrics.weight.toFixed(1)}%` : "—"}</span>
+                    <div className="pf-card-stat">
+                      <span className="pf-card-stat-label">Alloc</span>
+                      <span className="pf-card-stat-value">{metrics.weight != null ? `${metrics.weight.toFixed(1)}%` : "—"}</span>
                     </div>
-                    <div className="portfolio-card-stat">
-                      <span className="portfolio-card-stat-label">Value</span>
-                      <span className="portfolio-card-stat-value">{metrics.marketValue != null ? currency(metrics.marketValue) : "—"}</span>
+                    <div className="pf-card-stat">
+                      <span className="pf-card-stat-label">Value</span>
+                      <span className="pf-card-stat-value">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</span>
                     </div>
                   </div>
-                  {metrics.totalGainLoss != null && (
-                    <div className={`portfolio-card-gl ${metrics.totalGainLoss >= 0 ? "positive" : "negative"}`}>
-                      {metrics.totalGainLoss >= 0 ? "+" : ""}{currency(metrics.totalGainLoss)}
-                      {metrics.totalGainLossPercent != null ? ` (${metrics.totalGainLossPercent >= 0 ? "+" : ""}${metrics.totalGainLossPercent.toFixed(1)}%)` : ""}
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -509,71 +540,88 @@ export default function PortfolioPage() {
 
           {/* ── Clear all ── */}
           {positions.length > 0 && (
-            <div className="portfolio-clear-wrap">
-              <button className="portfolio-clear-btn" onClick={handleClearAll}>
-                Clear All Positions
-              </button>
+            <div className="pf-clear-wrap">
+              <button className="pf-clear-btn" onClick={handleClearAll}>Clear All</button>
             </div>
           )}
         </>
       )}
-
-      {/* ── Add / Edit Position Form (bottom) ── */}
-      <div className="portfolio-add-card">
-        <h2 className="portfolio-add-title">{editingTicker ? "Edit Position" : "Add Position"}</h2>
-        <form className="portfolio-add-form" onSubmit={handleAdd}>
-          <div className="portfolio-add-field">
-            <label className="portfolio-add-label" htmlFor="ticker">Ticker</label>
-            <input
-              id="ticker"
-              className="portfolio-add-input"
-              type="text"
-              placeholder="AAPL"
-              value={formTicker}
-              onChange={(e) => setFormTicker(e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-              maxLength={5}
-              disabled={editingTicker != null}
-            />
-          </div>
-          <div className="portfolio-add-field">
-            <label className="portfolio-add-label" htmlFor="shares">Shares</label>
-            <input
-              id="shares"
-              className="portfolio-add-input"
-              type="number"
-              placeholder="10"
-              min="0"
-              step="any"
-              value={formShares}
-              onChange={(e) => setFormShares(e.target.value)}
-            />
-          </div>
-          <div className="portfolio-add-field">
-            <label className="portfolio-add-label" htmlFor="cost">Avg Cost (optional)</label>
-            <input
-              id="cost"
-              className="portfolio-add-input"
-              type="number"
-              placeholder="150.00"
-              min="0"
-              step="any"
-              value={formCost}
-              onChange={(e) => setFormCost(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="portfolio-add-btn">
-            {editingTicker ? "Update" : "Add"}
-          </button>
-          {editingTicker && (
-            <button type="button" className="portfolio-cancel-btn" onClick={handleCancelEdit}>
-              Cancel
-            </button>
-          )}
-        </form>
-        {formError && <p className="portfolio-add-error">{formError}</p>}
-      </div>
     </div>
+  );
+}
+
+// ── Add Form Sub-component ──────────────────────────────────────────────────
+
+function AddForm({
+  editingTicker,
+  formTicker,
+  formShares,
+  formCost,
+  formError,
+  onTickerChange,
+  onSharesChange,
+  onCostChange,
+  onSubmit,
+  onCancel,
+}: {
+  editingTicker: string | null;
+  formTicker: string;
+  formShares: string;
+  formCost: string;
+  formError: string | null;
+  onTickerChange: (v: string) => void;
+  onSharesChange: (v: string) => void;
+  onCostChange: (v: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <form className="pf-add-form" onSubmit={onSubmit}>
+      <div className="pf-add-field">
+        <label className="pf-add-label">Ticker</label>
+        <input
+          className="pf-add-input"
+          type="text"
+          placeholder="AAPL"
+          value={formTicker}
+          onChange={(e) => onTickerChange(e.target.value)}
+          autoComplete="off"
+          spellCheck={false}
+          maxLength={5}
+          disabled={editingTicker != null}
+        />
+      </div>
+      <div className="pf-add-field">
+        <label className="pf-add-label">Shares</label>
+        <input
+          className="pf-add-input"
+          type="number"
+          placeholder="10"
+          min="0"
+          step="any"
+          value={formShares}
+          onChange={(e) => onSharesChange(e.target.value)}
+        />
+      </div>
+      <div className="pf-add-field">
+        <label className="pf-add-label">Avg Cost</label>
+        <input
+          className="pf-add-input"
+          type="number"
+          placeholder="150.00"
+          min="0"
+          step="any"
+          value={formCost}
+          onChange={(e) => onCostChange(e.target.value)}
+        />
+      </div>
+      <div className="pf-add-actions">
+        <button type="submit" className="pf-add-btn">
+          {editingTicker ? "Update" : "Add"}
+        </button>
+        <button type="button" className="pf-add-cancel" onClick={onCancel}>Cancel</button>
+      </div>
+      {formError && <p className="pf-add-error">{formError}</p>}
+    </form>
   );
 }
