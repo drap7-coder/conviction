@@ -4,23 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navTabs } from "@/lib/nav-config";
 
-function useIsActive(href: string) {
-  const pathname = usePathname();
-  return pathname === href || pathname.startsWith(href + "/");
-}
-
 /* ── Mobile bottom tab bar ── */
 
 export function MobileTabBar() {
+  const pathname = usePathname();
+
   return (
     <nav className="bottom-tab-bar">
       {navTabs.map(({ href, label, icon: Icon }) => {
-        const active = useIsActive(href);
+        const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
             key={href}
             href={href}
-            className={`bottom-tab-item ${active ? "active" : ""}`}
+            className={`bottom-tab-item${active ? " active" : ""}`}
           >
             <Icon size={20} />
             <span className="bottom-tab-label">{label}</span>
@@ -34,15 +31,17 @@ export function MobileTabBar() {
 /* ── Desktop horizontal nav ── */
 
 export function DesktopNav() {
+  const pathname = usePathname();
+
   return (
     <nav className="desktop-nav">
       {navTabs.map(({ href, label, icon: Icon }) => {
-        const active = useIsActive(href);
+        const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
             key={href}
             href={href}
-            className={`desktop-nav-item ${active ? "active" : ""}`}
+            className={`desktop-nav-item${active ? " active" : ""}`}
           >
             <Icon size={16} />
             <span className="desktop-nav-label">{label}</span>
