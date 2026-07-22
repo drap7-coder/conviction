@@ -354,6 +354,10 @@ export default function RisingConvictionPage() {
               const livePrice = live.price;
               const liveChangePercent = live.changePercent;
               const sessionLabel = live.label;
+              const arrow = liveChange !== null
+                ? (liveChange > 0 ? "▲" : liveChange < 0 ? "▼" : null)
+                : null;
+              const arrowClass = liveChange !== null && liveChange > 0 ? "up" : liveChange !== null && liveChange < 0 ? "down" : "";
               const menuOpen = menuOpenTicker === idea.ticker;
               const confirmRemove = confirmRemoveTicker === idea.ticker;
 
@@ -373,7 +377,10 @@ export default function RisingConvictionPage() {
                       </div>
                       <div className="watchlist-row-move">
                         <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
-                        <strong>{livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}</strong>
+                        <strong>
+                          {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
+                          {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}
+                        </strong>
                         <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
                           {liveChange != null && liveChangePercent != null
                             ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%`
@@ -381,7 +388,13 @@ export default function RisingConvictionPage() {
                         </span>
                         {sessionLabel && quote.price !== null && (
                           <span className="watchlist-row-session">
-                            Prior close ${quote.price.toFixed(2)}{quote.changePercent != null ? ` · yesterday ${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%` : ""}
+                            <span className="watchlist-row-session-label">At Close · Today</span>
+                            <span className="watchlist-row-session-price">${quote.price.toFixed(2)}</span>
+                            {quote.changePercent != null ? (
+                              <span className={`watchlist-row-session-change ${quote.change !== null && quote.change > 0 ? "positive" : quote.change !== null && quote.change < 0 ? "negative" : ""}`}>
+                                {quote.changePercent > 0 ? "+" : ""}{quote.changePercent.toFixed(2)}%
+                              </span>
+                            ) : null}
                           </span>
                         )}
                       </div>

@@ -929,19 +929,48 @@ details > summary::before {
 
 .watchlist-row-session {
   grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   color: var(--quiet);
   font-size: 0.6rem;
   white-space: nowrap;
   letter-spacing: 0.02em;
 }
 
-.watchlist-row-session.positive {
+.watchlist-row-session-label {
+  color: var(--muted);
+  opacity: 0.85;
+}
+
+.watchlist-row-session-price {
+  color: var(--ink);
+  opacity: 0.8;
+  font-weight: 600;
+}
+
+.watchlist-row-session-change {
+  font-weight: 500;
+}
+
+.watchlist-row-session-change.positive {
   color: var(--green);
 }
 
-.watchlist-row-session.negative {
+.watchlist-row-session-change.negative {
   color: var(--red);
 }
+
+/* ── ▲/▼ arrows ── */
+
+.watchlist-row-arrow {
+  font-size: 0.7em;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.watchlist-row-arrow.up { color: var(--green); }
+.watchlist-row-arrow.down { color: var(--red); }
 
 .watchlist-row-state {
   padding: 4px 8px;

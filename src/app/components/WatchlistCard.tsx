@@ -122,6 +122,13 @@ export function WatchlistCard({
   const displayedChangePercent = hasExtendedSession ? sessionChangePercent : changePercent;
   const displayedChangeText = formatChange(displayedChange, displayedChangePercent);
   const regularChangeText = formatChange(change, changePercent);
+
+  // ▲/▼ arrow
+  const arrow = displayedChange !== null
+    ? (displayedChange > 0 ? "▲" : displayedChange < 0 ? "▼" : null)
+    : null;
+  const arrowClass = displayedChange !== null && displayedChange > 0 ? "up" : displayedChange !== null && displayedChange < 0 ? "down" : "";
+
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -249,8 +256,11 @@ export function WatchlistCard({
             </div>
 
             <div className="watchlist-row-move">
-              <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
+              <span className="watchlist-row-period">
+                {sessionLabel ? `${sessionLabel}` : "Today"}
+              </span>
               <strong>
+                {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
                 {displayedPrice !== null ? `$${formatPrice(displayedPrice)}` : "—"}
               </strong>
               <span className={"watchlist-row-change " + (displayedChange !== null && displayedChange > 0 ? "positive" : displayedChange !== null && displayedChange < 0 ? "negative" : "neutral")}>
@@ -258,8 +268,13 @@ export function WatchlistCard({
               </span>
               {hasExtendedSession && price !== null && (
                 <span className="watchlist-row-session">
-                  Prior close ${formatPrice(price)}
-                  {regularChangeText ? ` · yesterday ${regularChangeText.percent}` : ""}
+                  <span className="watchlist-row-session-label">At Close · Today</span>
+                  <span className="watchlist-row-session-price">${formatPrice(price)}</span>
+                  {regularChangeText ? (
+                    <span className={`watchlist-row-session-change ${change !== null && change > 0 ? "positive" : change !== null && change < 0 ? "negative" : ""}`}>
+                      {regularChangeText.percent}
+                    </span>
+                  ) : null}
                 </span>
               )}
             </div>
