@@ -130,6 +130,21 @@ function toFiniteNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+export function calculateExtendedHoursMove(
+  extendedPrice: number | null,
+  regularClose: number | null,
+) {
+  const change = extendedPrice !== null && regularClose !== null
+    ? extendedPrice - regularClose
+    : null;
+  return {
+    change,
+    changePercent: change !== null && regularClose
+      ? (change / regularClose) * 100
+      : null,
+  };
+}
+
 function rangeToYahooParams(range: StockHistoryRange) {
   if (range === "1d") return { range: "1d", interval: "5m", revalidate: 60 };
   if (range === "1w") return { range: "5d", interval: "30m", revalidate: 5 * 60 };
@@ -151,18 +166,20 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
   const marketState = result?.meta?.marketState ?? inferMarketState(periods);
   const derivedPreMarketPrice = lastPriceWithinPeriod(result, periods?.pre);
   const preMarketPrice = toFiniteNumber(result?.meta?.preMarketPrice) ?? derivedPreMarketPrice;
+  const derivedPreMarketMove = calculateExtendedHoursMove(preMarketPrice, price);
   const preMarketChange = toFiniteNumber(result?.meta?.preMarketChange) ??
-    (preMarketPrice !== null && previousClose !== null ? preMarketPrice - previousClose : null);
+    derivedPreMarketMove.change;
   const preMarketChangePercent = toFiniteNumber(result?.meta?.preMarketChangePercent) ??
-    (preMarketChange !== null && previousClose ? (preMarketChange / previousClose) * 100 : null);
+    derivedPreMarketMove.changePercent;
 
   // After-hours
   const derivedPostMarketPrice = lastPriceWithinPeriod(result, periods?.post);
   const postMarketPrice = toFiniteNumber(result?.meta?.postMarketPrice) ?? derivedPostMarketPrice;
+  const derivedPostMarketMove = calculateExtendedHoursMove(postMarketPrice, price);
   const postMarketChange = toFiniteNumber(result?.meta?.postMarketChange) ??
-    (postMarketPrice !== null && price !== null ? postMarketPrice - price : null);
+    derivedPostMarketMove.change;
   const postMarketChangePercent = toFiniteNumber(result?.meta?.postMarketChangePercent) ??
-    (postMarketChange !== null && price ? (postMarketChange / price) * 100 : null);
+    derivedPostMarketMove.changePercent;
 
   // Extract intraday sparkline from the same chart response
   const sparkline: StockHistoryPoint[] = [];
