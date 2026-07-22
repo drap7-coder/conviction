@@ -28,6 +28,17 @@ export interface TechnicalState {
   fiftyTwoWeekLow: number | null;
   /** Short-term trend: % change over last 5 trading days */
   shortTermTrend: number | null;
+  /**
+   * SMA-50 slope: % change of SMA-50 over the last 20 trading periods.
+   * Positive indicates the short-term average is rising; negative indicates falling.
+   * Null if insufficient data.
+   */
+  sma50Slope: number | null;
+  /**
+   * SMA-200 slope: % change of SMA-200 over the last 20 trading periods.
+   * Null if insufficient data.
+   */
+  sma200Slope: number | null;
 }
 
 /**
@@ -82,6 +93,8 @@ export function deriveTechnicalState(
       fiftyTwoWeekHigh: fiftyTwoWeekHigh ?? null,
       fiftyTwoWeekLow: fiftyTwoWeekLow ?? null,
       shortTermTrend: null,
+      sma50Slope: null,
+      sma200Slope: null,
     };
   }
 
@@ -156,6 +169,18 @@ export function deriveTechnicalState(
     shortTermTrend = ((closes[closes.length - 1] - closes[0]) / closes[0]) * 100;
   }
 
+  // SMA slope: % change of the SMA line over the last 20 trading periods
+  function computeSmaSlope(smaValues: (number | null)[], periodCount: number): number | null {
+    const values = smaValues.filter((v): v is number => v !== null);
+    if (values.length < periodCount + 1) return null;
+    const current = values[values.length - 1];
+    const prior = values[values.length - 1 - periodCount];
+    if (current === 0 || prior === 0) return null;
+    return ((current - prior) / Math.abs(prior)) * 100;
+  }
+  const sma50Slope = computeSmaSlope(sma50Values, 20);
+  const sma200Slope = computeSmaSlope(sma200Values, 20);
+
   // Determine state label + interpretation
   let label: string;
   let interpretation: string;
@@ -217,6 +242,8 @@ export function deriveTechnicalState(
     fiftyTwoWeekHigh,
     fiftyTwoWeekLow,
     shortTermTrend,
+    sma50Slope,
+    sma200Slope,
   };
 }
 

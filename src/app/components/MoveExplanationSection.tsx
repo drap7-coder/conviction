@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { buildConvictionHeader } from "@/lib/conviction/header";
+import { buildConvictionSnapshot } from "@/lib/conviction/canonical";
+import { getConvictionBadge } from "@/lib/conviction/canonical-types";
+import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
 import type { MoveEvent } from "@/lib/evidence/move-events";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
@@ -45,6 +48,20 @@ interface StockQuote {
   price: number | null;
   change: number | null;
   changePercent: number | null;
+  previousClose: number | null;
+  volume: number | null;
+  dollarVolume: number | null;
+  currency: string | null;
+  marketState: string | null;
+  marketCap: number | null;
+  preMarketPrice: number | null;
+  preMarketChange: number | null;
+  preMarketChangePercent: number | null;
+  postMarketPrice: number | null;
+  postMarketChange: number | null;
+  postMarketChangePercent: number | null;
+  source: "yahoo-chart";
+  sparkline: Array<{ date: string; close: number }>;
 }
 
 interface ShortInterestRecord {
@@ -193,6 +210,23 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
+
+  // ── Canonical snapshot ──
+  const canonicalSnapshot = useMemo<ConvictionSnapshot | null>(() => {
+    const quote = quotes[ticker];
+    if (!quote) return null;
+    return buildConvictionSnapshot({
+      ticker,
+      institutional: { results: institutionalRows, status: institutionalStatus === "error" || institutionalStatus === "timeout" ? institutionalStatus : "success" },
+      insider: { events: insiderEvents, status: "success" },
+      earnings: null, // not fetched in this component
+      political: politicalSummary ? { ...politicalSummary, status: politicalSummary.trades.length > 0 ? "success" : "empty" } : null,
+      historyPoints: [], // not fetched here
+      quote,
+      week52High: null,
+      week52Low: null,
+    });
+  }, [ticker, institutionalRows, institutionalStatus, insiderEvents, politicalSummary, quotes]);
 
   useEffect(() => {
     let cancelled = false;

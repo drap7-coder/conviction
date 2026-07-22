@@ -1,125 +1,211 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { calculateConviction, clampScore, SIGNAL_WEIGHTS, type ConvictionSignal } from "@/lib/conviction/scoring";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { buildConvictionSnapshot, type BuildSnapshotInput } from "@/lib/conviction/canonical";
+import { MODEL_VERSION } from "@/lib/conviction/model-version";
+import { getConvictionBadge } from "@/lib/conviction/canonical-types";
+import { cachedFetch } from "@/lib/request-cache";
 import type { EarningsEvidence } from "@/lib/earnings/types";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import type { StockHistoryPoint } from "@/lib/market/technical-state";
+import type { StockQuote } from "@/lib/market/quotes";
 
-interface EvidenceBundle {
+interface FetchState {
   institutional: { results?: InstitutionalAccumulation[]; status?: string } | null;
   insider: { events?: EvidenceEvent[]; status?: string; source?: string } | null;
   earnings: EarningsEvidence | null;
   political: (PoliticalTradeSummary & { status?: string }) | null;
+  history: StockHistoryPoint[];
+  quote: StockQuote | null;
+  week52High: number | null;
+  week52Low: number | null;
 }
 
-const EMPTY: EvidenceBundle = { institutional: null, insider: null, earnings: null, political: null };
-
-async function fetchEvidence<T>(url: string): Promise<T | null> {
-  try {
-    const response = await fetch(url);
-    return response.ok ? response.json() as Promise<T> : null;
-  } catch {
-    return null;
-  }
+interface CompanyVerdictSimpleProps {
+  ticker: string;
+  /** Pre-fetched snapshot to skip client-side loading */
+  initialSnapshot?: ReturnType<typeof buildConvictionSnapshot>;
 }
 
-function institutionalSignal(data: EvidenceBundle["institutional"]): ConvictionSignal {
-  const usable = data && data.status !== "timeout" && data.status !== "error";
-  const rows = data?.results ?? [];
-  const gross = rows.reduce((sum, row) => sum + Math.max(row.shares, row.previousShares), 0);
-  const net = rows.reduce((sum, row) => sum + row.shareChange, 0);
-  const score = usable ? (gross ? clampScore(net / gross * 100) : 0) : null;
-  return { key: "institutional", label: "Large investors", weight: SIGNAL_WEIGHTS.institutional, score,
-    asOf: rows.map((row) => row.filingDate).sort().at(-1) ?? null,
-    summary: score === null ? "Institutional data unavailable" : score > 10 ? "large investors are accumulating" : score < -10 ? "large investors are reducing exposure" : "large-investor activity is balanced" };
-}
+const EMPTY: FetchState = {
+  institutional: null,
+  insider: null,
+  earnings: null,
+  political: null,
+  history: [],
+  quote: null,
+  week52High: null,
+  week52Low: null,
+};
 
-function insiderSignal(data: EvidenceBundle["insider"]): ConvictionSignal {
-  const usable = data && data.status !== "timeout" && data.status !== "error" && data.source !== "error";
-  const cutoff = Date.now() - 90 * 86_400_000;
-  const events = (data?.events ?? []).filter((event) => new Date(event.date).getTime() >= cutoff && ["purchase", "sale"].includes(event.metadata?.transactionType ?? ""));
-  const buys = events.filter((event) => event.metadata?.transactionType === "purchase").reduce((sum, event) => sum + (event.metadata?.totalValue ?? event.metadata?.shares ?? 0), 0);
-  const sells = events.filter((event) => event.metadata?.transactionType === "sale").reduce((sum, event) => sum + (event.metadata?.totalValue ?? event.metadata?.shares ?? 0), 0);
-  const score = usable ? (buys + sells ? clampScore((buys - sells) / (buys + sells) * 100) : 0) : null;
-  return { key: "insider", label: "Company insiders", weight: SIGNAL_WEIGHTS.insider, score,
-    asOf: events.map((event) => event.date).sort().at(-1) ?? new Date().toISOString(),
-    summary: score === null ? "Insider data unavailable" : score > 10 ? "insiders are net buyers" : score < -10 ? "insiders are net sellers" : "insider activity is neutral" };
-}
-
-function earningsSignal(data: EarningsEvidence | null): ConvictionSignal {
-  return { key: "earnings", label: "Earnings momentum", weight: SIGNAL_WEIGHTS.earnings,
-    score: data?.status === "unavailable" ? null : data?.score ?? null, asOf: data?.asOf ?? null,
-    summary: data?.score == null ? "earnings data unavailable" : data.score > 10 ? "earnings momentum is improving" : data.score < -10 ? "earnings momentum is weakening" : "earnings momentum is stable" };
-}
-
-function politicalSignal(data: EvidenceBundle["political"]): ConvictionSignal {
-  const usable = data && data.status !== "timeout" && data.status !== "error";
-  const buys = data?.totalEstimatedPurchases ?? 0;
-  const sells = data?.totalEstimatedSales ?? 0;
-  const score = usable ? (buys + sells ? clampScore((buys - sells) / (buys + sells) * 100) : 0) : null;
-  return { key: "political", label: "Political disclosures", weight: SIGNAL_WEIGHTS.political, score,
-    asOf: data?.latestFilingDate ?? new Date().toISOString(),
-    summary: score === null ? "political data unavailable" : score > 10 ? "political disclosures lean toward buying" : score < -10 ? "political disclosures lean toward selling" : "political disclosures are neutral" };
-}
-
-function scoreLabel(score: number | null) {
-  if (score === null) return "Missing";
-  if (score >= 15) return "Positive";
-  if (score <= -15) return "Negative";
-  return "Neutral";
-}
-
-export function CompanyVerdict({ ticker }: { ticker: string }) {
-  const [bundle, setBundle] = useState<EvidenceBundle>(EMPTY);
+export function CompanyVerdict({ ticker }: CompanyVerdictSimpleProps) {
+  const [state, setState] = useState<FetchState>(EMPTY);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      fetchEvidence<EvidenceBundle["institutional"]>(`/api/evidence/institutional?ticker=${ticker}`),
-      fetchEvidence<EvidenceBundle["insider"]>(`/api/evidence/insider?ticker=${ticker}`),
-      fetchEvidence<EarningsEvidence>(`/api/evidence/earnings?ticker=${ticker}`),
-      fetchEvidence<EvidenceBundle["political"]>(`/api/evidence/political?ticker=${ticker}`),
-    ]).then(([institutional, insider, earnings, political]) => {
-      if (!cancelled) { setBundle({ institutional, insider, earnings, political }); setLoading(false); }
-    });
+
+    async function load() {
+      try {
+        const [institutional, insider, earnings, political, quoteDataAll] = await Promise.all([
+          cachedFetch<FetchState["institutional"]>(`/api/evidence/institutional?ticker=${ticker}`, { ttl: 60 * 60 * 1000 }),
+          cachedFetch<FetchState["insider"]>(`/api/evidence/insider?ticker=${ticker}`, { ttl: 30 * 60 * 1000 }),
+          cachedFetch<EarningsEvidence>(`/api/evidence/earnings?ticker=${ticker}`, { ttl: 60 * 60 * 1000 }),
+          cachedFetch<FetchState["political"]>(`/api/evidence/political?ticker=${ticker}`, { ttl: 60 * 60 * 1000 }),
+          cachedFetch<{ quotes?: StockQuote[] }>(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`, { ttl: 60 * 1000 }),
+        ]);
+
+        if (cancelled) return;
+
+        const quote = (quoteDataAll?.quotes ?? [])[0] ?? null;
+        const history = quote?.sparkline ?? [];
+        const week52High = null; // quote doesn't carry this from sparkline
+        const week52Low = null;
+
+        setState({ institutional, insider, earnings, political, history, quote, week52High, week52Low });
+      } catch {
+        if (!cancelled) setState(EMPTY);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    void load();
     return () => { cancelled = true; };
   }, [ticker]);
 
-  const signals = useMemo(() => [institutionalSignal(bundle.institutional), insiderSignal(bundle.insider), earningsSignal(bundle.earnings), politicalSignal(bundle.political)], [bundle]);
-  const verdict = calculateConviction(signals);
+  const snapshot = useMemo(() => {
+    if (!state.quote) return null;
+    return buildConvictionSnapshot({
+      ticker,
+      institutional: state.institutional,
+      insider: state.insider,
+      earnings: state.earnings,
+      political: state.political,
+      historyPoints: state.history,
+      quote: state.quote,
+      week52High: state.week52High,
+      week52Low: state.week52Low,
+    });
+  }, [ticker, state]);
+
+  const badge = useMemo(() => snapshot ? getConvictionBadge(snapshot) : null, [snapshot]);
+
+  if (loading) {
+    return (
+      <section className="verdict-card" aria-label="Conviction verdict">
+        <div className="verdict-topline">
+          <div>
+            <span className="verdict-eyebrow">Decision snapshot</span>
+            <h2>Building the evidence picture…</h2>
+            <p>Checking filings, insider trades, earnings and political disclosures.</p>
+          </div>
+          <div className="verdict-score insufficient">
+            <strong>—</strong>
+            <span>of 100</span>
+          </div>
+        </div>
+        <div className="verdict-meta">
+          <span><b>…</b> confidence</span>
+          <span><b>…</b> evidence coverage</span>
+          <span>Score is evidence, not a recommendation</span>
+        </div>
+        <div className="signal-strip">
+          {["Large investors", "Company insiders", "Earnings momentum", "Political disclosures"].map((label) => (
+            <div className="signal-pill" key={label}>
+              <span>{label}</span>
+              <strong className="missing">Checking</strong>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
+
+  if (!snapshot) {
+    return (
+      <section className="verdict-card" aria-label="Conviction verdict unavailable">
+        <div className="verdict-topline">
+          <div>
+            <span className="verdict-eyebrow">Decision snapshot</span>
+            <h2>Evidence still forming</h2>
+            <p>Unable to load evidence feeds for {ticker}.</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const { evidence, technical, market } = snapshot;
+  const verdict = evidence.summary;
+  const directionClass = evidence.score > 0 ? "bullish" : evidence.score < 0 ? "bearish" : "mixed";
+  const techState = technical.state !== "unknown" ? technical.state : null;
 
   return (
     <section className="verdict-card" aria-label="Conviction verdict">
       <div className="verdict-topline">
         <div>
           <span className="verdict-eyebrow">Decision snapshot</span>
-          <h2>{loading ? "Building the evidence picture…" : verdict.direction === "insufficient" ? "Evidence still forming" : `${verdict.direction[0].toUpperCase()}${verdict.direction.slice(1)} setup`}</h2>
-          <p>{loading ? "Checking filings, insider trades, earnings and political disclosures." : verdict.summary}</p>
+          <h2>
+            {evidence.verdict === "strong" ? "Strong conviction" :
+             evidence.verdict === "positive" ? "Positive setup" :
+             evidence.verdict === "negative" ? "Negative setup" :
+             evidence.verdict === "weak" ? "Weak evidence" :
+             evidence.verdict === "mixed" ? "Mixed signals" : "Evidence forming"}
+            {badge?.technicalState ? ` · ${badge.technicalState}` : ""}
+          </h2>
+          <p>{verdict}</p>
+          {badge?.direction ? (
+            <p className="verdict-direction">{badge.direction}</p>
+          ) : null}
         </div>
-        <div className={`verdict-score ${verdict.direction}`}>
-          <strong>{loading || verdict.score === null ? "—" : verdict.score > 0 ? `+${verdict.score}` : verdict.score}</strong>
+        <div className={`verdict-score ${directionClass}`}>
+          <strong>{evidence.score >= 0 ? `+${evidence.score}` : evidence.score}</strong>
           <span>of 100</span>
         </div>
       </div>
       <div className="verdict-meta">
-        <span><b>{loading ? "…" : verdict.confidence}</b> confidence</span>
-        <span><b>{loading ? "…" : `${Math.round(verdict.coverage * 100)}%`}</b> evidence coverage</span>
+        <span><b>{snapshot.evidence.confidence >= 0.65 ? "High" : snapshot.evidence.confidence >= 0.4 ? "Medium" : "Low"}</b> confidence</span>
+        <span><b>{Math.round(evidence.coverage * 100)}%</b> evidence coverage</span>
+        {market.session !== "regular" ? (
+          <span className="verdict-session">{market.referenceLabel}: {market.referencePrice != null ? `$${market.referencePrice.toFixed(2)}` : "—"}</span>
+        ) : null}
         <span>Score is evidence, not a recommendation</span>
       </div>
+
+      {/* Signal strip */}
       <div className="signal-strip">
-        {signals.map((signal) => (
-          <div className="signal-pill" key={signal.key}>
-            <span>{signal.label} · {Math.round(signal.weight * 100)}%</span>
-            <strong className={signal.score === null ? "missing" : signal.score >= 15 ? "positive" : signal.score <= -15 ? "negative" : "neutral"}>{loading ? "Checking" : scoreLabel(signal.score)}</strong>
-          </div>
-        ))}
+        {(["institutional", "insider", "earnings", "political"] as const).map((key) => {
+          const signal = evidence.signals[key];
+          return (
+            <div className="signal-pill" key={key}>
+              <span>{signal.summary.split(".")[0]}</span>
+              <strong className={
+                signal.sentiment === "strong_positive" || signal.sentiment === "positive" ? "positive" :
+                signal.sentiment === "strong_negative" || signal.sentiment === "negative" ? "negative" :
+                signal.sentiment === "neutral" ? "neutral" : "missing"
+              }>
+                {signal.score !== null && signal.score > 0 ? `+${signal.score}` : signal.score !== null ? signal.score : "—"}
+              </strong>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Technical summary */}
+      {techState && (
+        <div className="verdict-tech">
+          <span className="verdict-tech-label">Technical: {technical.summary}</span>
+        </div>
+      )}
+
+      {/* Model version */}
       <details className="verdict-explainer">
         <summary>How this score works</summary>
         <p>Each available signal is scored from −100 to +100. Missing feeds are excluded—not treated as neutral—and the remaining weights are normalized. A score only appears when at least half of the intended evidence is available.</p>
+        <p className="verdict-version">Model v{MODEL_VERSION}</p>
       </details>
     </section>
   );

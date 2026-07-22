@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { LogoDisplay } from "./LogoDisplay";
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
+import { getConvictionBadge } from "@/lib/conviction/canonical-types";
+import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -44,6 +46,8 @@ export interface WatchlistCardProps {
   onRemove: (ticker: string) => void;
   isRemoving: boolean;
   isFocused?: boolean;
+  /** Optional canonical snapshot — takes precedence over individual conviction props */
+  canonicalSnapshot?: ConvictionSnapshot | null;
 }
 
 function formatPrice(value: number | null) {
@@ -98,7 +102,20 @@ export function WatchlistCard({
   onRemove,
   isRemoving,
   isFocused,
+  canonicalSnapshot,
 }: WatchlistCardProps) {
+  // Derive badge from canonical snapshot when available
+  const canonicalBadge = useMemo(() => {
+    if (!canonicalSnapshot) return null;
+    return getConvictionBadge(canonicalSnapshot);
+  }, [canonicalSnapshot]);
+
+  const effectiveConvictionState = canonicalBadge
+    ? [canonicalBadge.verdict, canonicalBadge.direction, canonicalBadge.technicalState]
+        .filter(Boolean)
+        .join(" · ")
+    : convictionState;
+  const effectiveConvictionTone = canonicalBadge?.tone ?? convictionTone;
   const hasExtendedSession = sessionLabel !== null && sessionPrice !== null;
   const displayedPrice = hasExtendedSession ? sessionPrice : price;
   const displayedChange = hasExtendedSession ? sessionChange : change;
@@ -219,7 +236,7 @@ export function WatchlistCard({
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
-          className={`watchlist-row watchlist-row-${convictionTone} ${isFocused ? "focused-card" : ""}`}
+          className={`watchlist-row watchlist-row-${effectiveConvictionTone} ${isFocused ? "focused-card" : ""}`}
           title={companyName}
         >
           <div className="watchlist-row-main">
@@ -249,8 +266,8 @@ export function WatchlistCard({
 
             {/* ── State pill + kebab (grid-column 2, row 1) ── */}
             <div className="watchlist-row-state-area">
-              <span className={`watchlist-row-state watchlist-row-state-${convictionTone}`}>
-                {convictionState}
+              <span className={`watchlist-row-state watchlist-row-state-${effectiveConvictionTone}`}>
+                {effectiveConvictionState}
               </span>
 
               <div className="watchlist-kebab-wrap">
