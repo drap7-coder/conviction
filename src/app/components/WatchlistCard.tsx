@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { LogoDisplay } from "./LogoDisplay";
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -28,6 +28,7 @@ export interface WatchlistCardProps {
   price: number | null;
   change: number | null;
   changePercent: number | null;
+  marketCap: number | null;
   convictionState: string;
   convictionTone: string;
   evidencePills: WatchlistCardEvidencePill[];
@@ -37,7 +38,7 @@ export interface WatchlistCardProps {
   sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
   isRemoving: boolean;
-  isFocused?: boolean; // Added for focus mode
+  isFocused?: boolean;
 }
 
 function formatPrice(value: number | null) {
@@ -57,12 +58,27 @@ function formatChange(value: number | null, percent: number | null) {
   };
 }
 
+function formatMarketCap(value: number | null): string | null {
+  if (value === null) return null;
+  if (value >= 1_000_000_000_000) {
+    return "$" + (value / 1_000_000_000_000).toFixed(1) + "T";
+  }
+  if (value >= 1_000_000_000) {
+    return "$" + (value / 1_000_000_000).toFixed(1) + "B";
+  }
+  if (value >= 1_000_000) {
+    return "$" + (value / 1_000_000).toFixed(1) + "M";
+  }
+  return "$" + value.toLocaleString();
+}
+
 export function WatchlistCard({
   ticker,
   companyName,
   price,
   change,
   changePercent,
+  marketCap,
   convictionState,
   convictionTone,
   evidencePills,
@@ -79,8 +95,61 @@ export function WatchlistCard({
   const [isSwiping, setIsSwiping] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
-
   const SWIPE_THRESHOLD = 80;
+
+  // ── Kebab menu state ──
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const kebabRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        kebabRef.current &&
+        !kebabRef.current.contains(e.target as Node)
+      ) {
+        setMenuOpen(false);
+        setConfirmRemove(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpen]);
+
+  const handleKebabClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpen((v) => !v);
+    setConfirmRemove(false);
+  }, []);
+
+  const handleViewDetails = useCallback(() => {
+    setMenuOpen(false);
+  }, []);
+
+  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setConfirmRemove(true);
+  }, []);
+
+  const handleConfirmRemove = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpen(false);
+    setConfirmRemove(false);
+    onRemove(ticker);
+  }, [onRemove, ticker]);
+
+  const handleCancelRemove = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setConfirmRemove(false);
+  }, []);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
@@ -92,7 +161,6 @@ export function WatchlistCard({
     if (touchStartX.current === null) return;
     const dx = touchStartX.current - e.touches[0].clientX;
     const dy = Math.abs((touchStartY.current ?? 0) - e.touches[0].clientY);
-    // Only swipe if horizontal movement dominates (avoiding vertical scroll)
     if (dx > 0 && dx > dy * 1.5) {
       setSwipeOffset(Math.min(dx, 120));
     }
@@ -115,9 +183,12 @@ export function WatchlistCard({
   const wrapStyle = isRemoving
     ? ({ opacity: 0.4, pointerEvents: "none" as const } as React.CSSProperties)
     : undefined;
+
   const supportingEvidence = evidencePills.filter(
     (pill) => pill.text?.replace(/\.$/, "") !== activityLine?.text,
   );
+
+  const marketCapText = formatMarketCap(marketCap);
 
   return (
     <div
@@ -127,12 +198,10 @@ export function WatchlistCard({
       onTouchEnd={handleTouchEnd}
       style={wrapStyle}
     >
-      {/* Swipe-to-delete surface (mobile) */}
       <div className="terminal-card-swipe-surface" aria-hidden="true">
         <span className="terminal-card-swipe-label">DELETE</span>
       </div>
 
-      {/* Inner container — translates on swipe to reveal delete surface */}
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
@@ -158,9 +227,65 @@ export function WatchlistCard({
               </span>
             </div>
 
-            <span className={`watchlist-row-state watchlist-row-state-${convictionTone}`}>
-              {convictionState}
-            </span>
+            {/* ── State pill + kebab (grid-column 2, row 1) ── */}
+            <div className="watchlist-row-state-area">
+              <span className={`watchlist-row-state watchlist-row-state-${convictionTone}`}>
+                {convictionState}
+              </span>
+
+              <div className="watchlist-kebab-wrap">
+                <button
+                  ref={kebabRef}
+                  className="watchlist-kebab"
+                  onClick={handleKebabClick}
+                  aria-label={`Options for ${ticker}`}
+                  aria-expanded={menuOpen}
+                >
+                  ⋮
+                </button>
+                {menuOpen && (
+                  <div ref={menuRef} className="watchlist-kebab-menu" role="menu">
+                    {confirmRemove ? (
+                      <>
+                        <span className="watchlist-kebab-confirm-text">Remove {ticker}?</span>
+                        <button
+                          className="watchlist-kebab-item watchlist-kebab-item-danger"
+                          onClick={handleConfirmRemove}
+                          role="menuitem"
+                        >
+                          Yes, remove
+                        </button>
+                        <button
+                          className="watchlist-kebab-item"
+                          onClick={handleCancelRemove}
+                          role="menuitem"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <Link
+                          href={`/companies/${ticker}`}
+                          className="watchlist-kebab-item"
+                          onClick={handleViewDetails}
+                          role="menuitem"
+                        >
+                          View details
+                        </Link>
+                        <button
+                          className="watchlist-kebab-item watchlist-kebab-item-danger"
+                          onClick={handleRemoveClick}
+                          role="menuitem"
+                        >
+                          Remove from watchlist
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {sparklinePath ? (
@@ -210,19 +335,12 @@ export function WatchlistCard({
           ) : null}
         </Link>
 
-        {/* Desktop hover-reveal delete button */}
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onRemove(ticker);
-          }}
-          disabled={isRemoving}
-          className="terminal-card-delete"
-          aria-label={`Remove ${ticker}`}
-        >
-          [DEL]
-        </button>
+        {/* ── Market cap stat row ── */}
+        {marketCapText && (
+          <div className="watchlist-card-stats-row">
+            <span className="watchlist-card-stat">Mkt Cap {marketCapText}</span>
+          </div>
+        )}
       </div>
     </div>
   );

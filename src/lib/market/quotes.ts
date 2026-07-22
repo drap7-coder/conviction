@@ -10,6 +10,7 @@ export interface StockQuote {
   dollarVolume: number | null;
   currency: string | null;
   marketState: string | null;
+  marketCap: number | null;
   source: "yahoo-chart";
   /** Intraday sparkline points (up to ~42) extracted from the same chart response */
   sparkline: StockHistoryPoint[];
@@ -115,6 +116,7 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     dollarVolume: price !== null && volume !== null ? price * volume : null,
     currency: result?.meta?.currency ?? null,
     marketState: result?.meta?.marketState ?? null,
+    marketCap: toFiniteNumber(result?.meta?.marketCap),
     source: "yahoo-chart",
     sparkline: sparkline.slice(-42),
   };

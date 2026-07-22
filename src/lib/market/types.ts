@@ -7,5 +7,6 @@ export interface StockQuote {
   dollarVolume: number | null;
   currency: string | null;
   marketState: string | null;
+  marketCap: number | null;
   sparkline: Array<{ date: string; close: number }>;
 }

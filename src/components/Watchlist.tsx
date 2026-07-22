@@ -656,6 +656,7 @@ export default function Watchlist() {
                   price={quote?.price ?? null}
                   change={quote?.change ?? null}
                   changePercent={quote?.changePercent ?? null}
+                  marketCap={quote?.marketCap ?? null}
                   convictionState={verdict.state}
                   convictionTone={verdict.tone}
                   evidencePills={evidencePills}
@@ -696,6 +697,7 @@ export default function Watchlist() {
                 price={quote?.price ?? null}
                 change={quote?.change ?? null}
                 changePercent={quote?.changePercent ?? null}
+                marketCap={quote?.marketCap ?? null}
                 convictionState={verdict.state}
                 convictionTone={verdict.tone}
                 evidencePills={evidencePills}

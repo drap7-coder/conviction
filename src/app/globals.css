@@ -926,15 +926,127 @@ details > summary::before {
 }
 
 .watchlist-row-state {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
   padding: 4px 8px;
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.watchlist-row-state-area {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: end;
+}
+
+/* ── Kebab menu ── */
+
+.watchlist-kebab-wrap {
+  position: relative;
+}
+
+.watchlist-kebab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--quiet);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.watchlist-kebab:hover,
+.watchlist-kebab[aria-expanded="true"] {
+  color: var(--muted);
+  background: var(--surface-elevated);
+}
+
+.watchlist-kebab-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 60;
+  min-width: 160px;
+  padding: 4px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.watchlist-kebab-item {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.watchlist-kebab-item:hover {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.watchlist-kebab-item-danger {
+  color: var(--red);
+}
+
+.watchlist-kebab-item-danger:hover {
+  background: var(--red-dim);
+  color: var(--red);
+}
+
+.watchlist-kebab-confirm-text {
+  display: block;
+  padding: 6px 10px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ── Market cap stat row ── */
+
+.watchlist-card-stats-row {
+  padding: 6px 16px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--quiet);
+  line-height: 1;
+}
+
+.watchlist-card-stat {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.watchlist-card-stat b {
+  color: var(--quiet);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .watchlist-row-chart {
@@ -1067,7 +1179,7 @@ details > summary::before {
     grid-column: 1;
   }
 
-  .watchlist-row-state {
+  .watchlist-row-state-area {
     grid-column: 2;
     grid-row: 1;
   }
