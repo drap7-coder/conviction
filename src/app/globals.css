@@ -1095,12 +1095,12 @@ details > summary::before {
 
 .watchlist-row-state-positive {
   color: var(--green);
-  background: var(--green-dim);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
 }
 
 .watchlist-row-state-negative {
   color: var(--red);
-  background: var(--red-dim);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
 }
 
 .watchlist-row-state-contested {
@@ -1773,15 +1773,15 @@ details > summary::before {
 
 .signal-badge.pos {
   color: var(--green);
-  border-color: var(--green-dim);
-  background: var(--green-dim);
+  border-color: color-mix(in srgb, var(--green) 26%, transparent);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
 }
 
 .signal-badge.neg,
 .signal-badge.negative {
   color: var(--red);
-  border-color: var(--red-dim);
-  background: var(--red-dim);
+  border-color: color-mix(in srgb, var(--red) 26%, transparent);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
 }
 
 .signal-badge.neutral {
@@ -2835,7 +2835,7 @@ details > summary::before {
 
 .convergence-badge.positive {
   color: var(--green);
-  background: var(--green-dim);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
 }
 
 .convergence-badge.neutral {
@@ -2845,7 +2845,7 @@ details > summary::before {
 
 .confidence-high .move-confidence {
   color: var(--green);
-  background: var(--green-dim);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
 }
 
 .confidence-medium .move-confidence {
@@ -2855,7 +2855,7 @@ details > summary::before {
 
 .move-confidence.convergence-badge.positive {
   color: var(--green);
-  background: var(--green-dim);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
 }
 
 .move-confidence.convergence-badge.neutral {
@@ -3635,9 +3635,9 @@ details > summary::before {
   letter-spacing: 0.05em;
 }
 
-.status-badge.active { color: var(--green); background: var(--green-dim); }
+.status-badge.active { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
 .status-badge.validated { color: var(--accent); background: var(--accent-dim); }
-.status-badge.invalidated { color: var(--red); background: var(--red-dim); }
+.status-badge.invalidated { color: var(--red); background: color-mix(in srgb, var(--red) 14%, transparent); }
 .status-badge.expired { color: var(--muted); background: transparent; }
 
 /* ── Company Detail Page ── */
@@ -5575,3 +5575,189 @@ details > summary::before {
   font-size: 0.68rem;
   color: var(--quiet);
 }
+
+/* ── Company Detail Header (after-hours aware) ── */
+
+.cdh-body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.cdh-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.cdh-logo {
+  display: block;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.cdh-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.cdh-ticker {
+  font-family: var(--font-mono);
+  font-size: 1.62rem;
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.cdh-name {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── Conviction badge (translucent) ── */
+
+.cdh-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.cdh-badge-positive {
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+}
+
+.cdh-badge-negative {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+}
+
+.cdh-badge-contested {
+  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 14%, transparent);
+}
+
+.cdh-badge-quiet {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--muted) 12%, transparent);
+}
+
+/* ── Price block ── */
+
+.cdh-prices {
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 0;
+  max-width: 50%;
+}
+
+.cdh-live-price {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cdh-arrow {
+  font-size: 1rem;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.cdh-arrow.up { color: var(--green); }
+.cdh-arrow.down { color: var(--red); }
+.cdh-arrow:not(.up):not(.down) { color: var(--muted); }
+
+.cdh-price-big {
+  font-family: var(--font-mono);
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--ink);
+}
+
+.cdh-change {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.cdh-change.up { color: var(--green); }
+.cdh-change.down { color: var(--red); }
+
+.cdh-price-loading {
+  font-family: var(--font-mono);
+  font-size: 2.25rem;
+  font-weight: 600;
+  color: var(--quiet);
+}
+
+.cdh-price-na {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--quiet);
+}
+
+/* ── Session row (after-hours / pre-market context) ── */
+
+.cdh-session-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+.cdh-session-label {
+  font-weight: 600;
+  color: var(--ink);
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+.cdh-session-ref {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cdh-ref-label {
+  color: var(--muted);
+}
+
+.cdh-ref-price {
+  font-weight: 600;
+  color: var(--ink);
+  opacity: 0.85;
+}
+
+.cdh-ref-change {
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cdh-ref-change.up { color: var(--green); }
+.cdh-ref-change.down { color: var(--red); }

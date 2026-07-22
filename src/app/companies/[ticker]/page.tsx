@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
+import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
 import { CompanyVerdict } from "@/app/components/CompanyVerdict";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
@@ -14,7 +15,6 @@ import { MoveExplanationSection } from "@/app/components/MoveExplanationSection"
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 // Thesis section temporarily suppressed — restore this import when re-enabling:
 // import { ThesisTracker } from "@/app/components/ThesisTracker";
-import { TrackCompanyButton } from "@/app/components/TrackCompanyButton";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
@@ -41,40 +41,13 @@ export default async function CompanyPage({
 
   return (
     <div>
-      <div className="detail-header">
-        <div className="detail-nav">
-          <Link href="/" className="detail-back">
-            ← Watchlist
-          </Link>
-          <span className="demo-badge">Live data</span>
-        </div>
-        <div className="detail-header-row">
-          <div className="detail-header-left">
-            {getLogoUrl(upperTicker) ? (
-              <img src={getLogoUrl(upperTicker)!} alt="" className="detail-logo" />
-            ) : (
-              <div className="logo-badge logo-badge-detail">{upperTicker.charAt(0)}</div>
-            )}
-            <div className="detail-identity">
-              <div className="detail-title-row">
-                <h1 className="detail-ticker">{upperTicker}</h1>
-                {sector ? (
-                  <span
-                    className="company-sector-tag"
-                    style={sectorColors ? {
-                      background: `linear-gradient(135deg, ${sectorColors.c1}, ${sectorColors.c2})`,
-                    } : undefined}
-                  >
-                    {sector.name}
-                  </span>
-                ) : null}
-              </div>
-              <p className="detail-name">{companyName}</p>
-            </div>
-          </div>
-          <TrackCompanyButton ticker={upperTicker} companyName={companyName} />
-        </div>
-      </div>
+      <CompanyDetailHeader
+        ticker={upperTicker}
+        companyName={companyName}
+        sectorName={sector?.name ?? null}
+        sectorColors={sectorColors}
+        logoUrl={getLogoUrl(upperTicker) ?? null}
+      />
 
       <CompanyDashboard
         briefing={
