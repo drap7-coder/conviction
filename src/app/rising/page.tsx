@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
@@ -15,6 +15,7 @@ interface StockQuote {
   dollarVolume?: number | null;
   currency: string | null;
   marketState: string | null;
+  marketCap: number | null;
 }
 
 interface StockHistoryPoint {
@@ -52,7 +53,6 @@ const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 
 function readBrowserWatchlist(): WatchlistEntry[] {
   if (typeof window === "undefined") return [];
-
   try {
     const raw = window.localStorage.getItem(WATCHLIST_STORAGE_KEY);
     if (!raw) return [];
@@ -71,7 +71,6 @@ function readBrowserWatchlist(): WatchlistEntry[] {
 
 function writeBrowserWatchlist(entries: WatchlistEntry[]) {
   if (typeof window === "undefined") return;
-
   try {
     window.localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(entries));
   } catch {
@@ -96,6 +95,20 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
   }).join(" ");
 }
 
+function formatMarketCap(value: number | null): string | null {
+  if (value === null) return null;
+  if (value >= 1_000_000_000_000) {
+    return "$" + (value / 1_000_000_000_000).toFixed(1) + "T";
+  }
+  if (value >= 1_000_000_000) {
+    return "$" + (value / 1_000_000_000).toFixed(1) + "B";
+  }
+  if (value >= 1_000_000) {
+    return "$" + (value / 1_000_000).toFixed(1) + "M";
+  }
+  return "$" + value.toLocaleString();
+}
+
 export default function RisingConvictionPage() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
@@ -104,6 +117,11 @@ export default function RisingConvictionPage() {
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [requestKey, setRequestKey] = useState(0);
+  // ── Kebab state per card ──
+  const [menuOpenTicker, setMenuOpenTicker] = useState<string | null>(null);
+  const [confirmRemoveTicker, setConfirmRemoveTicker] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const kebabRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -187,6 +205,60 @@ export default function RisingConvictionPage() {
     };
   }, [requestKey]);
 
+  // Close kebab on outside click
+  useEffect(() => {
+    if (!menuOpenTicker) return;
+    function handleClick(e: MouseEvent) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(e.target as Node) &&
+        kebabRef.current &&
+        !kebabRef.current.contains(e.target as Node)
+      ) {
+        setMenuOpenTicker(null);
+        setConfirmRemoveTicker(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuOpenTicker]);
+
+  const handleKebabClick = useCallback((ticker: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpenTicker((v) => (v === ticker ? null : ticker));
+    setConfirmRemoveTicker(null);
+  }, []);
+
+  const handleRemoveClick = useCallback((ticker: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setConfirmRemoveTicker(ticker);
+  }, []);
+
+  const handleConfirmRemove = useCallback(async (ticker: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setMenuOpenTicker(null);
+    setConfirmRemoveTicker(null);
+    try {
+      await fetch(`/api/watchlist/${ticker}`, { method: "DELETE" });
+    } catch {
+      // best-effort
+    }
+    setTrackedTickers((current) => {
+      const next = new Set(current);
+      next.delete(ticker);
+      return next;
+    });
+  }, []);
+
+  const handleCancelRemove = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setConfirmRemoveTicker(null);
+  }, []);
+
   const handleAddTrending = async (idea: TrendingCompany) => {
     setAddingTicker(idea.ticker);
     setAddMessage(null);
@@ -269,6 +341,10 @@ export default function RisingConvictionPage() {
               }, quote);
               const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
               const ideaHeadlines = headlines[idea.ticker] ?? [];
+              const marketCapText = formatMarketCap(quote.marketCap);
+              const menuOpen = menuOpenTicker === idea.ticker;
+              const confirmRemove = confirmRemoveTicker === idea.ticker;
+
               return (
                 <div key={idea.ticker} className="terminal-card-wrap group">
                   <Link
@@ -292,7 +368,88 @@ export default function RisingConvictionPage() {
                             : "—"}
                         </span>
                       </div>
-                      <span className={`watchlist-row-state watchlist-row-state-${verdict.tone}`}>#{idea.activityRank} Trending</span>
+
+                      {/* ── State area + kebab ── */}
+                      <div className="watchlist-row-state-area">
+                        <span className={`watchlist-row-state watchlist-row-state-${verdict.tone}`}>
+                          #{idea.activityRank} Trending
+                        </span>
+                        <div className="watchlist-kebab-wrap">
+                          <button
+                            ref={kebabRef}
+                            className="watchlist-kebab"
+                            onClick={(e) => handleKebabClick(idea.ticker, e)}
+                            aria-label={`Options for ${idea.ticker}`}
+                            aria-expanded={menuOpen}
+                          >
+                            ⋮
+                          </button>
+                          {menuOpen && (
+                            <div ref={menuRef} className="watchlist-kebab-menu" role="menu">
+                              {confirmRemove ? (
+                                <>
+                                  <span className="watchlist-kebab-confirm-text">Remove {idea.ticker}?</span>
+                                  <button
+                                    className="watchlist-kebab-item watchlist-kebab-item-danger"
+                                    onClick={(e) => handleConfirmRemove(idea.ticker, e)}
+                                    role="menuitem"
+                                  >
+                                    Yes, remove
+                                  </button>
+                                  <button
+                                    className="watchlist-kebab-item"
+                                    onClick={handleCancelRemove}
+                                    role="menuitem"
+                                  >
+                                    Cancel
+                                  </button>
+                                </>
+                              ) : isTracked ? (
+                                <>
+                                  <Link
+                                    href={`/companies/${idea.ticker}`}
+                                    className="watchlist-kebab-item"
+                                    onClick={() => setMenuOpenTicker(null)}
+                                    role="menuitem"
+                                  >
+                                    View details
+                                  </Link>
+                                  <button
+                                    className="watchlist-kebab-item watchlist-kebab-item-danger"
+                                    onClick={(e) => handleRemoveClick(idea.ticker, e)}
+                                    role="menuitem"
+                                  >
+                                    Remove from watchlist
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <Link
+                                    href={`/companies/${idea.ticker}`}
+                                    className="watchlist-kebab-item"
+                                    onClick={() => setMenuOpenTicker(null)}
+                                    role="menuitem"
+                                  >
+                                    View details
+                                  </Link>
+                                  <button
+                                    className="watchlist-kebab-item"
+                                    onClick={async (e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setMenuOpenTicker(null);
+                                      await handleAddTrending(idea);
+                                    }}
+                                    role="menuitem"
+                                  >
+                                    Add to watchlist
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {sparklinePath ? (
@@ -319,19 +476,12 @@ export default function RisingConvictionPage() {
                     </div>
                   </Link>
 
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (!isTracked) handleAddTrending(idea);
-                    }}
-                    disabled={addingTicker === idea.ticker}
-                    title={isTracked ? "Already tracked" : "Add " + idea.ticker}
-                    className={"terminal-card-delete " + (isTracked ? "terminal-card-delete-added" : "")}
-                    aria-label={isTracked ? idea.ticker + " is tracked" : "Add " + idea.ticker}
-                  >
-                    {isTracked ? "[✓]" : "[ADD]"}
-                  </button>
+                  {/* ── Market cap stat row ── */}
+                  {marketCapText && (
+                    <div className="watchlist-card-stats-row">
+                      <span className="watchlist-card-stat">Mkt Cap {marketCapText}</span>
+                    </div>
+                  )}
                 </div>
               );
             })}
