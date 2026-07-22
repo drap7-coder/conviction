@@ -196,7 +196,7 @@ details > summary::before {
 .app-brand {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 18px;
 }
 
 .app-logo {
@@ -207,13 +207,14 @@ details > summary::before {
 }
 
 .app-title {
-  font-family: var(--font-mono);
-  font-size: 1.05rem;
+  font-family: var(--font-sans);
+  font-size: 1.8rem;
   font-weight: 800;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink);
   line-height: 1;
+  padding-bottom: 2px;
 }
 
 .app-title .accent-dot {
