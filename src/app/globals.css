@@ -27,7 +27,6 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Fixed-element dimensions */
-  --ticker-height: 28px;
   --ticker-z: 100;
 
   /* Chart theme */
@@ -118,7 +117,7 @@ details > summary::before {
 .app-shell {
   max-width: 960px;
   margin: 0 auto;
-  padding: 22px 26px calc(var(--ticker-height) + 8px + env(safe-area-inset-bottom));
+  padding: 22px 26px calc(80px + env(safe-area-inset-bottom));
 }
 
 .app-header {
@@ -130,60 +129,53 @@ details > summary::before {
   border-bottom: 1px solid var(--border);
 }
 
-.market-ticker {
+/* ── Bottom Tab Bar ── */
+
+.bottom-tab-bar {
+  display: none;
   position: fixed;
-  right: 0;
   bottom: 0;
   left: 0;
+  right: 0;
   z-index: var(--ticker-z);
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 180px));
-  justify-content: center;
-  height: var(--ticker-height);
-  overflow: hidden;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
-  background: var(--surface-elevated);
-  box-shadow: 0 -12px 30px rgba(0, 0, 0, 0.2);
+  background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-.market-ticker-item {
+@media (max-width: 640px) {
+  .bottom-tab-bar {
+    display: flex;
+  }
+}
+
+.bottom-tab-item {
   display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 7px;
-  min-width: 0;
-  padding: 4px 10px;
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  white-space: nowrap;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 12px;
+  color: var(--quiet);
+  text-decoration: none;
+  transition: color 0.15s;
 }
 
-.market-ticker-item + .market-ticker-item {
-  border-left: 1px solid var(--border);
+.bottom-tab-item.active {
+  color: var(--accent);
 }
 
-.market-ticker-item strong {
-  color: var(--ink);
-  font-size: 0.68rem;
-  letter-spacing: 0.04em;
-}
-
-.market-ticker-item > span {
-  overflow: hidden;
+.bottom-tab-item:hover {
   color: var(--muted);
-  text-overflow: ellipsis;
 }
 
-.market-ticker-item b.positive {
-  color: var(--green);
-}
-
-.market-ticker-item b.negative {
-  color: var(--red);
-}
-
-.market-ticker-item b.neutral {
-  color: var(--amber);
+.bottom-tab-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .header-actions {
@@ -236,6 +228,7 @@ details > summary::before {
 .app-nav a {
   display: inline-flex;
   align-items: center;
+  gap: 5px;
   justify-content: center;
   min-height: 30px;
   border-radius: 999px;
@@ -245,6 +238,7 @@ details > summary::before {
   color: var(--muted);
   letter-spacing: 0;
   text-transform: none;
+  text-decoration: none;
   transition: color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
@@ -4360,12 +4354,8 @@ details > summary::before {
 /* ── Responsive ── */
 
 @media (max-width: 640px) {
-  .market-ticker {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .app-shell {
-    padding: 12px 12px calc(var(--ticker-height) + 8px + env(safe-area-inset-bottom));
+    padding: 12px 12px calc(80px + env(safe-area-inset-bottom));
   }
 
   .app-header {
@@ -4403,23 +4393,15 @@ details > summary::before {
     gap: 4px;
     flex-wrap: nowrap;
     border-radius: var(--radius);
-  }
-
-  .market-ticker-item {
-    gap: 4px;
-    padding: 5px 4px;
-    font-size: 0.61rem;
-  }
-
-  .market-ticker-item strong {
-    font-size: 0.61rem;
+    overflow-x: auto;
   }
 
   .app-nav a {
     flex: 1 1 0;
     min-height: 28px;
     padding: 4px 8px;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
+    white-space: nowrap;
   }
 
   .watchlist-header {

@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
-import { Nav } from "@/app/components/Nav";
-import { MarketTicker } from "@/app/components/MarketTicker";
+import DesktopNav from "@/components/DesktopNav";
+import BottomTabBar from "@/components/BottomTabBar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,7 +73,7 @@ export default function RootLayout({
         <div className="app-shell">
           <header className="app-header">
             <div className="header-brand-row">
-              <a className="app-brand" href="/" aria-label="CONVICTION home">
+              <a className="app-brand" href="/watchlist" aria-label="CONVICTION home">
                 <img
                   alt=""
                   aria-hidden="true"
@@ -86,13 +86,13 @@ export default function RootLayout({
               </a>
             </div>
             <div className="header-actions">
-              <Nav />
+              <DesktopNav />
               <WatchlistSettingsMenu />
             </div>
           </header>
           {children}
         </div>
-        <MarketTicker />
+        <BottomTabBar />
       </body>
     </html>
   );
