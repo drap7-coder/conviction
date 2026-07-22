@@ -24,12 +24,12 @@ function currency(value: number | null): string {
 function compactCurrency(value: number | null): string {
   if (value === null) return "—";
   if (Math.abs(value) >= 1_000_000) {
-    return (value / 1_000_000).toFixed(2) + "M";
+    return "$" + (value / 1_000_000).toFixed(2) + "M";
   }
   if (Math.abs(value) >= 1_000) {
-    return (value / 1_000).toFixed(1) + "K";
+    return "$" + (value / 1_000).toFixed(1) + "K";
   }
-  return value.toLocaleString("en-US", {
+  return "$" + value.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -353,7 +353,7 @@ export default function PortfolioPage() {
                       backgroundColor: seg.color,
                       minWidth: seg.weight > 0 ? 2 : 0,
                     }}
-                    title={`${seg.ticker} ${seg.weight.toFixed(1)}%`}
+                    title={`${seg.ticker} ${Math.round(seg.weight)}%`}
                   />
                 ))}
               </div>
@@ -362,7 +362,7 @@ export default function PortfolioPage() {
                   <div key={seg.ticker} className="pf-stacked-legend-item">
                     <span className="pf-stacked-legend-dot" style={{ backgroundColor: seg.color }} />
                     <span className="pf-stacked-legend-ticker">{seg.ticker}</span>
-                    <span className="pf-stacked-legend-weight">{seg.weight.toFixed(1)}%</span>
+                    <span className="pf-stacked-legend-weight">{Math.round(seg.weight)}%</span>
                   </div>
                 ))}
               </div>
@@ -379,7 +379,7 @@ export default function PortfolioPage() {
                   <div className="pf-sector-bar-wrap">
                     <div className="pf-sector-bar" style={{ width: `${Math.max(s.weight, 2)}%` }} />
                   </div>
-                  <span className="pf-sector-weight">{s.weight.toFixed(1)}%</span>
+                  <span className="pf-sector-weight">{Math.round(s.weight)}%</span>
                 </div>
               ))}
             </div>
@@ -449,7 +449,7 @@ export default function PortfolioPage() {
                         {dailyPct != null ? percent(dailyPct) : "—"}
                       </td>
                       <td className="pf-num">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</td>
-                      <td className="pf-num">{metrics.weight != null ? `${metrics.weight.toFixed(1)}%` : "—"}</td>
+                      <td className="pf-num">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</td>
                       <td className="pf-num">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</td>
                       <td className={`pf-num ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
                         {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
@@ -501,7 +501,7 @@ export default function PortfolioPage() {
                     </div>
                     <div className="pf-card-stat">
                       <span className="pf-card-stat-label">Alloc</span>
-                      <span className="pf-card-stat-value">{metrics.weight != null ? `${metrics.weight.toFixed(1)}%` : "—"}</span>
+                      <span className="pf-card-stat-value">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
                     </div>
                     <div className="pf-card-stat">
                       <span className="pf-card-stat-label">Value</span>
