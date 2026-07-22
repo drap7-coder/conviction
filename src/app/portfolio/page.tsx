@@ -8,6 +8,7 @@ import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
+import SectorDonut from "@/components/SectorDonut";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -369,19 +370,11 @@ export default function PortfolioPage() {
             </div>
           )}
 
-          {/* ── Sector Allocation (only when data exists) ── */}
+          {/* ── Sector Allocation (donut chart) ── */}
           {sectorAllocation.sectors.length > 0 && (
             <div className="pf-section">
               <h2 className="pf-section-title">Sectors</h2>
-              {sectorAllocation.sectors.map((s) => (
-                <div key={s.sector} className="pf-sector-row">
-                  <span className="pf-sector-name">{s.sector}</span>
-                  <div className="pf-sector-bar-wrap">
-                    <div className="pf-sector-bar" style={{ width: `${Math.max(s.weight, 2)}%` }} />
-                  </div>
-                  <span className="pf-sector-weight">{Math.round(s.weight)}%</span>
-                </div>
-              ))}
+              <SectorDonut sectors={sectorAllocation.sectors} />
             </div>
           )}
 
