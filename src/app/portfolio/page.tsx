@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadPositions, upsertPosition, removePosition, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
 import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, computeConcentration, computeSectorAllocation } from "@/lib/portfolio/calculations";
 import { getSectorForCompany } from "@/lib/market/industries";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
+import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -552,6 +553,20 @@ export default function PortfolioPage() {
 
 // ── Add Form Sub-component ──────────────────────────────────────────────────
 
+function highlightMatch(text: string, query: string) {
+  const q = query.trim();
+  if (!q) return text;
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="ticker-suggestion-match">{text.slice(idx, idx + q.length)}</mark>
+      {text.slice(idx + q.length)}
+    </>
+  );
+}
+
 function AddForm({
   editingTicker,
   formTicker,
@@ -575,9 +590,96 @@ function AddForm({
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
 }) {
+  // Type-ahead state
+  const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(-1);
+  const [suggestStatus, setSuggestStatus] = useState<"idle" | "results" | "empty">("idle");
+  const suggestCacheRef = useRef<Map<string, CompanySuggestion[]>>(new Map());
+  const suggestDebounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const applySuggestions = (next: CompanySuggestion[]) => {
+    setSuggestions(next);
+    setSuggestStatus(next.length > 0 ? "results" : "empty");
+    setShowSuggestions(true);
+    setActiveSuggestion(-1);
+  };
+
+  // Debounced type-ahead search
+  useEffect(() => {
+    const query = formTicker.trim();
+    if (query.length < 1 || editingTicker != null) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setActiveSuggestion(-1);
+      setSuggestStatus("idle");
+      return;
+    }
+
+    const cacheKey = query.toLowerCase();
+    const cached = suggestCacheRef.current.get(cacheKey);
+    if (cached) {
+      applySuggestions(cached);
+      return;
+    }
+
+    if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
+    const controller = new AbortController();
+    suggestDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/companies/search?q=${encodeURIComponent(query)}`,
+          { signal: controller.signal },
+        );
+        if (!res.ok) return;
+        const data = (await res.json()) as { suggestions?: CompanySuggestion[] };
+        const next = data.suggestions ?? [];
+        suggestCacheRef.current.set(cacheKey, next);
+        applySuggestions(next);
+      } catch {
+        // Type-ahead is best-effort
+      }
+    }, 150);
+
+    return () => {
+      controller.abort();
+      if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
+    };
+  }, [formTicker, editingTicker]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (showSuggestions && e.key === "Escape") {
+      e.preventDefault();
+      setShowSuggestions(false);
+      return;
+    }
+    if (showSuggestions && suggestions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveSuggestion((i) => Math.min(i + 1, suggestions.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveSuggestion((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === "Enter" && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+        e.preventDefault();
+        const s = suggestions[activeSuggestion];
+        setShowSuggestions(false);
+        setSuggestions([]);
+        setActiveSuggestion(-1);
+        setSuggestStatus("idle");
+        onTickerChange(s.ticker);
+        return;
+      }
+    }
+  };
+
   return (
     <form className="pf-add-form" onSubmit={onSubmit}>
-      <div className="pf-add-field">
+      <div className="pf-add-field" style={{ position: "relative" }}>
         <label className="pf-add-label">Ticker</label>
         <input
           className="pf-add-input"
@@ -585,11 +687,45 @@ function AddForm({
           placeholder="AAPL"
           value={formTicker}
           onChange={(e) => onTickerChange(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+          onBlur={() => { window.setTimeout(() => setShowSuggestions(false), 120); }}
           autoComplete="off"
           spellCheck={false}
           maxLength={5}
           disabled={editingTicker != null}
+          role="combobox"
+          aria-expanded={showSuggestions}
+          aria-autocomplete="list"
         />
+        {showSuggestions && suggestStatus === "results" && suggestions.length > 0 ? (
+          <ul className="ticker-suggestions" role="listbox">
+            {suggestions.map((s, i) => (
+              <li
+                key={`${s.ticker}-${s.cik}`}
+                role="option"
+                aria-selected={i === activeSuggestion}
+                className={`ticker-suggestion ${i === activeSuggestion ? "active" : ""}`}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  setShowSuggestions(false);
+                  setSuggestions([]);
+                  setActiveSuggestion(-1);
+                  setSuggestStatus("idle");
+                  onTickerChange(s.ticker);
+                }}
+                onMouseEnter={() => setActiveSuggestion(i)}
+              >
+                <span className="ticker-suggestion-ticker">{highlightMatch(s.ticker, formTicker)}</span>
+                <span className="ticker-suggestion-name">{highlightMatch(s.name, formTicker)}</span>
+              </li>
+            ))}
+          </ul>
+        ) : showSuggestions && suggestStatus === "empty" ? (
+          <div className="ticker-suggestions ticker-suggestions-empty">
+            No matches
+          </div>
+        ) : null}
       </div>
       <div className="pf-add-field">
         <label className="pf-add-label">Shares</label>
