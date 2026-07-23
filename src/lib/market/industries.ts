@@ -21,7 +21,7 @@ export const SECTORS: Sector[] = [
     ticker: "XLF",
     name: "Financials",
     description: "Banks, insurance, asset management, and diversified financials.",
-    representativeTickers: ["JPM", "BAC", "GS", "V", "BLK", "AJG"],
+    representativeTickers: ["JPM", "BAC", "GS", "V", "BLK"],
   },
   {
     ticker: "XLV",

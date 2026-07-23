@@ -36,7 +36,6 @@ const MARKET_CAP_FALLBACK: Record<string, number> = {
   TLT: 30_000_000_000,
   IWM: 60_000_000_000,
   DIA: 30_000_000_000,
-  AJG: 60_000_000_000, // Arthur J. Gallagher & Co. ~$60B
 };
 
 const CAP_COLORS: Record<string, string> = {

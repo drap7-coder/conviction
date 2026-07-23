@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadPositions, upsertPosition, removePosition, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
 import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, computeConcentration, computeSectorAllocation } from "@/lib/portfolio/calculations";
-import { getSectorForCompany } from "@/lib/market/industries";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
@@ -98,6 +97,7 @@ function buildWeightMap(positions: PortfolioPosition[]) {
 export default function PortfolioPage() {
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
+  const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -118,6 +118,7 @@ export default function PortfolioPage() {
   const fetchQuotes = useCallback(async (tickers: string[]) => {
     if (tickers.length === 0) {
       setQuotes([]);
+      setSectorProfiles({});
       setLoading(false);
       return;
     }
@@ -126,10 +127,22 @@ export default function PortfolioPage() {
     setError(null);
 
     try {
-      const res = await fetch(`/api/market/quotes?tickers=${tickers.join(",")}`);
-      if (!res.ok) throw new Error("Failed to fetch quotes");
-      const data = await res.json();
-      setQuotes(data.quotes ?? []);
+      const [quotesRes, profileRes] = await Promise.all([
+        fetch(`/api/market/quotes?tickers=${tickers.join(",")}`),
+        fetch(`/api/market/sector-profile?tickers=${tickers.join(",")}`),
+      ]);
+      if (!quotesRes.ok) throw new Error("Failed to fetch quotes");
+      const quotesData = await quotesRes.json();
+      setQuotes(quotesData.quotes ?? []);
+
+      if (profileRes.ok) {
+        const profileData = await profileRes.json();
+        const profileMap: Record<string, { sector: string | null; marketCap: number | null }> = {};
+        for (const p of (profileData.profiles ?? [])) {
+          profileMap[p.ticker] = { sector: p.sector, marketCap: p.marketCap };
+        }
+        setSectorProfiles(profileMap);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load prices");
     } finally {
@@ -159,18 +172,18 @@ export default function PortfolioPage() {
     for (const p of enriched) {
       const ticker = p.companyId.toUpperCase();
       if (cmap.has(ticker)) continue;
-      const sector = getSectorForCompany(ticker);
+      const profile = sectorProfiles[ticker];
       cmap.set(ticker, {
         id: ticker,
         ticker,
         name: ticker,
         assetType: "stock",
-        sector: sector?.name,
+        sector: profile?.sector ?? undefined,
         industry: undefined,
       });
     }
     return computeSectorAllocation(enriched, cmap);
-  }, [enriched]);
+  }, [enriched, sectorProfiles]);
   const sectorDonutData = useMemo(() => {
     if (sectorAllocation.unclassifiedWeight <= 0) {
       return sectorAllocation.sectors;
@@ -192,9 +205,12 @@ export default function PortfolioPage() {
       const ticker = pos.companyId.toUpperCase();
       const quote = quoteMap.get(ticker);
       const mv = pos.currentPrice != null ? pos.shares * pos.currentPrice : null;
-      return { ticker, marketValue: mv, marketCap: quote?.marketCap ?? null };
+      // Use quote marketCap first, fall back to sector profile API marketCap
+      const profile = sectorProfiles[ticker];
+      const cap = quote?.marketCap ?? profile?.marketCap ?? null;
+      return { ticker, marketValue: mv, marketCap: cap };
     });
-  }, [enriched, quotes]);
+  }, [enriched, quotes, sectorProfiles]);
   const contributors = useMemo(
     () => getDailyContributors(enriched, portfolioMetrics.dailyChange),
     [portfolioMetrics.dailyChange],
