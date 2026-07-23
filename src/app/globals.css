@@ -3345,6 +3345,13 @@ details > summary::before {
   color: var(--red);
 }
 
+.price-trend-label {
+  color: var(--quiet);
+  font: 600 0.62rem/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .price-range-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -6006,6 +6013,13 @@ details > summary::before {
   color: var(--ink);
 }
 
+.cdh-price-session {
+  color: var(--quiet);
+  font: 600 0.58rem/1 var(--font-mono);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
 .cdh-change {
   font-family: var(--font-mono);
   font-size: 1rem;
@@ -6124,6 +6138,10 @@ details > summary::before {
 
   .cdh-change {
     grid-column: 2;
+  }
+
+  .cdh-price-session {
+    align-self: center;
   }
 
   .cdh-session-row {

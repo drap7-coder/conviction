@@ -25,6 +25,24 @@ export interface LivePrice {
   session: MarketSession;
 }
 
+function easternClockSession(now: Date): MarketSession {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  const weekday = value("weekday");
+  if (weekday === "Sat" || weekday === "Sun") return "closed";
+  const minutes = Number(value("hour")) * 60 + Number(value("minute"));
+  if (minutes >= 4 * 60 && minutes < 9 * 60 + 30) return "pre_market";
+  if (minutes >= 9 * 60 + 30 && minutes < 16 * 60) return "regular";
+  if (minutes >= 16 * 60 && minutes < 20 * 60) return "after_hours";
+  return "closed";
+}
+
 /**
  * Map a marketState string to a canonical MarketSession.
  */
@@ -52,9 +70,10 @@ export interface LivePrice {
  * - `marketState === "POST"` or `"POSTPOST"` → use postMarket* fields (fall back to regular)
  * - Otherwise → use the regular price/change/changePercent fields
  */
-export function getLivePrice(quote: LiveQuoteInput): LivePrice {
+export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice {
   const state = quote.marketState ?? "";
   const session = getMarketSession(quote.marketState);
+  const clockSession = easternClockSession(now);
 
   const getExtendedMove = (extendedPrice: number) => {
     if (quote.price === null) {
@@ -69,7 +88,7 @@ export function getLivePrice(quote: LiveQuoteInput): LivePrice {
   };
 
   // Pre-market
-  if (state === "PRE" && quote.preMarketPrice != null) {
+  if (state === "PRE" && clockSession === "pre_market" && quote.preMarketPrice != null) {
     const move = getExtendedMove(quote.preMarketPrice);
     return {
       price: quote.preMarketPrice,
@@ -83,6 +102,7 @@ export function getLivePrice(quote: LiveQuoteInput): LivePrice {
   // After-hours. Yahoo switches to CLOSED at 8 p.m. ET but leaves the
   // completed post-market quote populated, so keep showing that result.
   if (
+    clockSession === "after_hours" &&
     (state === "POST" || state === "POSTPOST" || state === "CLOSED") &&
     quote.postMarketPrice != null
   ) {
@@ -102,6 +122,6 @@ export function getLivePrice(quote: LiveQuoteInput): LivePrice {
     change: quote.change,
     changePercent: quote.changePercent,
     label: null,
-    session,
+    session: clockSession === "closed" ? "closed" : "regular",
   };
 }

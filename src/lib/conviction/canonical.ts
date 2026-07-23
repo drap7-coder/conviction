@@ -470,17 +470,9 @@ function buildTechnicalAssessment(
 
 // ── Build MarketSessionAssessment ──
 
-function buildMarketSessionAssessment(quote: StockQuote): MarketSessionAssessment {
-  const live = getLivePrice(quote);
-
-  const session: MarketSessionAssessment["session"] =
-    quote.marketState === "PRE"
-      ? "pre_market"
-      : quote.marketState === "POST" || quote.marketState === "POSTPOST"
-        ? "after_hours"
-        : quote.marketState === "REGULAR" || quote.marketState === null
-          ? "regular"
-          : "closed";
+function buildMarketSessionAssessment(quote: StockQuote, now: Date): MarketSessionAssessment {
+  const live = getLivePrice(quote, now);
+  const session: MarketSessionAssessment["session"] = live.session;
 
   return {
     session,
@@ -536,7 +528,7 @@ export function buildConvictionSnapshot(input: BuildSnapshotInput): ConvictionSn
     nowISO,
   );
 
-  const market = buildMarketSessionAssessment(input.quote);
+  const market = buildMarketSessionAssessment(input.quote, now);
 
   // Collect timestamps
   const signalDates = Object.values(evidence.signals)

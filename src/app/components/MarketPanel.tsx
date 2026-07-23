@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
-import { PriceTrendCard } from "./PriceTrendCard";
 import { TechnicalStateCard } from "./TechnicalStateCard";
 // Today & industry change temporarily suppressed — restore this import when re-enabling:
 // import { TodayAndIndustryCard } from "./TodayAndPeersCard";
@@ -64,7 +63,6 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
   // Pass the year-range data only for technical indicators
   return (
     <>
-      <PriceTrendCard ticker={ticker} />
       <TechnicalStateCard
         history={history}
         status={status}

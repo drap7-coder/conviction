@@ -13,6 +13,7 @@ import { MarketPanel } from "@/app/components/MarketPanel";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
+import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 // Thesis section temporarily suppressed — restore this import when re-enabling:
 // import { ThesisTracker } from "@/app/components/ThesisTracker";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
@@ -55,9 +56,10 @@ export default async function CompanyPage({
             {/* Conviction header & multi-vector cards temporarily suppressed — restore when ready:
             <ConvictionHeader ticker={upperTicker} companyName={companyName} />
             <MultiVectorSummary ticker={upperTicker} /> */}
+            <PriceTrendCard ticker={upperTicker} showQuote={false} />
+            <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             <CompanyVerdict ticker={upperTicker} />
             <MarketPanel ticker={upperTicker} />
-            <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             {/* Thesis section temporarily suppressed — restore when ready:
             <ThesisTracker ticker={upperTicker} companyName={companyName} /> */}
           </>

@@ -35,6 +35,7 @@ interface PriceTrendCardProps {
   status?: EvidenceStatus;
   onRangeChange?: (range: TrendRange) => void;
   activeRange?: TrendRange;
+  showQuote?: boolean;
 }
 
 const RANGES: Array<{ label: string; value: TrendRange }> = [
@@ -84,6 +85,7 @@ export function PriceTrendCard({
   status: externalStatus,
   onRangeChange,
   activeRange,
+  showQuote = true,
 }: PriceTrendCardProps) {
   const [internalRange, setInternalRange] = useState<TrendRange>("1m");
   const [internalHistory, setInternalHistory] = useState<StockHistory | null>(null);
@@ -152,16 +154,18 @@ export function PriceTrendCard({
   return (
     <section className="price-trend-card" aria-label={`${ticker} price trend`}>
       <div className="price-trend-top">
-        <div className="price-trend-quote">
-          <strong>{history?.endPrice ? formatPrice(history.endPrice) : status === "loading" ? "Loading market tape" : "Trend unavailable"}</strong>
-          {status === "success" ? (
-            <span className={isPositive ? "trend-positive" : "trend-negative"}>
-              {formatChange(history?.change)}
-              <span aria-hidden="true"> · </span>
-              {formatPercent(history?.changePercent)}
-            </span>
-          ) : null}
-        </div>
+        {showQuote ? (
+          <div className="price-trend-quote">
+            <strong>{history?.endPrice ? formatPrice(history.endPrice) : status === "loading" ? "Loading market tape" : "Trend unavailable"}</strong>
+            {status === "success" ? (
+              <span className={isPositive ? "trend-positive" : "trend-negative"}>
+                {formatChange(history?.change)}
+                <span aria-hidden="true"> · </span>
+                {formatPercent(history?.changePercent)}
+              </span>
+            ) : null}
+          </div>
+        ) : <span className="price-trend-label">Price history</span>}
         <div className="price-range-tabs" aria-label="Price range">
           {RANGES.map((option) => (
             <button
