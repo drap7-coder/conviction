@@ -89,8 +89,8 @@ export function buildNewsDriver(
   }
 
   return {
-    label: "In the news",
-    explanation: `${company} has fresh company-specific coverage, but the available headlines do not establish one clear price driver.`,
+    label: "No clear catalyst",
+    explanation: "",
     confidence: "likely",
   };
 }

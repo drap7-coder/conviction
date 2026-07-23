@@ -101,5 +101,6 @@ describe("news evidence", () => {
 
     expect(driver?.label).not.toBe("Oil + geopolitics");
     expect(driver?.explanation).not.toMatch(/oil|geopolitical/i);
+    expect(driver).toMatchObject({ label: "No clear catalyst", explanation: "" });
   });
 });

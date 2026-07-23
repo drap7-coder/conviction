@@ -30,7 +30,7 @@ export function NewsDriverBrief({
       {driver ? (
         <div className="news-driver-copy">
           <strong>{driver.label}</strong>
-          <p>{driver.explanation}</p>
+          {driver.explanation ? <p>{driver.explanation}</p> : null}
         </div>
       ) : null}
       {headlines.length > 0 ? (
