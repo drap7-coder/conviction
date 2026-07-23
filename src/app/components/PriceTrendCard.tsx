@@ -39,7 +39,7 @@ interface PriceTrendCardProps {
 
 const RANGES: Array<{ label: string; value: TrendRange }> = [
   { label: "Day", value: "1d" },
-  { label: "Week", value: "1w" },
+  { label: "5D", value: "1w" },
   { label: "Month", value: "1m" },
   { label: "6M", value: "6m" },
   { label: "Year", value: "1y" },
@@ -88,6 +88,7 @@ export function PriceTrendCard({
   const [internalRange, setInternalRange] = useState<TrendRange>("1m");
   const [internalHistory, setInternalHistory] = useState<StockHistory | null>(null);
   const [internalStatus, setInternalStatus] = useState<EvidenceStatus>("idle");
+  const [responsiveRangeReady, setResponsiveRangeReady] = useState(false);
 
   const range = activeRange ?? internalRange;
   const history = externalHistory ?? internalHistory;
@@ -96,8 +97,16 @@ export function PriceTrendCard({
   const setRange = onRangeChange ?? setInternalRange;
 
   useEffect(() => {
+    if (activeRange === undefined && window.matchMedia("(max-width: 640px)").matches) {
+      setInternalRange("1w");
+    }
+    setResponsiveRangeReady(true);
+  }, [activeRange]);
+
+  useEffect(() => {
     // If external history is provided, skip internal fetch
     if (externalHistory !== undefined) return;
+    if (!responsiveRangeReady) return;
     const controller = new AbortController();
 
     async function load() {
@@ -118,7 +127,7 @@ export function PriceTrendCard({
 
     void load();
     return () => controller.abort();
-  }, [ticker, range, externalHistory]);
+  }, [ticker, range, externalHistory, responsiveRangeReady]);
 
   const path = useMemo(() => buildPath(history?.points ?? []), [history]);
   const isPositive = (history?.change ?? 0) >= 0;

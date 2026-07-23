@@ -4806,7 +4806,22 @@ details > summary::before {
   }
 
   .price-range-tabs {
+    width: 100%;
     justify-content: flex-start;
+    flex-wrap: nowrap;
+  }
+
+  .price-range-tabs button {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .price-chart {
+    min-height: 136px;
+  }
+
+  .price-chart svg {
+    height: 136px;
   }
 
   .move-confidence {
