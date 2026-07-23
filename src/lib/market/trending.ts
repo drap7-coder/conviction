@@ -88,13 +88,13 @@ export async function fetchTrendingCompanies(limit = 8): Promise<TrendingCompany
     ranked.map(async ({ quote, score }) => {
       const validation = await validateTicker(quote.ticker);
       if (!validation.valid) return null;
-      const history = await fetchStockHistory(quote.ticker, "1d");
+      const history = await fetchStockHistory(quote.ticker, "1w");
       return {
         ticker: validation.ticker,
         companyName: validation.companyName ?? validation.ticker,
         cik: validation.cik,
         quote,
-        sparkline: history.points.slice(-42),
+        sparkline: history.points,
         activityScore: score,
         activityLabel: formatDollarVolume(quote.dollarVolume),
       };

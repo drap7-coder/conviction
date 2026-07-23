@@ -335,11 +335,15 @@ export default function RisingConvictionPage() {
               const quote = idea.quote;
               const live = getLivePrice(quote);
               const liveChange = live.change;
-              const quoteDirection = liveChange === null || liveChange === undefined
+              const chartPoints = idea.sparkline ?? [];
+              const fiveDayChange = chartPoints.length >= 2
+                ? chartPoints[chartPoints.length - 1].close - chartPoints[0].close
+                : null;
+              const chartDirection = fiveDayChange === null
                 ? "neutral"
-                : liveChange > 0
+                : fiveDayChange > 0
                   ? "positive"
-                  : liveChange < 0
+                  : fiveDayChange < 0
                   ? "negative"
                   : "neutral";
               const verdict = getCardVerdict({
@@ -348,7 +352,7 @@ export default function RisingConvictionPage() {
                 addedAt: new Date().toISOString(),
                 status: "active" as const,
               }, quote);
-              const sparklinePath = buildSparklinePath(idea.sparkline ?? []);
+              const sparklinePath = buildSparklinePath(chartPoints);
               const ideaHeadlines = headlines[idea.ticker] ?? [];
               const marketCapText = formatMarketCap(quote.marketCap);
               const livePrice = live.price;
@@ -485,12 +489,12 @@ export default function RisingConvictionPage() {
                     </div>
 
                     {sparklinePath ? (
-                      <div className={"watchlist-row-chart price-chart " + quoteDirection} aria-label={`${idea.ticker} intraday chart`}>
+                      <div className={"watchlist-row-chart price-chart " + chartDirection} aria-label={`${idea.ticker} five-day chart`}>
                         <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
                           <path className="price-chart-glow" d={sparklinePath} />
                           <path className="price-chart-line" d={sparklinePath} />
                         </svg>
-                        <span>Today</span>
+                        <span>5D</span>
                       </div>
                     ) : null}
 
