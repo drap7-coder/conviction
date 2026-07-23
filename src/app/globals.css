@@ -4276,29 +4276,18 @@ details > summary::before {
 
 .pf-contrib-list {
   display: grid;
+  margin-top: 8px;
 }
 
 .pf-contrib-row {
   display: grid;
-  grid-template-columns: minmax(72px, 1fr) repeat(3, minmax(82px, .7fr));
+  grid-template-columns: 4px minmax(72px, 1fr) minmax(150px, auto);
   align-items: center;
   gap: 14px;
-  padding: 6px 0;
+  min-height: 78px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
   font-family: var(--font-mono);
-  font-size: 0.82rem;
-}
-
-.pf-contrib-header {
-  color: var(--quiet);
-  font-size: .58rem;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
-
-.pf-contrib-header span:not(:first-child),
-.pf-contrib-row > span:not(:first-child) {
-  text-align: right;
 }
 
 .pf-contrib-row:last-child {
@@ -4307,38 +4296,47 @@ details > summary::before {
 
 .pf-contrib-ticker {
   font-weight: 700;
+  font-size: 1rem;
   color: var(--ink);
 }
 
-.pf-contrib-dollar {
-  font-weight: 600;
-  font-size: 0.78rem;
+.pf-contrib-tick {
+  width: 3px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--quiet);
 }
 
-.pf-contrib-price {
+.pf-contrib-row.up .pf-contrib-tick { background: var(--green); }
+.pf-contrib-row.down .pf-contrib-tick { background: var(--red); }
+
+.pf-contrib-impact {
+  display: grid;
+  justify-items: end;
+  gap: 5px;
+  text-align: right;
+}
+
+.pf-contrib-impact strong {
   color: var(--muted);
-  font-size: .78rem;
-  font-weight: 600;
+  font-size: 1.02rem;
+  line-height: 1;
 }
 
-.pf-contrib-price.up,
-.pf-contrib-dollar.up { color: var(--green); }
-.pf-contrib-price.down,
-.pf-contrib-dollar.down { color: var(--red); }
-.pf-contrib-pct { font-size: 0.7rem; }
-.pf-contrib-pct.up { color: var(--green); }
-.pf-contrib-pct.down { color: var(--red); }
+.pf-contrib-row.up .pf-contrib-impact strong { color: var(--green); }
+.pf-contrib-row.down .pf-contrib-impact strong { color: var(--red); }
+
+.pf-contrib-impact small {
+  color: var(--quiet);
+  font-size: .7rem;
+  line-height: 1.2;
+}
 
 @media (max-width: 640px) {
   .pf-contrib-row {
-    grid-template-columns: minmax(54px, .8fr) repeat(3, minmax(62px, 1fr));
-    gap: 6px;
-    font-size: .74rem;
-  }
-
-  .pf-contrib-price,
-  .pf-contrib-dollar {
-    font-size: .7rem;
+    grid-template-columns: 3px minmax(54px, 1fr) minmax(130px, auto);
+    gap: 10px;
+    min-height: 70px;
   }
 }
 

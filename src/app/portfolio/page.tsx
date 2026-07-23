@@ -21,6 +21,15 @@ function currency(value: number | null): string {
   }).format(value);
 }
 
+function signedCurrency(value: number | null): string {
+  if (value === null) return "—";
+  if (value === 0) return "$0.00";
+  return `${value > 0 ? "+" : "−"}$${Math.abs(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
 function compactCurrency(value: number | null): string {
   if (value === null) return "—";
   if (Math.abs(value) >= 1_000_000) {
@@ -304,26 +313,20 @@ export default function PortfolioPage() {
             <div className="pf-section">
               <h2 className="pf-section-title">Today&apos;s Biggest Movers</h2>
               <div className="pf-contrib-list">
-                <div className="pf-contrib-row pf-contrib-header" aria-hidden="true">
-                  <span>Symbol</span>
-                  <span>Price Δ</span>
-                  <span>Position Δ</span>
-                  <span>%</span>
-                </div>
                 {[...contributors.positive, ...contributors.negative]
                   .sort((a, b) => Math.abs(b.dollarChange) - Math.abs(a.dollarChange))
                   .slice(0, 3)
                   .map((c) => (
-                    <div key={c.ticker} className="pf-contrib-row">
+                    <div
+                      key={c.ticker}
+                      className={`pf-contrib-row ${c.dollarChange > 0 ? "up" : c.dollarChange < 0 ? "down" : "flat"}`}
+                      aria-label={`${c.ticker}: position changed ${signedCurrency(c.dollarChange)}, ${percent(c.percentChange)}, ${signedCurrency(c.priceChange)} per share`}
+                    >
+                      <span className="pf-contrib-tick" aria-hidden="true" />
                       <span className="pf-contrib-ticker">{c.ticker}</span>
-                      <span className={`pf-contrib-price ${c.priceChange >= 0 ? "up" : "down"}`}>
-                        {currency(c.priceChange)}
-                      </span>
-                      <span className={`pf-contrib-dollar ${c.dollarChange >= 0 ? "up" : "down"}`}>
-                        {currency(c.dollarChange)}
-                      </span>
-                      <span className={`pf-contrib-pct ${c.dollarChange >= 0 ? "up" : "down"}`}>
-                        {percent(c.percentChange)}
+                      <span className="pf-contrib-impact">
+                        <strong>{signedCurrency(c.dollarChange)}</strong>
+                        <small>{percent(c.percentChange)} <span aria-hidden="true">·</span> {signedCurrency(c.priceChange)}/sh</small>
                       </span>
                     </div>
                   ))}
