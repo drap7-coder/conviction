@@ -5790,3 +5790,28 @@ details > summary::before {
 
 .cdh-ref-change.up { color: var(--green); }
 .cdh-ref-change.down { color: var(--red); }
+
+/* ── Side-by-side donuts ── */
+
+.pf-donuts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pf-donut-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.pf-donut-col .pf-section-title {
+  align-self: flex-start;
+}
+
+@media (max-width: 640px) {
+  .pf-donuts-row {
+    grid-template-columns: 1fr;
+  }
+}

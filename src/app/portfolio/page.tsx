@@ -9,6 +9,7 @@ import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import SectorDonut from "@/components/SectorDonut";
+import MarketCapDonut from "@/components/MarketCapDonut";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -185,6 +186,15 @@ export default function PortfolioPage() {
       },
     ];
   }, [sectorAllocation]);
+  const marketCapData = useMemo(() => {
+    const quoteMap = new Map(quotes.map((q) => [q.ticker.toUpperCase(), q]));
+    return enriched.map((pos) => {
+      const ticker = pos.companyId.toUpperCase();
+      const quote = quoteMap.get(ticker);
+      const mv = pos.currentPrice != null ? pos.shares * pos.currentPrice : null;
+      return { ticker, marketValue: mv, marketCap: quote?.marketCap ?? null };
+    });
+  }, [enriched, quotes]);
   const contributors = useMemo(
     () => getDailyContributors(enriched, portfolioMetrics.dailyChange),
     [portfolioMetrics.dailyChange],
@@ -385,11 +395,23 @@ export default function PortfolioPage() {
             </div>
           )}
 
-          {/* ── Sector Allocation (donut chart) ── */}
-          {sectorDonutData.length > 0 && (
+          {/* ── Sector & Market Cap (side-by-side donuts) ── */}
+          {(sectorDonutData.length > 0 || marketCapData.length > 0) && (
             <div className="pf-section">
-              <h2 className="pf-section-title">Sectors</h2>
-              <SectorDonut sectors={sectorDonutData} />
+              <div className="pf-donuts-row">
+                {sectorDonutData.length > 0 && (
+                  <div className="pf-donut-col">
+                    <h2 className="pf-section-title">Sectors</h2>
+                    <SectorDonut sectors={sectorDonutData} />
+                  </div>
+                )}
+                {marketCapData.length > 0 && (
+                  <div className="pf-donut-col">
+                    <h2 className="pf-section-title">Capitalization</h2>
+                    <MarketCapDonut positions={marketCapData} />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
