@@ -9,6 +9,13 @@ export interface SectorWithData extends Sector {
     price: number | null;
     change: number | null;
     changePercent: number | null;
+    marketState: string | null;
+    preMarketPrice: number | null;
+    preMarketChange: number | null;
+    preMarketChangePercent: number | null;
+    postMarketPrice: number | null;
+    postMarketChange: number | null;
+    postMarketChangePercent: number | null;
   } | null;
   sparkline: { date: string; close: number }[];
   representativeQuotes: Array<{
@@ -49,6 +56,13 @@ export async function GET() {
             price: sectorQuote.price,
             change: sectorQuote.change,
             changePercent: sectorQuote.changePercent,
+            marketState: sectorQuote.marketState ?? null,
+            preMarketPrice: sectorQuote.preMarketPrice ?? null,
+            preMarketChange: sectorQuote.preMarketChange ?? null,
+            preMarketChangePercent: sectorQuote.preMarketChangePercent ?? null,
+            postMarketPrice: sectorQuote.postMarketPrice ?? null,
+            postMarketChange: sectorQuote.postMarketChange ?? null,
+            postMarketChangePercent: sectorQuote.postMarketChangePercent ?? null,
           }
         : null,
       sparkline: sparklineMap.get(sector.ticker) ?? [],

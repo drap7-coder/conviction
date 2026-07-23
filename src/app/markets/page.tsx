@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { getLivePrice } from "@/lib/market/live-quote";
 
 interface StockHistoryPoint {
   date: string;
@@ -14,6 +15,13 @@ interface MarketQuote {
   price: number | null;
   change: number | null;
   changePercent: number | null;
+  marketState: string | null;
+  preMarketPrice: number | null;
+  preMarketChange: number | null;
+  preMarketChangePercent: number | null;
+  postMarketPrice: number | null;
+  postMarketChange: number | null;
+  postMarketChangePercent: number | null;
   sparkline: StockHistoryPoint[];
   description: string;
 }
@@ -62,30 +70,30 @@ const TICKERS: MarketGroup[] = [
   {
     label: "Major Indices",
     items: [
-      { ticker: "SPY", name: "S&P 500", description: "Tracks 500 large-cap US stocks — the broad market benchmark.", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "DIA", name: "Dow Jones", description: "Follows 30 blue-chip US industrial companies.", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "QQQ", name: "Nasdaq 100", description: "Tracks 100 of the largest non-financial Nasdaq-listed companies.", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "IWM", name: "Russell 2000", description: "Tracks ~2,000 small-cap US stocks — a domestic economic proxy.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "SPY", name: "S&P 500", description: "Tracks 500 large-cap US stocks — the broad market benchmark.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
+      { ticker: "DIA", name: "Dow Jones", description: "Follows 30 blue-chip US industrial companies.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
+      { ticker: "QQQ", name: "Nasdaq 100", description: "Tracks 100 of the largest non-financial Nasdaq-listed companies.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
+      { ticker: "IWM", name: "Russell 2000", description: "Tracks ~2,000 small-cap US stocks — a domestic economic proxy.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
     ],
   },
   {
     label: "Crypto",
     items: [
-      { ticker: "BTC-USD", name: "Bitcoin", description: "The largest cryptocurrency by market cap — decentralized digital gold.", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "ETH-USD", name: "Ethereum", description: "The second-largest crypto — smart contract platform for dApps and DeFi.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "BTC-USD", name: "Bitcoin", description: "The largest cryptocurrency by market cap — decentralized digital gold.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
+      { ticker: "ETH-USD", name: "Ethereum", description: "The second-largest crypto — smart contract platform for dApps and DeFi.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
     ],
   },
   {
     label: "Commodities",
     items: [
-      { ticker: "GLD", name: "Gold", description: "The largest gold-backed ETF — a traditional safe-haven asset.", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "USO", name: "Crude Oil (WTI)", description: "Tracks near-month WTI crude oil futures — a key energy price gauge.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "GLD", name: "Gold", description: "The largest gold-backed ETF — a traditional safe-haven asset.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
+      { ticker: "USO", name: "Crude Oil (WTI)", description: "Tracks near-month WTI crude oil futures — a key energy price gauge.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
     ],
   },
   {
     label: "Rates",
     items: [
-      { ticker: "^TNX", name: "10-Year Treasury Yield", description: "The yield on 10-year US government debt — a benchmark for borrowing costs.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "^TNX", name: "10-Year Treasury Yield", description: "The yield on 10-year US government debt — a benchmark for borrowing costs.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
     ],
   },
 ];
@@ -105,7 +113,20 @@ export default function MarketsPage() {
           `/api/market/quotes?tickers=${allTickers.join(",")}`,
         );
         if (!response.ok) throw new Error("Failed to fetch");
-        const data = await response.json() as { quotes?: Array<{ ticker: string; price: number | null; change: number | null; changePercent: number | null; sparkline: StockHistoryPoint[] }> };
+        const data = await response.json() as { quotes?: Array<{
+          ticker: string;
+          price: number | null;
+          change: number | null;
+          changePercent: number | null;
+          marketState: string | null;
+          preMarketPrice: number | null;
+          preMarketChange: number | null;
+          preMarketChangePercent: number | null;
+          postMarketPrice: number | null;
+          postMarketChange: number | null;
+          postMarketChangePercent: number | null;
+          sparkline: StockHistoryPoint[];
+        }> };
         if (cancelled) return;
 
         if (data.quotes) {
@@ -119,6 +140,13 @@ export default function MarketsPage() {
                 price: q?.price ?? null,
                 change: q?.change ?? null,
                 changePercent: q?.changePercent ?? null,
+                marketState: q?.marketState ?? null,
+                preMarketPrice: q?.preMarketPrice ?? null,
+                preMarketChange: q?.preMarketChange ?? null,
+                preMarketChangePercent: q?.preMarketChangePercent ?? null,
+                postMarketPrice: q?.postMarketPrice ?? null,
+                postMarketChange: q?.postMarketChange ?? null,
+                postMarketChangePercent: q?.postMarketChangePercent ?? null,
                 sparkline: q?.sparkline ?? [],
               };
             }),
@@ -164,9 +192,18 @@ export default function MarketsPage() {
             <div className="watchlist-list">
               {group.items.map((item) => {
                 const sparklinePath = buildSparklinePath(item.sparkline);
+                const live = getLivePrice(item);
+                const livePrice = live.price;
+                const liveChange = live.change;
+                const liveChangePct = live.changePercent;
+                const sessionLabel = live.label;
+                const arrow = liveChange !== null
+                  ? (liveChange > 0 ? "▲" : liveChange < 0 ? "▼" : null)
+                  : null;
+                const arrowClass = liveChange !== null && liveChange > 0 ? "up" : liveChange !== null && liveChange < 0 ? "down" : "";
                 return (
                   <div key={item.ticker} className="terminal-card-wrap group">
-                    <div className="watchlist-row">
+                    <a className="watchlist-row" href={`/markets/${item.ticker}`}>
                       <div className="watchlist-row-main">
                         <div className="watchlist-row-company">
                           <LogoDisplay ticker={item.ticker} size="card" />
@@ -176,27 +213,34 @@ export default function MarketsPage() {
                           </div>
                         </div>
                         <div className="watchlist-row-move">
-                          <span className="watchlist-row-period">Today</span>
+                          <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
                           <span className="watchlist-row-move-amounts">
                             <strong>
-                              {item.change !== null ? (
-                                <span className={"watchlist-row-arrow " + (item.change > 0 ? "up" : "down")}>
-                                  {item.change > 0 ? "▲ " : "▼ "}
-                                </span>
-                              ) : null}
-                              {item.price != null ? `$${item.price.toLocaleString(undefined, { maximumFractionDigits: item.price >= 100 ? 2 : 3, minimumFractionDigits: item.price >= 1 ? 2 : 3 })}` : "—"}
+                              {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
+                              {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: livePrice >= 100 ? 2 : 3, minimumFractionDigits: livePrice >= 1 ? 2 : 3 })}` : "—"}
                             </strong>
-                            <span className={"watchlist-row-change " + (item.change !== null && item.change > 0 ? "positive" : item.change !== null && item.change < 0 ? "negative" : "neutral")}>
-                              {item.change != null && item.changePercent != null
-                                ? `${item.change > 0 ? "+" : ""}$${Math.abs(item.change).toFixed(2)} · ${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(2)}%`
+                            <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
+                              {liveChange != null && liveChangePct != null
+                                ? `${liveChange > 0 ? "+" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePct > 0 ? "+" : ""}${liveChangePct.toFixed(2)}%`
                                 : "—"}
                             </span>
                           </span>
+                          {sessionLabel && item.price !== null && (
+                            <span className="watchlist-row-session">
+                              <span className="watchlist-row-session-label">At Close · Today</span>
+                              <span className="watchlist-row-session-price">${item.price.toLocaleString(undefined, { maximumFractionDigits: item.price >= 100 ? 2 : 3, minimumFractionDigits: item.price >= 1 ? 2 : 3 })}</span>
+                              {item.changePercent != null ? (
+                                <span className={`watchlist-row-session-change ${item.change !== null && item.change > 0 ? "positive" : item.change !== null && item.change < 0 ? "negative" : ""}`}>
+                                  {item.changePercent > 0 ? "+" : ""}{item.changePercent.toFixed(2)}%
+                                </span>
+                              ) : null}
+                            </span>
+                          )}
                         </div>
                       </div>
 
                       {sparklinePath ? (
-                        <div className={"watchlist-row-chart price-chart " + (item.change !== null && item.change > 0 ? "positive" : item.change !== null && item.change < 0 ? "negative" : "neutral")} aria-label={item.ticker + " intraday chart"}>
+                        <div className={"watchlist-row-chart price-chart " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")} aria-label={item.ticker + " intraday chart"}>
                           <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
                             <path className="price-chart-glow" d={sparklinePath} />
                             <path className="price-chart-line" d={sparklinePath} />
@@ -213,7 +257,7 @@ export default function MarketsPage() {
                           <p className="news-driver-copy">{item.description}</p>
                         </section>
                       ) : null}
-                    </div>
+                    </a>
                   </div>
                 );
               })}

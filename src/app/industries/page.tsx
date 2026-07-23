@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { getLivePrice } from "@/lib/market/live-quote";
 
 interface StockHistoryPoint {
   date: string;
@@ -15,7 +16,18 @@ interface SectorCard {
   name: string;
   description: string;
   representativeTickers: string[];
-  quote: { price: number | null; change: number | null; changePercent: number | null } | null;
+  quote: {
+    price: number | null;
+    change: number | null;
+    changePercent: number | null;
+    marketState: string | null;
+    preMarketPrice: number | null;
+    preMarketChange: number | null;
+    preMarketChangePercent: number | null;
+    postMarketPrice: number | null;
+    postMarketChange: number | null;
+    postMarketChangePercent: number | null;
+  } | null;
   sparkline: StockHistoryPoint[];
   representativeQuotes: Array<{
     ticker: string;
@@ -96,14 +108,21 @@ export default function IndustriesPage() {
           <div className="watchlist-list">
             {sectors.map((sector) => {
               const quote = sector.quote;
-              const qChange: number | null = quote?.change ?? null;
-              const qChangePct: number | null = quote?.changePercent ?? null;
-              const quoteDirection = !qChange
+              const live = quote ? getLivePrice(quote) : null;
+              const livePrice = live?.price ?? null;
+              const liveChange = live?.change ?? null;
+              const liveChangePct = live?.changePercent ?? null;
+              const sessionLabel = live?.label ?? null;
+              const quoteDirection = !liveChange
                 ? "neutral"
-                : qChange > 0
+                : liveChange > 0
                   ? "positive"
                   : "negative";
               const sparklinePath = buildSparklinePath(sector.sparkline);
+              const arrow = liveChange !== null
+                ? (liveChange > 0 ? "▲" : liveChange < 0 ? "▼" : null)
+                : null;
+              const arrowClass = liveChange !== null && liveChange > 0 ? "up" : liveChange !== null && liveChange < 0 ? "down" : "";
               return (
                 <div key={sector.ticker} className="terminal-card-wrap group">
                   <Link
@@ -119,22 +138,29 @@ export default function IndustriesPage() {
                         </div>
                       </div>
                       <div className="watchlist-row-move">
-                        <span className="watchlist-row-period">Today</span>
+                        <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
                         <span className="watchlist-row-move-amounts">
                           <strong>
-                            {qChange !== null && qChange !== undefined ? (
-                              <span className={"watchlist-row-arrow " + (qChange > 0 ? "up" : "down")}>
-                                {qChange > 0 ? "▲ " : "▼ "}
-                              </span>
-                            ) : null}
-                            {quote?.price != null ? `$${quote.price.toLocaleString(undefined, { maximumFractionDigits: quote.price >= 100 ? 2 : 3, minimumFractionDigits: quote.price >= 1 ? 2 : 3 })}` : "—"}
+                            {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
+                            {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: livePrice >= 100 ? 2 : 3, minimumFractionDigits: livePrice >= 1 ? 2 : 3 })}` : "—"}
                           </strong>
-                          <span className={"watchlist-row-change " + (qChange !== null && qChange > 0 ? "positive" : qChange !== null && qChange < 0 ? "negative" : "neutral")}>
-                            {qChange != null && qChangePct != null
-                              ? `${qChange > 0 ? "+" : ""}$${Math.abs(qChange).toFixed(2)} · ${qChangePct > 0 ? "+" : ""}${qChangePct.toFixed(2)}%`
+                          <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
+                            {liveChange != null && liveChangePct != null
+                              ? `${liveChange > 0 ? "+" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePct > 0 ? "+" : ""}${liveChangePct.toFixed(2)}%`
                               : "—"}
                           </span>
                         </span>
+                        {sessionLabel && quote?.price !== null && (
+                          <span className="watchlist-row-session">
+                            <span className="watchlist-row-session-label">At Close · Today</span>
+                            <span className="watchlist-row-session-price">${quote?.price != null ? quote.price.toLocaleString(undefined, { maximumFractionDigits: quote.price >= 100 ? 2 : 3, minimumFractionDigits: quote.price >= 1 ? 2 : 3 }) : "—"}</span>
+                            {quote?.changePercent != null ? (
+                              <span className={`watchlist-row-session-change ${quote?.change !== null && quote.change > 0 ? "positive" : quote?.change !== null && quote.change < 0 ? "negative" : ""}`}>
+                                {quote.changePercent > 0 ? "+" : ""}{quote.changePercent.toFixed(2)}%
+                              </span>
+                            ) : null}
+                          </span>
+                        )}
                       </div>
                       <span className="watchlist-row-state watchlist-row-state-quiet">Sector ETF</span>
                     </div>
