@@ -80,15 +80,19 @@ export function getLivePrice(quote: LiveQuoteInput): LivePrice {
     };
   }
 
-  // After-hours
-  if ((state === "POST" || state === "POSTPOST") && quote.postMarketPrice != null) {
+  // After-hours. Yahoo switches to CLOSED at 8 p.m. ET but leaves the
+  // completed post-market quote populated, so keep showing that result.
+  if (
+    (state === "POST" || state === "POSTPOST" || state === "CLOSED") &&
+    quote.postMarketPrice != null
+  ) {
     const move = getExtendedMove(quote.postMarketPrice);
     return {
       price: quote.postMarketPrice,
       change: move.change ?? quote.postMarketChange,
       changePercent: move.changePercent ?? quote.postMarketChangePercent,
       label: "After Hours",
-      session,
+      session: "after_hours",
     };
   }
 
