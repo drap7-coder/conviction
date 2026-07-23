@@ -165,14 +165,6 @@ export default function MarketsPage() {
 
   return (
     <div>
-      <div className="section-header">
-        <h2 className="section-title">Markets</h2>
-        <span className="section-count">
-          {status === "success"
-            ? groups.reduce((s, g) => s + g.items.length, 0) + " instruments"
-            : "Today"}
-        </span>
-      </div>
 
       {status === "loading" || status === "idle" ? (
         <div className="empty-state compact">
