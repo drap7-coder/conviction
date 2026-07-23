@@ -92,4 +92,14 @@ describe("news evidence", () => {
       confidence: "likely",
     });
   });
+
+  it("does not assign an unrelated oil roundup to a healthcare company", () => {
+    const driver = buildNewsDriver([
+      headline("Oil rises on Middle East supply fears as markets open"),
+      headline("Pfizer updates investors on its product pipeline"),
+    ], "PFE", "Pfizer", "Health Care");
+
+    expect(driver?.label).not.toBe("Oil + geopolitics");
+    expect(driver?.explanation).not.toMatch(/oil|geopolitical/i);
+  });
 });

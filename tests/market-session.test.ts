@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateExtendedHoursMove, inferMarketState } from "@/lib/market/quotes";
+import { calculateExtendedHoursMove, inferMarketState, resolveMarketState } from "@/lib/market/quotes";
 
 const periods = {
   pre: { start: 100, end: 200 },
@@ -13,6 +13,10 @@ describe("market session inference", () => {
     expect(inferMarketState(periods, 250)).toBe("REGULAR");
     expect(inferMarketState(periods, 350)).toBe("POST");
     expect(inferMarketState(periods, 450)).toBe("CLOSED");
+  });
+
+  it("uses the exchange clock when Yahoo's reported state is stale", () => {
+    expect(resolveMarketState("PRE", periods, 250)).toBe("REGULAR");
   });
 });
 

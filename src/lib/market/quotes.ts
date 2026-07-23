@@ -77,7 +77,7 @@ interface YahooChartResult {
 }
 
 type TradingPeriod = { start?: number; end?: number } | undefined;
-type TradingPeriods = {
+export type TradingPeriods = {
   pre?: { start?: number; end?: number };
   regular?: { start?: number; end?: number };
   post?: { start?: number; end?: number };
@@ -100,6 +100,16 @@ export function inferMarketState(
   if (isWithinPeriod(epochSeconds, periods?.regular)) return "REGULAR";
   if (isWithinPeriod(epochSeconds, periods?.post)) return "POST";
   return "CLOSED";
+}
+
+export function resolveMarketState(
+  reportedState: string | undefined,
+  periods: TradingPeriods,
+  epochSeconds = Math.floor(Date.now() / 1000),
+) {
+  return periods
+    ? inferMarketState(periods, epochSeconds)
+    : (reportedState ?? "CLOSED");
 }
 
 function lastPriceWithinPeriod(result: YahooChartResult | undefined, period: TradingPeriod) {
@@ -163,7 +173,10 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
 
   // Pre-market
   const periods = result?.meta?.currentTradingPeriod;
-  const marketState = result?.meta?.marketState ?? inferMarketState(periods);
+  // Yahoo's marketState can lag behind the trading-period clock and has been
+  // observed returning PRE well into the regular session. Prefer the explicit
+  // exchange periods whenever they are available.
+  const marketState = resolveMarketState(result?.meta?.marketState, periods);
   const derivedPreMarketPrice = lastPriceWithinPeriod(result, periods?.pre);
   const preMarketPrice = toFiniteNumber(result?.meta?.preMarketPrice) ?? derivedPreMarketPrice;
   const derivedPreMarketMove = calculateExtendedHoursMove(preMarketPrice, price);

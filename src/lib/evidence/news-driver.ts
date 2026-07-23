@@ -62,15 +62,30 @@ export function buildNewsDriver(
   if (events.length === 0) return null;
 
   const company = companyName?.trim() || ticker;
-  const searchable = events.slice(0, 5).map((event) => `${event.title} ${event.summary}`).join(" ");
-  const rule = DRIVER_RULES.find((candidate) => candidate.pattern.test(searchable));
+  const companyToken = company
+    .replace(/[^a-z0-9 ]/gi, " ")
+    .split(/\s+/)
+    .find((token) => token.length >= 3 && !/^(the|inc|corp|corporation|company|holdings)$/i.test(token));
 
-  if (rule) {
-    return {
-      label: rule.label,
-      explanation: rule.explanation(company),
-      confidence: rule.confidence,
-    };
+  // Classify one headline at a time. Combining unrelated roundup headlines can
+  // create false narratives (for example, assigning an oil story to Pfizer).
+  for (const event of events.slice(0, 5)) {
+    const title = event.title;
+    const eventText = `${title} ${event.summary}`;
+    const isCompanyRelevant = new RegExp(`\\b${ticker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(eventText) ||
+      Boolean(companyToken && new RegExp(`\\b${companyToken.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(eventText));
+    if (!isCompanyRelevant) continue;
+
+    const searchable = eventText;
+    const rule = DRIVER_RULES.find((candidate) => candidate.pattern.test(searchable));
+
+    if (rule) {
+      return {
+        label: rule.label,
+        explanation: rule.explanation(company),
+        confidence: rule.confidence,
+      };
+    }
   }
 
   return {
