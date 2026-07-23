@@ -30,13 +30,6 @@ interface IndustriesResponse {
   fetchedAt: string;
 }
 
-interface IndustryHeadline {
-  headline: string;
-  url: string | null;
-  date: string;
-  ticker: string;
-}
-
 function buildSparklinePath(points: StockHistoryPoint[]) {
   if (points.length < 2) return "";
   const width = 320;
@@ -55,7 +48,6 @@ function buildSparklinePath(points: StockHistoryPoint[]) {
 
 export default function IndustriesPage() {
   const [sectors, setSectors] = useState<SectorCard[]>([]);
-  const [headlines, setHeadlines] = useState<Record<string, IndustryHeadline[]>>({});
   const [status, setStatus] = useState<EvidenceStatus>("idle");
 
   useEffect(() => {
@@ -73,41 +65,6 @@ export default function IndustriesPage() {
         if (!cancelled) {
           setSectors(data.sectors);
           setStatus(data.sectors.length > 0 ? "success" : "empty");
-
-          const leaderTickers = [...new Set(
-            data.sectors.flatMap((sector) => sector.representativeTickers.slice(0, 4)),
-          )];
-          const batches = Array.from(
-            { length: Math.ceil(leaderTickers.length / 10) },
-            (_, index) => leaderTickers.slice(index * 10, index * 10 + 10),
-          );
-          const responses = await Promise.all(batches.map((batch) =>
-            fetchJsonWithTimeout<{
-              news?: Record<string, { headlines?: Omit<IndustryHeadline, "ticker">[] }>;
-            }>(
-              `/api/evidence/news-batch?tickers=${batch.join(",")}`,
-              10_000,
-              controller.signal,
-            ).catch(() => ({ news: {} })),
-          ));
-          if (!cancelled) {
-            const leaderHeadlines: Record<string, IndustryHeadline[]> = {};
-            for (const response of responses) {
-              const news = response.news as Record<string, { headlines?: Omit<IndustryHeadline, "ticker">[] }> | undefined;
-              for (const [ticker, item] of Object.entries(news ?? {})) {
-                leaderHeadlines[ticker] = (item.headlines ?? []).map((headline) => ({ ...headline, ticker }));
-              }
-            }
-            const nextHeadlines: Record<string, IndustryHeadline[]> = {};
-            for (const sector of data.sectors) {
-              nextHeadlines[sector.ticker] = sector.representativeTickers
-                .slice(0, 4)
-                .flatMap((ticker) => leaderHeadlines[ticker] ?? [])
-                .sort((a, b) => b.date.localeCompare(a.date))
-                .slice(0, 3);
-            }
-            setHeadlines(nextHeadlines);
-          }
         }
       } catch {
         if (!cancelled) setStatus("error");
@@ -139,13 +96,14 @@ export default function IndustriesPage() {
           <div className="watchlist-list">
             {sectors.map((sector) => {
               const quote = sector.quote;
-              const quoteDirection = !quote || !quote.change
+              const qChange: number | null = quote?.change ?? null;
+              const qChangePct: number | null = quote?.changePercent ?? null;
+              const quoteDirection = !qChange
                 ? "neutral"
-                : quote.change > 0
+                : qChange > 0
                   ? "positive"
                   : "negative";
               const sparklinePath = buildSparklinePath(sector.sparkline);
-              const sectorHeadlines = headlines[sector.ticker] ?? [];
               return (
                 <div key={sector.ticker} className="terminal-card-wrap group">
                   <Link
@@ -162,11 +120,20 @@ export default function IndustriesPage() {
                       </div>
                       <div className="watchlist-row-move">
                         <span className="watchlist-row-period">Today</span>
-                        <strong>{quote?.price != null ? `$${quote.price.toFixed(2)}` : "—"}</strong>
-                        <span className={quoteDirection}>
-                          {quote?.change != null && quote.changePercent != null
-                            ? `${quote.change > 0 ? "+" : quote.change < 0 ? "-" : ""}$${Math.abs(quote.change).toFixed(2)} · ${quote.changePercent > 0 ? "+" : ""}${quote.changePercent.toFixed(2)}%`
-                            : "—"}
+                        <span className="watchlist-row-move-amounts">
+                          <strong>
+                            {qChange !== null && qChange !== undefined ? (
+                              <span className={"watchlist-row-arrow " + (qChange > 0 ? "up" : "down")}>
+                                {qChange > 0 ? "▲ " : "▼ "}
+                              </span>
+                            ) : null}
+                            {quote?.price != null ? `$${quote.price.toLocaleString(undefined, { maximumFractionDigits: quote.price >= 100 ? 2 : 3, minimumFractionDigits: quote.price >= 1 ? 2 : 3 })}` : "—"}
+                          </strong>
+                          <span className={"watchlist-row-change " + (qChange !== null && qChange > 0 ? "positive" : qChange !== null && qChange < 0 ? "negative" : "neutral")}>
+                            {qChange != null && qChangePct != null
+                              ? `${qChange > 0 ? "+" : ""}$${Math.abs(qChange).toFixed(2)} · ${qChangePct > 0 ? "+" : ""}${qChangePct.toFixed(2)}%`
+                              : "—"}
+                          </span>
                         </span>
                       </div>
                       <span className="watchlist-row-state watchlist-row-state-quiet">Sector ETF</span>
@@ -182,17 +149,16 @@ export default function IndustriesPage() {
                       </div>
                     ) : null}
 
-                    {sectorHeadlines.length > 0 ? (
-                      <ol className="summary-headlines" aria-label={`${sector.ticker} recent headlines`}>
-                        {sectorHeadlines.slice(0, 3).map((item) => (
-                          <li key={`${item.ticker}-${item.date}-${item.headline}`}>
-                            <span><b>{item.ticker}</b> · {item.headline}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    ) : (
-                      <p className="watchlist-row-driver">Recent headlines unavailable.</p>
-                    )}
+                    {sector.description ? (
+                      <section className="news-driver-brief news-driver-brief-compact" aria-label={`${sector.ticker} sector story`}>
+                        <div className="news-driver-heading">
+                          <span className="news-driver-eyebrow">The story</span>
+                          <span className="news-driver-horizon">Sector overview</span>
+                        </div>
+                        <p className="news-driver-copy">{sector.description}</p>
+                      </section>
+                    ) : null}
+
                     <div className="watchlist-row-evidence">
                       <span className="watchlist-row-evidence-item"><b>Leaders</b> · {sector.representativeTickers.slice(0, 4).join(", ")}</span>
                     </div>

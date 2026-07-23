@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 
 interface StockHistoryPoint {
   date: string;
@@ -14,6 +15,7 @@ interface MarketQuote {
   change: number | null;
   changePercent: number | null;
   sparkline: StockHistoryPoint[];
+  description: string;
 }
 
 interface MarketGroup {
@@ -60,30 +62,30 @@ const TICKERS: MarketGroup[] = [
   {
     label: "Major Indices",
     items: [
-      { ticker: "SPY", name: "S&P 500", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "DIA", name: "Dow Jones", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "QQQ", name: "Nasdaq 100", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "IWM", name: "Russell 2000", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "SPY", name: "S&P 500", description: "Tracks 500 large-cap US stocks — the broad market benchmark.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "DIA", name: "Dow Jones", description: "Follows 30 blue-chip US industrial companies.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "QQQ", name: "Nasdaq 100", description: "Tracks 100 of the largest non-financial Nasdaq-listed companies.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "IWM", name: "Russell 2000", description: "Tracks ~2,000 small-cap US stocks — a domestic economic proxy.", price: null, change: null, changePercent: null, sparkline: [] },
     ],
   },
   {
     label: "Crypto",
     items: [
-      { ticker: "BTC-USD", name: "Bitcoin", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "ETH-USD", name: "Ethereum", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "BTC-USD", name: "Bitcoin", description: "The largest cryptocurrency by market cap — decentralized digital gold.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "ETH-USD", name: "Ethereum", description: "The second-largest crypto — smart contract platform for dApps and DeFi.", price: null, change: null, changePercent: null, sparkline: [] },
     ],
   },
   {
     label: "Commodities",
     items: [
-      { ticker: "GLD", name: "Gold", price: null, change: null, changePercent: null, sparkline: [] },
-      { ticker: "USO", name: "Crude Oil (WTI)", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "GLD", name: "Gold", description: "The largest gold-backed ETF — a traditional safe-haven asset.", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "USO", name: "Crude Oil (WTI)", description: "Tracks near-month WTI crude oil futures — a key energy price gauge.", price: null, change: null, changePercent: null, sparkline: [] },
     ],
   },
   {
     label: "Rates",
     items: [
-      { ticker: "^TNX", name: "10-Year Treasury Yield", price: null, change: null, changePercent: null, sparkline: [] },
+      { ticker: "^TNX", name: "10-Year Treasury Yield", description: "The yield on 10-year US government debt — a benchmark for borrowing costs.", price: null, change: null, changePercent: null, sparkline: [] },
     ],
   },
 ];
@@ -167,6 +169,7 @@ export default function MarketsPage() {
                     <div className="watchlist-row">
                       <div className="watchlist-row-main">
                         <div className="watchlist-row-company">
+                          <LogoDisplay ticker={item.ticker} size="card" />
                           <div>
                             <strong className="watchlist-row-ticker">{item.ticker}</strong>
                             <span className="watchlist-row-name">{item.name}</span>
@@ -200,6 +203,15 @@ export default function MarketsPage() {
                           </svg>
                           <span>Today</span>
                         </div>
+                      ) : null}
+                      {item.description ? (
+                        <section className="news-driver-brief news-driver-brief-compact" aria-label={`${item.ticker} description`}>
+                          <div className="news-driver-heading">
+                            <span className="news-driver-eyebrow">The story</span>
+                            <span className="news-driver-horizon">Instrument overview</span>
+                          </div>
+                          <p className="news-driver-copy">{item.description}</p>
+                        </section>
                       ) : null}
                     </div>
                   </div>

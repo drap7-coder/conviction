@@ -29,6 +29,14 @@ const DOMAIN_MAP: Record<string, string> = {
   GME: "gamestop.com",
   HOOD: "robinhood.com",
   COIN: "coinbase.com",
+  SPY: "spdrs.com",
+  DIA: "spdrs.com",
+  QQQ: "invesco.com",
+  IWM: "ishares.com",
+  GLD: "spdrs.com",
+  USO: "uscfinvestments.com",
+  "BTC-USD": "bitcoin.org",
+  "ETH-USD": "ethereum.org",
 };
 
 // ── Sector ETF fallback colors ──
