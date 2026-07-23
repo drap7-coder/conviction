@@ -110,16 +110,7 @@ export function WatchlistCard({
     return getConvictionBadge(canonicalSnapshot);
   }, [canonicalSnapshot]);
 
-  const effectiveConvictionState = canonicalBadge
-    ? [canonicalBadge.verdict, canonicalBadge.direction, canonicalBadge.technicalState]
-        .filter(Boolean)
-        .join(" · ")
-    : convictionState;
   const effectiveConvictionTone = canonicalBadge?.tone ?? convictionTone;
-  const showConvictionState = !effectiveConvictionState
-    .trim()
-    .toLowerCase()
-    .startsWith("insufficient");
   const hasExtendedSession = sessionLabel !== null && sessionPrice !== null;
   const displayedPrice = hasExtendedSession ? sessionPrice : price;
   const displayedChange = hasExtendedSession ? sessionChange : change;
@@ -285,14 +276,8 @@ export function WatchlistCard({
               )}
             </div>
 
-            {/* ── State pill + kebab (grid-column 2, row 1) ── */}
+            {/* ── Card options (grid-column 2, row 1) ── */}
             <div className="watchlist-row-state-area">
-              {showConvictionState ? (
-                <span className={`watchlist-row-state watchlist-row-state-${effectiveConvictionTone}`}>
-                  {effectiveConvictionState}
-                </span>
-              ) : null}
-
               <div className="watchlist-kebab-wrap">
                 <button
                   ref={kebabRef}
