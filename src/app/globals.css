@@ -925,6 +925,10 @@ details > summary::before {
   color: var(--amber);
 }
 
+.watchlist-row-move-amounts {
+  display: contents;
+}
+
 /* ── Pre-market / After-hours session label ── */
 
 .watchlist-row-session {
@@ -1236,15 +1240,17 @@ details > summary::before {
     grid-row: 2;
     display: flex;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: stretch;
     gap: 2px 8px;
   }
 
   .watchlist-row-session {
-    max-width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    width: 100%;
     margin-top: 2px;
     font-size: 0.56rem;
-    white-space: normal;
+    white-space: nowrap;
     text-align: right;
   }
 
@@ -1257,6 +1263,7 @@ details > summary::before {
   .watchlist-row-move-amounts {
     display: flex;
     align-items: baseline;
+    justify-content: flex-end;
     gap: 6px;
     font-family: var(--font-mono);
   }

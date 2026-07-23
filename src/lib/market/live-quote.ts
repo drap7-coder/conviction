@@ -56,12 +56,25 @@ export function getLivePrice(quote: LiveQuoteInput): LivePrice {
   const state = quote.marketState ?? "";
   const session = getMarketSession(quote.marketState);
 
+  const getExtendedMove = (extendedPrice: number) => {
+    if (quote.price === null) {
+      return { change: null, changePercent: null };
+    }
+
+    const change = extendedPrice - quote.price;
+    return {
+      change,
+      changePercent: quote.price !== 0 ? (change / quote.price) * 100 : null,
+    };
+  };
+
   // Pre-market
   if (state === "PRE" && quote.preMarketPrice != null) {
+    const move = getExtendedMove(quote.preMarketPrice);
     return {
       price: quote.preMarketPrice,
-      change: quote.preMarketChange,
-      changePercent: quote.preMarketChangePercent,
+      change: move.change ?? quote.preMarketChange,
+      changePercent: move.changePercent ?? quote.preMarketChangePercent,
       label: "Pre-Market",
       session,
     };
@@ -69,10 +82,11 @@ export function getLivePrice(quote: LiveQuoteInput): LivePrice {
 
   // After-hours
   if ((state === "POST" || state === "POSTPOST") && quote.postMarketPrice != null) {
+    const move = getExtendedMove(quote.postMarketPrice);
     return {
       price: quote.postMarketPrice,
-      change: quote.postMarketChange,
-      changePercent: quote.postMarketChangePercent,
+      change: move.change ?? quote.postMarketChange,
+      changePercent: move.changePercent ?? quote.postMarketChangePercent,
       label: "After Hours",
       session,
     };

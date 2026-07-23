@@ -377,14 +377,16 @@ export default function RisingConvictionPage() {
                       </div>
                       <div className="watchlist-row-move">
                         <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
-                        <strong>
-                          {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
-                          {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}
-                        </strong>
-                        <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
-                          {liveChange != null && liveChangePercent != null
-                            ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%`
-                            : "—"}
+                        <span className="watchlist-row-move-amounts">
+                          <strong>
+                            {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
+                            {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}
+                          </strong>
+                          <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
+                            {liveChange != null && liveChangePercent != null
+                              ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%`
+                              : "—"}
+                          </span>
                         </span>
                         {sessionLabel && quote.price !== null && (
                           <span className="watchlist-row-session">

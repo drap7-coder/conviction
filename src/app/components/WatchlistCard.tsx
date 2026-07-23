@@ -259,12 +259,14 @@ export function WatchlistCard({
               <span className="watchlist-row-period">
                 {sessionLabel ? `${sessionLabel}` : "Today"}
               </span>
-              <strong>
-                {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
-                {displayedPrice !== null ? `$${formatPrice(displayedPrice)}` : "—"}
-              </strong>
-              <span className={"watchlist-row-change " + (displayedChange !== null && displayedChange > 0 ? "positive" : displayedChange !== null && displayedChange < 0 ? "negative" : "neutral")}>
-                {displayedChangeText ? `${displayedChangeText.dollars} · ${displayedChangeText.percent}` : "—"}
+              <span className="watchlist-row-move-amounts">
+                <strong>
+                  {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
+                  {displayedPrice !== null ? `$${formatPrice(displayedPrice)}` : "—"}
+                </strong>
+                <span className={"watchlist-row-change " + (displayedChange !== null && displayedChange > 0 ? "positive" : displayedChange !== null && displayedChange < 0 ? "negative" : "neutral")}>
+                  {displayedChangeText ? `${displayedChangeText.dollars} · ${displayedChangeText.percent}` : "—"}
+                </span>
               </span>
               {hasExtendedSession && price !== null && (
                 <span className="watchlist-row-session">
