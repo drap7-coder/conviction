@@ -62,22 +62,22 @@ export default async function CompanyPage({
           </>
         }
       >
-        <DashboardCard className="dashboard-card-institutional">
+        <DashboardCard className="dashboard-card-institutional" title="Institutional activity" summary="Recent position changes reported by tracked managers.">
           <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-insider">
+        <DashboardCard className="dashboard-card-insider" title="Insider activity" summary="Recent open-market purchases and sales by company insiders.">
           <InsiderActivitySection ticker={upperTicker} />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-earnings">
+        <DashboardCard className="dashboard-card-earnings" title="Earnings details" summary="Reported results and changes to analyst estimates.">
           <EarningsMomentumSection ticker={upperTicker} />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-political">
+        <DashboardCard className="dashboard-card-political" title="Political disclosures" summary="Reported purchases and sales involving public officials.">
           <PoliticalTradesSection ticker={upperTicker} />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-news">
+        <DashboardCard className="dashboard-card-news" title="Material news" summary="Recent sourced events that may explain the move.">
           <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-conviction">
+        <DashboardCard className="dashboard-card-conviction" title="Filings and market context" summary="Short interest, ownership filings, and corporate disclosures.">
           <MoveExplanationSection ticker={upperTicker} />
           <details className="other-events">
             <summary>Other filings &amp; events</summary>

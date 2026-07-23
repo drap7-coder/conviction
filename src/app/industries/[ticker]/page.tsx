@@ -65,7 +65,7 @@ export default async function SectorPage({
           <MarketPanel ticker={upperTicker} />
         }
       >
-        <DashboardCard className="dashboard-card-news">
+        <DashboardCard className="dashboard-card-news" title="Industry news" summary="Recent sourced developments affecting this industry.">
           <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
         </DashboardCard>
       </CompanyDashboard>

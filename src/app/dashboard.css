@@ -131,7 +131,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: 314px;
+  min-height: 168px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 74%, transparent), transparent 42%),
     var(--surface);
@@ -143,6 +143,72 @@
     0 14px 34px rgba(0, 0, 0, 0.2),
     0 0 0 1px rgba(255, 255, 255, 0.018);
   transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.dashboard-card[open] {
+  min-height: 314px;
+}
+
+.dashboard-card-summary {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 130px;
+  cursor: pointer;
+}
+
+.dashboard-card-kicker {
+  color: var(--accent);
+  font: 600 .58rem/1.2 var(--font-mono);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.dashboard-card-summary > strong {
+  color: var(--ink);
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.dashboard-card-description {
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+
+.dashboard-card-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  color: var(--ink);
+  font: 600 .64rem/1 var(--font-mono);
+}
+
+.dashboard-card-chevron {
+  color: var(--accent);
+  font-size: 1rem;
+  transition: transform .15s ease;
+}
+
+.dashboard-card-close-label,
+.dashboard-card[open] .dashboard-card-open-label {
+  display: none;
+}
+
+.dashboard-card[open] .dashboard-card-close-label {
+  display: inline;
+}
+
+.dashboard-card[open] .dashboard-card-chevron {
+  transform: rotate(90deg);
+}
+
+.dashboard-card-detail {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
 .dashboard-card::before {
@@ -248,8 +314,12 @@
   }
 
   .dashboard-card {
-    min-height: 280px;
+    min-height: 150px;
     padding: 14px;
+  }
+
+  .dashboard-card[open] {
+    min-height: 280px;
   }
 
   .verdict-topline { align-items: flex-start; gap: 12px; }

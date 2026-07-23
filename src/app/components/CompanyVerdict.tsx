@@ -12,6 +12,17 @@ interface FetchState {
   earnings: EarningsEvidence | null;
   quote: StockQuote | null;
   history: StockHistoryPoint[];
+  week52High: number | null;
+  week52Low: number | null;
+}
+
+interface HistoryResponse {
+  history: {
+    points: StockHistoryPoint[];
+    endPrice: number | null;
+    fiftyTwoWeekHigh: number | null;
+    fiftyTwoWeekLow: number | null;
+  };
 }
 
 interface MomentumSignal {
@@ -70,7 +81,13 @@ function buildSummary(signals: MomentumSignal[]) {
 }
 
 export function CompanyVerdict({ ticker }: { ticker: string }) {
-  const [state, setState] = useState<FetchState>({ earnings: null, quote: null, history: [] });
+  const [state, setState] = useState<FetchState>({
+    earnings: null,
+    quote: null,
+    history: [],
+    week52High: null,
+    week52Low: null,
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,16 +95,32 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
 
     async function load() {
       try {
-        const [earnings, quoteData] = await Promise.all([
+        const [earningsResult, quoteResult, historyResult] = await Promise.allSettled([
           cachedFetch<EarningsEvidence>(`/api/evidence/earnings?ticker=${ticker}`, { ttl: 60 * 60 * 1000 }),
           cachedFetch<{ quotes?: StockQuote[] }>(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`, { ttl: 60 * 1000 }),
+          cachedFetch<HistoryResponse>(`/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`, { ttl: 5 * 60 * 1000 }),
         ]);
 
         if (cancelled) return;
+        const earnings = earningsResult.status === "fulfilled" ? earningsResult.value : null;
+        const quoteData = quoteResult.status === "fulfilled" ? quoteResult.value : null;
+        const historyData = historyResult.status === "fulfilled" ? historyResult.value.history : null;
         const quote = (quoteData?.quotes ?? [])[0] ?? null;
-        setState({ earnings, quote, history: quote?.sparkline ?? [] });
+        setState({
+          earnings,
+          quote,
+          history: historyData?.points ?? [],
+          week52High: historyData?.fiftyTwoWeekHigh ?? null,
+          week52Low: historyData?.fiftyTwoWeekLow ?? null,
+        });
       } catch {
-        if (!cancelled) setState({ earnings: null, quote: null, history: [] });
+        if (!cancelled) setState({
+          earnings: null,
+          quote: null,
+          history: [],
+          week52High: null,
+          week52Low: null,
+        });
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -98,7 +131,12 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
   }, [ticker]);
 
   const signals = useMemo<MomentumSignal[]>(() => {
-    const technical = deriveTechnicalState(state.history, state.quote?.price ?? null, null, null);
+    const technical = deriveTechnicalState(
+      state.history,
+      state.quote?.price ?? null,
+      state.week52High,
+      state.week52Low,
+    );
     const priceDirection: MomentumDirection =
       technical.sma50Relation === "above" && technical.sma200Relation === "above"
         ? "improving"
