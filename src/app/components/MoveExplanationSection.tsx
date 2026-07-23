@@ -1,10 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { buildConvictionHeader } from "@/lib/conviction/header";
-import { buildConvictionSnapshot } from "@/lib/conviction/canonical";
-import { getConvictionBadge } from "@/lib/conviction/canonical-types";
-import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
 import type { MoveEvent } from "@/lib/evidence/move-events";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
@@ -211,23 +208,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  // ── Canonical snapshot ──
-  const canonicalSnapshot = useMemo<ConvictionSnapshot | null>(() => {
-    const quote = quotes[ticker];
-    if (!quote) return null;
-    return buildConvictionSnapshot({
-      ticker,
-      institutional: { results: institutionalRows, status: institutionalStatus === "error" || institutionalStatus === "timeout" ? institutionalStatus : "success" },
-      insider: { events: insiderEvents, status: "success" },
-      earnings: null, // not fetched in this component
-      political: politicalSummary ? { ...politicalSummary, status: politicalSummary.trades.length > 0 ? "success" : "empty" } : null,
-      historyPoints: [], // not fetched here
-      quote,
-      week52High: null,
-      week52Low: null,
-    });
-  }, [ticker, institutionalRows, institutionalStatus, insiderEvents, politicalSummary, quotes]);
-
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
@@ -365,16 +345,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const hasInsiderOffset = header.offsets.some((signal) => signal.kind === "insider");
   const hasPoliticalOffset = header.offsets.some((signal) => signal.kind === "political");
   const hasCounterSignal = hasInsiderOffset || hasPoliticalOffset;
-  const headerTone = header.status === "monitor" ? "neutral" : "positive";
-  const headerBadge = header.status === "broad"
-    ? "Broad alignment"
-    : header.status === "multi"
-      ? "Aligned signals"
-      : header.status === "institutional"
-        ? "13F signal"
-        : header.status === "watch"
-          ? "Watch signal"
-          : "No alignment";
   const quote = quotes[ticker];
   const ownershipFilings = ownershipStatus === "success" ? ownershipSummary?.filings.slice(0, 3) ?? [] : [];
   const shortInterestDirection = shortInterest
@@ -412,8 +382,8 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   return (
     <section className="move-section">
       <div className="section-header mt-16">
-        <h2 className="section-title">Move context</h2>
-        <span className="section-count">Catalyst + signals</span>
+        <h2 className="section-title">Supporting evidence</h2>
+        <span className="section-count">Events + disclosures</span>
       </div>
 
       {status === "loading" || status === "idle" ? (
@@ -421,7 +391,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <div className="move-card loading detail-build-hero">
             <div>
               <span className="move-eyebrow">Building evidence</span>
-              <h3>Checking primary-source conviction signals.</h3>
+              <h3>Checking primary-source supporting evidence.</h3>
               <p>SEC filings, short interest, market context, and sourced catalysts are loading.</p>
             </div>
             <div className="rising-build-meter" aria-hidden="true">
@@ -458,20 +428,20 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <p className="move-answer">Data is not available at this moment. Retry in a moment.</p>
         </div>
       ) : event ? (
-        <div className={`move-card convergence-card convergence-${header.status} confidence-${event.confidence}`}>
+        <div className={`move-card convergence-card convergence-monitor confidence-${event.confidence}`}>
           <div className="move-card-top">
             <div>
               <span className="move-eyebrow">{formatDate(event.date)}</span>
-              <h3>{header.headline}</h3>
-              <p className="convergence-detail">{header.reason}</p>
+              <h3>Evidence around the move</h3>
+              <p className="convergence-detail">These events add context but do not determine the momentum snapshot.</p>
             </div>
-            <span className={`move-confidence convergence-badge ${headerTone}`}>
-              {headerBadge}
+            <span className="move-confidence convergence-badge neutral">
+              Context
             </span>
           </div>
 
-          <div className="convergence-signal-grid" aria-label="Conviction signals">
-            <div className={institutionalPositive ? "signal-tile positive" : "signal-tile neutral"}>
+          <div className="convergence-signal-grid" aria-label="Supporting evidence">
+            <div className="signal-tile neutral">
               <span className="move-eyebrow">Institutional</span>
               <strong>
                 {institutionalStatus === "timeout" || institutionalStatus === "error"
@@ -482,7 +452,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               </strong>
               <p>{institutionalText}</p>
             </div>
-            <div className={hasRecentInsiderBuy ? "signal-tile positive" : "signal-tile neutral"}>
+            <div className="signal-tile neutral">
               <span className="move-eyebrow">Insider</span>
               <strong>{hasRecentInsiderBuy ? "Open-market buying" : "No recent open-market buy"}</strong>
               <p>
@@ -491,7 +461,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                   : "Grants, tax withholding, and option exercises do not count as conviction."}
               </p>
             </div>
-            <div className={hasPoliticalPurchase ? "signal-tile positive" : "signal-tile neutral"}>
+            <div className="signal-tile neutral">
               <span className="move-eyebrow">Political</span>
               <strong>{hasPoliticalPurchase ? "Disclosed purchase" : "No political purchase"}</strong>
               <p>
@@ -500,7 +470,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                   : "Political sales and exchanges do not count as positive conviction."}
               </p>
             </div>
-            <div className={`signal-tile ${shortInterestDirection}`}>
+            <div className="signal-tile neutral">
               <span className="move-eyebrow">Short interest</span>
               <strong>
                 {shortInterest
@@ -520,7 +490,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               </p>
             </div>
             {hasLeadershipChangeCluster ? (
-              <div className="signal-tile offset">
+              <div className="signal-tile neutral">
                 <span className="move-eyebrow">Management</span>
                 <strong>Leadership changes active</strong>
                 <p>
@@ -530,7 +500,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               </div>
             ) : null}
             {hasCounterSignal ? (
-              <div className="signal-tile offset">
+              <div className="signal-tile neutral">
                 <span className="move-eyebrow">Signal offset</span>
                 <strong>{hasInsiderOffset && hasPoliticalOffset ? "Selling present" : hasInsiderOffset ? "Insider selling present" : "Political sale present"}</strong>
                 <p>
@@ -574,7 +544,7 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           ) : null}
 
           <details className="move-hint">
-            <summary>Conviction check</summary>
+            <summary>What to verify</summary>
             <p>{event.convictionQuestion}</p>
           </details>
 

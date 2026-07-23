@@ -111,7 +111,7 @@ export function InstitutionalConvictionSection({
   return (
     <section className={sectionClass}>
       <div className="section-header mt-16">
-        <h2 className="section-title">Institutional conviction</h2>
+        <h2 className="section-title">Institutional activity</h2>
         <span className="section-count">{status === "loading" || status === "idle" ? "..." : `${activeCount} changes`}</span>
       </div>
 
@@ -151,7 +151,7 @@ export function InstitutionalConvictionSection({
                 <span className="institutional-eyebrow">SEC Form 13F · 15 tracked managers</span>
                 <h3>
                   {positiveRows.length > 0
-                    ? `${positiveRows.length} manager${positiveRows.length === 1 ? "" : "s"} building conviction`
+                    ? `${positiveRows.length} manager${positiveRows.length === 1 ? "" : "s"} added or opened positions`
                     : `${activeCount} tracked-manager changes`}
                 </h3>
                 <p>
@@ -163,9 +163,9 @@ export function InstitutionalConvictionSection({
               <div className="institutional-hero-metrics">
                 <div>
                   <strong>{positiveRows.length}</strong>
-                  <span>building</span>
+                  <span>adding</span>
                 </div>
-                <div className={netShareChange >= 0 ? "positive" : "negative"}>
+                <div>
                   <strong>{formatShares(netShareChange)}</strong>
                   <span>net shares</span>
                 </div>
@@ -180,7 +180,7 @@ export function InstitutionalConvictionSection({
           <div className={priority === "primary" ? "institutional-tape" : "institutional-grid"}>
             {priority === "primary" ? (
               topRows.map((row) => (
-                <div className={`institutional-row ${row.status.toLowerCase()}`} key={`${row.cik}-${row.status}-${row.cusip}`}>
+                <div className="institutional-row" key={`${row.cik}-${row.status}-${row.cusip}`}>
                   <div>
                     <strong>{row.displayName}</strong>
                     <span>{row.issuer} · {row.classTitle} · {row.cusip}</span>
@@ -201,7 +201,7 @@ export function InstitutionalConvictionSection({
                   </div>
                   {group.rows.length ? (
                     group.rows.map((row) => (
-                      <div className={`institutional-row ${row.status.toLowerCase()}`} key={`${row.cik}-${row.status}`}>
+                      <div className="institutional-row" key={`${row.cik}-${row.status}`}>
                         <div>
                           <strong>{row.displayName}</strong>
                           <span>{row.filingQuarter} · filed {row.filingDate}</span>
@@ -234,7 +234,7 @@ export function InstitutionalConvictionSection({
                   </div>
                   {group.rows.length ? (
                     group.rows.map((row) => (
-                      <div className={`institutional-row ${row.status.toLowerCase()}`} key={`${row.cik}-${row.status}`}>
+                      <div className="institutional-row" key={`${row.cik}-${row.status}`}>
                         <div>
                           <strong>{row.displayName}</strong>
                           <span>{row.filingQuarter} · filed {row.filingDate}</span>

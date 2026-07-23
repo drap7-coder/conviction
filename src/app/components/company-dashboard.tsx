@@ -15,10 +15,10 @@ export function CompanyDashboard({
         {briefing}
       </div>
       <div className="section-header detail-pages-header">
-        <h2 className="section-title">Evidence</h2>
+        <h2 className="section-title">Supporting evidence</h2>
         <span className="section-count">Scroll sideways</span>
       </div>
-      <div className="dashboard-evidence-row" aria-label="Evidence cards">
+      <div className="dashboard-evidence-row" aria-label="Supporting evidence cards">
         {children}
       </div>
     </div>

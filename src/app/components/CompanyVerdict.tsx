@@ -1,47 +1,76 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { buildConvictionSnapshot, type BuildSnapshotInput } from "@/lib/conviction/canonical";
-import { MODEL_VERSION } from "@/lib/conviction/model-version";
-import { getConvictionBadge } from "@/lib/conviction/canonical-types";
+import { useEffect, useMemo, useState } from "react";
 import { cachedFetch } from "@/lib/request-cache";
 import type { EarningsEvidence } from "@/lib/earnings/types";
-import type { EvidenceEvent } from "@/lib/evidence/types";
-import type { PoliticalTradeSummary } from "@/lib/political-trades";
-import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
-import type { StockHistoryPoint } from "@/lib/market/technical-state";
+import { deriveTechnicalState, type StockHistoryPoint } from "@/lib/market/technical-state";
 import type { StockQuote } from "@/lib/market/quotes";
 
+type MomentumDirection = "improving" | "mixed" | "weakening" | "unavailable";
+
 interface FetchState {
-  institutional: { results?: InstitutionalAccumulation[]; status?: string } | null;
-  insider: { events?: EvidenceEvent[]; status?: string; source?: string } | null;
   earnings: EarningsEvidence | null;
-  political: (PoliticalTradeSummary & { status?: string }) | null;
-  history: StockHistoryPoint[];
   quote: StockQuote | null;
-  week52High: number | null;
-  week52Low: number | null;
+  history: StockHistoryPoint[];
 }
 
-interface CompanyVerdictSimpleProps {
-  ticker: string;
-  /** Pre-fetched snapshot to skip client-side loading */
-  initialSnapshot?: ReturnType<typeof buildConvictionSnapshot>;
+interface MomentumSignal {
+  label: "Price" | "Earnings" | "Analysts";
+  direction: MomentumDirection;
+  detail: string;
 }
 
-const EMPTY: FetchState = {
-  institutional: null,
-  insider: null,
-  earnings: null,
-  political: null,
-  history: [],
-  quote: null,
-  week52High: null,
-  week52Low: null,
-};
+function directionLabel(direction: MomentumDirection) {
+  if (direction === "improving") return "↗ Improving";
+  if (direction === "weakening") return "↘ Weakening";
+  if (direction === "mixed") return "→ Mixed";
+  return "— Unavailable";
+}
 
-export function CompanyVerdict({ ticker }: CompanyVerdictSimpleProps) {
-  const [state, setState] = useState<FetchState>(EMPTY);
+function classifyScore(score: number | null | undefined): MomentumDirection {
+  if (score === null || score === undefined) return "unavailable";
+  if (score >= 15) return "improving";
+  if (score <= -15) return "weakening";
+  return "mixed";
+}
+
+function buildSummary(signals: MomentumSignal[]) {
+  const available = signals.filter((signal) => signal.direction !== "unavailable");
+  const directions = new Set(available.map((signal) => signal.direction));
+
+  if (available.length === 0) {
+    return {
+      headline: "Momentum picture forming",
+      summary: "Price, earnings, and analyst revision data are not yet available.",
+    };
+  }
+
+  if (directions.size === 1 && directions.has("improving")) {
+    return {
+      headline: "Improving momentum",
+      summary: "Price, earnings, and analyst revisions are moving in a constructive direction.",
+    };
+  }
+
+  if (directions.size === 1 && directions.has("weakening")) {
+    return {
+      headline: "Weakening momentum",
+      summary: "Price, earnings, and analyst revisions are all moving in a weaker direction.",
+    };
+  }
+
+  const clauses = signals
+    .filter((signal) => signal.direction !== "unavailable")
+    .map((signal) => `${signal.label.toLowerCase()} is ${signal.direction}`);
+
+  return {
+    headline: "Mixed momentum",
+    summary: `${clauses.join(", ").replace(/, ([^,]*)$/, ", but $1")}.`,
+  };
+}
+
+export function CompanyVerdict({ ticker }: { ticker: string }) {
+  const [state, setState] = useState<FetchState>({ earnings: null, quote: null, history: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,24 +78,16 @@ export function CompanyVerdict({ ticker }: CompanyVerdictSimpleProps) {
 
     async function load() {
       try {
-        const [institutional, insider, earnings, political, quoteDataAll] = await Promise.all([
-          cachedFetch<FetchState["institutional"]>(`/api/evidence/institutional?ticker=${ticker}`, { ttl: 60 * 60 * 1000 }),
-          cachedFetch<FetchState["insider"]>(`/api/evidence/insider?ticker=${ticker}`, { ttl: 30 * 60 * 1000 }),
+        const [earnings, quoteData] = await Promise.all([
           cachedFetch<EarningsEvidence>(`/api/evidence/earnings?ticker=${ticker}`, { ttl: 60 * 60 * 1000 }),
-          cachedFetch<FetchState["political"]>(`/api/evidence/political?ticker=${ticker}`, { ttl: 60 * 60 * 1000 }),
           cachedFetch<{ quotes?: StockQuote[] }>(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`, { ttl: 60 * 1000 }),
         ]);
 
         if (cancelled) return;
-
-        const quote = (quoteDataAll?.quotes ?? [])[0] ?? null;
-        const history = quote?.sparkline ?? [];
-        const week52High = null; // quote doesn't carry this from sparkline
-        const week52Low = null;
-
-        setState({ institutional, insider, earnings, political, history, quote, week52High, week52Low });
+        const quote = (quoteData?.quotes ?? [])[0] ?? null;
+        setState({ earnings, quote, history: quote?.sparkline ?? [] });
       } catch {
-        if (!cancelled) setState(EMPTY);
+        if (!cancelled) setState({ earnings: null, quote: null, history: [] });
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -76,45 +97,45 @@ export function CompanyVerdict({ ticker }: CompanyVerdictSimpleProps) {
     return () => { cancelled = true; };
   }, [ticker]);
 
-  const snapshot = useMemo(() => {
-    if (!state.quote) return null;
-    return buildConvictionSnapshot({
-      ticker,
-      institutional: state.institutional,
-      insider: state.insider,
-      earnings: state.earnings,
-      political: state.political,
-      historyPoints: state.history,
-      quote: state.quote,
-      week52High: state.week52High,
-      week52Low: state.week52Low,
-    });
-  }, [ticker, state]);
+  const signals = useMemo<MomentumSignal[]>(() => {
+    const technical = deriveTechnicalState(state.history, state.quote?.price ?? null, null, null);
+    const priceDirection: MomentumDirection =
+      technical.sma50Relation === "above" && technical.sma200Relation === "above"
+        ? "improving"
+        : technical.sma50Relation === "below" && technical.sma200Relation === "below"
+          ? "weakening"
+          : technical.sma50Relation === null && technical.sma200Relation === null
+            ? "unavailable"
+            : "mixed";
 
-  const badge = useMemo(() => snapshot ? getConvictionBadge(snapshot) : null, [snapshot]);
+    return [
+      { label: "Price", direction: priceDirection, detail: technical.interpretation },
+      {
+        label: "Earnings",
+        direction: classifyScore(state.earnings?.historyScore),
+        detail: "Recent reported results versus expectations.",
+      },
+      {
+        label: "Analysts",
+        direction: classifyScore(state.earnings?.revisionScore),
+        detail: "Estimate revisions over the last four weeks.",
+      },
+    ];
+  }, [state]);
 
   if (loading) {
     return (
-      <section className="verdict-card" aria-label="Conviction verdict">
+      <section className="verdict-card" aria-label="Momentum snapshot">
         <div className="verdict-topline">
           <div>
-            <span className="verdict-eyebrow">Decision snapshot</span>
-            <h2>Building the evidence picture…</h2>
-            <p>Checking filings, insider trades, earnings and political disclosures.</p>
-          </div>
-          <div className="verdict-score insufficient">
-            <strong>—</strong>
-            <span>of 100</span>
+            <span className="verdict-eyebrow">Momentum snapshot</span>
+            <h2>Building the momentum picture…</h2>
+            <p>Checking price trend, reported earnings, and analyst revisions.</p>
           </div>
         </div>
-        <div className="verdict-meta">
-          <span><b>…</b> confidence</span>
-          <span><b>…</b> evidence coverage</span>
-          <span>Score is evidence, not a recommendation</span>
-        </div>
-        <div className="signal-strip">
-          {["Large investors", "Company insiders", "Earnings momentum", "Political disclosures"].map((label) => (
-            <div className="signal-pill" key={label}>
+        <div className="signal-strip momentum-signal-strip">
+          {["Price", "Earnings", "Analysts"].map((label) => (
+            <div className="signal-pill momentum-signal" key={label}>
               <span>{label}</span>
               <strong className="missing">Checking</strong>
             </div>
@@ -124,89 +145,26 @@ export function CompanyVerdict({ ticker }: CompanyVerdictSimpleProps) {
     );
   }
 
-  if (!snapshot) {
-    return (
-      <section className="verdict-card" aria-label="Conviction verdict unavailable">
-        <div className="verdict-topline">
-          <div>
-            <span className="verdict-eyebrow">Decision snapshot</span>
-            <h2>Evidence still forming</h2>
-            <p>Unable to load evidence feeds for {ticker}.</p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  const { evidence, technical, market } = snapshot;
-  const verdict = evidence.summary;
-  const directionClass = evidence.score > 0 ? "bullish" : evidence.score < 0 ? "bearish" : "mixed";
-  const techState = technical.state !== "unknown" ? technical.state : null;
+  const summary = buildSummary(signals);
 
   return (
-    <section className="verdict-card" aria-label="Conviction verdict">
+    <section className="verdict-card" aria-label="Momentum snapshot">
       <div className="verdict-topline">
         <div>
-          <span className="verdict-eyebrow">Decision snapshot</span>
-          <h2>
-            {evidence.verdict === "strong" ? "Strong conviction" :
-             evidence.verdict === "positive" ? "Positive setup" :
-             evidence.verdict === "negative" ? "Negative setup" :
-             evidence.verdict === "weak" ? "Weak evidence" :
-             evidence.verdict === "mixed" ? "Mixed signals" : "Evidence forming"}
-            {badge?.technicalState ? ` · ${badge.technicalState}` : ""}
-          </h2>
-          <p>{verdict}</p>
-          {badge?.direction ? (
-            <p className="verdict-direction">{badge.direction}</p>
-          ) : null}
-        </div>
-        <div className={`verdict-score ${directionClass}`}>
-          <strong>{evidence.score >= 0 ? `+${evidence.score}` : evidence.score}</strong>
-          <span>of 100</span>
+          <span className="verdict-eyebrow">Momentum snapshot</span>
+          <h2>{summary.headline}</h2>
+          <p>{summary.summary}</p>
         </div>
       </div>
-      <div className="verdict-meta">
-        <span><b>{snapshot.evidence.confidence >= 0.65 ? "High" : snapshot.evidence.confidence >= 0.4 ? "Medium" : "Low"}</b> confidence</span>
-        <span><b>{Math.round(evidence.coverage * 100)}%</b> evidence coverage</span>
-        {market.session !== "regular" ? (
-          <span className="verdict-session">{market.referenceLabel}: {market.referencePrice != null ? `$${market.referencePrice.toFixed(2)}` : "—"}</span>
-        ) : null}
-        <span>Score is evidence, not a recommendation</span>
+
+      <div className="signal-strip momentum-signal-strip">
+        {signals.map((signal) => (
+          <div className="signal-pill momentum-signal" key={signal.label} title={signal.detail}>
+            <span>{signal.label}</span>
+            <strong className={signal.direction}>{directionLabel(signal.direction)}</strong>
+          </div>
+        ))}
       </div>
-
-      {/* Signal strip */}
-      <div className="signal-strip">
-        {(["institutional", "insider", "earnings", "political"] as const).map((key) => {
-          const signal = evidence.signals[key];
-          return (
-            <div className="signal-pill" key={key}>
-              <span>{signal.summary.split(".")[0]}</span>
-              <strong className={
-                signal.sentiment === "strong_positive" || signal.sentiment === "positive" ? "positive" :
-                signal.sentiment === "strong_negative" || signal.sentiment === "negative" ? "negative" :
-                signal.sentiment === "neutral" ? "neutral" : "missing"
-              }>
-                {signal.score !== null && signal.score > 0 ? `+${signal.score}` : signal.score !== null ? signal.score : "—"}
-              </strong>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Technical summary */}
-      {techState && (
-        <div className="verdict-tech">
-          <span className="verdict-tech-label">Technical: {technical.summary}</span>
-        </div>
-      )}
-
-      {/* Model version */}
-      <details className="verdict-explainer">
-        <summary>How this score works</summary>
-        <p>Each available signal is scored from −100 to +100. Missing feeds are excluded—not treated as neutral—and the remaining weights are normalized. A score only appears when at least half of the intended evidence is available.</p>
-        <p className="verdict-version">Model v{MODEL_VERSION}</p>
-      </details>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
@@ -44,6 +44,12 @@ export const metadata: Metadata = {
     description: "Find material changes before they become obvious.",
     images: ["/conviction-og.png"],
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 const themeScript = `
