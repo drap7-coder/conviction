@@ -15,7 +15,7 @@ export const SECTORS: Sector[] = [
     ticker: "XLK",
     name: "Technology",
     description: "Software, hardware, semiconductors, and IT services.",
-    representativeTickers: ["AAPL", "MSFT", "NVDA", "AVGO", "CRM", "INTC"],
+    representativeTickers: ["AAPL", "MSFT", "NVDA", "AVGO", "CRM", "INTC", "IBM", "APLD", "VOOG"],
   },
   {
     ticker: "XLF",
@@ -33,7 +33,7 @@ export const SECTORS: Sector[] = [
     ticker: "XLE",
     name: "Energy",
     description: "Oil, gas, and energy equipment & services.",
-    representativeTickers: ["XOM", "CVX", "COP", "SLB", "OXY"],
+    representativeTickers: ["XOM", "CVX", "COP", "SLB", "OXY", "CCJ", "GEV"],
   },
   {
     ticker: "XLI",
