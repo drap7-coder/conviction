@@ -6,6 +6,8 @@ import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { getLivePrice } from "@/lib/market/live-quote";
+import type { NewsDriver } from "@/lib/evidence/news-driver";
+import { NewsDriverBrief } from "@/app/components/NewsDriverBrief";
 
 interface StockQuote {
   ticker: string;
@@ -119,6 +121,7 @@ function formatMarketCap(value: number | null): string | null {
 export default function RisingConvictionPage() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
+  const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
@@ -181,7 +184,7 @@ export default function RisingConvictionPage() {
           );
           const responses = await Promise.all(batches.map((batch) =>
             fetchJsonWithTimeout<{
-              news?: Record<string, { headlines?: TrendingHeadline[] }>;
+              news?: Record<string, { headlines?: TrendingHeadline[]; driver?: NewsDriver | null }>;
             }>(
               `/api/evidence/news-batch?tickers=${batch.map((company) => company.ticker).join(",")}`,
               10_000,
@@ -190,13 +193,16 @@ export default function RisingConvictionPage() {
           ));
           if (!cancelled) {
             const nextHeadlines: Record<string, TrendingHeadline[]> = {};
+            const nextDrivers: Record<string, NewsDriver | null> = {};
             for (const response of responses) {
-              const news = response.news as Record<string, { headlines?: TrendingHeadline[] }> | undefined;
+              const news = response.news as Record<string, { headlines?: TrendingHeadline[]; driver?: NewsDriver | null }> | undefined;
               for (const [ticker, item] of Object.entries(news ?? {})) {
                 nextHeadlines[ticker] = item.headlines ?? [];
+                nextDrivers[ticker] = item.driver ?? null;
               }
             }
             setHeadlines(nextHeadlines);
+            setNewsDrivers(nextDrivers);
           }
         }
       } catch (err) {
@@ -498,15 +504,12 @@ export default function RisingConvictionPage() {
                       </div>
                     ) : null}
 
-                    {ideaHeadlines.length > 0 ? (
-                      <ol className="summary-headlines" aria-label={`${idea.ticker} recent headlines`}>
-                        {ideaHeadlines.slice(0, 3).map((item) => (
-                          <li key={`${item.date}-${item.headline}`}>{item.headline}</li>
-                        ))}
-                      </ol>
-                    ) : (
-                      <p className="watchlist-row-driver">Recent headlines unavailable.</p>
-                    )}
+                    <NewsDriverBrief
+                      ticker={idea.ticker}
+                      driver={newsDrivers[idea.ticker] ?? null}
+                      headlines={ideaHeadlines}
+                      compact
+                    />
                     <div className="watchlist-row-evidence">
                       <span className="watchlist-row-evidence-item"><b>Signal</b> · {verdict.state}</span>
                     </div>

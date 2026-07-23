@@ -2,10 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { EvidenceEvent } from "@/lib/evidence/types";
+import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
+import { NewsDriverBrief } from "./NewsDriverBrief";
 
 interface NewsEvidenceResponse {
   events: EvidenceEvent[];
+  driver?: NewsDriver | null;
   status?: "success" | "empty" | "unsupported" | "timeout" | "error";
   source?: string;
   message?: string;
@@ -15,17 +18,9 @@ interface MaterialNewsCardProps {
   ticker: string;
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00`));
-}
-
 export function MaterialNewsCard({ ticker }: MaterialNewsCardProps) {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
-  const [source, setSource] = useState<string | null>(null);
+  const [driver, setDriver] = useState<NewsDriver | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
 
   useEffect(() => {
@@ -42,7 +37,7 @@ export function MaterialNewsCard({ ticker }: MaterialNewsCardProps) {
         );
         if (!cancelled) {
           setEvents(data.events ?? []);
-          setSource(data.source ?? null);
+          setDriver(data.driver ?? null);
           setStatus(
             data.status === "timeout" || data.status === "error" || data.status === "unsupported"
               ? data.status
@@ -66,44 +61,24 @@ export function MaterialNewsCard({ ticker }: MaterialNewsCardProps) {
   }, [ticker]);
 
   const copy = status === "loading" || status === "idle"
-    ? "Checking for material news."
+    ? "Reading the latest coverage…"
     : status === "timeout" || status === "error"
-      ? "Material news temporarily unavailable."
-      : events.length > 0
-        ? source === "yahoo-finance-rss"
-          ? `${events.length} recent headline${events.length === 1 ? "" : "s"} from Yahoo Finance RSS.`
-          : `${events.length} sourced material news event found.`
-        : "No recent headlines found.";
+      ? "News context is temporarily unavailable."
+      : "No clear news catalyst found.";
+
+  const headlines = events.slice(0, 3).map((event) => ({
+    headline: event.title,
+    url: event.sourceUrl ?? null,
+    date: event.date,
+  }));
 
   return (
-    <div className="evidence-family-card material-news-card">
-      <div className="evidence-family-header">
-        <div>
-          <span className="move-eyebrow">Material news</span>
-          <strong>{copy}</strong>
-        </div>
-        <span className="move-confidence move-confidence-inline">
-          {status === "loading" ? "Checking" : source === "yahoo-finance-rss" ? "RSS" : "Sourced"}
-        </span>
-      </div>
-      {events.length > 0 ? (
-        <div className="evidence-line-list">
-          {events.slice(0, 5).map((newsEvent) => (
-            <a
-              className={`evidence-line ${newsEvent.isContradiction ? "contradicting" : "supporting"}`}
-              href={newsEvent.sourceUrl}
-              key={newsEvent.id}
-              rel="noreferrer"
-              target="_blank"
-            >
-              <span>{newsEvent.isContradiction ? "Contradicting evidence" : "Context evidence"} · {formatDate(newsEvent.date)}</span>
-              <strong>{newsEvent.title}</strong>
-              <small>{newsEvent.metadata?.transactionClass ?? "Source"} · Strength: {Math.round(newsEvent.strength * 100)}</small>
-              <p>{newsEvent.aiExplanation}</p>
-            </a>
-          ))}
-        </div>
-      ) : null}
+    <div className="material-news-briefing">
+      {driver || headlines.length > 0 ? (
+        <NewsDriverBrief ticker={ticker} driver={driver} headlines={headlines} />
+      ) : (
+        <p className="material-news-status">{copy}</p>
+      )}
     </div>
   );
 }

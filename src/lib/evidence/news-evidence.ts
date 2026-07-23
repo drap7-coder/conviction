@@ -1,5 +1,6 @@
 import { getMoveEvent, type MoveEvent, type MoveEventCategory, type MoveEventConfidence } from "./move-events";
 import { fetchRssNews } from "./news-rss";
+import { buildNewsDriver, type NewsDriver } from "./news-driver";
 import type { EvidenceDirection, EvidenceEvent } from "./types";
 
 export type NewsEvidenceStatus = "success" | "empty" | "unsupported";
@@ -8,6 +9,7 @@ export interface NewsEvidenceSummary {
   ticker: string;
   status: NewsEvidenceStatus;
   events: EvidenceEvent[];
+  driver: NewsDriver | null;
   fetchedAt: string;
   source: "curated-material-news" | "yahoo-finance-rss";
 }
@@ -91,6 +93,7 @@ export async function getNewsEvidenceSummary(ticker: string, companyName?: strin
       ticker: upperTicker,
       status: "unsupported",
       events: [],
+      driver: null,
       fetchedAt: new Date().toISOString(),
       source: "curated-material-news",
     };
@@ -103,6 +106,7 @@ export async function getNewsEvidenceSummary(ticker: string, companyName?: strin
       ticker: upperTicker,
       status: "success",
       events: curatedEvents,
+      driver: buildNewsDriver(curatedEvents, upperTicker, companyName),
       fetchedAt: new Date().toISOString(),
       source: "curated-material-news",
     };
@@ -116,6 +120,7 @@ export async function getNewsEvidenceSummary(ticker: string, companyName?: strin
         ticker: upperTicker,
         status: "success",
         events: rssEvents,
+        driver: buildNewsDriver(rssEvents, upperTicker, companyName),
         fetchedAt: new Date().toISOString(),
         source: "yahoo-finance-rss",
       };
@@ -128,6 +133,7 @@ export async function getNewsEvidenceSummary(ticker: string, companyName?: strin
     ticker: upperTicker,
     status: "empty",
     events: [],
+    driver: null,
     fetchedAt: new Date().toISOString(),
     source: "yahoo-finance-rss",
   };

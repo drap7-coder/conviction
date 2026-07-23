@@ -11,6 +11,7 @@ import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
 import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
+import type { NewsDriver } from "@/lib/evidence/news-driver";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -127,6 +128,7 @@ export default function Watchlist() {
   const [entries, setEntries] = useState<WatchlistEntryWithThesis[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
+  const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
@@ -265,7 +267,7 @@ export default function Watchlist() {
       );
       const responses = await Promise.all(batches.map((batch) =>
         fetchJsonWithTimeout<{
-          news?: Record<string, { headlines?: WatchlistCardHeadline[] }>;
+          news?: Record<string, { headlines?: WatchlistCardHeadline[]; driver?: NewsDriver | null }>;
         }>(
           `/api/evidence/news-batch?tickers=${batch.map((entry) => entry.ticker).join(",")}`,
           10_000,
@@ -275,13 +277,16 @@ export default function Watchlist() {
       if (cancelled) return;
 
       const nextHeadlines: Record<string, WatchlistCardHeadline[]> = {};
+      const nextDrivers: Record<string, NewsDriver | null> = {};
       for (const response of responses) {
-        const news = response.news as Record<string, { headlines?: WatchlistCardHeadline[] }> | undefined;
+        const news = response.news as Record<string, { headlines?: WatchlistCardHeadline[]; driver?: NewsDriver | null }> | undefined;
         for (const [ticker, item] of Object.entries(news ?? {})) {
           nextHeadlines[ticker] = item.headlines ?? [];
+          nextDrivers[ticker] = item.driver ?? null;
         }
       }
       setHeadlines(nextHeadlines);
+      setNewsDrivers(nextDrivers);
     }
 
     void loadHeadlines();
@@ -682,6 +687,7 @@ export default function Watchlist() {
                   evidencePills={evidencePills}
                   activityLine={activityLine}
                   headlines={headlines[entry.ticker] ?? []}
+                  newsDriver={newsDrivers[entry.ticker] ?? null}
                   sparklinePath={sparklinePath}
                   sparklineDirection={quoteDirection}
                   onRemove={handleRemove}
@@ -728,6 +734,7 @@ export default function Watchlist() {
                 evidencePills={evidencePills}
                 activityLine={activityLine}
                 headlines={headlines[entry.ticker] ?? []}
+                newsDriver={newsDrivers[entry.ticker] ?? null}
                 sparklinePath={sparklinePath}
                 sparklineDirection={quoteDirection}
                 onRemove={handleRemove}

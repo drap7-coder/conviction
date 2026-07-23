@@ -5,6 +5,8 @@ import { LogoDisplay } from "./LogoDisplay";
 import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 import { getConvictionBadge } from "@/lib/conviction/canonical-types";
 import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
+import type { NewsDriver } from "@/lib/evidence/news-driver";
+import { NewsDriverBrief } from "./NewsDriverBrief";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -41,6 +43,7 @@ export interface WatchlistCardProps {
   evidencePills: WatchlistCardEvidencePill[];
   activityLine: WatchlistCardActivityLine | null;
   headlines: WatchlistCardHeadline[];
+  newsDriver: NewsDriver | null;
   sparklinePath: string;
   sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
@@ -97,6 +100,7 @@ export function WatchlistCard({
   evidencePills,
   activityLine,
   headlines,
+  newsDriver,
   sparklinePath,
   sparklineDirection,
   onRemove,
@@ -346,12 +350,8 @@ export function WatchlistCard({
             </div>
           ) : null}
 
-          {headlines.length > 0 ? (
-            <ol className="summary-headlines" aria-label={`${ticker} recent headlines`}>
-              {headlines.slice(0, 3).map((item) => (
-                <li key={`${item.date}-${item.headline}`}>{item.headline}</li>
-              ))}
-            </ol>
+          {headlines.length > 0 || newsDriver ? (
+            <NewsDriverBrief ticker={ticker} driver={newsDriver} headlines={headlines} compact />
           ) : (
             <p className="watchlist-row-driver">
               {activityLine?.source ? (

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getNewsEvidenceSummary } from "@/lib/evidence/news-evidence";
 import { validateTicker } from "@/lib/watchlist/validate";
+import type { NewsDriver } from "@/lib/evidence/news-driver";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export async function GET(request: NextRequest) {
     headline: string | null;
     url: string | null;
     date: string | null;
+    driver: NewsDriver | null;
     headlines: Array<{
       headline: string;
       url: string | null;
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
     try {
       const resolved = await validateTicker(ticker);
       if (!resolved.valid) {
-        results[ticker] = { headline: null, url: null, date: null, headlines: [] };
+        results[ticker] = { headline: null, url: null, date: null, driver: null, headlines: [] };
         return;
       }
       const summary = await getNewsEvidenceSummary(resolved.ticker, resolved.companyName ?? resolved.ticker);
@@ -50,17 +52,18 @@ export async function GET(request: NextRequest) {
           headline: event.title.slice(0, 200),
           url: event.sourceUrl ?? null,
           date: event.date,
+          driver: summary.driver,
           headlines,
         };
       } else {
-        results[ticker] = { headline: null, url: null, date: null, headlines: [] };
+        results[ticker] = { headline: null, url: null, date: null, driver: null, headlines: [] };
       }
     } catch (error) {
       console.error("[news-batch] provider request failed", {
         ticker,
         error: error instanceof Error ? error.message : String(error),
       });
-      results[ticker] = { headline: null, url: null, date: null, headlines: [] };
+      results[ticker] = { headline: null, url: null, date: null, driver: null, headlines: [] };
     }
   }));
 

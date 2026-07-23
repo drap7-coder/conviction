@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
       ticker: rawTicker,
       status: "unsupported",
       events: [],
+      driver: null,
       fetchedAt: new Date().toISOString(),
       source: "yahoo-finance-rss",
     }, { status: 200 });
@@ -37,6 +38,7 @@ export async function GET(request: NextRequest) {
       ticker: resolved.ticker,
       status: "error",
       events: [],
+      driver: null,
       message: "Material news evidence could not be loaded.",
       fetchedAt: new Date().toISOString(),
       source: "error",

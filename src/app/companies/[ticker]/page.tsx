@@ -57,6 +57,7 @@ export default async function CompanyPage({
             <MultiVectorSummary ticker={upperTicker} /> */}
             <CompanyVerdict ticker={upperTicker} />
             <MarketPanel ticker={upperTicker} />
+            <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             {/* Thesis section temporarily suppressed — restore when ready:
             <ThesisTracker ticker={upperTicker} companyName={companyName} /> */}
           </>
@@ -73,9 +74,6 @@ export default async function CompanyPage({
         </DashboardCard>
         <DashboardCard className="dashboard-card-political" title="Political disclosures" summary="Reported purchases and sales involving public officials.">
           <PoliticalTradesSection ticker={upperTicker} />
-        </DashboardCard>
-        <DashboardCard className="dashboard-card-news" title="Material news" summary="Recent sourced events that may explain the move.">
-          <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
         </DashboardCard>
         <DashboardCard className="dashboard-card-conviction" title="Filings and market context" summary="Short interest, ownership filings, and corporate disclosures.">
           <MoveExplanationSection ticker={upperTicker} />

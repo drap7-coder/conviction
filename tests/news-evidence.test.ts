@@ -1,6 +1,27 @@
 import { describe, expect, it } from "vitest";
 import { getNewsEvidenceSummary, moveEventToNewsEvidence } from "@/lib/evidence/news-evidence";
 import type { MoveEvent } from "@/lib/evidence/move-events";
+import { buildNewsDriver } from "@/lib/evidence/news-driver";
+import type { EvidenceEvent } from "@/lib/evidence/types";
+
+function headline(title: string): EvidenceEvent {
+  return {
+    id: title,
+    ticker: "TEST",
+    type: "material-news",
+    direction: "neutral",
+    title,
+    summary: "",
+    source: "publisher",
+    sourceUrl: "https://example.com",
+    date: "2026-07-23",
+    disclosureDelay: 0,
+    size: 0.5,
+    strength: 0.5,
+    isContradiction: false,
+    aiExplanation: "",
+  };
+}
 
 describe("news evidence", () => {
   it("converts a sourced IBM earnings warning into contradicting material evidence", async () => {
@@ -55,5 +76,20 @@ describe("news evidence", () => {
     expect(moveEventToNewsEvidence(base)).toEqual([]);
     expect(moveEventToNewsEvidence({ ...base, confidence: "high", sources: [] })).toEqual([]);
     expect(moveEventToNewsEvidence({ ...base, confidence: "high", sources: [{ label: "Bad", headline: "Bad", url: "not-a-url" }] })).toEqual([]);
+  });
+
+  it("distinguishes reported deals from confirmed earnings and likely geopolitical drivers", () => {
+    expect(buildNewsDriver([headline("Stripe and Advent offer to buy PayPal")], "PYPL", "PayPal")).toMatchObject({
+      label: "Deal watch",
+      confidence: "reported",
+    });
+    expect(buildNewsDriver([headline("Tesla releases second-quarter earnings")], "TSLA", "Tesla")).toMatchObject({
+      label: "Earnings",
+      confidence: "confirmed",
+    });
+    expect(buildNewsDriver([headline("OXY rises as Brent jumps on Middle East supply fears")], "OXY", "Occidental")).toMatchObject({
+      label: "Oil + geopolitics",
+      confidence: "likely",
+    });
   });
 });
