@@ -52,6 +52,12 @@
 .momentum-signal strong.improving { color: var(--positive); }
 .momentum-signal strong.weakening { color: var(--negative); }
 .momentum-signal strong.unavailable { color: var(--quiet); }
+.momentum-signal small {
+  color: var(--quiet);
+  font: .52rem/1.35 var(--font-mono);
+  letter-spacing: 0;
+  text-transform: none;
+}
 .verdict-explainer { margin-top: 11px; color: var(--quiet); font-size: .67rem; }
 .verdict-explainer summary, .other-events > summary { cursor: pointer; color: var(--muted); font: .61rem/1.4 var(--font-mono); }
 .verdict-explainer p { max-width: 780px; margin-top: 7px; line-height: 1.45; }

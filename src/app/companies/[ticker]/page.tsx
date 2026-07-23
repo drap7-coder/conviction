@@ -59,12 +59,14 @@ export default async function CompanyPage({
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             <CompanyVerdict ticker={upperTicker} />
-            <MarketPanel ticker={upperTicker} />
             {/* Thesis section temporarily suppressed — restore when ready:
             <ThesisTracker ticker={upperTicker} companyName={companyName} /> */}
           </>
         }
       >
+        <DashboardCard className="dashboard-card-technical" title="Technical analysis" summary="Moving averages, 52-week range, and current trend state.">
+          <MarketPanel ticker={upperTicker} />
+        </DashboardCard>
         <DashboardCard className="dashboard-card-institutional" title="Institutional activity" summary="Recent position changes reported by tracked managers.">
           <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
         </DashboardCard>

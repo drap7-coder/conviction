@@ -45,6 +45,21 @@ function classifyScore(score: number | null | undefined): MomentumDirection {
   return "mixed";
 }
 
+function priceTechnicalDetail(technical: ReturnType<typeof deriveTechnicalState>) {
+  let baseline = "Technical baseline unavailable";
+  if (technical.sma50Relation === "above" && technical.sma200Relation === "above") {
+    baseline = "Above 50D + 200D averages";
+  } else if (technical.sma50Relation === "below" && technical.sma200Relation === "below") {
+    baseline = "Below 50D + 200D averages";
+  } else if (technical.sma50Relation && technical.sma200Relation) {
+    baseline = "Between 50D + 200D averages";
+  }
+
+  return technical.shortTermTrend === null
+    ? baseline
+    : `${baseline} · 5D ${technical.shortTermTrend > 0 ? "+" : ""}${technical.shortTermTrend.toFixed(1)}%`;
+}
+
 function buildSummary(signals: MomentumSignal[]) {
   const available = signals.filter((signal) => signal.direction !== "unavailable");
   const directions = new Set(available.map((signal) => signal.direction));
@@ -147,7 +162,7 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
             : "mixed";
 
     return [
-      { label: "Price", direction: priceDirection, detail: technical.interpretation },
+      { label: "Price", direction: priceDirection, detail: priceTechnicalDetail(technical) },
       {
         label: "Earnings",
         direction: classifyScore(state.earnings?.historyScore),
@@ -200,6 +215,7 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
           <div className="signal-pill momentum-signal" key={signal.label} title={signal.detail}>
             <span>{signal.label}</span>
             <strong className={signal.direction}>{directionLabel(signal.direction)}</strong>
+            {signal.label === "Price" ? <small>{signal.detail}</small> : null}
           </div>
         ))}
       </div>
