@@ -1242,6 +1242,13 @@ details > summary::before {
 .news-driver-certainty-confirmed { color: var(--green); }
 .news-driver-certainty-reported { color: var(--amber); }
 
+.news-driver-horizon {
+  color: var(--quiet);
+  font: 0.54rem/1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .news-driver-copy strong {
   display: block;
   color: var(--ink);

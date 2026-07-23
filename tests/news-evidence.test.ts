@@ -78,18 +78,15 @@ describe("news evidence", () => {
     expect(moveEventToNewsEvidence({ ...base, confidence: "high", sources: [{ label: "Bad", headline: "Bad", url: "not-a-url" }] })).toEqual([]);
   });
 
-  it("distinguishes reported deals from confirmed earnings and likely geopolitical drivers", () => {
+  it("extracts durable themes from company-relevant coverage", () => {
     expect(buildNewsDriver([headline("Stripe and Advent offer to buy PayPal")], "PYPL", "PayPal")).toMatchObject({
-      label: "Deal watch",
-      confidence: "reported",
+      label: "Strategic options",
     });
     expect(buildNewsDriver([headline("Tesla releases second-quarter earnings")], "TSLA", "Tesla")).toMatchObject({
-      label: "Earnings",
-      confidence: "confirmed",
+      label: "Execution + margins",
     });
     expect(buildNewsDriver([headline("OXY rises as Brent jumps on Middle East supply fears")], "OXY", "Occidental")).toMatchObject({
-      label: "Oil + geopolitics",
-      confidence: "likely",
+      label: "Oil sensitivity",
     });
   });
 
@@ -99,8 +96,8 @@ describe("news evidence", () => {
       headline("Pfizer updates investors on its product pipeline"),
     ], "PFE", "Pfizer", "Health Care");
 
-    expect(driver?.label).not.toBe("Oil + geopolitics");
+    expect(driver?.label).not.toBe("Oil sensitivity");
     expect(driver?.explanation).not.toMatch(/oil|geopolitical/i);
-    expect(driver).toMatchObject({ label: "No clear catalyst", explanation: "" });
+    expect(driver).toMatchObject({ label: "Pipeline renewal" });
   });
 });

@@ -18,14 +18,14 @@ export function NewsDriverBrief({
   compact?: boolean;
 }) {
   if (!driver && headlines.length === 0) {
-    return <p className="watchlist-row-driver">No clear news catalyst found.</p>;
+    return <p className="watchlist-row-driver">Story still forming.</p>;
   }
 
   return (
-    <section className={`news-driver-brief ${compact ? "news-driver-brief-compact" : ""}`} aria-label={`Why ${ticker} is moving`}>
+    <section className={`news-driver-brief ${compact ? "news-driver-brief-compact" : ""}`} aria-label={`${ticker} investment story`}>
       <div className="news-driver-heading">
-        <span className="news-driver-eyebrow">Why it’s moving</span>
-        {driver ? <span className={`news-driver-certainty news-driver-certainty-${driver.confidence}`}>{driver.confidence}</span> : null}
+        <span className="news-driver-eyebrow">The story</span>
+        <span className="news-driver-horizon">Multi-week view</span>
       </div>
       {driver ? (
         <div className="news-driver-copy">
@@ -34,7 +34,7 @@ export function NewsDriverBrief({
         </div>
       ) : null}
       {headlines.length > 0 ? (
-        <ol className="news-driver-headlines" aria-label={`${ticker} supporting headlines`}>
+        <ol className="news-driver-headlines" aria-label={`${ticker} latest developments`}>
           {headlines.slice(0, 3).map((item) => (
             <li key={`${item.date}-${item.headline}`}>{item.headline}</li>
           ))}

@@ -8,49 +8,57 @@ export interface NewsDriver {
   confidence: NewsDriverConfidence;
 }
 
-interface DriverRule {
+interface ThemeRule {
   label: string;
-  confidence: NewsDriverConfidence;
   pattern: RegExp;
-  explanation: (company: string) => string;
+  explanation: string;
 }
 
-const DRIVER_RULES: DriverRule[] = [
+const THEME_RULES: ThemeRule[] = [
   {
-    label: "Deal watch",
-    confidence: "reported",
+    label: "Strategic options",
     pattern: /takeover|acquisition|buyout|offer to (?:buy|acquire)|acquisition offer|merger|\bbid\b/i,
-    explanation: (company) => `${company} is in focus after reports of a potential transaction. The deal is not final unless the company confirms it.`,
+    explanation: "Deal interest and strategic alternatives are reshaping expectations.",
   },
   {
-    label: "Oil + geopolitics",
-    confidence: "likely",
+    label: "Oil sensitivity",
     pattern: /brent|crude|oil price|oil prices|middle east|iran|houthi|hormuz|geopolit|supply disruption/i,
-    explanation: (company) => `${company} is moving with oil as geopolitical tension changes expectations for global supply.`,
+    explanation: "Commodity prices and global supply risk remain central to the story.",
   },
   {
-    label: "Earnings",
-    confidence: "confirmed",
-    pattern: /earnings|quarterly results|financial results|revenue|profit|guidance|outlook|eps\b/i,
-    explanation: (company) => `${company} is trading around its latest results and the market's read on growth, profitability, and guidance.`,
+    label: "Execution + margins",
+    pattern: /earnings|quarterly results|financial results|revenue|profit|margin|guidance|outlook|eps\b|cost cut/i,
+    explanation: "Growth, profitability, and guidance are resetting expectations.",
   },
   {
-    label: "Regulatory",
-    confidence: "likely",
+    label: "AI positioning",
+    pattern: /artificial intelligence|\bai\b|data center|accelerator|inference|robotaxi|autonom|robotics/i,
+    explanation: "Investors are weighing the size and credibility of the AI opportunity.",
+  },
+  {
+    label: "Manufacturing turnaround",
+    pattern: /foundry|fabrication|\bfab\b|manufacturing|process node|chipmaking|semiconductor plant/i,
+    explanation: "Manufacturing execution and the path to competitive economics remain pivotal.",
+  },
+  {
+    label: "Pipeline renewal",
+    pattern: /drug|pipeline|clinical|trial|fda|patent|biotech|vaccine|therapy|treatment/i,
+    explanation: "The product pipeline and patent cycle are shaping the next phase of growth.",
+  },
+  {
+    label: "Regulatory pressure",
     pattern: /regulator|regulatory|antitrust|investigation|lawsuit|court|sec\b|ftc\b|doj\b/i,
-    explanation: (company) => `${company} is reacting to a legal or regulatory development that could affect its outlook.`,
+    explanation: "Legal and regulatory outcomes could change the operating outlook.",
   },
   {
-    label: "Wall Street view",
-    confidence: "likely",
-    pattern: /upgrade|downgrade|price target|analyst|rating|initiates coverage/i,
-    explanation: (company) => `${company} is reacting to a change in Wall Street expectations.`,
+    label: "Demand + competition",
+    pattern: /demand|market share|competition|competitor|sales|shipments|deliveries|customer|consumer/i,
+    explanation: "Demand and competitive position are the key operating debate.",
   },
   {
-    label: "Company update",
-    confidence: "confirmed",
-    pattern: /launch|announces|appoints|resigns|ceo|partnership|contract|order|delivery|production/i,
-    explanation: (company) => `${company} is in focus after a company-specific development.`,
+    label: "Capital allocation",
+    pattern: /debt|buyback|repurchase|dividend|cash flow|capital spending|capex|asset sale/i,
+    explanation: "Balance-sheet choices and capital returns are influencing the investment case.",
   },
 ];
 
@@ -61,35 +69,47 @@ export function buildNewsDriver(
 ): NewsDriver | null {
   if (events.length === 0) return null;
 
-  const company = companyName?.trim() || ticker;
-  const companyToken = company
+  const companyToken = (companyName?.trim() || ticker)
     .replace(/[^a-z0-9 ]/gi, " ")
     .split(/\s+/)
     .find((token) => token.length >= 3 && !/^(the|inc|corp|corporation|company|holdings)$/i.test(token));
 
-  // Classify one headline at a time. Combining unrelated roundup headlines can
-  // create false narratives (for example, assigning an oil story to Pfizer).
-  for (const event of events.slice(0, 5)) {
+  const scores = new Map<string, { rule: ThemeRule; score: number }>();
+
+  // Score recurring themes across company-relevant coverage. Each article is
+  // evaluated independently so unrelated market roundups cannot leak in.
+  for (const [index, event] of events.slice(0, 10).entries()) {
     const title = event.title;
     const eventText = `${title} ${event.summary}`;
     const isCompanyRelevant = new RegExp(`\\b${ticker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(eventText) ||
       Boolean(companyToken && new RegExp(`\\b${companyToken.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(eventText));
     if (!isCompanyRelevant) continue;
 
-    const searchable = eventText;
-    const rule = DRIVER_RULES.find((candidate) => candidate.pattern.test(searchable));
-
-    if (rule) {
-      return {
-        label: rule.label,
-        explanation: rule.explanation(company),
-        confidence: rule.confidence,
-      };
+    for (const rule of THEME_RULES) {
+      if (!rule.pattern.test(eventText)) continue;
+      const current = scores.get(rule.label);
+      scores.set(rule.label, {
+        rule,
+        score: (current?.score ?? 0) + Math.max(1, 5 - index * 0.5),
+      });
     }
   }
 
+  const themes = [...scores.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 2)
+    .map(({ rule }) => rule);
+
+  if (themes.length > 0) {
+    return {
+      label: themes.map((theme) => theme.label).join(" · "),
+      explanation: themes.map((theme) => theme.explanation).join(" "),
+      confidence: "likely",
+    };
+  }
+
   return {
-    label: "No clear catalyst",
+    label: "Story still forming",
     explanation: "",
     confidence: "likely",
   };

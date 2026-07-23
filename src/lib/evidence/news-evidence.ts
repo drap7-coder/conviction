@@ -114,7 +114,7 @@ export async function getNewsEvidenceSummary(ticker: string, companyName?: strin
 
   // 2. Fall back to live RSS headlines from Yahoo Finance
   try {
-    const rssEvents = await fetchRssNews(upperTicker, 5);
+    const rssEvents = await fetchRssNews(upperTicker, 10);
     if (rssEvents.length > 0) {
       return {
         ticker: upperTicker,
