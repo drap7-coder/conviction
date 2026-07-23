@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from "@/lib/request-timeout";
+import { getSectorByTicker, getSectorForCompany } from "@/lib/market/industries";
 
 const YAHOO_BASE = "https://query1.finance.yahoo.com";
 
@@ -42,28 +43,33 @@ function toFiniteNumber(value: unknown): number | null {
  */
 export async function fetchSectorProfile(ticker: string): Promise<SectorProfile | null> {
   const upper = ticker.trim().toUpperCase();
+  const fallbackSector = getSectorForCompany(upper)?.name ?? getSectorByTicker(upper)?.name ?? null;
   const url = `${YAHOO_BASE}/v10/finance/quoteSummary/${encodeURIComponent(upper)}?modules=assetProfile%2Cprice`;
 
   try {
     const response = await fetchWithTimeout(url, {}, 6_000);
-    if (!response.ok) return null;
+    if (!response.ok) {
+      return { ticker: upper, sector: fallbackSector, industry: null, longName: null, marketCap: null };
+    }
 
     const data = (await response.json()) as YahooQuoteSummaryResult;
     const result = data.quoteSummary?.result?.[0];
-    if (!result) return null;
+    if (!result) {
+      return { ticker: upper, sector: fallbackSector, industry: null, longName: null, marketCap: null };
+    }
 
     const profile = result.assetProfile;
     const price = result.price;
 
     return {
       ticker: upper,
-      sector: profile?.sector ?? null,
+      sector: profile?.sector ?? fallbackSector,
       industry: profile?.industry ?? null,
       longName: price?.longName ?? null,
       marketCap: toFiniteNumber(price?.marketCap?.raw),
     };
   } catch {
-    return null;
+    return { ticker: upper, sector: fallbackSector, industry: null, longName: null, marketCap: null };
   }
 }
 

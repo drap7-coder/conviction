@@ -2,13 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadPositions, upsertPosition, removePosition, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
-import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, computeConcentration, computeSectorAllocation } from "@/lib/portfolio/calculations";
+import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, computeSectorAllocation } from "@/lib/portfolio/calculations";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import SectorDonut from "@/components/SectorDonut";
-import MarketCapDonut from "@/components/MarketCapDonut";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -42,18 +41,6 @@ function percent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function round2(v: number): number {
-  return Math.round(v * 100) / 100;
-}
-
-// ── Color palette for allocation bar segments ────────────────────────────────
-
-const SEGMENT_COLORS = [
-  "#5eead4", "#2dd4bf", "#22d3ee", "#38bdf8", "#818cf8",
-  "#a78bfa", "#c084fc", "#e879f9", "#fb7185", "#f87171",
-  "#fb923c", "#fbbf24", "#a3e635", "#4ade80",
-];
-
 // ── Convert persisted positions to PortfolioPosition with live prices ───────
 
 function enrichWithPrices(
@@ -75,21 +62,6 @@ function enrichWithPrices(
       note: p.note,
     };
   });
-}
-
-function buildWeightMap(positions: PortfolioPosition[]) {
-  const metrics = computePortfolioMetrics(positions);
-  const total = metrics.totalMarketValue ?? 0;
-  const map = new Map<string, { name: string; weight: number }>();
-
-  for (const pos of positions) {
-    const mv = pos.currentPrice != null ? pos.shares * pos.currentPrice : 0;
-    const ticker = pos.companyId.toUpperCase();
-    const weight = total > 0 ? (mv / total) * 100 : 0;
-    map.set(ticker, { name: ticker, weight: round2(weight) });
-  }
-
-  return map;
 }
 
 // ── Main Component ──────────────────────────────────────────────────────────
@@ -166,7 +138,6 @@ export default function PortfolioPage() {
 
   const enriched = useMemo(() => enrichWithPrices(positions, quotes), [positions, quotes]);
   const portfolioMetrics = useMemo(() => computePortfolioMetrics(enriched), [enriched]);
-  const weightMap = useMemo(() => buildWeightMap(enriched), [enriched]);
   const sectorAllocation = useMemo(() => {
     const cmap = new Map<string, { id: string; ticker: string; name: string; assetType: "stock" | "etf" | "other"; sector?: string; industry?: string }>();
     for (const p of enriched) {
@@ -199,41 +170,11 @@ export default function PortfolioPage() {
       },
     ];
   }, [sectorAllocation]);
-  const marketCapData = useMemo(() => {
-    const quoteMap = new Map(quotes.map((q) => [q.ticker.toUpperCase(), q]));
-    return enriched.map((pos) => {
-      const ticker = pos.companyId.toUpperCase();
-      const quote = quoteMap.get(ticker);
-      const mv = pos.currentPrice != null ? pos.shares * pos.currentPrice : null;
-      // Use quote marketCap first, fall back to sector profile API marketCap
-      const profile = sectorProfiles[ticker];
-      const cap = quote?.marketCap ?? profile?.marketCap ?? null;
-      return { ticker, marketValue: mv, marketCap: cap };
-    });
-  }, [enriched, quotes, sectorProfiles]);
   const contributors = useMemo(
     () => getDailyContributors(enriched, portfolioMetrics.dailyChange),
     [portfolioMetrics.dailyChange],
   );
   const hasData = enriched.length > 0;
-
-  // ── Allocation bar data ──
-
-  const allocationSegments = useMemo(() => {
-    const total = portfolioMetrics.totalMarketValue ?? 0;
-    if (total <= 0) return [];
-    return enriched
-      .map((pos, i) => {
-        const mv = pos.currentPrice != null ? pos.shares * pos.currentPrice : 0;
-        const w = total > 0 ? (mv / total) * 100 : 0;
-        return {
-          ticker: pos.companyId.toUpperCase(),
-          weight: round2(w),
-          color: SEGMENT_COLORS[i % SEGMENT_COLORS.length],
-        };
-      })
-      .sort((a, b) => b.weight - a.weight);
-  }, [enriched, portfolioMetrics.totalMarketValue]);
 
   // ── Handlers ──
 
@@ -381,54 +322,18 @@ export default function PortfolioPage() {
             </div>
           ) : null}
 
-          {/* ── Allocation Bar ── */}
-          {allocationSegments.length > 0 && (
-            <div className="pf-section">
-              <h2 className="pf-section-title">Allocation</h2>
-              <div className="pf-stacked-bar">
-                {allocationSegments.map((seg) => (
-                  <div
-                    key={seg.ticker}
-                    className="pf-stacked-bar-seg"
-                    style={{
-                      flex: seg.weight,
-                      backgroundColor: seg.color,
-                      minWidth: seg.weight > 0 ? 2 : 0,
-                    }}
-                    title={`${seg.ticker} ${Math.round(seg.weight)}%`}
-                  />
-                ))}
+          {/* ── Portfolio exposure ── */}
+          {sectorDonutData.length > 0 && (
+            <section className="pf-section pf-exposure-card">
+              <div className="pf-exposure-heading">
+                <div>
+                  <span className="pf-section-eyebrow">Portfolio mix</span>
+                  <h2>Where your money is</h2>
+                </div>
+                <p>Position values grouped by economic sector.</p>
               </div>
-              <div className="pf-stacked-legend">
-                {allocationSegments.map((seg) => (
-                  <div key={seg.ticker} className="pf-stacked-legend-item">
-                    <span className="pf-stacked-legend-dot" style={{ backgroundColor: seg.color }} />
-                    <span className="pf-stacked-legend-ticker">{seg.ticker}</span>
-                    <span className="pf-stacked-legend-weight">{Math.round(seg.weight)}%</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ── Sector & Market Cap (side-by-side donuts) ── */}
-          {(sectorDonutData.length > 0 || marketCapData.length > 0) && (
-            <div className="pf-section">
-              <div className="pf-donuts-row">
-                {sectorDonutData.length > 0 && (
-                  <div className="pf-donut-col">
-                    <h2 className="pf-section-title">Sectors</h2>
-                    <SectorDonut sectors={sectorDonutData} />
-                  </div>
-                )}
-                {marketCapData.length > 0 && (
-                  <div className="pf-donut-col">
-                    <h2 className="pf-section-title">Capitalization</h2>
-                    <MarketCapDonut positions={marketCapData} />
-                  </div>
-                )}
-              </div>
-            </div>
+              <SectorDonut sectors={sectorDonutData} />
+            </section>
           )}
 
           {/* ── Positions header + add toggle ── */}

@@ -60,5 +60,5 @@ export default function SectorDonut({ sectors }: SectorDonutProps) {
 
   if (slices.length === 0) return null;
 
-  return <DonutChart slices={slices} />;
+  return <DonutChart slices={slices} size={176} />;
 }
