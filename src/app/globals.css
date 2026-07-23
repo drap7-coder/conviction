@@ -924,8 +924,8 @@ details > summary::before {
 .watchlist-row-name {
   overflow: hidden;
   color: var(--muted);
-  font-size: 0.74rem;
-  line-height: 1.2;
+  font-size: 0.76rem;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1278,9 +1278,9 @@ details > summary::before {
   display: grid;
   grid-template-columns: 7px minmax(0, 1fr);
   gap: 8px;
-  color: var(--quiet);
-  font-size: 0.7rem;
-  line-height: 1.35;
+  color: var(--ink);
+  font-size: 0.78rem;
+  line-height: 1.42;
 }
 
 .news-driver-headlines li::before {
@@ -1297,9 +1297,9 @@ details > summary::before {
 }
 
 .news-driver-brief-compact .news-driver-copy strong { font-size: 0.92rem; }
-.news-driver-brief-compact .news-driver-copy p { font-size: 0.74rem; line-height: 1.4; }
+.news-driver-brief-compact .news-driver-copy p { font-size: 0.8rem; line-height: 1.45; }
 .news-driver-brief-compact .news-driver-headlines { gap: 5px; padding-top: 8px; }
-.news-driver-brief-compact .news-driver-headlines li { font-size: 0.66rem; }
+.news-driver-brief-compact .news-driver-headlines li { font-size: 0.73rem; }
 
 .material-news-briefing { margin-top: 2px; }
 .material-news-status {
@@ -1316,8 +1316,8 @@ details > summary::before {
   margin: 0;
   padding: 0;
   color: var(--ink);
-  font-size: 0.72rem;
-  line-height: 1.3;
+  font-size: 0.78rem;
+  line-height: 1.38;
   list-style: none;
 }
 
@@ -1337,7 +1337,7 @@ details > summary::before {
   margin-right: 8px;
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.67rem;
   letter-spacing: 0.04em;
   vertical-align: 0.08em;
 }
@@ -1351,7 +1351,7 @@ details > summary::before {
 .watchlist-row-evidence-item {
   color: var(--quiet);
   font-family: var(--font-mono);
-  font-size: 0.67rem;
+  font-size: 0.72rem;
   line-height: 1.4;
 }
 
@@ -1406,7 +1406,7 @@ details > summary::before {
     grid-template-columns: minmax(0, 1fr) auto auto;
     width: 100%;
     margin-top: 2px;
-    font-size: 0.56rem;
+    font-size: 0.6rem;
     white-space: nowrap;
     text-align: right;
   }
