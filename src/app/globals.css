@@ -145,6 +145,33 @@ details > summary::before {
   }
 }
 
+@media (max-width: 767px) {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .app-shell {
+    height: calc(100vh - var(--bottom-tab-height) - env(safe-area-inset-bottom));
+    min-height: 0;
+    padding-bottom: var(--mobile-page-gutter);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@supports (height: 100dvh) {
+  @media (max-width: 767px) {
+    .app-shell {
+      height: calc(100dvh - var(--bottom-tab-height) - env(safe-area-inset-bottom));
+      min-height: 0;
+    }
+  }
+}
+
 .app-header {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -4715,23 +4742,34 @@ details > summary::before {
 
 @media (max-width: 640px) {
   .app-shell {
-    padding: 12px 12px calc(80px + env(safe-area-inset-bottom));
+    padding: 12px 12px var(--mobile-page-gutter);
   }
 
   .app-header {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
   }
 
   .header-brand-row {
     grid-column: 1;
     grid-row: 1;
+    min-width: 0;
+  }
+
+  .app-brand {
+    min-width: 0;
+    gap: 8px;
   }
 
   .app-logo {
-    width: 56px;
-    height: 50px;
+    width: 46px;
+    height: 44px;
+  }
+
+  .app-title {
+    font-size: clamp(1.3rem, 7vw, 1.65rem);
+    letter-spacing: 0.05em;
   }
 
   .header-actions {
@@ -5837,6 +5875,54 @@ details > summary::before {
 }
 
 @media (max-width: 640px) {
+  .cdh-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .cdh-identity {
+    align-items: flex-start;
+  }
+
+  .cdh-prices {
+    width: 100%;
+    max-width: none;
+    text-align: left;
+  }
+
+  .cdh-live-price {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-content: start;
+    gap: 8px 10px;
+  }
+
+  .cdh-price-big {
+    font-size: clamp(2rem, 12vw, 2.75rem);
+  }
+
+  .cdh-change {
+    grid-column: 2;
+  }
+
+  .cdh-session-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    justify-content: start;
+    gap: 6px 12px;
+    text-align: left;
+  }
+
+  .cdh-session-ref {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .cdh-ref-label {
+    white-space: nowrap;
+  }
+
   .pf-donuts-row {
     grid-template-columns: 1fr;
   }
