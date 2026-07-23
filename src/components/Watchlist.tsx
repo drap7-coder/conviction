@@ -216,7 +216,10 @@ export default function Watchlist() {
     async function loadQuotes() {
       try {
         const tickers = entries.map((entry) => entry.ticker).join(",");
-        const response = await fetch(`/api/market/quotes?tickers=${encodeURIComponent(tickers)}`);
+        const response = await fetch(
+          `/api/market/quotes?tickers=${encodeURIComponent(tickers)}`,
+          { cache: "no-store" },
+        );
         if (!response.ok) return;
         const data = (await response.json()) as { quotes?: StockQuote[] };
         if (cancelled) return;
@@ -231,8 +234,19 @@ export default function Watchlist() {
     }
 
     void loadQuotes();
+    const refreshInterval = window.setInterval(() => {
+      void loadQuotes();
+    }, 60_000);
+
+    function refreshVisibleDashboard() {
+      if (document.visibilityState === "visible") void loadQuotes();
+    }
+
+    document.addEventListener("visibilitychange", refreshVisibleDashboard);
     return () => {
       cancelled = true;
+      window.clearInterval(refreshInterval);
+      document.removeEventListener("visibilitychange", refreshVisibleDashboard);
     };
   }, [entries]);
 
