@@ -304,12 +304,21 @@ export default function PortfolioPage() {
             <div className="pf-section">
               <h2 className="pf-section-title">Today&apos;s Biggest Movers</h2>
               <div className="pf-contrib-list">
+                <div className="pf-contrib-row pf-contrib-header" aria-hidden="true">
+                  <span>Symbol</span>
+                  <span>Price Δ</span>
+                  <span>Position Δ</span>
+                  <span>%</span>
+                </div>
                 {[...contributors.positive, ...contributors.negative]
                   .sort((a, b) => Math.abs(b.dollarChange) - Math.abs(a.dollarChange))
                   .slice(0, 3)
                   .map((c) => (
                     <div key={c.ticker} className="pf-contrib-row">
                       <span className="pf-contrib-ticker">{c.ticker}</span>
+                      <span className={`pf-contrib-price ${c.priceChange >= 0 ? "up" : "down"}`}>
+                        {currency(c.priceChange)}
+                      </span>
                       <span className={`pf-contrib-dollar ${c.dollarChange >= 0 ? "up" : "down"}`}>
                         {currency(c.dollarChange)}
                       </span>

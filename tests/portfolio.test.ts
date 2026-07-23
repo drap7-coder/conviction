@@ -310,8 +310,10 @@ describe("getDailyContributors", () => {
     const { positive, negative } = getDailyContributors(positions, 30);
 
     expect(positive).toHaveLength(1);
+    expect(positive[0].priceChange).toBe(5);
     expect(positive[0].dollarChange).toBe(50);
     expect(negative).toHaveLength(1);
+    expect(negative[0].priceChange).toBe(-2);
     expect(negative[0].dollarChange).toBe(-20);
   });
 

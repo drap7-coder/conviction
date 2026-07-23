@@ -87,6 +87,7 @@ export interface PortfolioMetrics {
 export interface DailyContribution {
   ticker: string;
   companyName: string;
+  priceChange: number;
   dollarChange: number;
   percentChange: number;
 }

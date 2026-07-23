@@ -4161,13 +4161,26 @@ details > summary::before {
 }
 
 .pf-contrib-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(72px, 1fr) repeat(3, minmax(82px, .7fr));
   align-items: center;
-  justify-content: space-between;
+  gap: 14px;
   padding: 6px 0;
   border-bottom: 1px solid var(--border);
   font-family: var(--font-mono);
   font-size: 0.82rem;
+}
+
+.pf-contrib-header {
+  color: var(--quiet);
+  font-size: .58rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.pf-contrib-header span:not(:first-child),
+.pf-contrib-row > span:not(:first-child) {
+  text-align: right;
 }
 
 .pf-contrib-row:last-child {
@@ -4184,11 +4197,32 @@ details > summary::before {
   font-size: 0.78rem;
 }
 
+.pf-contrib-price {
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.pf-contrib-price.up,
 .pf-contrib-dollar.up { color: var(--green); }
+.pf-contrib-price.down,
 .pf-contrib-dollar.down { color: var(--red); }
 .pf-contrib-pct { font-size: 0.7rem; }
 .pf-contrib-pct.up { color: var(--green); }
 .pf-contrib-pct.down { color: var(--red); }
+
+@media (max-width: 640px) {
+  .pf-contrib-row {
+    grid-template-columns: minmax(54px, .8fr) repeat(3, minmax(62px, 1fr));
+    gap: 6px;
+    font-size: .74rem;
+  }
+
+  .pf-contrib-price,
+  .pf-contrib-dollar {
+    font-size: .7rem;
+  }
+}
 
 /* ── Stacked Allocation Bar ── */
 

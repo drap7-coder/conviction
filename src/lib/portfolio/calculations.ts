@@ -272,6 +272,7 @@ export function getDailyContributors(
       const entry: DailyContribution = {
         ticker: pos.companyId.toUpperCase(),
         companyName: pos.companyId.toUpperCase(),
+        priceChange: (pos.currentPrice ?? 0) - (pos.previousClose ?? 0),
         dollarChange: change,
         percentChange: pct,
       };
