@@ -94,7 +94,7 @@ describe("news evidence", () => {
     const driver = buildNewsDriver([
       headline("Oil rises on Middle East supply fears as markets open"),
       headline("Pfizer updates investors on its product pipeline"),
-    ], "PFE", "Pfizer", "Health Care");
+    ], "PFE", "Pfizer");
 
     expect(driver?.label).not.toBe("Oil sensitivity");
     expect(driver?.explanation).not.toMatch(/oil|geopolitical/i);

@@ -161,12 +161,6 @@ export default function MarketsPage() {
             </div>
             <div className="watchlist-list">
               {group.items.map((item) => {
-                const direction =
-                  !item.change || item.change === 0
-                    ? "neutral"
-                    : item.change > 0
-                      ? "positive"
-                      : "negative";
                 const sparklinePath = buildSparklinePath(item.sparkline);
                 return (
                   <div key={item.ticker} className="terminal-card-wrap group">
@@ -180,17 +174,26 @@ export default function MarketsPage() {
                         </div>
                         <div className="watchlist-row-move">
                           <span className="watchlist-row-period">Today</span>
-                          <strong>{item.price != null ? compactCurrency(item.price) : "—"}</strong>
-                          <span className={direction}>
-                            {item.change != null && item.changePercent != null
-                              ? `${item.change > 0 ? "+" : ""}${compactCurrency(item.change)} · ${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(2)}%`
-                              : "—"}
+                          <span className="watchlist-row-move-amounts">
+                            <strong>
+                              {item.change !== null ? (
+                                <span className={"watchlist-row-arrow " + (item.change > 0 ? "up" : "down")}>
+                                  {item.change > 0 ? "▲ " : "▼ "}
+                                </span>
+                              ) : null}
+                              {item.price != null ? `$${item.price.toLocaleString(undefined, { maximumFractionDigits: item.price >= 100 ? 2 : 3, minimumFractionDigits: item.price >= 1 ? 2 : 3 })}` : "—"}
+                            </strong>
+                            <span className={"watchlist-row-change " + (item.change !== null && item.change > 0 ? "positive" : item.change !== null && item.change < 0 ? "negative" : "neutral")}>
+                              {item.change != null && item.changePercent != null
+                                ? `${item.change > 0 ? "+" : ""}$${Math.abs(item.change).toFixed(2)} · ${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(2)}%`
+                                : "—"}
+                            </span>
                           </span>
                         </div>
                       </div>
 
                       {sparklinePath ? (
-                        <div className={"watchlist-row-chart price-chart " + direction} aria-label={item.ticker + " intraday chart"}>
+                        <div className={"watchlist-row-chart price-chart " + (item.change !== null && item.change > 0 ? "positive" : item.change !== null && item.change < 0 ? "negative" : "neutral")} aria-label={item.ticker + " intraday chart"}>
                           <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
                             <path className="price-chart-glow" d={sparklinePath} />
                             <path className="price-chart-line" d={sparklinePath} />
