@@ -18,6 +18,9 @@ interface ConvictionBadgeProps {
 export function ConvictionBadge({ snapshot, className = "", compact = false }: ConvictionBadgeProps) {
   const badge = useMemo(() => getConvictionBadge(snapshot), [snapshot]);
 
+  // Low-coverage badges add noise without giving the user an actionable signal.
+  if (badge.verdict === "Insufficient") return null;
+
   if (compact) {
     return (
       <span className={`watchlist-row-state watchlist-row-state-${badge.tone} ${className}`}>

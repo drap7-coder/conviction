@@ -97,15 +97,18 @@ export function TechnicalStateCard({ history, status, currentPrice }: TechnicalS
   const sma200Bullish = bullishLabel(technicalState.sma200Delta);
   const sma50DeltaStr = formatDelta(technicalState.sma50Delta);
   const sma200DeltaStr = formatDelta(technicalState.sma200Delta);
+  const showStateLabel = technicalState.label !== "Insufficient Data";
 
   return (
     <div className="technical-state-card" aria-label="Technical state">
-      <div className="technical-state-header">
-        <span className={`technical-state-label ${cls}`}>
-          <span className="state-dot" />
-          {technicalState.label}
-        </span>
-      </div>
+      {showStateLabel ? (
+        <div className="technical-state-header">
+          <span className={`technical-state-label ${cls}`}>
+            <span className="state-dot" />
+            {technicalState.label}
+          </span>
+        </div>
+      ) : null}
       <p className="technical-state-interp">{technicalState.interpretation}</p>
       <div className="technical-state-grid">
         {/* SMA-50: verdict first */}
