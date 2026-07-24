@@ -74,6 +74,15 @@
   box-sizing: border-box;
 }
 
+/* ── Utility classes ── */
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* ── Document ── */
+
 html, body {
   min-height: 100vh;
   background: var(--bg);
@@ -334,38 +343,41 @@ details > summary::before {
   50% { opacity: 0; }
 }
 
-@keyframes flap {
-  0% {
-    transform: perspective(500px) rotateX(0deg);
-    opacity: 1;
-  }
-  49% {
-    transform: perspective(500px) rotateX(-90deg);
-    opacity: 0.65;
-  }
-  50% {
-    transform: perspective(500px) rotateX(90deg);
-    opacity: 0.65;
-  }
-  100% {
-    transform: perspective(500px) rotateX(0deg);
-    opacity: 1;
-  }
-}
+/* ── Motion ── */
 
-.animate-flap {
-  transform-origin: center;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  animation-name: flap;
-  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  animation-fill-mode: both;
-}
-
+/* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .animate-flap {
-    animation: none;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+}
+
+/* Allow split-flap animation only when data actually changes */
+.sf-char.animate-flap {
+  animation: flap 220ms ease-in-out;
+}
+
+@keyframes flap {
+  0% { transform: rotateX(0deg); opacity: 1; }
+  50% { transform: rotateX(90deg); opacity: 0.5; }
+  100% { transform: rotateX(0deg); opacity: 1; }
+}
+
+/* Brief directional accent — green/red only for market direction */
+.directional-accent {
+  transition: color 0.3s ease;
+}
+
+.directional-accent.active {
+  transition: color 0.05s ease;
+}
+
+/* No first-load animations, no card entrance animations, no bounce/spring */
+.live-pulse {
+  transition: opacity 0.2s ease;
 }
 
 .app-title .accent-dot {
@@ -1457,6 +1469,8 @@ details > summary::before {
 
   .watchlist-row-move-amounts strong {
     font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
   }
 
   .watchlist-row-move-amounts > span {
@@ -3526,6 +3540,7 @@ details > summary::before {
   color: var(--ink);
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .market-state-change {
@@ -3535,6 +3550,8 @@ details > summary::before {
   font-family: var(--font-mono);
   font-size: 0.72rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .market-state-change.up { color: var(--green); }
@@ -3557,6 +3574,22 @@ details > summary::before {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
+/* ── Market state freshness ── */
+
+.market-state-freshness {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  margin-left: 6px;
+  opacity: 0.7;
+}
+
+.freshness-live { color: var(--green); }
+.freshness-recent { color: var(--muted); }
+.freshness-delayed { color: var(--amber); opacity: 0.75; }
+.freshness-stale { color: var(--red); opacity: 0.6; }
+.freshness-unavailable { color: var(--quiet); }
 
 /* ── Evidence summary ── */
 
@@ -4374,12 +4407,16 @@ details > summary::before {
   gap: 14px;
   flex-wrap: wrap;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .pf-hero-change {
   font-size: 1rem;
   font-weight: 700;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .pf-hero-change.up {
@@ -4974,8 +5011,8 @@ details > summary::before {
 .pf-num {
   text-align: right;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
-  -webkit-font-feature-settings: "tnum" 1;
 }
 
 .pf-num.up { color: var(--green); }
@@ -5134,6 +5171,8 @@ details > summary::before {
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .pf-sc-value.up { color: var(--green); }
@@ -5430,6 +5469,8 @@ details > summary::before {
   font-size: 1.1rem;
   font-weight: 700;
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .pf-driver-up .pf-driver-impact {
@@ -5445,6 +5486,8 @@ details > summary::before {
   color: var(--quiet);
   line-height: 1.3;
   margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 /* ── Mobile responsive overrides ── */
@@ -6852,7 +6895,6 @@ details > summary::before {
   gap: 1px;
   min-width: 0;
   overflow: hidden;
-  font-variant-numeric: tabular-nums;
 }
 
 .sf-char {
@@ -6862,6 +6904,8 @@ details > summary::before {
   color: var(--ink);
   line-height: 1.2;
   min-width: 0;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .sf-change {
@@ -7073,6 +7117,8 @@ details > summary::before {
   flex-wrap: wrap;
   font-family: var(--font-mono);
   font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .pulse-attn-meta .up { color: var(--green); }
@@ -7171,6 +7217,8 @@ details > summary::before {
   font-weight: 600;
   font-family: var(--font-mono);
   text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .pulse-sector-pct.strong.up { color: var(--green); }
@@ -7178,6 +7226,10 @@ details > summary::before {
 .pulse-sector-pct.flat { color: var(--quiet); }
 .pulse-sector-pct.strong.down { color: var(--red); }
 .pulse-sector-pct.moderate.down { color: var(--red); opacity: 0.6; }
+
+.pulse-sector-row .pulse-sector-pct.strong {
+  opacity: 0.85;
+}
 
 .pulse-sector-track {
   height: 4px;

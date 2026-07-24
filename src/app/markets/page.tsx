@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 import type { PulseData } from "@/app/api/market/pulse/route";
 import type { MacroDriverInsight } from "@/lib/market/macro-regime";
 import { SECTOR_CHARACTERISTICS } from "@/lib/market/sector-classification";
@@ -36,6 +35,16 @@ function confidenceLabel(c: "high" | "medium" | "low"): string {
   return "Low confidence";
 }
 
+function freshnessLabel(status: string): string {
+  switch (status) {
+    case "ready": return "LIVE";
+    case "proxy": return "15m";
+    case "delayed": return "DELAYED";
+    case "stale": return "STALE";
+    default: return "—";
+  }
+}
+
 function sectorChars(name: string): string[] {
   return (SECTOR_CHARACTERISTICS[name] ?? []).map((c) => {
     switch (c) {
@@ -46,6 +55,33 @@ function sectorChars(name: string): string[] {
     }
   });
 }
+
+function arrowFromDir(d: MacroDriverInsight["direction"]): string {
+  switch (d) {
+    case "rising": return "↑";
+    case "falling": return "↓";
+    case "flat": return "→";
+    case "mixed": return "↕";
+    case "unavailable": return "—";
+  }
+}
+
+// ── Fixed instrument config ──
+
+interface InstrumentConfig {
+  ticker: string;
+  label: string;
+  proxyLabel: string;
+}
+
+const INSTRUMENTS: InstrumentConfig[] = [
+  { ticker: "SPY", label: "S&P 500", proxyLabel: "S&P 500 (ETF proxy)" },
+  { ticker: "QQQ", label: "Nasdaq", proxyLabel: "Nasdaq (ETF proxy)" },
+  { ticker: "^VIX", label: "VIX", proxyLabel: "VIX" },
+  { ticker: "USO", label: "Oil", proxyLabel: "Oil (ETF proxy)" },
+  { ticker: "^TNX", label: "10Y Yield", proxyLabel: "10Y Yield" },
+  { ticker: "UUP", label: "Dollar", proxyLabel: "Dollar (ETF proxy)" },
+];
 
 // ── Page ──
 
@@ -93,81 +129,201 @@ export default function MarketPulsePage() {
     );
   }
 
-  const { macroRegime, sectorLeadership, triage, indicators, sectors } = data;
+  const { macroRegime, sectorLeadership, indicators, sectors } = data;
+
+  // Build a lookup from the API indicators
+  const indicatorMap = new Map(indicators.map((i) => [i.ticker, i]));
 
   // ── Render ──
 
   return (
     <div className="pulse">
 
-      {/* ════════════════ 1. BRIEFING HEADER ════════════════ */}
-      <section className="pulse-brief" aria-label="Market briefing">
-        <p className="pulse-brief-greeting">{greeting()}</p>
-        <p className="pulse-brief-summary">{macroRegime.summary}</p>
-        {macroRegime.missingInputs.length > 0 && (
-          <p className="pulse-brief-note">
-            Limited data: {macroRegime.missingInputs.join(", ")} unavailable.
-          </p>
-        )}
+      <style>{`
+        /* ── Instrument strip ── */
+        .pulse-instrument-greeting {
+          font-size: 1.75rem;
+          font-weight: 800;
+          color: var(--ink);
+          line-height: 1.2;
+          margin: 0 0 12px;
+        }
+        .pulse-instrument-strip {
+          display: grid;
+          grid-template-columns: repeat(6, 1fr);
+          gap: 8px;
+          margin-bottom: 16px;
+          min-width: 0;
+        }
+        .pulse-instrument-cell {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 10px 10px 8px;
+          font-family: var(--font-mono);
+          font-variant-numeric: tabular-nums;
+          min-width: 0;
+          overflow: hidden;
+        }
+        .pulse-instrument-label {
+          font-size: 0.5rem;
+          font-weight: 600;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--quiet);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          margin-bottom: 4px;
+        }
+        .pulse-instrument-value {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: var(--ink);
+          line-height: 1.2;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .pulse-instrument-change {
+          font-size: 0.6rem;
+          font-weight: 600;
+          line-height: 1.3;
+        }
+        .pulse-instrument-change .up { color: var(--green); }
+        .pulse-instrument-change .down { color: var(--red); }
+        .pulse-instrument-change .flat { color: var(--quiet); }
+        .pulse-instrument-fresh {
+          font-size: 0.45rem;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+          line-height: 1.3;
+          margin-top: 2px;
+        }
+        .pulse-instrument-fresh.live { color: var(--green); }
+        .pulse-instrument-fresh.proxy { color: var(--accent); }
+        .pulse-instrument-fresh.delayed { color: var(--muted); }
+        .pulse-instrument-fresh.stale { color: var(--red); }
+        .pulse-instrument-fresh.none { color: var(--quiet); opacity: 0.4; }
+
+        /* ── Macro regime block ── */
+        .pulse-macro-block {
+          display: flex;
+          align-items: flex-start;
+          gap: 16px;
+          margin-bottom: 12px;
+        }
+        .pulse-macro-left {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 6px;
+          flex-shrink: 0;
+        }
+        .pulse-macro-conf {
+          font-size: 0.6rem;
+          color: var(--quiet);
+          font-family: var(--font-mono);
+          font-weight: 600;
+        }
+        .pulse-macro-summary {
+          font-size: 0.88rem;
+          color: var(--muted);
+          font-family: var(--font-mono);
+          line-height: 1.5;
+          margin: 0;
+          padding-top: 2px;
+        }
+
+        @media (max-width: 767px) {
+          .pulse-instrument-greeting { font-size: 1.45rem; }
+          .pulse-instrument-strip {
+            grid-template-columns: repeat(3, 1fr);
+          }
+          .pulse-instrument-cell { padding: 8px 8px 6px; }
+          .pulse-instrument-value { font-size: 0.85rem; }
+          .pulse-instrument-label { font-size: 0.45rem; }
+          .pulse-instrument-change { font-size: 0.5rem; }
+          .pulse-macro-block { flex-direction: column; gap: 8px; }
+        }
+      `}</style>
+
+      {/* ════════════════ 1. GREETING ════════════════ */}
+      <p className="pulse-instrument-greeting">{greeting()}</p>
+
+      {/* ════════════════ 2. INSTRUMENT STRIP ════════════════ */}
+      <section className="pulse-instrument-strip" aria-label="Market instruments">
+        {INSTRUMENTS.map((cfg) => {
+          const ind = indicatorMap.get(cfg.ticker);
+          const price = ind?.price != null ? fmtPrice(ind.price, ind.isPercentValue) : "—";
+          const changePct = ind?.changePercent != null ? fmtPct(ind.changePercent) : null;
+          const isUp = ind?.changePercent !== null && ind?.changePercent !== undefined && (ind?.changePercent ?? 0) > 0;
+          const isDown = ind?.changePercent !== null && ind?.changePercent !== undefined && (ind?.changePercent ?? 0) < 0;
+          const dirArrow = isUp ? "▲" : isDown ? "▼" : null;
+          const label = ind?.status === "proxy" ? cfg.proxyLabel : cfg.label;
+          const fresh = freshnessLabel(ind?.status ?? "");
+          return (
+            <div key={cfg.ticker} className="pulse-instrument-cell">
+              <span className="pulse-instrument-label">{label}</span>
+              <span className="pulse-instrument-value">{price}</span>
+              <span className="pulse-instrument-change">
+                {dirArrow && changePct ? (
+                  <span className={isUp ? "up" : "down"}>
+                    {dirArrow} {changePct}
+                  </span>
+                ) : (
+                  <span className="flat">—</span>
+                )}
+              </span>
+              <span className={`pulse-instrument-fresh ${fresh === "LIVE" ? "live" : fresh === "15m" ? "proxy" : fresh === "DELAYED" ? "delayed" : fresh === "STALE" ? "stale" : "none"}`}>
+                {fresh}
+              </span>
+            </div>
+          );
+        })}
       </section>
 
-      {/* ════════════════ 2. MACRO REGIME ════════════════ */}
+      {/* ════════════════ 3. MACRO REGIME BLOCK ════════════════ */}
       <section className="pulse-card" aria-label="Macro regime">
-        <div className="pulse-card-header">
-          <h2 className="pulse-card-title">Macro Regime</h2>
-          <span className={`pulse-regime-badge pulse-regime-${macroRegime.confidence}`}>
-            {macroRegime.label}
-          </span>
+        <div className="pulse-macro-block">
+          <div className="pulse-macro-left">
+            <span className={`pulse-regime-badge pulse-regime-${macroRegime.confidence}`}>
+              {macroRegime.label}
+            </span>
+            <span className="pulse-macro-conf">{confidenceLabel(macroRegime.confidence)}</span>
+          </div>
+          <p className="pulse-macro-summary">{macroRegime.summary}</p>
         </div>
 
-        {/* Driver tags */}
         <div className="pulse-regime-drivers">
-          {macroRegime.drivers.map((d) => (
-            <span
-              key={d.id}
-              className={`pulse-regime-tag pulse-regime-${d.direction}`}
-              title={d.explanation}
-            >
-              {d.label}: {arrowFromDir(d.direction)}
+          {macroRegime.drivers.length > 0 ? (
+            macroRegime.drivers.map((d) => (
+              <span
+                key={d.id}
+                className={`pulse-regime-tag pulse-regime-${d.direction}`}
+                title={d.explanation}
+              >
+                {d.label}: {arrowFromDir(d.direction)}
+              </span>
+            ))
+          ) : (
+            <span className="pulse-regime-tag pulse-regime-unavailable">
+              Mixed
             </span>
-          ))}
+          )}
           {macroRegime.missingInputs.length > 0 && (
             <span className="pulse-regime-tag pulse-regime-unavailable" title="Missing data">
-              {macroRegime.missingInputs.length} unavailable
+              Insufficient data
             </span>
           )}
         </div>
-
-        <p className="pulse-regime-conf">
-          {confidenceLabel(macroRegime.confidence)} · {macroRegime.drivers.length} of 6 indicators available
-        </p>
       </section>
 
-      {/* ════════════════ 3. MARKET INDICATORS ════════════════ */}
-      <section className="pulse-card" aria-label="Market indicators">
-        <div className="pulse-card-header">
-          <h2 className="pulse-card-title">Market</h2>
-        </div>
-        <div className="pulse-strip-grid">
-          {indicators.map((ind) => {
-            const displayPrice = ind.price != null ? fmtPrice(ind.price, ind.isPercentValue) : "—";
-            const changeText = ind.changePercent != null ? fmtPct(ind.changePercent) : undefined;
-            const isPos = ind.changePercent !== null && ind.changePercent > 0 ? true : ind.changePercent !== null && ind.changePercent < 0 ? false : undefined;
-            const label = ind.status === "proxy" ? `${ind.label} (ETF proxy)` : ind.label;
-            return (
-              <SplitFlapMetric
-                key={ind.ticker}
-                value={displayPrice}
-                label={label}
-                change={changeText}
-                isPositive={isPos}
-              />
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ════════════════ 5. SECTOR LEADERSHIP ════════════════ */}
+      {/* ════════════════ 4. SECTOR LEADERSHIP ════════════════ */}
       <section className="pulse-card" aria-label="Sector leadership">
         <div className="pulse-card-header">
           <h2 className="pulse-card-title">Sector Leadership</h2>
@@ -216,14 +372,4 @@ export default function MarketPulsePage() {
 
     </div>
   );
-}
-
-function arrowFromDir(d: MacroDriverInsight["direction"]): string {
-  switch (d) {
-    case "rising": return "↑";
-    case "falling": return "↓";
-    case "flat": return "→";
-    case "mixed": return "↕";
-    case "unavailable": return "—";
-  }
 }

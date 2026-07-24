@@ -12,6 +12,7 @@ import {
   fmtPrice,
   fmtDollarPrice,
   fmtPercent,
+  fmtFreshness,
   isFiniteNumber,
 } from "@/lib/display/format";
 
@@ -56,6 +57,9 @@ export function MarketState({
           </span>
           <span className="market-state-change-pct">
             {fmtPercent(quote.dayChangePercent)}
+          </span>
+          <span className={`market-state-freshness freshness-${quote.freshness}`}>
+            {fmtFreshness(quote.freshness)}
           </span>
         </span>
       )}
