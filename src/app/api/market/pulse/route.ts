@@ -5,23 +5,31 @@ import { SECTORS } from "@/lib/market/industries";
 
 export const dynamic = "force-dynamic";
 
-const INDICATOR_TICKERS = ["SPY", "QQQ", "^TNX", "^VIX", "USO", "UUP"];
+export type DataStatus = "ready" | "proxy" | "delayed" | "stale" | "unsupported" | "error";
 
-const INDICATOR_NAMES: Record<string, string> = {
-  SPY: "S&P",
-  QQQ: "NASDAQ",
-  "^TNX": "10Y",
-  "^VIX": "VIX",
-  USO: "Oil",
-  UUP: "Dollar",
-};
+const INDICATORS: Array<{
+  ticker: string;
+  label: string;
+  status: DataStatus;
+  /** When true, the value is a percentage (e.g. yield) and should be displayed with a % suffix */
+  isPercentValue?: boolean;
+}> = [
+  { ticker: "SPY", label: "S&P 500", status: "proxy" },
+  { ticker: "QQQ", label: "Nasdaq", status: "proxy" },
+  { ticker: "^VIX", label: "VIX", status: "ready" },
+  { ticker: "USO", label: "Oil", status: "proxy" },
+  { ticker: "^TNX", label: "10Y Yield", status: "ready", isPercentValue: true },
+  { ticker: "UUP", label: "Dollar", status: "proxy" },
+];
 
 export interface PulseIndicator {
   ticker: string;
-  name: string;
+  label: string;
   price: number | null;
   change: number | null;
   changePercent: number | null;
+  status: DataStatus;
+  isPercentValue: boolean;
 }
 
 export interface PulseSector {
@@ -52,21 +60,29 @@ export async function GET() {
     .map((e) => e.ticker);
 
   const sectorTickers = SECTORS.map((s) => s.ticker);
-  const allTickers = [...INDICATOR_TICKERS, ...sectorTickers, ...watchlistTickers];
+  const allTickers = [
+    ...INDICATORS.map((i) => i.ticker),
+    ...sectorTickers,
+    ...watchlistTickers,
+  ];
   const quotes = await fetchStockQuotes(allTickers);
   const quoteMap = new Map(quotes.map((q) => [q.ticker, q]));
 
-  const indicators: PulseIndicator[] = INDICATOR_TICKERS.map((ticker) => {
-    const q = quoteMap.get(ticker);
+  // ── Indicators with normalized type and status ──
+  const indicators: PulseIndicator[] = INDICATORS.map((indicator) => {
+    const q = quoteMap.get(indicator.ticker);
     return {
-      ticker,
-      name: INDICATOR_NAMES[ticker] ?? ticker,
+      ticker: indicator.ticker,
+      label: indicator.label,
+      status: indicator.status,
+      isPercentValue: indicator.isPercentValue ?? false,
       price: q?.price ?? null,
       change: q?.change ?? null,
       changePercent: q?.changePercent ?? null,
     };
   });
 
+  // ── Sectors (sorted by performance) ──
   const sectors: PulseSector[] = SECTORS.map((sector) => {
     const q = quoteMap.get(sector.ticker);
     return {
@@ -77,6 +93,7 @@ export async function GET() {
   });
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
 
+  // ── Watchlist ──
   const watchlistItems: PulseWatchlistItem[] = watchlistTickers.map((ticker) => {
     const q = quoteMap.get(ticker);
     const entry = watchlist.find((e) => e.ticker === ticker);
