@@ -19,10 +19,7 @@
   --amber: #ffb000;
   --amber-dim: rgba(255, 176, 0, 0.12);
   --amber-400: #fbbf24;
-  --positive: #00ff88;
-  --negative: #ff386a;
-  --rounded-xl: 12px; /* New: consistent border radius */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* New: subtle shadow */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --radius: 12px;
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -436,7 +433,7 @@ details > summary::before {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .section-title {
@@ -465,13 +462,13 @@ details > summary::before {
 }
 
 .trending-section {
-  margin: 18px 0 22px;
+  margin: 20px 0 24px;
 }
 
 /* ── Industries Page ── */
 
 .industries-section {
-  margin: 18px 0 22px;
+  margin: 20px 0 24px;
 }
 
 .industries-grid {
@@ -522,7 +519,7 @@ details > summary::before {
 .auth-button {
   flex-shrink: 0;
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius);
   padding: 8px 12px;
   color: var(--ink);
   font-size: 0.82rem;
@@ -775,7 +772,7 @@ details > summary::before {
   overflow-y: auto;
   background: var(--surface-elevated);
   border: 1px solid var(--border);
-  border-radius: var(--rounded-xl);
+  border-radius: var(--radius);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
 }
 
@@ -843,7 +840,7 @@ details > summary::before {
   min-height: 34px;
   margin-top: 10px;
   border: 1px solid var(--border-active);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--surface);
   color: var(--ink);
   font-family: var(--font-mono);
@@ -907,13 +904,12 @@ details > summary::before {
   position: relative;
   display: grid;
   gap: 8px;
-  padding: 10px 16px 14px;
+  padding: 14px 16px;
   color: inherit;
   text-decoration: none;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--rounded-xl);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--radius);
   transition: border-color 0.15s, background-color 0.15s;
   height: 100%;
 }
@@ -1534,7 +1530,7 @@ details > summary::before {
     linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 74%, transparent), transparent 42%),
     var(--surface);
   border: 1px solid color-mix(in srgb, var(--border-active) 42%, var(--border));
-  border-radius: var(--rounded-xl);
+  border-radius: var(--radius);
   padding: 16px;
   box-shadow: var(--shadow-sm);
   transition: all 0.2s;
@@ -4180,7 +4176,7 @@ details > summary::before {
 
 .empty-state {
   text-align: center;
-  padding: 40px 20px;
+  padding: 48px 20px;
 }
 
 .empty-state p {
@@ -4191,6 +4187,10 @@ details > summary::before {
 .empty-state small {
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.empty-state.compact {
+  padding: 28px 16px;
 }
 
 .bt-8 { margin-top: 8px; }
@@ -4351,7 +4351,7 @@ details > summary::before {
 /* ── Hero ── */
 
 .pf-hero {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .pf-hero-label {
@@ -4396,7 +4396,7 @@ details > summary::before {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .pf-loading {
@@ -4414,7 +4414,7 @@ details > summary::before {
 .pf-refresh-btn {
   padding: 4px 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--quiet);
   font-size: 0.75rem;
@@ -4441,19 +4441,19 @@ details > summary::before {
 }
 
 .pf-section-title {
+  font-family: var(--font-mono);
   font-size: 0.7rem;
   font-weight: 700;
-  color: var(--quiet);
+  color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
   margin-bottom: 10px;
 }
 
 .pf-exposure-card {
   padding: 22px;
   border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius);
   background: color-mix(in srgb, var(--surface) 88%, transparent);
 }
 
@@ -4802,7 +4802,7 @@ details > summary::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .pf-positions-header .pf-section-title {
@@ -4812,7 +4812,7 @@ details > summary::before {
 .pf-add-toggle {
   padding: 4px 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--green);
   font-size: 0.72rem;
@@ -4841,7 +4841,7 @@ details > summary::before {
   padding: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .pf-add-field {
@@ -4887,7 +4887,7 @@ details > summary::before {
 .pf-add-btn {
   padding: 6px 16px;
   border: 1px solid var(--green);
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: var(--green-dim);
   color: var(--green);
   font-size: 0.78rem;
@@ -4905,7 +4905,7 @@ details > summary::before {
 .pf-add-cancel {
   padding: 6px 12px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--quiet);
   font-size: 0.78rem;
@@ -5016,7 +5016,7 @@ details > summary::before {
 .pf-action-btn {
   padding: 2px 6px;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--quiet);
   font-size: 0.82rem;
@@ -5046,10 +5046,10 @@ details > summary::before {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px;
+  padding: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 /* Top row: identity | quote */
@@ -5172,7 +5172,7 @@ details > summary::before {
 .pf-clear-btn {
   padding: 5px 14px;
   border: 1px solid var(--red-dim);
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: transparent;
   color: var(--quiet);
   font-size: 0.72rem;
@@ -5353,7 +5353,7 @@ details > summary::before {
 
 .pf-attention-card {
   border: 1px dashed var(--accent-dim);
-  border-radius: 10px;
+  border-radius: var(--radius);
   padding: 18px;
   background: color-mix(in srgb, var(--accent) 4%, transparent);
 }
@@ -5389,8 +5389,8 @@ details > summary::before {
   display: flex;
   flex-direction: column;
   gap: 3px;
-  padding: 14px;
-  border-radius: 10px;
+  padding: 16px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--surface);
   font-family: var(--font-mono);
@@ -6144,7 +6144,7 @@ details > summary::before {
 .thesis-tracker-panel {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--rounded-xl);
+  border-radius: var(--radius);
   padding: 16px;
   margin-top: 16px;
   box-shadow: var(--shadow-sm);
@@ -6328,7 +6328,7 @@ details > summary::before {
   background: var(--surface);
   border: 1px solid var(--border);
   border-left: 4px solid var(--amber);
-  border-radius: var(--rounded-xl);
+  border-radius: var(--radius);
   padding: 14px;
   box-shadow: var(--shadow-sm);
   transition: border-color 0.15s, background-color 0.15s;
@@ -6758,7 +6758,7 @@ details > summary::before {
 
 .pulse-empty {
   text-align: center;
-  padding: 64px 20px;
+  padding: 48px 20px;
 }
 
 .pulse-empty-text {
@@ -6780,7 +6780,7 @@ details > summary::before {
 .pulse-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 24px;
 }
 
@@ -6788,7 +6788,7 @@ details > summary::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .pulse-card-title {
@@ -6805,7 +6805,7 @@ details > summary::before {
 .pulse-strip-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
