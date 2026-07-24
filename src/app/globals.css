@@ -4982,6 +4982,248 @@ details > summary::before {
   border-color: var(--red-dim);
 }
 
+/* ── Hero enhancements ── */
+
+.pf-hero-total {
+  font-size: inherit;
+}
+
+.pf-hero-secondary {
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+
+.pf-hero-secondary.up { color: var(--green); }
+.pf-hero-secondary.down { color: var(--red); }
+
+.pf-hero-note {
+  font-weight: 400;
+  color: var(--quiet);
+  font-size: 0.72rem;
+}
+
+/* ── Data-quality state cards ── */
+
+.pf-state-card {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.pf-state-warn {
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  border: 1px solid var(--red-dim);
+  color: var(--muted);
+}
+
+.pf-state-info {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border: 1px solid var(--accent-dim);
+  color: var(--muted);
+}
+
+/* ── Sort buttons ── */
+
+.pf-sort-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  transition: opacity 0.15s;
+}
+
+.pf-sort-btn:hover {
+  opacity: 0.75;
+}
+
+/* ── Portfolio Check ── */
+
+.pf-check-card {
+  margin-bottom: 24px;
+}
+
+.pf-check-header {
+  margin-bottom: 10px;
+}
+
+.pf-check-header .pf-section-title {
+  margin-bottom: 0;
+}
+
+.pf-check-items {
+  display: grid;
+  gap: 8px;
+}
+
+.pf-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.pf-check-warn {
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  border: 1px solid var(--red-dim);
+}
+
+.pf-check-note {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border: 1px solid var(--accent-dim);
+}
+
+.pf-check-info {
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border: 1px solid var(--accent-dim);
+}
+
+.pf-check-clear {
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green) 30%, transparent);
+}
+
+.pf-check-tag {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 1px;
+  background: var(--surface-elevated);
+  color: var(--quiet);
+}
+
+.pf-check-warn .pf-check-tag {
+  color: var(--red);
+  border: 1px solid var(--red-dim);
+}
+
+.pf-check-text {
+  color: var(--muted);
+  min-width: 0;
+}
+
+.pf-check-text strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ── What's Driving Your Portfolio ── */
+
+.pf-drivers-section {
+  margin-bottom: 24px;
+}
+
+.pf-drivers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.pf-driver-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-mono);
+}
+
+.pf-driver-up {
+  border-left: 3px solid var(--green);
+}
+
+.pf-driver-down {
+  border-left: 3px solid var(--red);
+}
+
+.pf-driver-empty {
+  border-left: 3px solid var(--border);
+  align-items: center;
+  padding: 20px 14px;
+}
+
+.pf-driver-label {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--quiet);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pf-driver-ticker {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--ink);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.pf-driver-impact {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pf-driver-up .pf-driver-impact {
+  color: var(--green);
+}
+
+.pf-driver-down .pf-driver-impact {
+  color: var(--red);
+}
+
+.pf-driver-secondary {
+  font-size: 0.68rem;
+  color: var(--quiet);
+  line-height: 1.3;
+  margin-top: 2px;
+}
+
+/* ── Mobile responsive overrides ── */
+
+@media (max-width: 640px) {
+  .pf-drivers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pf-check-item {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pf-sc-grid {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .pf-sc-grid-item {
+    padding: 5px 6px;
+  }
+
+  .pf-sc-grid-item:nth-child(4) { grid-column: 1; }
+  .pf-sc-grid-item:nth-child(5) { grid-column: 2; }
+  .pf-sc-grid-item:nth-child(6) { grid-column: 3; }
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 640px) {

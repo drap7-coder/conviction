@@ -10,7 +10,10 @@ import type {
   PortfolioMetrics,
   PositionMetrics,
   DailyContribution,
+  ContributionRanking,
+  ReturnContribution,
   ConcentrationResult,
+  PortfolioRiskFlags,
   SectorAllocation,
   SectorAllocationResult,
   CompanyRecord,
@@ -237,14 +240,45 @@ export function computePortfolioMetrics(
   ).length;
   const positionsMissingPrice = positions.length - positionsWithPrice;
 
+  // ── Cost-basis and unrealized G/L ──
+  let totalCostBasis = 0;
+  let hasCost = false;
+  let totalUnrealizedGL = 0;
+  let hasGL = false;
+  let positionsWithCost = 0;
+
+  for (const pos of positions) {
+    const cost = calculatePositionTotalCost(pos.shares, pos.averageCost);
+    if (cost !== null) {
+      totalCostBasis += cost;
+      positionsWithCost += 1;
+      hasCost = true;
+    }
+    const mv = calculatePositionMarketValue(pos.shares, pos.currentPrice);
+    if (cost !== null && mv !== null) {
+      totalUnrealizedGL += mv - cost;
+      hasGL = true;
+    }
+  }
+
+  const totalUnrealizedGLPercent = calculatePositionGainLossPercent(
+    hasGL ? totalUnrealizedGL : null,
+    hasCost ? totalCostBasis : null,
+  );
+
   return {
     totalMarketValue,
     dailyChange,
     dailyChangePercent,
     priorPortfolioValue,
+    totalCostBasis: hasCost ? totalCostBasis : null,
+    totalUnrealizedGL: hasGL ? totalUnrealizedGL : null,
+    totalUnrealizedGLPercent,
     positionCount: positions.length,
     positionsWithPrice,
     positionsMissingPrice,
+    positionsWithCost,
+    positionsMissingCost: positions.length - positionsWithCost,
   };
 }
 
@@ -381,5 +415,144 @@ export function computeSectorAllocation(
     unclassifiedWeight,
     unclassifiedMarketValue: unclassifiedCount > 0 ? unclassifiedValue : null,
     unclassifiedPositionCount: unclassifiedCount,
+  };
+}
+
+// ── Contribution ranking (by dollar impact) ───────────────────────────────
+
+/**
+ * Get the top daily contributors sorted by absolute dollar change.
+ * Returns ranks by dollar impact, not percentage.
+ */
+export function getTopDailyContributors(
+  positions: PortfolioPosition[],
+): ContributionRanking[] {
+  const entries: ContributionRanking[] = [];
+
+  for (const pos of positions) {
+    const change = calculatePositionDailyChange(
+      pos.shares,
+      pos.currentPrice,
+      pos.previousClose,
+    );
+    if (change === null || change === 0) continue;
+
+    const pct = calculatePositionDailyChangePercent(pos.currentPrice, pos.previousClose) ?? 0;
+    const mv = calculatePositionMarketValue(pos.shares, pos.currentPrice);
+    const weight = totalMarketValueForWeight(mv, positions);
+
+    entries.push({
+      ticker: pos.companyId.toUpperCase(),
+      dollarChange: change,
+      percentChange: pct,
+      weight,
+    });
+  }
+
+  entries.sort((a, b) => Math.abs(b.dollarChange) - Math.abs(a.dollarChange));
+  return entries;
+}
+
+function totalMarketValueForWeight(
+  mv: number | null,
+  positions: PortfolioPosition[],
+): number | null {
+  if (mv === null) return null;
+  let total = 0;
+  let hasData = false;
+  for (const pos of positions) {
+    const pmv = calculatePositionMarketValue(pos.shares, pos.currentPrice);
+    if (pmv !== null) {
+      total += pmv;
+      hasData = true;
+    }
+  }
+  if (!hasData || total <= 0) return null;
+  return (mv / total) * 100;
+}
+
+/**
+ * Get top total-return contributors (unrealized gain/loss) sorted by
+ * absolute dollar impact. Only includes positions with valid cost basis.
+ */
+export function getTopReturnContributors(
+  positions: PortfolioPosition[],
+  totalMarketValue: number | null,
+): ReturnContribution[] {
+  const entries: ReturnContribution[] = [];
+
+  for (const pos of positions) {
+    const mv = calculatePositionMarketValue(pos.shares, pos.currentPrice);
+    const cost = calculatePositionTotalCost(pos.shares, pos.averageCost);
+    if (mv === null || cost === null) continue;
+
+    const dollarReturn = mv - cost;
+    if (dollarReturn === 0) continue;
+
+    const percentReturn = calculatePositionGainLossPercent(dollarReturn, cost);
+    const weight = calculatePositionWeight(mv, totalMarketValue);
+
+    entries.push({
+      ticker: pos.companyId.toUpperCase(),
+      dollarReturn,
+      percentReturn,
+      weight,
+    });
+  }
+
+  entries.sort((a, b) => Math.abs(b.dollarReturn) - Math.abs(a.dollarReturn));
+  return entries;
+}
+
+// ── Risk flags ────────────────────────────────────────────────────────────
+
+/**
+ * Compute explicit, rules-based risk flags for the Portfolio Check section.
+ * Uses only plain-language observations — no opaque scores.
+ *
+ * Rules:
+ * - Single-position concentration:   > 20% weight
+ * - Elevated position weight:        12–20% inclusive
+ * - Sector concentration:            > 35% sector weight
+ * - Top-three concentration flag:    combined > 60%
+ */
+export function computeRiskFlags(
+  positions: PortfolioPosition[],
+  metrics: PortfolioMetrics,
+  sectorAlloc: SectorAllocationResult,
+): PortfolioRiskFlags {
+  const weights = new Map<string, number>();
+
+  for (const pos of positions) {
+    const mv = calculatePositionMarketValue(pos.shares, pos.currentPrice);
+    if (mv === null) continue;
+    const w = calculatePositionWeight(mv, metrics.totalMarketValue);
+    if (w !== null) {
+      weights.set(pos.companyId.toUpperCase(), w);
+    }
+  }
+
+  const sorted = Array.from(weights.entries())
+    .map(([ticker, w]) => ({ ticker, weight: w }))
+    .sort((a, b) => b.weight - a.weight);
+
+  const singleConcentration = sorted.filter((p) => p.weight > 20);
+  const elevatedPositions = sorted.filter((p) => p.weight > 12 && p.weight <= 20);
+
+  const topThree = sorted.slice(0, 3);
+  const topThreeCombinedWeight = topThree.reduce((sum, p) => sum + p.weight, 0);
+
+  const sectorConcentration = sectorAlloc.sectors
+    .filter((s) => s.weight > 35)
+    .map((s) => ({ sector: s.sector, weight: s.weight }));
+
+  return {
+    singleConcentration,
+    elevatedPositions,
+    sectorConcentration,
+    topThreeExceedsSixty: topThreeCombinedWeight > 60,
+    topThreeCombinedWeight,
+    missingCostCount: metrics.positionsMissingCost,
+    missingPriceCount: metrics.positionsMissingPrice,
   };
 }

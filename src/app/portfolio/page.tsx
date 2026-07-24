@@ -2,8 +2,16 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadPositions, upsertPosition, removePosition, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
-import { computePortfolioMetrics, computePositionMetrics, getDailyContributors, computeSectorAllocation } from "@/lib/portfolio/calculations";
-import type { PortfolioPosition } from "@/lib/portfolio/types";
+import {
+  computePortfolioMetrics,
+  computePositionMetrics,
+  getDailyContributors,
+  computeSectorAllocation,
+  getTopDailyContributors,
+  getTopReturnContributors,
+  computeRiskFlags,
+} from "@/lib/portfolio/calculations";
+import type { PortfolioPosition, PortfolioRiskFlags, ContributionRanking, ReturnContribution } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
@@ -50,6 +58,21 @@ function percent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+function weightPct(value: number | null): string {
+  if (value === null) return "—";
+  return `${value.toFixed(0)}%`;
+}
+
+// ── Sort types ──────────────────────────────────────────────────────────────
+
+type SortKey = "ticker" | "value" | "weight" | "dayGl" | "totalGl";
+type SortDir = "asc" | "desc";
+
+interface SortState {
+  key: SortKey;
+  dir: SortDir;
+}
+
 // ── Convert persisted positions to PortfolioPosition with live prices ───────
 
 function enrichWithPrices(
@@ -82,6 +105,9 @@ export default function PortfolioPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [sort, setSort] = useState<SortState>({ key: "value", dir: "desc" });
+  // Track whether data has ever loaded successfully (for data-quality states)
+  const [quotesEverLoaded, setQuotesEverLoaded] = useState(false);
 
   // ── Add form state ──
   const [formTicker, setFormTicker] = useState("");
@@ -112,9 +138,10 @@ export default function PortfolioPage() {
         fetch(`/api/market/quotes?tickers=${tickers.join(",")}`),
         fetch(`/api/market/sector-profile?tickers=${tickers.join(",")}`),
       ]);
-      if (!quotesRes.ok) throw new Error("Failed to fetch quotes");
+      if (!quotesRes.ok) throw new Error("Quote data is temporarily unavailable");
       const quotesData = await quotesRes.json();
       setQuotes(quotesData.quotes ?? []);
+      setQuotesEverLoaded(true);
 
       if (profileRes.ok) {
         const profileData = await profileRes.json();
@@ -185,6 +212,66 @@ export default function PortfolioPage() {
   );
   const hasData = enriched.length > 0;
 
+  // ── Portfolio Intelligence V1 derived data ──
+
+  const dailyContribRanking = useMemo(
+    () => getTopDailyContributors(enriched),
+    [enriched],
+  );
+  const returnContribRanking = useMemo(
+    () => getTopReturnContributors(enriched, portfolioMetrics.totalMarketValue),
+    [enriched, portfolioMetrics.totalMarketValue],
+  );
+  const riskFlags = useMemo(
+    () => computeRiskFlags(enriched, portfolioMetrics, sectorAllocation),
+    [enriched, portfolioMetrics, sectorAllocation],
+  );
+
+  // ── Sorted positions ──
+
+  const sortedPositions = useMemo(() => {
+    const rows = enriched.map((pos) => {
+      const metrics = computePositionMetrics(pos, portfolioMetrics.totalMarketValue, portfolioMetrics.dailyChange);
+      const dailyPct = pos.currentPrice != null && pos.previousClose != null
+        ? ((pos.currentPrice - pos.previousClose) / pos.previousClose) * 100
+        : null;
+      return { pos, metrics, dailyPct };
+    });
+
+    rows.sort((a, b) => {
+      let cmp = 0;
+      const dir = sort.dir === "desc" ? -1 : 1;
+      switch (sort.key) {
+        case "ticker":
+          cmp = a.pos.companyId.localeCompare(b.pos.companyId);
+          break;
+        case "value":
+          cmp = (a.metrics.marketValue ?? 0) - (b.metrics.marketValue ?? 0);
+          break;
+        case "weight":
+          cmp = (a.metrics.weight ?? 0) - (b.metrics.weight ?? 0);
+          break;
+        case "dayGl":
+          cmp = (a.metrics.dailyChange ?? 0) - (b.metrics.dailyChange ?? 0);
+          break;
+        case "totalGl":
+          cmp = (a.metrics.totalGainLoss ?? 0) - (b.metrics.totalGainLoss ?? 0);
+          break;
+      }
+      return cmp * dir;
+    });
+
+    return rows;
+  }, [enriched, portfolioMetrics, sort]);
+
+  // ── Data-quality states ──
+
+  const hasQuotes = quotes.length > 0;
+  const quoteFetchFailed = !loading && error !== null;
+  const partialQuotes = hasQuotes && portfolioMetrics.positionsMissingPrice > 0;
+  const missingCost = portfolioMetrics.positionsMissingCost > 0;
+  const calcFailed = portfolioMetrics.totalMarketValue === null && hasData && !loading && !quoteFetchFailed;
+
   // ── Handlers ──
 
   function handleAdd(e: React.FormEvent) {
@@ -253,6 +340,18 @@ export default function PortfolioPage() {
     setShowAddForm(false);
   }
 
+  function toggleSort(key: SortKey) {
+    setSort((prev) => ({
+      key,
+      dir: prev.key === key && prev.dir === "desc" ? "asc" : "desc",
+    }));
+  }
+
+  function sortArrow(key: SortKey): string {
+    if (sort.key !== key) return "";
+    return sort.dir === "desc" ? " ↓" : " ↑";
+  }
+
   // ── Render ──
 
   return (
@@ -289,14 +388,26 @@ export default function PortfolioPage() {
           <div className="pf-hero">
             <span className="pf-hero-label">Portfolio</span>
             <div className="pf-hero-value">
-              {currency(portfolioMetrics.totalMarketValue)}
+              <span className="pf-hero-total">{currency(portfolioMetrics.totalMarketValue)}</span>
               {(portfolioMetrics.dailyChange ?? null) !== null && (
                 <span className={`pf-hero-change ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "up" : "down"}`}>
-                  {currency(portfolioMetrics.dailyChange)}{" "}
+                  {signedCurrency(portfolioMetrics.dailyChange)}{" "}
                   {percent(portfolioMetrics.dailyChangePercent)}
                 </span>
               )}
             </div>
+            {/* Unrealized G/L line */}
+            {portfolioMetrics.totalUnrealizedGL !== null && (
+              <div className={`pf-hero-secondary ${(portfolioMetrics.totalUnrealizedGL ?? 0) >= 0 ? "up" : "down"}`}>
+                Unrealized {signedCurrency(portfolioMetrics.totalUnrealizedGL)}
+                {portfolioMetrics.totalUnrealizedGLPercent !== null && (
+                  <> ({percent(portfolioMetrics.totalUnrealizedGLPercent)})</>
+                )}
+                {missingCost && (
+                  <span className="pf-hero-note"> · partial (cost basis missing for {portfolioMetrics.positionsMissingCost})</span>
+                )}
+              </div>
+            )}
           </div>
 
           {/* ── Loading / Error / Refresh ── */}
@@ -308,7 +419,157 @@ export default function PortfolioPage() {
             </button>
           </div>
 
-          {/* ── Daily Contributors ── */}
+          {/* ── Calculation failure state ── */}
+          {calcFailed && (
+            <div className="pf-state-card pf-state-warn">
+              Portfolio value could not be calculated. Prices may be unavailable.
+              <button className="pf-refresh-btn" onClick={handleRefresh} style={{ marginLeft: 10 }}>
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* ── Partial quote warning ── */}
+          {partialQuotes && !calcFailed && (
+            <div className="pf-state-card pf-state-warn">
+              Prices are unavailable for {portfolioMetrics.positionsMissingPrice} position{portfolioMetrics.positionsMissingPrice > 1 ? "s" : ""}. Displayed totals and changes reflect only positions with current prices.
+            </div>
+          )}
+
+          {/* ── Missing cost basis note ── */}
+          {missingCost && portfolioMetrics.totalUnrealizedGL !== null && !calcFailed && (
+            <div className="pf-state-card pf-state-info">
+              Return calculations cover {portfolioMetrics.positionsWithCost} of {portfolioMetrics.positionCount} positions. Add an average cost to {portfolioMetrics.positionsMissingCost} position{portfolioMetrics.positionsMissingCost > 1 ? "s" : ""} for full coverage.
+            </div>
+          )}
+
+          {/* ── Portfolio Check (risk flags) ── */}
+          {!calcFailed && (
+            <section className="pf-section pf-check-card" aria-label="Portfolio check">
+              <div className="pf-check-header">
+                <h2 className="pf-section-title">Portfolio Check</h2>
+              </div>
+              <div className="pf-check-items">
+                {/* Single-position concentration */}
+                {riskFlags.singleConcentration.length > 0 && riskFlags.singleConcentration.map((p) => (
+                  <div key={p.ticker} className="pf-check-item pf-check-warn">
+                    <span className="pf-check-tag">Position</span>
+                    <span className="pf-check-text">
+                      <strong>{p.ticker}</strong> represents <strong>{weightPct(p.weight)}</strong> of your portfolio.
+                    </span>
+                  </div>
+                ))}
+                {/* Elevated position weights */}
+                {riskFlags.elevatedPositions.length > 0 && riskFlags.elevatedPositions.map((p) => (
+                  <div key={p.ticker} className="pf-check-item pf-check-note">
+                    <span className="pf-check-tag">Note</span>
+                    <span className="pf-check-text">
+                      <strong>{p.ticker}</strong> is <strong>{weightPct(p.weight)}</strong> of the portfolio.
+                    </span>
+                  </div>
+                ))}
+                {/* Sector concentration */}
+                {riskFlags.sectorConcentration.length > 0 && riskFlags.sectorConcentration.map((s) => (
+                  <div key={s.sector} className="pf-check-item pf-check-warn">
+                    <span className="pf-check-tag">Sector</span>
+                    <span className="pf-check-text">
+                      <strong>{s.sector}</strong> accounts for <strong>{weightPct(s.weight)}</strong> of invested assets.
+                    </span>
+                  </div>
+                ))}
+                {/* Top-three concentration */}
+                {riskFlags.topThreeExceedsSixty && (
+                  <div className="pf-check-item pf-check-warn">
+                    <span className="pf-check-tag">Diversification</span>
+                    <span className="pf-check-text">
+                      Your three largest positions account for <strong>{weightPct(riskFlags.topThreeCombinedWeight)}</strong> of the portfolio.
+                    </span>
+                  </div>
+                )}
+                {/* Missing data flags */}
+                {riskFlags.missingCostCount > 0 && (
+                  <div className="pf-check-item pf-check-info">
+                    <span className="pf-check-tag">Data</span>
+                    <span className="pf-check-text">
+                      Cost basis is missing for <strong>{riskFlags.missingCostCount}</strong> position{riskFlags.missingCostCount > 1 ? "s" : ""}.
+                    </span>
+                  </div>
+                )}
+                {riskFlags.missingPriceCount > 0 && (
+                  <div className="pf-check-item pf-check-info">
+                    <span className="pf-check-tag">Data</span>
+                    <span className="pf-check-text">
+                      Current price is unavailable for <strong>{riskFlags.missingPriceCount}</strong> position{riskFlags.missingPriceCount > 1 ? "s" : ""}.
+                    </span>
+                  </div>
+                )}
+                {/* All clear */}
+                {riskFlags.singleConcentration.length === 0 &&
+                 riskFlags.elevatedPositions.length === 0 &&
+                 riskFlags.sectorConcentration.length === 0 &&
+                 !riskFlags.topThreeExceedsSixty &&
+                 riskFlags.missingCostCount === 0 &&
+                 riskFlags.missingPriceCount === 0 && (
+                  <div className="pf-check-item pf-check-clear">
+                    <span className="pf-check-text">No concentration warnings. Your portfolio is well-diversified.</span>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* ── What's Driving Your Portfolio ── */}
+          {!calcFailed && (dailyContribRanking.length > 0 || returnContribRanking.length > 0) && (
+            <section className="pf-section pf-drivers-section" aria-label="What&apos;s driving your portfolio">
+              <h2 className="pf-section-title">What&apos;s Driving Your Portfolio</h2>
+              <div className="pf-drivers-grid">
+                {/* Top daily positive */}
+                {dailyContribRanking.filter((c) => c.dollarChange > 0).slice(0, 2).map((c) => (
+                  <div key={`day-pos-${c.ticker}`} className="pf-driver-card pf-driver-up">
+                    <span className="pf-driver-label">Today&apos;s top gainer</span>
+                    <span className="pf-driver-ticker">{c.ticker}</span>
+                    <span className="pf-driver-impact">{signedCurrency(c.dollarChange)}</span>
+                    <span className="pf-driver-secondary">{percent(c.percentChange)} · {weightPct(c.weight)} of portfolio</span>
+                  </div>
+                ))}
+                {/* Top daily negative */}
+                {dailyContribRanking.filter((c) => c.dollarChange < 0).slice(0, 2).map((c) => (
+                  <div key={`day-neg-${c.ticker}`} className="pf-driver-card pf-driver-down">
+                    <span className="pf-driver-label">Today&apos;s top decliner</span>
+                    <span className="pf-driver-ticker">{c.ticker}</span>
+                    <span className="pf-driver-impact">{signedCurrency(c.dollarChange)}</span>
+                    <span className="pf-driver-secondary">{percent(c.percentChange)} · {weightPct(c.weight)} of portfolio</span>
+                  </div>
+                ))}
+                {/* Top total gainer */}
+                {returnContribRanking.filter((c) => c.dollarReturn > 0).slice(0, 1).map((c) => (
+                  <div key={`ret-pos-${c.ticker}`} className="pf-driver-card pf-driver-up">
+                    <span className="pf-driver-label">Largest total gain</span>
+                    <span className="pf-driver-ticker">{c.ticker}</span>
+                    <span className="pf-driver-impact">{signedCurrency(c.dollarReturn)}</span>
+                    <span className="pf-driver-secondary">{c.percentReturn !== null ? percent(c.percentReturn) : "—"} · {weightPct(c.weight)} of portfolio</span>
+                  </div>
+                ))}
+                {/* Top total detractor */}
+                {returnContribRanking.filter((c) => c.dollarReturn < 0).slice(0, 1).map((c) => (
+                  <div key={`ret-neg-${c.ticker}`} className="pf-driver-card pf-driver-down">
+                    <span className="pf-driver-label">Largest total loss</span>
+                    <span className="pf-driver-ticker">{c.ticker}</span>
+                    <span className="pf-driver-impact">{signedCurrency(c.dollarReturn)}</span>
+                    <span className="pf-driver-secondary">{c.percentReturn !== null ? percent(c.percentReturn) : "—"} · {weightPct(c.weight)} of portfolio</span>
+                  </div>
+                ))}
+                {/* No data */}
+                {dailyContribRanking.length === 0 && returnContribRanking.length === 0 && (
+                  <div className="pf-driver-card pf-driver-empty">
+                    <span className="pf-driver-secondary">Add price data to see what&apos;s driving your returns.</span>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* ── Daily Contributors (condensed) ── */}
           {contributors.positive.length > 0 || contributors.negative.length > 0 ? (
             <div className="pf-section">
               <h2 className="pf-section-title">Today&apos;s Biggest Movers</h2>
@@ -374,27 +635,44 @@ export default function PortfolioPage() {
             </div>
           )}
 
-          {/* ── Holdings Table ── */}
+          {/* ── Holdings Table (desktop) ── */}
           <div className="pf-table-wrap">
             <table className="pf-table">
               <thead>
                 <tr>
-                  <th>Company</th>
+                  <th>
+                    <button className="pf-sort-btn" onClick={() => toggleSort("ticker")}>
+                      Company{sortArrow("ticker")}
+                    </button>
+                  </th>
+                  <th className="pf-num">Shares</th>
                   <th className="pf-num">Price</th>
-                  <th className="pf-num">Chg</th>
-                  <th className="pf-num">Value</th>
-                  <th className="pf-num">Alloc</th>
+                  <th className="pf-num">
+                    <button className="pf-sort-btn" onClick={() => toggleSort("value")}>
+                      Value{sortArrow("value")}
+                    </button>
+                  </th>
+                  <th className="pf-num">
+                    <button className="pf-sort-btn" onClick={() => toggleSort("weight")}>
+                      Alloc{sortArrow("weight")}
+                    </button>
+                  </th>
+                  <th className="pf-num">
+                    <button className="pf-sort-btn" onClick={() => toggleSort("dayGl")}>
+                      Day Chg{sortArrow("dayGl")}
+                    </button>
+                  </th>
                   <th className="pf-num">Cost</th>
-                  <th className="pf-num">Gain/Loss</th>
+                  <th className="pf-num">
+                    <button className="pf-sort-btn" onClick={() => toggleSort("totalGl")}>
+                      Gain/Loss{sortArrow("totalGl")}
+                    </button>
+                  </th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                {enriched.map((pos) => {
-                  const metrics = computePositionMetrics(pos, portfolioMetrics.totalMarketValue, portfolioMetrics.dailyChange);
-                  const dailyPct = pos.currentPrice != null && pos.previousClose != null
-                    ? ((pos.currentPrice - pos.previousClose) / pos.previousClose) * 100
-                    : null;
+                {sortedPositions.map(({ pos, metrics, dailyPct }) => {
                   const logoUrl = getLogoUrl(pos.companyId);
 
                   return (
@@ -407,12 +685,13 @@ export default function PortfolioPage() {
                           <span className="pf-ticker">{pos.companyId.toUpperCase()}</span>
                         </div>
                       </td>
+                      <td className="pf-num">{pos.shares.toLocaleString()}</td>
                       <td className="pf-num">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</td>
+                      <td className="pf-num">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</td>
+                      <td className="pf-num">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</td>
                       <td className={`pf-num ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
                         {dailyPct != null ? percent(dailyPct) : "—"}
                       </td>
-                      <td className="pf-num">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</td>
-                      <td className="pf-num">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</td>
                       <td className="pf-num">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</td>
                       <td className={`pf-num ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
                         {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
@@ -430,11 +709,7 @@ export default function PortfolioPage() {
 
           {/* ── Mobile Cards (stacked) ── */}
           <div className="pf-cards-mobile">
-            {enriched.map((pos) => {
-              const metrics = computePositionMetrics(pos, portfolioMetrics.totalMarketValue, portfolioMetrics.dailyChange);
-              const dailyPct = pos.currentPrice != null && pos.previousClose != null
-                ? ((pos.currentPrice - pos.previousClose) / pos.previousClose) * 100
-                : null;
+            {sortedPositions.map(({ pos, metrics, dailyPct }) => {
               const logoUrl = getLogoUrl(pos.companyId);
 
               return (
@@ -455,7 +730,7 @@ export default function PortfolioPage() {
                     </div>
                   </div>
 
-                  {/* Mid row: two-column mini-grid */}
+                  {/* Mid row: three-column mini-grid (now includes shares) */}
                   <div className="pf-sc-grid">
                     <div className="pf-sc-grid-item">
                       <span className="pf-sc-label">Value</span>
@@ -466,8 +741,18 @@ export default function PortfolioPage() {
                       <span className="pf-sc-value">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
                     </div>
                     <div className="pf-sc-grid-item">
+                      <span className="pf-sc-label">Shares</span>
+                      <span className="pf-sc-value">{pos.shares.toLocaleString()}</span>
+                    </div>
+                    <div className="pf-sc-grid-item">
                       <span className="pf-sc-label">Cost Basis</span>
                       <span className="pf-sc-value">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</span>
+                    </div>
+                    <div className="pf-sc-grid-item">
+                      <span className="pf-sc-label">Day Chg</span>
+                      <span className={`pf-sc-value ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
+                        {dailyPct != null ? percent(dailyPct) : "—"}
+                      </span>
                     </div>
                     <div className="pf-sc-grid-item">
                       <span className="pf-sc-label">Gain/Loss</span>

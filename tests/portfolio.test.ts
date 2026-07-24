@@ -17,6 +17,9 @@ import {
   getDailyContributors,
   computeConcentration,
   computeSectorAllocation,
+  getTopDailyContributors,
+  getTopReturnContributors,
+  computeRiskFlags,
 } from "@/lib/portfolio/calculations";
 import type { PortfolioPosition, CompanyRecord } from "@/lib/portfolio/types";
 
@@ -492,5 +495,246 @@ describe("membership integrity", () => {
     // Both references point to the same company record
     expect(portfolioRef.companyId).toBe(watchlistRef.companyId);
     expect(portfolioRef.companyId).toBe(company.id);
+  });
+});
+
+// ──── Updated PortfolioMetrics ───────────────────────────────────────────────
+
+describe("computePortfolioMetrics (enhanced)", () => {
+  it("calculates total cost basis", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 100, previousClose: 98, averageCost: 50 }),
+      pos({ companyId: "B", shares: 5, currentPrice: 200, previousClose: 190, averageCost: 150 }),
+    ];
+    const metrics = computePortfolioMetrics(positions);
+    expect(metrics.totalMarketValue).toBe(2000);
+    expect(metrics.totalCostBasis).toBe(1250);
+    expect(metrics.totalUnrealizedGL).toBe(750);
+    expect(metrics.totalUnrealizedGLPercent).toBeCloseTo(60, 5);
+    expect(metrics.positionsWithCost).toBe(2);
+    expect(metrics.positionsMissingCost).toBe(0);
+  });
+
+  it("handles missing cost basis gracefully", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 100, previousClose: 98, averageCost: 50 }),
+      pos({ companyId: "B", shares: 5, currentPrice: 200, previousClose: 190, averageCost: undefined }),
+    ];
+    const metrics = computePortfolioMetrics(positions);
+    expect(metrics.totalCostBasis).toBe(500);
+    expect(metrics.totalUnrealizedGL).toBe(500);
+    expect(metrics.totalUnrealizedGLPercent).toBeCloseTo(100, 5);
+    expect(metrics.positionsWithCost).toBe(1);
+    expect(metrics.positionsMissingCost).toBe(1);
+  });
+
+  it("returns null unrealized GL when no cost basis exists", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 100, previousClose: 98, averageCost: undefined }),
+    ];
+    const metrics = computePortfolioMetrics(positions);
+    expect(metrics.totalCostBasis).toBeNull();
+    expect(metrics.totalUnrealizedGL).toBeNull();
+    expect(metrics.totalUnrealizedGLPercent).toBeNull();
+    expect(metrics.positionsWithCost).toBe(0);
+    expect(metrics.positionsMissingCost).toBe(1);
+  });
+
+  it("handles zero-value portfolio", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 0, currentPrice: 100, previousClose: 100, averageCost: 50 }),
+    ];
+    const metrics = computePortfolioMetrics(positions);
+    expect(metrics.totalMarketValue).toBe(0);
+    expect(metrics.totalCostBasis).toBe(0);
+    expect(metrics.totalUnrealizedGL).toBe(0);
+    expect(metrics.totalUnrealizedGLPercent).toBeNull();
+  });
+});
+
+// ──── Contribution Ranking ────────────────────────────────────────────────────
+
+describe("getTopDailyContributors", () => {
+  it("ranks by absolute dollar change", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 105, previousClose: 100 }),
+      pos({ companyId: "B", shares: 10, currentPrice: 48, previousClose: 50 }),
+      pos({ companyId: "C", shares: 10, currentPrice: 200, previousClose: 198 }),
+    ];
+    const ranked = getTopDailyContributors(positions);
+    expect(ranked).toHaveLength(3);
+    expect(ranked[0].ticker).toBe("A");
+    expect(ranked[0].dollarChange).toBe(50);
+    expect(ranked[1].ticker).toBe("B");
+    expect(ranked[1].dollarChange).toBe(-20);
+    expect(ranked[2].ticker).toBe("C");
+    expect(ranked[2].dollarChange).toBe(20);
+  });
+
+  it("handles positions with missing prices", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: null, previousClose: null }),
+    ];
+    expect(getTopDailyContributors(positions)).toHaveLength(0);
+  });
+
+  it("handles empty portfolio", () => {
+    expect(getTopDailyContributors([])).toHaveLength(0);
+  });
+
+  it("never returns NaN or infinite values", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 100, previousClose: 98 }),
+    ];
+    for (const entry of getTopDailyContributors(positions)) {
+      expect(isFinite(entry.dollarChange)).toBe(true);
+      expect(isFinite(entry.percentChange)).toBe(true);
+    }
+  });
+});
+
+describe("getTopReturnContributors", () => {
+  it("ranks total return by absolute dollar impact", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 200, previousClose: 190, averageCost: 100 }),
+      pos({ companyId: "B", shares: 5, currentPrice: 50, previousClose: 55, averageCost: 80 }),
+    ];
+    const ranked = getTopReturnContributors(positions, 2250);
+    expect(ranked).toHaveLength(2);
+    expect(ranked[0].ticker).toBe("A");
+    expect(ranked[0].dollarReturn).toBe(1000);
+    expect(ranked[1].ticker).toBe("B");
+    expect(ranked[1].dollarReturn).toBe(-150);
+  });
+
+  it("excludes positions missing cost basis", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 200, previousClose: 190, averageCost: undefined }),
+    ];
+    expect(getTopReturnContributors(positions, 2000)).toHaveLength(0);
+  });
+
+  it("handles empty portfolio", () => {
+    expect(getTopReturnContributors([], null)).toHaveLength(0);
+  });
+});
+
+// ──── Risk Flags ──────────────────────────────────────────────────────────────
+
+describe("computeRiskFlags", () => {
+  function makePositions(...weights: number[]): PortfolioPosition[] {
+    return weights.map((w, i) =>
+      pos({
+        companyId: String.fromCharCode(65 + i),
+        shares: w * 10,
+        currentPrice: 100,
+        previousClose: 100,
+      }),
+    );
+  }
+
+  it("flags positions above 20%", () => {
+    const positions = makePositions(30, 25, 20, 15, 10);
+    const metrics = computePortfolioMetrics(positions);
+    const alloc = computeSectorAllocation(positions, new Map());
+    const flags = computeRiskFlags(positions, metrics, alloc);
+
+    expect(flags.singleConcentration).toHaveLength(2);
+    expect(flags.singleConcentration[0].ticker).toBe("A");
+    expect(flags.singleConcentration[0].weight).toBeGreaterThan(20);
+  });
+
+  it("flags elevated positions between 12% and 20%", () => {
+    const positions = makePositions(15, 13, 12, 60);
+    const metrics = computePortfolioMetrics(positions);
+    const alloc = computeSectorAllocation(positions, new Map());
+    const flags = computeRiskFlags(positions, metrics, alloc);
+
+    expect(flags.elevatedPositions).toHaveLength(2);
+    expect(flags.singleConcentration).toHaveLength(1);
+  });
+
+  it("flags top-three concentration above 60%", () => {
+    const positions = makePositions(30, 20, 15, 20, 15);
+    const metrics = computePortfolioMetrics(positions);
+    const alloc = computeSectorAllocation(positions, new Map());
+    const flags = computeRiskFlags(positions, metrics, alloc);
+
+    expect(flags.topThreeExceedsSixty).toBe(true);
+    expect(flags.topThreeCombinedWeight).toBeGreaterThan(60);
+  });
+
+  it("flags sector concentration above 35%", () => {
+    const positions = [
+      pos({ companyId: "techCo", shares: 10, currentPrice: 100, previousClose: 100 }),
+      pos({ companyId: "otherCo", shares: 10, currentPrice: 50, previousClose: 50 }),
+    ];
+    const companyMap = new Map<string, CompanyRecord>([
+      ["techCo", { id: "techCo", ticker: "TECH", name: "Tech Co", assetType: "stock", sector: "Technology" }],
+      ["otherCo", { id: "otherCo", ticker: "OTHR", name: "Other Co", assetType: "stock", sector: "Consumer" }],
+    ]);
+    const metrics = computePortfolioMetrics(positions);
+    const alloc = computeSectorAllocation(positions, companyMap);
+    const flags = computeRiskFlags(positions, metrics, alloc);
+
+    expect(flags.sectorConcentration).toHaveLength(1);
+    expect(flags.sectorConcentration[0].sector).toBe("Technology");
+  });
+
+  it("handles empty portfolio without errors", () => {
+    const metrics = computePortfolioMetrics([]);
+    const alloc = computeSectorAllocation([], new Map());
+    const flags = computeRiskFlags([], metrics, alloc);
+
+    expect(flags.singleConcentration).toHaveLength(0);
+    expect(flags.elevatedPositions).toHaveLength(0);
+    expect(flags.sectorConcentration).toHaveLength(0);
+    expect(flags.topThreeExceedsSixty).toBe(false);
+    expect(flags.topThreeCombinedWeight).toBe(0);
+    expect(flags.missingCostCount).toBe(0);
+    expect(flags.missingPriceCount).toBe(0);
+  });
+
+  it("reports missing cost and price counts", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: 100, previousClose: 100, averageCost: 50 }),
+      pos({ companyId: "B", shares: 10, currentPrice: null, previousClose: null }),
+    ];
+    const metrics = computePortfolioMetrics(positions);
+    const alloc = computeSectorAllocation(positions, new Map());
+    const flags = computeRiskFlags(positions, metrics, alloc);
+
+    expect(flags.missingCostCount).toBe(1);
+    expect(flags.missingPriceCount).toBe(1);
+  });
+});
+
+// ──── NaN and Infinity Safety ─────────────────────────────────────────────────
+
+describe("display safety", () => {
+  it("no NaN or Infinity in position metrics for valid positions", () => {
+    const p = pos({ companyId: "AAPL", shares: 10, currentPrice: 200, previousClose: 195, averageCost: 150 });
+    const metrics = computePositionMetrics(p, 2000, 50);
+    for (const [key, val] of Object.entries(metrics)) {
+      if (val !== null) {
+        expect(isFinite(val as number)).toBe(true);
+      }
+    }
+  });
+
+  it("no NaN or Infinity in portfolio metrics for partial data", () => {
+    const positions = [
+      pos({ companyId: "A", shares: 10, currentPrice: null, previousClose: null }),
+    ];
+    const metrics = computePortfolioMetrics(positions);
+    expect(metrics.totalMarketValue).toBeNull();
+    expect(metrics.dailyChange).toBeNull();
+    expect(metrics.totalCostBasis).toBeNull();
+    expect(metrics.totalUnrealizedGL).toBeNull();
+  });
+
+  it("no NaN or Infinity in risk flags", () => {
+    const flags = computeRiskFlags([], computePortfolioMetrics([]), computeSectorAllocation([], new Map()));
+    expect(isFinite(flags.topThreeCombinedWeight)).toBe(true);
   });
 });

@@ -79,9 +79,59 @@ export interface PortfolioMetrics {
   dailyChange: number | null;
   dailyChangePercent: number | null;
   priorPortfolioValue: number | null;
+  /** Total cost basis across positions that have averageCost set */
+  totalCostBasis: number | null;
+  /** Total unrealized gain/loss across positions with both price and cost data */
+  totalUnrealizedGL: number | null;
+  /** Total unrealized gain/loss as percentage of totalCostBasis */
+  totalUnrealizedGLPercent: number | null;
   positionCount: number;
   positionsWithPrice: number;
   positionsMissingPrice: number;
+  /** Number of positions with a valid averageCost */
+  positionsWithCost: number;
+  /** Number of positions missing averageCost */
+  positionsMissingCost: number;
+}
+
+/**
+ * A daily-contribution entry ranked by dollar impact.
+ */
+export interface ContributionRanking {
+  ticker: string;
+  dollarChange: number;
+  percentChange: number;
+  weight: number | null;
+}
+
+/**
+ * A total-return contribution entry ranked by dollar impact.
+ */
+export interface ReturnContribution {
+  ticker: string;
+  dollarReturn: number;
+  percentReturn: number | null;
+  weight: number | null;
+}
+
+/**
+ * Explicit, rules-based risk flags for the Portfolio Check section.
+ */
+export interface PortfolioRiskFlags {
+  /** Positions above 20% weight */
+  singleConcentration: Array<{ ticker: string; weight: number }>;
+  /** Positions between 12% and 20% weight */
+  elevatedPositions: Array<{ ticker: string; weight: number }>;
+  /** Sectors above 35% weight */
+  sectorConcentration: Array<{ sector: string; weight: number }>;
+  /** Whether the top three positions exceed 60% combined */
+  topThreeExceedsSixty: boolean;
+  /** Actual top-three combined weight */
+  topThreeCombinedWeight: number;
+  /** Number of positions missing cost basis */
+  missingCostCount: number;
+  /** Number of positions missing price data */
+  missingPriceCount: number;
 }
 
 export interface DailyContribution {
