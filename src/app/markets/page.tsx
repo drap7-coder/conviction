@@ -4,18 +4,19 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { PulseData } from "@/app/api/market/pulse/route";
 import type { MacroDriverInsight } from "@/lib/market/macro-regime";
+import { isFiniteNumber } from "@/lib/display/format";
 import { SECTOR_CHARACTERISTICS } from "@/lib/market/sector-classification";
 
 // ── Helpers ──
 
 function fmtPct(value: number | null): string {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   const sign = value > 0 ? "+" : "";
   return `${sign}${value.toFixed(1)}%`;
 }
 
 function fmtPrice(value: number | null, isPercent: boolean): string {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   if (isPercent) return `${value.toFixed(2)}%`;
   if (value >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
   if (value >= 10) return value.toFixed(2);
@@ -210,33 +211,38 @@ export default function MarketPulsePage() {
         .pulse-instrument-fresh.stale { color: var(--red); }
         .pulse-instrument-fresh.none { color: var(--quiet); opacity: 0.4; }
 
-        /* ── Macro regime block ── */
-        .pulse-macro-block {
+        /* ── Macro regime bar ── */
+        .pulse-macro-bar {
           display: flex;
-          align-items: flex-start;
-          gap: 16px;
-          margin-bottom: 12px;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          margin-bottom: 16px;
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--radius);
+          font-family: var(--font-mono);
+          min-width: 0;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
         }
-        .pulse-macro-left {
-          display: flex;
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 6px;
+        .pulse-macro-bar-conf {
+          font-size: 0.58rem;
+          color: var(--quiet);
+          font-weight: 600;
+          white-space: nowrap;
           flex-shrink: 0;
         }
-        .pulse-macro-conf {
-          font-size: 0.6rem;
-          color: var(--quiet);
-          font-family: var(--font-mono);
-          font-weight: 600;
+        .pulse-macro-bar-sep {
+          color: var(--border);
+          font-size: 0.75rem;
+          flex-shrink: 0;
         }
-        .pulse-macro-summary {
-          font-size: 0.88rem;
-          color: var(--muted);
-          font-family: var(--font-mono);
-          line-height: 1.5;
-          margin: 0;
-          padding-top: 2px;
+        .pulse-macro-bar-drivers {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: nowrap;
         }
 
         @media (max-width: 767px) {
@@ -248,7 +254,7 @@ export default function MarketPulsePage() {
           .pulse-instrument-value { font-size: 0.85rem; }
           .pulse-instrument-label { font-size: 0.45rem; }
           .pulse-instrument-change { font-size: 0.5rem; }
-          .pulse-macro-block { flex-direction: column; gap: 8px; }
+          .pulse-macro-bar { gap: 8px; padding: 8px 10px; flex-wrap: wrap; }
         }
       `}</style>
 
@@ -287,19 +293,14 @@ export default function MarketPulsePage() {
         })}
       </section>
 
-      {/* ════════════════ 3. MACRO REGIME BLOCK ════════════════ */}
-      <section className="pulse-card" aria-label="Macro regime">
-        <div className="pulse-macro-block">
-          <div className="pulse-macro-left">
-            <span className={`pulse-regime-badge pulse-regime-${macroRegime.confidence}`}>
-              {macroRegime.label}
-            </span>
-            <span className="pulse-macro-conf">{confidenceLabel(macroRegime.confidence)}</span>
-          </div>
-          <p className="pulse-macro-summary">{macroRegime.summary}</p>
-        </div>
-
-        <div className="pulse-regime-drivers">
+      {/* ════════════════ 3. MACRO REGIME BAR ════════════════ */}
+      <div className="pulse-macro-bar" aria-label="Macro regime">
+        <span className={`pulse-regime-badge pulse-regime-${macroRegime.confidence}`}>
+          {macroRegime.label}
+        </span>
+        <span className="pulse-macro-bar-conf">{confidenceLabel(macroRegime.confidence)}</span>
+        <span className="pulse-macro-bar-sep" aria-hidden="true">|</span>
+        <div className="pulse-macro-bar-drivers">
           {macroRegime.drivers.length > 0 ? (
             macroRegime.drivers.map((d) => (
               <span
@@ -307,13 +308,11 @@ export default function MarketPulsePage() {
                 className={`pulse-regime-tag pulse-regime-${d.direction}`}
                 title={d.explanation}
               >
-                {d.label}: {arrowFromDir(d.direction)}
+                {d.label} {arrowFromDir(d.direction)}
               </span>
             ))
           ) : (
-            <span className="pulse-regime-tag pulse-regime-unavailable">
-              Mixed
-            </span>
+            <span className="pulse-regime-tag pulse-regime-unavailable">Mixed</span>
           )}
           {macroRegime.missingInputs.length > 0 && (
             <span className="pulse-regime-tag pulse-regime-unavailable" title="Missing data">
@@ -321,7 +320,7 @@ export default function MarketPulsePage() {
             </span>
           )}
         </div>
-      </section>
+      </div>
 
       {/* ════════════════ 4. SECTOR LEADERSHIP ════════════════ */}
       <section className="pulse-card" aria-label="Sector leadership">
