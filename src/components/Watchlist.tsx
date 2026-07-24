@@ -12,6 +12,9 @@ import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
+import { LivePulse } from "@/components/display/LivePulse";
+import { classifyFreshness } from "@/lib/display/format";
+import type { Freshness } from "@/lib/display/types";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -157,6 +160,11 @@ export default function Watchlist() {
   const [focusedTicker, setFocusedTicker] = useState<string | null>(null);
   const watchlistListRef = useRef<HTMLDivElement>(null);
 
+  // Additional state for LivePulse and search
+  const [updateToken, setUpdateToken] = useState(0);
+  const [searchMode, setSearchMode] = useState<"default" | "matching">("default");
+  const [searchResult, setSearchResult] = useState<{ type: "navigate" | "filter" | "unrecognized"; text: string } | null>(null);
+
   const loadWatchlist = useCallback(async () => {
     const browserEntries = readBrowserWatchlist();
     if (browserEntries) {
@@ -230,6 +238,7 @@ export default function Watchlist() {
           nextQuotes[quote.ticker] = quote;
         }
         setQuotes(nextQuotes);
+        setUpdateToken((t) => t + 1);
       } catch {
         if (!cancelled) setQuotes({});
       }
@@ -371,6 +380,67 @@ export default function Watchlist() {
   };
 
   const handleAdd = async () => {
+    // Natural language search support
+    const input = addInput.trim().toLowerCase();
+
+    // Exact ticker in watchlist -> navigate to it
+    if (
+      entries.some(
+        (e) => e.ticker.toLowerCase() === input && input.length <= 5 && /^[a-z]+$/.test(input),
+      )
+    ) {
+      window.location.href = `/companies/${input.toUpperCase()}`;
+      return;
+    }
+
+    // "Why is [ticker] moving?" or "What changed for [ticker]?"
+    const whyMatch = input.match(/^(why\s+is\s+|what\s+changed\s+for\s+)([a-z]+)/);
+    if (whyMatch && entries.some((e) => e.ticker.toLowerCase() === whyMatch[2])) {
+      window.location.href = `/companies/${whyMatch[2].toUpperCase()}`;
+      return;
+    }
+
+    // "Which names are weakening?"
+    if (/weaken|deteriorat/.test(input)) {
+      setSearchMode("matching");
+      setSearchResult({ type: "filter", text: "Showing weakening names." });
+      // Reset after a few seconds
+      setTimeout(() => { setSearchMode("default"); setSearchResult(null); }, 5000);
+      return;
+    }
+
+    // "What deserves attention today?"
+    if (/attention|alert|concern/.test(input) || /deserves.*attention/.test(input)) {
+      const attentionItems = [...entries].sort((a, b) => {
+        const aV = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
+        const bV = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
+        return bV.sortScore - aV.sortScore;
+      });
+      const weakening = attentionItems.filter((entry) => {
+        const v = getCardVerdict(entry, quotes[entry.ticker], shortInterest[entry.ticker]);
+        return v.state === "Weakening";
+      });
+      if (weakening.length > 0) {
+        setSearchMode("matching");
+        setSearchResult({ type: "filter", text: `Showing ${weakening.length} name${weakening.length > 1 ? "s" : ""} needing attention.` });
+        setTimeout(() => { setSearchMode("default"); setSearchResult(null); }, 5000);
+      } else {
+        setSearchResult({ type: "unrecognized", text: "No weakening names found." });
+        setTimeout(() => setSearchResult(null), 3000);
+      }
+      return;
+    }
+
+    // Unrecognized natural language query
+    if (input.length > 5 && !/^[a-z0-9.]+$/.test(input)) {
+      setSearchResult({
+        type: "unrecognized",
+        text: "Search accepts ticker symbols and company names. Try a ticker like \"AAPL\" or a name like \"Apple\".",
+      });
+      setTimeout(() => setSearchResult(null), 4000);
+      return;
+    }
+
     await handleAddValue();
   };
 
@@ -502,6 +572,15 @@ export default function Watchlist() {
     );
   }, [sortedEntries, addInput]);
 
+  // Quote freshness for LivePulse
+  const quoteFreshness = useMemo((): Freshness => {
+    const timestamps = Object.values(quotes).map((q) => q.price !== null ? new Date().toISOString() : null).filter(Boolean);
+    if (timestamps.length === 0) return "unavailable";
+    const latest = timestamps.sort().reverse()[0];
+    if (!latest) return "unavailable";
+    return classifyFreshness(latest);
+  }, [quotes, updateToken]);
+
   // Keyboard navigation effect
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -560,6 +639,11 @@ export default function Watchlist() {
     <div>
       <div className="watchlist-header">
         <h2 className="section-title">Watchlist</h2>
+        <LivePulse
+          freshness={quoteFreshness}
+          lastUpdatedAt={null}
+          updateToken={updateToken}
+        />
         <div className="watchlist-meta">
           <span className="section-count">{entries.length} companies</span>
           <span className="storage-note" title={authenticated ? "Synced privately across devices" : "Saved in this browser only"}>
@@ -567,6 +651,10 @@ export default function Watchlist() {
           </span>
         </div>
       </div>
+
+      {searchResult && (
+        <p className={`watchlist-message info`}>{searchResult.text}</p>
+      )}
 
       <GuestModeBanner
         authenticated={authenticated}

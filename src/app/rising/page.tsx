@@ -1,36 +1,12 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { getCardVerdict } from "@/lib/evidence/card-verdict";
+import { useEffect, useState } from "react";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
-import { LogoDisplay } from "@/app/components/LogoDisplay";
-import { getLivePrice } from "@/lib/market/live-quote";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
-import { NewsDriverBrief } from "@/app/components/NewsDriverBrief";
-
-interface StockQuote {
-  ticker: string;
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
-  volume?: number | null;
-  dollarVolume?: number | null;
-  currency: string | null;
-  marketState: string | null;
-  marketCap: number | null;
-  preMarketPrice: number | null;
-  preMarketChange: number | null;
-  preMarketChangePercent: number | null;
-  postMarketPrice: number | null;
-  postMarketChange: number | null;
-  postMarketChangePercent: number | null;
-}
-
-interface StockHistoryPoint {
-  date: string;
-  close: number;
-}
+import { TrendingCard } from "@/components/TrendingCard";
+import type { StockQuote } from "@/lib/market/quotes";
+import type { StockHistoryPoint } from "@/lib/market/quotes";
+import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
 
 interface TrendingCompany {
   ticker: string;
@@ -40,12 +16,6 @@ interface TrendingCompany {
   sparkline?: StockHistoryPoint[];
   activityRank: number;
   activityLabel: string;
-}
-
-interface TrendingHeadline {
-  headline: string;
-  url: string | null;
-  date: string;
 }
 
 interface WatchlistEntry {
@@ -87,37 +57,6 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
   }
 }
 
-function buildSparklinePath(points: StockHistoryPoint[]) {
-  if (points.length < 2) return "";
-  const width = 320;
-  const height = 96;
-  const padding = 6;
-  const closes = points.map((point) => point.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const spread = max - min || 1;
-
-  return points.map((point, index) => {
-    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
-    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join(" ");
-}
-
-function formatMarketCap(value: number | null): string | null {
-  if (value === null) return null;
-  if (value >= 1_000_000_000_000) {
-    return "$" + (value / 1_000_000_000_000).toFixed(1) + "T";
-  }
-  if (value >= 1_000_000_000) {
-    return "$" + (value / 1_000_000_000).toFixed(1) + "B";
-  }
-  if (value >= 1_000_000) {
-    return "$" + (value / 1_000_000).toFixed(1) + "M";
-  }
-  return "$" + value.toLocaleString();
-}
-
 export default function RisingConvictionPage() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
@@ -127,11 +66,6 @@ export default function RisingConvictionPage() {
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [requestKey, setRequestKey] = useState(0);
-  // ── Kebab state per card ──
-  const [menuOpenTicker, setMenuOpenTicker] = useState<string | null>(null);
-  const [confirmRemoveTicker, setConfirmRemoveTicker] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const kebabRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -218,62 +152,9 @@ export default function RisingConvictionPage() {
     };
   }, [requestKey]);
 
-  // Close kebab on outside click
-  useEffect(() => {
-    if (!menuOpenTicker) return;
-    function handleClick(e: MouseEvent) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target as Node) &&
-        kebabRef.current &&
-        !kebabRef.current.contains(e.target as Node)
-      ) {
-        setMenuOpenTicker(null);
-        setConfirmRemoveTicker(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [menuOpenTicker]);
-
-  const handleKebabClick = useCallback((ticker: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMenuOpenTicker((v) => (v === ticker ? null : ticker));
-    setConfirmRemoveTicker(null);
-  }, []);
-
-  const handleRemoveClick = useCallback((ticker: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setConfirmRemoveTicker(ticker);
-  }, []);
-
-  const handleConfirmRemove = useCallback(async (ticker: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMenuOpenTicker(null);
-    setConfirmRemoveTicker(null);
-    try {
-      await fetch(`/api/watchlist/${ticker}`, { method: "DELETE" });
-    } catch {
-      // best-effort
-    }
-    setTrackedTickers((current) => {
-      const next = new Set(current);
-      next.delete(ticker);
-      return next;
-    });
-  }, []);
-
-  const handleCancelRemove = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setConfirmRemoveTicker(null);
-  }, []);
+  // ── Add/remove functions ──
 
   const handleAddTrending = async (idea: TrendingCompany) => {
-    setAddingTicker(idea.ticker);
     setAddMessage(null);
 
     try {
@@ -338,190 +219,27 @@ export default function RisingConvictionPage() {
           <div className="watchlist-list">
             {trending.map((idea) => {
               const isTracked = trackedTickers.has(idea.ticker);
-              const quote = idea.quote;
-              const live = getLivePrice(quote);
-              const liveChange = live.change;
-              const chartPoints = idea.sparkline ?? [];
-              const fiveDayChange = chartPoints.length >= 2
-                ? chartPoints[chartPoints.length - 1].close - chartPoints[0].close
-                : null;
-              const chartDirection = fiveDayChange === null
-                ? "neutral"
-                : fiveDayChange > 0
-                  ? "positive"
-                  : fiveDayChange < 0
-                  ? "negative"
-                  : "neutral";
-              const verdict = getCardVerdict({
-                ticker: idea.ticker,
-                companyName: idea.companyName,
-                addedAt: new Date().toISOString(),
-                status: "active" as const,
-              }, quote);
-              const sparklinePath = buildSparklinePath(chartPoints);
-              const ideaHeadlines = headlines[idea.ticker] ?? [];
-              const marketCapText = formatMarketCap(quote.marketCap);
-              const livePrice = live.price;
-              const liveChangePercent = live.changePercent;
-              const sessionLabel = live.label;
-              const arrow = liveChange !== null
-                ? (liveChange > 0 ? "▲" : liveChange < 0 ? "▼" : null)
-                : null;
-              const arrowClass = liveChange !== null && liveChange > 0 ? "up" : liveChange !== null && liveChange < 0 ? "down" : "";
-              const menuOpen = menuOpenTicker === idea.ticker;
-              const confirmRemove = confirmRemoveTicker === idea.ticker;
-
               return (
-                <div key={idea.ticker} className="terminal-card-wrap group">
-                  <Link
-                    href={`/companies/${idea.ticker}`}
-                    className={"watchlist-row watchlist-row-" + verdict.tone}
-                  >
-                    <div className="watchlist-row-main">
-                      <div className="watchlist-row-company">
-                        <LogoDisplay ticker={idea.ticker} size="card" />
-                        <div>
-                          <strong className="watchlist-row-ticker">{idea.ticker}</strong>
-                          <span className="watchlist-row-name">{idea.companyName}</span>
-                        </div>
-                      </div>
-                      <div className="watchlist-row-move">
-                        <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
-                        <span className="watchlist-row-move-amounts">
-                          <strong>
-                            {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
-                            {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 })}` : "—"}
-                          </strong>
-                          <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
-                            {liveChange != null && liveChangePercent != null
-                              ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePercent > 0 ? "+" : ""}${liveChangePercent.toFixed(2)}%`
-                              : "—"}
-                          </span>
-                        </span>
-                        {sessionLabel && quote.price !== null && (
-                          <span className="watchlist-row-session">
-                            <span className="watchlist-row-session-label">At Close · Today</span>
-                            <span className="watchlist-row-session-price">${quote.price.toFixed(2)}</span>
-                            {quote.changePercent != null ? (
-                              <span className={`watchlist-row-session-change ${quote.change !== null && quote.change > 0 ? "positive" : quote.change !== null && quote.change < 0 ? "negative" : ""}`}>
-                                {quote.changePercent > 0 ? "+" : ""}{quote.changePercent.toFixed(2)}%
-                              </span>
-                            ) : null}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* ── State area + kebab ── */}
-                      <div className="watchlist-row-state-area">
-                        <span className={`watchlist-row-state watchlist-row-state-${verdict.tone}`}>
-                          #{idea.activityRank} Trending
-                        </span>
-                        <div className="watchlist-kebab-wrap">
-                          <button
-                            ref={kebabRef}
-                            className="watchlist-kebab"
-                            onClick={(e) => handleKebabClick(idea.ticker, e)}
-                            aria-label={`Options for ${idea.ticker}`}
-                            aria-expanded={menuOpen}
-                          >
-                            ⋮
-                          </button>
-                          {menuOpen && (
-                            <div ref={menuRef} className="watchlist-kebab-menu" role="menu">
-                              {confirmRemove ? (
-                                <>
-                                  <span className="watchlist-kebab-confirm-text">Remove {idea.ticker}?</span>
-                                  <button
-                                    className="watchlist-kebab-item watchlist-kebab-item-danger"
-                                    onClick={(e) => handleConfirmRemove(idea.ticker, e)}
-                                    role="menuitem"
-                                  >
-                                    Yes, remove
-                                  </button>
-                                  <button
-                                    className="watchlist-kebab-item"
-                                    onClick={handleCancelRemove}
-                                    role="menuitem"
-                                  >
-                                    Cancel
-                                  </button>
-                                </>
-                              ) : isTracked ? (
-                                <>
-                                  <Link
-                                    href={`/companies/${idea.ticker}`}
-                                    className="watchlist-kebab-item"
-                                    onClick={() => setMenuOpenTicker(null)}
-                                    role="menuitem"
-                                  >
-                                    View details
-                                  </Link>
-                                  <button
-                                    className="watchlist-kebab-item watchlist-kebab-item-danger"
-                                    onClick={(e) => handleRemoveClick(idea.ticker, e)}
-                                    role="menuitem"
-                                  >
-                                    Remove from watchlist
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <Link
-                                    href={`/companies/${idea.ticker}`}
-                                    className="watchlist-kebab-item"
-                                    onClick={() => setMenuOpenTicker(null)}
-                                    role="menuitem"
-                                  >
-                                    View details
-                                  </Link>
-                                  <button
-                                    className="watchlist-kebab-item"
-                                    onClick={async (e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      setMenuOpenTicker(null);
-                                      await handleAddTrending(idea);
-                                    }}
-                                    role="menuitem"
-                                  >
-                                    Add to watchlist
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {sparklinePath ? (
-                      <div className={"watchlist-row-chart price-chart " + chartDirection} aria-label={`${idea.ticker} five-day chart`}>
-                        <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
-                          <path className="price-chart-glow" d={sparklinePath} />
-                          <path className="price-chart-line" d={sparklinePath} />
-                        </svg>
-                        <span>5D</span>
-                      </div>
-                    ) : null}
-
-                    <NewsDriverBrief
-                      ticker={idea.ticker}
-                      driver={newsDrivers[idea.ticker] ?? null}
-                      headlines={ideaHeadlines}
-                      compact
-                    />
-                    <div className="watchlist-row-evidence">
-                      <span className="watchlist-row-evidence-item"><b>Signal</b> · {verdict.state}</span>
-                    </div>
-                  </Link>
-
-                  {/* ── Market cap stat row ── */}
-                  {marketCapText && (
-                    <div className="watchlist-card-stats-row">
-                      <span className="watchlist-card-stat">Mkt Cap {marketCapText}</span>
-                    </div>
-                  )}
-                </div>
+                <TrendingCard
+                  key={idea.ticker}
+                  ticker={idea.ticker}
+                  companyName={idea.companyName}
+                  rank={idea.activityRank}
+                  activityLabel={idea.activityLabel}
+                  quote={idea.quote}
+                  sparkline={idea.sparkline ?? []}
+                  headlines={headlines[idea.ticker] ?? []}
+                  newsDriver={newsDrivers[idea.ticker] ?? null}
+                  isTracked={isTracked}
+                  isAdding={addingTicker === idea.ticker}
+                  onAdd={() => handleAddTrending(idea)}
+                  onRemove={() => {
+                    const next = new Set(trackedTickers);
+                    next.delete(idea.ticker);
+                    setTrackedTickers(next);
+                    fetch(`/api/watchlist/${idea.ticker}`, { method: "DELETE" }).catch(() => {});
+                  }}
+                />
               );
             })}
           </div>
