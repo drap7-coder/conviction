@@ -246,10 +246,20 @@ export default function MarketPulsePage() {
         .pulse-macro-bar-drivers {
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 8px;
           flex-wrap: nowrap;
           flex-shrink: 0;
         }
+        .pulse-macro-driver {
+          font-size: 0.62rem;
+          font-weight: 600;
+          font-family: var(--font-mono);
+          white-space: nowrap;
+        }
+        .pulse-macro-driver.rising { color: var(--green); }
+        .pulse-macro-driver.falling { color: var(--red); }
+        .pulse-macro-driver.flat { color: var(--quiet); }
+        .pulse-macro-driver.unavailable { color: var(--quiet); opacity: 0.5; }
 
         @media (max-width: 767px) {
           .pulse-instrument-greeting { font-size: 1.45rem; }
@@ -311,17 +321,17 @@ export default function MarketPulsePage() {
             macroRegime.drivers.map((d) => (
               <span
                 key={d.id}
-                className={`pulse-regime-tag pulse-regime-${d.direction}`}
+                className={`pulse-macro-driver ${d.direction}`}
                 title={d.explanation}
               >
                 {d.label} {arrowFromDir(d.direction)}
               </span>
             ))
           ) : (
-            <span className="pulse-regime-tag pulse-regime-unavailable">Mixed</span>
+            <span className="pulse-macro-driver unavailable">Mixed</span>
           )}
           {macroRegime.missingInputs.length > 0 && (
-            <span className="pulse-regime-tag pulse-regime-unavailable" title="Missing data">
+            <span className="pulse-macro-driver unavailable" title="Missing data">
               Insufficient data
             </span>
           )}
