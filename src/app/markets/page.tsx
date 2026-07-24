@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 import type { DataStatus } from "@/app/api/market/pulse/route";
 
 interface PulseIndicator {
@@ -252,21 +253,20 @@ export default function MarketPulsePage() {
         <div className="pulse-card-header">
           <h2 className="pulse-card-title">Market</h2>
         </div>
-        <div className="pulse-strip">
+        <div className="pulse-strip-grid">
           {data.indicators.map((ind) => {
             const displayPrice = ind.price != null ? fmtPrice(ind.price, ind.isPercentValue) : "—";
-            const statusLabel = ind.status === "proxy" ? "ETF proxy" : "ready";
+            const changeText = ind.changePercent != null ? fmtPct(ind.changePercent) : undefined;
+            const isPos = ind.changePercent !== null && ind.changePercent > 0 ? true : ind.changePercent !== null && ind.changePercent < 0 ? false : undefined;
+            const label = ind.status === "proxy" ? `${ind.label} (ETF proxy)` : ind.label;
             return (
-              <div key={ind.ticker} className="pulse-strip-item">
-                <span className="pulse-strip-label">{ind.label}</span>
-                <span className="pulse-strip-value">{displayPrice}</span>
-                <span className={`pulse-strip-change ${cls(ind.changePercent)}`}>
-                  {arrow(ind.changePercent)} {fmtPct(ind.changePercent)}
-                </span>
-                {ind.status === "proxy" && (
-                  <span className="pulse-strip-note">{statusLabel}</span>
-                )}
-              </div>
+              <SplitFlapMetric
+                key={ind.ticker}
+                value={displayPrice}
+                label={label}
+                change={changeText}
+                isPositive={isPos}
+              />
             );
           })}
         </div>
