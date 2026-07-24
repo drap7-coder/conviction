@@ -34,12 +34,13 @@ interface PulseData {
 
 // ── Helpers ──
 
-function formatChange(value: number | null): string {
+function fmtPct(value: number | null): string {
   if (value === null) return "—";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+  const sign = value > 0 ? "+" : "";
+  return `${sign}${value.toFixed(1)}%`;
 }
 
-function formatPrice(value: number | null): string {
+function fmtPrice(value: number | null): string {
   if (value === null) return "—";
   if (value >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
   if (value >= 10) return value.toFixed(2);
@@ -51,87 +52,52 @@ function arrow(value: number | null): string {
   return value > 0 ? "▲" : "▼";
 }
 
-function arrowClass(value: number | null): string {
+function cls(value: number | null): string {
   if (value === null || value === 0) return "";
   return value > 0 ? "up" : "down";
 }
 
-interface BriefItem {
-  icon: string;
-  text: string;
-  positive: boolean;
-  detail?: string;
-}
-
-function buildBrief(indicatorMap: Map<string, PulseIndicator>): string {
+function brief(indicatorMap: Map<string, PulseIndicator>): string {
   const spy = indicatorMap.get("SPY");
   const vix = indicatorMap.get("^VIX");
   const tnx = indicatorMap.get("^TNX");
-
-  if (!spy || !vix) return "Markets are loading.";
-
-  const spyUp = (spy.changePercent ?? 0) > 0.3;
-  const spyDown = (spy.changePercent ?? 0) < -0.3;
-  const vixDown = (vix.changePercent ?? 0) < -3;
-  const vixUp = (vix.changePercent ?? 0) > 3;
-  const yieldsDown = (tnx?.changePercent ?? 0) < -0.5;
-  const yieldsUp = (tnx?.changePercent ?? 0) > 0.5;
-
-  if (spyUp && vixDown) return "Markets are risk-on as volatility declines and equities advance.";
-  if (spyUp && yieldsDown) return "Markets are rallying as yields fall, supporting growth stocks.";
-  if (spyDown && vixUp) return "Markets are risk-off with rising volatility and broad selling.";
-  if (spyDown && yieldsUp) return "Markets are under pressure as yields rise, weighing on equities.";
-  if (spyUp) return "Markets are positive with broad-based gains across sectors.";
-  if (spyDown) return "Markets are in the red with broad-based selling pressure.";
-  return "Markets are mixed with no clear directional bias.";
+  if (!spy || !vix) return "Loading markets...";
+  const sUp = (spy.changePercent ?? 0) > 0.3;
+  const sDn = (spy.changePercent ?? 0) < -0.3;
+  const vDn = (vix.changePercent ?? 0) < -3;
+  const vUp = (vix.changePercent ?? 0) > 3;
+  const yDn = (tnx?.changePercent ?? 0) < -0.5;
+  const yUp = (tnx?.changePercent ?? 0) > 0.5;
+  if (sUp && vDn) return "Risk on. Volatility declining, equities advancing.";
+  if (sUp && yDn) return "Rallying. Yields falling, growth stocks bid.";
+  if (sDn && vUp) return "Risk off. Volatility spiking, broad selling.";
+  if (sDn && yUp) return "Under pressure. Yields rising, equities weighed.";
+  if (sUp) return "Positive. Broad-based gains across sectors.";
+  if (sDn) return "Red. Broad-based selling pressure.";
+  return "Mixed. No clear directional bias.";
 }
 
-function buildWhatChanged(indicatorMap: Map<string, PulseIndicator>, sectors: PulseSector[]): BriefItem[] {
-  const items: BriefItem[] = [];
-
-  // Check oil
+function changes(indicatorMap: Map<string, PulseIndicator>, sectors: PulseSector[]): { icon: string; text: string; detail: string }[] {
+  const items: { icon: string; text: string; detail: string }[] = [];
   const oil = indicatorMap.get("USO");
-  if (oil && (oil.changePercent ?? 0) > 2) {
-    items.push({ icon: "▲", text: "Oil broke higher", positive: false, detail: `Crude oil +${oil.changePercent?.toFixed(1)}%` });
-  }
-  if (oil && (oil.changePercent ?? 0) < -2) {
-    items.push({ icon: "▼", text: "Oil fell sharply", positive: false, detail: `Crude oil ${oil.changePercent?.toFixed(1)}%` });
-  }
-
-  // Check VIX
   const vix = indicatorMap.get("^VIX");
-  if (vix && (vix.changePercent ?? 0) > 5) {
-    items.push({ icon: "▲", text: "Volatility spiked", positive: false, detail: `VIX +${vix.changePercent?.toFixed(1)}%` });
-  }
-  if (vix && (vix.changePercent ?? 0) < -5) {
-    items.push({ icon: "▼", text: "Volatility collapsed", positive: true, detail: `VIX ${vix.changePercent?.toFixed(1)}%` });
-  }
-
-  // Check yields
   const tnx = indicatorMap.get("^TNX");
-  if (tnx && (tnx.changePercent ?? 0) > 1) {
-    items.push({ icon: "▲", text: "Treasury yields rose sharply", positive: false, detail: "10Y yield up" });
-  }
-  if (tnx && (tnx.changePercent ?? 0) < -1) {
-    items.push({ icon: "▼", text: "Treasury yields fell sharply", positive: true, detail: "10Y yield down" });
-  }
-
-  // Check leading/lagging sectors
+  if (oil && (oil.changePercent ?? 0) > 2) items.push({ icon: "▲", text: "Oil broke higher", detail: `Crude ${fmtPct(oil.changePercent)}` });
+  if (oil && (oil.changePercent ?? 0) < -2) items.push({ icon: "▼", text: "Oil fell sharply", detail: `Crude ${fmtPct(oil.changePercent)}` });
+  if (vix && (vix.changePercent ?? 0) > 5) items.push({ icon: "▲", text: "Volatility spiked", detail: `VIX ${fmtPct(vix.changePercent)}` });
+  if (vix && (vix.changePercent ?? 0) < -5) items.push({ icon: "▼", text: "Volatility collapsed", detail: `VIX ${fmtPct(vix.changePercent)}` });
+  if (tnx && (tnx.changePercent ?? 0) > 1) items.push({ icon: "▲", text: "Yields rose sharply", detail: "10Y up" });
+  if (tnx && (tnx.changePercent ?? 0) < -1) items.push({ icon: "▼", text: "Yields fell sharply", detail: "10Y down" });
   if (sectors.length > 0) {
     const top = sectors[0];
-    const bottom = sectors[sectors.length - 1];
-    if (top && (top.changePercent ?? 0) > 1) {
-      items.push({ icon: "▲", text: `${top.name} became the leading sector`, positive: true, detail: `${top.ticker} ${formatChange(top.changePercent)}` });
-    }
-    if (bottom && (bottom.changePercent ?? 0) < -1 && bottom !== top) {
-      items.push({ icon: "▼", text: `${bottom.name} is the lagging sector`, positive: false, detail: `${bottom.ticker} ${formatChange(bottom.changePercent)}` });
-    }
+    const bot = sectors[sectors.length - 1];
+    if (top && (top.changePercent ?? 0) > 1) items.push({ icon: "▲", text: `${top.name} leads`, detail: fmtPct(top.changePercent) });
+    if (bot && (bot.changePercent ?? 0) < -1 && bot !== top) items.push({ icon: "▼", text: `${bot.name} lags`, detail: fmtPct(bot.changePercent) });
   }
-
   return items.slice(0, 3);
 }
 
-function buildBriefTime(): string {
+function greeting(): string {
   const h = new Date().getHours();
   if (h < 12) return "Good morning.";
   if (h < 17) return "Good afternoon.";
@@ -152,10 +118,7 @@ export default function MarketPulsePage() {
         const res = await fetch("/api/market/pulse");
         if (!res.ok) throw new Error("Failed");
         const json = (await res.json()) as PulseData;
-        if (!cancelled) {
-          setData(json);
-          setStatus("success");
-        }
+        if (!cancelled) { setData(json); setStatus("success"); }
       } catch {
         if (!cancelled) setStatus("error");
       }
@@ -165,52 +128,35 @@ export default function MarketPulsePage() {
   }, []);
 
   if (status === "loading" || status === "idle") {
-    return (
-      <div className="pulse-page">
-        <div className="empty-state compact">
-          <p>Loading market pulse...</p>
-        </div>
-      </div>
-    );
+    return <div className="pulse"><div className="empty-state compact"><p>Loading market pulse...</p></div></div>;
   }
-
   if (status === "error" || !data) {
-    return (
-      <div className="pulse-page">
-        <div className="empty-state">
-          <p>Market data is temporarily unavailable.</p>
-          <small>Data provider may be rate-limited. Retry in a moment.</small>
-        </div>
-      </div>
-    );
+    return <div className="pulse"><div className="empty-state"><p>Market data is temporarily unavailable.</p></div></div>;
   }
 
   const indicatorMap = new Map(data.indicators.map((i) => [i.ticker, i]));
-  const briefSentence = buildBrief(indicatorMap);
-  const whatChanged = buildWhatChanged(indicatorMap, data.sectors);
-  const greeting = buildBriefTime();
-
-  // Watchlist: show only non-zero-change items, then a "no change" group
+  const briefSentence = brief(indicatorMap);
+  const changesList = changes(indicatorMap, data.sectors);
   const changedWatchlist = data.watchlist.filter((w) => w.change !== null && Math.abs(w.change ?? 0) > 0.01);
   const unchangedWatchlist = data.watchlist.filter((w) => w.change === null || Math.abs(w.change ?? 0) <= 0.01);
 
   return (
-    <div className="pulse-page">
+    <div className="pulse">
 
-      {/* ── Today's Brief ── */}
+      {/* ── Brief ── */}
       <section className="pulse-brief" aria-label="Today's market brief">
-        <p className="pulse-brief-greeting">{greeting}</p>
+        <p className="pulse-brief-greeting">{greeting()}</p>
         <p className="pulse-brief-sentence">{briefSentence}</p>
-        {whatChanged.length > 0 && (
-          <ul className="pulse-brief-changes">
-            {whatChanged.map((item) => (
-              <li key={item.text} className={`pulse-brief-change ${item.positive ? "positive" : "negative"}`}>
-                <span className="pulse-brief-arrow">{item.icon}</span>
-                <span className="pulse-brief-text">{item.text}</span>
-                {item.detail && <span className="pulse-brief-detail">{item.detail}</span>}
-              </li>
+        {changesList.length > 0 && (
+          <div className="pulse-brief-items">
+            {changesList.map((item) => (
+              <div key={item.text} className={`pulse-brief-item ${item.icon === "▲" ? "up" : "down"}`}>
+                <span className="pulse-brief-item-icon">{item.icon}</span>
+                <span className="pulse-brief-item-text">{item.text}</span>
+                <span className="pulse-brief-item-detail">{item.detail}</span>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </section>
 
@@ -219,65 +165,62 @@ export default function MarketPulsePage() {
         <div className="pulse-card-header">
           <h2 className="pulse-card-title">Market</h2>
         </div>
-        <div className="pulse-market-grid">
+        <div className="pulse-strip">
           {data.indicators.map((ind) => (
-            <div key={ind.ticker} className="pulse-market-item">
-              <span className="pulse-market-name">{ind.name}</span>
-              <span className="pulse-market-price">{ind.price != null ? formatPrice(ind.price) : "—"}</span>
-              <span className={`pulse-market-change ${arrowClass(ind.changePercent)}`}>
-                {arrow(ind.changePercent)} {formatChange(ind.changePercent)}
+            <div key={ind.ticker} className="pulse-strip-item">
+              <span className="pulse-strip-label">{ind.name}</span>
+              <span className="pulse-strip-value">{ind.price != null ? fmtPrice(ind.price) : "—"}</span>
+              <span className={`pulse-strip-change ${cls(ind.changePercent)}`}>
+                {arrow(ind.changePercent)} {fmtPct(ind.changePercent)}
               </span>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── 2. What's Different Today ── */}
+      {/* ── 2. What's Different ── */}
       <section className="pulse-card" aria-label="What changed today">
         <div className="pulse-card-header">
-          <h2 className="pulse-card-title">What&rsquo;s Different Today</h2>
+          <h2 className="pulse-card-title">What&rsquo;s Different</h2>
         </div>
-        {whatChanged.length > 0 ? (
+        {changesList.length > 0 ? (
           <div className="pulse-diff-list">
-            {whatChanged.map((item) => (
+            {changesList.map((item) => (
               <details key={item.text} className="pulse-diff-item">
-                <summary className={`pulse-diff-summary ${item.positive ? "positive" : "negative"}`}>
+                <summary className={`pulse-diff-summary ${item.icon === "▲" ? "up" : "down"}`}>
                   <span className="pulse-diff-arrow">{item.icon}</span>
-                  <span className="pulse-diff-text">{item.text}</span>
+                  <span>{item.text}</span>
+                  <span className="pulse-diff-hint">{item.detail}</span>
                 </summary>
                 <div className="pulse-diff-body">
-                  <p className="pulse-diff-why">Why? {item.detail}</p>
-                  <p className="pulse-diff-evidence">Evidence · {item.detail}</p>
-                  <p className="pulse-diff-affected">Affected watchlist · {data.watchlist.length} holdings</p>
+                  <p className="pulse-diff-why">{item.detail} · {data.watchlist.length} holdings monitored</p>
                 </div>
               </details>
             ))}
           </div>
         ) : (
-          <p className="pulse-empty-text">No material changes detected today.</p>
+          <p className="pulse-muted">No material changes today.</p>
         )}
       </section>
 
       {/* ── 3. Sector Leaders ── */}
       <section className="pulse-card" aria-label="Sector leaders">
         <div className="pulse-card-header">
-          <h2 className="pulse-card-title">Sector Leaders</h2>
+          <h2 className="pulse-card-title">Sectors</h2>
         </div>
-        <div className="pulse-sector-list">
+        <div className="pulse-sectors">
           {data.sectors.map((sector) => {
             const pct = sector.changePercent;
-            const bars = pct === null ? 0 : Math.round(Math.abs(pct) / 0.5);
-            const direction = pct === null ? "—" : pct > 0 ? "▲" : pct < 0 ? "▼" : "—";
             const absPct = Math.abs(pct ?? 0);
-            const strength = pct === null ? "neutral" : absPct > 1 ? "strong" : absPct > 0.3 ? "moderate" : "flat";
-            const dirClass = pct === null || pct === 0 ? "" : pct > 0 ? "up" : "down";
+            const strength = pct === null ? "flat" : absPct > 1 ? "strong" : absPct > 0.3 ? "moderate" : "flat";
+            const dir = pct === null ? "" : pct > 0 ? "up" : "down";
             return (
               <Link key={sector.ticker} href={`/industries/${sector.ticker}`} className="pulse-sector-row">
-                <span className={`pulse-sector-arrow ${strength} ${dirClass}`}>{direction}</span>
+                <span className={`pulse-sector-arrow ${strength} ${dir}`}>{arrow(pct)}</span>
                 <span className="pulse-sector-name">{sector.name}</span>
-                <span className={`pulse-sector-pct ${strength} ${dirClass}`}>{formatChange(pct)}</span>
-                <span className="pulse-sector-bar" aria-hidden="true">
-                  <span className={`pulse-sector-bar-fill ${strength} ${dirClass}`} style={{ width: `${Math.min(bars * 8, 100)}%` }} />
+                <span className={`pulse-sector-pct ${strength} ${dir}`}>{fmtPct(pct)}</span>
+                <span className="pulse-sector-track">
+                  <span className={`pulse-sector-fill ${strength} ${dir}`} style={{ width: `${Math.min(absPct * 10, 100)}%` }} />
                 </span>
               </Link>
             );
@@ -286,82 +229,73 @@ export default function MarketPulsePage() {
       </section>
 
       {/* ── 4. Your Watchlist ── */}
-      <section className="pulse-card" aria-label="Your watchlist changes">
+      <section className="pulse-card" aria-label="Your watchlist">
         <div className="pulse-card-header">
-          <h2 className="pulse-card-title">Your Watchlist</h2>
+          <h2 className="pulse-card-title">Watchlist</h2>
         </div>
-        <div className="pulse-watchlist-list">
-          {changedWatchlist.length > 0 ? (
-            changedWatchlist.map((item) => {
+        {changedWatchlist.length > 0 ? (
+          <div className="pulse-wl">
+            {changedWatchlist.map((item) => {
               const dir = item.change === null || item.change === 0 ? "neutral" : item.change > 0 ? "positive" : "negative";
-              const strength = item.changePercent !== null
-                ? Math.abs(item.changePercent) > 2 ? "strong" : Math.abs(item.changePercent) > 0.5 ? "moderate" : "minor"
-                : "neutral";
+              const badge = dir === "positive" ? "Strengthening" : dir === "negative" ? "Weakening" : "Stable";
               return (
-                <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-watchlist-row">
-                  <div className="pulse-watchlist-top">
-                    <span className="pulse-watchlist-ticker">{item.ticker}</span>
-                    <span className={`pulse-watchlist-badge ${dir} ${strength}`}>
-                      {dir === "positive" ? "▲ Strengthening" : dir === "negative" ? "▼ Weakening" : "— Stable"}
-                    </span>
+                <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-wl-row">
+                  <div className="pulse-wl-top">
+                    <span className="pulse-wl-ticker">{item.ticker}</span>
+                    <span className={`pulse-wl-badge ${dir}`}>{badge}</span>
                   </div>
-                  <span className="pulse-watchlist-detail">
-                    {item.price != null ? `$${formatPrice(item.price)}` : "—"}
-                    {" · "}
-                    <span className={dir}>{formatChange(item.changePercent)}</span>
-                  </span>
+                  <div className="pulse-wl-meta">
+                    <span>{item.price != null ? `$${fmtPrice(item.price)}` : "—"}</span>
+                    <span className={dir}> · {fmtPct(item.changePercent)}</span>
+                  </div>
                 </Link>
               );
-            })
-          ) : (
-            <p className="pulse-empty-text">No holdings with significant movement.</p>
-          )}
-          {unchangedWatchlist.length > 0 && (
-            <p className="pulse-watchlist-unchanged">
-              {unchangedWatchlist.map((w) => w.ticker).join(", ")} · No material change
-            </p>
-          )}
-        </div>
+            })}
+          </div>
+        ) : (
+          <p className="pulse-muted">No significant movement.</p>
+        )}
+        {unchangedWatchlist.length > 0 && (
+          <p className="pulse-wl-unchanged">{unchangedWatchlist.map((w) => w.ticker).join(", ")} · unchanged</p>
+        )}
       </section>
 
       {/* ── 5. Needs Attention ── */}
-      <section className="pulse-card pulse-card-attention" aria-label="Needs attention">
+      <section className="pulse-card pulse-attention" aria-label="Needs attention">
         <div className="pulse-card-header">
           <h2 className="pulse-card-title">Needs Attention</h2>
         </div>
-        <div className="pulse-attention-list">
+        <div className="pulse-attn-list">
           {data.watchlist.length > 0 ? (
             data.watchlist.slice(0, 3).map((item) => {
-              // Derive attention items from the most changed holdings
               const absChange = Math.abs(item.changePercent ?? 0);
               if (absChange > 2) {
                 return (
-                  <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-attention-item">
-                    <span className="pulse-attention-ticker">Review {item.ticker}</span>
-                    <span className="pulse-attention-reason">{item.changePercent! > 0 ? "Significant gain" : "Significant drop"} · {formatChange(item.changePercent)}</span>
+                  <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-attn-item">
+                    <span className="pulse-attn-ticker">Review {item.ticker}</span>
+                    <span className="pulse-attn-reason">{item.changePercent! > 0 ? "Significant gain" : "Significant drop"} · {fmtPct(item.changePercent)}</span>
                   </Link>
                 );
               }
               if (absChange > 1) {
                 return (
-                  <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-attention-item">
-                    <span className="pulse-attention-ticker">Review {item.ticker}</span>
-                    <span className="pulse-attention-reason">Notable move · {formatChange(item.changePercent)}</span>
+                  <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-attn-item">
+                    <span className="pulse-attn-ticker">Review {item.ticker}</span>
+                    <span className="pulse-attn-reason">Notable move · {fmtPct(item.changePercent)}</span>
                   </Link>
                 );
               }
               return (
-                <div key={item.ticker} className="pulse-attention-item pulse-attention-item-done">
-                  <span className="pulse-attention-ticker">No action required for {item.ticker}</span>
+                <div key={item.ticker} className="pulse-attn-item done">
+                  <span className="pulse-attn-ticker muted">No action — {item.ticker}</span>
                 </div>
               );
             })
           ) : (
-            <p className="pulse-empty-text">No items need attention.</p>
+            <p className="pulse-muted">All clear.</p>
           )}
         </div>
       </section>
-
     </div>
   );
 }
