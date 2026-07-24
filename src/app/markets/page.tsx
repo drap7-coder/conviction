@@ -225,6 +225,11 @@ export default function MarketPulsePage() {
           min-width: 0;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
+          flex-wrap: nowrap;
+        }
+        .pulse-macro-bar > .pulse-regime-badge {
+          flex-shrink: 0;
+          white-space: nowrap;
         }
         .pulse-macro-bar-conf {
           font-size: 0.58rem;
@@ -243,6 +248,7 @@ export default function MarketPulsePage() {
           align-items: center;
           gap: 6px;
           flex-wrap: nowrap;
+          flex-shrink: 0;
         }
 
         @media (max-width: 767px) {
@@ -254,7 +260,7 @@ export default function MarketPulsePage() {
           .pulse-instrument-value { font-size: 0.85rem; }
           .pulse-instrument-label { font-size: 0.45rem; }
           .pulse-instrument-change { font-size: 0.5rem; }
-          .pulse-macro-bar { gap: 8px; padding: 8px 10px; flex-wrap: wrap; }
+          .pulse-macro-bar { gap: 8px; padding: 8px 10px; flex-wrap: nowrap; }
         }
       `}</style>
 
