@@ -47,18 +47,9 @@ export interface PulseSector {
   changePercent: number | null;
 }
 
-export interface PulseWatchlistItem {
-  ticker: string;
-  companyName: string;
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
-}
-
 export interface PulseData {
   indicators: PulseIndicator[];
   sectors: PulseSector[];
-  watchlist: PulseWatchlistItem[];
   macroRegime: MacroRegime;
   sectorLeadership: SectorLeadership;
   triage: TriageResult;
@@ -118,19 +109,6 @@ export async function GET() {
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
   const sectorLeadership = classifySectorLeadership(sectors);
 
-  // ── Watchlist ──
-  const watchlistItems: PulseWatchlistItem[] = watchlistTickers.map((ticker) => {
-    const q = quoteMap.get(ticker);
-    const entry = watchlist.find((e) => e.ticker === ticker);
-    return {
-      ticker,
-      companyName: entry?.companyName ?? ticker,
-      price: q?.price ?? null,
-      change: q?.change ?? null,
-      changePercent: q?.changePercent ?? null,
-    };
-  });
-
   // ── Triage ──
   const triageItems: TriageWatchlistInput[] = watchlistTickers.map((ticker) => {
     const q = quoteMap.get(ticker);
@@ -153,7 +131,6 @@ export async function GET() {
   return NextResponse.json({
     indicators,
     sectors,
-    watchlist: watchlistItems,
     macroRegime,
     sectorLeadership,
     triage,

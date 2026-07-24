@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { loadPositions, upsertPosition, removePosition, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
 import {
   computePortfolioMetrics,
@@ -14,6 +15,7 @@ import type { PortfolioPosition, PortfolioRiskFlags, ContributionRanking, Return
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
+import type { TriageResult } from "@/lib/market/triage";
 import SectorDonut from "@/components/SectorDonut";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -168,6 +170,41 @@ export default function PortfolioPage() {
       setLoading(false);
     }
   }, [positions, fetchQuotes]);
+
+  // ── Triage data for Needs Attention ──
+  const [triage, setTriage] = useState<TriageResult | null>(null);
+  const [triageLoading, setTriageLoading] = useState(false);
+
+  useEffect(() => {
+    const tickers = positions.map((p) => p.ticker).filter(Boolean);
+    const unique = Array.from(new Set(tickers));
+    if (unique.length === 0) {
+      setTriage(null);
+      return;
+    }
+    let cancelled = false;
+    setTriageLoading(true);
+    fetch(`/api/market/pulse`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (!cancelled && data?.triage) {
+          // Filter triage to only portfolio positions
+          const portfolioTickers = new Set(unique.map((t) => t.toUpperCase()));
+          const filtered = {
+            ...data.triage,
+            alerts: data.triage.alerts.filter((a: { ticker: string }) => portfolioTickers.has(a.ticker.toUpperCase())),
+          };
+          filtered.hasAlerts = filtered.alerts.length > 0;
+          setTriage(filtered);
+        }
+        setTriageLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) setTriage(null);
+        setTriageLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [positions]);
 
   // ── Derived data ──
 
@@ -754,8 +791,55 @@ export default function PortfolioPage() {
             <section className="pf-section pf-bottom-card pf-attention-card" aria-label="Needs attention">
               <div className="pf-attn-card-header">
                 <h2 className="pf-section-title">Needs Attention</h2>
+                {triage && triage.hasAlerts && (
+                  <span className="pulse-attn-count">{triage.alerts.length}</span>
+                )}
               </div>
-              <p className="pf-muted">Portfolio-specific alerts will appear here as conviction data becomes available.</p>
+
+              {triageLoading ? (
+                <p className="pf-muted">Checking portfolio for issues…</p>
+              ) : triage && triage.hasAlerts ? (
+                <div className="pulse-attn-list">
+                  {triage.alerts.map((item) => (
+                    <Link
+                      key={item.ticker}
+                      href={`/companies/${item.ticker}`}
+                      className={`pulse-attn-item pulse-attn-p${item.priority}`}
+                    >
+                      <div className="pulse-attn-top">
+                        <span className="pulse-attn-ticker">{item.ticker}</span>
+                        {item.conviction && (
+                          <span className={`pulse-attn-badge pulse-tone-${item.conviction.tone}`}>
+                            {item.conviction.verdict}
+                            {item.conviction.direction ? ` · ${item.conviction.direction}` : ""}
+                          </span>
+                        )}
+                      </div>
+                      <p className="pulse-attn-reason">{item.reason}</p>
+                      <div className="pulse-attn-meta">
+                        {item.price != null && <span>${item.price.toLocaleString()}</span>}
+                        {item.changePercent != null && (
+                          <span className={item.changePercent >= 0 ? "up" : "down"}>
+                            {item.changePercent >= 0 ? "+" : ""}{item.changePercent.toFixed(1)}%
+                          </span>
+                        )}
+                        {item.portfolioImpact != null && (
+                          <span className={item.portfolioImpact >= 0 ? "up" : "down"}>
+                            Portfolio: ${Math.abs(item.portfolioImpact).toFixed(0)}
+                          </span>
+                        )}
+                        <span className="pulse-attn-action">{item.action}</span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <p className="pf-muted">
+                  {triage && !triage.hasAlerts
+                    ? "No portfolio positions require attention right now."
+                    : "Portfolio-specific alerts will appear here as conviction data becomes available."}
+                </p>
+              )}
             </section>
           </div>
         </>

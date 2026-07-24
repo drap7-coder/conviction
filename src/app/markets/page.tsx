@@ -93,7 +93,7 @@ export default function MarketPulsePage() {
     );
   }
 
-  const { macroRegime, sectorLeadership, triage, indicators, sectors, watchlist } = data;
+  const { macroRegime, sectorLeadership, triage, indicators, sectors } = data;
 
   // ── Render ──
 
@@ -143,61 +143,7 @@ export default function MarketPulsePage() {
         </p>
       </section>
 
-      {/* ════════════════ 3. NEEDS ATTENTION (TRIAGE) ════════════════ */}
-      <section className="pulse-card pulse-attention" aria-label="Needs attention">
-        <div className="pulse-card-header">
-          <h2 className="pulse-card-title">Needs Attention</h2>
-          {triage.hasAlerts && (
-            <span className="pulse-attn-count">{triage.alerts.length}</span>
-          )}
-        </div>
-
-        {triage.hasAlerts ? (
-          <div className="pulse-attn-list">
-            {triage.alerts.map((item) => (
-              <Link
-                key={item.ticker}
-                href={`/companies/${item.ticker}`}
-                className={`pulse-attn-item pulse-attn-p${item.priority}`}
-              >
-                <div className="pulse-attn-top">
-                  <span className="pulse-attn-ticker">{item.ticker}</span>
-                  {item.conviction && (
-                    <span className={`pulse-attn-badge pulse-tone-${item.conviction.tone}`}>
-                      {item.conviction.verdict}
-                      {item.conviction.direction ? ` · ${item.conviction.direction}` : ""}
-                    </span>
-                  )}
-                </div>
-                <p className="pulse-attn-reason">{item.reason}</p>
-                <div className="pulse-attn-meta">
-                  {item.price != null && <span>${fmtPrice(item.price, false)}</span>}
-                  {item.changePercent != null && (
-                    <span className={item.changePercent >= 0 ? "up" : "down"}>
-                      {fmtPct(item.changePercent)}
-                    </span>
-                  )}
-                  {item.portfolioImpact != null && (
-                    <span className={item.portfolioImpact >= 0 ? "up" : "down"}>
-                      Portfolio: ${Math.abs(item.portfolioImpact).toFixed(0)}
-                    </span>
-                  )}
-                  <span className="pulse-attn-action">{item.action}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="pulse-attn-clear">
-            <p className="pulse-muted">No major thesis or portfolio exceptions require immediate review.</p>
-            {triage.stableCount > 0 && (
-              <p className="pulse-muted-small">{triage.stableCount} positions reviewed and stable.</p>
-            )}
-          </div>
-        )}
-      </section>
-
-      {/* ════════════════ 4. MARKET INDICATORS ════════════════ */}
+      {/* ════════════════ 3. MARKET INDICATORS ════════════════ */}
       <section className="pulse-card" aria-label="Market indicators">
         <div className="pulse-card-header">
           <h2 className="pulse-card-title">Market</h2>
@@ -266,35 +212,6 @@ export default function MarketPulsePage() {
             );
           })}
         </div>
-      </section>
-
-      {/* ════════════════ 6. WATCHLIST PULSE ════════════════ */}
-      <section className="pulse-card" aria-label="Watchlist pulse">
-        <div className="pulse-card-header">
-          <h2 className="pulse-card-title">Watchlist Pulse</h2>
-        </div>
-        {watchlist.length > 0 ? (
-          <div className="pulse-wl">
-            {watchlist.map((item) => {
-              const dir = item.change === null || item.change === 0 ? "neutral" : item.change > 0 ? "positive" : "negative";
-              const badgeLabel = dir === "positive" ? "Strengthening" : dir === "negative" ? "Weakening" : "Stable";
-              return (
-                <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-wl-row">
-                  <div className="pulse-wl-top">
-                    <span className="pulse-wl-ticker">{item.ticker}</span>
-                    <span className={`pulse-wl-badge ${dir}`}>{badgeLabel}</span>
-                  </div>
-                  <div className="pulse-wl-meta">
-                    <span className="pulse-wl-price">{item.price != null ? `$${fmtPrice(item.price, false)}` : "—"}</span>
-                    <span className={dir}> · {fmtPct(item.changePercent)}</span>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="pulse-muted">No holdings on watchlist.</p>
-        )}
       </section>
 
     </div>
