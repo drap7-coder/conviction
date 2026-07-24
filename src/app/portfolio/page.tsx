@@ -5,7 +5,6 @@ import { loadPositions, upsertPosition, removePosition, savePositions, type Pers
 import {
   computePortfolioMetrics,
   computePositionMetrics,
-  getDailyContributors,
   computeSectorAllocation,
   getTopDailyContributors,
   getTopReturnContributors,
@@ -206,10 +205,6 @@ export default function PortfolioPage() {
       },
     ];
   }, [sectorAllocation]);
-  const contributors = useMemo(
-    () => getDailyContributors(enriched, portfolioMetrics.dailyChange),
-    [portfolioMetrics.dailyChange],
-  );
   const hasData = enriched.length > 0;
 
   // ── Portfolio Intelligence V1 derived data ──
@@ -493,32 +488,6 @@ export default function PortfolioPage() {
               </div>
             </section>
           )}
-
-          {/* ── Daily Contributors (condensed) ── */}
-          {contributors.positive.length > 0 || contributors.negative.length > 0 ? (
-            <div className="pf-section">
-              <h2 className="pf-section-title">Today&apos;s Biggest Movers</h2>
-              <div className="pf-contrib-list">
-                {[...contributors.positive, ...contributors.negative]
-                  .sort((a, b) => Math.abs(b.dollarChange) - Math.abs(a.dollarChange))
-                  .slice(0, 3)
-                  .map((c) => (
-                    <div
-                      key={c.ticker}
-                      className={`pf-contrib-row ${c.dollarChange > 0 ? "up" : c.dollarChange < 0 ? "down" : "flat"}`}
-                      aria-label={`${c.ticker}: position changed ${signedCurrency(c.dollarChange)}, ${percent(c.percentChange)}, ${signedCurrency(c.priceChange)} per share`}
-                    >
-                      <span className="pf-contrib-tick" aria-hidden="true" />
-                      <span className="pf-contrib-ticker">{c.ticker}</span>
-                      <span className="pf-contrib-impact">
-                        <strong>{signedCurrency(c.dollarChange)}</strong>
-                        <small>{percent(c.percentChange)} <span aria-hidden="true">·</span> {signedCurrency(c.priceChange)}/sh</small>
-                      </span>
-                    </div>
-                  ))}
-              </div>
-            </div>
-          ) : null}
 
           {/* ── Positions header + add toggle ── */}
           <div className="pf-positions-header">
