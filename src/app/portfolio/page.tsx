@@ -489,6 +489,20 @@ export default function PortfolioPage() {
             </section>
           )}
 
+          {/* ── Portfolio exposure ── */}
+          {sectorDonutData.length > 0 && (
+            <section className="pf-section pf-exposure-card">
+              <div className="pf-exposure-heading">
+                <div>
+                  <span className="pf-section-eyebrow">Portfolio mix</span>
+                  <h2>Where your money is</h2>
+                </div>
+                <p>Position values grouped by economic sector.</p>
+              </div>
+              <SectorDonut sectors={sectorDonutData} />
+            </section>
+          )}
+
           {/* ── Positions header + add toggle ── */}
           <div className="pf-positions-header">
             <h2 className="pf-section-title">Positions</h2>
@@ -661,20 +675,6 @@ export default function PortfolioPage() {
 
           {/* ════════════════ BOTTOM CARD GRID ════════════════ */}
           <div className="pf-bottom-grid">
-            {/* ── Donut card ── */}
-            {sectorDonutData.length > 0 && (
-              <section className="pf-section pf-exposure-card pf-bottom-card">
-                <div className="pf-exposure-heading">
-                  <div>
-                    <span className="pf-section-eyebrow">Portfolio mix</span>
-                    <h2>Where your money is</h2>
-                  </div>
-                  <p>Position values grouped by economic sector.</p>
-                </div>
-                <SectorDonut sectors={sectorDonutData} />
-              </section>
-            )}
-
             {/* ── Portfolio Check card ── */}
             {!calcFailed && (
             <section className="pf-section pf-check-card pf-bottom-card" aria-label="Portfolio check">
