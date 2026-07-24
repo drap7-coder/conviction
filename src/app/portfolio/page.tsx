@@ -17,11 +17,12 @@ import { getLogoUrl } from "@/lib/market/logos";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import type { TriageResult } from "@/lib/market/triage";
 import SectorDonut from "@/components/SectorDonut";
+import { isFiniteNumber } from "@/lib/display/format";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 function currency(value: number | null): string {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -31,7 +32,7 @@ function currency(value: number | null): string {
 }
 
 function signedCurrency(value: number | null): string {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   if (value === 0) return "$0.00";
   return `${value > 0 ? "+" : "−"}$${Math.abs(value).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -40,7 +41,7 @@ function signedCurrency(value: number | null): string {
 }
 
 function compactCurrency(value: number | null): string {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   if (Math.abs(value) >= 1_000_000) {
     return "$" + (value / 1_000_000).toFixed(2) + "M";
   }
@@ -54,13 +55,13 @@ function compactCurrency(value: number | null): string {
 }
 
 function percent(value: number | null): string {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   const sign = value >= 0 ? "+" : "";
   return `${sign}${value.toFixed(2)}%`;
 }
 
 function weightPct(value: number | null): string {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   return `${value.toFixed(0)}%`;
 }
 
@@ -817,13 +818,13 @@ export default function PortfolioPage() {
                       </div>
                       <p className="pulse-attn-reason">{item.reason}</p>
                       <div className="pulse-attn-meta">
-                        {item.price != null && <span>${item.price.toLocaleString()}</span>}
-                        {item.changePercent != null && (
+                        {isFiniteNumber(item.price) && <span>${item.price.toLocaleString()}</span>}
+                        {isFiniteNumber(item.changePercent) && (
                           <span className={item.changePercent >= 0 ? "up" : "down"}>
                             {item.changePercent >= 0 ? "+" : ""}{item.changePercent.toFixed(1)}%
                           </span>
                         )}
-                        {item.portfolioImpact != null && (
+                        {isFiniteNumber(item.portfolioImpact) && (
                           <span className={item.portfolioImpact >= 0 ? "up" : "down"}>
                             Portfolio: ${Math.abs(item.portfolioImpact).toFixed(0)}
                           </span>

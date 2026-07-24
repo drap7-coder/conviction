@@ -7,6 +7,7 @@ import { getConvictionBadge } from "@/lib/conviction/canonical-types";
 import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { NewsDriverBrief } from "./NewsDriverBrief";
+import { isFiniteNumber } from "@/lib/display/format";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -54,7 +55,7 @@ export interface WatchlistCardProps {
 }
 
 function formatPrice(value: number | null) {
-  if (value === null) return "—";
+  if (!isFiniteNumber(value)) return "—";
   return value.toLocaleString(undefined, {
     maximumFractionDigits: value >= 100 ? 2 : 3,
     minimumFractionDigits: value >= 1 ? 2 : 3,
@@ -62,7 +63,7 @@ function formatPrice(value: number | null) {
 }
 
 function formatChange(value: number | null, percent: number | null) {
-  if (value === null || percent === null) return null;
+  if (!isFiniteNumber(value) || !isFiniteNumber(percent)) return null;
   const sign = value > 0 ? "+" : value < 0 ? "-" : "";
   return {
     dollars: `${sign}$${Math.abs(value).toFixed(2)}`,
@@ -71,7 +72,7 @@ function formatChange(value: number | null, percent: number | null) {
 }
 
 function formatMarketCap(value: number | null): string | null {
-  if (value === null) return null;
+  if (!isFiniteNumber(value)) return null;
   if (value >= 1_000_000_000_000) {
     return "$" + (value / 1_000_000_000_000).toFixed(1) + "T";
   }

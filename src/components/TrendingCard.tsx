@@ -188,8 +188,8 @@ export function TrendingCard({
                   ? `$${fmtPrice(livePrice)}`
                   : "—"}
               </strong>
-              <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
-                {liveChange != null && liveChangePercent != null
+              <span className={"watchlist-row-change " + (isFiniteNumber(liveChange) && liveChange > 0 ? "positive" : isFiniteNumber(liveChange) && liveChange < 0 ? "negative" : "neutral")}>
+                {isFiniteNumber(liveChange) && isFiniteNumber(liveChangePercent)
                   ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${fmtPercent(liveChangePercent)}`
                   : "—"}
               </span>
