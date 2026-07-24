@@ -894,7 +894,7 @@ details > summary::before {
   gap: 24px;
 }
 
-@media (min-width: 641px) {
+@media (min-width: 768px) {
   .watchlist-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1403,7 +1403,7 @@ details > summary::before {
   font-size: 0.62rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .watchlist-row {
     padding: 9px 13px 13px;
   }
@@ -5075,7 +5075,7 @@ details > summary::before {
 
 .pf-sc-ticker {
   font-family: var(--font-mono);
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--ink);
   text-transform: uppercase;
@@ -5419,7 +5419,7 @@ details > summary::before {
 }
 
 .pf-driver-ticker {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--ink);
   text-transform: uppercase;
@@ -5474,7 +5474,7 @@ details > summary::before {
 
 /* ── Responsive ── */
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .app-shell {
     padding: 12px 12px var(--mobile-page-gutter);
   }
@@ -6715,7 +6715,7 @@ details > summary::before {
 .pulse {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
   padding-bottom: 32px;
   min-width: 0;
   overflow: hidden;
@@ -6781,7 +6781,7 @@ details > summary::before {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 20px;
 }
 
 .pulse-card-header {
@@ -6792,11 +6792,12 @@ details > summary::before {
 }
 
 .pulse-card-title {
-  font-size: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  color: var(--muted);
   text-transform: uppercase;
-  color: var(--quiet);
+  letter-spacing: 0.06em;
   margin: 0;
 }
 
@@ -6896,7 +6897,7 @@ details > summary::before {
   padding: 4px 12px;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.02em;
   white-space: nowrap;
@@ -6934,7 +6935,7 @@ details > summary::before {
   padding: 3px 10px;
   border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 600;
   cursor: help;
 }
@@ -6996,17 +6997,16 @@ details > summary::before {
 
 .pulse-attn-item {
   display: block;
-  padding: 14px;
-  border-radius: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: var(--bg);
+  background: var(--surface);
   text-decoration: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s;
 }
 
 .pulse-attn-item:hover {
   border-color: var(--border-active);
-  background: var(--surface);
 }
 
 .pulse-attn-p1 { border-left: 3px solid var(--red); }
@@ -7031,8 +7031,9 @@ details > summary::before {
 }
 
 .pulse-attn-badge {
-  font-size: 0.58rem;
+  font-size: 0.62rem;
   font-weight: 700;
+  font-family: var(--font-mono);
   padding: 2px 8px;
   border-radius: 999px;
   white-space: nowrap;
@@ -7218,14 +7219,17 @@ details > summary::before {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 14px 0;
+  padding: 12px 14px;
   text-decoration: none;
   border-bottom: 1px solid var(--border);
-  transition: opacity 0.1s;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  transition: border-color 0.15s;
 }
 
 .pulse-wl-row:last-child { border-bottom: none; }
-.pulse-wl-row:hover { opacity: 0.75; }
+.pulse-wl-row:hover { border-color: var(--border-active); }
 
 .pulse-wl-top {
   display: flex;
@@ -7235,7 +7239,7 @@ details > summary::before {
 }
 
 .pulse-wl-ticker {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--ink);
   font-family: var(--font-mono);
@@ -7243,8 +7247,9 @@ details > summary::before {
 }
 
 .pulse-wl-badge {
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 700;
+  font-family: var(--font-mono);
   padding: 4px 10px;
   border-radius: 999px;
   letter-spacing: 0.03em;
@@ -7280,7 +7285,7 @@ details > summary::before {
 
 /* ── Responsive ── */
 
-@media (max-width: 640px) {
+@media (max-width: 767px) {
   .pulse-brief {
     padding: 20px 18px;
     border-radius: 16px;
