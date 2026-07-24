@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 import { getWatchlist } from "@/lib/watchlist/persist";
 import { SECTORS } from "@/lib/market/industries";
+import {
+  classifyMacroRegime,
+  type IndicatorSnapshot,
+  type MacroRegime,
+} from "@/lib/market/macro-regime";
+import {
+  classifySectorLeadership,
+  type SectorLeadership,
+} from "@/lib/market/sector-classification";
+import { runTriage, type TriageWatchlistInput, type TriageResult } from "@/lib/market/triage";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +21,6 @@ const INDICATORS: Array<{
   ticker: string;
   label: string;
   status: DataStatus;
-  /** When true, the value is a percentage (e.g. yield) and should be displayed with a % suffix */
   isPercentValue?: boolean;
 }> = [
   { ticker: "SPY", label: "S&P 500", status: "proxy" },
@@ -50,6 +59,9 @@ export interface PulseData {
   indicators: PulseIndicator[];
   sectors: PulseSector[];
   watchlist: PulseWatchlistItem[];
+  macroRegime: MacroRegime;
+  sectorLeadership: SectorLeadership;
+  triage: TriageResult;
   fetchedAt: string;
 }
 
@@ -68,7 +80,7 @@ export async function GET() {
   const quotes = await fetchStockQuotes(allTickers);
   const quoteMap = new Map(quotes.map((q) => [q.ticker, q]));
 
-  // ── Indicators with normalized type and status ──
+  // ── Indicators ──
   const indicators: PulseIndicator[] = INDICATORS.map((indicator) => {
     const q = quoteMap.get(indicator.ticker);
     return {
@@ -82,6 +94,18 @@ export async function GET() {
     };
   });
 
+  // ── Macro regime ──
+  const indicatorSnapshots: IndicatorSnapshot[] = indicators.map((i) => ({
+    ticker: i.ticker,
+    label: i.label,
+    price: i.price,
+    change: i.change,
+    changePercent: i.changePercent,
+    isPercentValue: i.isPercentValue,
+    status: i.status,
+  }));
+  const macroRegime = classifyMacroRegime(indicatorSnapshots);
+
   // ── Sectors (sorted by performance) ──
   const sectors: PulseSector[] = SECTORS.map((sector) => {
     const q = quoteMap.get(sector.ticker);
@@ -92,6 +116,7 @@ export async function GET() {
     };
   });
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
+  const sectorLeadership = classifySectorLeadership(sectors);
 
   // ── Watchlist ──
   const watchlistItems: PulseWatchlistItem[] = watchlistTickers.map((ticker) => {
@@ -106,10 +131,32 @@ export async function GET() {
     };
   });
 
+  // ── Triage ──
+  const triageItems: TriageWatchlistInput[] = watchlistTickers.map((ticker) => {
+    const q = quoteMap.get(ticker);
+    const entry = watchlist.find((e) => e.ticker === ticker);
+    return {
+      ticker,
+      companyName: entry?.companyName ?? ticker,
+      price: q?.price ?? null,
+      changePercent: q?.changePercent ?? null,
+      snapshot: null, // conviction snapshots require per-ticker server-side fetch
+      thesisStatus: entry?.thesis?.status ?? null,
+      portfolio: {
+        held: false,
+        positionChange: null,
+      },
+    };
+  });
+  const triage = runTriage(triageItems);
+
   return NextResponse.json({
     indicators,
     sectors,
     watchlist: watchlistItems,
+    macroRegime,
+    sectorLeadership,
+    triage,
     fetchedAt: new Date().toISOString(),
   });
 }
