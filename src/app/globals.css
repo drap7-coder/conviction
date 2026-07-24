@@ -6185,3 +6185,360 @@ details > summary::before {
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Market Pulse ──────────────────────────────────── */
+
+.pulse-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding-bottom: 24px;
+}
+
+/* ── Brief ── */
+
+.pulse-brief {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rounded-xl);
+  padding: 20px;
+}
+
+.pulse-brief-greeting {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+.pulse-brief-sentence {
+  font-size: 1.05rem;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.pulse-brief-changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pulse-brief-change {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.pulse-brief-change.positive { color: var(--green); }
+.pulse-brief-change.negative { color: var(--red); }
+
+.pulse-brief-arrow { font-weight: 700; }
+
+.pulse-brief-text { font-weight: 600; }
+
+.pulse-brief-detail {
+  color: var(--quiet);
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+/* ── Card ── */
+
+.pulse-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rounded-xl);
+  padding: 20px;
+}
+
+.pulse-card-header {
+  margin-bottom: 16px;
+}
+
+.pulse-card-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--quiet);
+  margin: 0;
+}
+
+/* ── Market stat grid ── */
+
+.pulse-market-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.pulse-market-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pulse-market-name {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.pulse-market-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+
+.pulse-market-change {
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.pulse-market-change.up { color: var(--green); }
+.pulse-market-change.down { color: var(--red); }
+
+/* ── What's Different ── */
+
+.pulse-diff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pulse-diff-item {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pulse-diff-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  list-style: none;
+}
+
+.pulse-diff-summary::-webkit-details-marker { display: none; }
+
+.pulse-diff-summary.positive { color: var(--green); }
+.pulse-diff-summary.negative { color: var(--red); }
+
+.pulse-diff-arrow { font-size: 1rem; }
+
+.pulse-diff-body {
+  padding: 0 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pulse-diff-why,
+.pulse-diff-evidence,
+.pulse-diff-affected {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.pulse-diff-why { color: var(--ink); font-weight: 500; }
+
+/* ── Sector Leaders ── */
+
+.pulse-sector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pulse-sector-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 70px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.pulse-sector-row:last-child { border-bottom: none; }
+
+.pulse-sector-arrow {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.pulse-sector-arrow.strong.up { color: var(--green); }
+.pulse-sector-arrow.moderate.up { color: var(--green); opacity: 0.7; }
+.pulse-sector-arrow.flat { color: var(--quiet); }
+.pulse-sector-arrow.strong.down { color: var(--red); }
+.pulse-sector-arrow.moderate.down { color: var(--red); opacity: 0.7; }
+
+.pulse-sector-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.pulse-sector-pct {
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  text-align: right;
+}
+
+.pulse-sector-pct.strong.up { color: var(--green); }
+.pulse-sector-pct.moderate.up { color: var(--green); opacity: 0.7; }
+.pulse-sector-pct.flat { color: var(--quiet); }
+.pulse-sector-pct.strong.down { color: var(--red); }
+.pulse-sector-pct.moderate.down { color: var(--red); opacity: 0.7; }
+
+.pulse-sector-bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pulse-sector-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.pulse-sector-bar-fill.strong.up { background: var(--green); }
+.pulse-sector-bar-fill.moderate.up { background: var(--green); opacity: 0.5; }
+.pulse-sector-bar-fill.flat { background: var(--quiet); opacity: 0.3; }
+.pulse-sector-bar-fill.strong.down { background: var(--red); }
+.pulse-sector-bar-fill.moderate.down { background: var(--red); opacity: 0.5; }
+
+/* ── Watchlist ── */
+
+.pulse-watchlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pulse-watchlist-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.pulse-watchlist-row:last-child { border-bottom: none; }
+
+.pulse-watchlist-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pulse-watchlist-ticker {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+}
+
+.pulse-watchlist-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.pulse-watchlist-badge.positive { background: var(--green-dim); color: var(--green); }
+.pulse-watchlist-badge.negative { background: var(--red-dim); color: var(--red); }
+
+.pulse-watchlist-detail {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.pulse-watchlist-unchanged {
+  margin: 12px 0 0;
+  font-size: 0.72rem;
+  color: var(--quiet);
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Attention ── */
+
+.pulse-attention-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pulse-attention-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 0;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+
+.pulse-attention-item:last-child { border-bottom: none; }
+
+.pulse-attention-item-done {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pulse-attention-ticker {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pulse-attention-reason {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.pulse-card-attention {
+  border-left: 4px solid var(--amber);
+}
+
+.pulse-empty-text {
+  font-size: 0.85rem;
+  color: var(--quiet);
+  margin: 0;
+  padding: 8px 0;
+}
+
+/* ── Responsive tweaks ── */
+
+@media (max-width: 640px) {
+  .pulse-market-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

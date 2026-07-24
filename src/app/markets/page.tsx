@@ -1,262 +1,367 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LogoDisplay } from "@/app/components/LogoDisplay";
-import { getLivePrice } from "@/lib/market/live-quote";
 
-interface StockHistoryPoint {
-  date: string;
-  close: number;
-}
-
-interface MarketQuote {
+interface PulseIndicator {
   ticker: string;
   name: string;
   price: number | null;
   change: number | null;
   changePercent: number | null;
-  marketState: string | null;
-  preMarketPrice: number | null;
-  preMarketChange: number | null;
-  preMarketChangePercent: number | null;
-  postMarketPrice: number | null;
-  postMarketChange: number | null;
-  postMarketChangePercent: number | null;
-  sparkline: StockHistoryPoint[];
-  description: string;
 }
 
-interface MarketGroup {
-  label: string;
-  items: MarketQuote[];
+interface PulseSector {
+  ticker: string;
+  name: string;
+  changePercent: number | null;
 }
 
-function buildSparklinePath(points: StockHistoryPoint[]) {
-  if (points.length < 2) return "";
-  const width = 320;
-  const height = 96;
-  const padding = 6;
-  const closes = points.map((p) => p.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const spread = max - min || 1;
-  return points
-    .map((p, i) => {
-      const x = padding + (i / (points.length - 1)) * (width - padding * 2);
-      const y = padding + ((max - p.close) / spread) * (height - padding * 2);
-      return (i === 0 ? "M" : "L") + " " + x.toFixed(2) + " " + y.toFixed(2);
-    })
-    .join(" ");
+interface PulseWatchlistItem {
+  ticker: string;
+  companyName: string;
+  price: number | null;
+  change: number | null;
+  changePercent: number | null;
 }
 
-function compactCurrency(value: number | null): string {
+interface PulseData {
+  indicators: PulseIndicator[];
+  sectors: PulseSector[];
+  watchlist: PulseWatchlistItem[];
+  fetchedAt: string;
+}
+
+// ── Helpers ──
+
+function formatChange(value: number | null): string {
   if (value === null) return "—";
-  if (Math.abs(value) >= 1_000_000_000) {
-    return "$" + (value / 1_000_000_000).toFixed(2) + "B";
-  }
-  if (Math.abs(value) >= 1_000_000) {
-    return "$" + (value / 1_000_000).toFixed(2) + "M";
-  }
-  if (Math.abs(value) >= 1_000) {
-    return "$" + (value / 1_000).toFixed(1) + "K";
-  }
-  return "$" + value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
-const TICKERS: MarketGroup[] = [
-  {
-    label: "Major Indices",
-    items: [
-      { ticker: "SPY", name: "S&P 500", description: "Tracks 500 large-cap US stocks — the broad market benchmark.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-      { ticker: "DIA", name: "Dow Jones", description: "Follows 30 blue-chip US industrial companies.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-      { ticker: "QQQ", name: "Nasdaq 100", description: "Tracks 100 of the largest non-financial Nasdaq-listed companies.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-      { ticker: "IWM", name: "Russell 2000", description: "Tracks ~2,000 small-cap US stocks — a domestic economic proxy.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-    ],
-  },
-  {
-    label: "Crypto",
-    items: [
-      { ticker: "BTC-USD", name: "Bitcoin", description: "The largest cryptocurrency by market cap — decentralized digital gold.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-      { ticker: "ETH-USD", name: "Ethereum", description: "The second-largest crypto — smart contract platform for dApps and DeFi.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-    ],
-  },
-  {
-    label: "Commodities",
-    items: [
-      { ticker: "GLD", name: "Gold", description: "The largest gold-backed ETF — a traditional safe-haven asset.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-      { ticker: "USO", name: "Crude Oil (WTI)", description: "Tracks near-month WTI crude oil futures — a key energy price gauge.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-    ],
-  },
-  {
-    label: "Rates",
-    items: [
-      { ticker: "^TNX", name: "10-Year Treasury Yield", description: "The yield on 10-year US government debt — a benchmark for borrowing costs.", price: null, change: null, changePercent: null, marketState: null, preMarketPrice: null, preMarketChange: null, preMarketChangePercent: null, postMarketPrice: null, postMarketChange: null, postMarketChangePercent: null, sparkline: [] },
-    ],
-  },
-];
+function formatPrice(value: number | null): string {
+  if (value === null) return "—";
+  if (value >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  if (value >= 10) return value.toFixed(2);
+  return value.toFixed(3);
+}
 
-export default function MarketsPage() {
-  const [groups, setGroups] = useState<MarketGroup[]>(TICKERS);
+function arrow(value: number | null): string {
+  if (value === null || value === 0) return "—";
+  return value > 0 ? "▲" : "▼";
+}
+
+function arrowClass(value: number | null): string {
+  if (value === null || value === 0) return "";
+  return value > 0 ? "up" : "down";
+}
+
+interface BriefItem {
+  icon: string;
+  text: string;
+  positive: boolean;
+  detail?: string;
+}
+
+function buildBrief(indicatorMap: Map<string, PulseIndicator>): string {
+  const spy = indicatorMap.get("SPY");
+  const vix = indicatorMap.get("^VIX");
+  const tnx = indicatorMap.get("^TNX");
+
+  if (!spy || !vix) return "Markets are loading.";
+
+  const spyUp = (spy.changePercent ?? 0) > 0.3;
+  const spyDown = (spy.changePercent ?? 0) < -0.3;
+  const vixDown = (vix.changePercent ?? 0) < -3;
+  const vixUp = (vix.changePercent ?? 0) > 3;
+  const yieldsDown = (tnx?.changePercent ?? 0) < -0.5;
+  const yieldsUp = (tnx?.changePercent ?? 0) > 0.5;
+
+  if (spyUp && vixDown) return "Markets are risk-on as volatility declines and equities advance.";
+  if (spyUp && yieldsDown) return "Markets are rallying as yields fall, supporting growth stocks.";
+  if (spyDown && vixUp) return "Markets are risk-off with rising volatility and broad selling.";
+  if (spyDown && yieldsUp) return "Markets are under pressure as yields rise, weighing on equities.";
+  if (spyUp) return "Markets are positive with broad-based gains across sectors.";
+  if (spyDown) return "Markets are in the red with broad-based selling pressure.";
+  return "Markets are mixed with no clear directional bias.";
+}
+
+function buildWhatChanged(indicatorMap: Map<string, PulseIndicator>, sectors: PulseSector[]): BriefItem[] {
+  const items: BriefItem[] = [];
+
+  // Check oil
+  const oil = indicatorMap.get("USO");
+  if (oil && (oil.changePercent ?? 0) > 2) {
+    items.push({ icon: "▲", text: "Oil broke higher", positive: false, detail: `Crude oil +${oil.changePercent?.toFixed(1)}%` });
+  }
+  if (oil && (oil.changePercent ?? 0) < -2) {
+    items.push({ icon: "▼", text: "Oil fell sharply", positive: false, detail: `Crude oil ${oil.changePercent?.toFixed(1)}%` });
+  }
+
+  // Check VIX
+  const vix = indicatorMap.get("^VIX");
+  if (vix && (vix.changePercent ?? 0) > 5) {
+    items.push({ icon: "▲", text: "Volatility spiked", positive: false, detail: `VIX +${vix.changePercent?.toFixed(1)}%` });
+  }
+  if (vix && (vix.changePercent ?? 0) < -5) {
+    items.push({ icon: "▼", text: "Volatility collapsed", positive: true, detail: `VIX ${vix.changePercent?.toFixed(1)}%` });
+  }
+
+  // Check yields
+  const tnx = indicatorMap.get("^TNX");
+  if (tnx && (tnx.changePercent ?? 0) > 1) {
+    items.push({ icon: "▲", text: "Treasury yields rose sharply", positive: false, detail: "10Y yield up" });
+  }
+  if (tnx && (tnx.changePercent ?? 0) < -1) {
+    items.push({ icon: "▼", text: "Treasury yields fell sharply", positive: true, detail: "10Y yield down" });
+  }
+
+  // Check leading/lagging sectors
+  if (sectors.length > 0) {
+    const top = sectors[0];
+    const bottom = sectors[sectors.length - 1];
+    if (top && (top.changePercent ?? 0) > 1) {
+      items.push({ icon: "▲", text: `${top.name} became the leading sector`, positive: true, detail: `${top.ticker} ${formatChange(top.changePercent)}` });
+    }
+    if (bottom && (bottom.changePercent ?? 0) < -1 && bottom !== top) {
+      items.push({ icon: "▼", text: `${bottom.name} is the lagging sector`, positive: false, detail: `${bottom.ticker} ${formatChange(bottom.changePercent)}` });
+    }
+  }
+
+  return items.slice(0, 3);
+}
+
+function buildBriefTime(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning.";
+  if (h < 17) return "Good afternoon.";
+  return "Good evening.";
+}
+
+// ── Page ──
+
+export default function MarketPulsePage() {
+  const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
 
   useEffect(() => {
     let cancelled = false;
-
     async function load() {
       setStatus("loading");
       try {
-        const allTickers = TICKERS.flatMap((g) => g.items.map((i) => i.ticker));
-        const response = await fetch(
-          `/api/market/quotes?tickers=${allTickers.join(",")}`,
-        );
-        if (!response.ok) throw new Error("Failed to fetch");
-        const data = await response.json() as { quotes?: Array<{
-          ticker: string;
-          price: number | null;
-          change: number | null;
-          changePercent: number | null;
-          marketState: string | null;
-          preMarketPrice: number | null;
-          preMarketChange: number | null;
-          preMarketChangePercent: number | null;
-          postMarketPrice: number | null;
-          postMarketChange: number | null;
-          postMarketChangePercent: number | null;
-          sparkline: StockHistoryPoint[];
-        }> };
-        if (cancelled) return;
-
-        if (data.quotes) {
-          const quoteMap = new Map(data.quotes.map((q) => [q.ticker, q]));
-          const next: MarketGroup[] = TICKERS.map((group) => ({
-            ...group,
-            items: group.items.map((item) => {
-              const q = quoteMap.get(item.ticker);
-              return {
-                ...item,
-                price: q?.price ?? null,
-                change: q?.change ?? null,
-                changePercent: q?.changePercent ?? null,
-                marketState: q?.marketState ?? null,
-                preMarketPrice: q?.preMarketPrice ?? null,
-                preMarketChange: q?.preMarketChange ?? null,
-                preMarketChangePercent: q?.preMarketChangePercent ?? null,
-                postMarketPrice: q?.postMarketPrice ?? null,
-                postMarketChange: q?.postMarketChange ?? null,
-                postMarketChangePercent: q?.postMarketChangePercent ?? null,
-                sparkline: q?.sparkline ?? [],
-              };
-            }),
-          }));
-          setGroups(next);
+        const res = await fetch("/api/market/pulse");
+        if (!res.ok) throw new Error("Failed");
+        const json = (await res.json()) as PulseData;
+        if (!cancelled) {
+          setData(json);
           setStatus("success");
         }
       } catch {
         if (!cancelled) setStatus("error");
       }
     }
-
     void load();
     return () => { cancelled = true; };
   }, []);
 
-  return (
-    <div>
-
-      {status === "loading" || status === "idle" ? (
+  if (status === "loading" || status === "idle") {
+    return (
+      <div className="pulse-page">
         <div className="empty-state compact">
-          <p>Loading markets...</p>
+          <p>Loading market pulse...</p>
         </div>
-      ) : status === "error" ? (
+      </div>
+    );
+  }
+
+  if (status === "error" || !data) {
+    return (
+      <div className="pulse-page">
         <div className="empty-state">
           <p>Market data is temporarily unavailable.</p>
           <small>Data provider may be rate-limited. Retry in a moment.</small>
         </div>
-      ) : (
-        groups.map((group) => (
-          <section key={group.label} className="industries-section" aria-label={group.label}>
-            <div className="section-header">
-              <h3 className="section-title">{group.label}</h3>
-            </div>
-            <div className="watchlist-list">
-              {group.items.map((item) => {
-                const sparklinePath = buildSparklinePath(item.sparkline);
-                const live = getLivePrice(item);
-                const livePrice = live.price;
-                const liveChange = live.change;
-                const liveChangePct = live.changePercent;
-                const sessionLabel = live.label;
-                const arrow = liveChange !== null
-                  ? (liveChange > 0 ? "▲" : liveChange < 0 ? "▼" : null)
-                  : null;
-                const arrowClass = liveChange !== null && liveChange > 0 ? "up" : liveChange !== null && liveChange < 0 ? "down" : "";
-                return (
-                  <div key={item.ticker} className="terminal-card-wrap group">
-                    <a className="watchlist-row" href={`/markets/${item.ticker}`}>
-                      <div className="watchlist-row-main">
-                        <div className="watchlist-row-company">
-                          <LogoDisplay ticker={item.ticker} size="card" />
-                          <div>
-                            <strong className="watchlist-row-ticker">{item.ticker}</strong>
-                            <span className="watchlist-row-name">{item.name}</span>
-                          </div>
-                        </div>
-                        <div className="watchlist-row-move">
-                          <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
-                          <span className="watchlist-row-move-amounts">
-                            <strong>
-                              {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
-                              {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: livePrice >= 100 ? 2 : 3, minimumFractionDigits: livePrice >= 1 ? 2 : 3 })}` : "—"}
-                            </strong>
-                            <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
-                              {liveChange != null && liveChangePct != null
-                                ? `${liveChange > 0 ? "+" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePct > 0 ? "+" : ""}${liveChangePct.toFixed(2)}%`
-                                : "—"}
-                            </span>
-                          </span>
-                          {sessionLabel && item.price !== null && (
-                            <span className="watchlist-row-session">
-                              <span className="watchlist-row-session-label">At Close · Today</span>
-                              <span className="watchlist-row-session-price">${item.price.toLocaleString(undefined, { maximumFractionDigits: item.price >= 100 ? 2 : 3, minimumFractionDigits: item.price >= 1 ? 2 : 3 })}</span>
-                              {item.changePercent != null ? (
-                                <span className={`watchlist-row-session-change ${item.change !== null && item.change > 0 ? "positive" : item.change !== null && item.change < 0 ? "negative" : ""}`}>
-                                  {item.changePercent > 0 ? "+" : ""}{item.changePercent.toFixed(2)}%
-                                </span>
-                              ) : null}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+      </div>
+    );
+  }
 
-                      {sparklinePath ? (
-                        <div className={"watchlist-row-chart price-chart " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")} aria-label={item.ticker + " intraday chart"}>
-                          <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
-                            <path className="price-chart-glow" d={sparklinePath} />
-                            <path className="price-chart-line" d={sparklinePath} />
-                          </svg>
-                          <span>Today</span>
-                        </div>
-                      ) : null}
-                      {item.description ? (
-                        <section className="news-driver-brief news-driver-brief-compact" aria-label={`${item.ticker} description`}>
-                          <div className="news-driver-heading">
-                            <span className="news-driver-eyebrow">The story</span>
-                            <span className="news-driver-horizon">Instrument overview</span>
-                          </div>
-                          <p className="news-driver-copy">{item.description}</p>
-                        </section>
-                      ) : null}
-                    </a>
-                  </div>
-                );
-              })}
+  const indicatorMap = new Map(data.indicators.map((i) => [i.ticker, i]));
+  const briefSentence = buildBrief(indicatorMap);
+  const whatChanged = buildWhatChanged(indicatorMap, data.sectors);
+  const greeting = buildBriefTime();
+
+  // Watchlist: show only non-zero-change items, then a "no change" group
+  const changedWatchlist = data.watchlist.filter((w) => w.change !== null && Math.abs(w.change ?? 0) > 0.01);
+  const unchangedWatchlist = data.watchlist.filter((w) => w.change === null || Math.abs(w.change ?? 0) <= 0.01);
+
+  return (
+    <div className="pulse-page">
+
+      {/* ── Today's Brief ── */}
+      <section className="pulse-brief" aria-label="Today's market brief">
+        <p className="pulse-brief-greeting">{greeting}</p>
+        <p className="pulse-brief-sentence">{briefSentence}</p>
+        {whatChanged.length > 0 && (
+          <ul className="pulse-brief-changes">
+            {whatChanged.map((item) => (
+              <li key={item.text} className={`pulse-brief-change ${item.positive ? "positive" : "negative"}`}>
+                <span className="pulse-brief-arrow">{item.icon}</span>
+                <span className="pulse-brief-text">{item.text}</span>
+                {item.detail && <span className="pulse-brief-detail">{item.detail}</span>}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* ── 1. Market ── */}
+      <section className="pulse-card" aria-label="Market indicators">
+        <div className="pulse-card-header">
+          <h2 className="pulse-card-title">Market</h2>
+        </div>
+        <div className="pulse-market-grid">
+          {data.indicators.map((ind) => (
+            <div key={ind.ticker} className="pulse-market-item">
+              <span className="pulse-market-name">{ind.name}</span>
+              <span className="pulse-market-price">{ind.price != null ? formatPrice(ind.price) : "—"}</span>
+              <span className={`pulse-market-change ${arrowClass(ind.changePercent)}`}>
+                {arrow(ind.changePercent)} {formatChange(ind.changePercent)}
+              </span>
             </div>
-          </section>
-        ))
-      )}
+          ))}
+        </div>
+      </section>
+
+      {/* ── 2. What's Different Today ── */}
+      <section className="pulse-card" aria-label="What changed today">
+        <div className="pulse-card-header">
+          <h2 className="pulse-card-title">What&rsquo;s Different Today</h2>
+        </div>
+        {whatChanged.length > 0 ? (
+          <div className="pulse-diff-list">
+            {whatChanged.map((item) => (
+              <details key={item.text} className="pulse-diff-item">
+                <summary className={`pulse-diff-summary ${item.positive ? "positive" : "negative"}`}>
+                  <span className="pulse-diff-arrow">{item.icon}</span>
+                  <span className="pulse-diff-text">{item.text}</span>
+                </summary>
+                <div className="pulse-diff-body">
+                  <p className="pulse-diff-why">Why? {item.detail}</p>
+                  <p className="pulse-diff-evidence">Evidence · {item.detail}</p>
+                  <p className="pulse-diff-affected">Affected watchlist · {data.watchlist.length} holdings</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        ) : (
+          <p className="pulse-empty-text">No material changes detected today.</p>
+        )}
+      </section>
+
+      {/* ── 3. Sector Leaders ── */}
+      <section className="pulse-card" aria-label="Sector leaders">
+        <div className="pulse-card-header">
+          <h2 className="pulse-card-title">Sector Leaders</h2>
+        </div>
+        <div className="pulse-sector-list">
+          {data.sectors.map((sector) => {
+            const pct = sector.changePercent;
+            const bars = pct === null ? 0 : Math.round(Math.abs(pct) / 0.5);
+            const direction = pct === null ? "—" : pct > 0 ? "▲" : pct < 0 ? "▼" : "—";
+            const absPct = Math.abs(pct ?? 0);
+            const strength = pct === null ? "neutral" : absPct > 1 ? "strong" : absPct > 0.3 ? "moderate" : "flat";
+            const dirClass = pct === null || pct === 0 ? "" : pct > 0 ? "up" : "down";
+            return (
+              <Link key={sector.ticker} href={`/industries/${sector.ticker}`} className="pulse-sector-row">
+                <span className={`pulse-sector-arrow ${strength} ${dirClass}`}>{direction}</span>
+                <span className="pulse-sector-name">{sector.name}</span>
+                <span className={`pulse-sector-pct ${strength} ${dirClass}`}>{formatChange(pct)}</span>
+                <span className="pulse-sector-bar" aria-hidden="true">
+                  <span className={`pulse-sector-bar-fill ${strength} ${dirClass}`} style={{ width: `${Math.min(bars * 8, 100)}%` }} />
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ── 4. Your Watchlist ── */}
+      <section className="pulse-card" aria-label="Your watchlist changes">
+        <div className="pulse-card-header">
+          <h2 className="pulse-card-title">Your Watchlist</h2>
+        </div>
+        <div className="pulse-watchlist-list">
+          {changedWatchlist.length > 0 ? (
+            changedWatchlist.map((item) => {
+              const dir = item.change === null || item.change === 0 ? "neutral" : item.change > 0 ? "positive" : "negative";
+              const strength = item.changePercent !== null
+                ? Math.abs(item.changePercent) > 2 ? "strong" : Math.abs(item.changePercent) > 0.5 ? "moderate" : "minor"
+                : "neutral";
+              return (
+                <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-watchlist-row">
+                  <div className="pulse-watchlist-top">
+                    <span className="pulse-watchlist-ticker">{item.ticker}</span>
+                    <span className={`pulse-watchlist-badge ${dir} ${strength}`}>
+                      {dir === "positive" ? "▲ Strengthening" : dir === "negative" ? "▼ Weakening" : "— Stable"}
+                    </span>
+                  </div>
+                  <span className="pulse-watchlist-detail">
+                    {item.price != null ? `$${formatPrice(item.price)}` : "—"}
+                    {" · "}
+                    <span className={dir}>{formatChange(item.changePercent)}</span>
+                  </span>
+                </Link>
+              );
+            })
+          ) : (
+            <p className="pulse-empty-text">No holdings with significant movement.</p>
+          )}
+          {unchangedWatchlist.length > 0 && (
+            <p className="pulse-watchlist-unchanged">
+              {unchangedWatchlist.map((w) => w.ticker).join(", ")} · No material change
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ── 5. Needs Attention ── */}
+      <section className="pulse-card pulse-card-attention" aria-label="Needs attention">
+        <div className="pulse-card-header">
+          <h2 className="pulse-card-title">Needs Attention</h2>
+        </div>
+        <div className="pulse-attention-list">
+          {data.watchlist.length > 0 ? (
+            data.watchlist.slice(0, 3).map((item) => {
+              // Derive attention items from the most changed holdings
+              const absChange = Math.abs(item.changePercent ?? 0);
+              if (absChange > 2) {
+                return (
+                  <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-attention-item">
+                    <span className="pulse-attention-ticker">Review {item.ticker}</span>
+                    <span className="pulse-attention-reason">{item.changePercent! > 0 ? "Significant gain" : "Significant drop"} · {formatChange(item.changePercent)}</span>
+                  </Link>
+                );
+              }
+              if (absChange > 1) {
+                return (
+                  <Link key={item.ticker} href={`/companies/${item.ticker}`} className="pulse-attention-item">
+                    <span className="pulse-attention-ticker">Review {item.ticker}</span>
+                    <span className="pulse-attention-reason">Notable move · {formatChange(item.changePercent)}</span>
+                  </Link>
+                );
+              }
+              return (
+                <div key={item.ticker} className="pulse-attention-item pulse-attention-item-done">
+                  <span className="pulse-attention-ticker">No action required for {item.ticker}</span>
+                </div>
+              );
+            })
+          ) : (
+            <p className="pulse-empty-text">No items need attention.</p>
+          )}
+        </div>
+      </section>
+
     </div>
   );
 }
