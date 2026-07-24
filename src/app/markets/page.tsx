@@ -144,6 +144,30 @@ export default function MarketPulsePage() {
       </section>
 
       {/* ════════════════ 3. NEEDS ATTENTION (TRIAGE) ════════════════ */}
+
+      {/* ════════════════ 4. MARKET INDICATORS ════════════════ */}
+      <section className="pulse-card" aria-label="Market indicators">
+        <div className="pulse-card-header">
+          <h2 className="pulse-card-title">Market</h2>
+        </div>
+        <div className="pulse-strip-grid">
+          {indicators.map((ind) => {
+            const displayPrice = ind.price != null ? fmtPrice(ind.price, ind.isPercentValue) : "—";
+            const changeText = ind.changePercent != null ? fmtPct(ind.changePercent) : undefined;
+            const isPos = ind.changePercent !== null && ind.changePercent > 0 ? true : ind.changePercent !== null && ind.changePercent < 0 ? false : undefined;
+            const label = ind.status === "proxy" ? `${ind.label} (ETF proxy)` : ind.label;
+            return (
+              <SplitFlapMetric
+                key={ind.ticker}
+                value={displayPrice}
+                label={label}
+                change={changeText}
+                isPositive={isPos}
+              />
+            );
+          })}
+        </div>
+      </section>
       <section className="pulse-card pulse-attention" aria-label="Needs attention">
         <div className="pulse-card-header">
           <h2 className="pulse-card-title">Needs Attention</h2>
@@ -195,30 +219,6 @@ export default function MarketPulsePage() {
             )}
           </div>
         )}
-      </section>
-
-      {/* ════════════════ 4. MARKET INDICATORS ════════════════ */}
-      <section className="pulse-card" aria-label="Market indicators">
-        <div className="pulse-card-header">
-          <h2 className="pulse-card-title">Market</h2>
-        </div>
-        <div className="pulse-strip-grid">
-          {indicators.map((ind) => {
-            const displayPrice = ind.price != null ? fmtPrice(ind.price, ind.isPercentValue) : "—";
-            const changeText = ind.changePercent != null ? fmtPct(ind.changePercent) : undefined;
-            const isPos = ind.changePercent !== null && ind.changePercent > 0 ? true : ind.changePercent !== null && ind.changePercent < 0 ? false : undefined;
-            const label = ind.status === "proxy" ? `${ind.label} (ETF proxy)` : ind.label;
-            return (
-              <SplitFlapMetric
-                key={ind.ticker}
-                value={displayPrice}
-                label={label}
-                change={changeText}
-                isPositive={isPos}
-              />
-            );
-          })}
-        </div>
       </section>
 
       {/* ════════════════ 5. SECTOR LEADERSHIP ════════════════ */}

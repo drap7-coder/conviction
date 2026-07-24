@@ -5125,6 +5125,50 @@ details > summary::before {
   font-weight: 700;
 }
 
+/* ── Bottom card grid ── */
+
+.pf-bottom-grid {
+  display: grid;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+@media (min-width: 768px) {
+  .pf-bottom-grid {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+  }
+  .pf-bottom-grid .pf-attention-card {
+    grid-column: 1 / -1;
+  }
+}
+
+.pf-bottom-card {
+  margin-bottom: 0;
+}
+
+.pf-attention-card {
+  border: 1px dashed var(--accent-dim);
+  border-radius: 10px;
+  padding: 18px;
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
+}
+
+.pf-attn-card-header {
+  margin-bottom: 10px;
+}
+
+.pf-attn-card-header .pf-section-title {
+  margin-bottom: 0;
+}
+
+.pf-muted {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--quiet);
+  line-height: 1.5;
+}
+
 /* ── What's Driving Your Portfolio ── */
 
 .pf-drivers-section {
