@@ -6513,6 +6513,8 @@ details > summary::before {
   flex-direction: column;
   gap: 20px;
   padding-bottom: 32px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 /* ── Briefing header ── */
@@ -6598,8 +6600,9 @@ details > summary::before {
 
 .pulse-strip-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 6px;
+  min-width: 0;
 }
 
 /* ── Split-flap metric cards ── */
@@ -6610,11 +6613,13 @@ details > summary::before {
   justify-content: space-between;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 14px 12px;
+  border-radius: 10px;
+  padding: 12px 12px 10px;
   font-family: var(--font-mono);
   -webkit-user-select: none;
   user-select: none;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .sf-label {
@@ -6627,37 +6632,41 @@ details > summary::before {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .sf-body {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .sf-chars {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
+  overflow: hidden;
+  font-variant-numeric: tabular-nums;
 }
 
 .sf-char {
   display: inline-block;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--ink);
-  line-height: 1;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .sf-change {
   flex-shrink: 0;
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 4px;
-  line-height: 1.4;
+  padding: 1px 6px;
+  border-radius: 3px;
+  line-height: 1.3;
+  align-self: flex-start;
 }
 
 .sf-change-positive {
@@ -7079,9 +7088,10 @@ details > summary::before {
   .pulse-strip-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .sf-card { padding: 10px 10px 8px; }
-  .sf-char { font-size: 1rem; }
-  .sf-label { font-size: 0.5rem; }
+  .sf-card { padding: 8px 8px 7px; }
+  .sf-char { font-size: 0.85rem; }
+  .sf-label { font-size: 0.45rem; }
+  .sf-change { font-size: 0.5rem; padding: 1px 4px; }
 
   .pulse-sector-row {
     grid-template-columns: 18px 1fr 52px;
