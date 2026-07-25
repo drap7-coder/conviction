@@ -12,11 +12,8 @@ import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
-import { LivePulse } from "@/components/display/LivePulse";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { classifyFreshness } from "@/lib/display/format";
-import type { Freshness } from "@/lib/display/types";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -162,8 +159,7 @@ export default function Watchlist() {
   const [focusedTicker, setFocusedTicker] = useState<string | null>(null);
   const watchlistListRef = useRef<HTMLDivElement>(null);
 
-  // Additional state for LivePulse and search
-  const [updateToken, setUpdateToken] = useState(0);
+  // Search state
   const [searchMode, setSearchMode] = useState<"default" | "matching">("default");
   const [searchResult, setSearchResult] = useState<{ type: "navigate" | "filter" | "unrecognized"; text: string } | null>(null);
 
@@ -240,7 +236,6 @@ export default function Watchlist() {
           nextQuotes[quote.ticker] = quote;
         }
         setQuotes(nextQuotes);
-        setUpdateToken((t) => t + 1);
       } catch {
         if (!cancelled) setQuotes({});
       }
@@ -574,15 +569,6 @@ export default function Watchlist() {
     );
   }, [sortedEntries, addInput]);
 
-  // Quote freshness for LivePulse
-  const quoteFreshness = useMemo((): Freshness => {
-    const timestamps = Object.values(quotes).map((q) => q.price !== null ? new Date().toISOString() : null).filter(Boolean);
-    if (timestamps.length === 0) return "unavailable";
-    const latest = timestamps.sort().reverse()[0];
-    if (!latest) return "unavailable";
-    return classifyFreshness(latest);
-  }, [quotes, updateToken]);
-
   // Keyboard navigation effect
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -639,24 +625,9 @@ export default function Watchlist() {
 
   return (
     <div>
-      <div className="watchlist-header">
-        <h2 className="section-title">Watchlist</h2>
-        <LivePulse
-          freshness={quoteFreshness}
-          lastUpdatedAt={null}
-          updateToken={updateToken}
-        />
-        <div className="watchlist-meta">
-          <span className="section-count">{entries.length} companies</span>
-          <span className="storage-note" title={authenticated ? "Synced privately across devices" : "Saved in this browser only"}>
-            {authenticated ? "Private sync" : "Saved here"}
-          </span>
-        </div>
-      </div>
-
       {loading || entries.length > 0 ? (
         <StockHeatmap
-          title="Watchlist Map"
+          title="Watchlist"
           subtitle="Tile size reflects market cap; color reflects the current market move."
           loading={loading}
           items={entries.map((entry) => {

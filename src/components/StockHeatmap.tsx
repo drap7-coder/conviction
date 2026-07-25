@@ -57,7 +57,7 @@ export function StockHeatmap({ title, subtitle, items, loading = false }: StockH
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   if (loading && items.length === 0) {
     return (
-      <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-busy="true">
+      <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
         <style>{`
           .stock-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
           .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
@@ -71,7 +71,6 @@ export function StockHeatmap({ title, subtitle, items, loading = false }: StockH
           @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-loading-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-loading-tile { min-height:62px; } }
         `}</style>
         <h2 className="stock-heat-title">{title}</h2>
-        <p className="stock-heat-subtitle">{subtitle}</p>
         <div className="stock-heat-loading-detail" />
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
@@ -86,7 +85,7 @@ export function StockHeatmap({ title, subtitle, items, loading = false }: StockH
   const maxSizeValue = Math.max(...items.map((item) => item.sizeValue ?? item.marketCap ?? 0), 0);
 
   return (
-    <section className="stock-heat-panel" aria-label={title}>
+    <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
       <style>{`
         .stock-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
         .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
@@ -101,7 +100,6 @@ export function StockHeatmap({ title, subtitle, items, loading = false }: StockH
         @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-tile { min-height:62px; padding:8px; }.stock-heat-detail a { width:100%; margin-left:0; } }
       `}</style>
       <h2 className="stock-heat-title">{title}</h2>
-      <p className="stock-heat-subtitle">{subtitle}</p>
       <div className="stock-heat-detail" aria-live="polite">
         <span>{selected.name}</span>
         <b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b>

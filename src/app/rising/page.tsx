@@ -192,16 +192,9 @@ export default function RisingConvictionPage() {
 
   return (
     <div>
-      <div className="section-header">
-        <h2 className="section-title">Daily idea flow</h2>
-        <span className="section-count">
-          {trendingStatus === "loading" || trendingStatus === "idle" ? "..." : `${trending.length} ideas`}
-        </span>
-      </div>
-
       {trendingStatus === "success" && trending.length > 0 ? (
         <StockHeatmap
-          title="Trending Map"
+          title="Trending"
           subtitle="Tile size reflects dollar trading volume; color reflects the current market move."
           items={trending.map((idea) => {
             const live = getLivePrice(idea.quote);

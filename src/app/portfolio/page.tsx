@@ -425,7 +425,6 @@ export default function PortfolioPage() {
         <>
           {/* ── Hero ── */}
           <div className="pf-hero">
-            <span className="pf-hero-label">Portfolio</span>
             <div className="pf-hero-value">
               <span className="pf-hero-total">{currency(portfolioMetrics.totalMarketValue)}</span>
               {(portfolioMetrics.dailyChange ?? null) !== null && (
@@ -484,7 +483,7 @@ export default function PortfolioPage() {
 
           {!calcFailed && portfolioHeatmapItems.length > 0 && (
             <StockHeatmap
-              title="Portfolio Map"
+              title="Portfolio"
               subtitle="Tile size reflects position value; color reflects the current market move."
               items={portfolioHeatmapItems}
             />

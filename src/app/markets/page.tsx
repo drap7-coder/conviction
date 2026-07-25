@@ -192,8 +192,8 @@ function GlobalMarketsHeatmap({
   const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
 
   return (
-    <section className="market-panel market-sector-panel" aria-label={`${title} leadership`}>
-      <div className="market-panel-header"><div><h2>{title}</h2><p>{subtitle}</p></div></div>
+    <section className="market-panel market-sector-panel" aria-label={`${title} leadership`} aria-description={subtitle}>
+      <div className="market-panel-header"><div><h2>{title}</h2></div></div>
       <div className="market-sector-detail" aria-live="polite">
         {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.category} · {selected.ticker}</span><span className="market-detail-price">{fmtPrice(selected.price, false)}</span></> : <span>Hover or tap a market</span>}
       </div>

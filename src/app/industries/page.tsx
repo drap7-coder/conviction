@@ -134,13 +134,8 @@ export default function IndustriesPage() {
 
   return (
     <div>
-      <div className="section-header">
-        <h2 className="section-title">S&amp;P Sector Overview</h2>
-        <span className="section-count">{status === "success" ? sectors.length + " sectors" : "S&P 500"}</span>
-      </div>
-
       {status === "success" && sectors.length > 0 ? (
-        <section className="industries-heat-panel" aria-label="Sector leadership heatmap">
+        <section className="industries-heat-panel" aria-label="Sector leadership heatmap" aria-description="Tile size reflects S&amp;P 500 weight; color reflects the current market move.">
           <style>{`
             .industries-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
             .industries-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
@@ -158,7 +153,6 @@ export default function IndustriesPage() {
             @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; }.industries-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.industries-heat-tile { min-height:62px; padding:8px; }.industries-heat-detail a { width:100%; margin-left:0; } }
           `}</style>
           <h2 className="industries-heat-title">Sector Leadership</h2>
-          <p className="industries-heat-subtitle">Tile size reflects S&amp;P 500 weight; color reflects the current market move.</p>
           <div className="industries-heat-detail" aria-live="polite">
             {selectedSector ? (
               <>
