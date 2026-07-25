@@ -263,7 +263,6 @@ export default function MarketPulsePage() {
         @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 54px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:54px; height:36px; }.market-index-label { font-size:.52rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-panel { padding:14px; }.market-macro-panel .market-macro-chart { height:128px; margin:10px -5px 3px; }.market-macro-panel .market-legend { flex-wrap:nowrap; justify-content:space-between; gap:4px; font-size:.46rem; }.market-macro-panel .market-legend span { gap:3px; white-space:nowrap; }.market-macro-panel .market-legend i { width:6px; height:6px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
       `}</style>
 
-      <MacroChart indicators={data.indicators} />
       <GlobalMarketsHeatmap
         markets={primaryMarkets}
         title="U.S. Markets + Crypto"
@@ -273,6 +272,7 @@ export default function MarketPulsePage() {
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
       </section>
+      <MacroChart indicators={data.indicators} />
       <GlobalMarketsHeatmap
         markets={internationalMarkets}
         title="International Markets"
