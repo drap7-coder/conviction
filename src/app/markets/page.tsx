@@ -194,9 +194,9 @@ export default function MarketPulsePage() {
           font-weight: 600;
           line-height: 1.3;
         }
-        .pulse-instrument-change .up { color: var(--green); }
-        .pulse-instrument-change .down { color: var(--red); }
-        .pulse-instrument-change .flat { color: var(--quiet); }
+        .pulse-instrument-change .up, .pulse-change-up { color: var(--green); }
+        .pulse-instrument-change .down, .pulse-change-down { color: var(--red); }
+        .pulse-instrument-change .flat, .pulse-change-flat { color: var(--quiet); }
         .pulse-instrument-fresh {
           font-size: 0.45rem;
           font-weight: 700;
@@ -215,17 +215,17 @@ export default function MarketPulsePage() {
         .pulse-macro-bar {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 10px 14px;
+          gap: 8px;
+          padding: 8px 12px;
           margin-bottom: 16px;
           background: var(--surface);
           border: 1px solid var(--border);
           border-radius: var(--radius);
           font-family: var(--font-mono);
-          min-width: 0;
+          flex-wrap: nowrap;
+          width: 100%;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
-          flex-wrap: nowrap;
         }
         .pulse-macro-bar > .pulse-regime-badge {
           flex-shrink: 0;
@@ -256,10 +256,10 @@ export default function MarketPulsePage() {
           font-family: var(--font-mono);
           white-space: nowrap;
         }
-        .pulse-macro-driver.rising { color: var(--green); }
-        .pulse-macro-driver.falling { color: var(--red); }
-        .pulse-macro-driver.flat { color: var(--quiet); }
-        .pulse-macro-driver.unavailable { color: var(--quiet); opacity: 0.5; }
+        .pulse-macro-driver.rising { color: var(--green) !important; }
+        .pulse-macro-driver.falling { color: var(--red) !important; }
+        .pulse-macro-driver.flat { color: var(--quiet) !important; }
+        .pulse-macro-driver.unavailable { color: var(--quiet) !important; opacity: 0.5; }
 
         @media (max-width: 767px) {
           .pulse-instrument-greeting { font-size: 1.45rem; }
