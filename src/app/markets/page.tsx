@@ -165,7 +165,7 @@ function MacroChart({ indicators }: { indicators: PulseIndicator[] }) {
   }, [indicators]);
 
   return (
-    <section className="market-panel" aria-label="Macro chain">
+    <section className="market-panel market-macro-panel" aria-label="Macro chain">
       <div className="market-panel-header"><div><h2>Macro Chain</h2><p>Last 15 points · normalized 0–100</p></div></div>
       <div className="market-macro-chart">
         {data.length > 1 ? (
@@ -282,7 +282,7 @@ export default function MarketPulsePage() {
         .market-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }.market-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
         .market-empty { min-height:40vh; display:grid; place-items:center; color:var(--market-muted); }
         @media (min-width:900px) { .markets-page { max-width:1050px; margin:0 auto; }.market-index-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.market-gauge-grid { max-width:690px; } }
-        @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 58px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:58px; height:36px; }.market-index-label { font-size:.56rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-chart { height:165px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
+        @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 54px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:54px; height:36px; }.market-index-label { font-size:.52rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-panel { padding:14px; }.market-macro-panel .market-macro-chart { height:128px; margin:10px -5px 3px; }.market-macro-panel .market-legend { flex-wrap:nowrap; justify-content:space-between; gap:4px; font-size:.46rem; }.market-macro-panel .market-legend span { gap:3px; white-space:nowrap; }.market-macro-panel .market-legend i { width:6px; height:6px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
       `}</style>
 
       <MacroChart indicators={data.indicators} />
