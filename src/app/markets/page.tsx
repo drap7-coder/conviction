@@ -224,6 +224,8 @@ export default function MarketPulsePage() {
           font-family: var(--font-mono);
           flex-wrap: nowrap;
           width: 100%;
+        }
+        .pulse-macro-bar-wrapper {
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
         }
@@ -270,7 +272,20 @@ export default function MarketPulsePage() {
           .pulse-instrument-value { font-size: 0.85rem; }
           .pulse-instrument-label { font-size: 0.45rem; }
           .pulse-instrument-change { font-size: 0.5rem; }
-          .pulse-macro-bar { gap: 8px; padding: 8px 10px; flex-wrap: nowrap; }
+          .pulse-macro-bar {
+            gap: 6px;
+            padding: 6px 10px;
+            flex-wrap: nowrap;
+          }
+          .pulse-macro-bar-drivers {
+            gap: 4px;
+          }
+          .pulse-macro-driver {
+            font-size: 0.55rem;
+          }
+          .pulse-macro-bar-conf {
+            font-size: 0.5rem;
+          }
         }
       `}</style>
 
@@ -310,31 +325,33 @@ export default function MarketPulsePage() {
       </section>
 
       {/* ════════════════ 3. MACRO REGIME BAR ════════════════ */}
-      <div className="pulse-macro-bar" aria-label="Macro regime">
-        <span className={`pulse-regime-badge pulse-regime-${macroRegime.confidence}`}>
-          {macroRegime.label}
-        </span>
-        <span className="pulse-macro-bar-conf">{confidenceLabel(macroRegime.confidence)}</span>
-        <span className="pulse-macro-bar-sep" aria-hidden="true">|</span>
-        <div className="pulse-macro-bar-drivers">
-          {macroRegime.drivers.length > 0 ? (
-            macroRegime.drivers.map((d) => (
-              <span
-                key={d.id}
-                className={`pulse-macro-driver ${d.direction}`}
-                title={d.explanation}
-              >
-                {d.label} {arrowFromDir(d.direction)}
+      <div className="pulse-macro-bar-wrapper" aria-label="Macro regime">
+        <div className="pulse-macro-bar">
+          <span className={`pulse-regime-badge pulse-regime-${macroRegime.confidence}`}>
+            {macroRegime.label}
+          </span>
+          <span className="pulse-macro-bar-conf">{confidenceLabel(macroRegime.confidence)}</span>
+          <span className="pulse-macro-bar-sep" aria-hidden="true">|</span>
+          <div className="pulse-macro-bar-drivers">
+            {macroRegime.drivers.length > 0 ? (
+              macroRegime.drivers.map((d) => (
+                <span
+                  key={d.id}
+                  className={`pulse-macro-driver ${d.direction}`}
+                  title={d.explanation}
+                >
+                  {d.label} {arrowFromDir(d.direction)}
+                </span>
+              ))
+            ) : (
+              <span className="pulse-macro-driver unavailable">Mixed</span>
+            )}
+            {macroRegime.missingInputs.length > 0 && (
+              <span className="pulse-macro-driver unavailable" title="Missing data">
+                Insufficient data
               </span>
-            ))
-          ) : (
-            <span className="pulse-macro-driver unavailable">Mixed</span>
-          )}
-          {macroRegime.missingInputs.length > 0 && (
-            <span className="pulse-macro-driver unavailable" title="Missing data">
-              Insufficient data
-            </span>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
