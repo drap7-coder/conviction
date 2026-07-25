@@ -266,18 +266,18 @@ export default function MarketPulsePage() {
       <MacroChart indicators={data.indicators} />
       <GlobalMarketsHeatmap
         markets={primaryMarkets}
-        title="Markets"
+        title="U.S. Markets + Crypto"
         subtitle="U.S. equities, macro assets, and crypto · color reflects today’s move"
-      />
-      <GlobalMarketsHeatmap
-        markets={internationalMarkets}
-        title="International Markets"
-        subtitle="Country ETF proxies · tile size reflects relative equity-market weight"
       />
       <section className="market-gauge-grid" aria-label="Market danger zones">
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
       </section>
+      <GlobalMarketsHeatmap
+        markets={internationalMarkets}
+        title="International Markets"
+        subtitle="Country ETF proxies · tile size reflects relative equity-market weight"
+      />
     </main>
   );
 }
