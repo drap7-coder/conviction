@@ -219,7 +219,7 @@ export default function MarketPulsePage() {
     return () => { cancelled = true; };
   }, []);
 
-  if (status === "loading") return <PageLoadingMotion label="Loading market pulse" />;
+  if (status === "loading") return <PageLoadingMotion label="Loading pulse" />;
   if (status === "error" || !data) return <div className="markets-page"><div className="market-empty">Market data is temporarily unavailable.</div></div>;
 
   const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
