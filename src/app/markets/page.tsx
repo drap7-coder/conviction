@@ -255,8 +255,6 @@ export default function MarketPulsePage() {
     <main className="markets-page">
       <style>{`
         .markets-page { --market-bg:#0a0a0b; --market-card:#111214; --market-border:#26282c; --market-text:#f4f4f5; --market-muted:#8b8f97; --market-green:#4ade80; --market-red:#f87171; --market-live:#2dd4bf; min-height:100vh; background:var(--market-bg); color:var(--market-text); padding:24px; font-family:var(--font-mono); }
-        .market-page-title { margin:0 0 22px; font-size:1.55rem; letter-spacing:.08em; text-transform:uppercase; }
-        .market-page-title::before { content:"↗"; display:inline-grid; place-items:center; width:27px; height:27px; margin-right:12px; border:1px solid var(--market-text); color:var(--market-red); font-size:1.1rem; vertical-align:2px; }
         .market-index-grid,.market-gauge-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
         .market-index-card,.market-gauge-card,.market-panel { background:var(--market-card); border:1px solid var(--market-border); border-radius:12px; }
         .market-index-card { min-height:124px; padding:16px; display:grid; grid-template-columns:minmax(0,1fr) 78px; gap:8px; align-items:center; }
@@ -285,10 +283,10 @@ export default function MarketPulsePage() {
         .market-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }.market-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
         .market-empty { min-height:40vh; display:grid; place-items:center; color:var(--market-muted); }
         @media (min-width:900px) { .markets-page { max-width:1050px; margin:0 auto; }.market-index-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.market-gauge-grid { max-width:690px; } }
-        @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-page-title { font-size:1.25rem; margin-bottom:18px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 58px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:58px; height:36px; }.market-index-label { font-size:.56rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-chart { height:165px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-sector-detail a { width:100%; margin-left:0; } }
+        @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 58px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:58px; height:36px; }.market-index-label { font-size:.56rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-chart { height:165px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-sector-detail a { width:100%; margin-left:0; } }
       `}</style>
 
-      <h1 className="market-page-title">Conviction.</h1>
+      <MacroChart indicators={data.indicators} />
       <section className="market-index-grid" aria-label="Market instruments">
         {INSTRUMENTS.map((config) => {
           const indicator = indicatorMap.get(config.ticker);
@@ -311,7 +309,6 @@ export default function MarketPulsePage() {
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
       </section>
-      <MacroChart indicators={data.indicators} />
       <SectorHeatmap sectors={data.sectors} interpretation={data.sectorLeadership.interpretation} />
     </main>
   );
