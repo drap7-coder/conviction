@@ -197,13 +197,13 @@ details > summary::before {
 /* ── Bottom Tab Bar (mobile) ── */
 
 .bottom-tab-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: var(--ticker-z);
-  justify-content: space-around;
   align-items: center;
   min-height: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
   padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
@@ -224,7 +224,8 @@ details > summary::before {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 2px 12px;
+  min-width: 0;
+  padding: 2px 0;
   color: var(--quiet);
   text-decoration: none;
   transition: color 0.15s;
@@ -242,6 +243,7 @@ details > summary::before {
   font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 /* ── Desktop Nav ── */
