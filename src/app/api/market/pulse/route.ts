@@ -31,20 +31,27 @@ const INDICATORS: Array<{
   { ticker: "UUP", label: "Dollar", status: "proxy" },
 ];
 
-const INTERNATIONAL_MARKETS = [
-  { ticker: "EWJ", name: "Japan", weight: 14.5 },
-  { ticker: "MCHI", name: "China", weight: 10.5 },
-  { ticker: "EWU", name: "United Kingdom", weight: 9.5 },
-  { ticker: "EWC", name: "Canada", weight: 8.0 },
-  { ticker: "EWG", name: "Germany", weight: 6.5 },
-  { ticker: "EWQ", name: "France", weight: 5.5 },
-  { ticker: "INDA", name: "India", weight: 5.0 },
-  { ticker: "EWT", name: "Taiwan", weight: 4.8 },
-  { ticker: "EWA", name: "Australia", weight: 4.5 },
-  { ticker: "EWY", name: "South Korea", weight: 3.5 },
-  { ticker: "EWH", name: "Hong Kong", weight: 3.0 },
-  { ticker: "EWZ", name: "Brazil", weight: 2.5 },
-  { ticker: "EWW", name: "Mexico", weight: 1.0 },
+const GLOBAL_MARKETS = [
+  { ticker: "SPY", name: "S&P 500", weight: 30, category: "United States" },
+  { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "United States" },
+  { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
+  { ticker: "EWJ", name: "Japan", weight: 14.5, category: "International" },
+  { ticker: "MCHI", name: "China", weight: 10.5, category: "International" },
+  { ticker: "EWU", name: "United Kingdom", weight: 9.5, category: "International" },
+  { ticker: "EWC", name: "Canada", weight: 8.0, category: "International" },
+  { ticker: "ETH-USD", name: "Ethereum", weight: 6, category: "Crypto" },
+  { ticker: "EWG", name: "Germany", weight: 6.5, category: "International" },
+  { ticker: "EWQ", name: "France", weight: 5.5, category: "International" },
+  { ticker: "INDA", name: "India", weight: 5.0, category: "International" },
+  { ticker: "EWT", name: "Taiwan", weight: 4.8, category: "International" },
+  { ticker: "EWA", name: "Australia", weight: 4.5, category: "International" },
+  { ticker: "USO", name: "Oil", weight: 4, category: "Macro" },
+  { ticker: "UUP", name: "U.S. Dollar", weight: 4, category: "Macro" },
+  { ticker: "EWY", name: "South Korea", weight: 3.5, category: "International" },
+  { ticker: "EWH", name: "Hong Kong", weight: 3.0, category: "International" },
+  { ticker: "EWZ", name: "Brazil", weight: 2.5, category: "International" },
+  { ticker: "SOL-USD", name: "Solana", weight: 2, category: "Crypto" },
+  { ticker: "EWW", name: "Mexico", weight: 1.0, category: "International" },
 ] as const;
 
 export interface PulseIndicator {
@@ -65,12 +72,13 @@ export interface PulseSector {
   weight: number;
 }
 
-export interface PulseInternationalMarket {
+export interface PulseGlobalMarket {
   ticker: string;
   name: string;
   changePercent: number | null;
   price: number | null;
   weight: number;
+  category: string;
 }
 
 const SECTOR_WEIGHTS: Record<string, number> = {
@@ -90,7 +98,7 @@ const SECTOR_WEIGHTS: Record<string, number> = {
 export interface PulseData {
   indicators: PulseIndicator[];
   sectors: PulseSector[];
-  internationalMarkets: PulseInternationalMarket[];
+  globalMarkets: PulseGlobalMarket[];
   macroRegime: MacroRegime;
   sectorLeadership: SectorLeadership;
   triage: TriageResult;
@@ -107,7 +115,7 @@ export async function GET() {
   const allTickers = [
     ...INDICATORS.map((i) => i.ticker),
     ...sectorTickers,
-    ...INTERNATIONAL_MARKETS.map((market) => market.ticker),
+    ...GLOBAL_MARKETS.map((market) => market.ticker),
     ...watchlistTickers,
   ];
   const quotes = await fetchStockQuotes(allTickers);
@@ -153,7 +161,7 @@ export async function GET() {
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
   const sectorLeadership = classifySectorLeadership(sectors);
 
-  const internationalMarkets: PulseInternationalMarket[] = INTERNATIONAL_MARKETS.map((market) => {
+  const globalMarkets: PulseGlobalMarket[] = GLOBAL_MARKETS.map((market) => {
     const quote = quoteMap.get(market.ticker);
     return {
       ...market,
@@ -161,7 +169,7 @@ export async function GET() {
       changePercent: quote?.changePercent ?? null,
     };
   });
-  internationalMarkets.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
+  globalMarkets.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
 
   // ── Triage ──
   const triageItems: TriageWatchlistInput[] = watchlistTickers.map((ticker) => {
@@ -185,7 +193,7 @@ export async function GET() {
   return NextResponse.json({
     indicators,
     sectors,
-    internationalMarkets,
+    globalMarkets,
     macroRegime,
     sectorLeadership,
     triage,

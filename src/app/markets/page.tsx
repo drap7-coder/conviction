@@ -8,7 +8,7 @@ import {
   Tooltip,
   YAxis,
 } from "recharts";
-import type { PulseData, PulseIndicator, PulseInternationalMarket } from "@/app/api/market/pulse/route";
+import type { PulseData, PulseGlobalMarket, PulseIndicator } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
@@ -45,15 +45,6 @@ const TEN_YEAR_GAUGE = {
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
 
-const INSTRUMENTS = [
-  { ticker: "SPY", label: "S&P 500", proxyLabel: "S&P 500 (ETF proxy)" },
-  { ticker: "QQQ", label: "Nasdaq", proxyLabel: "Nasdaq (ETF proxy)" },
-  { ticker: "^VIX", label: "VIX", proxyLabel: "VIX" },
-  { ticker: "USO", label: "Oil", proxyLabel: "Oil (ETF proxy)" },
-  { ticker: "^TNX", label: "10Y Yield", proxyLabel: "10Y Yield" },
-  { ticker: "UUP", label: "Dollar", proxyLabel: "Dollar (ETF proxy)" },
-];
-
 const MACRO_SERIES = [
   { ticker: "SPY", key: "equities", label: "Equities", color: COLORS.green },
   { ticker: "^TNX", key: "yield", label: "10Y Yield", color: COLORS.red },
@@ -74,36 +65,12 @@ function fmtPrice(value: number | null, isPercent: boolean): string {
   return value >= 10 ? value.toFixed(2) : value.toFixed(3);
 }
 
-function freshnessLabel(status: string): string {
-  if (status === "ready") return "LIVE";
-  if (status === "proxy") return "15M";
-  if (status === "delayed") return "DELAYED";
-  if (status === "stale") return "STALE";
-  return "—";
-}
-
 function normalize(values: number[]): number[] {
   if (!values.length) return [];
   const min = Math.min(...values);
   const max = Math.max(...values);
   if (max === min) return values.map(() => 50);
   return values.map((value) => ((value - min) / (max - min)) * 100);
-}
-
-function Sparkline({ indicator }: { indicator: PulseIndicator }) {
-  const points = indicator.history.slice(-15).map((point) => ({ value: point.close }));
-  if (points.length < 2) return <span className="market-no-chart">—</span>;
-  const isUp = (indicator.changePercent ?? 0) >= 0;
-  return (
-    <div className="market-sparkline" aria-label={`${indicator.label} intraday price trend`}>
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={points} margin={{ top: 3, right: 2, bottom: 3, left: 2 }}>
-          <YAxis hide domain={["dataMin", "dataMax"]} />
-          <Line type="monotone" dataKey="value" stroke={isUp ? COLORS.green : COLORS.red} strokeWidth={2} dot={false} isAnimationActive={false} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
 }
 
 function Gauge({
@@ -201,15 +168,23 @@ function heatColor(change: number | null, maxAbs: number): string {
   return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
-function InternationalHeatmap({ markets }: { markets: PulseInternationalMarket[] }) {
-  const [selected, setSelected] = useState<PulseInternationalMarket | null>(markets[0] ?? null);
+function GlobalMarketsHeatmap({
+  markets,
+  title,
+  subtitle,
+}: {
+  markets: PulseGlobalMarket[];
+  title: string;
+  subtitle: string;
+}) {
+  const [selected, setSelected] = useState<PulseGlobalMarket | null>(markets[0] ?? null);
   const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
 
   return (
-    <section className="market-panel market-sector-panel" aria-label="International market leadership">
-      <div className="market-panel-header"><div><h2>International Markets</h2><p>Country ETF proxies · tile size reflects ex-US equity-market weight</p></div></div>
+    <section className="market-panel market-sector-panel" aria-label={`${title} leadership`}>
+      <div className="market-panel-header"><div><h2>{title}</h2><p>{subtitle}</p></div></div>
       <div className="market-sector-detail" aria-live="polite">
-        {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.ticker} · {selected.weight.toFixed(1)}% weight</span><span className="market-detail-price">{fmtPrice(selected.price, false)}</span></> : <span>Hover or tap a market</span>}
+        {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.category} · {selected.ticker}</span><span className="market-detail-price">{fmtPrice(selected.price, false)}</span></> : <span>Hover or tap a market</span>}
       </div>
       <div className="market-heatmap">
         {markets.map((market) => (
@@ -250,6 +225,8 @@ export default function MarketPulsePage() {
   const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
   const vix = indicatorMap.get("^VIX")?.price ?? null;
   const tenYear = indicatorMap.get("^TNX")?.price ?? null;
+  const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International");
+  const internationalMarkets = data.globalMarkets.filter((market) => market.category === "International");
 
   return (
     <main className="markets-page">
@@ -287,29 +264,20 @@ export default function MarketPulsePage() {
       `}</style>
 
       <MacroChart indicators={data.indicators} />
-      <section className="market-index-grid" aria-label="Market instruments">
-        {INSTRUMENTS.map((config) => {
-          const indicator = indicatorMap.get(config.ticker);
-          const change = indicator?.changePercent ?? null;
-          const positive = (change ?? 0) >= 0;
-          return (
-            <article key={config.ticker} className="market-index-card">
-              <div className="market-index-copy">
-                <span className="market-index-label">{indicator?.status === "proxy" ? config.proxyLabel : config.label}</span>
-                <strong className="market-index-value">{indicator ? fmtPrice(indicator.price, indicator.isPercentValue) : "—"}</strong>
-                <span className={`market-index-change ${positive ? "positive" : "negative"}`}>{change === null ? "—" : `${positive ? "▲" : "▼"} ${fmtPct(change)}`}</span>
-                <span className={`market-fresh ${indicator?.status === "ready" ? "" : "delayed"}`}>{freshnessLabel(indicator?.status ?? "")}</span>
-              </div>
-              {indicator ? <Sparkline indicator={indicator} /> : <span className="market-no-chart">—</span>}
-            </article>
-          );
-        })}
-      </section>
+      <GlobalMarketsHeatmap
+        markets={primaryMarkets}
+        title="Markets"
+        subtitle="U.S. equities, macro assets, and crypto · color reflects today’s move"
+      />
+      <GlobalMarketsHeatmap
+        markets={internationalMarkets}
+        title="International Markets"
+        subtitle="Country ETF proxies · tile size reflects relative equity-market weight"
+      />
       <section className="market-gauge-grid" aria-label="Market danger zones">
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
       </section>
-      <InternationalHeatmap markets={data.internationalMarkets} />
     </main>
   );
 }

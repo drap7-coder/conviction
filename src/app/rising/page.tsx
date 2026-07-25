@@ -202,7 +202,7 @@ export default function RisingConvictionPage() {
       {trendingStatus === "success" && trending.length > 0 ? (
         <StockHeatmap
           title="Trending Map"
-          subtitle="Tile size reflects market cap; color reflects the current market move."
+          subtitle="Tile size reflects dollar trading volume; color reflects the current market move."
           items={trending.map((idea) => {
             const live = getLivePrice(idea.quote);
             return {
@@ -211,6 +211,8 @@ export default function RisingConvictionPage() {
               price: live.price,
               changePercent: live.changePercent,
               marketCap: idea.quote.marketCap,
+              sizeValue: idea.quote.dollarVolume,
+              sizeLabel: idea.activityLabel,
             };
           })}
         />
