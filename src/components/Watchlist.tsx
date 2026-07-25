@@ -14,6 +14,7 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { LivePulse } from "@/components/display/LivePulse";
 import { StockHeatmap } from "@/components/StockHeatmap";
+import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { classifyFreshness } from "@/lib/display/format";
 import type { Freshness } from "@/lib/display/types";
 
@@ -749,9 +750,7 @@ export default function Watchlist() {
       )}
 
       {loading ? (
-        <div className="empty-state">
-          <p>Loading watchlist...</p>
-        </div>
+        <PageLoadingMotion label="Loading watchlist" />
       ) : entries.length === 0 ? (
         <div className="empty-state">
           <p>Your watchlist is empty.</p>

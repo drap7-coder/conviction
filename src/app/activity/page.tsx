@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
+import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 interface ActivityEvent {
   id: string;
@@ -160,9 +161,7 @@ export default function ActivityPage() {
       </div>
 
       {loading ? (
-        <div className="empty-state">
-          <p>Loading activity...</p>
-        </div>
+        <PageLoadingMotion label="Loading activity" />
       ) : entries.length === 0 ? (
         <div className="empty-state">
           <p>No conviction activity yet.</p>

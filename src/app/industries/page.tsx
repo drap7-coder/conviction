@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 interface StockHistoryPoint {
   date: string;
@@ -195,9 +196,7 @@ export default function IndustriesPage() {
 
       <section className="industries-section" aria-label="S&P industry sectors">
         {status === "loading" || status === "idle" ? (
-          <div className="empty-state compact">
-            <p>Loading sectors...</p>
-          </div>
+          <PageLoadingMotion label="Loading sector leadership" />
         ) : status === "error" || sectors.length === 0 ? (
           <div className="empty-state">
             <p>Sector data is temporarily unavailable.</p>

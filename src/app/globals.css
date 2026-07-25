@@ -2413,6 +2413,37 @@ details > summary::before {
   padding: 16px;
 }
 
+.page-loading-motion {
+  margin: 12px 0 20px;
+}
+
+.page-loading-motion.compact .rising-build-facts {
+  display: none;
+}
+
+@media (max-width: 399px) {
+  .page-loading-motion {
+    padding: 14px;
+  }
+
+  .page-loading-motion .rising-build-header h3 {
+    font-size: 1rem;
+  }
+
+  .page-loading-motion .rising-build-header p {
+    font-size: 0.76rem;
+  }
+
+  .page-loading-motion .rising-build-meter {
+    grid-template-columns: repeat(4, 9px);
+    gap: 4px;
+  }
+
+  .page-loading-motion .rising-build-meter span {
+    height: 22px;
+  }
+}
+
 .rising-build-header {
   display: flex;
   justify-content: space-between;

@@ -9,6 +9,7 @@ import type { StockHistoryPoint } from "@/lib/market/quotes";
 import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
+import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 interface TrendingCompany {
   ticker: string;
@@ -223,9 +224,7 @@ export default function RisingConvictionPage() {
 
       <section className="trending-section" aria-label="Trending companies">
         {trendingStatus === "loading" || trendingStatus === "idle" ? (
-          <div className="empty-state compact">
-            <p>Finding active names...</p>
-          </div>
+          <PageLoadingMotion label="Finding active names" />
         ) : trending.length === 0 ? (
           <div className="empty-state">
             <p>No trending ideas loaded right now.</p>

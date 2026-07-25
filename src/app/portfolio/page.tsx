@@ -18,6 +18,7 @@ import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import type { TriageResult } from "@/lib/market/triage";
 import SectorDonut from "@/components/SectorDonut";
 import { isFiniteNumber } from "@/lib/display/format";
+import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -389,6 +390,7 @@ export default function PortfolioPage() {
 
   return (
     <div className="pf">
+      {loading ? <PageLoadingMotion label="Loading portfolio prices" compact /> : null}
       {/* ── Empty state ── */}
       {!hasData && !loading && (
         <div className="pf-empty">

@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import type { PulseData, PulseIndicator, PulseInternationalMarket } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
+import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 const COLORS = {
   green: "#4ade80",
@@ -243,7 +244,7 @@ export default function MarketPulsePage() {
     return () => { cancelled = true; };
   }, []);
 
-  if (status === "loading") return <div className="markets-page"><div className="market-empty">Loading market pulse…</div></div>;
+  if (status === "loading") return <PageLoadingMotion label="Loading market pulse" />;
   if (status === "error" || !data) return <div className="markets-page"><div className="market-empty">Market data is temporarily unavailable.</div></div>;
 
   const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
