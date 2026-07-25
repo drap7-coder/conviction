@@ -654,10 +654,11 @@ export default function Watchlist() {
         </div>
       </div>
 
-      {!loading && entries.length > 0 ? (
+      {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist Map"
           subtitle="Tile size reflects market cap; color reflects the current market move."
+          loading={loading}
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;

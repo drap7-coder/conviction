@@ -17,6 +17,7 @@ interface StockHeatmapProps {
   title: string;
   subtitle: string;
   items: StockHeatmapItem[];
+  loading?: boolean;
 }
 
 function fmtPct(value: number | null): string {
@@ -52,8 +53,32 @@ function heatColor(change: number | null, maxAbs: number): string {
   return `hsl(${hue} ${44 + magnitude * 30}% ${16 + magnitude * 17}%)`;
 }
 
-export function StockHeatmap({ title, subtitle, items }: StockHeatmapProps) {
+export function StockHeatmap({ title, subtitle, items, loading = false }: StockHeatmapProps) {
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
+  if (loading && items.length === 0) {
+    return (
+      <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-busy="true">
+        <style>{`
+          .stock-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
+          .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
+          .stock-heat-subtitle { margin:6px 0 0; color:#8b8f97; font-size:.66rem; line-height:1.45; }
+          .stock-heat-loading-detail { width:62%; height:12px; margin:17px 0 12px; border-radius:999px; background:#26282c; }
+          .stock-heat-loading-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; }
+          .stock-heat-loading-tile { min-height:66px; border:1px solid rgba(244,244,245,.07); border-radius:8px; background:linear-gradient(110deg,#18191c 18%,#24262a 42%,#18191c 66%); background-size:220% 100%; animation:stock-heat-shimmer 1.35s linear infinite; }
+          .stock-heat-loading-tile:nth-child(1),.stock-heat-loading-tile:nth-child(4) { grid-column:span 2; }
+          @keyframes stock-heat-shimmer { to { background-position:-220% 0; } }
+          @media (prefers-reduced-motion:reduce) { .stock-heat-loading-tile { animation:none; } }
+          @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-loading-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-loading-tile { min-height:62px; } }
+        `}</style>
+        <h2 className="stock-heat-title">{title}</h2>
+        <p className="stock-heat-subtitle">{subtitle}</p>
+        <div className="stock-heat-loading-detail" />
+        <div className="stock-heat-loading-grid" aria-hidden="true">
+          {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
+        </div>
+      </section>
+    );
+  }
   if (items.length === 0) return null;
 
   const selected = items.find((item) => item.ticker === selectedTicker) ?? items[0];
