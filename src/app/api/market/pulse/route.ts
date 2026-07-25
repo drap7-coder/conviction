@@ -39,13 +39,29 @@ export interface PulseIndicator {
   changePercent: number | null;
   status: DataStatus;
   isPercentValue: boolean;
+  history: Array<{ date: string; close: number }>;
 }
 
 export interface PulseSector {
   ticker: string;
   name: string;
   changePercent: number | null;
+  weight: number;
 }
+
+const SECTOR_WEIGHTS: Record<string, number> = {
+  XLK: 29.8,
+  XLF: 14.2,
+  XLV: 11.1,
+  XLY: 10.3,
+  XLC: 9.4,
+  XLI: 8.7,
+  XLP: 5.6,
+  XLE: 3.1,
+  XLU: 2.5,
+  XLRE: 2.1,
+  XLB: 2.0,
+};
 
 export interface PulseData {
   indicators: PulseIndicator[];
@@ -82,6 +98,7 @@ export async function GET() {
       price: q?.price ?? null,
       change: q?.change ?? null,
       changePercent: q?.changePercent ?? null,
+      history: q?.sparkline.slice(-15) ?? [],
     };
   });
 
@@ -104,6 +121,7 @@ export async function GET() {
       ticker: sector.ticker,
       name: sector.name,
       changePercent: q?.changePercent ?? null,
+      weight: SECTOR_WEIGHTS[sector.ticker] ?? 0,
     };
   });
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
