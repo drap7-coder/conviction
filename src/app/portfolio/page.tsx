@@ -7,11 +7,9 @@ import {
   computePortfolioMetrics,
   computePositionMetrics,
   computeSectorAllocation,
-  getTopDailyContributors,
-  getTopReturnContributors,
   computeRiskFlags,
 } from "@/lib/portfolio/calculations";
-import type { PortfolioPosition, PortfolioRiskFlags, ContributionRanking, ReturnContribution } from "@/lib/portfolio/types";
+import type { PortfolioPosition, PortfolioRiskFlags } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
@@ -19,6 +17,7 @@ import type { TriageResult } from "@/lib/market/triage";
 import SectorDonut from "@/components/SectorDonut";
 import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { StockHeatmap } from "@/components/StockHeatmap";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -248,14 +247,6 @@ export default function PortfolioPage() {
 
   // ── Portfolio Intelligence V1 derived data ──
 
-  const dailyContribRanking = useMemo(
-    () => getTopDailyContributors(enriched),
-    [enriched],
-  );
-  const returnContribRanking = useMemo(
-    () => getTopReturnContributors(enriched, portfolioMetrics.totalMarketValue),
-    [enriched, portfolioMetrics.totalMarketValue],
-  );
   const riskFlags = useMemo(
     () => computeRiskFlags(enriched, portfolioMetrics, sectorAllocation),
     [enriched, portfolioMetrics, sectorAllocation],
@@ -297,6 +288,19 @@ export default function PortfolioPage() {
 
     return rows;
   }, [enriched, portfolioMetrics, sort]);
+
+  const portfolioHeatmapItems = useMemo(() => sortedPositions.map(({ pos, metrics, dailyPct }) => {
+    const quote = quotes.find((item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase());
+    return {
+      ticker: pos.companyId.toUpperCase(),
+      name: pos.companyId.toUpperCase(),
+      price: pos.currentPrice ?? null,
+      changePercent: dailyPct,
+      marketCap: quote?.marketCap ?? null,
+      sizeValue: metrics.marketValue,
+      sizeLabel: `${metrics.marketValue !== null ? compactCurrency(metrics.marketValue) : "—"} position · ${metrics.weight !== null ? weightPct(metrics.weight) : "—"} of portfolio`,
+    };
+  }), [quotes, sortedPositions]);
 
   // ── Data-quality states ──
 
@@ -478,55 +482,12 @@ export default function PortfolioPage() {
             </div>
           )}
 
-          {/* ── What's Driving Your Portfolio ── */}
-          {!calcFailed && (dailyContribRanking.length > 0 || returnContribRanking.length > 0) && (
-            <section className="pf-section pf-drivers-section" aria-label="What&apos;s driving your portfolio">
-              <h2 className="pf-section-title">What&apos;s Driving Your Portfolio</h2>
-              <div className="pf-drivers-grid">
-                {/* Top daily positive */}
-                {dailyContribRanking.filter((c) => c.dollarChange > 0).slice(0, 2).map((c) => (
-                  <div key={`day-pos-${c.ticker}`} className="pf-driver-card pf-driver-up">
-                    <span className="pf-driver-label">Today&apos;s top gainer</span>
-                    <span className="pf-driver-ticker">{c.ticker}</span>
-                    <span className="pf-driver-impact">{signedCurrency(c.dollarChange)}</span>
-                    <span className="pf-driver-secondary">{percent(c.percentChange)} · {weightPct(c.weight)} of portfolio</span>
-                  </div>
-                ))}
-                {/* Top daily negative */}
-                {dailyContribRanking.filter((c) => c.dollarChange < 0).slice(0, 2).map((c) => (
-                  <div key={`day-neg-${c.ticker}`} className="pf-driver-card pf-driver-down">
-                    <span className="pf-driver-label">Today&apos;s top decliner</span>
-                    <span className="pf-driver-ticker">{c.ticker}</span>
-                    <span className="pf-driver-impact">{signedCurrency(c.dollarChange)}</span>
-                    <span className="pf-driver-secondary">{percent(c.percentChange)} · {weightPct(c.weight)} of portfolio</span>
-                  </div>
-                ))}
-                {/* Top total gainer */}
-                {returnContribRanking.filter((c) => c.dollarReturn > 0).slice(0, 1).map((c) => (
-                  <div key={`ret-pos-${c.ticker}`} className="pf-driver-card pf-driver-up">
-                    <span className="pf-driver-label">Largest total gain</span>
-                    <span className="pf-driver-ticker">{c.ticker}</span>
-                    <span className="pf-driver-impact">{signedCurrency(c.dollarReturn)}</span>
-                    <span className="pf-driver-secondary">{c.percentReturn !== null ? percent(c.percentReturn) : "—"} · {weightPct(c.weight)} of portfolio</span>
-                  </div>
-                ))}
-                {/* Top total detractor */}
-                {returnContribRanking.filter((c) => c.dollarReturn < 0).slice(0, 1).map((c) => (
-                  <div key={`ret-neg-${c.ticker}`} className="pf-driver-card pf-driver-down">
-                    <span className="pf-driver-label">Largest total loss</span>
-                    <span className="pf-driver-ticker">{c.ticker}</span>
-                    <span className="pf-driver-impact">{signedCurrency(c.dollarReturn)}</span>
-                    <span className="pf-driver-secondary">{c.percentReturn !== null ? percent(c.percentReturn) : "—"} · {weightPct(c.weight)} of portfolio</span>
-                  </div>
-                ))}
-                {/* No data */}
-                {dailyContribRanking.length === 0 && returnContribRanking.length === 0 && (
-                  <div className="pf-driver-card pf-driver-empty">
-                    <span className="pf-driver-secondary">Add price data to see what&apos;s driving your returns.</span>
-                  </div>
-                )}
-              </div>
-            </section>
+          {!calcFailed && portfolioHeatmapItems.length > 0 && (
+            <StockHeatmap
+              title="Portfolio Map"
+              subtitle="Tile size reflects position value; color reflects the current market move."
+              items={portfolioHeatmapItems}
+            />
           )}
 
           {/* ── Portfolio exposure ── */}

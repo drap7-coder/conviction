@@ -9,6 +9,8 @@ export interface StockHeatmapItem {
   price: number | null;
   changePercent: number | null;
   marketCap: number | null;
+  sizeValue?: number | null;
+  sizeLabel?: string;
 }
 
 interface StockHeatmapProps {
@@ -56,7 +58,7 @@ export function StockHeatmap({ title, subtitle, items }: StockHeatmapProps) {
 
   const selected = items.find((item) => item.ticker === selectedTicker) ?? items[0];
   const maxAbs = Math.max(...items.map((item) => Math.abs(item.changePercent ?? 0)), 0);
-  const maxMarketCap = Math.max(...items.map((item) => item.marketCap ?? 0), 0);
+  const maxSizeValue = Math.max(...items.map((item) => item.sizeValue ?? item.marketCap ?? 0), 0);
 
   return (
     <section className="stock-heat-panel" aria-label={title}>
@@ -78,12 +80,12 @@ export function StockHeatmap({ title, subtitle, items }: StockHeatmapProps) {
       <div className="stock-heat-detail" aria-live="polite">
         <span>{selected.name}</span>
         <b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b>
-        <span>{selected.ticker} · {fmtPrice(selected.price)} · {fmtMarketCap(selected.marketCap)}</span>
+        <span>{selected.ticker} · {fmtPrice(selected.price)} · {selected.sizeLabel ?? fmtMarketCap(selected.marketCap)}</span>
         <Link href={`/companies/${selected.ticker}`}>Open company →</Link>
       </div>
       <div className="stock-heat-grid">
         {items.map((item) => {
-          const span = tileSpan(item.marketCap, maxMarketCap);
+          const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
           return (
             <button
               key={item.ticker}
