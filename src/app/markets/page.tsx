@@ -256,10 +256,10 @@ export default function MarketPulsePage() {
           font-family: var(--font-mono);
           white-space: nowrap;
         }
-        .pulse-macro-driver.rising { color: var(--green) !important; }
-        .pulse-macro-driver.falling { color: var(--red) !important; }
-        .pulse-macro-driver.flat { color: var(--quiet) !important; }
-        .pulse-macro-driver.unavailable { color: var(--quiet) !important; opacity: 0.5; }
+        .pulse-macro-bar-drivers .pulse-macro-driver.rising { color: #00ff88 !important; }
+        .pulse-macro-bar-drivers .pulse-macro-driver.falling { color: #ff386a !important; }
+        .pulse-macro-bar-drivers .pulse-macro-driver.flat { color: #888888 !important; }
+        .pulse-macro-bar-drivers .pulse-macro-driver.unavailable { color: #88888888 !important; opacity: 0.5; }
 
         @media (max-width: 767px) {
           .pulse-instrument-greeting { font-size: 1.45rem; }
