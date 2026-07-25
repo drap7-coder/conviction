@@ -43,6 +43,17 @@ const TEN_YEAR_GAUGE = {
   ],
 };
 
+const MOVE_GAUGE = {
+  min: 50,
+  max: 150,
+  zones: [
+    { label: "Calm", end: 80, color: "#245b43" },
+    { label: "Normal", end: 100, color: COLORS.green },
+    { label: "Elevated", end: 120, color: COLORS.yellow },
+    { label: "Danger", end: 150, color: COLORS.red },
+  ],
+};
+
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
 
 const MACRO_SERIES = [
@@ -82,7 +93,7 @@ function Gauge({
   label: string;
   value: number | null;
   suffix?: string;
-  config: typeof VIX_GAUGE | typeof TEN_YEAR_GAUGE;
+  config: typeof VIX_GAUGE | typeof TEN_YEAR_GAUGE | typeof MOVE_GAUGE;
 }) {
   const bounded = isFiniteNumber(value) ? Math.min(config.max, Math.max(config.min, value)) : config.min;
   const marker = ((bounded - config.min) / (config.max - config.min)) * 100;
@@ -225,6 +236,7 @@ export default function MarketPulsePage() {
   const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
   const vix = indicatorMap.get("^VIX")?.price ?? null;
   const tenYear = indicatorMap.get("^TNX")?.price ?? null;
+  const move = indicatorMap.get("^MOVE")?.price ?? null;
   const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International");
   const internationalMarkets = data.globalMarkets.filter((market) => market.category === "International");
 
@@ -259,7 +271,8 @@ export default function MarketPulsePage() {
         .market-heat-tile:hover,.market-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }.market-heat-tile.selected { border-color:rgba(244,244,245,.45); }
         .market-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }.market-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
         .market-empty { min-height:40vh; display:grid; place-items:center; color:var(--market-muted); }
-        @media (min-width:900px) { .markets-page { max-width:1050px; margin:0 auto; }.market-index-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.market-gauge-grid { max-width:690px; } }
+        @media (min-width:900px) { .markets-page { max-width:1050px; margin:0 auto; }.market-index-grid,.market-gauge-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+        @media (max-width:899px) { .market-gauge-card:last-child:nth-child(odd) { grid-column:1/-1; } }
         @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 54px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:54px; height:36px; }.market-index-label { font-size:.52rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-panel { padding:14px; }.market-macro-panel .market-macro-chart { height:128px; margin:10px -5px 3px; }.market-macro-panel .market-legend { flex-wrap:nowrap; justify-content:space-between; gap:4px; font-size:.46rem; }.market-macro-panel .market-legend span { gap:3px; white-space:nowrap; }.market-macro-panel .market-legend i { width:6px; height:6px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
       `}</style>
 
@@ -271,6 +284,7 @@ export default function MarketPulsePage() {
       <section className="market-gauge-grid" aria-label="Market danger zones">
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
+        <Gauge label="MOVE" value={move} config={MOVE_GAUGE} />
       </section>
       <MacroChart indicators={data.indicators} />
       <GlobalMarketsHeatmap

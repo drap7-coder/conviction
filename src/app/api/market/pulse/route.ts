@@ -28,12 +28,17 @@ const INDICATORS: Array<{
   { ticker: "^VIX", label: "VIX", status: "ready" },
   { ticker: "USO", label: "Oil", status: "proxy" },
   { ticker: "^TNX", label: "10Y Yield", status: "ready", isPercentValue: true },
+  { ticker: "^MOVE", label: "MOVE Index", status: "ready" },
   { ticker: "UUP", label: "Dollar", status: "proxy" },
 ];
 
 const GLOBAL_MARKETS = [
   { ticker: "SPY", name: "S&P 500", weight: 30, category: "United States" },
   { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "United States" },
+  { ticker: "DIA", name: "Dow 30", weight: 14, category: "United States" },
+  { ticker: "IWM", name: "Russell 2000", weight: 9, category: "United States" },
+  { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "United States" },
+  { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "United States" },
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
   { ticker: "EWJ", name: "Japan", weight: 14.5, category: "International" },
   { ticker: "MCHI", name: "China", weight: 10.5, category: "International" },
