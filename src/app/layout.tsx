@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { WatchlistSettingsMenu } from "@/app/components/WatchlistSettingsMenu";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import AnimatedTitle from "@/components/AnimatedTitle";
 
@@ -52,29 +51,13 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const themeScript = `
-(() => {
-  try {
-    const saved = localStorage.getItem("conviction-theme");
-    // Light is the default; only honor an explicit saved "dark" preference.
-    const theme = saved === "dark" ? "dark" : "light";
-    document.documentElement.dataset.theme = theme;
-  } catch {
-    document.documentElement.dataset.theme = "light";
-  }
-})();
-`;
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>
         <div className="app-shell">
           <header className="app-header">
@@ -89,9 +72,6 @@ export default function RootLayout({
 <AnimatedTitle />
               </a>
               <DesktopNav />
-            </div>
-            <div className="header-actions">
-              <WatchlistSettingsMenu />
             </div>
           </header>
           {children}

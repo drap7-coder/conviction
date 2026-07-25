@@ -37,37 +37,6 @@
   --chart-sma200: #ef4444;
 }
 
-[data-theme="light"] {
-  --bg: #f4f0e7;
-  --surface: #fffaf0;
-  --surface-elevated: #eee6d6;
-  --border: #e0e0e0;
-  --border-active: #a8a8a8;
-  --ink: #262626;
-  --muted: #737373;
-  --quiet: #a3a3a3;
-  --accent: #005dff;
-  --accent-dim: rgba(0, 93, 255, 0.12);
-  --green: #007844;
-  --green-dim: rgba(0, 120, 68, 0.12);
-  --red: #b3163f;
-  --red-dim: rgba(179, 22, 63, 0.12);
-  --amber: #9b6500;
-  --amber-dim: rgba(155, 101, 0, 0.14);
-  --amber-400: #fbbf24;
-  --positive: #007844;
-  --negative: #b3163f;
-  --rounded-xl: 12px; /* New: consistent border radius */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* New: subtle shadow */
-
-  /* Chart theme (light mode) */
-  --chart-surface: #f0ece1;
-  --chart-grid: #d8cebc;
-  --chart-border: #d2c5af;
-  --chart-sma50: #2563eb;
-  --chart-sma200: #dc2626;
-}
-
 * {
   margin: 0;
   padding: 0;
