@@ -7,6 +7,8 @@ import { TrendingCard } from "@/components/TrendingCard";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
+import { getLivePrice } from "@/lib/market/live-quote";
+import { StockHeatmap } from "@/components/StockHeatmap";
 
 interface TrendingCompany {
   ticker: string;
@@ -195,6 +197,23 @@ export default function RisingConvictionPage() {
           {trendingStatus === "loading" || trendingStatus === "idle" ? "..." : `${trending.length} ideas`}
         </span>
       </div>
+
+      {trendingStatus === "success" && trending.length > 0 ? (
+        <StockHeatmap
+          title="Trending Map"
+          subtitle="Tile size reflects market cap; color reflects the current market move."
+          items={trending.map((idea) => {
+            const live = getLivePrice(idea.quote);
+            return {
+              ticker: idea.ticker,
+              name: idea.companyName,
+              price: live.price,
+              changePercent: live.changePercent,
+              marketCap: idea.quote.marketCap,
+            };
+          })}
+        />
+      ) : null}
 
       {addMessage ? (
         <p className={`watchlist-message ${addMessage.type}`}>

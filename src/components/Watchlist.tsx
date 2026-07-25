@@ -13,6 +13,7 @@ import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { LivePulse } from "@/components/display/LivePulse";
+import { StockHeatmap } from "@/components/StockHeatmap";
 import { classifyFreshness } from "@/lib/display/format";
 import type { Freshness } from "@/lib/display/types";
 
@@ -651,6 +652,24 @@ export default function Watchlist() {
           </span>
         </div>
       </div>
+
+      {!loading && entries.length > 0 ? (
+        <StockHeatmap
+          title="Watchlist Map"
+          subtitle="Tile size reflects market cap; color reflects the current market move."
+          items={entries.map((entry) => {
+            const quote = quotes[entry.ticker];
+            const live = quote ? getLivePrice(quote) : null;
+            return {
+              ticker: entry.ticker,
+              name: entry.companyName,
+              price: live?.price ?? quote?.price ?? null,
+              changePercent: live?.changePercent ?? quote?.changePercent ?? null,
+              marketCap: quote?.marketCap ?? null,
+            };
+          })}
+        />
+      ) : null}
 
       {searchResult && (
         <p className={`watchlist-message info`}>{searchResult.text}</p>
