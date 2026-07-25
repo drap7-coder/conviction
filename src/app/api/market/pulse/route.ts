@@ -31,6 +31,22 @@ const INDICATORS: Array<{
   { ticker: "UUP", label: "Dollar", status: "proxy" },
 ];
 
+const INTERNATIONAL_MARKETS = [
+  { ticker: "EWJ", name: "Japan", weight: 14.5 },
+  { ticker: "MCHI", name: "China", weight: 10.5 },
+  { ticker: "EWU", name: "United Kingdom", weight: 9.5 },
+  { ticker: "EWC", name: "Canada", weight: 8.0 },
+  { ticker: "EWG", name: "Germany", weight: 6.5 },
+  { ticker: "EWQ", name: "France", weight: 5.5 },
+  { ticker: "INDA", name: "India", weight: 5.0 },
+  { ticker: "EWT", name: "Taiwan", weight: 4.8 },
+  { ticker: "EWA", name: "Australia", weight: 4.5 },
+  { ticker: "EWY", name: "South Korea", weight: 3.5 },
+  { ticker: "EWH", name: "Hong Kong", weight: 3.0 },
+  { ticker: "EWZ", name: "Brazil", weight: 2.5 },
+  { ticker: "EWW", name: "Mexico", weight: 1.0 },
+] as const;
+
 export interface PulseIndicator {
   ticker: string;
   label: string;
@@ -46,6 +62,14 @@ export interface PulseSector {
   ticker: string;
   name: string;
   changePercent: number | null;
+  weight: number;
+}
+
+export interface PulseInternationalMarket {
+  ticker: string;
+  name: string;
+  changePercent: number | null;
+  price: number | null;
   weight: number;
 }
 
@@ -66,6 +90,7 @@ const SECTOR_WEIGHTS: Record<string, number> = {
 export interface PulseData {
   indicators: PulseIndicator[];
   sectors: PulseSector[];
+  internationalMarkets: PulseInternationalMarket[];
   macroRegime: MacroRegime;
   sectorLeadership: SectorLeadership;
   triage: TriageResult;
@@ -82,6 +107,7 @@ export async function GET() {
   const allTickers = [
     ...INDICATORS.map((i) => i.ticker),
     ...sectorTickers,
+    ...INTERNATIONAL_MARKETS.map((market) => market.ticker),
     ...watchlistTickers,
   ];
   const quotes = await fetchStockQuotes(allTickers);
@@ -127,6 +153,16 @@ export async function GET() {
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
   const sectorLeadership = classifySectorLeadership(sectors);
 
+  const internationalMarkets: PulseInternationalMarket[] = INTERNATIONAL_MARKETS.map((market) => {
+    const quote = quoteMap.get(market.ticker);
+    return {
+      ...market,
+      price: quote?.price ?? null,
+      changePercent: quote?.changePercent ?? null,
+    };
+  });
+  internationalMarkets.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
+
   // ── Triage ──
   const triageItems: TriageWatchlistInput[] = watchlistTickers.map((ticker) => {
     const q = quoteMap.get(ticker);
@@ -149,6 +185,7 @@ export async function GET() {
   return NextResponse.json({
     indicators,
     sectors,
+    internationalMarkets,
     macroRegime,
     sectorLeadership,
     triage,

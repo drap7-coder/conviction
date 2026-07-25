@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   Line,
@@ -9,7 +8,7 @@ import {
   Tooltip,
   YAxis,
 } from "recharts";
-import type { PulseData, PulseIndicator, PulseSector } from "@/app/api/market/pulse/route";
+import type { PulseData, PulseIndicator, PulseInternationalMarket } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
 
 const COLORS = {
@@ -201,29 +200,29 @@ function heatColor(change: number | null, maxAbs: number): string {
   return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
-function SectorHeatmap({ sectors, interpretation }: { sectors: PulseSector[]; interpretation: string | null }) {
-  const [selected, setSelected] = useState<PulseSector | null>(sectors[0] ?? null);
-  const maxAbs = Math.max(...sectors.map((sector) => Math.abs(sector.changePercent ?? 0)), 0);
+function InternationalHeatmap({ markets }: { markets: PulseInternationalMarket[] }) {
+  const [selected, setSelected] = useState<PulseInternationalMarket | null>(markets[0] ?? null);
+  const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
 
   return (
-    <section className="market-panel market-sector-panel" aria-label="Sector leadership">
-      <div className="market-panel-header"><div><h2>Sector Leadership</h2><p>{interpretation ?? "Tile size reflects index weight; color reflects today’s move."}</p></div></div>
+    <section className="market-panel market-sector-panel" aria-label="International market leadership">
+      <div className="market-panel-header"><div><h2>International Markets</h2><p>Country ETF proxies · tile size reflects ex-US equity-market weight</p></div></div>
       <div className="market-sector-detail" aria-live="polite">
-        {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.weight.toFixed(1)}% weight</span><Link href={`/industries/${selected.ticker}`}>Open sector →</Link></> : <span>Hover or tap a sector</span>}
+        {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.ticker} · {selected.weight.toFixed(1)}% weight</span><span className="market-detail-price">{fmtPrice(selected.price, false)}</span></> : <span>Hover or tap a market</span>}
       </div>
       <div className="market-heatmap">
-        {sectors.map((sector) => (
+        {markets.map((market) => (
           <button
-            key={sector.ticker}
+            key={market.ticker}
             type="button"
-            className={`market-heat-tile${selected?.ticker === sector.ticker ? " selected" : ""}`}
-            style={{ gridColumn: `span ${tileSpan(sector.weight)} / span ${tileSpan(sector.weight)}`, background: heatColor(sector.changePercent, maxAbs) }}
-            onMouseEnter={() => setSelected(sector)}
-            onFocus={() => setSelected(sector)}
-            onClick={() => setSelected(sector)}
-            aria-label={`${sector.name}, ${fmtPct(sector.changePercent)}, ${sector.weight.toFixed(1)} percent index weight`}
+            className={`market-heat-tile${selected?.ticker === market.ticker ? " selected" : ""}`}
+            style={{ gridColumn: `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`, background: heatColor(market.changePercent, maxAbs) }}
+            onMouseEnter={() => setSelected(market)}
+            onFocus={() => setSelected(market)}
+            onClick={() => setSelected(market)}
+            aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.weight.toFixed(1)} percent of ex-US equity markets`}
           >
-            <span>{sector.name}</span><strong>{fmtPct(sector.changePercent)}</strong>
+            <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
           </button>
         ))}
       </div>
@@ -276,14 +275,14 @@ export default function MarketPulsePage() {
         .market-macro-chart { height:190px; margin:16px -8px 5px; }.market-chart-empty { height:100%; display:grid; place-items:center; color:var(--market-muted); font-size:.7rem; }
         .market-chart-tooltip { display:flex; flex-direction:column; gap:3px; padding:8px; border:1px solid var(--market-border); border-radius:6px; background:#0a0a0be8; font-size:.58rem; }
         .market-legend { display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--market-muted); font-size:.58rem; }.market-legend span { display:flex; align-items:center; gap:5px; }.market-legend i { width:8px; height:8px; border-radius:2px; }
-        .market-sector-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:13px 0 9px; color:var(--market-muted); font-size:.66rem; }.market-sector-detail > span:first-child { color:var(--market-text); }.market-sector-detail a { margin-left:auto; color:var(--market-live); text-decoration:none; }
+        .market-sector-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:13px 0 9px; color:var(--market-muted); font-size:.66rem; }.market-sector-detail > span:first-child { color:var(--market-text); }.market-detail-price { margin-left:auto; color:var(--market-text); font-variant-numeric:tabular-nums; }
         .market-heatmap { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
         .market-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:var(--market-text); font:inherit; text-align:left; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
         .market-heat-tile:hover,.market-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }.market-heat-tile.selected { border-color:rgba(244,244,245,.45); }
         .market-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }.market-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
         .market-empty { min-height:40vh; display:grid; place-items:center; color:var(--market-muted); }
         @media (min-width:900px) { .markets-page { max-width:1050px; margin:0 auto; }.market-index-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.market-gauge-grid { max-width:690px; } }
-        @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 58px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:58px; height:36px; }.market-index-label { font-size:.56rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-chart { height:165px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-sector-detail a { width:100%; margin-left:0; } }
+        @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 58px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:58px; height:36px; }.market-index-label { font-size:.56rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-chart { height:165px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
       `}</style>
 
       <MacroChart indicators={data.indicators} />
@@ -309,7 +308,7 @@ export default function MarketPulsePage() {
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
       </section>
-      <SectorHeatmap sectors={data.sectors} interpretation={data.sectorLeadership.interpretation} />
+      <InternationalHeatmap markets={data.internationalMarkets} />
     </main>
   );
 }
