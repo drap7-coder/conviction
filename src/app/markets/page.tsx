@@ -198,7 +198,7 @@ function GlobalMarketsHeatmap({
       <div className="market-sector-detail" aria-live="polite">
         {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.category} · {selected.ticker}</span><span className="market-detail-price">{fmtPrice(selected.price, false)}</span></> : <span>Hover or tap a market</span>}
       </div>
-      <div className="market-heatmap">
+      <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
         {markets.map((market) => (
           <button
             key={market.ticker}
@@ -208,7 +208,7 @@ function GlobalMarketsHeatmap({
             onMouseEnter={() => setSelected(market)}
             onFocus={() => setSelected(market)}
             onClick={() => setSelected(market)}
-            aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.weight.toFixed(1)} percent of ex-US equity markets`}
+            aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
           >
             <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
           </button>
@@ -238,7 +238,8 @@ export default function MarketPulsePage() {
   const vix = indicatorMap.get("^VIX")?.price ?? null;
   const tenYear = indicatorMap.get("^TNX")?.price ?? null;
   const move = indicatorMap.get("^MOVE")?.price ?? null;
-  const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International");
+  const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International" && market.category !== "Crypto");
+  const cryptoMarkets = data.globalMarkets.filter((market) => market.category === "Crypto");
   const internationalMarkets = data.globalMarkets.filter((market) => market.category === "International");
 
   return (
@@ -268,6 +269,7 @@ export default function MarketPulsePage() {
         .market-legend { display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--market-muted); font-size:.58rem; }.market-legend span { display:flex; align-items:center; gap:5px; }.market-legend i { width:8px; height:8px; border-radius:2px; }
         .market-sector-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:13px 0 9px; color:var(--market-muted); font-size:.66rem; }.market-sector-detail > span:first-child { color:var(--market-text); }.market-detail-price { margin-left:auto; color:var(--market-text); font-variant-numeric:tabular-nums; }
         .market-heatmap { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
+        .market-heatmap.compact { grid-template-columns:repeat(4,minmax(0,1fr)); }
         .market-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:var(--market-text); font:inherit; text-align:left; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
         .market-heat-tile:hover,.market-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }.market-heat-tile.selected { border-color:rgba(244,244,245,.45); }
         .market-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }.market-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
@@ -279,8 +281,8 @@ export default function MarketPulsePage() {
 
       <GlobalMarketsHeatmap
         markets={primaryMarkets}
-        title="U.S. Markets + Crypto"
-        subtitle="U.S. equities, macro assets, and crypto · color reflects today’s move"
+        title="U.S. Markets"
+        subtitle="U.S. equities and macro assets · color reflects today’s move"
       />
       <MarketNarrativePulse pulse={data.marketNarratives} />
       <section className="market-gauge-grid" aria-label="Market danger zones">
@@ -289,6 +291,11 @@ export default function MarketPulsePage() {
         <Gauge label="MOVE" value={move} config={MOVE_GAUGE} />
       </section>
       <MacroChart indicators={data.indicators} />
+      <GlobalMarketsHeatmap
+        markets={cryptoMarkets}
+        title="Crypto"
+        subtitle="Major digital assets · color reflects today’s move"
+      />
       <GlobalMarketsHeatmap
         markets={internationalMarkets}
         title="International Markets"
