@@ -184,10 +184,12 @@ function GlobalMarketsHeatmap({
   markets,
   title,
   subtitle,
+  uniformTiles = false,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
   subtitle: string;
+  uniformTiles?: boolean;
 }) {
   const [selected, setSelected] = useState<PulseGlobalMarket | null>(markets[0] ?? null);
   const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
@@ -204,7 +206,7 @@ function GlobalMarketsHeatmap({
             key={market.ticker}
             type="button"
             className={`market-heat-tile${selected?.ticker === market.ticker ? " selected" : ""}`}
-            style={{ gridColumn: `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`, background: heatColor(market.changePercent, maxAbs) }}
+            style={{ gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`, background: heatColor(market.changePercent, maxAbs) }}
             onMouseEnter={() => setSelected(market)}
             onFocus={() => setSelected(market)}
             onClick={() => setSelected(market)}
@@ -283,6 +285,7 @@ export default function MarketPulsePage() {
         markets={primaryMarkets}
         title="U.S. Markets"
         subtitle="U.S. equities and macro assets · color reflects today’s move"
+        uniformTiles
       />
       <MarketNarrativePulse pulse={data.marketNarratives} />
       <section className="market-gauge-grid" aria-label="Market danger zones">
