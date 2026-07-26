@@ -11,7 +11,7 @@ import {
 import type { PulseData, PulseGlobalMarket, PulseIndicator } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { OpenAttentionPulse } from "@/components/market/OpenAttentionPulse";
+import { MarketNarrativePulse } from "@/components/market/MarketNarrativePulse";
 
 const COLORS = {
   green: "#4ade80",
@@ -282,7 +282,7 @@ export default function MarketPulsePage() {
         title="U.S. Markets + Crypto"
         subtitle="U.S. equities, macro assets, and crypto · color reflects today’s move"
       />
-      <OpenAttentionPulse pulse={data.openAttention} />
+      <MarketNarrativePulse pulse={data.marketNarratives} />
       <section className="market-gauge-grid" aria-label="Market danger zones">
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />

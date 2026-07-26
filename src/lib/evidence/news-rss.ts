@@ -69,12 +69,9 @@ function parseRssDate(dateStr: string): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-const TITLE_DEDUP = new Set<string>();
-setInterval(() => { TITLE_DEDUP.clear(); }, 300_000); // reset every 5 min
-
 /**
  * Fetch recent RSS headlines for a ticker from Yahoo Finance.
- * Returns up to `limit` items, deduplicated by title within a 5-min window.
+ * Returns up to `limit` items, deduplicated by title within the response.
  */
 export async function fetchRssNews(ticker: string, limit = 5): Promise<EvidenceEvent[]> {
   const url = `${YAHOO_RSS_BASE}?s=${encodeURIComponent(ticker.toUpperCase())}`;
@@ -85,6 +82,7 @@ export async function fetchRssNews(ticker: string, limit = 5): Promise<EvidenceE
       headers: {
         "User-Agent": "Conviction/1.0 (research tool; nathandrapkin@gmail.com)",
       },
+      next: { revalidate: 300 },
       signal: AbortSignal.timeout(8_000),
     });
     if (!response.ok) return [];
@@ -103,9 +101,8 @@ export async function fetchRssNews(ticker: string, limit = 5): Promise<EvidenceE
     if (events.length >= limit) break;
 
     const dedupKey = item.title.toLowerCase().slice(0, 80);
-    if (seen.has(dedupKey) || TITLE_DEDUP.has(dedupKey)) continue;
+    if (seen.has(dedupKey)) continue;
     seen.add(dedupKey);
-    TITLE_DEDUP.add(dedupKey);
 
     const date = parseRssDate(item.pubDate);
     const description = stripHtml(item.description).slice(0, 300);
@@ -115,7 +112,7 @@ export async function fetchRssNews(ticker: string, limit = 5): Promise<EvidenceE
       ticker: ticker.toUpperCase(),
       type: "material-news",
       direction: "neutral",
-      title: item.title.slice(0, 200),
+      title: stripHtml(item.title).slice(0, 200),
       summary: description || "No summary available.",
       source: "publisher",
       sourceUrl: item.link,

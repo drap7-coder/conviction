@@ -13,9 +13,10 @@ import {
 } from "@/lib/market/sector-classification";
 import { runTriage, type TriageWatchlistInput, type TriageResult } from "@/lib/market/triage";
 import {
-  fetchOpenAttentionPulse,
-  type OpenAttentionPulse,
-} from "@/lib/market/open-attention";
+  fetchMarketNarrativePulse,
+  MARKET_NARRATIVE_THEMES,
+  type MarketNarrativePulse,
+} from "@/lib/market/market-narratives";
 
 export const dynamic = "force-dynamic";
 
@@ -61,13 +62,6 @@ const GLOBAL_MARKETS = [
   { ticker: "EWZ", name: "Brazil", weight: 2.5, category: "International" },
   { ticker: "SOL-USD", name: "Solana", weight: 2, category: "Crypto" },
   { ticker: "EWW", name: "Mexico", weight: 1.0, category: "International" },
-] as const;
-
-const DEFAULT_ATTENTION_TARGETS = [
-  { ticker: "NVDA", label: "NVIDIA", quoteTicker: "NVDA" },
-  { ticker: "TSLA", label: "Tesla", quoteTicker: "TSLA" },
-  { ticker: "BTC", label: "Bitcoin", quoteTicker: "BTC-USD" },
-  { ticker: "SPY", label: "S&P 500", quoteTicker: "SPY" },
 ] as const;
 
 export interface PulseIndicator {
@@ -118,7 +112,7 @@ export interface PulseData {
   macroRegime: MacroRegime;
   sectorLeadership: SectorLeadership;
   triage: TriageResult;
-  openAttention: OpenAttentionPulse;
+  marketNarratives: MarketNarrativePulse;
   fetchedAt: string;
 }
 
@@ -129,23 +123,15 @@ export async function GET() {
     .map((e) => e.ticker);
 
   const sectorTickers = SECTORS.map((s) => s.ticker);
-  const attentionUniverse = Array.from(new Map([
-    ...watchlist
-      .filter((entry) => entry.status === "active")
-      .slice(0, 2)
-      .map((entry) => [entry.ticker, {
-        ticker: entry.ticker,
-        label: entry.companyName,
-        quoteTicker: entry.ticker,
-      }] as const),
-    ...DEFAULT_ATTENTION_TARGETS.map((target) => [target.ticker, target] as const),
-  ]).values()).slice(0, 6);
+  const narrativeTickers = Array.from(new Set(
+    MARKET_NARRATIVE_THEMES.flatMap((theme) => theme.assets.map((asset) => asset.ticker)),
+  ));
   const allTickers = [
     ...INDICATORS.map((i) => i.ticker),
     ...sectorTickers,
     ...GLOBAL_MARKETS.map((market) => market.ticker),
     ...watchlistTickers,
-    ...attentionUniverse.map((target) => target.quoteTicker),
+    ...narrativeTickers,
   ];
   const quotes = await fetchStockQuotes(allTickers);
   const quoteMap = new Map(quotes.map((q) => [q.ticker, q]));
@@ -200,14 +186,12 @@ export async function GET() {
   });
   globalMarkets.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
 
-  // ── Open attention (free public Bluesky aggregate) ──
-  const openAttention = await fetchOpenAttentionPulse(
-    attentionUniverse.map((target) => ({
-      ticker: target.ticker,
-      label: target.label,
-      priceChangePercent: quoteMap.get(target.quoteTicker)?.changePercent ?? null,
-      scope: target.ticker === "SPY" || target.ticker === "BTC" ? "market" : "company",
-    })),
+  // ── Broad market narratives (free headlines + open chatter) ──
+  const marketNarratives = await fetchMarketNarrativePulse(
+    new Map(narrativeTickers.map((ticker) => [
+      ticker,
+      quoteMap.get(ticker)?.changePercent ?? null,
+    ])),
   );
 
   // ── Triage ──
@@ -236,7 +220,7 @@ export async function GET() {
     macroRegime,
     sectorLeadership,
     triage,
-    openAttention,
+    marketNarratives,
     fetchedAt: new Date().toISOString(),
   });
 }
