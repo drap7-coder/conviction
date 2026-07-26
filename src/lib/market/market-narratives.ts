@@ -248,13 +248,17 @@ async function fetchThemeChatter(query: string, now: Date): Promise<ThemeChatter
     now.toISOString(),
     100,
   );
-  // Run the small count request after the daily sample so the free endpoint sees
-  // at most six concurrent requests rather than a twelve-request burst.
-  const hour = await searchThemeChatter(query, oneHourAgo, now.toISOString(), 1);
+  const posts = day.posts ?? [];
+  const mentionsLastHour = posts.filter((post) => {
+    const timestamp = post.indexedAt ?? "";
+    return timestamp >= oneHourAgo && timestamp < now.toISOString();
+  }).length;
   return {
-    posts: day.posts ?? [],
-    mentionsLastHour: hour.hitsTotal ?? hour.posts?.length ?? 0,
-    mentionsLast24Hours: day.hitsTotal ?? day.posts?.length ?? 0,
+    posts,
+    // The latest sample caps at 100, so this is deliberately conservative for
+    // very active themes and cannot inflate a velocity spike.
+    mentionsLastHour,
+    mentionsLast24Hours: day.hitsTotal ?? posts.length,
   };
 }
 
