@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
+import { CompanyPulseCard } from "@/app/components/CompanyPulseCard";
 import { CompanyVerdict } from "@/app/components/CompanyVerdict";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
@@ -59,6 +60,7 @@ export default async function CompanyPage({
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             <CompanyVerdict ticker={upperTicker} />
+            <CompanyPulseCard ticker={upperTicker} />
             {/* Thesis section temporarily suppressed — restore when ready:
             <ThesisTracker ticker={upperTicker} companyName={companyName} /> */}
           </>
