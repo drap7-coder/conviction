@@ -44,6 +44,7 @@ const GLOBAL_MARKETS = [
   { ticker: "IWM", name: "Russell 2000", weight: 9, category: "United States" },
   { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "United States" },
   { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "United States" },
+  { ticker: "SCHD", name: "U.S. Dividend 100", weight: 7, category: "United States" },
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
   { ticker: "EWJ", name: "Japan", weight: 14.5, category: "International" },
   { ticker: "MCHI", name: "China", weight: 10.5, category: "International" },
