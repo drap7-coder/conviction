@@ -57,6 +57,25 @@ const MOVE_GAUGE = {
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
 
+const MARKET_REGION_OPTIONS = [
+  {
+    id: "us",
+    label: "U.S. Markets",
+    labelTop: "U.S.",
+    labelBottom: "Markets",
+    description: "Domestic leadership",
+  },
+  {
+    id: "international",
+    label: "International Markets",
+    labelTop: "International",
+    labelBottom: "Markets",
+    description: "Global leadership",
+  },
+] as const;
+
+type MarketRegion = (typeof MARKET_REGION_OPTIONS)[number]["id"];
+
 const MACRO_SERIES = [
   { ticker: "SPY", key: "equities", label: "Equities", color: COLORS.green },
   { ticker: "^TNX", key: "yield", label: "10Y Yield", color: COLORS.red },
@@ -223,6 +242,7 @@ function GlobalMarketsHeatmap({
 export default function MarketPulsePage() {
   const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [activeRegion, setActiveRegion] = useState<MarketRegion>("us");
 
   useEffect(() => {
     let cancelled = false;
@@ -243,6 +263,8 @@ export default function MarketPulsePage() {
   const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International" && market.category !== "Crypto");
   const cryptoMarkets = data.globalMarkets.filter((market) => market.category === "Crypto");
   const internationalMarkets = data.globalMarkets.filter((market) => market.category === "International");
+  const activeRegionOption = MARKET_REGION_OPTIONS.find((option) => option.id === activeRegion) ?? MARKET_REGION_OPTIONS[0];
+  const activeRegionMarkets = activeRegion === "international" ? internationalMarkets : primaryMarkets;
 
   return (
     <main className="markets-page">
@@ -250,6 +272,18 @@ export default function MarketPulsePage() {
         .markets-page { --market-bg:#0a0a0b; --market-card:#111214; --market-border:#26282c; --market-text:#f4f4f5; --market-muted:#8b8f97; --market-green:#4ade80; --market-red:#f87171; --market-live:#2dd4bf; min-height:100vh; background:var(--market-bg); color:var(--market-text); padding:24px; font-family:var(--font-mono); }
         .market-index-grid,.market-gauge-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
         .market-index-card,.market-gauge-card,.market-panel { background:var(--market-card); border:1px solid var(--market-border); border-radius:12px; }
+        .market-region-picker { display:grid; grid-template-columns:minmax(190px,.62fr) minmax(0,1.38fr); align-items:stretch; gap:12px; margin-bottom:18px; padding:14px; border:1px solid var(--market-border); border-radius:12px; background:radial-gradient(circle at 12% 0%,color-mix(in srgb,var(--market-live) 10%,transparent),transparent 42%),var(--market-card); }
+        .market-region-copy { display:flex; flex-direction:column; justify-content:center; padding:4px 6px; }
+        .market-region-copy span { color:var(--market-text); font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+        .market-region-copy p { margin:5px 0 0; color:var(--market-muted); font-size:.66rem; line-height:1.45; }
+        .market-region-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+        .market-region-tabs button { min-width:0; padding:12px 13px; border:1px solid var(--market-border); border-radius:8px; color:var(--market-text); background:color-mix(in srgb,var(--market-card) 82%,transparent); font:inherit; text-align:left; cursor:pointer; transition:border-color .16s,background-color .16s,transform .16s; }
+        .market-region-tabs button:hover,.market-region-tabs button:focus-visible { border-color:color-mix(in srgb,var(--market-live) 48%,var(--market-border)); outline:none; transform:translateY(-1px); }
+        .market-region-tabs button.active { border-color:color-mix(in srgb,var(--market-live) 58%,var(--market-border)); background:linear-gradient(135deg,color-mix(in srgb,var(--market-live) 11%,transparent),transparent 75%),color-mix(in srgb,var(--market-card) 90%,#172033); box-shadow:inset 3px 0 0 var(--market-live); }
+        .market-region-tabs strong,.market-region-tabs span { display:block; }
+        .market-region-tabs strong { font-size:.82rem; }
+        .market-region-tabs span { margin-top:3px; color:var(--market-muted); font-size:.58rem; }
+        .market-region-title-break { display:none; }
         .market-index-card { min-height:124px; padding:16px; display:grid; grid-template-columns:minmax(0,1fr) 78px; gap:8px; align-items:center; }
         .market-index-copy { min-width:0; display:flex; flex-direction:column; align-items:flex-start; }
         .market-card-heading { grid-column:1/-1; display:flex; justify-content:space-between; color:var(--market-muted); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; }
@@ -278,15 +312,49 @@ export default function MarketPulsePage() {
         .market-empty { min-height:40vh; display:grid; place-items:center; color:var(--market-muted); }
         @media (min-width:900px) { .markets-page { max-width:1050px; margin:0 auto; }.market-index-grid,.market-gauge-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
         @media (max-width:899px) { .market-gauge-card:last-child:nth-child(odd) { grid-column:1/-1; } }
+        @media (max-width:640px) { .market-region-picker { grid-template-columns:1fr; padding:11px; }.market-region-copy { padding:2px 3px 4px; }.market-region-tabs button { width:100%; padding:11px 10px; }.market-region-title-break { display:block; } }
         @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 54px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:54px; height:36px; }.market-index-label { font-size:.52rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-panel { padding:14px; }.market-macro-panel .market-macro-chart { height:128px; margin:10px -5px 3px; }.market-macro-panel .market-legend { flex-wrap:nowrap; justify-content:space-between; gap:4px; font-size:.46rem; }.market-macro-panel .market-legend span { gap:3px; white-space:nowrap; }.market-macro-panel .market-legend i { width:6px; height:6px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
       `}</style>
 
-      <GlobalMarketsHeatmap
-        markets={primaryMarkets}
-        title="U.S. Markets"
-        subtitle="U.S. equities and macro assets · color reflects today’s move"
-        uniformTiles
-      />
+      <section className="market-region-picker" aria-label="Market regions">
+        <div className="market-region-copy">
+          <span>Explore Markets</span>
+          <p>Switch between U.S. and international market leadership.</p>
+        </div>
+        <div className="market-region-tabs" role="tablist" aria-label="Choose a market region">
+          {MARKET_REGION_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              id={`market-region-tab-${option.id}`}
+              type="button"
+              role="tab"
+              aria-label={`${option.label}: ${option.description}`}
+              aria-selected={activeRegion === option.id}
+              aria-controls="market-region-panel"
+              className={activeRegion === option.id ? "active" : ""}
+              onClick={() => setActiveRegion(option.id)}
+            >
+              <strong>
+                {option.labelTop}
+                <br className="market-region-title-break" aria-hidden="true" />{" "}
+                {option.labelBottom}
+              </strong>
+              <span>{option.description}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+      <div id="market-region-panel" role="tabpanel" aria-labelledby={`market-region-tab-${activeRegion}`}>
+        <GlobalMarketsHeatmap
+          key={activeRegion}
+          markets={activeRegionMarkets}
+          title={activeRegionOption.label}
+          subtitle={activeRegion === "international"
+            ? "Country ETF proxies · tile size reflects relative equity-market weight"
+            : "U.S. equities and macro assets · color reflects today’s move"}
+          uniformTiles={activeRegion === "us"}
+        />
+      </div>
       <MarketNarrativePulse pulse={data.marketNarratives} />
       <section className="market-gauge-grid" aria-label="Market danger zones">
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
@@ -298,11 +366,6 @@ export default function MarketPulsePage() {
         markets={cryptoMarkets}
         title="Crypto"
         subtitle="Major digital assets · color reflects today’s move"
-      />
-      <GlobalMarketsHeatmap
-        markets={internationalMarkets}
-        title="International Markets"
-        subtitle="Country ETF proxies · tile size reflects relative equity-market weight"
       />
     </main>
   );
