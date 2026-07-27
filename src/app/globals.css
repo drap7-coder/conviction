@@ -8045,3 +8045,175 @@ details > summary::before {
     padding: 12px 13px;
   }
 }
+
+/* ── Shared SignalBlock + SourceBadge ── */
+
+.signal-block {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.signal-block-compact {
+  gap: 5px;
+}
+
+.signal-block-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.signal-block-heading-text {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.signal-block-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.signal-block-conclusion {
+  display: block;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+.signal-block-compact .signal-block-conclusion {
+  font-size: 0.9rem;
+}
+
+.signal-block-strength {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.signal-block-strength-positive {
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.signal-block-strength-negative {
+  color: var(--red);
+  background: var(--red-dim);
+}
+
+.signal-block-strength-contested {
+  color: var(--amber);
+  background: var(--amber-dim);
+}
+
+.signal-block-strength-quiet {
+  color: var(--muted);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.signal-block-evidence,
+.signal-block-why {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.signal-block-evidence {
+  color: var(--muted);
+}
+
+.signal-block-why {
+  color: var(--quiet);
+}
+
+.signal-block-compact .signal-block-evidence,
+.signal-block-compact .signal-block-why {
+  font-size: 0.76rem;
+}
+
+.signal-block-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 1px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--quiet);
+}
+
+.source-badge {
+  font-family: var(--font-mono);
+  font-size: inherit;
+  color: inherit;
+}
+
+.signal-block-list {
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 4px;
+}
+
+.signal-block-list li {
+  position: relative;
+  padding-left: 12px;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.signal-block-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border-active);
+}
+
+/* Building Conviction Now items host SignalBlock */
+.bcn-item {
+  display: block;
+  padding: 14px 16px;
+  color: inherit;
+  text-decoration: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent);
+  transition: border-color 0.15s, background-color 0.15s, transform 0.15s;
+}
+
+.bcn-item:hover {
+  border-color: var(--border-active);
+  background: var(--surface-elevated);
+  transform: translateY(-1px);
+}
+
+.bcn-item .signal-block-eyebrow {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.investor-idea-card .signal-block {
+  margin-top: 4px;
+}
+
+.investor-idea-card .investor-manager-list {
+  margin-top: 4px;
+}

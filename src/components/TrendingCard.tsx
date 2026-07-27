@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { NewsDriverBrief } from "@/app/components/NewsDriverBrief";
+import { SignalBlock } from "@/components/display/SignalBlock";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import { fmtPrice, fmtPercent, fmtMarketCap, isFiniteNumber } from "@/lib/display/format";
@@ -304,10 +305,31 @@ export function TrendingCard({
         {headlines.length > 0 || newsDriver ? (
           <NewsDriverBrief ticker={ticker} driver={newsDriver} headlines={headlines} compact />
         ) : (
-          <p className="watchlist-row-driver">
-            <span className="watchlist-row-driver-source">Signal</span>
-            · {verdict.state}
-          </p>
+          <SignalBlock
+            compact
+            conclusion={
+              verdict.state === "Strong"
+                ? "Institutional conviction is strong"
+                : verdict.state === "Weak"
+                  ? "Evidence looks weak"
+                  : verdict.state === "Mixed"
+                    ? "Evidence is mixed"
+                    : "Awaiting clearer evidence"
+            }
+            evidence={verdict.insight}
+            whyItMatters={activityLabel}
+            dateLabel={verdict.recency}
+            source={verdict.source}
+            strength={
+              verdict.state === "Strong"
+                ? "strong"
+                : verdict.state === "Weak"
+                  ? "weak"
+                  : verdict.state === "Mixed"
+                    ? "mixed"
+                    : "awaiting"
+            }
+          />
         )}
 
         <div className="watchlist-row-evidence">
@@ -316,9 +338,6 @@ export function TrendingCard({
               <b>Mkt Cap</b> · {marketCapText}
             </span>
           )}
-          <span className="watchlist-row-evidence-item">
-            <b>Signal</b> · {verdict.state}
-          </span>
         </div>
       </Link>
     </div>

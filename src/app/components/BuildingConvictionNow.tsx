@@ -3,30 +3,21 @@ import {
   getBuildingConvictionItems,
   type BuildingConvictionItem,
 } from "@/lib/evidence/building-conviction";
-import {
-  EVIDENCE_STRENGTH_LABEL,
-  EVIDENCE_STRENGTH_TONE,
-} from "@/lib/display/vocabulary";
+import { SignalBlock } from "@/components/display/SignalBlock";
 
 function ItemCard({ item }: { item: BuildingConvictionItem }) {
-  const tone = EVIDENCE_STRENGTH_TONE[item.strength];
-
   return (
-    <Link href={item.href} className={`bcn-item bcn-item-${tone}`}>
-      <div className="bcn-item-top">
-        <span className="bcn-subject">{item.subject}</span>
-        <span className={`bcn-strength bcn-strength-${tone}`}>
-          {EVIDENCE_STRENGTH_LABEL[item.strength]}
-        </span>
-      </div>
-      <strong className="bcn-conclusion">{item.conclusion}</strong>
-      <p className="bcn-evidence">{item.evidence}</p>
-      <p className="bcn-why">{item.whyItMatters}</p>
-      <div className="bcn-meta">
-        <span>{item.dateLabel}</span>
-        <span aria-hidden="true">·</span>
-        <span>{item.sourceLabel}</span>
-      </div>
+    <Link href={item.href} className="bcn-item">
+      <SignalBlock
+        compact
+        eyebrow={item.subject}
+        conclusion={item.conclusion}
+        evidence={item.evidence}
+        whyItMatters={item.whyItMatters}
+        dateLabel={item.dateLabel}
+        source={item.sourceLabel}
+        strength={item.strength}
+      />
     </Link>
   );
 }

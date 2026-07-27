@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { SignalBlock } from "@/components/display/SignalBlock";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { getSectorSignal } from "@/lib/display/sector-signal";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { EVIDENCE_STRENGTH_LABEL, EVIDENCE_STRENGTH_TONE } from "@/lib/display/vocabulary";
 
 interface StockHistoryPoint {
   date: string;
@@ -215,11 +218,18 @@ export default function IndustriesPage() {
                 ? (liveChange > 0 ? "▲" : liveChange < 0 ? "▼" : null)
                 : null;
               const arrowClass = liveChange !== null && liveChange > 0 ? "up" : liveChange !== null && liveChange < 0 ? "down" : "";
+              const signal = getSectorSignal({
+                name: sector.name,
+                changePercent: liveChangePct,
+                leaders: sector.representativeTickers.slice(0, 4),
+                description: sector.description,
+              });
+              const strengthTone = EVIDENCE_STRENGTH_TONE[signal.strength];
               return (
                 <div key={sector.ticker} className="terminal-card-wrap group">
                   <Link
                     href={"/industries/" + sector.ticker}
-                    className="watchlist-row"
+                    className={`watchlist-row watchlist-row-${strengthTone}`}
                   >
                     <div className="watchlist-row-main">
                       <div className="watchlist-row-company">
@@ -254,7 +264,9 @@ export default function IndustriesPage() {
                           </span>
                         )}
                       </div>
-                      <span className="watchlist-row-state watchlist-row-state-quiet">Sector ETF</span>
+                      <span className={`watchlist-row-state watchlist-row-state-${strengthTone}`}>
+                        {EVIDENCE_STRENGTH_LABEL[signal.strength]}
+                      </span>
                     </div>
 
                     {sparklinePath ? (
@@ -267,15 +279,15 @@ export default function IndustriesPage() {
                       </div>
                     ) : null}
 
-                    {sector.description ? (
-                      <section className="news-driver-brief news-driver-brief-compact" aria-label={`${sector.ticker} sector story`}>
-                        <div className="news-driver-heading">
-                          <span className="news-driver-eyebrow">The story</span>
-                          <span className="news-driver-horizon">Sector overview</span>
-                        </div>
-                        <p className="news-driver-copy">{sector.description}</p>
-                      </section>
-                    ) : null}
+                    <SignalBlock
+                      compact
+                      conclusion={signal.conclusion}
+                      evidence={signal.evidence}
+                      whyItMatters={signal.whyItMatters}
+                      dateLabel={signal.dateLabel}
+                      source={signal.source}
+                      strength={signal.strength}
+                    />
 
                     <div className="watchlist-row-evidence">
                       <span className="watchlist-row-evidence-item"><b>Leaders</b> · {sector.representativeTickers.slice(0, 4).join(", ")}</span>

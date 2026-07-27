@@ -7,7 +7,9 @@ import { getConvictionBadge } from "@/lib/conviction/canonical-types";
 import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { NewsDriverBrief } from "./NewsDriverBrief";
+import { SignalBlock } from "@/components/display/SignalBlock";
 import { isFiniteNumber } from "@/lib/display/format";
+import { sourceBadgeLabel } from "@/lib/display/vocabulary";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -353,16 +355,25 @@ export function WatchlistCard({
 
           {headlines.length > 0 || newsDriver ? (
             <NewsDriverBrief ticker={ticker} driver={newsDriver} headlines={headlines} compact />
+          ) : activityLine ? (
+            <SignalBlock
+              compact
+              conclusion={activityLine.text}
+              evidence={supportingEvidence[0]?.text ?? null}
+              whyItMatters="Ownership and short-interest signals are delayed disclosures — confirm before changing a thesis."
+              dateLabel={activityLine.timestamp ? `Updated ${activityLine.timestamp}` : null}
+              source={activityLine.source ? sourceBadgeLabel(activityLine.source === "13F" ? "SEC 13F" : activityLine.source === "SI" ? "FINRA short interest" : activityLine.source) : "sec_filing"}
+            />
           ) : (
-            <p className="watchlist-row-driver">
-              {activityLine?.source ? (
-                <span className="watchlist-row-driver-source">{activityLine.source}</span>
-              ) : null}
-              {activityLine?.text ?? "Recent headlines unavailable."}
-            </p>
+            <SignalBlock
+              compact
+              conclusion="Recent headlines unavailable"
+              evidence="No material news or ownership change is loaded for this name yet."
+              source="material_news"
+            />
           )}
 
-          {supportingEvidence.length > 0 && (
+          {supportingEvidence.length > 0 && (headlines.length > 0 || newsDriver) ? (
             <div className="watchlist-row-evidence">
               {supportingEvidence.map((pill) => (
                 <span
@@ -374,10 +385,6 @@ export function WatchlistCard({
                 </span>
               ))}
             </div>
-          )}
-
-          {activityLine && headlines.length === 0 ? (
-            <span className="watchlist-row-recency">Updated {activityLine.timestamp}</span>
           ) : null}
         </Link>
 

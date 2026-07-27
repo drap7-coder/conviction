@@ -42,17 +42,17 @@ const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const TRENDING_VIEWS = [
   {
     id: "market",
-    label: "Market Activity",
+    label: "Market",
     labelTop: "Market",
-    labelBottom: "Activity",
-    description: "What is moving now",
+    labelBottom: "Moves",
+    description: "Where conviction is changing fastest in liquid names",
   },
   {
     id: "investors",
-    label: "Investor Moves",
-    labelTop: "Investor",
-    labelBottom: "Moves",
-    description: "What top portfolios disclosed",
+    label: "Institutions",
+    labelTop: "Institutions",
+    labelBottom: "13F",
+    description: "Where tracked managers disclosed new or larger positions",
   },
 ] as const;
 

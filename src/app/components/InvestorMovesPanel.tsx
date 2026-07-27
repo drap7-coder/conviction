@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { SignalBlock } from "@/components/display/SignalBlock";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type {
   AccumulationStatus,
@@ -11,6 +12,7 @@ import type {
   InstitutionalMarketIdea,
   InstitutionalMarketResult,
 } from "@/lib/sec/institutional";
+import type { EvidenceStrength } from "@/lib/display/vocabulary";
 
 type InvestorMovesResponse = InstitutionalMarketResult & {
   status?: "success" | "timeout" | "error";
@@ -69,7 +71,26 @@ function moveSummary(move: InstitutionalMarketIdea["moves"][number]): string {
   }
 }
 
-function ideaSummary(idea: InstitutionalMarketIdea): string {
+function ideaConclusion(idea: InstitutionalMarketIdea): string {
+  if (idea.newPositionCount >= 2) {
+    return `Institutional conviction is strong in ${idea.ticker}`;
+  }
+  if (idea.newPositionCount === 1) {
+    return `A tracked manager opened ${idea.ticker}`;
+  }
+  if (idea.increasedCount >= 2) {
+    return `Institutions are accumulating ${idea.ticker}`;
+  }
+  if (idea.increasedCount === 1) {
+    return `Institutional ownership increased in ${idea.ticker}`;
+  }
+  if (idea.holderCount >= 3) {
+    return `Shared institutional conviction in ${idea.ticker}`;
+  }
+  return `Institutional activity detected in ${idea.ticker}`;
+}
+
+function ideaEvidence(idea: InstitutionalMarketIdea): string {
   if (idea.newPositionCount > 0) {
     return `${idea.newPositionCount} tracked ${idea.newPositionCount === 1 ? "manager opened" : "managers opened"} a position.`;
   }
@@ -77,6 +98,12 @@ function ideaSummary(idea: InstitutionalMarketIdea): string {
     return `${idea.increasedCount} tracked ${idea.increasedCount === 1 ? "manager added" : "managers added"} to the position.`;
   }
   return `${idea.holderCount} tracked managers independently hold the company.`;
+}
+
+function ideaStrength(idea: InstitutionalMarketIdea): EvidenceStrength {
+  if (idea.newPositionCount >= 2 || idea.increasedCount >= 2 || idea.holderCount >= 3) return "strong";
+  if (idea.newPositionCount > 0 || idea.increasedCount > 0) return "mixed";
+  return "awaiting";
 }
 
 interface InvestorMovesPanelProps {
@@ -129,24 +156,24 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
   if (status === "loading" || status === "idle") {
     return (
-      <section className="investor-moves-panel" aria-label="Investor moves" aria-busy="true">
+      <section className="investor-moves-panel" aria-label="Institutional moves" aria-busy="true">
         <div className="investor-moves-intro">
-          <span className="investor-moves-eyebrow">SEC Form 13F · Investor Moves</span>
-          <h2>Ideas from notable investor portfolios</h2>
+          <span className="investor-moves-eyebrow">SEC Form 13F · Institutional Moves</span>
+          <h2>Where tracked managers are building positions</h2>
           <p>Comparing the two latest filings from notable investors.</p>
         </div>
-        <PageLoadingMotion label="Reading investor filings" />
+        <PageLoadingMotion label="Reading institutional filings" />
       </section>
     );
   }
 
   if (status === "error" || status === "timeout" || status === "empty") {
     return (
-      <section className="investor-moves-panel" aria-label="Investor moves">
+      <section className="investor-moves-panel" aria-label="Institutional moves">
         <div className="investor-moves-intro">
-          <span className="investor-moves-eyebrow">SEC Form 13F · Investor Moves</span>
+          <span className="investor-moves-eyebrow">SEC Form 13F · Institutional Moves</span>
           <h2>The filing feed is quiet right now</h2>
-          <p>{response?.message ?? "No qualifying investor ideas were found in the latest comparison."}</p>
+          <p>{response?.message ?? "No qualifying institutional ideas were found in the latest comparison."}</p>
           <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
             Retry
           </button>
@@ -156,11 +183,11 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
   }
 
   return (
-    <section className="investor-moves-panel" aria-label="Investor moves">
+    <section className="investor-moves-panel" aria-label="Institutional moves">
       <div className="investor-moves-intro">
         <div>
-          <span className="investor-moves-eyebrow">SEC Form 13F · Investor Moves</span>
-          <h2>Ideas from notable investor portfolios</h2>
+          <span className="investor-moves-eyebrow">SEC Form 13F · Institutional Moves</span>
+          <h2>Where tracked managers are building positions</h2>
           <p>
             New positions, meaningful adds, and companies held across multiple notable investors.
           </p>
@@ -171,7 +198,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
         </div>
       </div>
 
-      <div className="investor-filter-row" role="group" aria-label="Filter investor moves">
+      <div className="investor-filter-row" role="group" aria-label="Filter institutional moves">
         {INVESTOR_FILTERS.map((item) => (
           <button
             key={item.id}
@@ -194,6 +221,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
           {visibleIdeas.map((idea) => {
             const isTracked = trackedTickers.has(idea.ticker);
             const isAdding = addingTicker === idea.ticker;
+            const strength = ideaStrength(idea);
             return (
               <article className="investor-idea-card" key={idea.ticker}>
                 <div className="investor-idea-card-top">
@@ -205,9 +233,6 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
                     </div>
                   </Link>
                   <div className="investor-idea-actions">
-                    <span className={`investor-idea-badge ${idea.headline === "Shared Conviction" ? "shared" : "positive"}`}>
-                      {idea.headline}
-                    </span>
                     <button
                       type="button"
                       className={`investor-watchlist-add${isTracked ? " tracked" : ""}`}
@@ -221,19 +246,26 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
                   </div>
                 </div>
 
-                <p className="investor-idea-thesis">{ideaSummary(idea)}</p>
-
-                <div className="investor-manager-list">
-                  {idea.moves.map((move) => (
-                    <div className="investor-manager-row" key={`${idea.ticker}-${move.displayName}`}>
-                      <span>{move.displayName}</span>
-                      <strong className={statusClass(move.status)}>{moveSummary(move)}</strong>
-                    </div>
-                  ))}
-                </div>
+                <SignalBlock
+                  compact
+                  conclusion={ideaConclusion(idea)}
+                  evidence={ideaEvidence(idea)}
+                  whyItMatters="13F filings are delayed disclosures and do not prove a manager still holds the position today."
+                  dateLabel={idea.filingQuarter ? `Holdings as of ${formatDate(idea.filingQuarter)}` : null}
+                  source="sec_filing"
+                  strength={strength}
+                >
+                  <div className="investor-manager-list">
+                    {idea.moves.map((move) => (
+                      <div className="investor-manager-row" key={`${idea.ticker}-${move.displayName}`}>
+                        <span>{move.displayName}</span>
+                        <strong className={statusClass(move.status)}>{moveSummary(move)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </SignalBlock>
 
                 <div className="investor-idea-footer">
-                  <span>Holdings as of {formatDate(idea.filingQuarter)}</span>
                   <Link href={`/companies/${idea.ticker}`} className="investor-idea-footer-link">
                     Open company →
                   </Link>

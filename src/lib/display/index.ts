@@ -34,6 +34,9 @@ export {
   evidenceStrengthFromCounts,
 } from "./vocabulary";
 
+export { getSectorSignal } from "./sector-signal";
+export type { SectorSignal, SectorSignalInput } from "./sector-signal";
+
 // Formatting
 export {
   isFiniteNumber,
