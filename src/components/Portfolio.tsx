@@ -452,7 +452,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
 
           {/* ── Loading / Error / Refresh ── */}
           <div className="pf-toolbar">
-            {loading && <span className="pf-loading">Loading prices…</span>}
+            {loading && <span className="pf-loading">Loading portfolio prices</span>}
             {error && <span className="pf-error">{error}</span>}
             <button className="pf-refresh-btn" onClick={handleRefresh} disabled={loading}>
               {loading ? "Loading…" : "Refresh"}
@@ -481,6 +481,15 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
             <div className="pf-state-card pf-state-info">
               Return calculations cover {portfolioMetrics.positionsWithCost} of {portfolioMetrics.positionCount} positions. Add an average cost to {portfolioMetrics.positionsMissingCost} position{portfolioMetrics.positionsMissingCost > 1 ? "s" : ""} for full coverage.
             </div>
+          )}
+
+          {/* ── Portfolio heatmap ── */}
+          {!calcFailed && portfolioHeatmapItems.length > 0 && (
+            <StockHeatmap
+              title="Portfolio"
+              subtitle="Tile size reflects position value; color reflects the current market move."
+              items={portfolioHeatmapItems}
+            />
           )}
 
           {/* ── Needs Attention leads the page purpose ── */}
@@ -540,14 +549,6 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
               </p>
             )}
           </section>
-
-          {!calcFailed && portfolioHeatmapItems.length > 0 && (
-            <StockHeatmap
-              title="Portfolio"
-              subtitle="Tile size reflects position value; color reflects the current market move."
-              items={portfolioHeatmapItems}
-            />
-          )}
 
           {/* ── Portfolio exposure ── */}
           {sectorDonutData.length > 0 && (
