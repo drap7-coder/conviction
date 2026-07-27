@@ -803,6 +803,34 @@ details > summary::before {
   line-height: 1.35;
 }
 
+.investor-manager-row.selected {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  margin: 0 -4px;
+  padding-left: 4px;
+  padding-right: 4px;
+  border-radius: 4px;
+}
+
+.investor-manager-name {
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.investor-manager-name:hover,
+.investor-manager-row.selected .investor-manager-name {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .investor-manager-row span {
   overflow: hidden;
   color: var(--muted);

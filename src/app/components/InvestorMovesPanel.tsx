@@ -8,7 +8,6 @@ import { SignalBlock } from "@/components/display/SignalBlock";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type {
   AccumulationStatus,
-  InstitutionalIdeaCategory,
   InstitutionalMarketIdea,
   InstitutionalMarketResult,
 } from "@/lib/sec/institutional";
@@ -19,14 +18,7 @@ type InvestorMovesResponse = InstitutionalMarketResult & {
   message?: string;
 };
 
-type InvestorFilter = "all" | InstitutionalIdeaCategory;
-
-const INVESTOR_FILTERS: Array<{ id: InvestorFilter; label: string }> = [
-  { id: "all", label: "All ideas" },
-  { id: "new", label: "New positions" },
-  { id: "added", label: "Biggest adds" },
-  { id: "shared", label: "Shared conviction" },
-];
+type InvestorFilter = "all" | string;
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -147,11 +139,50 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
     };
   }, [requestKey]);
 
+  const investorOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const idea of response?.ideas ?? []) {
+      for (const move of idea.moves) {
+        if (move.status === "New" || move.status === "Increased" || move.shares > 0) {
+          counts.set(move.displayName, (counts.get(move.displayName) ?? 0) + 1);
+        }
+      }
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([name]) => name);
+  }, [response]);
+
+  useEffect(() => {
+    if (filter !== "all" && investorOptions.length > 0 && !investorOptions.includes(filter)) {
+      setFilter("all");
+    }
+  }, [filter, investorOptions]);
+
   const visibleIdeas = useMemo(() => {
     const ideas = response?.ideas ?? [];
-    return filter === "all"
-      ? ideas
-      : ideas.filter((idea) => idea.categories.includes(filter));
+    if (filter === "all") return ideas;
+
+    return ideas
+      .filter((idea) => idea.moves.some((move) => move.displayName === filter))
+      .map((idea) => ({
+        ...idea,
+        moves: [...idea.moves].sort((a, b) => {
+          const aMatch = a.displayName === filter ? 0 : 1;
+          const bMatch = b.displayName === filter ? 0 : 1;
+          return aMatch - bMatch;
+        }),
+      }))
+      .sort((a, b) => {
+        const rank = (idea: InstitutionalMarketIdea) => {
+          const move = idea.moves.find((item) => item.displayName === filter);
+          if (!move) return 99;
+          if (move.status === "New") return 0;
+          if (move.status === "Increased") return 1;
+          return 2;
+        };
+        return rank(a) - rank(b) || b.score - a.score;
+      });
   }, [filter, response]);
 
   if (status === "loading" || status === "idle") {
@@ -198,23 +229,31 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
         </div>
       </div>
 
-      <div className="investor-filter-row" role="group" aria-label="Filter institutional moves">
-        {INVESTOR_FILTERS.map((item) => (
+      <div className="investor-filter-row" role="group" aria-label="Filter by investor">
+        <button
+          type="button"
+          aria-pressed={filter === "all"}
+          className={filter === "all" ? "active" : ""}
+          onClick={() => setFilter("all")}
+        >
+          All investors
+        </button>
+        {investorOptions.map((name) => (
           <button
-            key={item.id}
+            key={name}
             type="button"
-            aria-pressed={filter === item.id}
-            className={filter === item.id ? "active" : ""}
-            onClick={() => setFilter(item.id)}
+            aria-pressed={filter === name}
+            className={filter === name ? "active" : ""}
+            onClick={() => setFilter(name)}
           >
-            {item.label}
+            {name}
           </button>
         ))}
       </div>
 
       {visibleIdeas.length === 0 ? (
         <div className="investor-moves-filter-empty">
-          No ideas match this lens in the latest filings.
+          No ownership moves match this investor in the latest filings.
         </div>
       ) : (
         <div className="investor-idea-grid">
@@ -248,8 +287,19 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
                 <SignalBlock
                   compact
-                  conclusion={ideaConclusion(idea)}
-                  evidence={ideaEvidence(idea)}
+                  conclusion={
+                    filter !== "all"
+                      ? `${filter} activity in ${idea.ticker}`
+                      : ideaConclusion(idea)
+                  }
+                  evidence={
+                    filter !== "all"
+                      ? (() => {
+                          const move = idea.moves.find((item) => item.displayName === filter);
+                          return move ? moveSummary(move) : ideaEvidence(idea);
+                        })()
+                      : ideaEvidence(idea)
+                  }
                   whyItMatters="Fund filings can arrive weeks late and may not match today’s holdings."
                   dateLabel={idea.filingQuarter ? `Holdings as of ${formatDate(idea.filingQuarter)}` : null}
                   source="sec_filing"
@@ -257,8 +307,17 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
                 >
                   <div className="investor-manager-list">
                     {idea.moves.map((move) => (
-                      <div className="investor-manager-row" key={`${idea.ticker}-${move.displayName}`}>
-                        <span>{move.displayName}</span>
+                      <div
+                        className={`investor-manager-row${filter === move.displayName ? " selected" : ""}`}
+                        key={`${idea.ticker}-${move.displayName}`}
+                      >
+                        <button
+                          type="button"
+                          className="investor-manager-name"
+                          onClick={() => setFilter(move.displayName)}
+                        >
+                          {move.displayName}
+                        </button>
                         <strong className={statusClass(move.status)}>{moveSummary(move)}</strong>
                       </div>
                     ))}

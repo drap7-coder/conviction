@@ -51,7 +51,7 @@ const TRENDING_VIEWS = [
     id: "investors",
     label: "Institutions",
     labelTop: "Institutions",
-    labelBottom: "13F",
+    labelBottom: "Funds",
     description: "Where tracked managers disclosed new or larger positions",
   },
   {
