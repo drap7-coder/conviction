@@ -13,7 +13,6 @@ function ItemCard({ item }: { item: BuildingConvictionItem }) {
         eyebrow={item.subject}
         conclusion={item.conclusion}
         evidence={item.evidence}
-        whyItMatters={item.whyItMatters}
         dateLabel={item.dateLabel}
         source={item.sourceLabel}
         strength={item.strength}
@@ -23,22 +22,20 @@ function ItemCard({ item }: { item: BuildingConvictionItem }) {
 }
 
 /**
- * Public homepage module — server-rendered so crawlers and first-time
- * visitors see real product evidence before entering a ticker.
+ * Public evidence feed — server-rendered so visitors see real product
+ * intelligence immediately. Kept short and scannable.
  */
 export function BuildingConvictionNow() {
-  const items = getBuildingConvictionItems(5);
+  const items = getBuildingConvictionItems(3);
   if (items.length === 0) return null;
 
   return (
     <section className="bcn-module" aria-label="What’s changing now">
       <div className="bcn-header">
-        <div>
-          <span className="bcn-eyebrow">Live examples</span>
-          <h2 className="bcn-title">What’s changing right now</h2>
-        </div>
+        <span className="bcn-eyebrow">Now</span>
+        <h2 className="bcn-title">What’s changing</h2>
         <p className="bcn-lede">
-          Real ownership moves and news — the same format you’ll see once you track a company.
+          Ownership moves and news worth a closer look.
         </p>
       </div>
       <div className="bcn-list">
@@ -47,7 +44,7 @@ export function BuildingConvictionNow() {
         ))}
       </div>
       <p className="bcn-footnote">
-        Fund ownership filings can arrive weeks after quarter-end and may not reflect today’s holdings.
+        Fund filings can lag by weeks and may not match today’s holdings.
       </p>
     </section>
   );

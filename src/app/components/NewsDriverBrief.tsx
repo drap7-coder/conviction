@@ -18,7 +18,7 @@ function newestDate(headlines: NewsBriefHeadline[]): string | null {
 }
 
 export function NewsDriverBrief({
-  ticker,
+  ticker: _ticker,
   driver,
   headlines,
   compact = false,
@@ -58,14 +58,6 @@ export function NewsDriverBrief({
       whyItMatters={whyItMatters}
       dateLabel={newestDate(headlines) ?? "Recent"}
       source="material_news"
-    >
-      {headlines.length > 0 ? (
-        <ol className="signal-block-list" aria-label={`${ticker} latest developments`}>
-          {headlines.slice(0, 3).map((item) => (
-            <li key={`${item.date}-${item.headline}`}>{item.headline}</li>
-          ))}
-        </ol>
-      ) : null}
-    </SignalBlock>
+    />
   );
 }

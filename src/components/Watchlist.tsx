@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
+import { WatchlistNeedsAttention } from "@/app/components/WatchlistNeedsAttention";
 import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
@@ -121,7 +122,7 @@ function highlightMatch(text: string, query: string) {
   );
 }
 
-export default function Watchlist() {
+export default function Watchlist({ children }: { children?: ReactNode }) {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
@@ -629,6 +630,17 @@ export default function Watchlist() {
         <span className="page-purpose-eyebrow">Watchlist</span>
         <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
       </div>
+
+      {!loading && entries.length > 0 ? (
+        <WatchlistNeedsAttention
+          entries={entries}
+          quotes={quotes}
+          shortInterest={shortInterest}
+          headlines={headlines}
+        />
+      ) : null}
+
+      {children}
 
       {loading || entries.length > 0 ? (
         <StockHeatmap

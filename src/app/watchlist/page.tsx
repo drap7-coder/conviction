@@ -13,9 +13,10 @@ export const metadata: Metadata = {
 
 export default function WatchlistPage() {
   return (
-    <div>
-      <BuildingConvictionNow />
-      <Watchlist />
+    <div className="watchlist-page">
+      <Watchlist>
+        <BuildingConvictionNow />
+      </Watchlist>
     </div>
   );
 }
