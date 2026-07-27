@@ -58,14 +58,6 @@ export interface ConvictionDisplay {
   tone: "positive" | "negative" | "contested" | "quiet";
 }
 
-// ── Thesis display model ──
-
-export interface ThesisDisplay {
-  status: "building" | "supported" | "review" | "weakening" | "broken" | null;
-  reviewAt: string | null;
-  isOverdue: boolean;
-}
-
 // ── Chart display model ──
 
 export interface ChartPoint {
@@ -90,7 +82,6 @@ export interface ChartDisplay {
 // ── Evidence summary ──
 
 export type SummaryCategory =
-  | "thesis"
   | "portfolio"
   | "institutional"
   | "earnings"
@@ -111,7 +102,6 @@ export interface SecurityCardSummary {
 // ── Supporting fact ──
 
 export type FactCategory =
-  | "thesis"
   | "portfolio"
   | "institutional"
   | "earnings"
@@ -144,7 +134,6 @@ export interface SecurityCardModel {
   companyName: string | null;
   quote: QuoteDisplay;
   conviction: ConvictionDisplay;
-  thesis: ThesisDisplay;
   chart: ChartDisplay;
   summary: SecurityCardSummary;
   supportingFacts: SecurityCardFact[];

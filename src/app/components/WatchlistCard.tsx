@@ -360,7 +360,7 @@ export function WatchlistCard({
               compact
               conclusion={activityLine.text}
               evidence={supportingEvidence[0]?.text ?? null}
-              whyItMatters="Ownership and short-interest signals are delayed disclosures — confirm before changing a thesis."
+              whyItMatters="Ownership and short-interest signals are delayed disclosures — confirm before changing conviction."
               dateLabel={activityLine.timestamp ? `Updated ${activityLine.timestamp}` : null}
               source={activityLine.source ? sourceBadgeLabel(activityLine.source === "13F" ? "SEC 13F" : activityLine.source === "SI" ? "FINRA short interest" : activityLine.source) : "sec_filing"}
             />

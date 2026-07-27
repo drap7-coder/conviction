@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   EVIDENCE_STRENGTH_LABEL,
   EVIDENCE_STRENGTH_TONE,
-  THESIS_STATUS_LABEL,
   USER_PRIORITY_LABEL,
   SOURCE_BADGE_LABEL,
   evidenceStrengthFromCounts,
@@ -31,9 +30,7 @@ describe("shared vocabulary", () => {
     expect(EVIDENCE_STRENGTH_TONE.awaiting).toBe("quiet");
   });
 
-  it("exposes thesis, priority, and source vocabularies", () => {
-    expect(THESIS_STATUS_LABEL.building).toBe("Building");
-    expect(THESIS_STATUS_LABEL.broken).toBe("Broken");
+  it("exposes priority and source vocabularies", () => {
     expect(USER_PRIORITY_LABEL.needs_attention).toBe("Needs Attention");
     expect(SOURCE_BADGE_LABEL.sec_filing).toBe("SEC Filing");
   });

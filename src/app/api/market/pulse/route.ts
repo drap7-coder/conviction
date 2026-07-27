@@ -208,7 +208,6 @@ export async function GET() {
       price: q?.price ?? null,
       changePercent: q?.changePercent ?? null,
       snapshot: null, // conviction snapshots require per-ticker server-side fetch
-      thesisStatus: entry?.thesis?.status ?? null,
       portfolio: {
         held: false,
         positionChange: null,

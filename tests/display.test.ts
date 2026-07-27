@@ -404,18 +404,6 @@ function makeMinimalSnapshot(
 }
 
 describe("selectSummary", () => {
-  it("returns broken thesis at highest priority", () => {
-    const result = selectSummary(null, { status: "broken", reviewAt: null }, null);
-    expect(result.category).toBe("thesis");
-    expect(result.significance).toBe("high");
-  });
-
-  it("returns weakening thesis at second priority", () => {
-    const result = selectSummary(null, { status: "weakening", reviewAt: null }, null);
-    expect(result.category).toBe("thesis");
-    expect(result.significance).toBe("high");
-  });
-
   it("returns portfolio contribution before institutional", () => {
     const portfolio: PortfolioContext = {
       isHeld: true,
@@ -423,7 +411,7 @@ describe("selectSummary", () => {
       dayContributionAmount: -500,
       relevanceLabel: null,
     };
-    const result = selectSummary(null, null, portfolio);
+    const result = selectSummary(null, portfolio);
     expect(result.category).toBe("portfolio");
   });
 
@@ -499,12 +487,12 @@ describe("selectSummary", () => {
         summary: "Institutional accumulation",
       },
     });
-    const result = selectSummary(snapshot, null, null);
+    const result = selectSummary(snapshot, null);
     expect(result.category).toBe("institutional");
   });
 
   it("returns fallback when no significant evidence", () => {
-    const result = selectSummary(null, null, null);
+    const result = selectSummary(null, null);
     expect(result.headline).toBe("No material evidence change detected.");
     expect(result.category).toBe("none");
   });
@@ -516,13 +504,8 @@ describe("selectSummary", () => {
 
 describe("selectSupportingFacts", () => {
   it("returns at most 2 facts", () => {
-    const facts = selectSupportingFacts(null, null, null);
+    const facts = selectSupportingFacts(null, null);
     expect(facts.length).toBeLessThanOrEqual(2);
-  });
-
-  it("includes thesis risk when thesis is broken", () => {
-    const facts = selectSupportingFacts(null, { status: "broken", reviewAt: null, thesis: "test" }, null);
-    expect(facts.some((f) => f.category === "thesis")).toBe(true);
   });
 
   it("includes portfolio weight when > 20%", () => {
@@ -532,7 +515,7 @@ describe("selectSupportingFacts", () => {
       dayContributionAmount: 100,
       relevanceLabel: null,
     };
-    const facts = selectSupportingFacts(null, null, portfolio);
+    const facts = selectSupportingFacts(null, portfolio);
     expect(facts.some((f) => f.category === "portfolio")).toBe(true);
   });
 
@@ -543,7 +526,7 @@ describe("selectSupportingFacts", () => {
       dayContributionAmount: 500,
       relevanceLabel: null,
     };
-    const facts = selectSupportingFacts(null, null, portfolio);
+    const facts = selectSupportingFacts(null, portfolio);
     const portfolioFacts = facts.filter((f) => f.category === "portfolio");
     expect(portfolioFacts.length).toBeLessThanOrEqual(2);
   });

@@ -4,21 +4,19 @@
  * Pure, deterministic utility that selects the single best evidence summary
  * for a security card, plus at most two supporting facts.
  *
- * Consumes canonical types (ConvictionSnapshot, WatchlistThesis,
- * PortfolioContext) and returns Display types.
+ * Consumes canonical types (ConvictionSnapshot, PortfolioContext) and
+ * returns Display types.
  *
  * Priority order for the summary headline:
- *  1. Broken thesis
- *  2. Weakening thesis
- *  3. Material negative portfolio contribution
- *  4. Material positive portfolio contribution
- *  5. Institutional accumulation or reduction
- *  6. Earnings or guidance
- *  7. Material news
- *  8. Political activity
- *  9. Insider open-market activity
- *  10. Technical state
- *  11. Factual no-change fallback
+ *  1. Material negative portfolio contribution
+ *  2. Material positive portfolio contribution
+ *  3. Institutional accumulation or reduction
+ *  4. Earnings or guidance
+ *  5. Material news
+ *  6. Political activity
+ *  7. Insider open-market activity
+ *  8. Technical state
+ *  9. Factual no-change fallback
  *
  * Rules:
  *  - Do not fabricate causality.
@@ -30,56 +28,22 @@
  */
 
 import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
-import type { WatchlistThesis } from "@/lib/watchlist/types";
 import type { PortfolioContext } from "./types";
 import type { SecurityCardSummary, SecurityCardFact } from "./types";
-import type { FactCategory, SummaryCategory } from "./types";
+import type { FactCategory } from "./types";
 import { isFiniteNumber } from "./format";
-
-// ── Internal helpers ──
-
-function thesisIsBroken(s: string | undefined): boolean {
-  return s === "broken";
-}
-function thesisIsWeakening(s: string | undefined): boolean {
-  return s === "weakening";
-}
-function thesisWarrantsReview(s: string | undefined): boolean {
-  return s === "review" || s === "weakening" || s === "broken";
-}
 
 // ── Public: Select the single best evidence summary ──
 
 export function selectSummary(
   snapshot: ConvictionSnapshot | null,
-  thesis: { status: string | null; reviewAt: string | null } | null,
   portfolio: PortfolioContext | null,
   newsHeadlines?: { headline: string; date: string }[],
 ): SecurityCardSummary {
   const evidence = snapshot?.evidence ?? null;
   const signals = evidence?.signals ?? null;
 
-  // 1. Broken thesis
-  if (thesis?.status && thesisIsBroken(thesis.status)) {
-    return {
-      headline: "Thesis no longer valid — review required.",
-      category: "thesis",
-      significance: "high",
-      updatedAt: thesis.reviewAt ?? null,
-    };
-  }
-
-  // 2. Weakening thesis
-  if (thesis?.status && thesisIsWeakening(thesis.status)) {
-    return {
-      headline: "Thesis showing signs of weakness — monitor closely.",
-      category: "thesis",
-      significance: "high",
-      updatedAt: thesis.reviewAt ?? null,
-    };
-  }
-
-  // 3. Material negative portfolio contribution
+  // 1. Material negative portfolio contribution
   if (portfolio?.isHeld && isFiniteNumber(portfolio.dayContributionAmount)) {
     const abs = Math.abs(portfolio.dayContributionAmount!);
     if (abs >= 500 && portfolio.dayContributionAmount! < 0) {
@@ -92,7 +56,7 @@ export function selectSummary(
     }
   }
 
-  // 4. Material positive portfolio contribution
+  // 2. Material positive portfolio contribution
   if (portfolio?.isHeld && isFiniteNumber(portfolio.dayContributionAmount)) {
     const abs = Math.abs(portfolio.dayContributionAmount!);
     if (abs >= 500 && portfolio.dayContributionAmount! > 0) {
@@ -105,7 +69,7 @@ export function selectSummary(
     }
   }
 
-  // 5. Institutional activity
+  // 3. Institutional activity
   if (signals?.institutional) {
     const inst = signals.institutional;
     if (
@@ -152,7 +116,7 @@ export function selectSummary(
     }
   }
 
-  // 6. Earnings or guidance
+  // 4. Earnings or guidance
   if (signals?.earnings) {
     const earn = signals.earnings;
     if (
@@ -179,7 +143,7 @@ export function selectSummary(
     }
   }
 
-  // 7. Material news
+  // 5. Material news
   if (newsHeadlines && newsHeadlines.length > 0) {
     const recentNews = newsHeadlines
       .filter((n) => n.headline)
@@ -206,7 +170,7 @@ export function selectSummary(
     }
   }
 
-  // 8. Political activity
+  // 6. Political activity
   if (signals?.political) {
     const pol = signals.political;
     if (pol.evidenceFor.length > 0) {
@@ -221,7 +185,7 @@ export function selectSummary(
     }
   }
 
-  // 9. Insider open-market activity
+  // 7. Insider open-market activity
   if (signals?.insider) {
     const ins = signals.insider;
     const buys = (ins.evidenceFor ?? []).filter(
@@ -237,7 +201,7 @@ export function selectSummary(
     }
   }
 
-  // 10. Technical state
+  // 8. Technical state
   if (snapshot?.technical) {
     const tech = snapshot.technical;
     if (tech.state === "strong" || tech.state === "improving") {
@@ -258,7 +222,7 @@ export function selectSummary(
     }
   }
 
-  // 11. Fallback
+  // 9. Fallback
   return {
     headline: "No material evidence change detected.",
     category: "none",
@@ -271,7 +235,6 @@ export function selectSummary(
 
 export function selectSupportingFacts(
   snapshot: ConvictionSnapshot | null,
-  thesis: { status: string | null; reviewAt: string | null; thesis?: string } | null,
   portfolio: PortfolioContext | null,
 ): SecurityCardFact[] {
   const facts: SecurityCardFact[] = [];
@@ -294,22 +257,7 @@ export function selectSupportingFacts(
     return true;
   }
 
-  // Priority 1: Thesis risk
-  if (
-    thesis?.status &&
-    thesisWarrantsReview(thesis.status) &&
-    thesis.thesis
-  ) {
-    const statusLabel =
-      thesis.status === "broken"
-        ? "Thesis broken"
-        : thesis.status === "weakening"
-          ? "Thesis weakening"
-          : "Thesis overdue for review";
-    add("thesis-risk", statusLabel, "thesis", "high");
-  }
-
-  // Priority 2: Portfolio risk
+  // Priority 1: Portfolio risk
   if (portfolio?.isHeld && isFiniteNumber(portfolio.weightPercent)) {
     const w = portfolio.weightPercent!;
     if (w > 20) {
@@ -335,7 +283,7 @@ export function selectSupportingFacts(
     );
   }
 
-  // Priority 3: Institutional activity
+  // Priority 2: Institutional activity
   if (signals?.institutional) {
     const inst = signals.institutional;
     const forCount = inst.evidenceFor.length;
@@ -358,7 +306,7 @@ export function selectSupportingFacts(
     }
   }
 
-  // Priority 4: Earnings or guidance
+  // Priority 3: Earnings or guidance
   if (signals?.earnings && signals.earnings.sentiment !== "neutral" && signals.earnings.sentiment !== "unknown") {
     const earn = signals.earnings;
     if (earn.evidenceFor.length > 0) {
@@ -372,9 +320,9 @@ export function selectSupportingFacts(
     }
   }
 
-  // Priority 5: News (use headline list if available, not here — this is lightweight)
+  // Priority 4: News (use headline list if available, not here — this is lightweight)
 
-  // Priority 6: Political
+  // Priority 5: Political
   if (signals?.political && signals.political.evidenceFor.length > 0) {
     add(
       "political",
@@ -384,7 +332,7 @@ export function selectSupportingFacts(
     );
   }
 
-  // Priority 7: Insider
+  // Priority 6: Insider
   if (signals?.insider) {
     const buys = (signals.insider.evidenceFor ?? []).filter(
       (e) => e.direction === "positive",
@@ -399,7 +347,7 @@ export function selectSupportingFacts(
     }
   }
 
-  // Priority 8: Technical
+  // Priority 7: Technical
   if (tech) {
     if (tech.state === "strong") {
       add("tech-strong", "Price above key moving averages", "technical", "low");

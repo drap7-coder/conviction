@@ -44,7 +44,7 @@ export function NewsDriverBrief({
   const evidence = driver?.explanation
     ?? (headlines[1] ? headlines.slice(0, 2).map((h) => h.headline).join(" · ") : null);
   const whyItMatters = driver
-    ? "Treat this as context for the thesis — not as proof the thesis is confirmed or broken."
+    ? "Treat this as context for the evidence — not as proof conviction is confirmed or broken."
     : "Headlines are context. Confirm against ownership and fundamentals before changing conviction.";
 
   return (

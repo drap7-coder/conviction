@@ -3,7 +3,6 @@
  */
 
 export { ConvictionBadge } from "./ConvictionBadge";
-export { ThesisBadge } from "./ThesisBadge";
 export { MarketState } from "./MarketState";
 export { EvidenceSummary } from "./EvidenceSummary";
 export { SupportingFactRow } from "./SupportingFactRow";

@@ -15,8 +15,6 @@ import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
-// Thesis section temporarily suppressed — restore this import when re-enabling:
-// import { ThesisTracker } from "@/app/components/ThesisTracker";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
@@ -61,8 +59,6 @@ export default async function CompanyPage({
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             <CompanyVerdict ticker={upperTicker} />
             <CompanyPulseCard ticker={upperTicker} />
-            {/* Thesis section temporarily suppressed — restore when ready:
-            <ThesisTracker ticker={upperTicker} companyName={companyName} /> */}
           </>
         }
       >

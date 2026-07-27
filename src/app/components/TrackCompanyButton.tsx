@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
 
 interface TrackCompanyButtonProps {
   ticker: string;
@@ -48,9 +47,6 @@ export function TrackCompanyButton({ ticker, companyName }: TrackCompanyButtonPr
       if (tracked) {
         const nextEntries = readBrowserWatchlist().filter((entry) => entry.ticker !== ticker);
         writeBrowserWatchlist(nextEntries);
-
-        // Remove thesis data when untracking
-        removeGuestThesis(ticker);
 
         setTracked(false);
         setMessage("Removed from this browser.");

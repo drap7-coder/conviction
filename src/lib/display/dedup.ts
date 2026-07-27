@@ -7,7 +7,7 @@
  *  - Normalize ticker casing and whitespace.
  *  - Preserve first meaningful user ordering.
  *  - Merge richer data when duplicate records contain complementary fields.
- *  - Do not silently discard thesis, portfolio, or evidence data.
+ *  - Do not silently discard portfolio or evidence data.
  */
 
 export interface DeduplicableEntry {

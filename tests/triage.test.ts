@@ -11,21 +11,23 @@ function makeItem(
     price: 100,
     changePercent: 0,
     snapshot: null,
-    thesisStatus: null,
     portfolio: { held: false, positionChange: null },
     ...overrides,
   };
 }
 
 describe("runTriage", () => {
-  it("flags broken thesis as highest priority", () => {
+  it("flags deteriorating conviction with decline as highest priority", () => {
     const result = runTriage([
-      makeItem("A", { thesisStatus: "broken" }),
+      makeItem("A", {
+        changePercent: -6,
+        snapshot: { evidence: { verdict: "mixed", direction: "deteriorating" } } as any,
+      }),
     ]);
     expect(result.hasAlerts).toBe(true);
     expect(result.alerts[0].ticker).toBe("A");
     expect(result.alerts[0].priority).toBe(1);
-    expect(result.alerts[0].action).toBe("Review thesis");
+    expect(result.alerts[0].action).toBe("View evidence");
   });
 
   it("flags large decline with deteriorating conviction", () => {
@@ -36,7 +38,7 @@ describe("runTriage", () => {
       }),
     ]);
     expect(result.hasAlerts).toBe(true);
-    expect(result.alerts[0].priority).toBeLessThanOrEqual(3);
+    expect(result.alerts[0].priority).toBe(1);
   });
 
   it("flags significant price decline", () => {
@@ -44,7 +46,8 @@ describe("runTriage", () => {
       makeItem("A", { changePercent: -8 }),
     ]);
     expect(result.hasAlerts).toBe(true);
-    expect(result.alerts[0].priority).toBe(4);
+    expect(result.alerts[0].priority).toBe(3);
+    expect(result.alerts[0].action).toBe("Review position");
   });
 
   it("flags deteriorating conviction without decline", () => {
@@ -56,14 +59,7 @@ describe("runTriage", () => {
     ]);
     expect(result.hasAlerts).toBe(true);
     expect(result.alerts[0].action).toBe("View evidence");
-  });
-
-  it("flags thesis review as overdue", () => {
-    const result = runTriage([
-      makeItem("A", { thesisStatus: "review" }),
-    ]);
-    expect(result.hasAlerts).toBe(true);
-    expect(result.alerts[0].action).toBe("Update thesis");
+    expect(result.alerts[0].priority).toBe(4);
   });
 
   it("flags missing evidence data", () => {
@@ -72,11 +68,15 @@ describe("runTriage", () => {
     ]);
     expect(result.hasAlerts).toBe(true);
     expect(result.alerts[0].action).toBe("View evidence");
+    expect(result.alerts[0].priority).toBe(5);
   });
 
   it("deduplicates multiple alerts for the same ticker", () => {
     const result = runTriage([
-      makeItem("A", { thesisStatus: "broken", changePercent: -10 }),
+      makeItem("A", {
+        changePercent: -10,
+        snapshot: { evidence: { verdict: "mixed", direction: "deteriorating" } } as any,
+      }),
     ]);
     const aAlerts = result.alerts.filter((a) => a.ticker === "A");
     expect(aAlerts).toHaveLength(1);
@@ -94,10 +94,13 @@ describe("runTriage", () => {
   it("sortes alerts by priority ascending", () => {
     const result = runTriage([
       makeItem("A", { changePercent: -8 }),
-      makeItem("B", { thesisStatus: "broken" }),
+      makeItem("B", {
+        changePercent: -6,
+        snapshot: { evidence: { verdict: "mixed", direction: "deteriorating" } } as any,
+      }),
     ]);
     expect(result.alerts[0].ticker).toBe("B"); // priority 1
-    expect(result.alerts[1].ticker).toBe("A"); // priority 4
+    expect(result.alerts[1].ticker).toBe("A"); // priority 3
   });
 
   it("handles empty input", () => {
@@ -110,19 +113,19 @@ describe("runTriage", () => {
 
   it("counts stable and unknown items", () => {
     // item A: stable (valid snapshot, no alert)
-    // item B: has snapshot=null and price=null, triggers priority 7 → counts as alert
+    // item B: has snapshot=null and price=null, triggers priority 5 → counts as alert
     const result = runTriage([
       makeItem("A", { changePercent: 0.1, snapshot: { evidence: { verdict: "positive", direction: "stable" } } as any }),
       makeItem("B", { price: null }),
     ]);
     expect(result.stableCount).toBe(1);
     expect(result.unknownCount).toBe(0); // B is an alert, not unknown
-    expect(result.alerts.length).toBe(1); // priority 7: missing evidence
+    expect(result.alerts.length).toBe(1); // priority 5: missing evidence
   });
 
   it("never returns NaN or infinity in priority", () => {
     const result = runTriage([
-      makeItem("A", { thesisStatus: "broken" }),
+      makeItem("A", { changePercent: -8 }),
       makeItem("B", { changePercent: null }),
     ]);
     for (const alert of result.alerts) {

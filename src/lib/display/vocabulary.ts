@@ -4,7 +4,6 @@
  * One system, used everywhere. Do not invent screen-specific status labels.
  *
  * Evidence strength  → how strong the available evidence is
- * Thesis status      → the user's manual thesis state
  * User priority      → whether the item needs action
  * Source badge       → where the evidence came from
  */
@@ -27,23 +26,6 @@ export const EVIDENCE_STRENGTH_TONE: Record<EvidenceStrength, EvidenceStrengthTo
   mixed: "contested",
   weak: "negative",
   awaiting: "quiet",
-};
-
-// ── Thesis status ──
-
-export type ThesisStatusVocab =
-  | "building"
-  | "supported"
-  | "review"
-  | "weakening"
-  | "broken";
-
-export const THESIS_STATUS_LABEL: Record<ThesisStatusVocab, string> = {
-  building: "Building",
-  supported: "Supported",
-  review: "Review",
-  weakening: "Weakening",
-  broken: "Broken",
 };
 
 // ── User priority ──

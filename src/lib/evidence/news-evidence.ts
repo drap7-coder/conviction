@@ -45,12 +45,12 @@ function directionFor(category: MoveEventCategory): EvidenceDirection {
 
 function materialReason(event: MoveEvent) {
   if (event.category === "earnings-warning") {
-    return "Sourced earnings warning directly challenges the current company thesis.";
+    return "Sourced earnings warning directly challenges the current company evidence.";
   }
   if (event.category === "earnings") {
-    return "Sourced earnings event may change the current company thesis.";
+    return "Sourced earnings event may change the current company evidence.";
   }
-  return "Sourced company-specific event appears material to the current thesis.";
+  return "Sourced company-specific event appears material to current conviction.";
 }
 
 export function moveEventToNewsEvidence(event: MoveEvent): EvidenceEvent[] {

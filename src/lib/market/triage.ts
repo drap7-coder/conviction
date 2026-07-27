@@ -2,14 +2,14 @@
  * ── Triage Engine ──
  *
  * Prioritizes watchlist and portfolio names by decision-relevance.
- * No opaque scoring. Based on available thesis, conviction, and price data.
+ * No opaque scoring. Based on available conviction, price, and portfolio data.
  */
 
 import type { ConvictionSnapshot } from "@/lib/conviction/canonical-types";
 
 // ── Types ──
 
-export type TriageAction = "Review thesis" | "View evidence" | "Open position" | "Update thesis";
+export type TriageAction = "View evidence" | "Open position" | "Review position";
 
 export interface TriageItem {
   ticker: string;
@@ -32,8 +32,6 @@ export interface TriageItem {
     direction: string | null;
     tone: "positive" | "negative" | "contested" | "quiet";
   } | null;
-  /** Thesis status if available */
-  thesisStatus: string | null;
 }
 
 export interface TriageResult {
@@ -57,8 +55,6 @@ export interface TriageWatchlistInput {
   changePercent: number | null;
   /** Conviction snapshot (may be null if unavailable) */
   snapshot: ConvictionSnapshot | null;
-  /** Thesis status (may be null if unavailable) */
-  thesisStatus: string | null;
   /** Portfolio data (may be null if not held) */
   portfolio: {
     held: boolean;
@@ -73,14 +69,12 @@ export interface TriageWatchlistInput {
  * Items are sorted by decision-relevance priority.
  *
  * Priority rules:
- * 1. Broken thesis (thesis status indicates failure)
- * 2. Weakening conviction + large daily decline
- * 3. Large negative portfolio impact
- * 4. Significant price decline (>5%)
- * 5. Deteriorating conviction evidence
- * 6. Thesis overdue for review
- * 7. Missing evidence or stale data
- * 8. All other items are stable
+ * 1. Weakening conviction + large daily decline
+ * 2. Large negative portfolio impact
+ * 3. Significant price decline (>5%)
+ * 4. Deteriorating conviction evidence
+ * 5. Missing evidence or stale data
+ * 6. All other items are stable
  */
 export function runTriage(items: TriageWatchlistInput[]): TriageResult {
   const alerts: TriageItem[] = [];
@@ -93,23 +87,8 @@ export function runTriage(items: TriageWatchlistInput[]): TriageResult {
     // Determine priority score
     let priority = 999; // default: stable
     let reason: string | null = null;
-    let action: TriageAction = "Review thesis";
+    let action: TriageAction = "View evidence";
 
-    // Check thesis status
-    const thesisBroken =
-      item.thesisStatus === "broken";
-    const thesisWeakening =
-      item.thesisStatus === "weakening";
-    const thesisOverdueCheck =
-      item.thesisStatus === "review";
-
-    // Check conviction
-    const convictionNegative =
-      item.snapshot?.evidence.verdict === "negative" ||
-      item.snapshot?.evidence.verdict === "weak";
-
-    const convictionImproving =
-      item.snapshot?.evidence.direction === "improving";
     const convictionDeteriorating =
       item.snapshot?.evidence.direction === "deteriorating";
 
@@ -123,57 +102,43 @@ export function runTriage(items: TriageWatchlistInput[]): TriageResult {
       item.portfolio.positionChange !== null &&
       Math.abs(item.portfolio.positionChange) > 500;
 
-    // ── Priority 1: Broken thesis ──
-    if (thesisBroken) {
+    // ── Priority 1: Weakening conviction + decline ──
+    if (convictionDeteriorating && (largeDecline || moderateDecline)) {
       priority = 1;
-      reason = "Thesis has broken or been invalidated.";
-      action = "Review thesis";
-    }
-
-    // ── Priority 2: Weakening conviction + decline ──
-    if (priority > 2 && convictionDeteriorating && (largeDecline || moderateDecline)) {
-      priority = 2;
       reason = `Conviction is deteriorating${largeDecline ? ` with a ${item.changePercent!.toFixed(1)}% decline.` : "."}`;
       action = "View evidence";
     }
 
-    // ── Priority 3: Large portfolio impact ──
-    if (priority > 3 && largePortfolioImpact) {
-      priority = 3;
+    // ── Priority 2: Large portfolio impact ──
+    if (priority > 2 && largePortfolioImpact) {
+      priority = 2;
       reason = `Portfolio impact of $${Math.abs(item.portfolio.positionChange!).toFixed(0)} today.`;
       action = "Open position";
     }
 
-    // ── Priority 4: Significant price decline ──
-    if (priority > 4 && largeDecline) {
-      priority = 4;
-      reason = `Down ${item.changePercent!.toFixed(1)}% today. Review whether the thesis still holds.`;
-      action = "Review thesis";
+    // ── Priority 3: Significant price decline ──
+    if (priority > 3 && largeDecline) {
+      priority = 3;
+      reason = `Down ${item.changePercent!.toFixed(1)}% today.`;
+      action = "Review position";
     }
 
-    // ── Priority 5: Deteriorating conviction (without decline) ──
-    if (priority > 5 && convictionDeteriorating) {
-      priority = 5;
-      reason = "Evidence signals are deteriorating. Review the current thesis.";
+    // ── Priority 4: Deteriorating conviction (without decline) ──
+    if (priority > 4 && convictionDeteriorating) {
+      priority = 4;
+      reason = "Evidence signals are deteriorating.";
       action = "View evidence";
     }
 
-    // ── Priority 6: Thesis overdue ──
-    if (priority > 6 && thesisOverdueCheck) {
-      priority = 6;
-      reason = "Thesis review is overdue.";
-      action = "Update thesis";
-    }
-
-    // ── Priority 7: Missing or stale ──
-    if (priority > 7 && item.snapshot === null) {
-      priority = 7;
+    // ── Priority 5: Missing or stale ──
+    if (priority > 5 && item.snapshot === null) {
+      priority = 5;
       reason = "Evidence data is unavailable. Review may be needed.";
       action = "View evidence";
     }
 
     // ── Classify as alert or stable ──
-    if (priority <= 7) {
+    if (priority <= 5) {
       // Deduplicate: if we already have an alert for this ticker, skip
       if (seen.has(item.ticker)) continue;
       seen.add(item.ticker);
@@ -204,7 +169,6 @@ export function runTriage(items: TriageWatchlistInput[]): TriageResult {
                     : "quiet",
             }
           : null,
-        thesisStatus: item.thesisStatus,
       });
     } else if (item.snapshot === null && item.price === null) {
       unknownCount++;

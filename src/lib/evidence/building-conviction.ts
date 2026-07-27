@@ -64,7 +64,7 @@ function whyForSignal(signal: TickerSignalSummary, sectorName: string | null): s
   }
   return sectorName
     ? `${signal.ticker} currently carries the clearest ownership signal in ${sectorName}.`
-    : "A tracked manager increased exposure — useful context, but confirm with additional evidence before changing a thesis.";
+    : "A tracked manager increased exposure — useful context, but confirm with additional evidence before changing conviction.";
 }
 
 function itemFromSignal(signal: TickerSignalSummary): BuildingConvictionItem {

@@ -119,7 +119,7 @@ export function getMoveEvent(ticker: string, companyName?: string): MoveEvent {
     confidence: "low",
     details: [],
     convictionQuestion:
-      "Do not infer meaning from price alone. Compare the move against tracked manager activity before changing the thesis.",
+      "Do not infer meaning from price alone. Compare the move against tracked manager activity before changing conviction.",
     sources: [],
     updatedAt: new Date().toISOString(),
   };

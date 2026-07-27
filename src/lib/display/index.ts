@@ -4,7 +4,6 @@ export type {
   QuoteDisplay,
   ConvictionState,
   ConvictionDisplay,
-  ThesisDisplay,
   ChartPoint,
   ChartEvent,
   ChartDisplay,
@@ -19,7 +18,6 @@ export type {
 export type {
   EvidenceStrength,
   EvidenceStrengthTone,
-  ThesisStatusVocab,
   UserPriority,
   SourceBadge,
 } from "./vocabulary";
@@ -27,7 +25,6 @@ export type {
 export {
   EVIDENCE_STRENGTH_LABEL,
   EVIDENCE_STRENGTH_TONE,
-  THESIS_STATUS_LABEL,
   USER_PRIORITY_LABEL,
   SOURCE_BADGE_LABEL,
   sourceBadgeLabel,

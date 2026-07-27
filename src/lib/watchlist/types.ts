@@ -3,20 +3,6 @@
  * Stored separately from transaction records in KV/local JSON.
  */
 
-export type ThesisStatus =
-  | "building"
-  | "supported"
-  | "review"
-  | "weakening"
-  | "broken";
-
-export interface WatchlistThesis {
-  thesis: string;
-  invalidation: string;
-  reviewAt: string | null;
-  status: ThesisStatus;
-}
-
 export interface WatchlistEntry {
   ticker: string;
   companyName: string;
@@ -25,7 +11,6 @@ export interface WatchlistEntry {
   lastSyncedAt?: string;
   status: "active" | "unsupported" | "error";
   statusMessage?: string;
-  thesis?: WatchlistThesis;
 }
 
 export interface WatchlistStore {

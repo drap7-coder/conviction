@@ -5,11 +5,8 @@ import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
-import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
 import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
-import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
-import { removeGuestThesis, getAllGuestTheses, normalizeEntryWithThesis } from "@/lib/watchlist/guest-persistence";
-import { getPriorityReviewItems } from "@/lib/watchlist/priority-review";
+import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
@@ -19,10 +16,6 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
-
-interface WatchlistEntryWithThesis extends WatchlistEntry {
-  thesis?: WatchlistThesis;
-}
 
 function buildSparklinePath(points: Array<{ close: number }>) {
   if (points.length < 2) return "";
@@ -129,7 +122,7 @@ function highlightMatch(text: string, query: string) {
 }
 
 export default function Watchlist() {
-  const [entries, setEntries] = useState<WatchlistEntryWithThesis[]>([]);
+  const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
@@ -507,9 +500,6 @@ export default function Watchlist() {
     const nextEntries = entries.filter((entry) => entry.ticker !== ticker);
     setEntries(nextEntries);
 
-    // Remove thesis data from localStorage when removing from guest watchlist
-    removeGuestThesis(ticker);
-
     if (!authenticated) {
       writeBrowserWatchlist(nextEntries);
       setRemoving(null);
@@ -555,23 +545,8 @@ export default function Watchlist() {
     if (e.key === "Enter") handleAdd();
   };
 
-  const entriesForAttention = useMemo(() => {
-    const theses = getAllGuestTheses();
-    return entries.map((entry) =>
-      normalizeEntryWithThesis(entry, theses[entry.ticker] ?? entry.thesis ?? null),
-    );
-  }, [entries]);
-
-  const attentionTickers = useMemo(() => {
-    return new Set(getPriorityReviewItems(entriesForAttention).map((item) => item.ticker));
-  }, [entriesForAttention]);
-
   const sortedEntries = useMemo(() => {
-    return [...entriesForAttention].sort((a, b) => {
-      const aAttention = attentionTickers.has(a.ticker) ? 1 : 0;
-      const bAttention = attentionTickers.has(b.ticker) ? 1 : 0;
-      if (bAttention !== aAttention) return bAttention - aAttention;
-
+    return [...entries].sort((a, b) => {
       const aVerdict = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
       const bVerdict = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
       const strengthRank = (state: string) =>
@@ -582,7 +557,7 @@ export default function Watchlist() {
 
       return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
     });
-  }, [entriesForAttention, attentionTickers, quotes, shortInterest, headlines]);
+  }, [entries, quotes, shortInterest, headlines]);
 
   const filteredEntries = useMemo(() => {
     if (!addInput) return sortedEntries;
@@ -683,8 +658,6 @@ export default function Watchlist() {
         authConfigured={authConfigured}
         accountLabel={accountLabel}
       />
-
-      <NeedsYourAttention entries={entriesForAttention} />
 
       {entries.length === 0 ? (
         <div className="product-brief">
