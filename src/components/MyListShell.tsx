@@ -32,6 +32,11 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 
   return (
     <div>
+      <div className="page-purpose">
+        <span className="page-purpose-eyebrow">My Positions</span>
+        <h2 className="page-purpose-title">Watch what you follow, or review what you own.</h2>
+      </div>
+
       {/* Portfolio value always visible */}
       <PortfolioHero />
 
@@ -84,7 +89,7 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 
 export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) {
   return (
-    <Suspense fallback={<div className="page-purpose"><span className="page-purpose-eyebrow">My positions</span><h2 className="page-purpose-title">Watch what you follow, or review what you own.</h2></div>}>
+    <Suspense fallback={<div className="page-purpose"><span className="page-purpose-eyebrow">My Positions</span><h2 className="page-purpose-title">Watch what you follow, or review what you own.</h2></div>}>
       <PortfolioDataProvider>
         <MyListShellInner publicFeed={publicFeed} />
       </PortfolioDataProvider>
