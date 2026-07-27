@@ -1,6 +1,5 @@
 import Watchlist from "@/components/Watchlist";
 import { BuildingConvictionNow } from "@/app/components/BuildingConvictionNow";
-import { BuildingConvictionGate } from "@/app/components/BuildingConvictionGate";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,9 +14,7 @@ export const metadata: Metadata = {
 export default function WatchlistPage() {
   return (
     <div>
-      <BuildingConvictionGate>
-        <BuildingConvictionNow />
-      </BuildingConvictionGate>
+      <BuildingConvictionNow />
       <Watchlist />
     </div>
   );
