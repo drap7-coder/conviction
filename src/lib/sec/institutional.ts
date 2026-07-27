@@ -132,10 +132,12 @@ interface HoldingMatch {
 
 const filingCache = new Map<string, { filing: InstitutionalFiling; cachedAt: number }>();
 let marketIdeasCache: { result: InstitutionalMarketResult; cachedAt: number } | null = null;
+let marketIdeasInFlight: Promise<InstitutionalMarketResult> | null = null;
 
 export function clearInstitutionalCache() {
   filingCache.clear();
   marketIdeasCache = null;
+  marketIdeasInFlight = null;
 }
 
 export function getInstitutionalFilingCacheKey(managerCik: string, quarter: string) {
@@ -260,6 +262,17 @@ function isLikelyInfoTableFile(filename: string, primaryDocument: string): boole
 async function fetch13FXML(manager: InstitutionalManager, filing: RecentFiling): Promise<string | null> {
   const bareCik = manager.cik.replace(/^0+/, "");
   const accessionNoDash = filing.accession.replace(/-/g, "");
+
+  // The complete submission contains the information table and avoids a
+  // separate index lookup for the common case.
+  const submissionResponse = await secFetch(
+    `${SEC_ARCHIVES}/${bareCik}/${accessionNoDash}/${filing.accession}.txt`,
+  );
+  if (submissionResponse.ok) {
+    const submissionText = await submissionResponse.text();
+    if (/<[^>]*infoTable/i.test(submissionText)) return submissionText;
+  }
+
   const filenames = await fetchFilingIndex(manager, filing.accession);
   const candidates = [
     ...filenames.filter((name) => isLikelyInfoTableFile(name, filing.primaryDocument)),
@@ -585,6 +598,23 @@ export async function getInstitutionalMarketIdeas(
     return marketIdeasCache.result;
   }
 
+  if (!options.forceRefresh && marketIdeasInFlight) {
+    return marketIdeasInFlight;
+  }
+
+  const request = buildInstitutionalMarketResult(options);
+  if (!options.forceRefresh) marketIdeasInFlight = request;
+
+  try {
+    return await request;
+  } finally {
+    if (marketIdeasInFlight === request) marketIdeasInFlight = null;
+  }
+}
+
+async function buildInstitutionalMarketResult(
+  options: { forceRefresh?: boolean },
+): Promise<InstitutionalMarketResult> {
   const snapshots = (await Promise.all(
     INSTITUTIONAL_MANAGERS.map(async (manager): Promise<InstitutionalManagerSnapshot | null> => {
       const filings = await fetchManagerSubmissions(manager);

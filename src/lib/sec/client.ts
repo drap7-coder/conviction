@@ -23,7 +23,7 @@ const SEC_EDGAR = "https://www.sec.gov";
 
 const contactEmail = process.env.SEC_CONTACT_EMAIL;
 const USER_AGENT = `CONVICTION Evidence Detection v1.0 (${contactEmail ?? "development"})`;
-const REQUEST_DELAY_MS = 200; // 5 req/s max, well within SEC limits
+const REQUEST_DELAY_MS = 125; // 8 req/s max, below the SEC's 10 req/s limit
 const MAX_FILINGS_TO_CHECK = 30;
 
 // In-memory request queue for rate limiting
