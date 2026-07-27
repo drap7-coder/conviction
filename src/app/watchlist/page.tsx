@@ -1,4 +1,4 @@
-import Watchlist from "@/components/Watchlist";
+import MyListShell from "@/components/MyListShell";
 import { BuildingConvictionNow } from "@/app/components/BuildingConvictionNow";
 import type { Metadata } from "next";
 
@@ -14,9 +14,7 @@ export const metadata: Metadata = {
 export default function WatchlistPage() {
   return (
     <div className="watchlist-page">
-      <Watchlist>
-        <BuildingConvictionNow />
-      </Watchlist>
+      <MyListShell publicFeed={<BuildingConvictionNow />} />
     </div>
   );
 }

@@ -122,7 +122,13 @@ function highlightMatch(text: string, query: string) {
   );
 }
 
-export default function Watchlist({ children }: { children?: ReactNode }) {
+export default function Watchlist({
+  children,
+  hidePurpose = false,
+}: {
+  children?: ReactNode;
+  hidePurpose?: boolean;
+}) {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
@@ -626,10 +632,12 @@ export default function Watchlist({ children }: { children?: ReactNode }) {
 
   return (
     <div>
-      <div className="page-purpose">
-        <span className="page-purpose-eyebrow">Watchlist</span>
-        <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
-      </div>
+      {!hidePurpose ? (
+        <div className="page-purpose">
+          <span className="page-purpose-eyebrow">Watchlist</span>
+          <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
+        </div>
+      ) : null}
 
       {loading || entries.length > 0 ? (
         <StockHeatmap

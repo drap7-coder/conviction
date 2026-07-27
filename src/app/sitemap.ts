@@ -31,12 +31,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "hourly",
       priority: 0.8,
     },
-    {
-      url: `${SITE_URL}/portfolio`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.5,
-    },
   ];
 
   const sectorRoutes: MetadataRoute.Sitemap = SECTORS.map((sector) => ({
