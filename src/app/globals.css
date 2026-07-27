@@ -526,6 +526,10 @@ details > summary::before {
   font-size: 0.82rem;
 }
 
+.trending-view-title-break {
+  display: none;
+}
+
 .trending-view-tabs span {
   margin-top: 2px;
   color: var(--quiet);
@@ -7813,21 +7817,20 @@ details > summary::before {
   }
 
   .trending-view-tabs {
-    display: flex;
-    margin: 0 -1px;
-    overflow-x: auto;
-    padding: 1px 1px 4px;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-  }
-
-  .trending-view-tabs::-webkit-scrollbar {
-    display: none;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    overflow: visible;
+    padding: 1px;
   }
 
   .trending-view-tabs button {
-    flex: 0 0 min(74vw, 230px);
-    scroll-snap-align: start;
+    width: 100%;
+    padding: 11px 10px;
+  }
+
+  .trending-view-title-break {
+    display: block;
   }
 
   .investor-moves-intro {

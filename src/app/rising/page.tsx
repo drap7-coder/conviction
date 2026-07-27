@@ -43,11 +43,15 @@ const TRENDING_VIEWS = [
   {
     id: "market",
     label: "Market Activity",
+    labelTop: "Market",
+    labelBottom: "Activity",
     description: "What is moving now",
   },
   {
     id: "investors",
     label: "Investor Moves",
+    labelTop: "Investor",
+    labelBottom: "Moves",
     description: "What top portfolios disclosed",
   },
 ] as const;
@@ -227,12 +231,17 @@ export default function RisingConvictionPage() {
               id={`trending-tab-${view.id}`}
               type="button"
               role="tab"
+              aria-label={`${view.label}: ${view.description}`}
               aria-selected={activeView === view.id}
               aria-controls={`trending-panel-${view.id}`}
               className={activeView === view.id ? "active" : ""}
               onClick={() => setActiveView(view.id)}
             >
-              <strong>{view.label}</strong>
+              <strong>
+                {view.labelTop}
+                <br className="trending-view-title-break" aria-hidden="true" />{" "}
+                {view.labelBottom}
+              </strong>
               <span>{view.description}</span>
             </button>
           ))}
