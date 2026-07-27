@@ -157,9 +157,8 @@ export interface ConvictionBadgeData {
  * Derive a display-friendly badge from the canonical snapshot.
  *
  * Rules:
- * - verdict + direction + technicalState are always distinct concepts
- * - A bare "Strengthening" or "Weakening" badge is NEVER shown without
- *   a category prefix ("Evidence improving", "Price weakening")
+ * - Evidence strength uses the shared vocabulary: Strong / Mixed / Weak / Awaiting Evidence
+ * - Direction and technical state remain distinct secondary labels
  */
 export function getConvictionBadge(snapshot: ConvictionSnapshot): ConvictionBadgeData {
   const { evidence, technical } = snapshot;
@@ -181,27 +180,24 @@ export function getConvictionBadge(snapshot: ConvictionSnapshot): ConvictionBadg
   // Check coverage first — if insufficient, tone is "quiet"
   if (evidence.coverage < 0.5) {
     return {
-      verdict: "Insufficient",
+      verdict: "Awaiting Evidence",
       direction: null,
       technicalState: techLabel,
       tone: "quiet",
     };
   }
 
-  // Map evidence verdict to display label
+  // Map evidence verdict to shared Evidence Strength vocabulary
   let verdictLabel: string;
   let tone: ConvictionBadgeData["tone"];
 
   switch (evidence.verdict) {
     case "strong":
     case "positive":
-      verdictLabel = "Positive";
+      verdictLabel = "Strong";
       tone = "positive";
       break;
     case "negative":
-      verdictLabel = "Negative";
-      tone = "negative";
-      break;
     case "weak":
       verdictLabel = "Weak";
       tone = "negative";
@@ -211,7 +207,7 @@ export function getConvictionBadge(snapshot: ConvictionSnapshot): ConvictionBadg
       tone = "contested";
       break;
     default:
-      verdictLabel = "Insufficient";
+      verdictLabel = "Awaiting Evidence";
       tone = "quiet";
   }
 

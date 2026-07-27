@@ -45,16 +45,16 @@ export interface QuoteDisplay {
 // ── Conviction display model ──
 
 export type ConvictionState =
-  | "strengthening"
+  | "strong"
   | "mixed"
-  | "weakening"
+  | "weak"
   | "awaiting"
   | "unsupported"
   | "error";
 
 export interface ConvictionDisplay {
   state: ConvictionState;
-  label: string;        // e.g. "Strengthening · Improving"
+  label: string;        // e.g. "Strong" | "Mixed" | "Weak" | "Awaiting Evidence"
   tone: "positive" | "negative" | "contested" | "quiet";
 }
 

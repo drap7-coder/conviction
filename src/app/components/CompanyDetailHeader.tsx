@@ -133,7 +133,7 @@ export function CompanyDetailHeader({
                   {sectorName}
                 </span>
               ) : null}
-              {badge && badge.verdict !== "Insufficient" ? (
+              {badge && badge.verdict !== "Awaiting Evidence" ? (
                 <span className={`cdh-badge cdh-badge-${badge.tone}`}>
                   {badge.verdict}
                 </span>

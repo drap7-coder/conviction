@@ -415,7 +415,7 @@ export default function Watchlist() {
       });
       const weakening = attentionItems.filter((entry) => {
         const v = getCardVerdict(entry, quotes[entry.ticker], shortInterest[entry.ticker]);
-        return v.state === "Weakening";
+        return v.state === "Weak";
       });
       if (weakening.length > 0) {
         setSearchMode("matching");
@@ -660,7 +660,7 @@ export default function Watchlist() {
             <span className="institutional-eyebrow">Conviction engine</span>
             <h2>Where sophisticated capital is building conviction.</h2>
           </div>
-          <Link href="/rising" className="brief-link">
+          <Link href="/trending" className="brief-link">
             View trending →
           </Link>
         </div>

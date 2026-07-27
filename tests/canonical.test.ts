@@ -273,7 +273,7 @@ describe("getConvictionBadge", () => {
     });
 
     const badge = getConvictionBadge(snapshot);
-    expect(badge.verdict).toMatch(/Positive|Strong/);
+    expect(badge.verdict).toBe("Strong");
     expect(badge.tone).toBe("positive");
   });
 
@@ -292,7 +292,7 @@ describe("getConvictionBadge", () => {
     });
 
     const badge = getConvictionBadge(snapshot);
-    expect(badge.verdict).toMatch(/Negative|Weak/);
+    expect(badge.verdict).toBe("Weak");
     expect(badge.tone).toBe("negative");
   });
 
@@ -311,6 +311,7 @@ describe("getConvictionBadge", () => {
     });
 
     const badge = getConvictionBadge(snapshot);
+    expect(badge.verdict).toBe("Awaiting Evidence");
     expect(badge.tone).toBe("quiet");
     expect(badge.technicalState).toBeNull();
   });

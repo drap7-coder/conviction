@@ -10,6 +10,6 @@ export const navTabs: NavTab[] = [
   { href: "/watchlist", label: "Watchlist", icon: List },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
   { href: "/industries", label: "Industries", icon: Building2 },
-  { href: "/rising", label: "Trending", icon: TrendingUp },
-  { href: "/markets", label: "Pulse", icon: BarChart3 },
+  { href: "/trending", label: "Trending", icon: TrendingUp },
+  { href: "/pulse", label: "Pulse", icon: BarChart3 },
 ];

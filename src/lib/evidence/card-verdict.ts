@@ -1,3 +1,9 @@
+import {
+  EVIDENCE_STRENGTH_LABEL,
+  EVIDENCE_STRENGTH_TONE,
+  evidenceStrengthFromCounts,
+  type EvidenceStrength,
+} from "@/lib/display/vocabulary";
 import { getTickerSignalSummary } from "./signal-summaries";
 import type { EvidenceDirection } from "./types";
 
@@ -133,23 +139,13 @@ export function getCardVerdict(
         ? 44 - Math.min(16, contra * 4)
         : 46;
   const strength = Math.max(0, Math.min(99, Math.round(base + quoteAdjustment)));
-  const state = support > 0 && contra > 0
-    ? "Contested"
-    : support > contra
-      ? "Strengthening"
-      : contra > support
-        ? "Weakening"
-        : "Quiet";
-  const tone = state === "Strengthening"
-    ? "positive"
-    : state === "Weakening"
-      ? "negative"
-      : state === "Contested"
-        ? "contested"
-        : "quiet";
+  const evidenceStrength: EvidenceStrength = evidenceStrengthFromCounts(support, contra);
+  const state = EVIDENCE_STRENGTH_LABEL[evidenceStrength];
+  const tone = EVIDENCE_STRENGTH_TONE[evidenceStrength];
 
   return {
     state,
+    evidenceStrength,
     tone,
     strength,
     support,

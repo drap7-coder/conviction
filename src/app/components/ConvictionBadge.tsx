@@ -19,7 +19,7 @@ export function ConvictionBadge({ snapshot, className = "", compact = false }: C
   const badge = useMemo(() => getConvictionBadge(snapshot), [snapshot]);
 
   // Low-coverage badges add noise without giving the user an actionable signal.
-  if (badge.verdict === "Insufficient") return null;
+  if (badge.verdict === "Awaiting Evidence") return null;
 
   if (compact) {
     return (

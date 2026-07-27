@@ -16,7 +16,8 @@ describe("card verdict aggregation", () => {
       companyName: "Intel Corporation",
     }, { changePercent: -2 });
 
-    expect(verdict.state).toBe("Strengthening");
+    expect(verdict.state).toBe("Strong");
+    expect(verdict.evidenceStrength).toBe("strong");
     expect(verdict.support).toBe(3);
     expect(verdict.contra).toBe(0);
     expect(verdict.insight).toContain("2 new tracked-manager");
@@ -30,21 +31,23 @@ describe("card verdict aggregation", () => {
       companyName: "Intel Corporation",
     }, { changePercent: 4.5 });
 
-    expect(verdict.state).toBe("Strengthening");
+    expect(verdict.state).toBe("Strong");
+    expect(verdict.evidenceStrength).toBe("strong");
     expect(verdict.support).toBe(3);
     expect(verdict.contra).toBe(0);
     expect(verdict.insight).toBe("2 new tracked-manager positions and 1 increase detected.");
     expect(verdict.source).toBe("SEC 13F");
   });
 
-  it("keeps the card quiet when no qualifying provider evidence exists", () => {
+  it("keeps the card awaiting evidence when no qualifying provider evidence exists", () => {
     const verdict = getCardVerdict({
       ...baseEntry,
       ticker: "XYZ",
       companyName: "Unknown Company",
     }, { changePercent: 0 });
 
-    expect(verdict.state).toBe("Quiet");
+    expect(verdict.state).toBe("Awaiting Evidence");
+    expect(verdict.evidenceStrength).toBe("awaiting");
     expect(verdict.support).toBe(0);
     expect(verdict.contra).toBe(0);
     expect(verdict.insight).toBe("No high-conviction change cached yet.");
@@ -66,7 +69,8 @@ describe("card verdict aggregation", () => {
       },
     });
 
-    expect(verdict.state).toBe("Weakening");
+    expect(verdict.state).toBe("Weak");
+    expect(verdict.evidenceStrength).toBe("weak");
     expect(verdict.support).toBe(0);
     expect(verdict.contra).toBe(1);
     expect(verdict.insight).toBe("Short interest rose +16.12% to 60.0M shares short.");
