@@ -10,6 +10,7 @@ import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { InvestorMovesPanel } from "@/app/components/InvestorMovesPanel";
 
 interface TrendingCompany {
   ticker: string;
@@ -32,6 +33,21 @@ interface WatchlistEntry {
 }
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
+
+const TRENDING_VIEWS = [
+  {
+    id: "market",
+    label: "Market Activity",
+    description: "What is moving now",
+  },
+  {
+    id: "investors",
+    label: "Investor Moves",
+    description: "What top portfolios disclosed",
+  },
+] as const;
+
+type TrendingView = (typeof TRENDING_VIEWS)[number]["id"];
 
 function readBrowserWatchlist(): WatchlistEntry[] {
   if (typeof window === "undefined") return [];
@@ -61,6 +77,7 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
 }
 
 export default function RisingConvictionPage() {
+  const [activeView, setActiveView] = useState<TrendingView>("market");
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
@@ -192,72 +209,104 @@ export default function RisingConvictionPage() {
 
   return (
     <div>
-      {trendingStatus === "success" && trending.length > 0 ? (
-        <StockHeatmap
-          title="Trending"
-          subtitle="Tile size reflects dollar trading volume; color reflects the current market move."
-          items={trending.map((idea) => {
-            const live = getLivePrice(idea.quote);
-            return {
-              ticker: idea.ticker,
-              name: idea.companyName,
-              price: live.price,
-              changePercent: live.changePercent,
-              marketCap: idea.quote.marketCap,
-              sizeValue: idea.quote.dollarVolume,
-              sizeLabel: idea.activityLabel,
-            };
-          })}
-        />
-      ) : null}
-
-      {addMessage ? (
-        <p className={`watchlist-message ${addMessage.type}`}>
-          {addMessage.text}
-        </p>
-      ) : null}
-
-      <section className="trending-section" aria-label="Trending companies">
-        {trendingStatus === "loading" || trendingStatus === "idle" ? (
-          <PageLoadingMotion label="Finding active names" />
-        ) : trending.length === 0 ? (
-          <div className="empty-state">
-            <p>No trending ideas loaded right now.</p>
-            <small>Market activity is temporarily unavailable.</small>
-            <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
-              Retry
+      <section className="trending-view-picker" aria-label="Trending views">
+        <div className="trending-view-picker-copy">
+          <span>Explore Trending</span>
+          <p>Switch between different signals for finding market ideas.</p>
+        </div>
+        <div className="trending-view-tabs" role="tablist" aria-label="Choose a Trending view">
+          {TRENDING_VIEWS.map((view) => (
+            <button
+              key={view.id}
+              id={`trending-tab-${view.id}`}
+              type="button"
+              role="tab"
+              aria-selected={activeView === view.id}
+              aria-controls={`trending-panel-${view.id}`}
+              className={activeView === view.id ? "active" : ""}
+              onClick={() => setActiveView(view.id)}
+            >
+              <strong>{view.label}</strong>
+              <span>{view.description}</span>
             </button>
-          </div>
-        ) : (
-          <div className="watchlist-list">
-            {trending.map((idea) => {
-              const isTracked = trackedTickers.has(idea.ticker);
-              return (
-                <TrendingCard
-                  key={idea.ticker}
-                  ticker={idea.ticker}
-                  companyName={idea.companyName}
-                  rank={idea.activityRank}
-                  activityLabel={idea.activityLabel}
-                  quote={idea.quote}
-                  sparkline={idea.sparkline ?? []}
-                  headlines={headlines[idea.ticker] ?? []}
-                  newsDriver={newsDrivers[idea.ticker] ?? null}
-                  isTracked={isTracked}
-                  isAdding={addingTicker === idea.ticker}
-                  onAdd={() => handleAddTrending(idea)}
-                  onRemove={() => {
-                    const next = new Set(trackedTickers);
-                    next.delete(idea.ticker);
-                    setTrackedTickers(next);
-                    fetch(`/api/watchlist/${idea.ticker}`, { method: "DELETE" }).catch(() => {});
-                  }}
-                />
-              );
-            })}
-          </div>
-        )}
+          ))}
+        </div>
       </section>
+
+      {activeView === "market" ? (
+        <div id="trending-panel-market" role="tabpanel" aria-labelledby="trending-tab-market">
+          {trendingStatus === "success" && trending.length > 0 ? (
+            <StockHeatmap
+              title="Trending"
+              subtitle="Tile size reflects dollar trading volume; color reflects the current market move."
+              items={trending.map((idea) => {
+                const live = getLivePrice(idea.quote);
+                return {
+                  ticker: idea.ticker,
+                  name: idea.companyName,
+                  price: live.price,
+                  changePercent: live.changePercent,
+                  marketCap: idea.quote.marketCap,
+                  sizeValue: idea.quote.dollarVolume,
+                  sizeLabel: idea.activityLabel,
+                };
+              })}
+            />
+          ) : null}
+
+          {addMessage ? (
+            <p className={`watchlist-message ${addMessage.type}`}>
+              {addMessage.text}
+            </p>
+          ) : null}
+
+          <section className="trending-section" aria-label="Trending companies">
+            {trendingStatus === "loading" || trendingStatus === "idle" ? (
+              <PageLoadingMotion label="Finding active names" />
+            ) : trending.length === 0 ? (
+              <div className="empty-state">
+                <p>No trending ideas loaded right now.</p>
+                <small>Market activity is temporarily unavailable.</small>
+                <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+                  Retry
+                </button>
+              </div>
+            ) : (
+              <div className="watchlist-list">
+                {trending.map((idea) => {
+                  const isTracked = trackedTickers.has(idea.ticker);
+                  return (
+                    <TrendingCard
+                      key={idea.ticker}
+                      ticker={idea.ticker}
+                      companyName={idea.companyName}
+                      rank={idea.activityRank}
+                      activityLabel={idea.activityLabel}
+                      quote={idea.quote}
+                      sparkline={idea.sparkline ?? []}
+                      headlines={headlines[idea.ticker] ?? []}
+                      newsDriver={newsDrivers[idea.ticker] ?? null}
+                      isTracked={isTracked}
+                      isAdding={addingTicker === idea.ticker}
+                      onAdd={() => handleAddTrending(idea)}
+                      onRemove={() => {
+                        const next = new Set(trackedTickers);
+                        next.delete(idea.ticker);
+                        setTrackedTickers(next);
+                        fetch(`/api/watchlist/${idea.ticker}`, { method: "DELETE" }).catch(() => {});
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      ) : (
+        <div id="trending-panel-investors" role="tabpanel" aria-labelledby="trending-tab-investors">
+          <InvestorMovesPanel />
+        </div>
+      )}
     </div>
   );
 }

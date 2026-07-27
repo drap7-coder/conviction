@@ -49,6 +49,75 @@ export interface InstitutionalCompanyResult {
   source: "sec-13f";
 }
 
+export interface InstitutionalIdeaSecurity {
+  ticker: string;
+  companyName: string;
+  cusips: string[];
+}
+
+export interface InstitutionalManagerSnapshot {
+  manager: InstitutionalManager;
+  latest: InstitutionalFiling;
+  previous: InstitutionalFiling | null;
+}
+
+export interface InstitutionalMarketMove {
+  displayName: string;
+  status: AccumulationStatus;
+  shares: number;
+  previousShares: number;
+  shareChange: number;
+  percentageChange: number | null;
+  filingQuarter: string;
+  filingDate: string;
+}
+
+export type InstitutionalIdeaCategory = "new" | "added" | "shared";
+
+export interface InstitutionalMarketIdea {
+  ticker: string;
+  companyName: string;
+  categories: InstitutionalIdeaCategory[];
+  headline: "New Position" | "Added" | "Shared Conviction";
+  holderCount: number;
+  newPositionCount: number;
+  increasedCount: number;
+  filingQuarter: string;
+  latestFilingDate: string;
+  score: number;
+  moves: InstitutionalMarketMove[];
+}
+
+export interface InstitutionalMarketResult {
+  ideas: InstitutionalMarketIdea[];
+  managerCount: number;
+  filingQuarter: string | null;
+  latestFilingDate: string | null;
+  fetchedAt: string;
+  source: "sec-13f";
+}
+
+export const INSTITUTIONAL_IDEA_UNIVERSE: InstitutionalIdeaSecurity[] = [
+  { ticker: "GOOG", companyName: "Alphabet Inc.", cusips: ["02079K107", "02079K305"] },
+  { ticker: "AMZN", companyName: "Amazon.com Inc.", cusips: ["023135106"] },
+  { ticker: "META", companyName: "Meta Platforms Inc.", cusips: ["30303M102"] },
+  { ticker: "MSFT", companyName: "Microsoft Corporation", cusips: ["594918104"] },
+  { ticker: "AAPL", companyName: "Apple Inc.", cusips: ["037833100"] },
+  { ticker: "UBER", companyName: "Uber Technologies Inc.", cusips: ["90353T100"] },
+  { ticker: "QSR", companyName: "Restaurant Brands International", cusips: ["76131D103"] },
+  { ticker: "V", companyName: "Visa Inc.", cusips: ["92826C839"] },
+  { ticker: "UNP", companyName: "Union Pacific Corporation", cusips: ["907818108"] },
+  { ticker: "ELV", companyName: "Elevance Health Inc.", cusips: ["036752103"] },
+  { ticker: "NFLX", companyName: "Netflix Inc.", cusips: ["64110L106"] },
+  { ticker: "DIS", companyName: "The Walt Disney Company", cusips: ["254687106"] },
+  { ticker: "NKE", companyName: "Nike Inc.", cusips: ["654106103"] },
+  { ticker: "CMG", companyName: "Chipotle Mexican Grill", cusips: ["169656105"] },
+  { ticker: "DPZ", companyName: "Domino's Pizza Inc.", cusips: ["25754A201"] },
+  { ticker: "BKNG", companyName: "Booking Holdings Inc.", cusips: ["09857L108"] },
+  { ticker: "BN", companyName: "Brookfield Corporation", cusips: ["11271J107"] },
+  { ticker: "BABA", companyName: "Alibaba Group Holding", cusips: ["01609W102"] },
+];
+
 export interface RecentFiling {
   accession: string;
   filingDate: string;
@@ -62,9 +131,11 @@ interface HoldingMatch {
 }
 
 const filingCache = new Map<string, { filing: InstitutionalFiling; cachedAt: number }>();
+let marketIdeasCache: { result: InstitutionalMarketResult; cachedAt: number } | null = null;
 
 export function clearInstitutionalCache() {
   filingCache.clear();
+  marketIdeasCache = null;
 }
 
 export function getInstitutionalFilingCacheKey(managerCik: string, quarter: string) {
@@ -385,4 +456,169 @@ export function summarizeInstitutionalEvidence(results: InstitutionalAccumulatio
     positiveCount: newPositions.length + increased.length,
     negativeCount: reduced.length + exited.length,
   };
+}
+
+function aggregateSecurity(
+  filing: InstitutionalFiling | null,
+  cusips: Set<string>,
+): { shares: number; value: number } {
+  if (!filing) return { shares: 0, value: 0 };
+
+  return filing.holdings.reduce((total, holding) => {
+    if (!cusips.has(holding.cusip) || !isCommonShareHolding(holding)) return total;
+    return {
+      shares: total.shares + holding.shares,
+      value: total.value + holding.value,
+    };
+  }, { shares: 0, value: 0 });
+}
+
+function compareIdeaSecurity(
+  snapshot: InstitutionalManagerSnapshot,
+  security: InstitutionalIdeaSecurity,
+): InstitutionalMarketMove | null {
+  const cusips = new Set(security.cusips);
+  const latest = aggregateSecurity(snapshot.latest, cusips);
+  const previous = aggregateSecurity(snapshot.previous, cusips);
+  if (latest.shares === 0 && previous.shares === 0) return null;
+
+  const shareChange = latest.shares - previous.shares;
+  const percentageChange = previous.shares > 0
+    ? Math.round((shareChange / previous.shares) * 10_000) / 100
+    : null;
+
+  let status: AccumulationStatus = "Unchanged";
+  if (previous.shares === 0 && latest.shares > 0) status = "New";
+  else if (previous.shares > 0 && latest.shares === 0) status = "Exited";
+  else if (shareChange > 0) status = "Increased";
+  else if (shareChange < 0) status = "Reduced";
+
+  return {
+    displayName: snapshot.manager.displayName,
+    status,
+    shares: latest.shares,
+    previousShares: previous.shares,
+    shareChange,
+    percentageChange,
+    filingQuarter: snapshot.latest.quarter,
+    filingDate: snapshot.latest.filingDate,
+  };
+}
+
+export function buildInstitutionalMarketIdeas(
+  snapshots: InstitutionalManagerSnapshot[],
+  universe: InstitutionalIdeaSecurity[] = INSTITUTIONAL_IDEA_UNIVERSE,
+): InstitutionalMarketIdea[] {
+  const statusOrder: Record<AccumulationStatus, number> = {
+    New: 0,
+    Increased: 1,
+    Unchanged: 2,
+    Reduced: 3,
+    Exited: 4,
+  };
+
+  return universe.flatMap((security) => {
+    const moves = snapshots
+      .map((snapshot) => compareIdeaSecurity(snapshot, security))
+      .filter((move): move is InstitutionalMarketMove => move !== null)
+      .sort((a, b) =>
+        statusOrder[a.status] - statusOrder[b.status] ||
+        Math.abs(b.shareChange) - Math.abs(a.shareChange),
+      );
+
+    const holders = moves.filter((move) => move.shares > 0);
+    const newPositions = moves.filter((move) => move.status === "New");
+    const increased = moves.filter((move) => move.status === "Increased");
+    const categories: InstitutionalIdeaCategory[] = [];
+    if (newPositions.length > 0) categories.push("new");
+    if (increased.length > 0) categories.push("added");
+    if (holders.length >= 2) categories.push("shared");
+    if (categories.length === 0) return [];
+
+    const headline: InstitutionalMarketIdea["headline"] = newPositions.length > 0
+      ? "New Position"
+      : increased.length > 0
+        ? "Added"
+        : "Shared Conviction";
+    const filingQuarter = moves.reduce(
+      (latest, move) => move.filingQuarter > latest ? move.filingQuarter : latest,
+      "1970-01-01",
+    );
+    const latestFilingDate = moves.reduce(
+      (latest, move) => move.filingDate > latest ? move.filingDate : latest,
+      "1970-01-01",
+    );
+    const positiveScale = [...newPositions, ...increased].reduce(
+      (total, move) => total + Math.min(Math.abs(move.percentageChange ?? 100), 100),
+      0,
+    );
+    const score =
+      newPositions.length * 120 +
+      increased.length * 55 +
+      holders.length * 18 +
+      Math.min(positiveScale, 100);
+
+    return [{
+      ticker: security.ticker,
+      companyName: security.companyName,
+      categories,
+      headline,
+      holderCount: holders.length,
+      newPositionCount: newPositions.length,
+      increasedCount: increased.length,
+      filingQuarter,
+      latestFilingDate,
+      score,
+      moves: moves.slice(0, 4),
+    }];
+  }).sort((a, b) => b.score - a.score || a.ticker.localeCompare(b.ticker));
+}
+
+export async function getInstitutionalMarketIdeas(
+  options: { forceRefresh?: boolean } = {},
+): Promise<InstitutionalMarketResult> {
+  if (
+    !options.forceRefresh &&
+    marketIdeasCache &&
+    Date.now() - marketIdeasCache.cachedAt < CACHE_TTL_MS
+  ) {
+    return marketIdeasCache.result;
+  }
+
+  const snapshots = (await Promise.all(
+    INSTITUTIONAL_MANAGERS.map(async (manager): Promise<InstitutionalManagerSnapshot | null> => {
+      const filings = await fetchManagerSubmissions(manager);
+      if (filings.length < 1) return null;
+      const [latest, previous] = await Promise.all([
+        getParsedFiling(manager, filings[0], options.forceRefresh),
+        filings[1]
+          ? getParsedFiling(manager, filings[1], options.forceRefresh)
+          : Promise.resolve(null),
+      ]);
+      if (!latest) return null;
+      return { manager, latest, previous };
+    }),
+  )).filter((snapshot): snapshot is InstitutionalManagerSnapshot => snapshot !== null);
+
+  const ideas = buildInstitutionalMarketIdeas(snapshots);
+  const result: InstitutionalMarketResult = {
+    ideas,
+    managerCount: snapshots.length,
+    filingQuarter: snapshots.reduce<string | null>(
+      (latest, snapshot) => !latest || snapshot.latest.quarter > latest
+        ? snapshot.latest.quarter
+        : latest,
+      null,
+    ),
+    latestFilingDate: snapshots.reduce<string | null>(
+      (latest, snapshot) => !latest || snapshot.latest.filingDate > latest
+        ? snapshot.latest.filingDate
+        : latest,
+      null,
+    ),
+    fetchedAt: new Date().toISOString(),
+    source: "sec-13f",
+  };
+  marketIdeasCache = { result, cachedAt: Date.now() };
+  return result;
 }

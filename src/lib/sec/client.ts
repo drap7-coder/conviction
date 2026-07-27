@@ -28,6 +28,7 @@ const MAX_FILINGS_TO_CHECK = 30;
 
 // In-memory request queue for rate limiting
 let lastRequestTime = 0;
+let requestSchedule: Promise<void> = Promise.resolve();
 
 function assertSecContactEmail() {
   if (process.env.NODE_ENV === "production" && !contactEmail) {
@@ -37,12 +38,15 @@ function assertSecContactEmail() {
 
 export async function secFetch(url: string): Promise<Response> {
   assertSecContactEmail();
-  const now = Date.now();
-  const elapsed = now - lastRequestTime;
-  if (elapsed < REQUEST_DELAY_MS) {
-    await new Promise((r) => setTimeout(r, REQUEST_DELAY_MS - elapsed));
-  }
-  lastRequestTime = Date.now();
+  const scheduledStart = requestSchedule.then(async () => {
+    const elapsed = Date.now() - lastRequestTime;
+    if (elapsed < REQUEST_DELAY_MS) {
+      await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY_MS - elapsed));
+    }
+    lastRequestTime = Date.now();
+  });
+  requestSchedule = scheduledStart.catch(() => {});
+  await scheduledStart;
 
   const response = await fetchWithTimeout(url, {
     headers: {

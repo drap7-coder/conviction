@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildInstitutionalMarketIdeas,
   compareHoldings,
   extract13FSubmissions,
   findCompanyHolding,
@@ -8,6 +9,7 @@ import {
   parse13FInformationTable,
   type InstitutionalFiling,
   type InstitutionalHolding,
+  type InstitutionalManagerSnapshot,
 } from "@/lib/sec/institutional";
 import type { InstitutionalManager } from "@/lib/sec/institutional-managers";
 
@@ -218,5 +220,90 @@ describe("institutional matching and caching", () => {
     expect(getInstitutionalFilingCacheKey("0000000001", "2026-03-31")).toBe(
       "0000000001:2026-03-31",
     );
+  });
+});
+
+describe("institutional market ideas", () => {
+  function snapshot(
+    displayName: string,
+    latestHoldings: InstitutionalHolding[],
+    previousHoldings: InstitutionalHolding[],
+  ): InstitutionalManagerSnapshot {
+    return {
+      manager: {
+        manager: displayName,
+        displayName,
+        cik: displayName,
+      },
+      latest: filing({ holdings: latestHoldings }),
+      previous: filing({
+        accession: "0000000001-26-000000",
+        filingDate: "2026-02-14",
+        quarter: "2025-12-31",
+        holdings: previousHoldings,
+      }),
+    };
+  }
+
+  it("combines share classes and labels new, added, and shared signals", () => {
+    const universe = [{
+      ticker: "GOOG",
+      companyName: "Alphabet Inc.",
+      cusips: ["02079K107", "02079K305"],
+    }];
+    const ideas = buildInstitutionalMarketIdeas([
+      snapshot(
+        "Baupost",
+        [
+          holding({ issuer: "ALPHABET INC", cusip: "02079K107", classTitle: "CAP STK CL C", shares: 120 }),
+          holding({ issuer: "ALPHABET INC", cusip: "02079K305", classTitle: "CAP STK CL A", shares: 30 }),
+        ],
+        [holding({ issuer: "ALPHABET INC", cusip: "02079K107", classTitle: "CAP STK CL C", shares: 100 })],
+      ),
+      snapshot(
+        "Pershing Square",
+        [holding({ issuer: "ALPHABET INC", cusip: "02079K107", classTitle: "CAP STK CL C", shares: 50 })],
+        [],
+      ),
+    ], universe);
+
+    expect(ideas).toHaveLength(1);
+    expect(ideas[0]).toMatchObject({
+      ticker: "GOOG",
+      headline: "New Position",
+      holderCount: 2,
+      newPositionCount: 1,
+      increasedCount: 1,
+      categories: ["new", "added", "shared"],
+    });
+    expect(ideas[0].moves.find((move) => move.displayName === "Baupost")?.shares).toBe(150);
+  });
+
+  it("keeps independently held positions as shared conviction without calling them purchases", () => {
+    const qsr = holding({ issuer: "RESTAURANT BRANDS INTL", cusip: "76131D103", shares: 100 });
+    const ideas = buildInstitutionalMarketIdeas([
+      snapshot("Baupost", [qsr], [qsr]),
+      snapshot("Pershing Square", [holding({ ...qsr, shares: 90 })], [qsr]),
+    ], [{ ticker: "QSR", companyName: "Restaurant Brands", cusips: ["76131D103"] }]);
+
+    expect(ideas[0]).toMatchObject({
+      headline: "Shared Conviction",
+      categories: ["shared"],
+      holderCount: 2,
+      newPositionCount: 0,
+      increasedCount: 0,
+    });
+  });
+
+  it("does not surface a lone reduction as an investor idea", () => {
+    const ideas = buildInstitutionalMarketIdeas([
+      snapshot(
+        "Test Manager",
+        [holding({ issuer: "ACME CORP", cusip: "000000000", shares: 50 })],
+        [holding({ issuer: "ACME CORP", cusip: "000000000", shares: 100 })],
+      ),
+    ], [{ ticker: "ACME", companyName: "Acme Corp", cusips: ["000000000"] }]);
+
+    expect(ideas).toEqual([]);
   });
 });
