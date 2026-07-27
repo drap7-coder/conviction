@@ -4641,6 +4641,8 @@ details > summary::before {
   margin-top: 12px;
   display: inline-block;
 }
+
+.empty-state.compact {
   padding: 28px 16px;
 }
 
