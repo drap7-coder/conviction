@@ -25,7 +25,7 @@ export const SECTORS: Sector[] = [
   },
   {
     ticker: "XLV",
-    name: "Health Care",
+    name: "Healthcare",
     description: "Pharmaceuticals, biotech, health equipment, and managed care.",
     representativeTickers: ["LLY", "PFE", "UNH", "ABBV", "MRK"],
   },

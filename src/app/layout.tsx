@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import AnimatedTitle from "@/components/AnimatedTitle";
+import { SITE_URL } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://conviction-orpin.vercel.app"),
+  metadataBase: new URL(SITE_URL),
   title: "CONVICTION — Evidence Detection",
   description: "Find material changes before they become obvious.",
   icons: {
@@ -25,7 +26,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "CONVICTION — Evidence Detection",
     description: "Find material changes before they become obvious.",
-    url: "https://conviction-orpin.vercel.app",
+    url: SITE_URL,
     siteName: "CONVICTION",
     images: [
       {

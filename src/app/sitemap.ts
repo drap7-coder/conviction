@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { SECTORS } from "@/lib/market/industries";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
-
-const SITE_URL = "https://conviction-orpin.vercel.app";
+import { SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
