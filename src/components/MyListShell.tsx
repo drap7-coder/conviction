@@ -7,20 +7,8 @@ import Portfolio from "@/components/Portfolio";
 import { PortfolioDataProvider, PortfolioHero } from "@/components/PortfolioData";
 
 const MY_LIST_VIEWS = [
-  {
-    id: "watchlist",
-    label: "Watchlist",
-    labelTop: "Watchlist",
-    labelBottom: "Followed",
-    description: "What changed in the companies you follow",
-  },
-  {
-    id: "portfolio",
-    label: "Portfolio",
-    labelTop: "Portfolio",
-    labelBottom: "Owned",
-    description: "What requires attention in what you own",
-  },
+  { id: "watchlist", label: "Watchlist" },
+  { id: "portfolio", label: "Portfolio" },
 ] as const;
 
 type MyListView = (typeof MY_LIST_VIEWS)[number]["id"];
@@ -42,24 +30,8 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
     [router],
   );
 
-  const purpose =
-    activeView === "portfolio"
-      ? {
-          eyebrow: "Portfolio",
-          title: "What requires attention in what you own?",
-        }
-      : {
-          eyebrow: "Watchlist",
-          title: "What changed in the companies you follow?",
-        };
-
   return (
     <div>
-      <div className="page-purpose">
-        <span className="page-purpose-eyebrow">{purpose.eyebrow}</span>
-        <h2 className="page-purpose-title">{purpose.title}</h2>
-      </div>
-
       {/* Portfolio value always visible */}
       <PortfolioHero />
 
@@ -75,17 +47,13 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
               id={`my-list-tab-${view.id}`}
               type="button"
               role="tab"
-              aria-label={`${view.label}: ${view.description}`}
+              aria-label={view.label}
               aria-selected={activeView === view.id}
               aria-controls={`my-list-panel-${view.id}`}
               className={activeView === view.id ? "active" : ""}
               onClick={() => setActiveView(view.id)}
             >
-              <strong>
-                {view.labelTop}
-                <br className="trending-view-title-break" aria-hidden="true" /> {view.labelBottom}
-              </strong>
-              <span>{view.description}</span>
+              <strong>{view.label}</strong>
             </button>
           ))}
         </div>
@@ -116,7 +84,7 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 
 export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) {
   return (
-    <Suspense fallback={<div className="page-purpose"><span className="page-purpose-eyebrow">Watchlist</span><h2 className="page-purpose-title">What changed in the companies you follow?</h2></div>}>
+    <Suspense fallback={<div className="page-purpose"><span className="page-purpose-eyebrow">My positions</span><h2 className="page-purpose-title">Watch what you follow, or review what you own.</h2></div>}>
       <PortfolioDataProvider>
         <MyListShellInner publicFeed={publicFeed} />
       </PortfolioDataProvider>
