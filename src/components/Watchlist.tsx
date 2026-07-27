@@ -631,17 +631,6 @@ export default function Watchlist({ children }: { children?: ReactNode }) {
         <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
       </div>
 
-      {!loading && entries.length > 0 ? (
-        <WatchlistNeedsAttention
-          entries={entries}
-          quotes={quotes}
-          shortInterest={shortInterest}
-          headlines={headlines}
-        />
-      ) : null}
-
-      {children}
-
       {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist"
@@ -660,6 +649,17 @@ export default function Watchlist({ children }: { children?: ReactNode }) {
           })}
         />
       ) : null}
+
+      {!loading && entries.length > 0 ? (
+        <WatchlistNeedsAttention
+          entries={entries}
+          quotes={quotes}
+          shortInterest={shortInterest}
+          headlines={headlines}
+        />
+      ) : null}
+
+      {children}
 
       {searchResult && (
         <p className={`watchlist-message info`}>{searchResult.text}</p>
