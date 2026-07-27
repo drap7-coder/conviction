@@ -124,3 +124,10 @@ export function getMoveEvent(ticker: string, companyName?: string): MoveEvent {
     updatedAt: new Date().toISOString(),
   };
 }
+
+/** Material curated move events only — excludes the no-clear-catalyst fallback. */
+export function listMaterialMoveEvents(): MoveEvent[] {
+  return Object.values(MOVE_EVENTS).filter(
+    (event) => event.category !== "no-clear-catalyst" && event.confidence !== "low",
+  );
+}

@@ -657,11 +657,11 @@ export default function Watchlist() {
       {entries.length === 0 ? (
         <div className="product-brief">
           <div>
-            <span className="institutional-eyebrow">Conviction engine</span>
-            <h2>Where sophisticated capital is building conviction.</h2>
+            <span className="institutional-eyebrow">Your feed</span>
+            <h2>Track a company to personalize this feed.</h2>
           </div>
           <Link href="/trending" className="brief-link">
-            View trending →
+            Browse trending →
           </Link>
         </div>
       ) : null}
