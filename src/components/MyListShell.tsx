@@ -76,7 +76,7 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
         aria-labelledby="my-list-tab-portfolio"
         hidden={activeView !== "portfolio"}
       >
-        {activeView === "portfolio" ? <Portfolio /> : null}
+        {activeView === "portfolio" ? <Portfolio hideHero /> : null}
       </div>
     </div>
   );

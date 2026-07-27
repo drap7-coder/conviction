@@ -100,7 +100,7 @@ function enrichWithPrices(
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
-export default function Portfolio() {
+export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) {
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
@@ -424,29 +424,31 @@ export default function Portfolio() {
       {hasData && (
         <>
           {/* ── Hero ── */}
-          <div className="pf-hero">
-            <div className="pf-hero-value">
-              <span className="pf-hero-total">{currency(portfolioMetrics.totalMarketValue)}</span>
-              {(portfolioMetrics.dailyChange ?? null) !== null && (
-                <span className={`pf-hero-change ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "up" : "down"}`}>
-                  {signedCurrency(portfolioMetrics.dailyChange)}{" "}
-                  {percent(portfolioMetrics.dailyChangePercent)}
-                </span>
-              )}
-            </div>
-            {/* Unrealized G/L line */}
-            {portfolioMetrics.totalUnrealizedGL !== null && (
-              <div className={`pf-hero-secondary ${(portfolioMetrics.totalUnrealizedGL ?? 0) >= 0 ? "up" : "down"}`}>
-                Unrealized {signedCurrency(portfolioMetrics.totalUnrealizedGL)}
-                {portfolioMetrics.totalUnrealizedGLPercent !== null && (
-                  <> ({percent(portfolioMetrics.totalUnrealizedGLPercent)})</>
-                )}
-                {missingCost && (
-                  <span className="pf-hero-note"> · partial (cost basis missing for {portfolioMetrics.positionsMissingCost})</span>
+          {!hideHero && (
+            <div className="pf-hero">
+              <div className="pf-hero-value">
+                <span className="pf-hero-total">{currency(portfolioMetrics.totalMarketValue)}</span>
+                {(portfolioMetrics.dailyChange ?? null) !== null && (
+                  <span className={`pf-hero-change ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "up" : "down"}`}>
+                    {signedCurrency(portfolioMetrics.dailyChange)}{" "}
+                    {percent(portfolioMetrics.dailyChangePercent)}
+                  </span>
                 )}
               </div>
-            )}
-          </div>
+              {/* Unrealized G/L line */}
+              {portfolioMetrics.totalUnrealizedGL !== null && (
+                <div className={`pf-hero-secondary ${(portfolioMetrics.totalUnrealizedGL ?? 0) >= 0 ? "up" : "down"}`}>
+                  Unrealized {signedCurrency(portfolioMetrics.totalUnrealizedGL)}
+                  {portfolioMetrics.totalUnrealizedGLPercent !== null && (
+                    <> ({percent(portfolioMetrics.totalUnrealizedGLPercent)})</>
+                  )}
+                  {missingCost && (
+                    <span className="pf-hero-note"> · partial (cost basis missing for {portfolioMetrics.positionsMissingCost})</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Loading / Error / Refresh ── */}
           <div className="pf-toolbar">
