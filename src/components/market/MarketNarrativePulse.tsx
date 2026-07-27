@@ -32,7 +32,7 @@ export function MarketNarrativePulse({ pulse }: { pulse: MarketNarrativePulseDat
   return (
     <section className="market-panel narrative-panel" aria-label="Market narratives">
       <style>{`
-        .narrative-panel { --narrative-blue:#60a5fa; --narrative-purple:#a78bfa; overflow:hidden; background:linear-gradient(150deg,color-mix(in srgb,var(--market-card,#111214) 94%,#172033),var(--market-card,#111214)); }
+        .narrative-panel { --narrative-blue:#60a5fa; --narrative-purple:#a78bfa; --narrative-teal:#2dd4bf; --narrative-slate:#94a3b8; overflow:hidden; background:linear-gradient(150deg,color-mix(in srgb,var(--market-card,#111214) 94%,#172033),var(--market-card,#111214)); }
         .narrative-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
         .narrative-header-copy { max-width:680px; }
         .narrative-kicker { display:block; margin-bottom:8px; color:var(--narrative-blue); font-size:.52rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
@@ -42,15 +42,19 @@ export function MarketNarrativePulse({ pulse }: { pulse: MarketNarrativePulseDat
         .narrative-status.partial { color:#facc15; border-color:color-mix(in srgb,#facc15 32%,transparent); }
         .narrative-status.unavailable { color:var(--market-muted,#8b8f97); border-color:var(--market-border,#26282c); }
         .narrative-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:20px; }
-        .narrative-card { --theme-accent:var(--market-muted,#8b8f97); position:relative; min-width:0; overflow:hidden; padding:18px; border:1px solid color-mix(in srgb,var(--theme-accent) 18%,var(--market-border,#26282c)); border-radius:12px; background:linear-gradient(145deg,color-mix(in srgb,var(--market-card,#111214) 86%,#172033),var(--market-card,#111214)); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
+        .narrative-card { --theme-accent:var(--narrative-slate); position:relative; min-width:0; overflow:hidden; padding:18px; border:1px solid color-mix(in srgb,var(--theme-accent) 18%,var(--market-border,#26282c)); border-radius:12px; background:linear-gradient(145deg,color-mix(in srgb,var(--market-card,#111214) 94%,var(--theme-accent)),var(--market-card,#111214) 58%); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); }
         .narrative-card::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:var(--theme-accent); opacity:.8; }
         .narrative-card.heat-surging { --theme-accent:var(--narrative-purple); }
         .narrative-card.heat-building { --theme-accent:var(--narrative-blue); }
+        .narrative-card.heat-steady { --theme-accent:var(--narrative-teal); }
+        .narrative-card.heat-quiet { --theme-accent:var(--narrative-slate); }
         .narrative-card-top { display:flex; align-items:center; gap:8px; }
         .narrative-rank { margin-right:auto; color:color-mix(in srgb,var(--theme-accent) 82%,var(--market-text,#f4f4f5)); font-size:.56rem; font-weight:700; letter-spacing:.12em; }
         .narrative-heat,.narrative-tone { padding:5px 6px; border-radius:999px; color:var(--market-muted,#8b8f97); background:color-mix(in srgb,var(--market-muted,#8b8f97) 10%,transparent); font-size:.46rem; letter-spacing:.07em; text-transform:uppercase; }
         .narrative-heat.surging { color:var(--narrative-purple); background:color-mix(in srgb,var(--narrative-purple) 13%,transparent); }
         .narrative-heat.building { color:var(--narrative-blue); background:color-mix(in srgb,var(--narrative-blue) 13%,transparent); }
+        .narrative-heat.steady { color:var(--narrative-teal); background:color-mix(in srgb,var(--narrative-teal) 13%,transparent); }
+        .narrative-heat.quiet { color:var(--narrative-slate); background:color-mix(in srgb,var(--narrative-slate) 13%,transparent); }
         .narrative-tone.positive { color:var(--market-green,#4ade80); background:color-mix(in srgb,var(--market-green,#4ade80) 10%,transparent); }
         .narrative-tone.negative { color:var(--market-red,#f87171); background:color-mix(in srgb,var(--market-red,#f87171) 10%,transparent); }
         .narrative-title { margin:15px 0 0; color:var(--market-text,#f4f4f5); font-size:1.02rem; line-height:1.2; letter-spacing:-.01em; }
