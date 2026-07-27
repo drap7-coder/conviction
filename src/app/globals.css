@@ -4637,7 +4637,10 @@ details > summary::before {
   color: var(--muted);
 }
 
-.empty-state.compact {
+.empty-state .brief-link {
+  margin-top: 12px;
+  display: inline-block;
+}
   padding: 28px 16px;
 }
 

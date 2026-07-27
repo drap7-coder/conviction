@@ -151,8 +151,8 @@ export function getCardVerdict(
     support,
     contra,
     insight: lead?.text ?? (entry.status !== "active"
-      ? "SEC coverage is limited for this issuer."
-      : "No high-conviction change cached yet."),
+      ? "Limited SEC coverage for this issuer."
+      : "No ownership or short-interest change loaded yet."),
     recency: daysAgo(lead?.date ?? entry.lastSyncedAt ?? entry.addedAt),
     source: lead?.provider ?? (entry.status !== "active" ? "Limited coverage" : "SEC evidence"),
     sortScore: Math.abs(strength - 50) + support * 5 + contra * 6 + Math.abs(quoteMove),

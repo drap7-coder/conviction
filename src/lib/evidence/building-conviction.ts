@@ -56,21 +56,29 @@ function whyForSignal(signal: TickerSignalSummary, sectorName: string | null): s
   const count = signal.supportCount ?? 0;
   if (count >= 3) {
     return sectorName
-      ? `Multiple tracked managers are adding exposure; ${signal.ticker} leads ${sectorName} among currently tracked names.`
-      : "Multiple tracked managers opening or adding positions is a higher-confidence ownership signal than a single increase.";
+      ? `Several large funds are adding; ${signal.ticker} leads ${sectorName} among names we track.`
+      : "Several large funds opening or adding positions is a clearer ownership signal than a single increase.";
   }
   if (count === 2) {
-    return "Two independent managers moving in the same direction raises the signal above a one-off position change.";
+    return "Two independent funds moving the same way is stronger than a one-off trade.";
   }
   return sectorName
-    ? `${signal.ticker} currently carries the clearest ownership signal in ${sectorName}.`
-    : "A tracked manager increased exposure — useful context, but confirm with additional evidence before changing conviction.";
+    ? `${signal.ticker} currently has the clearest ownership signal in ${sectorName}.`
+    : "A large fund increased its stake — useful context, but confirm with more evidence before deciding.";
 }
 
 function itemFromSignal(signal: TickerSignalSummary): BuildingConvictionItem {
   const strength = signalStrength(signal);
   const sector = getSectorForCompany(signal.ticker);
   const companyName = COMPANY_NAMES[signal.ticker] ?? signal.ticker;
+  const strengthWord = EVIDENCE_STRENGTH_LABEL[strength].toLowerCase();
+
+  const conclusion =
+    strength === "strong"
+      ? "Big funds have been buying"
+      : strength === "weak"
+        ? "Ownership looks soft"
+        : `Ownership looks ${strengthWord}`;
 
   return {
     id: `signal-${signal.ticker}`,
@@ -78,7 +86,7 @@ function itemFromSignal(signal: TickerSignalSummary): BuildingConvictionItem {
     subject: `${signal.ticker} · ${companyName}`,
     subjectKind: "company",
     ticker: signal.ticker,
-    conclusion: `Institutional conviction is ${EVIDENCE_STRENGTH_LABEL[strength].toLowerCase()}`,
+    conclusion,
     evidence: signal.cardText.replace(/\.$/, ""),
     whyItMatters: whyForSignal(signal, sector?.name ?? null),
     dateLabel: FILING_PERIOD_LABEL,
@@ -93,10 +101,10 @@ function itemFromMoveEvent(event: MoveEvent): BuildingConvictionItem {
 
   const conclusion =
     event.category === "earnings-warning"
-      ? "Earnings outlook is weak"
+      ? "Earnings outlook looks weak"
       : event.category === "earnings"
-        ? "Earnings event is material"
-        : "Company-specific risk is elevated";
+        ? "Earnings news that could move the stock"
+        : "Company-specific risk is rising";
 
   return {
     id: `move-${event.ticker}`,
@@ -150,13 +158,13 @@ function sectorRollupFromSignals(signals: TickerSignalSummary[]): BuildingConvic
     subject: sector.name,
     subjectKind: "sector",
     ticker: sector.ticker,
-    conclusion: `${sector.name} ownership signal is ${EVIDENCE_STRENGTH_LABEL.strong.toLowerCase()}`,
+    conclusion: `Big funds are active in ${sector.name}`,
     evidence:
       managerCount > 1
-        ? `${managerCount} tracked-manager increases across ${preferred.map((s) => s.ticker).join(", ")}; ${lead.ticker} has the strongest alignment.`
-        : `${lead.ticker} shows the clearest tracked-manager increase in ${sector.name}.`,
+        ? `${managerCount} fund increases across ${preferred.map((s) => s.ticker).join(", ")}; ${lead.ticker} looks strongest.`
+        : `${lead.ticker} shows the clearest fund increase in ${sector.name}.`,
     whyItMatters:
-      "Sector leadership matters when deciding whether a single-name move is idiosyncratic or part of a broader ownership shift.",
+      "Sector-wide buying helps tell whether one stock’s move is unique or part of a broader shift.",
     dateLabel: FILING_PERIOD_LABEL,
     sourceLabel: SOURCE_BADGE_LABEL.sec_filing,
     strength: "strong",

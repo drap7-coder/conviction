@@ -5,9 +5,9 @@ describe("ticker signal summaries", () => {
   it("reuses one source for card and ticker copy", () => {
     const oxy = getTickerSignalSummary("oxy");
 
-    expect(oxy?.text).toBe("D. E. Shaw increased common shares");
+    expect(oxy?.text).toBe("D. E. Shaw increased shares");
     expect(oxy?.cardText).toContain("D. E. Shaw");
-    expect(oxy?.badge).toBe("13F: accumulating");
+    expect(oxy?.badge).toBe("Fund adding");
   });
 
   it("keeps configured ticker signals unique", () => {

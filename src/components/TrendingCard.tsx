@@ -309,15 +309,14 @@ export function TrendingCard({
             compact
             conclusion={
               verdict.state === "Strong"
-                ? "Institutional conviction is strong"
+                ? "Big funds look supportive"
                 : verdict.state === "Weak"
-                  ? "Evidence looks weak"
+                  ? "Evidence looks soft"
                   : verdict.state === "Mixed"
-                    ? "Evidence is mixed"
-                    : "Awaiting clearer evidence"
+                    ? "Signals are mixed"
+                    : "Still waiting on clearer evidence"
             }
             evidence={verdict.insight}
-            whyItMatters={activityLabel}
             dateLabel={verdict.recency}
             source={verdict.source}
             strength={

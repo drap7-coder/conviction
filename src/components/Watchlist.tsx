@@ -78,13 +78,13 @@ function buildEvidencePills(entry: CardVerdictEntry, shortInterest?: CardVerdict
   for (const item of evidence) {
     if (item.provider === "SEC 13F") {
       pills.push({
-        type: "13F",
+        type: "Ownership",
         text: item.text,
         direction: item.direction === "positive" ? "positive" : item.direction === "negative" ? "negative" : "neutral",
       });
     } else if (item.provider === "FINRA short interest") {
       pills.push({
-        type: "SI",
+        type: "Short interest",
         text: item.text,
         direction: item.direction === "positive" ? "positive" : "negative",
       });
@@ -95,14 +95,14 @@ function buildEvidencePills(entry: CardVerdictEntry, shortInterest?: CardVerdict
 }
 
 function buildActivityLine(recency: string, insight: string, source: string): WatchlistCardActivityLine | null {
-  if (!insight || insight.startsWith("No high-conviction") || insight.startsWith("SEC coverage is limited")) {
+  if (!insight || insight.startsWith("No ownership or short-interest") || insight.startsWith("Limited SEC coverage") || insight.startsWith("No high-conviction") || insight.startsWith("SEC coverage is limited")) {
     return null;
   }
   const short = insight.replace(/\.$/, "");
   const sourceLabel = source === "SEC 13F"
-    ? "13F"
+    ? "Ownership"
     : source === "FINRA short interest"
-      ? "SI"
+      ? "Short interest"
       : source;
   return { timestamp: recency, text: short, source: sourceLabel };
 }
@@ -355,12 +355,12 @@ export default function Watchlist() {
         } else if (data.initialSync?.failed) {
           setAddMessage({
             type: "error",
-            text: `${data.added.ticker} added but initial sync failed: ${data.initialSync.errors?.join("; ")}`,
+            text: `${data.added.ticker} added, but ownership data is still loading: ${data.initialSync.errors?.join("; ")}`,
           });
         } else {
           const syncMsg = data.initialSync?.newTransactions > 0
-            ? `Found ${data.initialSync.newTransactions} new transaction(s).`
-            : "No new transactions found.";
+            ? `Found ${data.initialSync.newTransactions} new ownership update${data.initialSync.newTransactions === 1 ? "" : "s"}.`
+            : "No new ownership updates yet.";
           setAddMessage({ type: "success", text: `${data.added.companyName} (${data.added.ticker}) added. ${syncMsg}` });
         }
       }
@@ -633,7 +633,7 @@ export default function Watchlist() {
       {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist"
-          subtitle="Tile size reflects market cap; color reflects the current market move."
+          subtitle="Bigger tile = larger company. Green/red = today’s move."
           loading={loading}
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
@@ -658,18 +658,6 @@ export default function Watchlist() {
         authConfigured={authConfigured}
         accountLabel={accountLabel}
       />
-
-      {entries.length === 0 ? (
-        <div className="product-brief">
-          <div>
-            <span className="institutional-eyebrow">Your feed</span>
-            <h2>Track a company to personalize this feed.</h2>
-          </div>
-          <Link href="/trending" className="brief-link">
-            Browse trending →
-          </Link>
-        </div>
-      ) : null}
 
       <div className="watchlist-add">
         <div className="watchlist-input-wrap">
@@ -730,8 +718,11 @@ export default function Watchlist() {
         <PageLoadingMotion label="Loading watchlist" />
       ) : entries.length === 0 ? (
         <div className="empty-state">
-          <p>Your watchlist is empty.</p>
-          <small>Add a ticker above to track primary-source evidence.</small>
+          <p>Add companies you care about.</p>
+          <small>See what’s moving, why it matters, and who has been buying or selling.</small>
+          <Link href="/trending" className="brief-link">
+            Browse trending →
+          </Link>
         </div>
       ) : focusedTicker ? (
         <div className="focused-card-container">
@@ -830,7 +821,7 @@ export default function Watchlist() {
       )}
 
       <p className="watchlist-footnote">
-        Powered by SEC EDGAR primary-source filings
+        Ownership data comes from public SEC filings and can lag by weeks.
       </p>
     </div>
   );

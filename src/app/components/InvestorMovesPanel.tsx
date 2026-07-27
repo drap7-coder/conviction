@@ -73,31 +73,31 @@ function moveSummary(move: InstitutionalMarketIdea["moves"][number]): string {
 
 function ideaConclusion(idea: InstitutionalMarketIdea): string {
   if (idea.newPositionCount >= 2) {
-    return `Institutional conviction is strong in ${idea.ticker}`;
+    return `Big funds are building ${idea.ticker}`;
   }
   if (idea.newPositionCount === 1) {
-    return `A tracked manager opened ${idea.ticker}`;
+    return `A large fund opened ${idea.ticker}`;
   }
   if (idea.increasedCount >= 2) {
-    return `Institutions are accumulating ${idea.ticker}`;
+    return `Funds are adding to ${idea.ticker}`;
   }
   if (idea.increasedCount === 1) {
-    return `Institutional ownership increased in ${idea.ticker}`;
+    return `Fund ownership increased in ${idea.ticker}`;
   }
   if (idea.holderCount >= 3) {
-    return `Shared institutional conviction in ${idea.ticker}`;
+    return `Several large funds hold ${idea.ticker}`;
   }
-  return `Institutional activity detected in ${idea.ticker}`;
+  return `Fund activity showing up in ${idea.ticker}`;
 }
 
 function ideaEvidence(idea: InstitutionalMarketIdea): string {
   if (idea.newPositionCount > 0) {
-    return `${idea.newPositionCount} tracked ${idea.newPositionCount === 1 ? "manager opened" : "managers opened"} a position.`;
+    return `${idea.newPositionCount} large ${idea.newPositionCount === 1 ? "fund opened" : "funds opened"} a position.`;
   }
   if (idea.increasedCount > 0) {
-    return `${idea.increasedCount} tracked ${idea.increasedCount === 1 ? "manager added" : "managers added"} to the position.`;
+    return `${idea.increasedCount} large ${idea.increasedCount === 1 ? "fund added" : "funds added"} to the position.`;
   }
-  return `${idea.holderCount} tracked managers independently hold the company.`;
+  return `${idea.holderCount} large funds independently hold the company.`;
 }
 
 function ideaStrength(idea: InstitutionalMarketIdea): EvidenceStrength {
@@ -158,8 +158,8 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
     return (
       <section className="investor-moves-panel" aria-label="Institutional moves" aria-busy="true">
         <div className="investor-moves-intro">
-          <span className="investor-moves-eyebrow">SEC Form 13F · Institutional Moves</span>
-          <h2>Where tracked managers are building positions</h2>
+          <span className="investor-moves-eyebrow">Where big funds are building</span>
+          <h2>Recent ownership moves from large managers</h2>
           <p>Comparing the two latest filings from notable investors.</p>
         </div>
         <PageLoadingMotion label="Reading institutional filings" />
@@ -186,8 +186,8 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
     <section className="investor-moves-panel" aria-label="Institutional moves">
       <div className="investor-moves-intro">
         <div>
-          <span className="investor-moves-eyebrow">SEC Form 13F · Institutional Moves</span>
-          <h2>Where tracked managers are building positions</h2>
+          <span className="investor-moves-eyebrow">Where big funds are building</span>
+          <h2>Recent ownership moves from large managers</h2>
           <p>
             New positions, meaningful adds, and companies held across multiple notable investors.
           </p>
@@ -250,7 +250,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
                   compact
                   conclusion={ideaConclusion(idea)}
                   evidence={ideaEvidence(idea)}
-                  whyItMatters="13F filings are delayed disclosures and do not prove a manager still holds the position today."
+                  whyItMatters="Fund filings can arrive weeks late and may not match today’s holdings."
                   dateLabel={idea.filingQuarter ? `Holdings as of ${formatDate(idea.filingQuarter)}` : null}
                   source="sec_filing"
                   strength={strength}
@@ -277,7 +277,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
       )}
 
       <p className="investor-moves-disclaimer">
-        Filed through {formatDate(response?.latestFilingDate ?? null)}. 13F filings can arrive up to 45 days after quarter-end and show positions, not investor intent.
+        Filed through {formatDate(response?.latestFilingDate ?? null)}. Fund filings can arrive up to 45 days after quarter-end and show positions, not intent.
       </p>
     </section>
   );

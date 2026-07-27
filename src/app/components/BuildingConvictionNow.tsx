@@ -31,14 +31,14 @@ export function BuildingConvictionNow() {
   if (items.length === 0) return null;
 
   return (
-    <section className="bcn-module" aria-label="Building conviction now">
+    <section className="bcn-module" aria-label="What’s changing now">
       <div className="bcn-header">
         <div>
-          <span className="bcn-eyebrow">Public evidence</span>
-          <h2 className="bcn-title">Building Conviction Now</h2>
+          <span className="bcn-eyebrow">Live examples</span>
+          <h2 className="bcn-title">What’s changing right now</h2>
         </div>
         <p className="bcn-lede">
-          What changed, why it matters, and what deserves attention — before you track a ticker.
+          Real ownership moves and news — the same format you’ll see once you track a company.
         </p>
       </div>
       <div className="bcn-list">
@@ -47,7 +47,7 @@ export function BuildingConvictionNow() {
         ))}
       </div>
       <p className="bcn-footnote">
-        13F ownership signals are delayed disclosures and do not prove a manager still holds the position today.
+        Fund ownership filings can arrive weeks after quarter-end and may not reflect today’s holdings.
       </p>
     </section>
   );

@@ -20,7 +20,7 @@ describe("card verdict aggregation", () => {
     expect(verdict.evidenceStrength).toBe("strong");
     expect(verdict.support).toBe(3);
     expect(verdict.contra).toBe(0);
-    expect(verdict.insight).toContain("2 new tracked-manager");
+    expect(verdict.insight).toContain("2 big funds opened new stakes");
     expect(verdict.source).toBe("SEC 13F");
   });
 
@@ -35,7 +35,7 @@ describe("card verdict aggregation", () => {
     expect(verdict.evidenceStrength).toBe("strong");
     expect(verdict.support).toBe(3);
     expect(verdict.contra).toBe(0);
-    expect(verdict.insight).toBe("2 new tracked-manager positions and 1 increase detected.");
+    expect(verdict.insight).toBe("2 big funds opened new stakes and 1 added shares.");
     expect(verdict.source).toBe("SEC 13F");
   });
 
@@ -50,7 +50,7 @@ describe("card verdict aggregation", () => {
     expect(verdict.evidenceStrength).toBe("awaiting");
     expect(verdict.support).toBe(0);
     expect(verdict.contra).toBe(0);
-    expect(verdict.insight).toBe("No high-conviction change cached yet.");
+    expect(verdict.insight).toBe("No ownership or short-interest change loaded yet.");
   });
 
   it("reflects elevated short interest as a homepage contradiction", () => {

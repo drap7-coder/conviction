@@ -32,25 +32,27 @@ export function NewsDriverBrief({
     return (
       <SignalBlock
         compact={compact}
-        conclusion="Recent headlines unavailable"
-        evidence="No material news driver is loaded for this name yet."
+        conclusion="No recent news loaded yet"
+        evidence="Open the company page for ownership filings and more detail."
         dateLabel="—"
         source="material_news"
       />
     );
   }
 
-  const conclusion = driver?.label ?? headlines[0]?.headline ?? "Story still forming";
+  const conclusion = driver?.label ?? headlines[0]?.headline ?? "Still gathering the story";
   const evidence = driver?.explanation
     ?? (headlines[1] ? headlines.slice(0, 2).map((h) => h.headline).join(" · ") : null);
-  const whyItMatters = driver
-    ? "Treat this as context for the evidence — not as proof conviction is confirmed or broken."
-    : "Headlines are context. Confirm against ownership and fundamentals before changing conviction.";
+  const whyItMatters = compact
+    ? null
+    : driver
+      ? "News helps explain the move — check ownership filings before deciding."
+      : "Headlines are clues. Confirm with ownership and company filings before deciding.";
 
   return (
     <SignalBlock
       compact={compact}
-      eyebrow="Material news"
+      eyebrow="What’s driving the move"
       conclusion={conclusion}
       evidence={evidence}
       whyItMatters={whyItMatters}

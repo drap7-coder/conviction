@@ -71,6 +71,7 @@ export function StockHeatmap({ title, subtitle, items, loading = false }: StockH
           @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-loading-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-loading-tile { min-height:62px; } }
         `}</style>
         <h2 className="stock-heat-title">{title}</h2>
+        <p className="stock-heat-subtitle">{subtitle}</p>
         <div className="stock-heat-loading-detail" />
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
@@ -90,7 +91,7 @@ export function StockHeatmap({ title, subtitle, items, loading = false }: StockH
         .stock-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
         .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
         .stock-heat-subtitle { margin:6px 0 0; color:#8b8f97; font-size:.66rem; line-height:1.45; }
-        .stock-heat-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:13px 0 9px; color:#8b8f97; font-size:.66rem; }
+        .stock-heat-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:10px 0 9px; color:#8b8f97; font-size:.66rem; }
         .stock-heat-detail > span:first-child { color:#f4f4f5; }.stock-heat-detail b.positive { color:#4ade80; }.stock-heat-detail b.negative { color:#f87171; }
         .stock-heat-detail a { margin-left:auto; color:#2dd4bf; text-decoration:none; }
         .stock-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
@@ -100,6 +101,7 @@ export function StockHeatmap({ title, subtitle, items, loading = false }: StockH
         @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-tile { min-height:62px; padding:8px; }.stock-heat-detail a { width:100%; margin-left:0; } }
       `}</style>
       <h2 className="stock-heat-title">{title}</h2>
+      <p className="stock-heat-subtitle">{subtitle}</p>
       <div className="stock-heat-detail" aria-live="polite">
         <span>{selected.name}</span>
         <b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b>

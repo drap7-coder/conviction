@@ -285,6 +285,11 @@ export function WatchlistCard({
 
             {/* ── Card options (grid-column 2, row 1) ── */}
             <div className="watchlist-row-state-area">
+              {convictionState ? (
+                <span className={`watchlist-row-state watchlist-row-state-${effectiveConvictionTone}`}>
+                  {canonicalBadge?.verdict ?? convictionState}
+                </span>
+              ) : null}
               <div className="watchlist-kebab-wrap">
                 <button
                   ref={kebabRef}
@@ -360,15 +365,14 @@ export function WatchlistCard({
               compact
               conclusion={activityLine.text}
               evidence={supportingEvidence[0]?.text ?? null}
-              whyItMatters="Ownership and short-interest signals are delayed disclosures — confirm before changing conviction."
               dateLabel={activityLine.timestamp ? `Updated ${activityLine.timestamp}` : null}
-              source={activityLine.source ? sourceBadgeLabel(activityLine.source === "13F" ? "SEC 13F" : activityLine.source === "SI" ? "FINRA short interest" : activityLine.source) : "sec_filing"}
+              source={activityLine.source ? sourceBadgeLabel(activityLine.source === "Ownership" || activityLine.source === "13F" ? "SEC 13F" : activityLine.source === "Short interest" || activityLine.source === "SI" ? "FINRA short interest" : activityLine.source) : "sec_filing"}
             />
           ) : (
             <SignalBlock
               compact
-              conclusion="Recent headlines unavailable"
-              evidence="No material news or ownership change is loaded for this name yet."
+              conclusion="Nothing new loaded yet"
+              evidence="Open the company page for ownership, news, and filings."
               source="material_news"
             />
           )}
@@ -391,7 +395,7 @@ export function WatchlistCard({
         {/* ── Market cap stat row ── */}
         {marketCapText && (
           <div className="watchlist-card-stats-row">
-            <span className="watchlist-card-stat">Mkt Cap {marketCapText}</span>
+            <span className="watchlist-card-stat">Market cap {marketCapText}</span>
           </div>
         )}
       </div>
