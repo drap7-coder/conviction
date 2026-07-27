@@ -270,6 +270,10 @@ export default function MarketPulsePage() {
     <main className="markets-page">
       <style>{`
         .markets-page { --market-bg:#0a0a0b; --market-card:#111214; --market-border:#26282c; --market-text:#f4f4f5; --market-muted:#8b8f97; --market-green:#4ade80; --market-red:#f87171; --market-live:#2dd4bf; min-height:100vh; background:var(--market-bg); color:var(--market-text); padding:24px; font-family:var(--font-mono); }
+        .market-regime-lede { margin:0 0 18px; padding:16px 18px; border:1px solid var(--market-border); border-radius:12px; background:radial-gradient(circle at 10% 0%,color-mix(in srgb,var(--market-live) 12%,transparent),transparent 46%),var(--market-card); }
+        .market-regime-eyebrow { display:block; color:var(--market-muted); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; }
+        .market-regime-label { display:block; margin-top:6px; color:var(--market-text); font-size:1.15rem; line-height:1.2; letter-spacing:-0.01em; }
+        .market-regime-summary { margin:8px 0 0; color:var(--market-muted); font-size:.78rem; line-height:1.45; max-width:46rem; }
         .market-index-grid,.market-gauge-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
         .market-index-card,.market-gauge-card,.market-panel { background:var(--market-card); border:1px solid var(--market-border); border-radius:12px; }
         .market-region-picker { display:grid; grid-template-columns:minmax(190px,.62fr) minmax(0,1.38fr); align-items:stretch; gap:12px; margin-bottom:18px; padding:14px; border:1px solid var(--market-border); border-radius:12px; background:radial-gradient(circle at 12% 0%,color-mix(in srgb,var(--market-live) 10%,transparent),transparent 42%),var(--market-card); }
@@ -316,10 +320,16 @@ export default function MarketPulsePage() {
         @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 54px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:54px; height:36px; }.market-index-label { font-size:.52rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-panel { padding:14px; }.market-macro-panel .market-macro-chart { height:128px; margin:10px -5px 3px; }.market-macro-panel .market-legend { flex-wrap:nowrap; justify-content:space-between; gap:4px; font-size:.46rem; }.market-macro-panel .market-legend span { gap:3px; white-space:nowrap; }.market-macro-panel .market-legend i { width:6px; height:6px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
       `}</style>
 
+      <section className="market-regime-lede" aria-label="Market regime">
+        <span className="market-regime-eyebrow">Pulse</span>
+        <strong className="market-regime-label">{data.macroRegime.label}</strong>
+        <p className="market-regime-summary">{data.macroRegime.summary}</p>
+      </section>
+
       <section className="market-region-picker" aria-label="Market regions">
         <div className="market-region-copy">
-          <span>Explore Markets</span>
-          <p>Switch between U.S. and international market leadership.</p>
+          <span>Market environment</span>
+          <p>What kind of market investors are operating in right now.</p>
         </div>
         <div className="market-region-tabs" role="tablist" aria-label="Choose a market region">
           {MARKET_REGION_OPTIONS.map((option) => (

@@ -5,9 +5,11 @@ import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
+import { NeedsYourAttention } from "@/app/components/NeedsYourAttention";
 import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
 import type { WatchlistEntry, ThesisStatus, WatchlistThesis } from "@/lib/watchlist/types";
-import { removeGuestThesis } from "@/lib/watchlist/guest-persistence";
+import { removeGuestThesis, getAllGuestTheses, normalizeEntryWithThesis } from "@/lib/watchlist/guest-persistence";
+import { getPriorityReviewItems } from "@/lib/watchlist/priority-review";
 import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
@@ -553,11 +555,34 @@ export default function Watchlist() {
     if (e.key === "Enter") handleAdd();
   };
 
-  const sortedEntries = [...entries].sort((a, b) => {
-    const aVerdict = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
-    const bVerdict = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
-    return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
-  });
+  const entriesForAttention = useMemo(() => {
+    const theses = getAllGuestTheses();
+    return entries.map((entry) =>
+      normalizeEntryWithThesis(entry, theses[entry.ticker] ?? entry.thesis ?? null),
+    );
+  }, [entries]);
+
+  const attentionTickers = useMemo(() => {
+    return new Set(getPriorityReviewItems(entriesForAttention).map((item) => item.ticker));
+  }, [entriesForAttention]);
+
+  const sortedEntries = useMemo(() => {
+    return [...entriesForAttention].sort((a, b) => {
+      const aAttention = attentionTickers.has(a.ticker) ? 1 : 0;
+      const bAttention = attentionTickers.has(b.ticker) ? 1 : 0;
+      if (bAttention !== aAttention) return bAttention - aAttention;
+
+      const aVerdict = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
+      const bVerdict = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
+      const strengthRank = (state: string) =>
+        state === "Weak" ? 3 : state === "Mixed" ? 2 : state === "Strong" ? 1 : 0;
+      const aChanged = strengthRank(aVerdict.state) + ((headlines[a.ticker]?.length ?? 0) > 0 ? 1 : 0);
+      const bChanged = strengthRank(bVerdict.state) + ((headlines[b.ticker]?.length ?? 0) > 0 ? 1 : 0);
+      if (bChanged !== aChanged) return bChanged - aChanged;
+
+      return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
+    });
+  }, [entriesForAttention, attentionTickers, quotes, shortInterest, headlines]);
 
   const filteredEntries = useMemo(() => {
     if (!addInput) return sortedEntries;
@@ -625,6 +650,11 @@ export default function Watchlist() {
 
   return (
     <div>
+      <div className="page-purpose">
+        <span className="page-purpose-eyebrow">Watchlist</span>
+        <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
+      </div>
+
       {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist"
@@ -653,6 +683,8 @@ export default function Watchlist() {
         authConfigured={authConfigured}
         accountLabel={accountLabel}
       />
+
+      <NeedsYourAttention entries={entriesForAttention} />
 
       {entries.length === 0 ? (
         <div className="product-brief">

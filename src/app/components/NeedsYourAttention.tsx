@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import type { WatchlistEntry, ThesisStatus } from "@/lib/watchlist/types";
 import { getPriorityReviewItems, type PriorityReviewItem, normalizeEntryForThesis } from "@/lib/watchlist/priority-review";
+import { THESIS_STATUS_LABEL, type ThesisStatusVocab } from "@/lib/display/vocabulary";
 
 interface NeedsYourAttentionProps {
   entries: WatchlistEntry[];
@@ -12,7 +13,6 @@ interface NeedsYourAttentionProps {
 
 export function NeedsYourAttention({ entries, now = new Date() }: NeedsYourAttentionProps) {
   const priorityItems = useMemo(() => {
-    // Normalize entries to ensure thesis fields are present with defaults
     const normalizedEntries = entries.map(normalizeEntryForThesis);
     return getPriorityReviewItems(normalizedEntries, now);
   }, [entries, now]);
@@ -22,9 +22,12 @@ export function NeedsYourAttention({ entries, now = new Date() }: NeedsYourAtten
   }
 
   return (
-    <section className="needs-your-attention">
+    <section className="needs-your-attention" aria-label="Needs your attention">
       <div className="section-header">
-        <h2 className="section-title">Needs Your Attention</h2>
+        <div>
+          <span className="page-purpose-eyebrow">Needs Attention</span>
+          <h2 className="section-title">Theses that require a look</h2>
+        </div>
         <span className="section-count">{priorityItems.length}</span>
       </div>
 
@@ -43,17 +46,18 @@ interface AttentionItemProps {
 
 function AttentionItem({ item }: AttentionItemProps) {
   const { ticker, companyName, thesis, status, reviewAt, reason } = item;
-
   const statusColorClass = getStatusColorClass(status);
   const thesisExcerpt = thesis.length > 60 ? `${thesis.slice(0, 60)}...` : thesis;
+  const statusLabel = THESIS_STATUS_LABEL[status as ThesisStatusVocab] ?? status;
 
   return (
-    <div className="attention-item">
+    <Link href={`/companies/${ticker}`} className="attention-item">
       <div className="attention-item-header">
-        <Link href={`/companies/${ticker}`} className="attention-ticker">
-          {ticker}
-        </Link>
-        <span className={`attention-status ${statusColorClass}`}>{status}</span>
+        <div>
+          <span className="attention-ticker">{ticker}</span>
+          <span className="attention-company">{companyName}</span>
+        </div>
+        <span className={`attention-status ${statusColorClass}`}>{statusLabel}</span>
       </div>
 
       <p className="attention-thesis">{thesisExcerpt || "No thesis recorded"}</p>
@@ -66,7 +70,7 @@ function AttentionItem({ item }: AttentionItemProps) {
           </span>
         )}
       </div>
-    </div>
+    </Link>
   );
 }
 

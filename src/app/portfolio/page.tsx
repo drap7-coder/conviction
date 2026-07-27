@@ -481,6 +481,64 @@ export default function PortfolioPage() {
             </div>
           )}
 
+          {/* ── Needs Attention leads the page purpose ── */}
+          <section className="pf-section pf-attention-card pf-attention-hero" aria-label="Needs attention">
+            <div className="pf-attn-card-header">
+              <div>
+                <span className="page-purpose-eyebrow">Needs Attention</span>
+                <h2 className="pf-section-title">What requires attention in what you own?</h2>
+              </div>
+              {triage && triage.hasAlerts && (
+                <span className="pulse-attn-count">{triage.alerts.length}</span>
+              )}
+            </div>
+
+            {triageLoading ? (
+              <p className="pf-muted">Checking portfolio for issues…</p>
+            ) : triage && triage.hasAlerts ? (
+              <div className="pulse-attn-list">
+                {triage.alerts.map((item) => (
+                  <Link
+                    key={item.ticker}
+                    href={`/companies/${item.ticker}`}
+                    className={`pulse-attn-item pulse-attn-p${item.priority}`}
+                  >
+                    <div className="pulse-attn-top">
+                      <span className="pulse-attn-ticker">{item.ticker}</span>
+                      {item.conviction && (
+                        <span className={`pulse-attn-badge pulse-tone-${item.conviction.tone}`}>
+                          {item.conviction.verdict}
+                          {item.conviction.direction ? ` · ${item.conviction.direction}` : ""}
+                        </span>
+                      )}
+                    </div>
+                    <p className="pulse-attn-reason">{item.reason}</p>
+                    <div className="pulse-attn-meta">
+                      {isFiniteNumber(item.price) && <span>${item.price.toLocaleString()}</span>}
+                      {isFiniteNumber(item.changePercent) && (
+                        <span className={item.changePercent >= 0 ? "up" : "down"}>
+                          {item.changePercent >= 0 ? "+" : ""}{item.changePercent.toFixed(1)}%
+                        </span>
+                      )}
+                      {isFiniteNumber(item.portfolioImpact) && (
+                        <span className={item.portfolioImpact >= 0 ? "up" : "down"}>
+                          Portfolio: ${Math.abs(item.portfolioImpact).toFixed(0)}
+                        </span>
+                      )}
+                      <span className="pulse-attn-action">{item.action}</span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="pf-muted">
+                {triage && !triage.hasAlerts
+                  ? "No portfolio positions require attention right now."
+                  : "Portfolio-specific alerts will appear here as conviction data becomes available."}
+              </p>
+            )}
+          </section>
+
           {!calcFailed && portfolioHeatmapItems.length > 0 && (
             <StockHeatmap
               title="Portfolio"
@@ -749,61 +807,6 @@ export default function PortfolioPage() {
               </div>
             </section>
             )}
-
-            {/* ── Needs Attention card ── */}
-            <section className="pf-section pf-bottom-card pf-attention-card" aria-label="Needs attention">
-              <div className="pf-attn-card-header">
-                <h2 className="pf-section-title">Needs Attention</h2>
-                {triage && triage.hasAlerts && (
-                  <span className="pulse-attn-count">{triage.alerts.length}</span>
-                )}
-              </div>
-
-              {triageLoading ? (
-                <p className="pf-muted">Checking portfolio for issues…</p>
-              ) : triage && triage.hasAlerts ? (
-                <div className="pulse-attn-list">
-                  {triage.alerts.map((item) => (
-                    <Link
-                      key={item.ticker}
-                      href={`/companies/${item.ticker}`}
-                      className={`pulse-attn-item pulse-attn-p${item.priority}`}
-                    >
-                      <div className="pulse-attn-top">
-                        <span className="pulse-attn-ticker">{item.ticker}</span>
-                        {item.conviction && (
-                          <span className={`pulse-attn-badge pulse-tone-${item.conviction.tone}`}>
-                            {item.conviction.verdict}
-                            {item.conviction.direction ? ` · ${item.conviction.direction}` : ""}
-                          </span>
-                        )}
-                      </div>
-                      <p className="pulse-attn-reason">{item.reason}</p>
-                      <div className="pulse-attn-meta">
-                        {isFiniteNumber(item.price) && <span>${item.price.toLocaleString()}</span>}
-                        {isFiniteNumber(item.changePercent) && (
-                          <span className={item.changePercent >= 0 ? "up" : "down"}>
-                            {item.changePercent >= 0 ? "+" : ""}{item.changePercent.toFixed(1)}%
-                          </span>
-                        )}
-                        {isFiniteNumber(item.portfolioImpact) && (
-                          <span className={item.portfolioImpact >= 0 ? "up" : "down"}>
-                            Portfolio: ${Math.abs(item.portfolioImpact).toFixed(0)}
-                          </span>
-                        )}
-                        <span className="pulse-attn-action">{item.action}</span>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="pf-muted">
-                  {triage && !triage.hasAlerts
-                    ? "No portfolio positions require attention right now."
-                    : "Portfolio-specific alerts will appear here as conviction data becomes available."}
-                </p>
-              )}
-            </section>
           </div>
         </>
       )}

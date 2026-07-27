@@ -137,6 +137,11 @@ export default function IndustriesPage() {
 
   return (
     <div>
+      <div className="page-purpose">
+        <span className="page-purpose-eyebrow">Industries</span>
+        <h2 className="page-purpose-title">Where is market leadership strengthening or weakening?</h2>
+      </div>
+
       {status === "success" && sectors.length > 0 ? (
         <section className="industries-heat-panel" aria-label="Sector leadership heatmap" aria-description="Tile size reflects S&amp;P 500 weight; color reflects the current market move.">
           <style>{`

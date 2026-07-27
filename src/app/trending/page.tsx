@@ -54,6 +54,13 @@ const TRENDING_VIEWS = [
     labelBottom: "13F",
     description: "Where tracked managers disclosed new or larger positions",
   },
+  {
+    id: "politicians",
+    label: "Politicians",
+    labelTop: "Politicians",
+    labelBottom: "Trades",
+    description: "Congressional disclosures ranked by freshness",
+  },
 ] as const;
 
 type TrendingView = (typeof TRENDING_VIEWS)[number]["id"];
@@ -219,10 +226,15 @@ export default function RisingConvictionPage() {
 
   return (
     <div>
+      <div className="page-purpose">
+        <span className="page-purpose-eyebrow">Trending</span>
+        <h2 className="page-purpose-title">Where is conviction changing fastest?</h2>
+      </div>
+
       <section className="trending-view-picker" aria-label="Trending views">
         <div className="trending-view-picker-copy">
-          <span>Explore Trending</span>
-          <p>Switch between different signals for finding market ideas.</p>
+          <span>Signal lenses</span>
+          <p>Ranked by materiality and freshness — not by event count alone.</p>
         </div>
         <div className="trending-view-tabs" role="tablist" aria-label="Choose a Trending view">
           {TRENDING_VIEWS.map((view) => (
@@ -333,6 +345,22 @@ export default function RisingConvictionPage() {
           addingTicker={addingTicker}
           onAdd={handleAddTrending}
         />
+      </div>
+
+      <div
+        id="trending-panel-politicians"
+        role="tabpanel"
+        aria-labelledby="trending-tab-politicians"
+        hidden={activeView !== "politicians"}
+      >
+        <section className="trending-stub" aria-label="Political trades">
+          <span className="page-purpose-eyebrow">Politicians</span>
+          <h2 className="page-purpose-title">Congressional disclosures are next</h2>
+          <p>
+            This lens will rank STOCK Act disclosures by freshness and materiality.
+            Company-level political trades remain available on each company page.
+          </p>
+        </section>
       </div>
     </div>
   );
