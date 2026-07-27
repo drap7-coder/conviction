@@ -79,7 +79,13 @@ function ideaSummary(idea: InstitutionalMarketIdea): string {
   return `${idea.holderCount} tracked managers independently hold the company.`;
 }
 
-export function InvestorMovesPanel() {
+interface InvestorMovesPanelProps {
+  trackedTickers: Set<string>;
+  addingTicker: string | null;
+  onAdd: (idea: { ticker: string; companyName: string }) => void;
+}
+
+export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: InvestorMovesPanelProps) {
   const [response, setResponse] = useState<InvestorMovesResponse | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [filter, setFilter] = useState<InvestorFilter>("all");
@@ -185,38 +191,56 @@ export function InvestorMovesPanel() {
         </div>
       ) : (
         <div className="investor-idea-grid">
-          {visibleIdeas.map((idea) => (
-            <Link href={`/companies/${idea.ticker}`} className="investor-idea-card" key={idea.ticker}>
-              <div className="investor-idea-card-top">
-                <div className="investor-idea-company">
-                  <LogoDisplay ticker={idea.ticker} size="card" />
-                  <div>
-                    <strong>{idea.ticker}</strong>
-                    <span>{idea.companyName}</span>
+          {visibleIdeas.map((idea) => {
+            const isTracked = trackedTickers.has(idea.ticker);
+            const isAdding = addingTicker === idea.ticker;
+            return (
+              <article className="investor-idea-card" key={idea.ticker}>
+                <div className="investor-idea-card-top">
+                  <Link href={`/companies/${idea.ticker}`} className="investor-idea-company">
+                    <LogoDisplay ticker={idea.ticker} size="card" />
+                    <div>
+                      <strong>{idea.ticker}</strong>
+                      <span>{idea.companyName}</span>
+                    </div>
+                  </Link>
+                  <div className="investor-idea-actions">
+                    <span className={`investor-idea-badge ${idea.headline === "Shared Conviction" ? "shared" : "positive"}`}>
+                      {idea.headline}
+                    </span>
+                    <button
+                      type="button"
+                      className={`investor-watchlist-add${isTracked ? " tracked" : ""}`}
+                      aria-label={isTracked ? `${idea.ticker} is already on your watchlist` : `Add ${idea.ticker} to watchlist`}
+                      title={isTracked ? "Already on watchlist" : "Add to watchlist"}
+                      disabled={isTracked || isAdding}
+                      onClick={() => onAdd({ ticker: idea.ticker, companyName: idea.companyName })}
+                    >
+                      {isTracked ? "✓" : isAdding ? "…" : "+"}
+                    </button>
                   </div>
                 </div>
-                <span className={`investor-idea-badge ${idea.headline === "Shared Conviction" ? "shared" : "positive"}`}>
-                  {idea.headline}
-                </span>
-              </div>
 
-              <p className="investor-idea-thesis">{ideaSummary(idea)}</p>
+                <p className="investor-idea-thesis">{ideaSummary(idea)}</p>
 
-              <div className="investor-manager-list">
-                {idea.moves.map((move) => (
-                  <div className="investor-manager-row" key={`${idea.ticker}-${move.displayName}`}>
-                    <span>{move.displayName}</span>
-                    <strong className={statusClass(move.status)}>{moveSummary(move)}</strong>
-                  </div>
-                ))}
-              </div>
+                <div className="investor-manager-list">
+                  {idea.moves.map((move) => (
+                    <div className="investor-manager-row" key={`${idea.ticker}-${move.displayName}`}>
+                      <span>{move.displayName}</span>
+                      <strong className={statusClass(move.status)}>{moveSummary(move)}</strong>
+                    </div>
+                  ))}
+                </div>
 
-              <div className="investor-idea-footer">
-                <span>Holdings as of {formatDate(idea.filingQuarter)}</span>
-                <strong>Open company →</strong>
-              </div>
-            </Link>
-          ))}
+                <div className="investor-idea-footer">
+                  <span>Holdings as of {formatDate(idea.filingQuarter)}</span>
+                  <Link href={`/companies/${idea.ticker}`} className="investor-idea-footer-link">
+                    Open company →
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
 

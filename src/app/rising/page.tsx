@@ -32,6 +32,11 @@ interface WatchlistEntry {
   statusMessage?: string;
 }
 
+interface WatchlistCandidate {
+  ticker: string;
+  companyName: string;
+}
+
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 
 const TRENDING_VIEWS = [
@@ -174,8 +179,9 @@ export default function RisingConvictionPage() {
 
   // ── Add/remove functions ──
 
-  const handleAddTrending = async (idea: TrendingCompany) => {
+  const handleAddTrending = async (idea: WatchlistCandidate) => {
     setAddMessage(null);
+    setAddingTicker(idea.ticker);
 
     try {
       const response = await fetch("/api/watchlist/add", {
@@ -233,6 +239,12 @@ export default function RisingConvictionPage() {
         </div>
       </section>
 
+      {addMessage ? (
+        <p className={`watchlist-message ${addMessage.type}`}>
+          {addMessage.text}
+        </p>
+      ) : null}
+
       {activeView === "market" ? (
         <div id="trending-panel-market" role="tabpanel" aria-labelledby="trending-tab-market">
           {trendingStatus === "success" && trending.length > 0 ? (
@@ -252,12 +264,6 @@ export default function RisingConvictionPage() {
                 };
               })}
             />
-          ) : null}
-
-          {addMessage ? (
-            <p className={`watchlist-message ${addMessage.type}`}>
-              {addMessage.text}
-            </p>
           ) : null}
 
           <section className="trending-section" aria-label="Trending companies">
@@ -304,7 +310,11 @@ export default function RisingConvictionPage() {
         </div>
       ) : (
         <div id="trending-panel-investors" role="tabpanel" aria-labelledby="trending-tab-investors">
-          <InvestorMovesPanel />
+          <InvestorMovesPanel
+            trackedTickers={trackedTickers}
+            addingTicker={addingTicker}
+            onAdd={handleAddTrending}
+          />
         </div>
       )}
     </div>

@@ -681,6 +681,13 @@ details > summary::before {
   gap: 12px;
 }
 
+.investor-idea-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+
 .investor-idea-company {
   display: flex;
   min-width: 0;
@@ -729,6 +736,42 @@ details > summary::before {
   border-color: var(--accent-dim);
   background: var(--accent-dim);
   color: var(--accent);
+}
+
+.investor-watchlist-add {
+  display: inline-grid;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 27px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--border));
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.investor-watchlist-add:hover:not(:disabled),
+.investor-watchlist-add:focus-visible:not(:disabled) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent-dim) 78%, var(--surface-elevated));
+  outline: none;
+  transform: scale(1.06);
+}
+
+.investor-watchlist-add.tracked {
+  border-color: color-mix(in srgb, var(--green) 42%, var(--border));
+  background: var(--green-dim);
+  color: var(--green);
+}
+
+.investor-watchlist-add:disabled {
+  cursor: default;
+  opacity: 0.88;
 }
 
 .investor-idea-thesis {
@@ -790,9 +833,16 @@ details > summary::before {
   font-size: 0.58rem;
 }
 
-.investor-idea-footer strong {
+.investor-idea-footer-link {
   color: var(--accent);
+  font-weight: 700;
   white-space: nowrap;
+}
+
+.investor-idea-footer-link:hover,
+.investor-idea-footer-link:focus-visible {
+  color: var(--ink);
+  outline: none;
 }
 
 .investor-moves-disclaimer,
