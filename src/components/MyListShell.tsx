@@ -4,6 +4,7 @@ import { Suspense, type ReactNode, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Watchlist from "@/components/Watchlist";
 import Portfolio from "@/components/Portfolio";
+import { PortfolioDataProvider, PortfolioHero } from "@/components/PortfolioData";
 
 const MY_LIST_VIEWS = [
   {
@@ -59,9 +60,12 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
         <h2 className="page-purpose-title">{purpose.title}</h2>
       </div>
 
+      {/* Portfolio value always visible */}
+      <PortfolioHero />
+
       <section className="trending-view-picker" aria-label="My list views">
         <div className="trending-view-picker-copy">
-          <span>My list</span>
+          <span>My positions</span>
           <p>Watch what you follow, or review what you own.</p>
         </div>
         <div className="trending-view-tabs" role="tablist" aria-label="Choose a list view">
@@ -79,8 +83,7 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
             >
               <strong>
                 {view.labelTop}
-                <br className="trending-view-title-break" aria-hidden="true" />{" "}
-                {view.labelBottom}
+                <br className="trending-view-title-break" aria-hidden="true" /> {view.labelBottom}
               </strong>
               <span>{view.description}</span>
             </button>
@@ -114,7 +117,9 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) {
   return (
     <Suspense fallback={<div className="page-purpose"><span className="page-purpose-eyebrow">Watchlist</span><h2 className="page-purpose-title">What changed in the companies you follow?</h2></div>}>
-      <MyListShellInner publicFeed={publicFeed} />
+      <PortfolioDataProvider>
+        <MyListShellInner publicFeed={publicFeed} />
+      </PortfolioDataProvider>
     </Suspense>
   );
 }
