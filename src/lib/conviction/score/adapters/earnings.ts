@@ -1,5 +1,5 @@
 /**
- * Normalize Nasdaq earnings-momentum evidence into a CategoryScore.
+ * Normalize earnings-momentum evidence into a CategoryScore.
  * Passes through the existing signed score (-100..+100) unchanged.
  */
 

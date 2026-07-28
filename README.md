@@ -9,6 +9,13 @@ npm install
 npm run dev
 ```
 
+Optional env:
+
+```bash
+# Broader earnings coverage (FMP primary, Nasdaq fallback)
+FMP_API_KEY=your_key_here
+```
+
 ## Architecture
 
 - **Watchlist** — Companies you follow with latest evidence

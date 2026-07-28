@@ -23,7 +23,7 @@ export interface EarningsEvidence {
   momentum: "Estimates rising" | "Estimates falling" | "Stable" | "Unavailable";
   nextEarningsDate: string | null;
   asOf: string | null;
-  source: "nasdaq" | "unavailable";
+  source: "fmp" | "nasdaq" | "unavailable";
   status: "success" | "partial" | "unavailable";
   message?: string;
 }
