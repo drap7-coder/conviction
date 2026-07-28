@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
@@ -6,9 +5,7 @@ import { CompanyPulseCard } from "@/app/components/CompanyPulseCard";
 import { CompanyVerdict } from "@/app/components/CompanyVerdict";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
-// Conviction header & multi-vector cards temporarily suppressed — restore these imports when re-enabling:
-// import { ConvictionHeader } from "@/app/components/ConvictionHeader";
-// import { MultiVectorSummary } from "@/app/components/MultiVectorSummary";
+import { InstitutionalConvictionOverviewCard } from "@/app/components/InstitutionalConvictionOverviewCard";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MarketPanel } from "@/app/components/MarketPanel";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
@@ -52,9 +49,8 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            {/* Conviction header & multi-vector cards temporarily suppressed — restore when ready:
-            <ConvictionHeader ticker={upperTicker} companyName={companyName} />
-            <MultiVectorSummary ticker={upperTicker} /> */}
+            {/* Composite ConvictionHeader temporarily suppressed until CategoryScore sources are wired. */}
+            <InstitutionalConvictionOverviewCard ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             <CompanyVerdict ticker={upperTicker} />

@@ -9,6 +9,7 @@ import { GaugeRing } from "@/components/GaugeRing";
 import { NewsDriverBrief } from "@/app/components/NewsDriverBrief";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
+import { InstitutionalConvictionOverview } from "@/app/components/InstitutionalConvictionOverview";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
@@ -563,59 +564,10 @@ export default function QuotesPage() {
           </section>
 
           {/* ── Institutional conviction ── */}
-          <section className="quote-card quote-conviction-card" aria-label="Institutional conviction">
-            <div className="quote-card-header">
-              <span className="quote-card-title">Institutional conviction</span>
-              <span className="quote-card-meta">
-                {result.conviction.filingQuarter
-                  ? `${result.conviction.filingQuarter} 13F FILINGS`
-                  : "13F FILINGS"}
-              </span>
-            </div>
-
-            <div className="quote-conviction-ring-wrap">
-              <GaugeRing
-                size="lg"
-                value={result.conviction.score}
-                label={
-                  convictionLoading
-                    ? "…"
-                    : result.conviction.score !== null
-                      ? String(result.conviction.score)
-                      : "—"
-                }
-                sublabel={
-                  convictionLoading
-                    ? "LOADING"
-                    : result.conviction.label.toUpperCase()
-                }
-                caption=""
-                tone={result.conviction.tone}
-                ariaLabel={`Institutional conviction ${result.conviction.score ?? "unavailable"}: ${result.conviction.label}`}
-              />
-            </div>
-
-            <div className="quote-conviction-legend" aria-hidden="true">
-              <span><i className="quote-dot red" /> Distribution</span>
-              <span><i className="quote-dot amber" /> Holding</span>
-              <span><i className="quote-dot green" /> Accumulating</span>
-            </div>
-
-            <div className="quote-conviction-stats">
-              <div className="quote-stat">
-                <strong className="up">{result.conviction.added}</strong>
-                <span>Institutions added</span>
-              </div>
-              <div className="quote-stat">
-                <strong className="down">{result.conviction.reduced}</strong>
-                <span>Institutions reduced</span>
-              </div>
-              <div className="quote-stat">
-                <strong className="teal">{result.conviction.newPositions}</strong>
-                <span>New positions</span>
-              </div>
-            </div>
-          </section>
+          <InstitutionalConvictionOverview
+            conviction={result.conviction}
+            loading={convictionLoading}
+          />
 
           {/* ── Numbers card ── */}
           <section className="quote-card" aria-label="Quote details">

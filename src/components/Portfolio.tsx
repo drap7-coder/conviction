@@ -10,12 +10,14 @@ import {
 } from "@/lib/portfolio/calculations";
 import type { PortfolioPosition, PortfolioRiskFlags } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
-import { getLogoUrl } from "@/lib/market/logos";
+import { getLivePrice } from "@/lib/market/live-quote";
+import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import SectorDonut from "@/components/SectorDonut";
 import { isFiniteNumber } from "@/lib/display/format";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { StockHeatmap } from "@/components/StockHeatmap";
+import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -471,10 +473,43 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
 
           {/* ── Positions header + add toggle ── */}
           <div className="pf-positions-header">
-            <h2 className="pf-section-title">Positions</h2>
+            <div className="wl-list-header pf-ring-list-header">
+              <div className="wl-list-title-row">
+                <h2 className="wl-list-title pf-section-title">Positions</h2>
+                <span className="wl-list-count">
+                  {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="wl-conviction-legend" aria-label="Conviction ring legend">
+                <span><i className="quote-dot red" /> Distribution</span>
+                <span><i className="quote-dot amber" /> Holding</span>
+                <span><i className="quote-dot green" /> Accumulating</span>
+              </div>
+            </div>
             <button className="pf-add-toggle" onClick={() => setShowAddForm((v) => !v)}>
               {showAddForm ? "–" : "+"} Add position
             </button>
+          </div>
+
+          <div className="pf-sort-row" role="group" aria-label="Sort positions">
+            {(
+              [
+                ["ticker", "Ticker"],
+                ["value", "Value"],
+                ["weight", "Alloc"],
+                ["dayGl", "Day"],
+                ["totalGl", "Gain/Loss"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                className={`pf-sort-chip${sort.key === key ? " is-active" : ""}`}
+                onClick={() => toggleSort(key)}
+              >
+                {label}{sortArrow(key)}
+              </button>
+            ))}
           </div>
 
           {/* ── Add / Edit Form (collapsible) ── */}
@@ -495,139 +530,40 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
             </div>
           )}
 
-          {/* ── Holdings Table (desktop) ── */}
-          <div className="pf-table-wrap">
-            <table className="pf-table">
-              <thead>
-                <tr>
-                  <th>
-                    <button className="pf-sort-btn" onClick={() => toggleSort("ticker")}>
-                      Company{sortArrow("ticker")}
-                    </button>
-                  </th>
-                  <th className="pf-num">Shares</th>
-                  <th className="pf-num">Price</th>
-                  <th className="pf-num">
-                    <button className="pf-sort-btn" onClick={() => toggleSort("value")}>
-                      Value{sortArrow("value")}
-                    </button>
-                  </th>
-                  <th className="pf-num">
-                    <button className="pf-sort-btn" onClick={() => toggleSort("weight")}>
-                      Alloc{sortArrow("weight")}
-                    </button>
-                  </th>
-                  <th className="pf-num">
-                    <button className="pf-sort-btn" onClick={() => toggleSort("dayGl")}>
-                      Day Chg{sortArrow("dayGl")}
-                    </button>
-                  </th>
-                  <th className="pf-num">Cost</th>
-                  <th className="pf-num">
-                    <button className="pf-sort-btn" onClick={() => toggleSort("totalGl")}>
-                      Gain/Loss{sortArrow("totalGl")}
-                    </button>
-                  </th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedPositions.map(({ pos, metrics, dailyPct }) => {
-                  const logoUrl = getLogoUrl(pos.companyId);
-
-                  return (
-                    <tr key={pos.companyId}>
-                      <td className="pf-cell-name">
-                        <div className="pf-cell-name-inner">
-                          {logoUrl && (
-                            <img src={logoUrl} alt="" className="pf-logo" width={18} height={18} />
-                          )}
-                          <span className="pf-ticker">{pos.companyId.toUpperCase()}</span>
-                        </div>
-                      </td>
-                      <td className="pf-num">{pos.shares.toLocaleString()}</td>
-                      <td className="pf-num">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</td>
-                      <td className="pf-num">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</td>
-                      <td className="pf-num">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</td>
-                      <td className={`pf-num ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
-                        {dailyPct != null ? percent(dailyPct) : "—"}
-                      </td>
-                      <td className="pf-num">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</td>
-                      <td className={`pf-num ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
-                        {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
-                      </td>
-                      <td className="pf-cell-actions">
-                        <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit">✎</button>
-                        <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)} title="Remove">✕</button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* ── Mobile Cards (stacked) ── */}
-          <div className="pf-cards-mobile">
+          {/* ── Holdings ring list ── */}
+          <div className="watchlist-list pf-ring-list">
             {sortedPositions.map(({ pos, metrics, dailyPct }) => {
-              const logoUrl = getLogoUrl(pos.companyId);
+              const ticker = pos.companyId.toUpperCase();
+              const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
+              const live = quote ? getLivePrice(quote) : null;
+              const verdict = getCardVerdict(
+                {
+                  ticker,
+                  companyName: ticker,
+                  addedAt: new Date().toISOString(),
+                  status: "active",
+                },
+                quote ? { changePercent: quote.changePercent } : undefined,
+              );
 
               return (
-                <div key={pos.companyId} className="pf-stacked-card">
-                  {/* Top row: ticker + logo | price + daily */}
-                  <div className="pf-sc-top">
-                    <div className="pf-sc-identity">
-                      {logoUrl && (
-                        <img src={logoUrl} alt="" className="pf-sc-logo" width={22} height={22} />
-                      )}
-                      <span className="pf-sc-ticker">{pos.companyId.toUpperCase()}</span>
-                    </div>
-                    <div className="pf-sc-quote">
-                      <span className="pf-sc-price">{pos.currentPrice != null ? compactCurrency(pos.currentPrice) : "—"}</span>
-                      <span className={`pf-sc-daily ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
-                        {dailyPct != null ? percent(dailyPct) : "—"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Mid row: three-column mini-grid (now includes shares) */}
-                  <div className="pf-sc-grid">
-                    <div className="pf-sc-grid-item">
-                      <span className="pf-sc-label">Value</span>
-                      <span className="pf-sc-value">{metrics.marketValue != null ? compactCurrency(metrics.marketValue) : "—"}</span>
-                    </div>
-                    <div className="pf-sc-grid-item">
-                      <span className="pf-sc-label">Alloc</span>
-                      <span className="pf-sc-value">{metrics.weight != null ? `${Math.round(metrics.weight)}%` : "—"}</span>
-                    </div>
-                    <div className="pf-sc-grid-item">
-                      <span className="pf-sc-label">Shares</span>
-                      <span className="pf-sc-value">{pos.shares.toLocaleString()}</span>
-                    </div>
-                    <div className="pf-sc-grid-item">
-                      <span className="pf-sc-label">Cost Basis</span>
-                      <span className="pf-sc-value">{metrics.totalCost != null ? compactCurrency(metrics.totalCost) : "—"}</span>
-                    </div>
-                    <div className="pf-sc-grid-item">
-                      <span className="pf-sc-label">Day Chg</span>
-                      <span className={`pf-sc-value ${(dailyPct ?? 0) >= 0 ? "up" : "down"}`}>
-                        {dailyPct != null ? percent(dailyPct) : "—"}
-                      </span>
-                    </div>
-                    <div className="pf-sc-grid-item">
-                      <span className="pf-sc-label">Gain/Loss</span>
-                      <span className={`pf-sc-value ${(metrics.totalGainLoss ?? 0) >= 0 ? "up" : "down"}`}>
-                        {metrics.totalGainLoss != null ? compactCurrency(metrics.totalGainLoss) : "—"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Bottom row: actions */}
-                  <div className="pf-sc-actions">
-                    <button className="pf-action-btn" onClick={() => handleStartEdit(pos.companyId)} title="Edit">✎</button>
-                    <button className="pf-action-btn pf-action-remove" onClick={() => handleRemove(pos.companyId)} title="Remove">✕</button>
-                  </div>
-                </div>
+                <PortfolioHoldingCard
+                  key={ticker}
+                  ticker={ticker}
+                  companyName={quote?.name ?? ticker}
+                  price={quote?.price ?? pos.currentPrice ?? null}
+                  changePercent={quote?.changePercent ?? dailyPct}
+                  sessionLabel={live?.label ?? null}
+                  sessionPrice={live?.label ? live.price : null}
+                  sessionChange={live?.label ? live.change : null}
+                  sessionChangePercent={live?.label ? live.changePercent : null}
+                  convictionTone={verdict.tone}
+                  convictionStrength={verdict.strength}
+                  shares={pos.shares}
+                  metrics={metrics}
+                  onEdit={handleStartEdit}
+                  onRemove={handleRemove}
+                />
               );
             })}
           </div>
