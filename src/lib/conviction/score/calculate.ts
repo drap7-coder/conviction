@@ -31,7 +31,7 @@ export function applyAgreementAdjustment(usable: CategoryScore[]): number {
 }
 
 function clampScore(value: number): number {
-  return Math.max(-100, Math.min(100, value));
+  return Math.max(-100, Math.min(100, Math.round(value)));
 }
 
 /**

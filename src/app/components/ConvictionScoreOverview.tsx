@@ -77,7 +77,7 @@ export function ConvictionScoreOverview({
           : loading && result.score !== null
             ? "Updating score with institutional 13F filings…"
           : result.label === "insufficient_evidence"
-            ? "Need at least 50% category coverage for a score. Social is not wired yet."
+            ? "Need at least 50% category coverage for a score."
             : `Score ${displayScore}/100 · ${result.includedCategories.length} categor${result.includedCategories.length === 1 ? "y" : "ies"} included.`}
       </p>
 

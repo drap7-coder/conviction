@@ -42,9 +42,10 @@ describe("calculateCoverage", () => {
       category({ category: "institutional", score: 40 }),
       category({ category: "earnings", score: 20 }),
       category({ category: "technicals", hasData: false }),
-      category({ category: "social", hasData: true, isStale: true, score: 80 }),
+      category({ category: "short_interest", hasData: true, isStale: true, score: 80 }),
     ]);
-    expect(coverage).toBeCloseTo(0.5);
+    // 0.29 + 0.29 = 0.58
+    expect(coverage).toBeCloseTo(0.58);
   });
 });
 
@@ -54,7 +55,7 @@ describe("applyAgreementAdjustment", () => {
       category({ category: "institutional", score: 25 }),
       category({ category: "earnings", score: 40 }),
       category({ category: "technicals", score: 30 }),
-      category({ category: "social", score: 50 }),
+      category({ category: "short_interest", score: 50 }),
     ];
     expect(applyAgreementAdjustment(usable)).toBe(5);
   });
@@ -64,7 +65,7 @@ describe("applyAgreementAdjustment", () => {
       category({ category: "institutional", score: -25 }),
       category({ category: "earnings", score: -40 }),
       category({ category: "technicals", score: -30 }),
-      category({ category: "social", score: -50 }),
+      category({ category: "short_interest", score: -50 }),
     ];
     expect(applyAgreementAdjustment(usable)).toBe(-5);
   });
@@ -74,7 +75,7 @@ describe("applyAgreementAdjustment", () => {
       category({ category: "institutional", score: 40 }),
       category({ category: "earnings", score: 40 }),
       category({ category: "technicals", score: 40 }),
-      category({ category: "social", score: 10 }),
+      category({ category: "short_interest", score: 10 }),
     ];
     expect(applyAgreementAdjustment(usable)).toBe(0);
   });
@@ -107,7 +108,6 @@ describe("calculateConvictionScore", () => {
         technicals: { hasData: false },
         short_interest: { hasData: false },
         political: { hasData: false },
-        social: { hasData: false },
       }),
     );
 
@@ -116,39 +116,39 @@ describe("calculateConvictionScore", () => {
     expect(result.coverage).toBe(0);
     expect(result.agreementAdjustment).toBe(0);
     expect(result.includedCategories).toEqual([]);
-    expect(result.excludedCategories).toHaveLength(6);
+    expect(result.excludedCategories).toHaveLength(5);
   });
 
   it("returns insufficient evidence when coverage is below 50%", () => {
     const result = calculateConvictionScore([
       category({ category: "institutional", score: 80 }),
-      category({ category: "technicals", score: 40 }),
+      category({ category: "political", score: 40 }),
       category({ category: "earnings", hasData: false }),
     ]);
 
-    // 0.25 + 0.20 = 0.45
-    expect(result.coverage).toBeCloseTo(0.45);
+    // 0.29 + 0.06 = 0.35
+    expect(result.coverage).toBeCloseTo(0.35);
     expect(result.score).toBeNull();
     expect(result.label).toBe("insufficient_evidence");
-    expect(result.includedCategories).toEqual(["institutional", "technicals"]);
+    expect(result.includedCategories).toEqual(["institutional", "political"]);
     expect(result.excludedCategories).toEqual(["earnings"]);
   });
 
-  it("scores when coverage is exactly 50% (institutional + earnings)", () => {
+  it("scores when institutional + earnings clear the coverage gate", () => {
     const result = calculateConvictionScore([
       category({ category: "institutional", score: 100 }),
       category({ category: "earnings", score: 0 }),
     ]);
 
-    expect(result.coverage).toBeCloseTo(0.5);
-    // Renormalized: (100*0.25 + 0*0.25) / 0.5 = 50
+    expect(result.coverage).toBeCloseTo(0.58);
+    // Renormalized: (100*0.29 + 0*0.29) / 0.58 = 50
     expect(result.score).toBe(50);
     expect(result.label).toBe("positive");
     expect(result.agreementAdjustment).toBe(0);
     expect(result.includedCategories).toEqual(["institutional", "earnings"]);
   });
 
-  it("scores full six-category coverage", () => {
+  it("scores full five-category coverage", () => {
     const result = calculateConvictionScore(
       allCategories({
         institutional: { score: 40 },
@@ -156,18 +156,18 @@ describe("calculateConvictionScore", () => {
         technicals: { score: 10 },
         short_interest: { score: 0 },
         political: { score: -10 },
-        social: { score: 30 },
       }),
     );
 
-    const expected =
-      (40 * 0.25 + 20 * 0.25 + 10 * 0.2 + 0 * 0.1 + -10 * 0.05 + 30 * 0.15) / 1;
+    const expected = Math.round(
+      (40 * 0.29 + 20 * 0.29 + 10 * 0.24 + 0 * 0.12 + -10 * 0.06) / 1,
+    );
 
     expect(result.coverage).toBeCloseTo(1);
-    expect(result.score).toBeCloseTo(expected);
+    expect(result.score).toBe(expected);
     expect(result.label).toBe("mixed");
     expect(result.agreementAdjustment).toBe(0);
-    expect(result.includedCategories).toHaveLength(6);
+    expect(result.includedCategories).toHaveLength(5);
     expect(result.excludedCategories).toEqual([]);
   });
 
@@ -178,12 +178,10 @@ describe("calculateConvictionScore", () => {
       category({ category: "technicals", hasData: false }),
       category({ category: "short_interest", hasData: false }),
       category({ category: "political", hasData: false }),
-      category({ category: "social", hasData: false }),
     ]);
 
-    // coverage 0.5; weighted avg = (100*0.25 + 50*0.25) / 0.5 = 75
-    // Without renormalization (wrong): 100*0.25 + 50*0.25 = 37.5
-    expect(result.coverage).toBeCloseTo(0.5);
+    // coverage 0.58; weighted avg = (100*0.29 + 50*0.29) / 0.58 = 75
+    expect(result.coverage).toBeCloseTo(0.58);
     expect(result.score).toBe(75);
     expect(result.label).toBe("strong_positive");
   });
@@ -193,14 +191,13 @@ describe("calculateConvictionScore", () => {
       category({ category: "institutional", score: 100, isStale: true }),
       category({ category: "earnings", score: 50 }),
       category({ category: "technicals", score: 50 }),
-      category({ category: "social", score: 50 }),
+      category({ category: "short_interest", score: 50 }),
     ]);
 
-    // usable: earnings 0.25 + technicals 0.20 + social 0.15 = 0.60
-    expect(result.coverage).toBeCloseTo(0.6);
-    expect(result.includedCategories).toEqual(["earnings", "technicals", "social"]);
+    // usable: earnings 0.29 + technicals 0.24 + short 0.12 = 0.65
+    expect(result.coverage).toBeCloseTo(0.65);
+    expect(result.includedCategories).toEqual(["earnings", "technicals", "short_interest"]);
     expect(result.excludedCategories).toEqual(["institutional"]);
-    // (50*0.25 + 50*0.20 + 50*0.15) / 0.60 = 50
     expect(result.score).toBe(50);
   });
 
@@ -212,12 +209,11 @@ describe("calculateConvictionScore", () => {
         technicals: { score: 40 },
         short_interest: { score: 40 },
         political: { hasData: false },
-        social: { hasData: false },
       }),
     );
 
-    // coverage 0.25+0.25+0.20+0.10 = 0.80; avg = 40; +5 agreement
-    expect(result.coverage).toBeCloseTo(0.8);
+    // coverage 0.29+0.29+0.24+0.12 = 0.94; avg = 40; +5 agreement
+    expect(result.coverage).toBeCloseTo(0.94);
     expect(result.agreementAdjustment).toBe(5);
     expect(result.score).toBe(45);
     expect(result.label).toBe("positive");
@@ -231,7 +227,6 @@ describe("calculateConvictionScore", () => {
         technicals: { score: -40 },
         short_interest: { score: -40 },
         political: { hasData: false },
-        social: { hasData: false },
       }),
     );
 
@@ -248,12 +243,11 @@ describe("calculateConvictionScore", () => {
         technicals: { score: 50 },
         short_interest: { hasData: false },
         political: { hasData: false },
-        social: { hasData: false },
       }),
     );
 
-    // coverage 0.70; avg 50; no bonus (only 3 categories)
-    expect(result.coverage).toBeCloseTo(0.7);
+    // coverage 0.82; avg 50; no bonus (only 3 categories)
+    expect(result.coverage).toBeCloseTo(0.82);
     expect(result.agreementAdjustment).toBe(0);
     expect(result.score).toBe(50);
   });
@@ -266,10 +260,8 @@ describe("calculateConvictionScore", () => {
         technicals: { score: 100 },
         short_interest: { score: 100 },
         political: { score: 100 },
-        social: { score: 100 },
       }),
     );
-    // avg 100 + agreement 5 would be 105 without clamp
     expect(high.agreementAdjustment).toBe(5);
     expect(high.score).toBe(100);
 
@@ -280,7 +272,6 @@ describe("calculateConvictionScore", () => {
         technicals: { score: -100 },
         short_interest: { score: -100 },
         political: { score: -100 },
-        social: { score: -100 },
       }),
     );
     expect(low.agreementAdjustment).toBe(-5);
@@ -291,13 +282,13 @@ describe("calculateConvictionScore", () => {
     const result = calculateConvictionScore([
       category({ category: "institutional", score: 80, hasData: true, isStale: true }),
       category({ category: "earnings", score: 80 }),
-      category({ category: "technicals", score: 80 }),
-      category({ category: "social", hasData: false, score: 0 }),
+      category({ category: "political", score: 80 }),
+      category({ category: "short_interest", hasData: false, score: 0 }),
     ]);
 
-    expect(result.excludedCategories).toEqual(["institutional", "social"]);
-    expect(result.includedCategories).toEqual(["earnings", "technicals"]);
-    expect(result.coverage).toBeCloseTo(0.45);
+    expect(result.excludedCategories).toEqual(["institutional", "short_interest"]);
+    expect(result.includedCategories).toEqual(["earnings", "political"]);
+    expect(result.coverage).toBeCloseTo(0.35);
     expect(result.score).toBeNull();
   });
 });

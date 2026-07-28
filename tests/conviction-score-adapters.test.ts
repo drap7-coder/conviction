@@ -69,7 +69,7 @@ describe("toInstitutionalCategoryScore", () => {
     const category = toInstitutionalCategoryScore("AAPL", { results: [] });
     expect(category.hasData).toBe(false);
     expect(category.category).toBe("institutional");
-    expect(category.baseWeight).toBe(0.25);
+    expect(category.baseWeight).toBe(0.29);
   });
 
   it("remaps 0–100 ring onto signed [-100, +100]", () => {
@@ -98,7 +98,7 @@ describe("toEarningsCategoryScore", () => {
     const category = toEarningsCategoryScore(earnings({ score: 42 }));
     expect(category.hasData).toBe(true);
     expect(category.score).toBe(42);
-    expect(category.baseWeight).toBe(0.25);
+    expect(category.baseWeight).toBe(0.29);
   });
 
   it("marks unavailable earnings as no data", () => {
@@ -124,7 +124,7 @@ describe("toTechnicalsCategoryScore", () => {
       new Date(points[points.length - 1]!.date),
     );
     expect(category.hasData).toBe(true);
-    expect(category.baseWeight).toBe(0.2);
+    expect(category.baseWeight).toBe(0.24);
     expect(category.score).toBeGreaterThan(0);
   });
 
@@ -156,7 +156,7 @@ describe("toShortInterestCategoryScore", () => {
     }, new Date("2026-07-28"));
     expect(category.hasData).toBe(true);
     expect(category.score).toBeLessThan(0);
-    expect(category.baseWeight).toBe(0.1);
+    expect(category.baseWeight).toBe(0.12);
   });
 
   it("returns no data when short interest is empty", () => {
@@ -186,12 +186,12 @@ describe("toPoliticalCategoryScore", () => {
     }, new Date("2026-07-28"));
     expect(category.hasData).toBe(true);
     expect(category.score).toBe(60);
-    expect(category.baseWeight).toBe(0.05);
+    expect(category.baseWeight).toBe(0.06);
   });
 });
 
 describe("buildConvictionScore", () => {
-  it("returns a score at exactly 50% coverage from institutional + earnings", () => {
+  it("returns a score when institutional + earnings clear coverage", () => {
     const result = buildConvictionScore({
       ticker: "AAPL",
       institutional: {
@@ -201,7 +201,7 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.5);
+    expect(result.coverage).toBeCloseTo(0.58);
     expect(result.score).not.toBeNull();
     expect(result.label).not.toBe("insufficient_evidence");
     expect(result.includedCategories).toEqual(["institutional", "earnings"]);
@@ -255,8 +255,8 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    // 0.25 + 0.25 + 0.20 + 0.10 + 0.05 = 0.85 (social still out)
-    expect(result.coverage).toBeCloseTo(0.85);
+    // 0.29 + 0.29 + 0.24 + 0.12 + 0.06 = 1.00
+    expect(result.coverage).toBeCloseTo(1);
     expect(result.score).not.toBeNull();
     expect(result.includedCategories).toEqual([
       "institutional",
@@ -265,7 +265,7 @@ describe("buildConvictionScore", () => {
       "short_interest",
       "political",
     ]);
-    expect(result.excludedCategories).toEqual(["social"]);
+    expect(result.excludedCategories).toEqual([]);
   });
 
   it("withholds the score when only institutional is present", () => {
@@ -278,7 +278,7 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.25);
+    expect(result.coverage).toBeCloseTo(0.29);
     expect(result.score).toBeNull();
     expect(result.label).toBe("insufficient_evidence");
   });

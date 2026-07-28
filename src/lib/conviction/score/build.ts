@@ -1,6 +1,5 @@
 /**
  * Assemble CategoryScore inputs and compute the composite Conviction Score.
- * Social remains unwired (hasData: false) until a reliable source lands.
  */
 
 import { toEarningsCategoryScore } from "./adapters/earnings";
@@ -40,10 +39,7 @@ function emptyCategory(ticker: string, category: EvidenceCategory, now: Date): C
     isStale: false,
     sourceDate: null,
     updatedAt: now.toISOString(),
-    explanation:
-      category === "social"
-        ? "Social evidence is not wired yet."
-        : `${category.replace(/_/g, " ")} evidence is unavailable.`,
+    explanation: `${category.replace(/_/g, " ")} evidence is unavailable.`,
     scoringVersion: SCORING_VERSION,
   };
 }
@@ -71,7 +67,6 @@ export function buildCategoryScores(input: BuildConvictionScoreInput): CategoryS
     political: input.political
       ? toPoliticalCategoryScore(input.political, now)
       : emptyCategory(ticker, "political", now),
-    social: emptyCategory(ticker, "social", now),
   };
 
   return EVIDENCE_CATEGORIES.map((category) => byCategory[category]);

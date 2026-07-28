@@ -7,7 +7,6 @@
  * finishes. Institutional upgrades the composite when it arrives.
  *
  * Wired: institutional, earnings, technicals, short_interest, political
- * Unwired: social
  */
 
 "use client";
@@ -42,7 +41,6 @@ const EMPTY_RESULT: ConvictionScoreResult = {
     "technicals",
     "short_interest",
     "political",
-    "social",
   ],
 };
 
