@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
         destination: "/trending",
         permanent: true,
       },
-      {
-        source: "/markets",
-        destination: "/pulse",
-        permanent: true,
-      },
     ];
   },
 };
