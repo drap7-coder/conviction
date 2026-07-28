@@ -1313,14 +1313,217 @@ details > summary::before {
 
 /* ── Decision-first Watchlist ── */
 
+.wl-list-header {
+  margin: 8px 0 10px;
+}
+
+.wl-list-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.wl-list-title {
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.wl-list-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.wl-conviction-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.wl-conviction-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .watchlist-list {
-  display: grid;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 @media (min-width: 768px) {
   .watchlist-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none;
+  }
+}
+
+.wl-ring-row {
+  display: block;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.12s;
+}
+
+.wl-ring-row:hover {
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.wl-ring-row.focused-card {
+  background: var(--accent-dim);
+  border-radius: 10px;
+}
+
+.wl-ring-row-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 10px 12px;
+}
+
+.wl-ring-identity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.wl-ring-ticker {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.wl-ring-name {
+  font-size: 0.78rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.wl-ring-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 92px;
+}
+
+.wl-ring-last {
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--ink);
+  line-height: 1.1;
+}
+
+.wl-ring-day-change {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.wl-ring-day-change.positive,
+.wl-ring-session.positive {
+  color: var(--green);
+}
+
+.wl-ring-day-change.negative,
+.wl-ring-session.negative {
+  color: var(--red);
+}
+
+.wl-ring-day-change.neutral,
+.wl-ring-session.neutral {
+  color: var(--muted);
+}
+
+.wl-ring-session {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.wl-ring-session-icon {
+  color: var(--amber);
+  font-size: 0.7rem;
+}
+
+.wl-ring-gauge {
+  width: 56px;
+  display: flex;
+  justify-content: center;
+}
+
+.wl-ring-gauge .quote-gauge-sm .quote-gauge-value {
+  font-size: 0.78rem;
+}
+
+.wl-ring-gauge .quote-gauge-svg {
+  width: 52px;
+  height: 52px;
+}
+
+.wl-ring-menu {
+  position: relative;
+  width: 28px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.wl-ring-driver {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 10px 0 0;
+  padding-right: 40px;
+}
+
+.wl-ring-driver-label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.wl-ring-driver-text {
+  font-size: 0.82rem;
+  line-height: 1.35;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 480px) {
+  .wl-ring-driver {
+    padding-right: 0;
   }
 }
 

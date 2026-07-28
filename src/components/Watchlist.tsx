@@ -638,6 +638,22 @@ export default function Watchlist({
         </div>
       ) : null}
 
+      {!loading && entries.length > 0 ? (
+        <div className="wl-list-header">
+          <div className="wl-list-title-row">
+            <h3 className="wl-list-title">Watchlist</h3>
+            <span className="wl-list-count">
+              {entries.length} symbol{entries.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className="wl-conviction-legend" aria-label="Conviction ring legend">
+            <span><i className="quote-dot red" /> Distribution</span>
+            <span><i className="quote-dot amber" /> Holding</span>
+            <span><i className="quote-dot green" /> Accumulating</span>
+          </div>
+        </div>
+      ) : null}
+
       {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist"
@@ -768,6 +784,7 @@ export default function Watchlist({
                   sessionChangePercent={live?.label ? live.changePercent : null}
                   convictionState={verdict.state}
                   convictionTone={verdict.tone}
+                  convictionStrength={verdict.strength}
                   evidencePills={evidencePills}
                   activityLine={activityLine}
                   headlines={headlines[entry.ticker] ?? []}
@@ -815,6 +832,7 @@ export default function Watchlist({
                 sessionChangePercent={live?.label ? live.changePercent : null}
                 convictionState={verdict.state}
                 convictionTone={verdict.tone}
+                convictionStrength={verdict.strength}
                 evidencePills={evidencePills}
                 activityLine={activityLine}
                 headlines={headlines[entry.ticker] ?? []}

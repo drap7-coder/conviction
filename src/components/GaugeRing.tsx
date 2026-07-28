@@ -16,7 +16,7 @@ interface GaugeRingProps {
   /** Line under the ring (e.g. $332.50—$338.40). */
   detail?: string | null;
   /** Caption under detail (e.g. Day range). */
-  caption: string;
+  caption?: string;
   tone?: GaugeTone;
   size?: "sm" | "lg";
   /** Optional aria label override. */
@@ -88,7 +88,7 @@ export function GaugeRing({
         </div>
       </div>
       {detail ? <span className="quote-gauge-detail">{detail}</span> : null}
-      <span className="quote-gauge-caption">{caption}</span>
+      {caption ? <span className="quote-gauge-caption">{caption}</span> : null}
     </div>
   );
 }
