@@ -658,27 +658,6 @@ export default function Watchlist({
         />
       ) : null}
 
-      {!loading && entries.length > 0 ? (
-        <WatchlistNeedsAttention
-          entries={entries}
-          quotes={quotes}
-          shortInterest={shortInterest}
-          headlines={headlines}
-        />
-      ) : null}
-
-      {children}
-
-      {searchResult && (
-        <p className={`watchlist-message info`}>{searchResult.text}</p>
-      )}
-
-      <GuestModeBanner
-        authenticated={authenticated}
-        authConfigured={authConfigured}
-        accountLabel={accountLabel}
-      />
-
       <div className="watchlist-add">
         <div className="watchlist-input-wrap">
           <input
@@ -727,6 +706,27 @@ export default function Watchlist({
           {adding ? "Adding..." : "Track"}
         </button>
       </div>
+
+      {!loading && entries.length > 0 ? (
+        <WatchlistNeedsAttention
+          entries={entries}
+          quotes={quotes}
+          shortInterest={shortInterest}
+          headlines={headlines}
+        />
+      ) : null}
+
+      {children}
+
+      {searchResult && (
+        <p className={`watchlist-message info`}>{searchResult.text}</p>
+      )}
+
+      <GuestModeBanner
+        authenticated={authenticated}
+        authConfigured={authConfigured}
+        accountLabel={accountLabel}
+      />
 
       {addMessage && (
         <p className={`watchlist-message ${addMessage.type}`}>
