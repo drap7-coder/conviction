@@ -303,33 +303,48 @@ export default function RisingConvictionPage() {
               </button>
             </div>
           ) : (
-            <div className="watchlist-list">
-              {trending.map((idea) => {
-                const isTracked = trackedTickers.has(idea.ticker);
-                return (
-                  <TrendingCard
-                    key={idea.ticker}
-                    ticker={idea.ticker}
-                    companyName={idea.companyName}
-                    rank={idea.activityRank}
-                    activityLabel={idea.activityLabel}
-                    quote={idea.quote}
-                    sparkline={idea.sparkline ?? []}
-                    headlines={headlines[idea.ticker] ?? []}
-                    newsDriver={newsDrivers[idea.ticker] ?? null}
-                    isTracked={isTracked}
-                    isAdding={addingTicker === idea.ticker}
-                    onAdd={() => handleAddTrending(idea)}
-                    onRemove={() => {
-                      const next = new Set(trackedTickers);
-                      next.delete(idea.ticker);
-                      setTrackedTickers(next);
-                      fetch(`/api/watchlist/${idea.ticker}`, { method: "DELETE" }).catch(() => {});
-                    }}
-                  />
-                );
-              })}
-            </div>
+            <>
+              <div className="wl-list-header">
+                <div className="wl-list-title-row">
+                  <h3 className="wl-list-title">Trending</h3>
+                  <span className="wl-list-count">
+                    {trending.length} symbol{trending.length === 1 ? "" : "s"}
+                  </span>
+                </div>
+                <div className="wl-conviction-legend" aria-label="Conviction ring legend">
+                  <span><i className="quote-dot red" /> Distribution</span>
+                  <span><i className="quote-dot amber" /> Holding</span>
+                  <span><i className="quote-dot green" /> Accumulating</span>
+                </div>
+              </div>
+              <div className="watchlist-list">
+                {trending.map((idea) => {
+                  const isTracked = trackedTickers.has(idea.ticker);
+                  return (
+                    <TrendingCard
+                      key={idea.ticker}
+                      ticker={idea.ticker}
+                      companyName={idea.companyName}
+                      rank={idea.activityRank}
+                      activityLabel={idea.activityLabel}
+                      quote={idea.quote}
+                      sparkline={idea.sparkline ?? []}
+                      headlines={headlines[idea.ticker] ?? []}
+                      newsDriver={newsDrivers[idea.ticker] ?? null}
+                      isTracked={isTracked}
+                      isAdding={addingTicker === idea.ticker}
+                      onAdd={() => handleAddTrending(idea)}
+                      onRemove={() => {
+                        const next = new Set(trackedTickers);
+                        next.delete(idea.ticker);
+                        setTrackedTickers(next);
+                        fetch(`/api/watchlist/${idea.ticker}`, { method: "DELETE" }).catch(() => {});
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </>
           )}
         </section>
       </div>

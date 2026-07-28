@@ -1,28 +1,21 @@
 /**
- * ── TrendingCard (surface-specific) ──
+ * ── TrendingCard ──
  *
- * Composed from Phase 1 shared primitives.
- * Distinct from WatchlistCard: includes rank, momentum context,
- * and a different primary supporting fact (why it's trending).
- *
- * Uses the same quote formatting, conviction badge, evidence summary
- * engine, and missing-data behavior as Watchlist.
+ * Compact ring-list row matching Watchlist: ticker, day move,
+ * after-hours line, conviction ring, and a one-line move driver.
+ * Trending-specific: activity rank/label + add/remove watchlist.
  */
 
 "use client";
 
 import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
-import { LogoDisplay } from "@/app/components/LogoDisplay";
-import { NewsDriverBrief } from "@/app/components/NewsDriverBrief";
-import { SignalBlock } from "@/components/display/SignalBlock";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { getCardVerdict } from "@/lib/evidence/card-verdict";
-import { fmtPrice, fmtPercent, fmtMarketCap, isFiniteNumber } from "@/lib/display/format";
+import { isFiniteNumber } from "@/lib/display/format";
+import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import type { StockQuote, StockHistoryPoint } from "@/lib/market/quotes";
-
-// ── Types ──
 
 interface TrendingCardHeadline {
   headline: string;
@@ -45,26 +38,46 @@ interface TrendingCardProps {
   onRemove: () => void;
 }
 
-// ── Sparkline builder (duplicated from Watchlist.tsx — kept for now) ──
-
-function buildSparklinePath(points: StockHistoryPoint[]) {
-  if (points.length < 2) return "";
-  const width = 320;
-  const height = 96;
-  const padding = 6;
-  const closes = points.map((point) => point.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const spread = max - min || 1;
-
-  return points.map((point, index) => {
-    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
-    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join(" ");
+function formatPrice(value: number | null) {
+  if (!isFiniteNumber(value)) return "—";
+  return value.toLocaleString(undefined, {
+    maximumFractionDigits: value >= 100 ? 2 : 3,
+    minimumFractionDigits: value >= 1 ? 2 : 3,
+  });
 }
 
-// ── Component ──
+function formatPercent(value: number | null) {
+  if (!isFiniteNumber(value)) return "—";
+  return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+function formatSessionChange(change: number | null, percent: number | null) {
+  if (!isFiniteNumber(change) || !isFiniteNumber(percent)) return "—";
+  const sign = change > 0 ? "+" : change < 0 ? "-" : "";
+  return `${sign}${Math.abs(change).toFixed(2)} ${formatPercent(percent)}`;
+}
+
+function ringFromVerdict(tone: string, strength: number): {
+  tone: GaugeTone;
+  label: string;
+} {
+  if (tone === "positive") return { tone: "green", label: "Accumulating" };
+  if (tone === "negative") return { tone: "red", label: "Distribution" };
+  if (tone === "contested") return { tone: "amber", label: "Holding" };
+  return {
+    tone: strength >= 55 ? "amber" : "neutral",
+    label: strength >= 55 ? "Holding" : "Awaiting",
+  };
+}
+
+function driverLine(
+  newsDriver: NewsDriver | null,
+  headlines: TrendingCardHeadline[],
+): string | null {
+  if (newsDriver?.label) return newsDriver.label;
+  if (headlines[0]?.headline) return headlines[0].headline;
+  return null;
+}
 
 export function TrendingCard({
   ticker,
@@ -72,7 +85,6 @@ export function TrendingCard({
   rank,
   activityLabel,
   quote,
-  sparkline,
   headlines,
   newsDriver,
   isTracked,
@@ -81,20 +93,26 @@ export function TrendingCard({
   onRemove,
 }: TrendingCardProps) {
   const live = getLivePrice(quote);
-  const liveChange = live.change;
-  const livePrice = live.price;
-  const liveChangePercent = live.changePercent;
   const sessionLabel = live.label;
+  const hasExtendedSession = Boolean(sessionLabel && live.price !== null);
 
-  const chartPoints = sparkline;
-  const fiveDayChange = chartPoints.length >= 2
-    ? chartPoints[chartPoints.length - 1].close - chartPoints[0].close
-    : null;
-  const chartDirection = fiveDayChange === null
-    ? "neutral"
-    : fiveDayChange > 0
+  const dayChange = quote.change;
+  const dayChangePercent = quote.changePercent;
+  const dayChangeClass =
+    isFiniteNumber(dayChange) && dayChange > 0
       ? "positive"
-      : "negative";
+      : isFiniteNumber(dayChange) && dayChange < 0
+        ? "negative"
+        : "neutral";
+
+  const sessionChange = hasExtendedSession ? live.change : null;
+  const sessionChangePercent = hasExtendedSession ? live.changePercent : null;
+  const sessionChangeClass =
+    isFiniteNumber(sessionChange) && sessionChange > 0
+      ? "positive"
+      : isFiniteNumber(sessionChange) && sessionChange < 0
+        ? "negative"
+        : "neutral";
 
   const verdict = getCardVerdict({
     ticker,
@@ -102,19 +120,10 @@ export function TrendingCard({
     addedAt: new Date().toISOString(),
     status: "active",
   }, quote);
+  const ring = ringFromVerdict(verdict.tone, verdict.strength);
+  const driver = driverLine(newsDriver, headlines);
 
-  const sparklinePath = buildSparklinePath(chartPoints);
-  const marketCapText = fmtMarketCap(quote.marketCap);
-
-  const arrow = liveChange !== null
-    ? (liveChange > 0 ? "▲" : liveChange < 0 ? "▼" : null)
-    : null;
-  const arrowClass = liveChange !== null && liveChange > 0 ? "up" : liveChange !== null && liveChange < 0 ? "down" : "";
-  const hasExtendedSession = !!sessionLabel && quote.price !== null;
-
-  // ── Kebab menu ──
   const [menuOpen, setMenuOpen] = useState(false);
-  const [confirmRemove, setConfirmRemove] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const kebabRef = useRef<HTMLButtonElement>(null);
 
@@ -128,7 +137,6 @@ export function TrendingCard({
         !kebabRef.current.contains(e.target as Node)
       ) {
         setMenuOpen(false);
-        setConfirmRemove(false);
       }
     }
     document.addEventListener("mousedown", handleClick);
@@ -139,81 +147,58 @@ export function TrendingCard({
     e.preventDefault();
     e.stopPropagation();
     setMenuOpen((v) => !v);
-    setConfirmRemove(false);
-  }, []);
-
-  const handleRemoveClick = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setConfirmRemove(true);
-  }, []);
-
-  const handleConfirmRemove = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setMenuOpen(false);
-    setConfirmRemove(false);
-    onRemove();
-  }, [onRemove]);
-
-  const handleCancelRemove = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setConfirmRemove(false);
-  }, []);
-
-  const handleViewDetails = useCallback(() => {
-    setMenuOpen(false);
   }, []);
 
   return (
     <div className="terminal-card-wrap group">
-      <Link
-        href={`/companies/${ticker}`}
-        className={`watchlist-row watchlist-row-${verdict.tone}`}
-      >
-        <div className="watchlist-row-main">
-          <div className="watchlist-row-company">
-            <LogoDisplay ticker={ticker} size="card" />
-            <div>
-              <strong className="watchlist-row-ticker">{ticker}</strong>
-              <span className="watchlist-row-name">{companyName}</span>
-            </div>
-          </div>
-          <div className="watchlist-row-move">
-            <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
-            <span className="watchlist-row-move-amounts">
-              <strong>
-                {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
-                {livePrice != null
-                  ? `$${fmtPrice(livePrice)}`
-                  : "—"}
+      <div className="terminal-card-inner">
+        <Link
+          href={`/companies/${ticker}`}
+          className="wl-ring-row"
+          title={`${companyName} — open dashboard`}
+        >
+          <div className="wl-ring-row-main">
+            <div className="wl-ring-identity">
+              <strong className="wl-ring-ticker">
+                <span className="tr-ring-rank">#{rank}</span> {ticker}
               </strong>
-              <span className={"watchlist-row-change " + (isFiniteNumber(liveChange) && liveChange > 0 ? "positive" : isFiniteNumber(liveChange) && liveChange < 0 ? "negative" : "neutral")}>
-                {isFiniteNumber(liveChange) && isFiniteNumber(liveChangePercent)
-                  ? `${liveChange > 0 ? "+" : liveChange < 0 ? "-" : ""}$${Math.abs(liveChange).toFixed(2)} · ${fmtPercent(liveChangePercent)}`
-                  : "—"}
-              </span>
-            </span>
-            {hasExtendedSession && (
-              <span className="watchlist-row-session">
-                <span className="watchlist-row-session-label">At Close · Today</span>
-                <span className="watchlist-row-session-price">${fmtPrice(quote.price)}</span>
-                {isFiniteNumber(quote.changePercent) && (
-                  <span className={`watchlist-row-session-change ${isFiniteNumber(quote.change) && quote.change! >= 0 ? "positive" : "negative"}`}>
-                    {fmtPercent(quote.changePercent)}
-                  </span>
-                )}
-              </span>
-            )}
-          </div>
+              <span className="wl-ring-name">{companyName}</span>
+              <span className="tr-ring-activity">{activityLabel}</span>
+            </div>
 
-          {/* ── State area + kebab ── */}
-          <div className="watchlist-row-state-area">
-            <span className={`watchlist-row-state watchlist-row-state-${verdict.tone}`}>
-              #{rank} {activityLabel}
-            </span>
-            <div className="watchlist-kebab-wrap">
+            <div className="wl-ring-price">
+              <strong className="wl-ring-last">
+                {quote.price !== null ? `$${formatPrice(quote.price)}` : "—"}
+              </strong>
+              <span className={`wl-ring-day-change ${dayChangeClass}`}>
+                {formatPercent(dayChangePercent)}
+              </span>
+              {hasExtendedSession ? (
+                <span className={`wl-ring-session ${sessionChangeClass}`}>
+                  <span className="wl-ring-session-icon" aria-hidden="true">
+                    {sessionLabel === "Pre-Market" ? "◎" : "☀"}
+                  </span>
+                  <span className="wl-ring-session-price">
+                    ${formatPrice(live.price)}
+                  </span>
+                  <span className="wl-ring-session-move">
+                    {formatSessionChange(sessionChange, sessionChangePercent)}
+                  </span>
+                </span>
+              ) : null}
+            </div>
+
+            <div className="wl-ring-gauge">
+              <GaugeRing
+                size="sm"
+                value={verdict.strength}
+                label={String(verdict.strength)}
+                tone={ring.tone}
+                ariaLabel={`Conviction ${verdict.strength}: ${ring.label}`}
+              />
+            </div>
+
+            <div className="wl-ring-menu">
               <button
                 ref={kebabRef}
                 className="watchlist-kebab"
@@ -223,122 +208,57 @@ export function TrendingCard({
               >
                 ⋮
               </button>
-              {menuOpen && (
+              {menuOpen ? (
                 <div ref={menuRef} className="watchlist-kebab-menu" role="menu">
-                  {confirmRemove ? (
-                    <>
-                      <span className="watchlist-kebab-confirm-text">Remove {ticker}?</span>
-                      <button
-                        className="watchlist-kebab-item watchlist-kebab-item-danger"
-                        onClick={handleConfirmRemove}
-                        role="menuitem"
-                      >
-                        Yes, remove
-                      </button>
-                      <button
-                        className="watchlist-kebab-item"
-                        onClick={handleCancelRemove}
-                        role="menuitem"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : isTracked ? (
-                    <>
-                      <Link
-                        href={`/companies/${ticker}`}
-                        className="watchlist-kebab-item"
-                        onClick={handleViewDetails}
-                        role="menuitem"
-                      >
-                        View details
-                      </Link>
-                      <button
-                        className="watchlist-kebab-item watchlist-kebab-item-danger"
-                        onClick={handleRemoveClick}
-                        role="menuitem"
-                      >
-                        Remove from watchlist
-                      </button>
-                    </>
+                  <Link
+                    href={`/companies/${ticker}`}
+                    className="watchlist-kebab-item"
+                    onClick={() => setMenuOpen(false)}
+                    role="menuitem"
+                  >
+                    Open dashboard
+                  </Link>
+                  {isTracked ? (
+                    <button
+                      className="watchlist-kebab-item watchlist-kebab-item-danger"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        onRemove();
+                      }}
+                      role="menuitem"
+                    >
+                      Remove from watchlist
+                    </button>
                   ) : (
-                    <>
-                      <Link
-                        href={`/companies/${ticker}`}
-                        className="watchlist-kebab-item"
-                        onClick={handleViewDetails}
-                        role="menuitem"
-                      >
-                        View details
-                      </Link>
-                      <button
-                        className="watchlist-kebab-item"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setMenuOpen(false);
-                          onAdd();
-                        }}
-                        role="menuitem"
-                        disabled={isAdding}
-                      >
-                        {isAdding ? "Adding..." : "Add to watchlist"}
-                      </button>
-                    </>
+                    <button
+                      className="watchlist-kebab-item"
+                      disabled={isAdding}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setMenuOpen(false);
+                        onAdd();
+                      }}
+                      role="menuitem"
+                    >
+                      {isAdding ? "Adding…" : "Add to watchlist"}
+                    </button>
                   )}
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
-        </div>
 
-        {sparklinePath && (
-          <div className={`watchlist-row-chart price-chart ${chartDirection}`} aria-label={`${ticker} five-day chart`}>
-            <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
-              <path className="price-chart-glow" d={sparklinePath} />
-              <path className="price-chart-line" d={sparklinePath} />
-            </svg>
-            <span>5D</span>
-          </div>
-        )}
-
-        {headlines.length > 0 || newsDriver ? (
-          <NewsDriverBrief ticker={ticker} driver={newsDriver} headlines={headlines} compact />
-        ) : (
-          <SignalBlock
-            compact
-            conclusion={
-              verdict.state === "Strong"
-                ? "Big funds look supportive"
-                : verdict.state === "Weak"
-                  ? "Evidence looks soft"
-                  : verdict.state === "Mixed"
-                    ? "Signals are mixed"
-                    : "Still waiting on clearer evidence"
-            }
-            evidence={verdict.insight}
-            dateLabel={verdict.recency}
-            source={verdict.source}
-            strength={
-              verdict.state === "Strong"
-                ? "strong"
-                : verdict.state === "Weak"
-                  ? "weak"
-                  : verdict.state === "Mixed"
-                    ? "mixed"
-                    : "awaiting"
-            }
-          />
-        )}
-
-        <div className="watchlist-row-evidence">
-          {isFiniteNumber(quote.marketCap) && (
-            <span className="watchlist-row-evidence-item">
-              <b>Mkt Cap</b> · {marketCapText}
-            </span>
-          )}
-        </div>
-      </Link>
+          {driver ? (
+            <p className="wl-ring-driver">
+              <span className="wl-ring-driver-label">What’s driving the move</span>
+              <span className="wl-ring-driver-text">{driver}</span>
+            </p>
+          ) : null}
+        </Link>
+      </div>
     </div>
   );
 }
