@@ -29,8 +29,9 @@ export function toTechnicalsCategoryScore(
   now = new Date(),
 ): CategoryScore {
   const updatedAt = input.fetchedAt ?? now.toISOString();
+  const points = Array.isArray(input.points) ? input.points : [];
   const tech = deriveTechnicalState(
-    input.points ?? [],
+    points,
     input.currentPrice ?? null,
     input.fiftyTwoWeekHigh ?? null,
     input.fiftyTwoWeekLow ?? null,
@@ -48,8 +49,8 @@ export function toTechnicalsCategoryScore(
   }
 
   const sourceDate =
-    input.points.length > 0
-      ? input.points[input.points.length - 1]?.date ?? null
+    points.length > 0
+      ? points[points.length - 1]?.date ?? null
       : null;
 
   if (parts.length === 0 || tech.label === "Insufficient Data") {

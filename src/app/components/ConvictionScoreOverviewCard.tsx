@@ -79,7 +79,11 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
               controller.signal,
             ).catch(() => null),
             fetchJsonWithTimeout<{
-              history?: StockHistoryPoint[];
+              history?: StockHistoryPoint[] | {
+                points?: StockHistoryPoint[];
+                fiftyTwoWeekHigh?: number | null;
+                fiftyTwoWeekLow?: number | null;
+              };
               fetchedAt?: string;
             }>(
               `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
@@ -126,11 +130,25 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
           } satisfies EarningsEvidence);
 
         const quote = quotesRes?.quotes?.[0] ?? null;
+        const historyPayload = historyRes?.history;
+        const historyPoints = Array.isArray(historyPayload)
+          ? historyPayload
+          : Array.isArray(historyPayload?.points)
+            ? historyPayload.points
+            : [];
         const technicals = {
-          points: historyRes?.history ?? [],
+          points: historyPoints,
           currentPrice: quote?.price ?? null,
-          fiftyTwoWeekHigh: quote?.fiftyTwoWeekHigh ?? null,
-          fiftyTwoWeekLow: quote?.fiftyTwoWeekLow ?? null,
+          fiftyTwoWeekHigh:
+            quote?.fiftyTwoWeekHigh
+            ?? (historyPayload && !Array.isArray(historyPayload)
+              ? historyPayload.fiftyTwoWeekHigh ?? null
+              : null),
+          fiftyTwoWeekLow:
+            quote?.fiftyTwoWeekLow
+            ?? (historyPayload && !Array.isArray(historyPayload)
+              ? historyPayload.fiftyTwoWeekLow ?? null
+              : null),
           fetchedAt: historyRes?.fetchedAt ?? null,
         };
 
