@@ -7,6 +7,8 @@ import { fmtPrice, fmtPercent, fmtCompactCurrency, isFiniteNumber } from "@/lib/
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { GaugeRing } from "@/components/GaugeRing";
 import { NewsDriverBrief } from "@/app/components/NewsDriverBrief";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
@@ -18,6 +20,15 @@ import {
   type ConvictionRingScore,
 } from "@/lib/market/quote-gauges";
 
+const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
+
+interface BrowserWatchlistEntry {
+  ticker: string;
+  companyName: string;
+  addedAt: string;
+  status: "active" | "unsupported" | "error";
+}
+
 interface QuoteResult {
   quote: StockQuote;
   companyName: string;
@@ -27,21 +38,31 @@ interface QuoteResult {
   conviction: ConvictionRingScore;
 }
 
-function buildSparklinePath(points: Array<{ close: number }>) {
-  if (points.length < 2) return "";
-  const width = 120;
-  const height = 44;
-  const padding = 2;
-  const closes = points.map((point) => point.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const spread = max - min || 1;
+function readBrowserWatchlist(): BrowserWatchlistEntry[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(WATCHLIST_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((entry): entry is BrowserWatchlistEntry =>
+      typeof entry?.ticker === "string" &&
+      typeof entry?.companyName === "string" &&
+      typeof entry?.addedAt === "string" &&
+      ["active", "unsupported", "error"].includes(entry?.status),
+    );
+  } catch {
+    return [];
+  }
+}
 
-  return points.map((point, index) => {
-    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
-    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join(" ");
+function writeBrowserWatchlist(entries: BrowserWatchlistEntry[]) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(entries));
+  } catch {
+    // best-effort
+  }
 }
 
 function marketStateLabel(state: string | null): string {
@@ -77,6 +98,9 @@ export default function QuotesPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QuoteResult | null>(null);
   const [convictionLoading, setConvictionLoading] = useState(false);
+  const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
+  const [addingTicker, setAddingTicker] = useState(false);
+  const [watchlistMessage, setWatchlistMessage] = useState<string | null>(null);
 
   const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -84,6 +108,79 @@ export default function QuotesPage() {
   const [suggestStatus, setSuggestStatus] = useState<"idle" | "results" | "empty">("idle");
   const suggestDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const suggestCacheRef = useRef<Map<string, CompanySuggestion[]>>(new Map());
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadWatchlist() {
+      try {
+        const data = await fetchJsonWithTimeout<{
+          authenticated?: boolean;
+          entries?: BrowserWatchlistEntry[];
+          guestEntries?: BrowserWatchlistEntry[];
+        }>("/api/watchlist", 8_000);
+        if (cancelled) return;
+        const entries = data.authenticated
+          ? data.entries ?? []
+          : data.guestEntries ?? data.entries ?? readBrowserWatchlist();
+        setTrackedTickers(new Set(entries.map((entry) => entry.ticker)));
+      } catch {
+        if (!cancelled) {
+          setTrackedTickers(new Set(readBrowserWatchlist().map((entry) => entry.ticker)));
+        }
+      }
+    }
+    void loadWatchlist();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleTrack = useCallback(async () => {
+    if (!result) return;
+    const ticker = result.quote.ticker;
+    setWatchlistMessage(null);
+    setAddingTicker(true);
+    try {
+      const response = await fetch("/api/watchlist/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticker }),
+      });
+      const data = await response.json();
+      if (!data.success) {
+        setWatchlistMessage(data.error || `Could not add ${ticker}`);
+        return;
+      }
+      setTrackedTickers((current) => new Set([...current, data.added?.ticker ?? ticker]));
+      if (data.persistence === "browser" && data.added) {
+        const currentEntries = readBrowserWatchlist();
+        writeBrowserWatchlist([
+          ...currentEntries.filter((entry) => entry.ticker !== data.added.ticker),
+          data.added as BrowserWatchlistEntry,
+        ]);
+      }
+      setWatchlistMessage(`${ticker} added to Watchlist`);
+    } catch {
+      setWatchlistMessage(`Could not add ${ticker}`);
+    } finally {
+      setAddingTicker(false);
+    }
+  }, [result]);
+
+  const handleUntrack = useCallback(async () => {
+    if (!result) return;
+    const ticker = result.quote.ticker;
+    setTrackedTickers((current) => {
+      const next = new Set(current);
+      next.delete(ticker);
+      return next;
+    });
+    writeBrowserWatchlist(readBrowserWatchlist().filter((entry) => entry.ticker !== ticker));
+    setWatchlistMessage(`${ticker} removed from Watchlist`);
+    try {
+      await fetch(`/api/watchlist/${ticker}`, { method: "DELETE" });
+    } catch {
+      // optimistic local remove already applied
+    }
+  }, [result]);
 
   const lookupTicker = useCallback(async (ticker: string, companyNameHint?: string) => {
     const cleaned = ticker.trim().toUpperCase();
@@ -94,6 +191,7 @@ export default function QuotesPage() {
     setResult(null);
     setShowSuggestions(false);
     setConvictionLoading(true);
+    setWatchlistMessage(null);
 
     try {
       const [quoteRes, newsRes, shortRes] = await Promise.all([
@@ -306,10 +404,7 @@ export default function QuotesPage() {
   const volumePct = result
     ? volumeVsAverage(result.quote.volume, result.averageVolume)
     : null;
-  const sparklinePath = result ? buildSparklinePath(result.quote.sparkline) : "";
-  const sparkDirection = live && isFiniteNumber(live.change)
-    ? (live.change >= 0 ? "positive" : "negative")
-    : "neutral";
+  const isTracked = result ? trackedTickers.has(result.quote.ticker) : false;
 
   return (
     <div>
@@ -379,13 +474,31 @@ export default function QuotesPage() {
               </span>
             </div>
 
-            <div className="quote-identity">
-              <h1 className="quote-ticker">{result.quote.ticker}</h1>
-              <p className="quote-company">
-                {result.companyName}
-                {result.quote.exchange ? ` · ${result.quote.exchange}` : ""}
-              </p>
+            <div className="quote-identity-row">
+              <LogoDisplay ticker={result.quote.ticker} size="detail" />
+              <div className="quote-identity">
+                <h1 className="quote-ticker">{result.quote.ticker}</h1>
+                <p className="quote-company">
+                  {result.companyName}
+                  {result.quote.exchange ? ` · ${result.quote.exchange}` : ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={`quote-track-button${isTracked ? " tracked" : ""}`}
+                disabled={addingTicker}
+                onClick={() => {
+                  if (isTracked) void handleUntrack();
+                  else void handleTrack();
+                }}
+              >
+                {addingTicker ? "Saving…" : isTracked ? "Tracked" : "Add to Watchlist"}
+              </button>
             </div>
+
+            {watchlistMessage ? (
+              <p className="quote-track-message">{watchlistMessage}</p>
+            ) : null}
 
             <div className="quote-price-row">
               <div className="quote-price-block">
@@ -407,15 +520,17 @@ export default function QuotesPage() {
                   </span>
                 ) : null}
               </div>
-              {sparklinePath ? (
-                <div className={`quote-sparkline ${sparkDirection}`} aria-hidden="true">
-                  <svg viewBox="0 0 120 44" preserveAspectRatio="none">
-                    <path d={sparklinePath} />
-                  </svg>
-                </div>
-              ) : null}
             </div>
           </header>
+
+          {/* ── Chart with range tabs ── */}
+          <section className="quote-card quote-chart-card" aria-label="Price chart">
+            <PriceTrendCard
+              key={result.quote.ticker}
+              ticker={result.quote.ticker}
+              showQuote={false}
+            />
+          </section>
 
           {/* ── Signal gauges ── */}
           <section className="quote-card" aria-label="Signal gauges">

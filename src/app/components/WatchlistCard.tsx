@@ -216,7 +216,7 @@ export function WatchlistCard({
 
   return (
     <div
-      className="terminal-card-wrap group"
+      className={`terminal-card-wrap group${isSwiping ? " is-swiping" : ""}`}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}

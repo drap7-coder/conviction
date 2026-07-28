@@ -1374,15 +1374,16 @@ details > summary::before {
 
 .wl-ring-row {
   display: block;
-  padding: 14px 4px;
+  padding: 16px 8px 14px;
   border-bottom: 1px solid var(--border);
   text-decoration: none;
   color: inherit;
+  background: var(--bg);
   transition: background-color 0.12s;
 }
 
 .wl-ring-row:hover {
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background: color-mix(in srgb, var(--surface) 85%, var(--bg));
 }
 
 .wl-ring-row.focused-card {
@@ -1392,15 +1393,16 @@ details > summary::before {
 
 .wl-ring-row-main {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: minmax(0, 1fr) minmax(108px, auto) 56px 28px;
   align-items: center;
-  gap: 10px 12px;
+  column-gap: 14px;
+  row-gap: 0;
 }
 
 .wl-ring-identity {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -1409,7 +1411,7 @@ details > summary::before {
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--ink);
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .wl-ring-name {
@@ -1418,14 +1420,16 @@ details > summary::before {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 1.25;
 }
 
 .wl-ring-price {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
-  min-width: 92px;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
 }
 
 .wl-ring-last {
@@ -1433,13 +1437,14 @@ details > summary::before {
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--ink);
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .wl-ring-day-change {
   font-size: 0.82rem;
   font-weight: 700;
   font-family: var(--font-mono);
+  line-height: 1.2;
 }
 
 .wl-ring-day-change.positive,
@@ -1461,22 +1466,28 @@ details > summary::before {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 2px;
-  font-size: 0.72rem;
+  margin-top: 1px;
+  font-size: 0.7rem;
   font-weight: 600;
   font-family: var(--font-mono);
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .wl-ring-session-icon {
   color: var(--amber);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
 }
 
 .wl-ring-gauge {
   width: 56px;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.wl-ring-gauge .quote-gauge {
+  gap: 0;
 }
 
 .wl-ring-gauge .quote-gauge-sm .quote-gauge-value {
@@ -1493,14 +1504,18 @@ details > summary::before {
   width: 28px;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
 }
 
 .wl-ring-driver {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  margin: 10px 0 0;
-  padding-right: 40px;
+  gap: 4px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  padding-right: 44px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
 }
 
 .wl-ring-driver-label {
@@ -1521,7 +1536,39 @@ details > summary::before {
   overflow: hidden;
 }
 
+/* Keep swipe delete hidden until the row is actively swiped */
+.watchlist-list .terminal-card-wrap {
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.watchlist-list .terminal-card-inner {
+  height: auto;
+  background: var(--bg);
+  border-radius: 0;
+}
+
+.watchlist-list .terminal-card-swipe-surface {
+  opacity: 0;
+  pointer-events: none;
+  border-radius: 0;
+}
+
+.watchlist-list .terminal-card-wrap.is-swiping .terminal-card-swipe-surface {
+  opacity: 1;
+}
+
 @media (max-width: 480px) {
+  .wl-ring-row {
+    padding: 14px 2px 12px;
+  }
+
+  .wl-ring-row-main {
+    grid-template-columns: minmax(0, 1fr) minmax(96px, auto) 52px 24px;
+    column-gap: 10px;
+  }
+
   .wl-ring-driver {
     padding-right: 0;
   }
@@ -1545,10 +1592,6 @@ details > summary::before {
   background: var(--surface-elevated);
   border-color: var(--border-active);
   transform: translateY(-1px);
-}
-
-.watchlist-list .terminal-card-inner {
-  height: 100%;
 }
 
 .watchlist-row-main {
@@ -8521,8 +8564,65 @@ details > summary::before {
   letter-spacing: 0.04em;
 }
 
-.quote-identity {
+.quote-identity-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-bottom: 14px;
+}
+
+.quote-identity {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.quote-track-button {
+  flex-shrink: 0;
+  min-height: 36px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-active);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.quote-track-button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.quote-track-button.tracked {
+  background: var(--green-dim);
+  border-color: color-mix(in srgb, var(--green) 45%, transparent);
+  color: var(--green);
+}
+
+.quote-track-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.quote-track-message {
+  margin: -6px 0 12px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.quote-chart-card {
+  padding: 12px 14px 14px;
+}
+
+.quote-chart-card .price-trend-card {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
 .quote-ticker {
@@ -8887,6 +8987,14 @@ details > summary::before {
   }
 
   .market-lookup-button {
+    width: 100%;
+  }
+
+  .quote-identity-row {
+    flex-wrap: wrap;
+  }
+
+  .quote-track-button {
     width: 100%;
   }
 
