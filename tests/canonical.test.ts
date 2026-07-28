@@ -10,6 +10,8 @@ import type { StockQuote } from "@/lib/market/quotes";
 function makeQuote(overrides: Partial<StockQuote> = {}): StockQuote {
   return {
     ticker: "TEST",
+    name: "Test Co",
+    exchange: "NASDAQ",
     price: 100,
     previousClose: 98,
     change: 2,
@@ -19,6 +21,10 @@ function makeQuote(overrides: Partial<StockQuote> = {}): StockQuote {
     currency: "USD",
     marketState: "REGULAR",
     marketCap: 10_000_000_000,
+    dayHigh: 101,
+    dayLow: 97,
+    fiftyTwoWeekHigh: 120,
+    fiftyTwoWeekLow: 80,
     preMarketPrice: null,
     preMarketChange: null,
     preMarketChangePercent: null,

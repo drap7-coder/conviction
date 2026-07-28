@@ -8200,13 +8200,13 @@ details > summary::before {
   color: var(--ink);
 }
 
-/* ── Markets lookup page ── */
+/* ── Quotes lookup + gauge page ── */
 
 .market-lookup-form {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   width: 100%;
 }
 
@@ -8280,148 +8280,354 @@ details > summary::before {
   font-size: 0.9rem;
 }
 
-/* ── Quote card ── */
-
-.market-result {
+.quote-page {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
 }
 
-.market-quote-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
+.quote-header {
+  padding: 4px 2px 8px;
 }
 
-.market-quote-header {
-  margin-bottom: 12px;
-}
-
-.market-quote-header > div {
+.quote-header-top {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
 }
 
-.market-quote-ticker {
-  font-size: 1.4rem;
+.quote-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.quote-session-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--green-dim);
+  color: var(--green);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.quote-identity {
+  margin-bottom: 14px;
+}
+
+.quote-ticker {
+  margin: 0;
+  font-size: 2rem;
   font-weight: 800;
-  font-family: var(--font-mono);
-  letter-spacing: -0.01em;
+  letter-spacing: -0.03em;
   color: var(--ink);
+  line-height: 1.05;
 }
 
-.market-quote-state {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-}
-
-.market-quote-price-area {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-
-.market-quote-price {
-  font-size: 2.2rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  font-family: var(--font-mono);
-}
-
-.market-quote-price.up { color: var(--green); }
-.market-quote-price.down { color: var(--red); }
-.market-quote-price.neutral { color: var(--ink); }
-
-.market-quote-arrow {
-  font-size: 1rem;
-}
-
-.market-quote-arrow.up { color: var(--green); }
-.market-quote-arrow.down { color: var(--red); }
-
-.market-quote-change {
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.market-quote-change.up { color: var(--green); }
-.market-quote-change.down { color: var(--red); }
-
-.market-quote-session {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding: 8px 12px;
-  background: var(--bg);
-  border-radius: var(--radius);
-}
-
-.market-quote-session-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--amber-dim);
-  color: var(--amber);
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-.market-quote-session-close {
-  font-size: 0.82rem;
+.quote-company {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
   color: var(--muted);
 }
 
-.market-quote-details {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+.quote-price-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.market-quote-detail {
+.quote-price-block {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  min-width: 0;
 }
 
-.market-quote-detail-label {
-  font-size: 0.72rem;
-  color: var(--quiet);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.market-quote-detail-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ink);
+.quote-price {
+  font-size: 2.1rem;
+  font-weight: 800;
   font-family: var(--font-mono);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
 }
 
-/* ── News section ── */
+.quote-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
 
-.market-news-section {
+.quote-change.up { color: var(--green); }
+.quote-change.down { color: var(--red); }
+.quote-change.neutral { color: var(--muted); }
+
+.quote-change-arrow {
+  font-size: 0.75rem;
+}
+
+.quote-session-note {
+  font-size: 0.78rem;
+  color: var(--quiet);
+}
+
+.quote-sparkline {
+  width: 120px;
+  height: 44px;
+  flex-shrink: 0;
+}
+
+.quote-sparkline svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.quote-sparkline path {
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.quote-sparkline.positive path { stroke: var(--green); }
+.quote-sparkline.negative path { stroke: var(--red); }
+.quote-sparkline.neutral path { stroke: var(--muted); }
+
+.quote-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 24px;
+  border-radius: 18px;
+  padding: 16px 16px 18px;
 }
 
-.market-news-heading {
+.quote-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.quote-card-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.quote-card-title {
   font-size: 1rem;
   font-weight: 700;
-  margin: 0 0 14px 0;
   color: var(--ink);
+}
+
+.quote-card-meta {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.quote-signal-gauges {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quote-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.quote-gauge-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.quote-gauge-svg {
+  display: block;
+}
+
+.quote-gauge-track {
+  stroke: #2a2a2a;
+}
+
+.quote-gauge-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.quote-gauge-value {
+  font-family: var(--font-mono);
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.quote-gauge-sm .quote-gauge-value {
+  font-size: 0.92rem;
+}
+
+.quote-gauge-lg .quote-gauge-value {
+  font-size: 2.4rem;
+}
+
+.quote-gauge-sublabel {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quote-gauge-tone-green .quote-gauge-sublabel { color: var(--green); }
+.quote-gauge-tone-amber .quote-gauge-sublabel { color: var(--amber); }
+.quote-gauge-tone-red .quote-gauge-sublabel { color: var(--red); }
+.quote-gauge-tone-neutral .quote-gauge-sublabel { color: var(--muted); }
+
+.quote-gauge-detail {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quote-gauge-caption {
+  font-size: 0.7rem;
+  color: var(--quiet);
+}
+
+.quote-conviction-card {
+  padding-bottom: 16px;
+}
+
+.quote-conviction-ring-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 12px;
+}
+
+.quote-conviction-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 16px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.quote-conviction-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quote-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.quote-dot.red { background: var(--red); }
+.quote-dot.amber { background: var(--amber); }
+.quote-dot.green { background: var(--green); }
+
+.quote-conviction-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quote-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bg) 65%, var(--surface));
+  text-align: center;
+}
+
+.quote-stat strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.quote-stat strong.up { color: var(--green); }
+.quote-stat strong.down { color: var(--red); }
+.quote-stat strong.teal { color: var(--accent); }
+
+.quote-stat span {
+  font-size: 0.72rem;
+  color: var(--quiet);
+  line-height: 1.25;
+}
+
+.quote-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.quote-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.quote-detail-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.quote-detail-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .market-news-list {
@@ -8472,8 +8678,6 @@ details > summary::before {
   white-space: nowrap;
 }
 
-/* ── Markets page responsive ── */
-
 @media (max-width: 600px) {
   .market-lookup-form {
     flex-direction: column;
@@ -8483,11 +8687,20 @@ details > summary::before {
     width: 100%;
   }
 
-  .market-quote-price {
-    font-size: 1.6rem;
+  .quote-ticker {
+    font-size: 1.7rem;
   }
 
-  .market-quote-details {
-    grid-template-columns: 1fr 1fr;
+  .quote-price {
+    font-size: 1.7rem;
+  }
+
+  .quote-sparkline {
+    width: 96px;
+    height: 40px;
+  }
+
+  .quote-gauge-detail {
+    font-size: 0.64rem;
   }
 }

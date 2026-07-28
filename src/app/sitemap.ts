@@ -32,7 +32,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
-      url: `${SITE_URL}/markets`,
+      url: `${SITE_URL}/quotes`,
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.8,

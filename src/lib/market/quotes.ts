@@ -2,6 +2,8 @@ import { fetchWithTimeout } from "@/lib/request-timeout";
 
 export interface StockQuote {
   ticker: string;
+  name: string | null;
+  exchange: string | null;
   price: number | null;
   previousClose: number | null;
   change: number | null;
@@ -11,6 +13,10 @@ export interface StockQuote {
   currency: string | null;
   marketState: string | null;
   marketCap: number | null;
+  dayHigh: number | null;
+  dayLow: number | null;
+  fiftyTwoWeekHigh: number | null;
+  fiftyTwoWeekLow: number | null;
   /** Pre-market price (populated ~4:00–9:30am ET) */
   preMarketPrice: number | null;
   preMarketChange: number | null;
@@ -48,9 +54,15 @@ export interface StockHistory {
 interface YahooChartResult {
   meta?: {
     symbol?: string;
+    shortName?: string;
+    longName?: string;
+    exchangeName?: string;
+    fullExchangeName?: string;
     regularMarketPrice?: number;
     chartPreviousClose?: number;
     regularMarketVolume?: number;
+    regularMarketDayHigh?: number;
+    regularMarketDayLow?: number;
     fiftyTwoWeekHigh?: number;
     fiftyTwoWeekLow?: number;
     marketCap?: number;
@@ -213,6 +225,8 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
 
   return {
     ticker,
+    name: result?.meta?.longName?.trim() || result?.meta?.shortName?.trim() || null,
+    exchange: result?.meta?.fullExchangeName?.trim() || result?.meta?.exchangeName?.trim() || null,
     price,
     previousClose,
     change,
@@ -224,6 +238,10 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     currency: result?.meta?.currency ?? null,
     marketState,
     marketCap: toFiniteNumber(result?.meta?.marketCap),
+    dayHigh: toFiniteNumber(result?.meta?.regularMarketDayHigh),
+    dayLow: toFiniteNumber(result?.meta?.regularMarketDayLow),
+    fiftyTwoWeekHigh: toFiniteNumber(result?.meta?.fiftyTwoWeekHigh),
+    fiftyTwoWeekLow: toFiniteNumber(result?.meta?.fiftyTwoWeekLow),
     preMarketPrice,
     preMarketChange,
     preMarketChangePercent,
