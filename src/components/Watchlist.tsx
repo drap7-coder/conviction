@@ -5,7 +5,6 @@ import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } fro
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
-import { WatchlistNeedsAttention } from "@/app/components/WatchlistNeedsAttention";
 import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
@@ -706,15 +705,6 @@ export default function Watchlist({
           {adding ? "Adding..." : "Track"}
         </button>
       </div>
-
-      {!loading && entries.length > 0 ? (
-        <WatchlistNeedsAttention
-          entries={entries}
-          quotes={quotes}
-          shortInterest={shortInterest}
-          headlines={headlines}
-        />
-      ) : null}
 
       {children}
 
