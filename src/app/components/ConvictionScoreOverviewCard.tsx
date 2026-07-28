@@ -1,6 +1,9 @@
 /**
- * Fetches institutional + earnings evidence, builds CategoryScores,
+ * Fetches wired evidence categories, builds CategoryScores,
  * and renders the composite Conviction Score overview.
+ *
+ * Wired: institutional, earnings, technicals, short_interest, political
+ * Unwired: social
  */
 
 "use client";
@@ -13,10 +16,14 @@ import {
   type ConvictionScoreResult,
 } from "@/lib/conviction/score";
 import type { EarningsEvidence } from "@/lib/earnings/types";
+import type { ShortInterestSummary } from "@/lib/market/short-interest";
+import type { StockHistoryPoint } from "@/lib/market/technical-state";
+import type { StockQuote } from "@/lib/market/quotes";
 import {
   scoreInstitutionalConviction,
   type ConvictionRingScore,
 } from "@/lib/market/quote-gauges";
+import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 
 const EMPTY_INSTITUTIONAL: ConvictionRingScore = {
@@ -62,23 +69,47 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
       setInstitutional(EMPTY_INSTITUTIONAL);
 
       try {
-        const [instRes, earningsRes] = await Promise.all([
-          fetchJsonWithTimeout<{
-            results?: InstitutionalAccumulation[];
-            status?: string;
-            fetchedAt?: string;
-            message?: string;
-          }>(
-            `/api/evidence/institutional?ticker=${encodeURIComponent(ticker)}`,
-            26_000,
-            controller.signal,
-          ).catch(() => null),
-          fetchJsonWithTimeout<EarningsEvidence>(
-            `/api/evidence/earnings?ticker=${encodeURIComponent(ticker)}`,
-            14_000,
-            controller.signal,
-          ).catch(() => null),
-        ]);
+        const [instRes, earningsRes, shortRes, politicalRes, historyRes, quotesRes] =
+          await Promise.all([
+            fetchJsonWithTimeout<{
+              results?: InstitutionalAccumulation[];
+              status?: string;
+              fetchedAt?: string;
+              message?: string;
+            }>(
+              `/api/evidence/institutional?ticker=${encodeURIComponent(ticker)}`,
+              26_000,
+              controller.signal,
+            ).catch(() => null),
+            fetchJsonWithTimeout<EarningsEvidence>(
+              `/api/evidence/earnings?ticker=${encodeURIComponent(ticker)}`,
+              14_000,
+              controller.signal,
+            ).catch(() => null),
+            fetchJsonWithTimeout<ShortInterestSummary & { status?: string; message?: string }>(
+              `/api/market/short-interest?ticker=${encodeURIComponent(ticker)}`,
+              10_000,
+              controller.signal,
+            ).catch(() => null),
+            fetchJsonWithTimeout<PoliticalTradeSummary & { status?: string; message?: string }>(
+              `/api/evidence/political?ticker=${encodeURIComponent(ticker)}`,
+              12_000,
+              controller.signal,
+            ).catch(() => null),
+            fetchJsonWithTimeout<{
+              history?: StockHistoryPoint[];
+              fetchedAt?: string;
+            }>(
+              `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
+              12_000,
+              controller.signal,
+            ).catch(() => null),
+            fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(
+              `/api/market/quotes?tickers=${encodeURIComponent(ticker)}`,
+              8_000,
+              controller.signal,
+            ).catch(() => null),
+          ]);
 
         if (cancelled) return;
 
@@ -112,12 +143,56 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
             message: "Earnings evidence could not be loaded.",
           } satisfies EarningsEvidence);
 
+        const quote = quotesRes?.quotes?.[0] ?? null;
+        const technicals = {
+          points: historyRes?.history ?? [],
+          currentPrice: quote?.price ?? null,
+          fiftyTwoWeekHigh: quote?.fiftyTwoWeekHigh ?? null,
+          fiftyTwoWeekLow: quote?.fiftyTwoWeekLow ?? null,
+          fetchedAt: historyRes?.fetchedAt ?? null,
+        };
+
+        const shortInterest = shortRes
+          ? {
+              ticker: shortRes.ticker ?? ticker,
+              status: shortRes.status,
+              latest: shortRes.latest ?? null,
+              fetchedAt: shortRes.fetchedAt,
+              message: shortRes.message,
+            }
+          : {
+              ticker,
+              status: "error" as const,
+              latest: null,
+              fetchedAt: new Date().toISOString(),
+              message: "Short interest data could not be loaded.",
+            };
+
+        const political = politicalRes
+          ?? ({
+            ticker,
+            trades: [],
+            purchases: [],
+            sales: [],
+            totalEstimatedPurchases: 0,
+            totalEstimatedSales: 0,
+            latestFilingDate: null,
+            source: "kadoa-open-data",
+            sourceUrl: "",
+            fetchedAt: new Date().toISOString(),
+            status: "error",
+            message: "Political disclosure data could not be loaded.",
+          } satisfies PoliticalTradeSummary & { status: string; message: string });
+
         setInstitutional(scoreInstitutionalConviction(instInput.results));
         setResult(
           buildConvictionScore({
             ticker,
             institutional: instInput,
             earnings,
+            technicals,
+            shortInterest,
+            political,
           }),
         );
       } finally {
