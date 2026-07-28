@@ -75,8 +75,10 @@ export function ConvictionScoreOverview({
       </div>
 
       <p className="quote-conviction-detail">
-        {loading
-          ? "Loading evidence across institutional, earnings, technicals, short interest, and political…"
+        {loading && result.score === null
+          ? "Loading evidence across earnings, technicals, short interest, and political…"
+          : loading && result.score !== null
+            ? "Updating score with institutional 13F filings…"
           : result.label === "insufficient_evidence"
             ? "Need at least 50% category coverage for a score. Social is not wired yet."
             : `Composite ${formatSignedScore(result.score)} · ${result.includedCategories.length} categor${result.includedCategories.length === 1 ? "y" : "ies"} included.`}
