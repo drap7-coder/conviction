@@ -19,23 +19,8 @@ import type { EarningsEvidence } from "@/lib/earnings/types";
 import type { ShortInterestSummary } from "@/lib/market/short-interest";
 import type { StockHistoryPoint } from "@/lib/market/technical-state";
 import type { StockQuote } from "@/lib/market/quotes";
-import {
-  scoreInstitutionalConviction,
-  type ConvictionRingScore,
-} from "@/lib/market/quote-gauges";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
-
-const EMPTY_INSTITUTIONAL: ConvictionRingScore = {
-  score: null,
-  tone: "neutral",
-  label: "Unavailable",
-  detail: "Loading institutional filings…",
-  added: 0,
-  reduced: 0,
-  newPositions: 0,
-  filingQuarter: null,
-};
 
 const EMPTY_RESULT: ConvictionScoreResult = {
   score: null,
@@ -55,8 +40,6 @@ const EMPTY_RESULT: ConvictionScoreResult = {
 
 export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
   const [result, setResult] = useState<ConvictionScoreResult>(EMPTY_RESULT);
-  const [institutional, setInstitutional] =
-    useState<ConvictionRingScore>(EMPTY_INSTITUTIONAL);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -66,7 +49,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
     async function load() {
       setLoading(true);
       setResult(EMPTY_RESULT);
-      setInstitutional(EMPTY_INSTITUTIONAL);
 
       try {
         const [instRes, earningsRes, shortRes, politicalRes, historyRes, quotesRes] =
@@ -184,7 +166,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
             message: "Political disclosure data could not be loaded.",
           } satisfies PoliticalTradeSummary & { status: string; message: string });
 
-        setInstitutional(scoreInstitutionalConviction(instInput.results));
         setResult(
           buildConvictionScore({
             ticker,
@@ -210,7 +191,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
   return (
     <ConvictionScoreOverview
       result={result}
-      institutional={institutional}
       loading={loading}
       className="dashboard-conviction-overview"
     />

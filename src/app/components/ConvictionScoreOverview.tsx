@@ -1,12 +1,11 @@
 /**
- * Composite Conviction Score ring + institutional supporting stats.
- * Dial reflects calculateConvictionScore; added/reduced/new stay 13F-only.
+ * Composite Conviction Score ring.
+ * Dial reflects calculateConvictionScore; category coverage is shown as subtext.
  */
 
 "use client";
 
 import { GaugeRing } from "@/components/GaugeRing";
-import type { ConvictionRingScore } from "@/lib/market/quote-gauges";
 import type { ConvictionScoreResult } from "@/lib/conviction/score";
 import {
   dialValueFromScore,
@@ -17,10 +16,6 @@ import {
 
 interface ConvictionScoreOverviewProps {
   result: ConvictionScoreResult;
-  institutional: Pick<
-    ConvictionRingScore,
-    "added" | "reduced" | "newPositions" | "filingQuarter" | "detail"
-  >;
   loading?: boolean;
   className?: string;
 }
@@ -32,7 +27,6 @@ function formatSignedScore(score: number | null): string {
 
 export function ConvictionScoreOverview({
   result,
-  institutional,
   loading = false,
   className,
 }: ConvictionScoreOverviewProps) {
@@ -54,9 +48,11 @@ export function ConvictionScoreOverview({
       <div className="quote-card-header">
         <span className="quote-card-title">Conviction score</span>
         <span className="quote-card-meta">
-          {institutional.filingQuarter
-            ? `${institutional.filingQuarter} · COMPOSITE`
-            : "COMPOSITE"}
+          {loading
+            ? "LOADING"
+            : result.coverage > 0
+              ? `${Math.round(result.coverage * 100)}% COVERAGE`
+              : "COMPOSITE"}
         </span>
       </div>
 
@@ -89,21 +85,6 @@ export function ConvictionScoreOverview({
       {coverageNote && !loading ? (
         <p className="quote-conviction-coverage">{coverageNote}</p>
       ) : null}
-
-      <div className="quote-conviction-stats">
-        <div className="quote-stat">
-          <strong className="up">{institutional.added}</strong>
-          <span>Institutions added</span>
-        </div>
-        <div className="quote-stat">
-          <strong className="down">{institutional.reduced}</strong>
-          <span>Institutions reduced</span>
-        </div>
-        <div className="quote-stat">
-          <strong className="teal">{institutional.newPositions}</strong>
-          <span>New positions</span>
-        </div>
-      </div>
     </section>
   );
 }
