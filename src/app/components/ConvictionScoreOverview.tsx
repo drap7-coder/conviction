@@ -73,7 +73,7 @@ export function ConvictionScoreOverview({
 
       <p className="quote-conviction-detail">
         {loading && result.score === null
-          ? "Loading evidence across earnings, technicals, short interest, and political…"
+          ? "Loading evidence across earnings, technicals, and short interest…"
           : loading && result.score !== null
             ? "Updating score with institutional 13F filings…"
           : result.label === "insufficient_evidence"

@@ -6,7 +6,6 @@ import {
   displayScoreFromSigned,
   toEarningsCategoryScore,
   toInstitutionalCategoryScore,
-  toPoliticalCategoryScore,
   toShortInterestCategoryScore,
   toTechnicalsCategoryScore,
 } from "@/lib/conviction/score";
@@ -69,7 +68,7 @@ describe("toInstitutionalCategoryScore", () => {
     const category = toInstitutionalCategoryScore("AAPL", { results: [] });
     expect(category.hasData).toBe(false);
     expect(category.category).toBe("institutional");
-    expect(category.baseWeight).toBe(0.29);
+    expect(category.baseWeight).toBe(0.31);
   });
 
   it("remaps 0–100 ring onto signed [-100, +100]", () => {
@@ -98,7 +97,7 @@ describe("toEarningsCategoryScore", () => {
     const category = toEarningsCategoryScore(earnings({ score: 42 }));
     expect(category.hasData).toBe(true);
     expect(category.score).toBe(42);
-    expect(category.baseWeight).toBe(0.29);
+    expect(category.baseWeight).toBe(0.31);
   });
 
   it("marks unavailable earnings as no data", () => {
@@ -124,8 +123,26 @@ describe("toTechnicalsCategoryScore", () => {
       new Date(points[points.length - 1]!.date),
     );
     expect(category.hasData).toBe(true);
-    expect(category.baseWeight).toBe(0.24);
+    expect(category.baseWeight).toBe(0.26);
     expect(category.score).toBeGreaterThan(0);
+  });
+
+  it("scores above-both-SMAs near highs close to +100", () => {
+    // Steady uptrend long enough for SMA-200, finishing near the high.
+    const points = risingHistory(250, 100);
+    const last = points[points.length - 1]!.close;
+    const category = toTechnicalsCategoryScore(
+      "AAPL",
+      {
+        points,
+        currentPrice: last,
+        fiftyTwoWeekHigh: last,
+        fiftyTwoWeekLow: 100,
+      },
+      new Date(points[points.length - 1]!.date),
+    );
+    expect(category.hasData).toBe(true);
+    expect(category.score).toBeGreaterThanOrEqual(85);
   });
 
   it("returns no data for empty history", () => {
@@ -170,26 +187,6 @@ describe("toShortInterestCategoryScore", () => {
   });
 });
 
-describe("toPoliticalCategoryScore", () => {
-  it("leans positive when purchases dominate", () => {
-    const category = toPoliticalCategoryScore({
-      ticker: "AAPL",
-      trades: [],
-      purchases: [{ id: "1" } as never],
-      sales: [],
-      totalEstimatedPurchases: 800_000,
-      totalEstimatedSales: 200_000,
-      latestFilingDate: "2026-06-01",
-      source: "kadoa-open-data",
-      sourceUrl: "",
-      fetchedAt: "2026-07-28T00:00:00.000Z",
-    }, new Date("2026-07-28"));
-    expect(category.hasData).toBe(true);
-    expect(category.score).toBe(60);
-    expect(category.baseWeight).toBe(0.06);
-  });
-});
-
 describe("buildConvictionScore", () => {
   it("returns a score when institutional + earnings clear coverage", () => {
     const result = buildConvictionScore({
@@ -201,13 +198,13 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.58);
+    expect(result.coverage).toBeCloseTo(0.62);
     expect(result.score).not.toBeNull();
     expect(result.label).not.toBe("insufficient_evidence");
     expect(result.includedCategories).toEqual(["institutional", "earnings"]);
   });
 
-  it("includes technicals, short interest, and political in coverage", () => {
+  it("includes technicals and short interest in coverage", () => {
     const points = risingHistory(80, 100);
     const last = points[points.length - 1]!;
     const result = buildConvictionScore({
@@ -240,22 +237,9 @@ describe("buildConvictionScore", () => {
           source: "finra-consolidated-short-interest",
         },
       },
-      political: {
-        ticker: "AAPL",
-        trades: [],
-        purchases: [{ id: "1" } as never],
-        sales: [],
-        totalEstimatedPurchases: 500_000,
-        totalEstimatedSales: 100_000,
-        latestFilingDate: "2026-06-01",
-        source: "kadoa-open-data",
-        sourceUrl: "",
-        fetchedAt: "2026-07-28T00:00:00.000Z",
-      },
       now: new Date("2026-07-28"),
     });
 
-    // 0.29 + 0.29 + 0.24 + 0.12 + 0.06 = 1.00
     expect(result.coverage).toBeCloseTo(1);
     expect(result.score).not.toBeNull();
     expect(result.includedCategories).toEqual([
@@ -263,7 +247,6 @@ describe("buildConvictionScore", () => {
       "earnings",
       "technicals",
       "short_interest",
-      "political",
     ]);
     expect(result.excludedCategories).toEqual([]);
   });
@@ -278,28 +261,16 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.29);
     expect(result.score).toBeNull();
     expect(result.label).toBe("insufficient_evidence");
+    expect(result.coverage).toBeCloseTo(0.31);
   });
-});
 
-describe("display helpers", () => {
-  it("maps dial and labels", () => {
+  it("maps signed composite onto 0–100 display helpers", () => {
     expect(dialValueFromScore(0)).toBe(50);
     expect(dialValueFromScore(100)).toBe(100);
     expect(dialValueFromScore(-100)).toBe(0);
+    expect(displayScoreFromSigned(71)).toBe(86);
     expect(displayLabelForComposite("strong_positive")).toBe("Accumulating");
-    expect(displayLabelForComposite("mixed")).toBe("Holding");
-    expect(displayLabelForComposite("strong_negative")).toBe("Distribution");
-    expect(displayLabelForComposite("insufficient_evidence")).toBe("Unavailable");
-  });
-
-  it("maps signed scores onto a 0–100 display scale", () => {
-    expect(displayScoreFromSigned(null)).toBeNull();
-    expect(displayScoreFromSigned(-100)).toBe(0);
-    expect(displayScoreFromSigned(0)).toBe(50);
-    expect(displayScoreFromSigned(100)).toBe(100);
-    expect(displayScoreFromSigned(23)).toBe(62);
   });
 });

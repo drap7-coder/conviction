@@ -2,11 +2,11 @@
  * Fetches wired evidence categories, builds CategoryScores,
  * and renders the composite Conviction Score overview.
  *
- * Progressive scoring: fast sources (earnings, technicals, short interest,
- * political) can produce a score before the slow 13F institutional call
- * finishes. Institutional upgrades the composite when it arrives.
+ * Progressive scoring: fast sources (earnings, technicals, short interest)
+ * can produce a score before the slow 13F institutional call finishes.
+ * Institutional upgrades the composite when it arrives.
  *
- * Wired: institutional, earnings, technicals, short_interest, political
+ * Wired: institutional, earnings, technicals, short_interest
  */
 
 "use client";
@@ -18,7 +18,6 @@ import {
   buildConvictionScore,
   type ConvictionScoreResult,
   type InstitutionalCategoryInput,
-  type PoliticalCategoryInput,
   type ShortInterestCategoryInput,
   type TechnicalCategoryInput,
 } from "@/lib/conviction/score";
@@ -26,7 +25,6 @@ import type { EarningsEvidence } from "@/lib/earnings/types";
 import type { ShortInterestSummary } from "@/lib/market/short-interest";
 import type { StockHistoryPoint } from "@/lib/market/technical-state";
 import type { StockQuote } from "@/lib/market/quotes";
-import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 
 const EMPTY_RESULT: ConvictionScoreResult = {
@@ -40,7 +38,6 @@ const EMPTY_RESULT: ConvictionScoreResult = {
     "earnings",
     "technicals",
     "short_interest",
-    "political",
   ],
 };
 
@@ -76,23 +73,6 @@ function emptyShortInterest(ticker: string): ShortInterestCategoryInput {
     latest: null,
     fetchedAt: new Date().toISOString(),
     message: "Short interest data could not be loaded.",
-  };
-}
-
-function emptyPolitical(ticker: string): PoliticalCategoryInput {
-  return {
-    ticker,
-    trades: [],
-    purchases: [],
-    sales: [],
-    totalEstimatedPurchases: 0,
-    totalEstimatedSales: 0,
-    latestFilingDate: null,
-    source: "kadoa-open-data",
-    sourceUrl: "",
-    fetchedAt: new Date().toISOString(),
-    status: "error",
-    message: "Political disclosure data could not be loaded.",
   };
 }
 
@@ -157,7 +137,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
       let earnings = emptyEarnings(ticker);
       let technicals = emptyTechnicals();
       let shortInterest = emptyShortInterest(ticker);
-      let political = emptyPolitical(ticker);
 
       const publish = (stillLoading: boolean) => {
         if (cancelled) return;
@@ -168,7 +147,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
             earnings,
             technicals,
             shortInterest,
-            political,
           }),
         );
         if (!stillLoading) setLoading(false);
@@ -184,11 +162,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
         fetchJsonWithTimeout<ShortInterestSummary & { status?: string; message?: string }>(
           `/api/market/short-interest?ticker=${encodeURIComponent(ticker)}`,
           10_000,
-          controller.signal,
-        ).catch(() => null),
-        fetchJsonWithTimeout<PoliticalTradeSummary & { status?: string; message?: string }>(
-          `/api/evidence/political?ticker=${encodeURIComponent(ticker)}`,
-          12_000,
           controller.signal,
         ).catch(() => null),
         fetchJsonWithTimeout<{
@@ -212,7 +185,7 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
 
       if (cancelled) return;
 
-      const [earningsRes, shortRes, politicalRes, historyRes, quotesRes] = fast;
+      const [earningsRes, shortRes, historyRes, quotesRes] = fast;
       earnings = earningsRes ?? emptyEarnings(ticker);
       technicals = historyPointsFromResponse(historyRes, quotesRes?.quotes?.[0] ?? null);
       shortInterest = shortRes
@@ -224,7 +197,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
             message: shortRes.message,
           }
         : emptyShortInterest(ticker);
-      political = politicalRes ?? emptyPolitical(ticker);
 
       // Show a score as soon as fast coverage is enough; keep loading until 13F returns.
       publish(true);

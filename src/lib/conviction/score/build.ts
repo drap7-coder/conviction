@@ -4,7 +4,6 @@
 
 import { toEarningsCategoryScore } from "./adapters/earnings";
 import { toInstitutionalCategoryScore, type InstitutionalCategoryInput } from "./adapters/institutional";
-import { toPoliticalCategoryScore, type PoliticalCategoryInput } from "./adapters/political";
 import { toShortInterestCategoryScore, type ShortInterestCategoryInput } from "./adapters/short-interest";
 import { toTechnicalsCategoryScore, type TechnicalCategoryInput } from "./adapters/technicals";
 import { calculateConvictionScore } from "./calculate";
@@ -25,7 +24,6 @@ export interface BuildConvictionScoreInput {
   earnings?: EarningsEvidence | null;
   technicals?: TechnicalCategoryInput | null;
   shortInterest?: ShortInterestCategoryInput | null;
-  political?: PoliticalCategoryInput | null;
   now?: Date;
 }
 
@@ -64,9 +62,6 @@ export function buildCategoryScores(input: BuildConvictionScoreInput): CategoryS
           now,
         )
       : emptyCategory(ticker, "short_interest", now),
-    political: input.political
-      ? toPoliticalCategoryScore(input.political, now)
-      : emptyCategory(ticker, "political", now),
   };
 
   return EVIDENCE_CATEGORIES.map((category) => byCategory[category]);

@@ -1,12 +1,15 @@
 /**
  * Normalize price/technical state into a CategoryScore.
- * Combines short-term trend, SMA-50 distance, and 52-week range position
- * using the same signed clamps already used in the canonical model.
+ *
+ * Structure (above/below SMA50/SMA200) dominates. 52-week range position,
+ * SMA200 distance, and short-term momentum refine the score so clearly
+ * bullish charts (above both averages near highs) land near +100.
  */
 
 import {
   deriveTechnicalState,
   type StockHistoryPoint,
+  type TechnicalState,
 } from "@/lib/market/technical-state";
 import { clampSignedScore, isSourceStale } from "../freshness";
 import type { CategoryScore } from "../types";
@@ -23,6 +26,28 @@ export interface TechnicalCategoryInput {
   fetchedAt?: string | null;
 }
 
+/** Trend structure from SMA relations — primary technical signal. */
+function structureScore(tech: TechnicalState): number | null {
+  if (tech.label === "Insufficient Data") return null;
+  if (tech.sma50Relation === null && tech.sma200Relation === null) return null;
+
+  if (tech.smaCrossRelation === "golden-cross") return 100;
+  if (tech.smaCrossRelation === "death-cross") return -100;
+
+  if (tech.sma50Relation === "above" && tech.sma200Relation === "above") return 100;
+  if (tech.sma50Relation === "below" && tech.sma200Relation === "below") return -100;
+  if (tech.sma50Relation === "above" && tech.sma200Relation === "below") return 35;
+  if (tech.sma50Relation === "below" && tech.sma200Relation === "above") return -35;
+
+  // Only one average available — lean on that relation.
+  if (tech.sma200Relation === null && tech.sma50Relation === "above") return 55;
+  if (tech.sma200Relation === null && tech.sma50Relation === "below") return -55;
+  if (tech.sma50Relation === null && tech.sma200Relation === "above") return 55;
+  if (tech.sma50Relation === null && tech.sma200Relation === "below") return -55;
+
+  return 0;
+}
+
 export function toTechnicalsCategoryScore(
   ticker: string,
   input: TechnicalCategoryInput,
@@ -37,15 +62,33 @@ export function toTechnicalsCategoryScore(
     input.fiftyTwoWeekLow ?? null,
   );
 
-  const parts: number[] = [];
-  if (tech.shortTermTrend !== null) {
-    parts.push(clampSignedScore(tech.shortTermTrend * 3));
-  }
-  if (tech.sma50Delta !== null) {
-    parts.push(clampSignedScore(tech.sma50Delta * 2));
+  const weighted: Array<{ weight: number; value: number }> = [];
+  const structure = structureScore(tech);
+  if (structure !== null) {
+    weighted.push({ weight: 0.45, value: structure });
   }
   if (tech.fiftyTwoWeekPercentile !== null) {
-    parts.push(clampSignedScore((tech.fiftyTwoWeekPercentile - 50) * 2));
+    weighted.push({
+      weight: 0.25,
+      value: clampSignedScore((tech.fiftyTwoWeekPercentile - 50) * 2),
+    });
+  }
+  if (tech.sma200Delta !== null) {
+    weighted.push({
+      weight: 0.2,
+      value: clampSignedScore(tech.sma200Delta * 4),
+    });
+  } else if (tech.sma50Delta !== null) {
+    weighted.push({
+      weight: 0.2,
+      value: clampSignedScore(tech.sma50Delta * 4),
+    });
+  }
+  if (tech.shortTermTrend !== null) {
+    weighted.push({
+      weight: 0.1,
+      value: clampSignedScore(tech.shortTermTrend * 8),
+    });
   }
 
   const sourceDate =
@@ -53,7 +96,7 @@ export function toTechnicalsCategoryScore(
       ? points[points.length - 1]?.date ?? null
       : null;
 
-  if (parts.length === 0 || tech.label === "Insufficient Data") {
+  if (weighted.length === 0 || tech.label === "Insufficient Data") {
     return {
       ticker: ticker.toUpperCase(),
       category: "technicals",
@@ -68,7 +111,10 @@ export function toTechnicalsCategoryScore(
     };
   }
 
-  const score = clampSignedScore(parts.reduce((sum, part) => sum + part, 0) / parts.length);
+  const totalWeight = weighted.reduce((sum, part) => sum + part.weight, 0);
+  const score = clampSignedScore(
+    weighted.reduce((sum, part) => sum + part.value * part.weight, 0) / totalWeight,
+  );
   const isStale = isSourceStale(sourceDate, now, TECHNICAL_STALE_DAYS);
 
   return {

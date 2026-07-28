@@ -10,8 +10,7 @@ export type EvidenceCategory =
   | "institutional"
   | "earnings"
   | "technicals"
-  | "short_interest"
-  | "political";
+  | "short_interest";
 
 export interface CategoryScore {
   ticker: string;
