@@ -1,6 +1,6 @@
 /**
- * Composite Conviction Score ring.
- * Dial reflects calculateConvictionScore; category coverage is shown as subtext.
+ * Composite Conviction Score ring on a 0–100 display scale.
+ * Internal math stays signed [-100, +100]; the dial/label show the mapped 0–100 value.
  */
 
 "use client";
@@ -10,6 +10,7 @@ import type { ConvictionScoreResult } from "@/lib/conviction/score";
 import {
   dialValueFromScore,
   displayLabelForComposite,
+  displayScoreFromSigned,
   formatCoverageSources,
   toneForComposite,
 } from "@/lib/conviction/score";
@@ -20,11 +21,6 @@ interface ConvictionScoreOverviewProps {
   className?: string;
 }
 
-function formatSignedScore(score: number | null): string {
-  if (score === null) return "—";
-  return `${score > 0 ? "+" : ""}${Math.round(score)}`;
-}
-
 export function ConvictionScoreOverview({
   result,
   loading = false,
@@ -33,6 +29,7 @@ export function ConvictionScoreOverview({
   const displayLabel = displayLabelForComposite(result.label);
   const tone = toneForComposite(result.label);
   const dialValue = dialValueFromScore(result.score);
+  const displayScore = displayScoreFromSigned(result.score);
   const coverageNote =
     result.coverage > 0 && result.coverage < 1
       ? `Based on ${formatCoverageSources(result.includedCategories)} (${Math.round(result.coverage * 100)}% coverage)`
@@ -60,11 +57,11 @@ export function ConvictionScoreOverview({
         <GaugeRing
           size="lg"
           value={dialValue}
-          label={loading ? "…" : formatSignedScore(result.score)}
+          label={loading ? "…" : displayScore !== null ? String(displayScore) : "—"}
           sublabel={loading ? "LOADING" : displayLabel.toUpperCase()}
           caption=""
           tone={tone}
-          ariaLabel={`Conviction score ${result.score ?? "unavailable"}: ${displayLabel}`}
+          ariaLabel={`Conviction score ${displayScore ?? "unavailable"} of 100: ${displayLabel}`}
         />
       </div>
 
@@ -81,7 +78,7 @@ export function ConvictionScoreOverview({
             ? "Updating score with institutional 13F filings…"
           : result.label === "insufficient_evidence"
             ? "Need at least 50% category coverage for a score. Social is not wired yet."
-            : `Composite ${formatSignedScore(result.score)} · ${result.includedCategories.length} categor${result.includedCategories.length === 1 ? "y" : "ies"} included.`}
+            : `Score ${displayScore}/100 · ${result.includedCategories.length} categor${result.includedCategories.length === 1 ? "y" : "ies"} included.`}
       </p>
 
       {coverageNote && !loading ? (

@@ -42,6 +42,7 @@ export {
   buildCategoryScores,
   buildConvictionScore,
   dialValueFromScore,
+  displayScoreFromSigned,
   displayLabelForComposite,
   formatCoverageSources,
   toneForComposite,

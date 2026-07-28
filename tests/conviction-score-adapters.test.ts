@@ -3,6 +3,7 @@ import {
   buildConvictionScore,
   dialValueFromScore,
   displayLabelForComposite,
+  displayScoreFromSigned,
   toEarningsCategoryScore,
   toInstitutionalCategoryScore,
   toPoliticalCategoryScore,
@@ -292,5 +293,13 @@ describe("display helpers", () => {
     expect(displayLabelForComposite("mixed")).toBe("Holding");
     expect(displayLabelForComposite("strong_negative")).toBe("Distribution");
     expect(displayLabelForComposite("insufficient_evidence")).toBe("Unavailable");
+  });
+
+  it("maps signed scores onto a 0–100 display scale", () => {
+    expect(displayScoreFromSigned(null)).toBeNull();
+    expect(displayScoreFromSigned(-100)).toBe(0);
+    expect(displayScoreFromSigned(0)).toBe(50);
+    expect(displayScoreFromSigned(100)).toBe(100);
+    expect(displayScoreFromSigned(23)).toBe(62);
   });
 });

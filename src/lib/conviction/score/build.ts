@@ -104,10 +104,16 @@ export function toneForComposite(label: ConvictionScoreLabel): CompositeTone {
   return "neutral";
 }
 
-/** Map signed [-100, +100] onto the GaugeRing's 0–100 arc. */
+/** Map signed [-100, +100] onto a 0–100 display / dial scale. */
 export function dialValueFromScore(score: number | null): number | null {
   if (score === null || !Number.isFinite(score)) return null;
   return Math.max(0, Math.min(100, (score + 100) / 2));
+}
+
+/** Integer 0–100 shown in the UI (null when insufficient evidence). */
+export function displayScoreFromSigned(score: number | null): number | null {
+  const dial = dialValueFromScore(score);
+  return dial === null ? null : Math.round(dial);
 }
 
 export function formatCoverageSources(included: EvidenceCategory[]): string {
