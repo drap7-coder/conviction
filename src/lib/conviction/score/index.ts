@@ -20,3 +20,24 @@ export {
   calculateCoverage,
   isUsableCategory,
 } from "./calculate";
+
+export {
+  STALE_AFTER_DAYS,
+  ageInDays,
+  clampSignedScore,
+  isSourceStale,
+} from "./freshness";
+
+export { toInstitutionalCategoryScore } from "./adapters/institutional";
+export type { InstitutionalCategoryInput } from "./adapters/institutional";
+export { toEarningsCategoryScore } from "./adapters/earnings";
+
+export {
+  buildCategoryScores,
+  buildConvictionScore,
+  dialValueFromScore,
+  displayLabelForComposite,
+  formatCoverageSources,
+  toneForComposite,
+} from "./build";
+export type { BuildConvictionScoreInput, ConvictionDisplayLabel } from "./build";

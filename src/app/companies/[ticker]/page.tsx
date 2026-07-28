@@ -5,7 +5,7 @@ import { CompanyPulseCard } from "@/app/components/CompanyPulseCard";
 import { CompanyVerdict } from "@/app/components/CompanyVerdict";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
-import { InstitutionalConvictionOverviewCard } from "@/app/components/InstitutionalConvictionOverviewCard";
+import { ConvictionScoreOverviewCard } from "@/app/components/ConvictionScoreOverviewCard";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MarketPanel } from "@/app/components/MarketPanel";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
@@ -49,8 +49,8 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            {/* Composite ConvictionHeader temporarily suppressed until CategoryScore sources are wired. */}
-            <InstitutionalConvictionOverviewCard ticker={upperTicker} />
+            {/* Composite Conviction Score: institutional + earnings (50% coverage floor). */}
+            <ConvictionScoreOverviewCard ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
             <CompanyVerdict ticker={upperTicker} />

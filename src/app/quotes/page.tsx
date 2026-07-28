@@ -9,16 +9,13 @@ import { GaugeRing } from "@/components/GaugeRing";
 import { NewsDriverBrief } from "@/app/components/NewsDriverBrief";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
-import { InstitutionalConvictionOverview } from "@/app/components/InstitutionalConvictionOverview";
+import { ConvictionScoreOverviewCard } from "@/app/components/ConvictionScoreOverviewCard";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
-import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 import {
   rangePosition,
-  scoreInstitutionalConviction,
   volumeVsAverage,
-  type ConvictionRingScore,
 } from "@/lib/market/quote-gauges";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
@@ -36,7 +33,6 @@ interface QuoteResult {
   headlines: Array<{ headline: string; url: string | null; date: string }>;
   driver: NewsDriver | null;
   averageVolume: number | null;
-  conviction: ConvictionRingScore;
 }
 
 function readBrowserWatchlist(): BrowserWatchlistEntry[] {
@@ -98,7 +94,6 @@ export default function QuotesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<QuoteResult | null>(null);
-  const [convictionLoading, setConvictionLoading] = useState(false);
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState(false);
   const [watchlistMessage, setWatchlistMessage] = useState<string | null>(null);
@@ -191,7 +186,6 @@ export default function QuotesPage() {
     setError(null);
     setResult(null);
     setShowSuggestions(false);
-    setConvictionLoading(true);
     setWatchlistMessage(null);
 
     try {
@@ -219,7 +213,6 @@ export default function QuotesPage() {
       if (!quote) {
         setError(`No quote data found for "${cleaned}".`);
         setLoading(false);
-        setConvictionLoading(false);
         return;
       }
 
@@ -241,59 +234,11 @@ export default function QuotesPage() {
         headlines: news?.headlines ?? [],
         driver: news?.driver ?? null,
         averageVolume,
-        conviction: {
-          score: null,
-          tone: "neutral",
-          label: "Unavailable",
-          detail: "Loading institutional filings…",
-          added: 0,
-          reduced: 0,
-          newPositions: 0,
-          filingQuarter: null,
-        },
       });
       setLoading(false);
-
-      // Institutional 13F can be slow — load after the quote shell paints.
-      try {
-        const inst = await fetchJsonWithTimeout<{
-          results?: InstitutionalAccumulation[];
-          status?: string;
-        }>(
-          `/api/evidence/institutional?ticker=${encodeURIComponent(cleaned)}`,
-          22_000,
-        );
-        const conviction = scoreInstitutionalConviction(inst.results ?? []);
-        setResult((current) =>
-          current && current.quote.ticker === cleaned
-            ? { ...current, conviction }
-            : current,
-        );
-      } catch {
-        setResult((current) =>
-          current && current.quote.ticker === cleaned
-            ? {
-                ...current,
-                conviction: {
-                  score: null,
-                  tone: "neutral",
-                  label: "Unavailable",
-                  detail: "Institutional filings could not be loaded.",
-                  added: 0,
-                  reduced: 0,
-                  newPositions: 0,
-                  filingQuarter: null,
-                },
-              }
-            : current,
-        );
-      } finally {
-        setConvictionLoading(false);
-      }
     } catch {
       setError("Failed to load data. Check the ticker and try again.");
       setLoading(false);
-      setConvictionLoading(false);
     }
   }, []);
 
@@ -563,11 +508,8 @@ export default function QuotesPage() {
             </div>
           </section>
 
-          {/* ── Institutional conviction ── */}
-          <InstitutionalConvictionOverview
-            conviction={result.conviction}
-            loading={convictionLoading}
-          />
+          {/* ── Conviction score (institutional + earnings composite) ── */}
+          <ConvictionScoreOverviewCard key={result.quote.ticker} ticker={result.quote.ticker} />
 
           {/* ── Numbers card ── */}
           <section className="quote-card" aria-label="Quote details">
@@ -660,7 +602,7 @@ export default function QuotesPage() {
         </div>
       ) : (
         <div className="market-empty">
-          <p>Enter a ticker to see range gauges, volume, and institutional conviction.</p>
+          <p>Enter a ticker to see range gauges, volume, and conviction score.</p>
         </div>
       )}
     </div>

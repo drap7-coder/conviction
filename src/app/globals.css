@@ -9062,6 +9062,15 @@ details > summary::before {
   color: var(--muted);
 }
 
+.quote-conviction-coverage {
+  margin: -6px 0 14px;
+  padding: 0 4px;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--quiet);
+}
+
 .dashboard-conviction-overview {
   margin-bottom: 4px;
 }
