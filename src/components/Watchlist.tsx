@@ -659,6 +659,14 @@ export default function Watchlist({
           title="Watchlist"
           subtitle="Bigger tile = larger company. Green/red = today’s move."
           loading={loading}
+          sessionLabel={
+            entries
+              .map((entry) => {
+                const quote = quotes[entry.ticker];
+                return quote ? getLivePrice(quote).label : null;
+              })
+              .find((label): label is string => Boolean(label)) ?? null
+          }
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;

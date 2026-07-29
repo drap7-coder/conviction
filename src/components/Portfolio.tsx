@@ -268,6 +268,14 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
     };
   }), [quotes, sortedPositions]);
 
+  const portfolioHeatmapSession = useMemo(() => {
+    for (const quote of quotes) {
+      const label = getLivePrice(quote).label;
+      if (label) return label;
+    }
+    return null;
+  }, [quotes]);
+
   // ── Data-quality states ──
 
   const hasQuotes = quotes.length > 0;
@@ -455,6 +463,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
               title="Portfolio"
               subtitle="Tile size reflects position value; color reflects the current market move."
               items={portfolioHeatmapItems}
+              sessionLabel={portfolioHeatmapSession}
             />
           )}
 
