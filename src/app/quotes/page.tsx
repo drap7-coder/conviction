@@ -62,13 +62,6 @@ function writeBrowserWatchlist(entries: BrowserWatchlistEntry[]) {
   }
 }
 
-function marketStateLabel(state: string | null): string {
-  if (state === "PRE") return "PRE-MARKET";
-  if (state === "POST" || state === "POSTPOST") return "AFTER HOURS";
-  if (state === "REGULAR") return "MARKET OPEN";
-  return "MARKET CLOSED";
-}
-
 function formatRange(low: number | null, high: number | null): string {
   if (!isFiniteNumber(low) || !isFiniteNumber(high)) return "—";
   return `$${fmtPrice(low)}—$${fmtPrice(high)}`;
@@ -415,9 +408,6 @@ export default function QuotesPage() {
           <header className="quote-header">
             <div className="quote-header-top">
               <span className="quote-eyebrow">Quotes · Quote</span>
-              <span className="quote-session-badge">
-                {marketStateLabel(result.quote.marketState)}
-              </span>
             </div>
 
             <div className="quote-identity-row">
@@ -448,20 +438,27 @@ export default function QuotesPage() {
 
             <div className="quote-price-row">
               <div className="quote-price-block">
-                <span className="quote-price">
-                  {live?.price != null ? `$${fmtPrice(live.price)}` : "—"}
-                </span>
+                <div className="quote-price-primary">
+                  <span className="quote-price">
+                    {live?.price != null ? `$${fmtPrice(live.price)}` : "—"}
+                  </span>
+                  {live?.label ? (
+                    <span className="quote-session-chip">{live.label}</span>
+                  ) : live?.session === "closed" ? (
+                    <span className="quote-session-chip quiet">Market closed</span>
+                  ) : null}
+                </div>
                 <span className={`quote-change ${changeClass}`}>
                   {arrow ? <span className="quote-change-arrow">{arrow}</span> : null}
                   {live && isFiniteNumber(live.change) && isFiniteNumber(live.changePercent)
                     ? `${live.change >= 0 ? "+" : ""}$${Math.abs(live.change).toFixed(2)} (${fmtPercent(live.changePercent)})`
                     : "—"}
                 </span>
-                {live?.label ? (
-                  <span className="quote-session-note">
-                    {live.label}
-                    {isFiniteNumber(result.quote.price)
-                      ? ` · Close $${fmtPrice(result.quote.price)}`
+                {live?.label && isFiniteNumber(result.quote.price) ? (
+                  <span className="quote-at-close">
+                    At close ${fmtPrice(result.quote.price)}
+                    {isFiniteNumber(result.quote.changePercent)
+                      ? ` (${fmtPercent(result.quote.changePercent)})`
                       : ""}
                   </span>
                 ) : null}

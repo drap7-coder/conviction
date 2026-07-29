@@ -1472,6 +1472,13 @@ details > summary::before {
   min-width: 0;
 }
 
+.wl-ring-price-primary {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
 .wl-ring-last {
   font-size: 1rem;
   font-weight: 700;
@@ -1488,18 +1495,45 @@ details > summary::before {
 }
 
 .wl-ring-day-change.positive,
+.wl-ring-at-close.positive,
 .wl-ring-session.positive {
   color: var(--green);
 }
 
 .wl-ring-day-change.negative,
+.wl-ring-at-close.negative,
 .wl-ring-session.negative {
   color: var(--red);
 }
 
 .wl-ring-day-change.neutral,
+.wl-ring-at-close.neutral,
 .wl-ring-session.neutral {
   color: var(--muted);
+}
+
+.wl-ring-session-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--amber) 16%, transparent);
+  color: var(--amber);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.wl-ring-at-close {
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  color: var(--quiet);
+  white-space: nowrap;
+  line-height: 1.2;
 }
 
 .wl-ring-session {
@@ -7246,7 +7280,7 @@ details > summary::before {
   color: var(--quiet);
 }
 
-/* ── Session row (after-hours / pre-market context) ── */
+/* ── At-close reference (extended hours) ── */
 
 .cdh-session-row {
   display: flex;
@@ -7255,16 +7289,8 @@ details > summary::before {
   gap: 8px;
   margin-top: 6px;
   font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   color: var(--muted);
-  opacity: 0.8;
-}
-
-.cdh-session-label {
-  font-weight: 600;
-  color: var(--ink);
-  opacity: 0.9;
-  white-space: nowrap;
 }
 
 .cdh-session-ref {
@@ -7274,7 +7300,8 @@ details > summary::before {
 }
 
 .cdh-ref-label {
-  color: var(--muted);
+  color: var(--quiet);
+  font-weight: 600;
 }
 
 .cdh-ref-price {
@@ -8748,18 +8775,6 @@ details > summary::before {
   color: var(--quiet);
 }
 
-.quote-session-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--green-dim);
-  color: var(--green);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
 .quote-identity-row {
   display: flex;
   align-items: center;
@@ -8850,6 +8865,13 @@ details > summary::before {
   min-width: 0;
 }
 
+.quote-price-primary {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .quote-price {
   font-size: 2.1rem;
   font-weight: 800;
@@ -8857,6 +8879,25 @@ details > summary::before {
   letter-spacing: -0.03em;
   color: var(--ink);
   line-height: 1;
+}
+
+.quote-session-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--amber) 16%, transparent);
+  color: var(--amber);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.quote-session-chip.quiet {
+  background: color-mix(in srgb, var(--quiet) 14%, transparent);
+  color: var(--quiet);
 }
 
 .quote-change {
@@ -8875,8 +8916,10 @@ details > summary::before {
   font-size: 0.75rem;
 }
 
-.quote-session-note {
+.quote-at-close {
   font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-mono);
   color: var(--quiet);
 }
 
