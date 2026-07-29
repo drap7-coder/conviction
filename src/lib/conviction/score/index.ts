@@ -30,7 +30,6 @@ export {
 
 export { toInstitutionalCategoryScore } from "./adapters/institutional";
 export type { InstitutionalCategoryInput } from "./adapters/institutional";
-export { toEarningsCategoryScore } from "./adapters/earnings";
 export { toTechnicalsCategoryScore } from "./adapters/technicals";
 export type { TechnicalCategoryInput } from "./adapters/technicals";
 export { toShortInterestCategoryScore } from "./adapters/short-interest";

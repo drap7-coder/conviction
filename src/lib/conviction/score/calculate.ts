@@ -19,14 +19,14 @@ export function calculateCoverage(categories: CategoryScore[]): number {
 
 /**
  * Rare multi-source agreement bonus.
- * Requires four usable categories at |score| >= 25 in the same direction.
+ * Requires three usable categories at |score| >= 25 in the same direction.
  */
 export function applyAgreementAdjustment(usable: CategoryScore[]): number {
   const positiveCount = usable.filter((category) => category.score >= 25).length;
   const negativeCount = usable.filter((category) => category.score <= -25).length;
 
-  if (positiveCount >= 4) return 5;
-  if (negativeCount >= 4) return -5;
+  if (positiveCount >= 3) return 5;
+  if (negativeCount >= 3) return -5;
   return 0;
 }
 

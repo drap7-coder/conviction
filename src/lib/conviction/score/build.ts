@@ -2,7 +2,6 @@
  * Assemble CategoryScore inputs and compute the composite Conviction Score.
  */
 
-import { toEarningsCategoryScore } from "./adapters/earnings";
 import { toInstitutionalCategoryScore, type InstitutionalCategoryInput } from "./adapters/institutional";
 import { toShortInterestCategoryScore, type ShortInterestCategoryInput } from "./adapters/short-interest";
 import { toTechnicalsCategoryScore, type TechnicalCategoryInput } from "./adapters/technicals";
@@ -14,14 +13,12 @@ import type {
   EvidenceCategory,
 } from "./types";
 import { CATEGORY_WEIGHTS, EVIDENCE_CATEGORIES, SCORING_VERSION } from "./weights";
-import type { EarningsEvidence } from "@/lib/earnings/types";
 
 export type CompositeTone = "green" | "amber" | "red" | "neutral";
 
 export interface BuildConvictionScoreInput {
   ticker: string;
   institutional?: InstitutionalCategoryInput | null;
-  earnings?: EarningsEvidence | null;
   technicals?: TechnicalCategoryInput | null;
   shortInterest?: ShortInterestCategoryInput | null;
   now?: Date;
@@ -50,9 +47,6 @@ export function buildCategoryScores(input: BuildConvictionScoreInput): CategoryS
     institutional: input.institutional
       ? toInstitutionalCategoryScore(ticker, input.institutional, now)
       : emptyCategory(ticker, "institutional", now),
-    earnings: input.earnings
-      ? toEarningsCategoryScore(input.earnings, now)
-      : emptyCategory(ticker, "earnings", now),
     technicals: input.technicals
       ? toTechnicalsCategoryScore(ticker, input.technicals, now)
       : emptyCategory(ticker, "technicals", now),

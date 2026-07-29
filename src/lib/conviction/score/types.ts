@@ -8,7 +8,6 @@
 
 export type EvidenceCategory =
   | "institutional"
-  | "earnings"
   | "technicals"
   | "short_interest";
 

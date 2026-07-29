@@ -2,11 +2,11 @@
  * Fetches wired evidence categories, builds CategoryScores,
  * and renders the composite Conviction Score overview.
  *
- * Progressive scoring: fast sources (earnings, technicals, short interest)
+ * Progressive scoring: fast sources (technicals, short interest)
  * can produce a score before the slow 13F institutional call finishes.
  * Institutional upgrades the composite when it arrives.
  *
- * Wired: institutional, earnings, technicals, short_interest
+ * Wired: institutional, technicals, short_interest
  */
 
 "use client";
@@ -21,7 +21,6 @@ import {
   type ShortInterestCategoryInput,
   type TechnicalCategoryInput,
 } from "@/lib/conviction/score";
-import type { EarningsEvidence } from "@/lib/earnings/types";
 import type { ShortInterestSummary } from "@/lib/market/short-interest";
 import type { StockHistoryPoint } from "@/lib/market/technical-state";
 import type { StockQuote } from "@/lib/market/quotes";
@@ -35,28 +34,10 @@ const EMPTY_RESULT: ConvictionScoreResult = {
   includedCategories: [],
   excludedCategories: [
     "institutional",
-    "earnings",
     "technicals",
     "short_interest",
   ],
 };
-
-function emptyEarnings(ticker: string): EarningsEvidence {
-  return {
-    ticker,
-    history: [],
-    forecasts: [],
-    historyScore: null,
-    revisionScore: null,
-    score: null,
-    momentum: "Unavailable",
-    nextEarningsDate: null,
-    asOf: null,
-    source: "unavailable",
-    status: "unavailable",
-    message: "Earnings evidence could not be loaded.",
-  };
-}
 
 function emptyInstitutional(): InstitutionalCategoryInput {
   return {
@@ -134,7 +115,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
       setResult(EMPTY_RESULT);
 
       let institutional = emptyInstitutional();
-      let earnings = emptyEarnings(ticker);
       let technicals = emptyTechnicals();
       let shortInterest = emptyShortInterest(ticker);
 
@@ -144,7 +124,6 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
           buildConvictionScore({
             ticker,
             institutional,
-            earnings,
             technicals,
             shortInterest,
           }),
@@ -152,13 +131,8 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
         if (!stillLoading) setLoading(false);
       };
 
-      // Fast path first — enough weight to clear the 50% gate without 13F.
+      // Fast path first — technicals + short interest clear the 50% gate without 13F.
       const fast = await Promise.all([
-        fetchJsonWithTimeout<EarningsEvidence>(
-          `/api/evidence/earnings?ticker=${encodeURIComponent(ticker)}`,
-          14_000,
-          controller.signal,
-        ).catch(() => null),
         fetchJsonWithTimeout<ShortInterestSummary & { status?: string; message?: string }>(
           `/api/market/short-interest?ticker=${encodeURIComponent(ticker)}`,
           10_000,
@@ -185,8 +159,7 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
 
       if (cancelled) return;
 
-      const [earningsRes, shortRes, historyRes, quotesRes] = fast;
-      earnings = earningsRes ?? emptyEarnings(ticker);
+      const [shortRes, historyRes, quotesRes] = fast;
       technicals = historyPointsFromResponse(historyRes, quotesRes?.quotes?.[0] ?? null);
       shortInterest = shortRes
         ? {

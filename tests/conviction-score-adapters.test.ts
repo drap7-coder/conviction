@@ -4,12 +4,10 @@ import {
   dialValueFromScore,
   displayLabelForComposite,
   displayScoreFromSigned,
-  toEarningsCategoryScore,
   toInstitutionalCategoryScore,
   toShortInterestCategoryScore,
   toTechnicalsCategoryScore,
 } from "@/lib/conviction/score";
-import type { EarningsEvidence } from "@/lib/earnings/types";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 
 function row(
@@ -35,23 +33,6 @@ function row(
   };
 }
 
-function earnings(overrides: Partial<EarningsEvidence> = {}): EarningsEvidence {
-  return {
-    ticker: "AAPL",
-    history: [],
-    forecasts: [],
-    historyScore: 50,
-    revisionScore: 20,
-    score: 38,
-    momentum: "Estimates rising",
-    nextEarningsDate: null,
-    asOf: "2026-06-01T00:00:00.000Z",
-    source: "nasdaq",
-    status: "success",
-    ...overrides,
-  };
-}
-
 function risingHistory(days = 60, start = 100) {
   const end = Date.UTC(2026, 6, 28); // 2026-07-28
   return Array.from({ length: days }, (_, index) => {
@@ -68,7 +49,7 @@ describe("toInstitutionalCategoryScore", () => {
     const category = toInstitutionalCategoryScore("AAPL", { results: [] });
     expect(category.hasData).toBe(false);
     expect(category.category).toBe("institutional");
-    expect(category.baseWeight).toBe(0.31);
+    expect(category.baseWeight).toBe(0.45);
   });
 
   it("remaps 0–100 ring onto signed [-100, +100]", () => {
@@ -92,22 +73,6 @@ describe("toInstitutionalCategoryScore", () => {
   });
 });
 
-describe("toEarningsCategoryScore", () => {
-  it("passes through signed earnings score", () => {
-    const category = toEarningsCategoryScore(earnings({ score: 42 }));
-    expect(category.hasData).toBe(true);
-    expect(category.score).toBe(42);
-    expect(category.baseWeight).toBe(0.31);
-  });
-
-  it("marks unavailable earnings as no data", () => {
-    const category = toEarningsCategoryScore(
-      earnings({ status: "unavailable", score: null, momentum: "Unavailable" }),
-    );
-    expect(category.hasData).toBe(false);
-  });
-});
-
 describe("toTechnicalsCategoryScore", () => {
   it("scores rising price history as positive", () => {
     const points = risingHistory(80, 100);
@@ -123,12 +88,11 @@ describe("toTechnicalsCategoryScore", () => {
       new Date(points[points.length - 1]!.date),
     );
     expect(category.hasData).toBe(true);
-    expect(category.baseWeight).toBe(0.26);
+    expect(category.baseWeight).toBe(0.38);
     expect(category.score).toBeGreaterThan(0);
   });
 
   it("scores above-both-SMAs near highs close to +100", () => {
-    // Steady uptrend long enough for SMA-200, finishing near the high.
     const points = risingHistory(250, 100);
     const last = points[points.length - 1]!.close;
     const category = toTechnicalsCategoryScore(
@@ -173,7 +137,7 @@ describe("toShortInterestCategoryScore", () => {
     }, new Date("2026-07-28"));
     expect(category.hasData).toBe(true);
     expect(category.score).toBeLessThan(0);
-    expect(category.baseWeight).toBe(0.12);
+    expect(category.baseWeight).toBe(0.17);
   });
 
   it("returns no data when short interest is empty", () => {
@@ -188,20 +152,27 @@ describe("toShortInterestCategoryScore", () => {
 });
 
 describe("buildConvictionScore", () => {
-  it("returns a score when institutional + earnings clear coverage", () => {
+  it("returns a score when institutional + technicals clear coverage", () => {
+    const points = risingHistory(80, 100);
+    const last = points[points.length - 1]!;
     const result = buildConvictionScore({
       ticker: "AAPL",
       institutional: {
         results: [row("New", 500_000), row("Increased", 250_000)],
       },
-      earnings: earnings({ score: 40 }),
+      technicals: {
+        points,
+        currentPrice: last.close,
+        fiftyTwoWeekHigh: last.close,
+        fiftyTwoWeekLow: 90,
+      },
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.62);
+    expect(result.coverage).toBeCloseTo(0.83);
     expect(result.score).not.toBeNull();
     expect(result.label).not.toBe("insufficient_evidence");
-    expect(result.includedCategories).toEqual(["institutional", "earnings"]);
+    expect(result.includedCategories).toEqual(["institutional", "technicals"]);
   });
 
   it("includes technicals and short interest in coverage", () => {
@@ -212,7 +183,6 @@ describe("buildConvictionScore", () => {
       institutional: {
         results: [row("New", 500_000, "2026-06-15"), row("Increased", 250_000, "2026-06-15")],
       },
-      earnings: earnings({ score: 40, asOf: "2026-07-01T00:00:00.000Z" }),
       technicals: {
         points,
         currentPrice: last.close,
@@ -244,7 +214,6 @@ describe("buildConvictionScore", () => {
     expect(result.score).not.toBeNull();
     expect(result.includedCategories).toEqual([
       "institutional",
-      "earnings",
       "technicals",
       "short_interest",
     ]);
@@ -257,13 +226,12 @@ describe("buildConvictionScore", () => {
       institutional: {
         results: [row("New", 500_000)],
       },
-      earnings: earnings({ status: "unavailable", score: null, momentum: "Unavailable" }),
       now: new Date("2026-07-28"),
     });
 
     expect(result.score).toBeNull();
     expect(result.label).toBe("insufficient_evidence");
-    expect(result.coverage).toBeCloseTo(0.31);
+    expect(result.coverage).toBeCloseTo(0.45);
   });
 
   it("maps signed composite onto 0–100 display helpers", () => {
