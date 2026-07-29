@@ -17,10 +17,39 @@ import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
 import { getSectorForCompany } from "@/lib/market/industries";
 import { getLogoUrl, getSectorColors } from "@/lib/market/logos";
+import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
 import "@/app/dashboard.css";
 
 export async function generateStaticParams() {
   return SEED_WATCHLIST.map((entry) => ({ ticker: entry.ticker }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { ticker: string };
+}): Promise<Metadata> {
+  const upperTicker = params.ticker.toUpperCase();
+  const resolvedCompany = await validateTicker(upperTicker);
+  const companyName = resolvedCompany.companyName ?? upperTicker;
+
+  const title = `${companyName} (${upperTicker}) — Conviction`;
+  const description = `Explore conviction signals, institutional activity, insider activity, earnings momentum, and political disclosures for ${companyName} (${upperTicker}).`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
+      siteName: "CONVICTION",
+    },
+  };
 }
 
 export default async function CompanyPage({
@@ -36,8 +65,22 @@ export default async function CompanyPage({
   const sector = getSectorForCompany(upperTicker);
   const sectorColors = sector ? getSectorColors(sector.ticker) : undefined;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `${companyName} (${upperTicker}) — Conviction`,
+    url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
+    description: `Explore conviction signals and filings for ${companyName} (${upperTicker}).`,
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        // Safe: server-side JSON literal for structured data.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <CompanyDetailHeader
         ticker={upperTicker}
         companyName={companyName}

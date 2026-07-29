@@ -5,10 +5,44 @@ import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { getSectorByTicker, SECTORS } from "@/lib/market/industries";
 import { getSectorColors } from "@/lib/market/logos";
+import type { Metadata } from "next";
+import { SITE_URL } from "@/lib/site";
 import "@/app/dashboard.css";
 
 export function generateStaticParams() {
   return SECTORS.map((sector) => ({ ticker: sector.ticker }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { ticker: string };
+}): Promise<Metadata> {
+  const upperTicker = params.ticker.toUpperCase();
+  const sector = getSectorByTicker(upperTicker);
+  if (!sector) {
+    return {
+      title: `${upperTicker} — Conviction`,
+      description: "Explore conviction signals for this sector.",
+    };
+  }
+
+  const title = `${sector.name} (${sector.ticker}) — Conviction`;
+  const description = `Explore conviction signals and supporting evidence for the ${sector.name} sector (${sector.ticker}).`;
+
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
+    },
+    openGraph: {
+      title,
+      description,
+      url: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
+      siteName: "CONVICTION",
+    },
+  };
 }
 
 export default async function SectorPage({
@@ -21,8 +55,21 @@ export default async function SectorPage({
   const sector = getSectorByTicker(upperTicker);
   if (!sector) notFound();
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    name: `${sector.name} (${sector.ticker}) — Conviction`,
+    url: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
+    description: `Explore conviction signals for the ${sector.name} sector (${sector.ticker}).`,
+  };
+
   return (
     <div>
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="detail-header">
         <div className="detail-nav">
           <Link href="/industries" className="detail-back">

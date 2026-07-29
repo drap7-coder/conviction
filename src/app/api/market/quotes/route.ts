@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     ?.split(",")
     .map((ticker) => ticker.trim())
     .filter(Boolean)
-    .slice(0, 30) ?? [];
+    ?? [];
 
   if (tickers.length === 0) {
     return NextResponse.json(
@@ -19,6 +19,22 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const quotes = await fetchStockQuotes(tickers);
+  // The underlying Yahoo fetch is batched per request, but we also need to
+  // keep concurrency/rate-limits under control when callers pass large lists
+  // (e.g. scaled watchlists/portfolios).
+  //
+  // `fetchStockQuotes` already deduplicates and normalizes tickers, so this
+  // chunking is primarily about bounding outbound fan-out.
+  const unique = Array.from(new Set(tickers));
+  const chunkSize = 30;
+  const quotes = [];
+
+  for (let i = 0; i < unique.length; i += chunkSize) {
+    const chunk = unique.slice(i, i + chunkSize);
+    // Sequential chunking: predictable load under concurrency.
+    const next = await fetchStockQuotes(chunk);
+    quotes.push(...next);
+  }
+
   return NextResponse.json({ quotes, fetchedAt: new Date().toISOString() });
 }
