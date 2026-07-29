@@ -6,6 +6,7 @@ import type { MoveEvent } from "@/lib/evidence/move-events";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { PoliticalTradeSummary } from "@/lib/political-trades";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import { INSTITUTIONAL_MANAGERS } from "@/lib/sec/institutional-managers";
 import {
   type CorporateDisclosureSummary,
 } from "@/lib/sec/corporate-disclosures";
@@ -137,7 +138,7 @@ function summarizeInstitutional(rows: InstitutionalAccumulation[], ticker: strin
       lead,
       latestFilingDate: latestFilingDate ?? null,
       label: "No tracked 13F change found",
-      text: "No activity found among the 15 tracked institutional managers.",
+      text: `No activity found among the ${INSTITUTIONAL_MANAGERS.length} tracked hedge and investment fund managers.`,
       tone: "neutral",
     };
   }

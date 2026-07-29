@@ -7,7 +7,8 @@
  */
 
 export type EvidenceCategory =
-  | "institutional"
+  | "hedge_funds"
+  | "investment_funds"
   | "technicals"
   | "short_interest";
 

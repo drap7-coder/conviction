@@ -2,7 +2,7 @@
  * Assemble CategoryScore inputs and compute the composite Conviction Score.
  */
 
-import { toInstitutionalCategoryScore, type InstitutionalCategoryInput } from "./adapters/institutional";
+import { toFundCategoryScore, type InstitutionalCategoryInput } from "./adapters/institutional";
 import { toShortInterestCategoryScore, type ShortInterestCategoryInput } from "./adapters/short-interest";
 import { toTechnicalsCategoryScore, type TechnicalCategoryInput } from "./adapters/technicals";
 import { calculateConvictionScore } from "./calculate";
@@ -18,6 +18,7 @@ export type CompositeTone = "green" | "amber" | "red" | "neutral";
 
 export interface BuildConvictionScoreInput {
   ticker: string;
+  /** Raw 13F rows for all tracked managers; split by fund kind internally. */
   institutional?: InstitutionalCategoryInput | null;
   technicals?: TechnicalCategoryInput | null;
   shortInterest?: ShortInterestCategoryInput | null;
@@ -44,9 +45,12 @@ export function buildCategoryScores(input: BuildConvictionScoreInput): CategoryS
   const ticker = input.ticker.toUpperCase();
 
   const byCategory: Record<EvidenceCategory, CategoryScore> = {
-    institutional: input.institutional
-      ? toInstitutionalCategoryScore(ticker, input.institutional, now)
-      : emptyCategory(ticker, "institutional", now),
+    hedge_funds: input.institutional
+      ? toFundCategoryScore(ticker, input.institutional, "hedge_fund", now)
+      : emptyCategory(ticker, "hedge_funds", now),
+    investment_funds: input.institutional
+      ? toFundCategoryScore(ticker, input.institutional, "investment_fund", now)
+      : emptyCategory(ticker, "investment_funds", now),
     technicals: input.technicals
       ? toTechnicalsCategoryScore(ticker, input.technicals, now)
       : emptyCategory(ticker, "technicals", now),

@@ -14,6 +14,7 @@ function row(
     manager: "Test",
     displayName: "Test Manager",
     cik: "0001",
+    fundKind: "hedge_fund",
     issuer: "Apple",
     classTitle: "COM",
     cusip: "037833100",

@@ -17,6 +17,7 @@ const manager: InstitutionalManager = {
   manager: "test-manager",
   cik: "0000000001",
   displayName: "Test Manager",
+  kind: "hedge_fund",
 };
 
 function holding(overrides: Partial<InstitutionalHolding> = {}): InstitutionalHolding {
@@ -96,6 +97,7 @@ describe("compareHoldings", () => {
     expect(result?.status).toBe("New");
     expect(result?.shareChange).toBe(100);
     expect(result?.percentageChange).toBeNull();
+    expect(result?.fundKind).toBe("hedge_fund");
   });
 
   it("identifies an increased position by shares", () => {
@@ -234,6 +236,7 @@ describe("institutional market ideas", () => {
         manager: displayName,
         displayName,
         cik: displayName,
+        kind: "hedge_fund",
       },
       latest: filing({ holdings: latestHoldings }),
       previous: filing({

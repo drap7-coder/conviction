@@ -4,21 +4,22 @@ import {
   dialValueFromScore,
   displayLabelForComposite,
   displayScoreFromSigned,
-  toInstitutionalCategoryScore,
-  toShortInterestCategoryScore,
-  toTechnicalsCategoryScore,
+  toFundCategoryScore,
 } from "@/lib/conviction/score";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import type { FundKind } from "@/lib/sec/institutional-managers";
 
 function row(
   status: InstitutionalAccumulation["status"],
   shareChange = 0,
   filingDate = "2026-05-15",
+  fundKind: FundKind = "hedge_fund",
 ): InstitutionalAccumulation {
   return {
     manager: "Test",
     displayName: "Test Manager",
     cik: "0001",
+    fundKind,
     issuer: "Apple",
     classTitle: "COM",
     cusip: "037833100",
@@ -44,28 +45,47 @@ function risingHistory(days = 60, start = 100) {
   });
 }
 
-describe("toInstitutionalCategoryScore", () => {
-  it("maps empty filings to hasData false", () => {
-    const category = toInstitutionalCategoryScore("AAPL", { results: [] });
+describe("toFundCategoryScore", () => {
+  it("maps empty filings to hasData false for hedge funds", () => {
+    const category = toFundCategoryScore("AAPL", { results: [] }, "hedge_fund");
     expect(category.hasData).toBe(false);
-    expect(category.category).toBe("institutional");
-    expect(category.baseWeight).toBe(0.45);
+    expect(category.category).toBe("hedge_funds");
+    expect(category.baseWeight).toBe(0.25);
   });
 
-  it("remaps 0–100 ring onto signed [-100, +100]", () => {
-    const category = toInstitutionalCategoryScore("AAPL", {
-      results: [row("New", 500_000), row("Increased", 250_000), row("Increased", 100_000)],
-    });
+  it("scores only the matching fund kind", () => {
+    const category = toFundCategoryScore(
+      "AAPL",
+      {
+        results: [
+          row("New", 500_000, "2026-05-15", "hedge_fund"),
+          row("Increased", 250_000, "2026-05-15", "hedge_fund"),
+          row("Exited", -100_000, "2026-05-15", "investment_fund"),
+        ],
+      },
+      "hedge_fund",
+    );
     expect(category.hasData).toBe(true);
-    expect(category.isStale).toBe(false);
+    expect(category.category).toBe("hedge_funds");
     expect(category.score).toBeGreaterThan(0);
-    expect(category.score).toBeLessThanOrEqual(100);
+  });
+
+  it("maps investment fund filings onto investment_funds", () => {
+    const category = toFundCategoryScore(
+      "AAPL",
+      { results: [row("New", 500_000, "2026-05-15", "investment_fund")] },
+      "investment_fund",
+    );
+    expect(category.hasData).toBe(true);
+    expect(category.category).toBe("investment_funds");
+    expect(category.baseWeight).toBe(0.20);
   });
 
   it("marks old filings stale", () => {
-    const category = toInstitutionalCategoryScore(
+    const category = toFundCategoryScore(
       "AAPL",
-      { results: [row("Increased", 100_000, "2024-01-01")] },
+      { results: [row("Increased", 100_000, "2024-01-01", "hedge_fund")] },
+      "hedge_fund",
       new Date("2026-07-28"),
     );
     expect(category.hasData).toBe(true);
@@ -74,7 +94,8 @@ describe("toInstitutionalCategoryScore", () => {
 });
 
 describe("toTechnicalsCategoryScore", () => {
-  it("scores rising price history as positive", () => {
+  it("scores rising price history as positive", async () => {
+    const { toTechnicalsCategoryScore } = await import("@/lib/conviction/score");
     const points = risingHistory(80, 100);
     const last = points[points.length - 1]!.close;
     const category = toTechnicalsCategoryScore(
@@ -92,7 +113,8 @@ describe("toTechnicalsCategoryScore", () => {
     expect(category.score).toBeGreaterThan(0);
   });
 
-  it("scores above-both-SMAs near highs close to +100", () => {
+  it("scores above-both-SMAs near highs close to +100", async () => {
+    const { toTechnicalsCategoryScore } = await import("@/lib/conviction/score");
     const points = risingHistory(250, 100);
     const last = points[points.length - 1]!.close;
     const category = toTechnicalsCategoryScore(
@@ -109,14 +131,16 @@ describe("toTechnicalsCategoryScore", () => {
     expect(category.score).toBeGreaterThanOrEqual(85);
   });
 
-  it("returns no data for empty history", () => {
+  it("returns no data for empty history", async () => {
+    const { toTechnicalsCategoryScore } = await import("@/lib/conviction/score");
     const category = toTechnicalsCategoryScore("AAPL", { points: [] });
     expect(category.hasData).toBe(false);
   });
 });
 
 describe("toShortInterestCategoryScore", () => {
-  it("treats rising short interest as negative", () => {
+  it("treats rising short interest as negative", async () => {
+    const { toShortInterestCategoryScore } = await import("@/lib/conviction/score");
     const category = toShortInterestCategoryScore({
       ticker: "AAPL",
       status: "success",
@@ -140,7 +164,8 @@ describe("toShortInterestCategoryScore", () => {
     expect(category.baseWeight).toBe(0.17);
   });
 
-  it("returns no data when short interest is empty", () => {
+  it("returns no data when short interest is empty", async () => {
+    const { toShortInterestCategoryScore } = await import("@/lib/conviction/score");
     const category = toShortInterestCategoryScore({
       ticker: "AAPL",
       status: "empty",
@@ -152,13 +177,16 @@ describe("toShortInterestCategoryScore", () => {
 });
 
 describe("buildConvictionScore", () => {
-  it("returns a score when institutional + technicals clear coverage", () => {
+  it("returns a score when hedge funds + technicals clear coverage", () => {
     const points = risingHistory(80, 100);
     const last = points[points.length - 1]!;
     const result = buildConvictionScore({
       ticker: "AAPL",
       institutional: {
-        results: [row("New", 500_000), row("Increased", 250_000)],
+        results: [
+          row("New", 500_000, "2026-05-15", "hedge_fund"),
+          row("Increased", 250_000, "2026-05-15", "hedge_fund"),
+        ],
       },
       technicals: {
         points,
@@ -169,19 +197,22 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.83);
+    expect(result.coverage).toBeCloseTo(0.63);
     expect(result.score).not.toBeNull();
     expect(result.label).not.toBe("insufficient_evidence");
-    expect(result.includedCategories).toEqual(["institutional", "technicals"]);
+    expect(result.includedCategories).toEqual(["hedge_funds", "technicals"]);
   });
 
-  it("includes technicals and short interest in coverage", () => {
+  it("includes both fund kinds when present with technicals and short interest", () => {
     const points = risingHistory(80, 100);
     const last = points[points.length - 1]!;
     const result = buildConvictionScore({
       ticker: "AAPL",
       institutional: {
-        results: [row("New", 500_000, "2026-06-15"), row("Increased", 250_000, "2026-06-15")],
+        results: [
+          row("New", 500_000, "2026-06-15", "hedge_fund"),
+          row("Increased", 250_000, "2026-06-15", "investment_fund"),
+        ],
       },
       technicals: {
         points,
@@ -213,18 +244,22 @@ describe("buildConvictionScore", () => {
     expect(result.coverage).toBeCloseTo(1);
     expect(result.score).not.toBeNull();
     expect(result.includedCategories).toEqual([
-      "institutional",
+      "hedge_funds",
+      "investment_funds",
       "technicals",
       "short_interest",
     ]);
     expect(result.excludedCategories).toEqual([]);
   });
 
-  it("withholds the score when only institutional is present", () => {
+  it("withholds the score when only fund filings are present", () => {
     const result = buildConvictionScore({
       ticker: "AAPL",
       institutional: {
-        results: [row("New", 500_000)],
+        results: [
+          row("New", 500_000, "2026-05-15", "hedge_fund"),
+          row("New", 200_000, "2026-05-15", "investment_fund"),
+        ],
       },
       now: new Date("2026-07-28"),
     });

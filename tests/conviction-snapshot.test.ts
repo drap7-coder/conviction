@@ -30,6 +30,7 @@ function manager(name: string, status: InstitutionalAccumulation["status"]): Ins
     manager: name,
     displayName: name,
     cik: name,
+    fundKind: "hedge_fund",
     issuer: "Test",
     classTitle: "COM",
     cusip: name,

@@ -4,7 +4,7 @@ import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
 import { CompanyPulseCard } from "@/app/components/CompanyPulseCard";
 import { CompanyVerdict } from "@/app/components/CompanyVerdict";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
-import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
+import { FundActivityCards } from "@/app/components/InstitutionalConvictionSection";
 import { ConvictionScoreOverviewCard } from "@/app/components/ConvictionScoreOverviewCard";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MarketPanel } from "@/app/components/MarketPanel";
@@ -49,7 +49,7 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            {/* Composite Conviction Score: institutional + earnings (50% coverage floor). */}
+            {/* Composite Conviction Score: hedge + investment funds + technicals + short interest. */}
             <ConvictionScoreOverviewCard ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
@@ -61,9 +61,7 @@ export default async function CompanyPage({
         <DashboardCard className="dashboard-card-technical" title="Technical analysis" summary="Moving averages, 52-week range, and current trend state.">
           <MarketPanel ticker={upperTicker} />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-institutional" title="Institutional activity" summary="Recent position changes reported by tracked managers.">
-          <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
-        </DashboardCard>
+        <FundActivityCards ticker={upperTicker} />
         <DashboardCard className="dashboard-card-insider" title="Insider activity" summary="Recent open-market purchases and sales by company insiders.">
           <InsiderActivitySection ticker={upperTicker} />
         </DashboardCard>
