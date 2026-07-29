@@ -7374,10 +7374,7 @@ details > summary::before {
   }
 
   .cdh-session-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    justify-content: start;
-    gap: 6px 12px;
+    justify-content: flex-start;
     text-align: left;
   }
 
