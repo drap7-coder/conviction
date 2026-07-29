@@ -256,11 +256,12 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
 
   const portfolioHeatmapItems = useMemo(() => sortedPositions.map(({ pos, metrics, dailyPct }) => {
     const quote = quotes.find((item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase());
+    const live = quote ? getLivePrice(quote) : null;
     return {
       ticker: pos.companyId.toUpperCase(),
-      name: pos.companyId.toUpperCase(),
-      price: pos.currentPrice ?? null,
-      changePercent: dailyPct,
+      name: quote?.name ?? pos.companyId.toUpperCase(),
+      price: live?.price ?? pos.currentPrice ?? null,
+      changePercent: live?.changePercent ?? dailyPct,
       marketCap: quote?.marketCap ?? null,
       sizeValue: metrics.marketValue,
       sizeLabel: `${metrics.marketValue !== null ? compactCurrency(metrics.marketValue) : "—"} position · ${metrics.weight !== null ? weightPct(metrics.weight) : "—"} of portfolio`,
@@ -543,7 +544,9 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                   addedAt: new Date().toISOString(),
                   status: "active",
                 },
-                quote ? { changePercent: quote.changePercent } : undefined,
+                quote
+                  ? { changePercent: live?.changePercent ?? quote.changePercent }
+                  : undefined,
               );
 
               return (
@@ -551,12 +554,11 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                   key={ticker}
                   ticker={ticker}
                   companyName={quote?.name ?? ticker}
-                  price={quote?.price ?? pos.currentPrice ?? null}
-                  changePercent={quote?.changePercent ?? dailyPct}
+                  price={live?.price ?? quote?.price ?? pos.currentPrice ?? null}
+                  changePercent={live?.changePercent ?? quote?.changePercent ?? dailyPct}
                   sessionLabel={live?.label ?? null}
-                  sessionPrice={live?.label ? live.price : null}
-                  sessionChange={live?.label ? live.change : null}
-                  sessionChangePercent={live?.label ? live.changePercent : null}
+                  closePrice={live?.label ? quote?.price ?? null : null}
+                  closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
                   convictionTone={verdict.tone}
                   convictionStrength={verdict.strength}
                   shares={pos.shares}
