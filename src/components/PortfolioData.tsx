@@ -43,6 +43,7 @@ interface PortfolioData {
   hasData: boolean;
   loading: boolean;
   error: string | null;
+  sessionLabel: string | null;
 }
 
 interface PortfolioDataContextValue {
@@ -66,14 +67,23 @@ function enrichWithPrices(
   return persisted.map((p) => {
     const ticker = p.ticker.toUpperCase();
     const quote = quoteMap.get(ticker);
+    const live = quote ? getLivePrice(quote) : null;
     return {
       companyId: ticker,
       shares: p.shares,
       averageCost: p.averageCost,
-      currentPrice: quote?.price ?? null,
+      currentPrice: live?.price ?? quote?.price ?? null,
       previousClose: quote?.previousClose ?? null,
     };
   });
+}
+
+function sessionLabelFromQuotes(quotes: StockQuote[]): string | null {
+  for (const quote of quotes) {
+    const label = getLivePrice(quote).label;
+    if (label) return label;
+  }
+  return null;
 }
 
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
@@ -138,6 +148,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       hasData: enriched.length > 0,
       loading,
       error,
+      sessionLabel: sessionLabelFromQuotes(quotes),
     };
   }, [positions, quotes, loading, error]);
 
@@ -181,6 +192,9 @@ export function PortfolioHero() {
             {signedCurrency(data.dailyChange)} {percent(data.dailyChangePercent)}
           </span>
         )}
+        {data.sessionLabel ? (
+          <span className="pf-hero-session-chip">{data.sessionLabel}</span>
+        ) : null}
       </div>
       {data.totalUnrealizedGL !== null && (
         <div className={`pf-hero-secondary ${data.totalUnrealizedGL >= 0 ? "up" : "down"}`}>

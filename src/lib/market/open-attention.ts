@@ -16,6 +16,7 @@ export interface AttentionTarget {
   ticker: string;
   label: string;
   priceChangePercent: number | null;
+  sessionLabel?: string | null;
   scope?: AttentionScope;
 }
 
@@ -45,6 +46,7 @@ export interface OpenAttentionItem extends AttentionScore {
   mentionsLast24Hours: number;
   uniqueAuthorsLastHour: number;
   priceChangePercent: number | null;
+  sessionLabel: string | null;
   summary: string;
 }
 
@@ -247,6 +249,7 @@ async function fetchAttentionItem(target: AttentionTarget, now: Date): Promise<O
     mentionsLast24Hours,
     uniqueAuthorsLastHour: breadth.uniqueAuthors,
     priceChangePercent: target.priceChangePercent,
+    sessionLabel: target.sessionLabel ?? null,
     ...scored,
     summary: describeAttention({ ...input, ...scored }),
   };

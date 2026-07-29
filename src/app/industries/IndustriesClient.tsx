@@ -123,6 +123,14 @@ export function IndustriesClient({
   const selectedSector = sectors.find((sector) => sector.ticker === selectedTicker) ?? sectors[0] ?? null;
   const maxSectorMove = Math.max(...sectors.map((sector) => Math.abs(sectorMove(sector) ?? 0)), 0);
   const showLoading = status === "loading" || (status === "idle" && sectors.length === 0);
+  const industriesSessionLabel = (() => {
+    for (const sector of sectors) {
+      if (!sector.quote) continue;
+      const label = getLivePrice(sector.quote).label;
+      if (label) return label;
+    }
+    return null;
+  })();
 
   return (
     <div>
@@ -139,8 +147,29 @@ export function IndustriesClient({
         <section className="industries-heat-panel" aria-label="Sector leadership heatmap" aria-description="Tile size reflects S&amp;P 500 weight; color reflects the current market move.">
           <style>{`
             .industries-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
+            .industries-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
             .industries-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
             .industries-heat-subtitle { margin:6px 0 0; color:#8b8f97; font-size:.66rem; line-height:1.45; }
+            .industries-heat-session {
+              display:inline-flex; align-items:center; gap:6px;
+              padding:4px 9px; border-radius:999px;
+              background:rgba(251,191,36,.14); color:#fbbf24;
+              font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+              white-space:nowrap;
+            }
+            .industries-heat-session-dot {
+              width:6px; height:6px; border-radius:50%; background:currentColor;
+              box-shadow:0 0 0 0 rgba(251,191,36,.55);
+              animation:industries-heat-session-pulse 1.6s ease-out infinite;
+            }
+            @keyframes industries-heat-session-pulse {
+              0% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,.55); opacity:1; }
+              70% { transform:scale(1.15); box-shadow:0 0 0 7px rgba(251,191,36,0); opacity:.85; }
+              100% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,0); opacity:1; }
+            }
+            @media (prefers-reduced-motion:reduce) {
+              .industries-heat-session-dot { animation:none; }
+            }
             .industries-heat-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:13px 0 9px; color:#8b8f97; font-size:.66rem; }
             .industries-heat-detail > span:first-child { color:#f4f4f5; }
             .industries-heat-detail b.positive { color:#4ade80; }.industries-heat-detail b.negative { color:#f87171; }
@@ -153,9 +182,18 @@ export function IndustriesClient({
             .industries-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
             @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; }.industries-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.industries-heat-tile { min-height:62px; padding:8px; }.industries-heat-detail a { width:100%; margin-left:0; } }
           `}</style>
-          <h2 className="industries-heat-title">
-            Sector Leadership{refreshing ? " · refreshing" : ""}
-          </h2>
+          <div className="industries-heat-heading">
+            <h2 className="industries-heat-title">
+              Sector Leadership{refreshing ? " · refreshing" : ""}
+            </h2>
+            {industriesSessionLabel ? (
+              <span className="industries-heat-session" aria-label={`${industriesSessionLabel} session`}>
+                <i className="industries-heat-session-dot" aria-hidden="true" />
+                {industriesSessionLabel}
+              </span>
+            ) : null}
+          </div>
+          <p className="industries-heat-subtitle">Tile size reflects S&amp;P 500 weight; color reflects the current market move.</p>
           <div className="industries-heat-detail" aria-live="polite">
             {selectedSector ? (
               <>

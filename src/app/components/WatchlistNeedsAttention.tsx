@@ -17,6 +17,7 @@ export interface WatchlistAttentionItem {
   tone: "positive" | "negative" | "contested" | "quiet";
   strengthLabel: string;
   changePercent: number | null;
+  sessionLabel: string | null;
 }
 
 interface WatchlistNeedsAttentionProps {
@@ -38,6 +39,7 @@ function buildAttentionItems(
     const quote = quotes[entry.ticker];
     const live = quote ? getLivePrice(quote) : null;
     const changePercent = live?.changePercent ?? quote?.changePercent ?? null;
+    const sessionLabel = live?.label ?? null;
     const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
     const hasNews = (headlines[entry.ticker]?.length ?? 0) > 0;
 
@@ -51,7 +53,12 @@ function buildAttentionItems(
       action = "Review evidence";
     } else if (changePercent !== null && changePercent <= -5) {
       priority = 2;
-      reason = `Down ${Math.abs(changePercent).toFixed(1)}% today.`;
+      const when = sessionLabel === "Pre-Market"
+        ? "in pre-market"
+        : sessionLabel === "After Hours"
+          ? "after hours"
+          : "today";
+      reason = `Down ${Math.abs(changePercent).toFixed(1)}% ${when}.`;
       action = "Check the move";
     } else if (verdict.state === "Mixed" && hasNews) {
       priority = 3;
@@ -79,6 +86,7 @@ function buildAttentionItems(
       tone: verdict.tone,
       strengthLabel: verdict.state,
       changePercent,
+      sessionLabel,
     });
   }
 
@@ -133,6 +141,9 @@ export function WatchlistNeedsAttention({
                   {item.changePercent >= 0 ? "+" : ""}
                   {item.changePercent.toFixed(1)}%
                 </span>
+              ) : null}
+              {item.sessionLabel ? (
+                <span className="wl-attention-session">{item.sessionLabel}</span>
               ) : null}
               <span className="wl-attention-action">{item.action}</span>
             </div>

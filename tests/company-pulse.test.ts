@@ -12,6 +12,7 @@ function item(overrides: Partial<OpenAttentionItem>): OpenAttentionItem {
     mentionsLast24Hours: 40,
     uniqueAuthorsLastHour: 5,
     priceChangePercent: 0.2,
+    sessionLabel: null,
     velocity: 3,
     accelerationPercent: 100,
     score: 60,

@@ -204,18 +204,28 @@ function GlobalMarketsHeatmap({
   title,
   subtitle,
   uniformTiles = false,
+  sessionLabel = null,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
   subtitle: string;
   uniformTiles?: boolean;
+  sessionLabel?: string | null;
 }) {
   const [selected, setSelected] = useState<PulseGlobalMarket | null>(markets[0] ?? null);
   const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
 
   return (
     <section className="market-panel market-sector-panel" aria-label={`${title} leadership`} aria-description={subtitle}>
-      <div className="market-panel-header"><div><h2>{title}</h2></div></div>
+      <div className="market-panel-header">
+        <div><h2>{title}</h2></div>
+        {sessionLabel ? (
+          <span className="market-session-badge" aria-label={`${sessionLabel} session`}>
+            <i className="market-session-dot" aria-hidden="true" />
+            {sessionLabel}
+          </span>
+        ) : null}
+      </div>
       <div className="market-sector-detail" aria-live="polite">
         {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.category} · {selected.ticker}</span><span className="market-detail-price">{fmtPrice(selected.price, false)}</span></> : <span>Hover or tap a market</span>}
       </div>
@@ -303,7 +313,25 @@ export default function MarketPulsePage() {
         .market-gauge > span:first-child { border-radius:999px 0 0 999px; }.market-gauge > span:nth-last-of-type(1) { border-radius:0 999px 999px 0; }
         .market-gauge-marker { position:absolute; top:-3px; width:4px; height:16px; border-radius:2px; background:#f4f4f5; box-shadow:0 0 0 2px rgba(10,10,11,.65); transform:translateX(-50%); }
         .market-gauge-labels { display:flex; justify-content:space-between; margin-top:7px; color:var(--market-muted); font-size:.52rem; text-transform:uppercase; }
-        .market-panel { padding:20px; margin-bottom:18px; }.market-panel-header h2 { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }.market-panel-header p { margin:6px 0 0; color:var(--market-muted); font-size:.66rem; line-height:1.45; }
+        .market-panel { padding:20px; margin-bottom:18px; }.market-panel-header { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }.market-panel-header h2 { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }.market-panel-header p { margin:6px 0 0; color:var(--market-muted); font-size:.66rem; line-height:1.45; }
+        .market-session-badge {
+          display:inline-flex; align-items:center; gap:6px;
+          padding:4px 9px; border-radius:999px;
+          background:rgba(251,191,36,.14); color:#fbbf24;
+          font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+          white-space:nowrap;
+        }
+        .market-session-dot {
+          width:6px; height:6px; border-radius:50%; background:currentColor;
+          box-shadow:0 0 0 0 rgba(251,191,36,.55);
+          animation:market-session-pulse 1.6s ease-out infinite;
+        }
+        @keyframes market-session-pulse {
+          0% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,.55); opacity:1; }
+          70% { transform:scale(1.15); box-shadow:0 0 0 7px rgba(251,191,36,0); opacity:.85; }
+          100% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,0); opacity:1; }
+        }
+        @media (prefers-reduced-motion:reduce) { .market-session-dot { animation:none; } }
         .market-macro-chart { height:190px; margin:16px -8px 5px; }.market-chart-empty { height:100%; display:grid; place-items:center; color:var(--market-muted); font-size:.7rem; }
         .market-chart-tooltip { display:flex; flex-direction:column; gap:3px; padding:8px; border:1px solid var(--market-border); border-radius:6px; background:#0a0a0be8; font-size:.58rem; }
         .market-legend { display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--market-muted); font-size:.58rem; }.market-legend span { display:flex; align-items:center; gap:5px; }.market-legend i { width:8px; height:8px; border-radius:2px; }
@@ -363,6 +391,7 @@ export default function MarketPulsePage() {
             ? "Country ETF proxies · tile size reflects relative equity-market weight"
             : "U.S. equities and macro assets · color reflects today’s move"}
           uniformTiles={activeRegion === "us"}
+          sessionLabel={activeRegion === "us" ? (data.sessionLabel ?? null) : null}
         />
       </div>
       <MarketNarrativePulse pulse={data.marketNarratives} />

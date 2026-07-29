@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchStockQuotes } from "@/lib/market/quotes";
+import { getLivePrice } from "@/lib/market/live-quote";
 import { getWatchlist } from "@/lib/watchlist/persist";
 import { SECTORS } from "@/lib/market/industries";
 import {
@@ -117,6 +118,8 @@ export interface PulseData {
   sectorLeadership: SectorLeadership;
   triage: TriageResult;
   marketNarratives: MarketNarrativePulse;
+  /** Pre-Market / After Hours when any tracked US quote is in extended hours. */
+  sessionLabel: string | null;
   fetchedAt: string;
 }
 
@@ -139,18 +142,31 @@ export async function GET() {
   ];
   const quotes = await fetchStockQuotes(allTickers);
   const quoteMap = new Map(quotes.map((q) => [q.ticker, q]));
+  const liveFor = (ticker: string) => {
+    const quote = quoteMap.get(ticker);
+    return quote ? getLivePrice(quote) : null;
+  };
+  let sessionLabel: string | null = null;
+  for (const quote of quotes) {
+    const label = getLivePrice(quote).label;
+    if (label) {
+      sessionLabel = label;
+      break;
+    }
+  }
 
   // ── Indicators ──
   const indicators: PulseIndicator[] = INDICATORS.map((indicator) => {
     const q = quoteMap.get(indicator.ticker);
+    const live = liveFor(indicator.ticker);
     return {
       ticker: indicator.ticker,
       label: indicator.label,
       status: indicator.status,
       isPercentValue: indicator.isPercentValue ?? false,
-      price: q?.price ?? null,
-      change: q?.change ?? null,
-      changePercent: q?.changePercent ?? null,
+      price: live?.price ?? q?.price ?? null,
+      change: live?.change ?? q?.change ?? null,
+      changePercent: live?.changePercent ?? q?.changePercent ?? null,
       history: q?.sparkline.slice(-15) ?? [],
     };
   });
@@ -169,11 +185,12 @@ export async function GET() {
 
   // ── Sectors (sorted by performance) ──
   const sectors: PulseSector[] = SECTORS.map((sector) => {
+    const live = liveFor(sector.ticker);
     const q = quoteMap.get(sector.ticker);
     return {
       ticker: sector.ticker,
       name: sector.name,
-      changePercent: q?.changePercent ?? null,
+      changePercent: live?.changePercent ?? q?.changePercent ?? null,
       weight: SECTOR_WEIGHTS[sector.ticker] ?? 0,
     };
   });
@@ -181,11 +198,12 @@ export async function GET() {
   const sectorLeadership = classifySectorLeadership(sectors);
 
   const globalMarkets: PulseGlobalMarket[] = GLOBAL_MARKETS.map((market) => {
+    const live = liveFor(market.ticker);
     const quote = quoteMap.get(market.ticker);
     return {
       ...market,
-      price: quote?.price ?? null,
-      changePercent: quote?.changePercent ?? null,
+      price: live?.price ?? quote?.price ?? null,
+      changePercent: live?.changePercent ?? quote?.changePercent ?? null,
     };
   });
   globalMarkets.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
@@ -194,19 +212,20 @@ export async function GET() {
   const marketNarratives = await fetchMarketNarrativePulse(
     new Map(narrativeTickers.map((ticker) => [
       ticker,
-      quoteMap.get(ticker)?.changePercent ?? null,
+      liveFor(ticker)?.changePercent ?? quoteMap.get(ticker)?.changePercent ?? null,
     ])),
   );
 
   // ── Triage ──
   const triageItems: TriageWatchlistInput[] = watchlistTickers.map((ticker) => {
     const q = quoteMap.get(ticker);
+    const live = liveFor(ticker);
     const entry = watchlist.find((e) => e.ticker === ticker);
     return {
       ticker,
       companyName: entry?.companyName ?? ticker,
-      price: q?.price ?? null,
-      changePercent: q?.changePercent ?? null,
+      price: live?.price ?? q?.price ?? null,
+      changePercent: live?.changePercent ?? q?.changePercent ?? null,
       snapshot: null, // conviction snapshots require per-ticker server-side fetch
       portfolio: {
         held: false,
@@ -224,6 +243,7 @@ export async function GET() {
     sectorLeadership,
     triage,
     marketNarratives,
+    sessionLabel,
     fetchedAt: new Date().toISOString(),
   });
 }

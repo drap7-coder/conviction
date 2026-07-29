@@ -5201,6 +5201,22 @@ details > summary::before {
   font-feature-settings: "tnum" 1;
 }
 
+.pf-hero-session-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #d97706;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
 .pf-hero-change.up {
   color: var(--green);
 }
@@ -8533,6 +8549,20 @@ details > summary::before {
 
 .wl-attention-meta .up { color: var(--green); }
 .wl-attention-meta .down { color: var(--red); }
+
+.wl-attention-session {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #d97706;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
 .wl-attention-action {
   margin-left: auto;

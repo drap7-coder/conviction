@@ -1,9 +1,9 @@
 /**
  * ── TrendingCard ──
  *
- * Compact ring-list row matching Watchlist: ticker, day move,
- * after-hours line, conviction ring, and a one-line move driver.
- * Trending-specific: activity rank/label + add/remove watchlist.
+ * Compact ring-list row matching Watchlist: ticker, live session move,
+ * At close secondary in extended hours, conviction ring, and a one-line
+ * move driver. Trending-specific: activity rank/label + add/remove watchlist.
  */
 
 "use client";
@@ -51,12 +51,6 @@ function formatPercent(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
-function formatSessionChange(change: number | null, percent: number | null) {
-  if (!isFiniteNumber(change) || !isFiniteNumber(percent)) return "—";
-  const sign = change > 0 ? "+" : change < 0 ? "-" : "";
-  return `${sign}${Math.abs(change).toFixed(2)} ${formatPercent(percent)}`;
-}
-
 function ringFromVerdict(tone: string, strength: number): {
   tone: GaugeTone;
   label: string;
@@ -94,23 +88,18 @@ export function TrendingCard({
 }: TrendingCardProps) {
   const live = getLivePrice(quote);
   const sessionLabel = live.label;
-  const hasExtendedSession = Boolean(sessionLabel && live.price !== null);
+  const hasExtendedSession = Boolean(sessionLabel && quote.price !== null);
 
-  const dayChange = quote.change;
-  const dayChangePercent = quote.changePercent;
-  const dayChangeClass =
-    isFiniteNumber(dayChange) && dayChange > 0
+  const changeClass =
+    isFiniteNumber(live.change) && live.change > 0
       ? "positive"
-      : isFiniteNumber(dayChange) && dayChange < 0
+      : isFiniteNumber(live.change) && live.change < 0
         ? "negative"
         : "neutral";
-
-  const sessionChange = hasExtendedSession ? live.change : null;
-  const sessionChangePercent = hasExtendedSession ? live.changePercent : null;
-  const sessionChangeClass =
-    isFiniteNumber(sessionChange) && sessionChange > 0
+  const closeChangeClass =
+    isFiniteNumber(quote.changePercent) && quote.changePercent > 0
       ? "positive"
-      : isFiniteNumber(sessionChange) && sessionChange < 0
+      : isFiniteNumber(quote.changePercent) && quote.changePercent < 0
         ? "negative"
         : "neutral";
 
@@ -167,23 +156,23 @@ export function TrendingCard({
             </div>
 
             <div className="wl-ring-price">
-              <strong className="wl-ring-last">
-                {quote.price !== null ? `$${formatPrice(quote.price)}` : "—"}
-              </strong>
-              <span className={`wl-ring-day-change ${dayChangeClass}`}>
-                {formatPercent(dayChangePercent)}
+              <div className="wl-ring-price-primary">
+                <strong className="wl-ring-last">
+                  {live.price !== null ? `$${formatPrice(live.price)}` : "—"}
+                </strong>
+                {sessionLabel ? (
+                  <span className="wl-ring-session-chip">{sessionLabel}</span>
+                ) : null}
+              </div>
+              <span className={`wl-ring-day-change ${changeClass}`}>
+                {formatPercent(live.changePercent)}
               </span>
               {hasExtendedSession ? (
-                <span className={`wl-ring-session ${sessionChangeClass}`}>
-                  <span className="wl-ring-session-icon" aria-hidden="true">
-                    {sessionLabel === "Pre-Market" ? "◎" : "☀"}
-                  </span>
-                  <span className="wl-ring-session-price">
-                    ${formatPrice(live.price)}
-                  </span>
-                  <span className="wl-ring-session-move">
-                    {formatSessionChange(sessionChange, sessionChangePercent)}
-                  </span>
+                <span className={`wl-ring-at-close ${closeChangeClass}`}>
+                  At close ${formatPrice(quote.price)}
+                  {isFiniteNumber(quote.changePercent)
+                    ? ` (${formatPercent(quote.changePercent)})`
+                    : ""}
                 </span>
               ) : null}
             </div>

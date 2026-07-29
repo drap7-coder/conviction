@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchOpenAttentionPulse } from "@/lib/market/open-attention";
+import { getLivePrice } from "@/lib/market/live-quote";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 import { validateTicker } from "@/lib/watchlist/validate";
 
@@ -24,10 +25,12 @@ export async function GET(request: NextRequest) {
 
   const ticker = resolved.ticker.toUpperCase();
   const [quote] = await fetchStockQuotes([ticker]);
+  const live = quote ? getLivePrice(quote) : null;
   const pulse = await fetchOpenAttentionPulse([{
     ticker,
     label: resolved.companyName ?? ticker,
-    priceChangePercent: quote?.changePercent ?? null,
+    priceChangePercent: live?.changePercent ?? quote?.changePercent ?? null,
+    sessionLabel: live?.label ?? null,
     scope: "company",
   }]);
 

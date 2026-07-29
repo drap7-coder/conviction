@@ -86,12 +86,14 @@ function enrichWithPrices(
   return persisted.map((p) => {
     const ticker = p.ticker.toUpperCase();
     const quote = quoteMap.get(ticker);
+    const live = quote ? getLivePrice(quote) : null;
     return {
       companyId: ticker,
       ticker,
       shares: p.shares,
       averageCost: p.averageCost,
-      currentPrice: quote?.price ?? null,
+      // Mark to live session price so hero / day P&L track premarket & AH.
+      currentPrice: live?.price ?? quote?.price ?? null,
       previousClose: quote?.previousClose ?? null,
       note: p.note,
     };
@@ -408,6 +410,9 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                     {percent(portfolioMetrics.dailyChangePercent)}
                   </span>
                 )}
+                {portfolioHeatmapSession ? (
+                  <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span>
+                ) : null}
               </div>
               {/* Unrealized G/L line */}
               {portfolioMetrics.totalUnrealizedGL !== null && (

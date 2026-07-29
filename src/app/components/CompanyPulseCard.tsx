@@ -119,7 +119,7 @@ export function CompanyPulseCard({ ticker }: { ticker: string }) {
         <div className="company-pulse-metric">
           <span>Price move</span>
           <strong className={priceClass}>{formatPercent(item.priceChangePercent)}</strong>
-          <small>latest session</small>
+          <small>{item.sessionLabel ?? "latest session"}</small>
         </div>
       </div>
 
