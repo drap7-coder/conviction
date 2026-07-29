@@ -659,6 +659,14 @@ export default function Watchlist({
           title="Watchlist"
           subtitle="Bigger tile = larger company. Green/red = today’s move."
           loading={loading}
+          sessionLabel={
+            entries
+              .map((entry) => {
+                const quote = quotes[entry.ticker];
+                return quote ? getLivePrice(quote).label : null;
+              })
+              .find((label): label is string => Boolean(label)) ?? null
+          }
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;
@@ -774,14 +782,13 @@ export default function Watchlist({
                   key={entry.ticker}
                   ticker={entry.ticker}
                   companyName={entry.companyName}
-                  price={quote?.price ?? null}
-                  change={quote?.change ?? null}
-                  changePercent={quote?.changePercent ?? null}
+                  price={live?.price ?? quote?.price ?? null}
+                  change={live?.change ?? quote?.change ?? null}
+                  changePercent={live?.changePercent ?? quote?.changePercent ?? null}
                   marketCap={quote?.marketCap ?? null}
                   sessionLabel={live?.label ?? null}
-                  sessionPrice={live?.label ? live.price : null}
-                  sessionChange={live?.label ? live.change : null}
-                  sessionChangePercent={live?.label ? live.changePercent : null}
+                  closePrice={live?.label ? quote?.price ?? null : null}
+                  closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
                   convictionState={verdict.state}
                   convictionTone={verdict.tone}
                   convictionStrength={verdict.strength}
@@ -822,14 +829,13 @@ export default function Watchlist({
                 key={entry.ticker}
                 ticker={entry.ticker}
                 companyName={entry.companyName}
-                price={quote?.price ?? null}
-                change={quote?.change ?? null}
-                changePercent={quote?.changePercent ?? null}
+                price={live?.price ?? quote?.price ?? null}
+                change={live?.change ?? quote?.change ?? null}
+                changePercent={live?.changePercent ?? quote?.changePercent ?? null}
                 marketCap={quote?.marketCap ?? null}
                 sessionLabel={live?.label ?? null}
-                sessionPrice={live?.label ? live.price : null}
-                sessionChange={live?.label ? live.change : null}
-                sessionChangePercent={live?.label ? live.changePercent : null}
+                closePrice={live?.label ? quote?.price ?? null : null}
+                closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
                 convictionState={verdict.state}
                 convictionTone={verdict.tone}
                 convictionStrength={verdict.strength}

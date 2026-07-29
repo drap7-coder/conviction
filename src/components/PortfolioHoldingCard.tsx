@@ -15,12 +15,14 @@ import type { PositionMetrics } from "@/lib/portfolio/types";
 export interface PortfolioHoldingCardProps {
   ticker: string;
   companyName?: string | null;
+  /** Live session price (premarket / regular / after-hours) */
   price: number | null;
   changePercent: number | null;
+  /** "Pre-Market" or "After Hours" chip when hero is extended-hours */
   sessionLabel: string | null;
-  sessionPrice: number | null;
-  sessionChange: number | null;
-  sessionChangePercent: number | null;
+  /** Regular-session close reference when extended */
+  closePrice: number | null;
+  closeChangePercent: number | null;
   convictionTone: string;
   convictionStrength: number;
   shares: number;
@@ -40,12 +42,6 @@ function formatPrice(value: number | null) {
 function formatPercent(value: number | null) {
   if (!isFiniteNumber(value)) return "—";
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
-}
-
-function formatSessionChange(change: number | null, percent: number | null) {
-  if (!isFiniteNumber(change) || !isFiniteNumber(percent)) return "—";
-  const sign = change > 0 ? "+" : change < 0 ? "-" : "";
-  return `${sign}${Math.abs(change).toFixed(2)} ${formatPercent(percent)}`;
 }
 
 function compactCurrency(value: number | null) {
@@ -82,9 +78,8 @@ export function PortfolioHoldingCard({
   price,
   changePercent,
   sessionLabel,
-  sessionPrice,
-  sessionChange,
-  sessionChangePercent,
+  closePrice,
+  closeChangePercent,
   convictionTone,
   convictionStrength,
   shares,
@@ -92,17 +87,17 @@ export function PortfolioHoldingCard({
   onEdit,
   onRemove,
 }: PortfolioHoldingCardProps) {
-  const hasExtendedSession = sessionLabel !== null && sessionPrice !== null;
+  const hasExtendedSession = sessionLabel !== null && closePrice !== null;
   const dayChangeClass =
     isFiniteNumber(changePercent) && changePercent > 0
       ? "positive"
       : isFiniteNumber(changePercent) && changePercent < 0
         ? "negative"
         : "neutral";
-  const sessionChangeClass =
-    isFiniteNumber(sessionChange) && sessionChange > 0
+  const closeChangeClass =
+    isFiniteNumber(closeChangePercent) && closeChangePercent > 0
       ? "positive"
-      : isFiniteNumber(sessionChange) && sessionChange < 0
+      : isFiniteNumber(closeChangePercent) && closeChangePercent < 0
         ? "negative"
         : "neutral";
 
@@ -157,23 +152,23 @@ export function PortfolioHoldingCard({
         </div>
 
         <div className="wl-ring-price">
-          <strong className="wl-ring-last">
-            {price !== null ? `$${formatPrice(price)}` : "—"}
-          </strong>
+          <div className="wl-ring-price-primary">
+            <strong className="wl-ring-last">
+              {price !== null ? `$${formatPrice(price)}` : "—"}
+            </strong>
+            {sessionLabel ? (
+              <span className="wl-ring-session-chip">{sessionLabel}</span>
+            ) : null}
+          </div>
           <span className={`wl-ring-day-change ${dayChangeClass}`}>
             {formatPercent(changePercent)}
           </span>
           {hasExtendedSession ? (
-            <span className={`wl-ring-session ${sessionChangeClass}`}>
-              <span className="wl-ring-session-icon" aria-hidden="true">
-                {sessionLabel === "Pre-Market" ? "◎" : "☀"}
-              </span>
-              <span className="wl-ring-session-price">
-                ${formatPrice(sessionPrice)}
-              </span>
-              <span className="wl-ring-session-move">
-                {formatSessionChange(sessionChange, sessionChangePercent)}
-              </span>
+            <span className={`wl-ring-at-close ${closeChangeClass}`}>
+              At close ${formatPrice(closePrice)}
+              {isFiniteNumber(closeChangePercent)
+                ? ` (${formatPercent(closeChangePercent)})`
+                : ""}
             </span>
           ) : null}
         </div>

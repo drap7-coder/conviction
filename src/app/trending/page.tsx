@@ -276,6 +276,11 @@ export default function RisingConvictionPage() {
           <StockHeatmap
             title="Trending"
             subtitle="Tile size reflects dollar trading volume; color reflects the current market move."
+            sessionLabel={
+              trending
+                .map((idea) => getLivePrice(idea.quote).label)
+                .find((label): label is string => Boolean(label)) ?? null
+            }
             items={trending.map((idea) => {
               const live = getLivePrice(idea.quote);
               return {

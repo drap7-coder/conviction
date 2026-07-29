@@ -157,7 +157,9 @@ export function CompanyDetailHeader({
                 <span className="cdh-price-big">
                   ${formatPrice(live.price)}
                 </span>
-                <span className="cdh-price-session">{live.label ?? "Today"}</span>
+                {live.label ? (
+                  <span className="cdh-price-session">{live.label}</span>
+                ) : null}
                 {changeText && (
                   <span className={`cdh-change ${live.change !== null && live.change > 0 ? "up" : live.change !== null && live.change < 0 ? "down" : ""}`}>
                     {changeText.dollars} ({changeText.percent})
@@ -169,14 +171,11 @@ export function CompanyDetailHeader({
             )}
           </div>
 
-          {/* Session label + reference price */}
+          {/* At-close reference — only during extended hours */}
           {isExtendedSession && quote ? (
             <div className="cdh-session-row">
-              <span className="cdh-session-label">
-                {live?.session === "after_hours" ? "After Hours" : "Pre-Market"}
-              </span>
               <span className="cdh-session-ref">
-                <span className="cdh-ref-label">Previous close</span>
+                <span className="cdh-ref-label">At close</span>
                 <span className="cdh-ref-price">
                   ${formatPrice(quote.price)}
                 </span>
