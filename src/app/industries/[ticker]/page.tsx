@@ -16,9 +16,10 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { ticker: string };
+  params: Promise<{ ticker: string }>;
 }): Promise<Metadata> {
-  const upperTicker = params.ticker.toUpperCase();
+  const { ticker } = await params;
+  const upperTicker = ticker.toUpperCase();
   const sector = getSectorByTicker(upperTicker);
   if (!sector) {
     return {

@@ -389,7 +389,7 @@ export default function MarketPulsePage() {
           title={activeRegionOption.label}
           subtitle={activeRegion === "international"
             ? "Country ETF proxies · tile size reflects relative equity-market weight"
-            : "U.S. equities and macro assets · color reflects today’s move"}
+            : "U.S. equities and macro assets · color reflects current session move"}
           uniformTiles={activeRegion === "us"}
           sessionLabel={activeRegion === "us" ? (data.sessionLabel ?? null) : null}
         />
@@ -404,7 +404,7 @@ export default function MarketPulsePage() {
       <GlobalMarketsHeatmap
         markets={cryptoMarkets}
         title="Crypto"
-        subtitle="Major digital assets · color reflects today’s move"
+        subtitle="Major digital assets · color reflects current move"
       />
     </main>
   );

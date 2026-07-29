@@ -119,7 +119,7 @@ export function runTriage(items: TriageWatchlistInput[]): TriageResult {
     // ── Priority 3: Significant price decline ──
     if (priority > 3 && largeDecline) {
       priority = 3;
-      reason = `Down ${item.changePercent!.toFixed(1)}% today.`;
+      reason = `Down ${item.changePercent!.toFixed(1)}%.`;
       action = "Review position";
     }
 

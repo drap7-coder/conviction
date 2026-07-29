@@ -1,4 +1,4 @@
-import { fetchStockQuotes, fetchStockHistory } from "@/lib/market/quotes";
+import { fetchStockQuotes } from "@/lib/market/quotes";
 import { SECTORS, type Sector } from "@/lib/market/industries";
 
 export interface SectorWithData extends Sector {
@@ -15,12 +15,6 @@ export interface SectorWithData extends Sector {
     postMarketChangePercent: number | null;
   } | null;
   sparkline: { date: string; close: number }[];
-  representativeQuotes: Array<{
-    ticker: string;
-    price: number | null;
-    change: number | null;
-    changePercent: number | null;
-  }>;
 }
 
 export interface IndustriesSnapshot {
@@ -33,43 +27,20 @@ function sectorsWithoutQuotes(): SectorWithData[] {
     ...sector,
     quote: null,
     sparkline: [],
-    representativeQuotes: sector.representativeTickers.map((ticker) => ({
-      ticker,
-      price: null,
-      change: null,
-      changePercent: null,
-    })),
   }));
 }
 
 /**
- * Fetch sector ETF quotes + intraday sparklines for the Industries surface.
- * Falls back to static sector definitions when market data is unavailable
- * so crawlers and SSR still receive real sector names and links.
+ * Fetch sector ETF quotes (+ embedded sparklines) for the Industries surface.
+ * Only the 11 sector ETFs — representative company names stay static for SEO copy.
  */
 export async function getIndustriesSnapshot(): Promise<IndustriesSnapshot> {
   const fetchedAt = new Date().toISOString();
 
   try {
     const sectorTickers = SECTORS.map((s) => s.ticker);
-    const repTickers = Array.from(new Set(SECTORS.flatMap((s) => s.representativeTickers)));
-
-    const [quotes, historyResults] = await Promise.all([
-      fetchStockQuotes([...sectorTickers, ...repTickers]),
-      Promise.all(
-        SECTORS.map(async (sector) => {
-          try {
-            const history = await fetchStockHistory(sector.ticker, "1d");
-            return { ticker: sector.ticker, points: history.points.slice(-42) };
-          } catch {
-            return { ticker: sector.ticker, points: [] };
-          }
-        }),
-      ),
-    ]);
-
+    const quotes = await fetchStockQuotes(sectorTickers);
     const quoteMap = new Map(quotes.map((q) => [q.ticker, q]));
-    const sparklineMap = new Map(historyResults.map((h) => [h.ticker, h.points]));
 
     const sectors: SectorWithData[] = SECTORS.map((sector) => {
       const sectorQuote = quoteMap.get(sector.ticker);
@@ -89,16 +60,7 @@ export async function getIndustriesSnapshot(): Promise<IndustriesSnapshot> {
               postMarketChangePercent: sectorQuote.postMarketChangePercent ?? null,
             }
           : null,
-        sparkline: sparklineMap.get(sector.ticker) ?? [],
-        representativeQuotes: sector.representativeTickers.map((t) => {
-          const q = quoteMap.get(t);
-          return {
-            ticker: t,
-            price: q?.price ?? null,
-            change: q?.change ?? null,
-            changePercent: q?.changePercent ?? null,
-          };
-        }),
+        sparkline: sectorQuote?.sparkline ?? [],
       };
     });
 

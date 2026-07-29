@@ -18,6 +18,7 @@ import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
+import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -103,8 +104,8 @@ function enrichWithPrices(
 // ── Main Component ──────────────────────────────────────────────────────────
 
 export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) {
+  const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
-  const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,54 +126,44 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
     setPositions(loadPositions());
   }, []);
 
-  // Fetch live quotes
-  const fetchQuotes = useCallback(async (tickers: string[]) => {
-    if (tickers.length === 0) {
-      setQuotes([]);
-      setSectorProfiles({});
-      setLoading(false);
+  // Share quotes from PortfolioDataProvider (one Yahoo fan-out for hero + holdings).
+  useEffect(() => {
+    if (sharedData.loading) {
+      setLoading(true);
       return;
     }
+    setLoading(false);
+    if (quotes.length > 0) setQuotesEverLoaded(true);
+    if (sharedData.error) setError(sharedData.error);
+    else setError(null);
+  }, [quotes, sharedData.loading, sharedData.error]);
 
-    setLoading(true);
-    setError(null);
-
+  // Sector profiles only (quotes come from shared provider)
+  const fetchSectorProfiles = useCallback(async (tickers: string[]) => {
+    if (tickers.length === 0) {
+      setSectorProfiles({});
+      return;
+    }
     try {
-      const [quotesRes, profileRes] = await Promise.all([
-        fetch(`/api/market/quotes?tickers=${tickers.join(",")}`),
-        fetch(`/api/market/sector-profile?tickers=${tickers.join(",")}`),
-      ]);
-      if (!quotesRes.ok) throw new Error("Quote data is temporarily unavailable");
-      const quotesData = await quotesRes.json();
-      setQuotes(quotesData.quotes ?? []);
-      setQuotesEverLoaded(true);
-
-      if (profileRes.ok) {
-        const profileData = await profileRes.json();
-        const profileMap: Record<string, { sector: string | null; marketCap: number | null }> = {};
-        for (const p of (profileData.profiles ?? [])) {
-          profileMap[p.ticker] = { sector: p.sector, marketCap: p.marketCap };
-        }
-        setSectorProfiles(profileMap);
+      const profileRes = await fetch(`/api/market/sector-profile?tickers=${tickers.join(",")}`);
+      if (!profileRes.ok) return;
+      const profileData = await profileRes.json();
+      const profileMap: Record<string, { sector: string | null; marketCap: number | null }> = {};
+      for (const p of (profileData.profiles ?? [])) {
+        profileMap[p.ticker] = { sector: p.sector, marketCap: p.marketCap };
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load prices");
-    } finally {
-      setLoading(false);
+      setSectorProfiles(profileMap);
+    } catch {
+      // Sector labels are optional enrichment.
     }
   }, []);
 
-  // Fetch quotes whenever positions change
+  // Fetch sector profiles whenever positions change
   useEffect(() => {
     const tickers = positions.map((p) => p.ticker).filter(Boolean);
     const unique = Array.from(new Set(tickers));
-    if (unique.length > 0) {
-      fetchQuotes(unique);
-    } else {
-      setQuotes([]);
-      setLoading(false);
-    }
-  }, [positions, fetchQuotes]);
+    void fetchSectorProfiles(unique);
+  }, [positions, fetchSectorProfiles]);
 
   // ── Derived data ──
 
@@ -312,6 +303,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
 
     const updated = upsertPosition({ ticker, shares, averageCost: cost });
     setPositions(updated);
+    notifyPortfolioChanged();
     setFormTicker("");
     setFormShares("");
     setFormCost("");
@@ -321,17 +313,19 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
   function handleRemove(ticker: string) {
     const updated = removePosition(ticker);
     setPositions(updated);
+    notifyPortfolioChanged();
   }
 
   function handleRefresh() {
+    refreshSharedQuotes();
     const tickers = positions.map((p) => p.ticker).filter(Boolean);
-    fetchQuotes(Array.from(new Set(tickers)));
+    void fetchSectorProfiles(Array.from(new Set(tickers)));
   }
 
   function handleClearAll() {
     savePositions([]);
     setPositions([]);
-    setQuotes([]);
+    notifyPortfolioChanged();
   }
 
   function handleStartEdit(ticker: string) {

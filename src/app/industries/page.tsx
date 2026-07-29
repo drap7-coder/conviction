@@ -4,6 +4,7 @@ import { IndustriesClient } from "@/app/industries/IndustriesClient";
 import { getIndustriesSnapshot } from "@/lib/market/industries-data";
 import { SECTORS } from "@/lib/market/industries";
 import { getSectorSignal } from "@/lib/display/sector-signal";
+import { getLivePrice } from "@/lib/market/live-quote";
 import { SITE_URL } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +45,9 @@ export default async function IndustriesPage() {
         </p>
         <ul className="industries-ssr-list">
           {snapshot.sectors.map((sector) => {
-            const changePercent = sector.quote?.changePercent ?? null;
+            const live = sector.quote ? getLivePrice(sector.quote) : null;
+            const changePercent = live?.changePercent ?? sector.quote?.changePercent ?? null;
+            const sessionNote = live?.label ? ` (${live.label})` : "";
             const signal = getSectorSignal({
               name: sector.name,
               changePercent,
@@ -60,7 +63,7 @@ export default async function IndustriesPage() {
                 </Link>
                 <span>
                   {" "}
-                  — {fmtPct(changePercent)} today. {sector.description} Leaders:{" "}
+                  — {fmtPct(changePercent)}{sessionNote}. {sector.description} Leaders:{" "}
                   {sector.representativeTickers.slice(0, 4).join(", ")}. {signal.conclusion}
                 </span>
               </li>

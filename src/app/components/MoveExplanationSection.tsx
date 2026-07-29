@@ -11,7 +11,6 @@ import {
 } from "@/lib/sec/corporate-disclosures";
 import { summarizeCorporateEventActivity } from "@/lib/sec/corporate-disclosure-activity";
 import type { MajorOwnershipSummary } from "@/lib/sec/major-ownership";
-import { getPeerTickers } from "@/lib/market/peers";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 
 interface MoveExplanationSectionProps {
@@ -39,27 +38,6 @@ type OwnershipResponse = Omit<MajorOwnershipSummary, "status" | "source"> & {
   source: MajorOwnershipSummary["source"] | "timeout" | "error";
   message?: string;
 };
-
-interface StockQuote {
-  ticker: string;
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
-  previousClose: number | null;
-  volume: number | null;
-  dollarVolume: number | null;
-  currency: string | null;
-  marketState: string | null;
-  marketCap: number | null;
-  preMarketPrice: number | null;
-  preMarketChange: number | null;
-  preMarketChangePercent: number | null;
-  postMarketPrice: number | null;
-  postMarketChange: number | null;
-  postMarketChangePercent: number | null;
-  source: "yahoo-chart";
-  sparkline: Array<{ date: string; close: number }>;
-}
 
 interface ShortInterestRecord {
   ticker: string;
@@ -204,7 +182,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const [shortInterestStatus, setShortInterestStatus] = useState<EvidenceStatus>("idle");
   const [disclosureStatus, setDisclosureStatus] = useState<EvidenceStatus>("idle");
   const [ownershipStatus, setOwnershipStatus] = useState<EvidenceStatus>("idle");
-  const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -220,19 +197,16 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
       setOwnershipStatus("loading");
       setError(null);
       try {
-        const peerTickers = getPeerTickers(ticker);
-        const quoteTickers = [ticker, ...peerTickers].join(",");
         const moveData = await fetchJsonWithTimeout<MoveEvent>(
           `/api/evidence/move?ticker=${ticker}`,
           8_000,
           controller.signal,
         );
 
-        const [institutionalResult, insiderResult, politicalResult, quoteResult, ownershipResult, disclosureResult, shortInterestResult] = await Promise.allSettled([
+        const [institutionalResult, insiderResult, politicalResult, ownershipResult, disclosureResult, shortInterestResult] = await Promise.allSettled([
           fetchJsonWithTimeout<InstitutionalResponse>(`/api/evidence/institutional?ticker=${ticker}`, 26_000, controller.signal),
           fetchJsonWithTimeout<InsiderResponse>(`/api/evidence/insider?ticker=${ticker}`, 14_000, controller.signal),
           fetchJsonWithTimeout<PoliticalResponse>(`/api/evidence/political?ticker=${ticker}`, 10_000, controller.signal),
-          fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(`/api/market/quotes?tickers=${encodeURIComponent(quoteTickers)}`, 8_000, controller.signal),
           fetchJsonWithTimeout<OwnershipResponse>(`/api/evidence/ownership?ticker=${ticker}`, 10_000, controller.signal),
           fetchJsonWithTimeout<DisclosureResponse>(`/api/evidence/disclosures?ticker=${ticker}`, 10_000, controller.signal),
           fetchJsonWithTimeout<ShortInterestResponse>(`/api/market/short-interest?ticker=${ticker}`, 10_000, controller.signal),
@@ -245,7 +219,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           ? insiderResult.value
           : { events: [] };
         const politicalData = politicalResult.status === "fulfilled" ? politicalResult.value : null;
-        const quoteData = quoteResult.status === "fulfilled" ? quoteResult.value : { quotes: [] };
         const ownershipData = ownershipResult.status === "fulfilled"
           ? ownershipResult.value
           : null;
@@ -257,8 +230,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           : { latest: null, previous: null, status: classifyClientError(shortInterestResult.reason) };
 
         if (!cancelled) {
-          const quoteMap: Record<string, StockQuote> = {};
-          for (const quote of quoteData.quotes ?? []) quoteMap[quote.ticker] = quote;
           setEvent(moveData);
           setInstitutionalRows(institutionalData.results ?? []);
           setInstitutionalStatus(
@@ -298,7 +269,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
                   ? "success"
                   : "empty",
           );
-          setQuotes(quoteMap);
           setStatus("success");
         }
       } catch (caught) {
@@ -345,7 +315,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
   const hasInsiderOffset = header.offsets.some((signal) => signal.kind === "insider");
   const hasPoliticalOffset = header.offsets.some((signal) => signal.kind === "political");
   const hasCounterSignal = hasInsiderOffset || hasPoliticalOffset;
-  const quote = quotes[ticker];
   const ownershipFilings = ownershipStatus === "success" ? ownershipSummary?.filings.slice(0, 3) ?? [] : [];
   const shortInterestDirection = shortInterest
     ? shortInterest.changePercent >= 10 || shortInterest.daysToCover >= 5
@@ -375,9 +344,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           detail: `${formatDate(latestDisclosure.filingDate)} · ${latestDisclosure.summary}`,
         }
       : null;
-  const peerQuotes = getPeerTickers(ticker)
-    .map((peerTicker) => quotes[peerTicker])
-    .filter((peerQuote): peerQuote is StockQuote => !!peerQuote);
 
   return (
     <section className="move-section">

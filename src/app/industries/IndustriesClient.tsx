@@ -278,7 +278,7 @@ export function IndustriesClient({
                         </div>
                       </div>
                       <div className="watchlist-row-move">
-                        <span className="watchlist-row-period">{sessionLabel ?? "Today"}</span>
+                        <span className="watchlist-row-period">{sessionLabel ?? "Session"}</span>
                         <span className="watchlist-row-move-amounts">
                           <strong>
                             {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
@@ -292,7 +292,7 @@ export function IndustriesClient({
                         </span>
                         {sessionLabel && quote?.price !== null && (
                           <span className="watchlist-row-session">
-                            <span className="watchlist-row-session-label">At Close · Today</span>
+                            <span className="watchlist-row-session-label">At close</span>
                             <span className="watchlist-row-session-price">${quote?.price != null ? quote.price.toLocaleString(undefined, { maximumFractionDigits: quote.price >= 100 ? 2 : 3, minimumFractionDigits: quote.price >= 1 ? 2 : 3 }) : "—"}</span>
                             {quote?.changePercent != null ? (
                               <span className={`watchlist-row-session-change ${quote?.change !== null && quote.change > 0 ? "positive" : quote?.change !== null && quote.change < 0 ? "negative" : ""}`}>
@@ -313,7 +313,7 @@ export function IndustriesClient({
                           <path className="price-chart-glow" d={sparklinePath} />
                           <path className="price-chart-line" d={sparklinePath} />
                         </svg>
-                        <span>Today</span>
+                        <span>{sessionLabel ?? "Session"}</span>
                       </div>
                     ) : null}
 

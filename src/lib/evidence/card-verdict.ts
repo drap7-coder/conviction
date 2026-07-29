@@ -4,6 +4,7 @@ import {
   evidenceStrengthFromCounts,
   type EvidenceStrength,
 } from "@/lib/display/vocabulary";
+import { getLivePrice, type LiveQuoteInput } from "@/lib/market/live-quote";
 import { getTickerSignalSummary } from "./signal-summaries";
 import type { EvidenceDirection } from "./types";
 
@@ -17,6 +18,25 @@ export interface CardVerdictEntry {
 
 export interface CardVerdictQuote {
   changePercent: number | null;
+  /** When present, verdict uses live session % (premarket / after hours). */
+  marketState?: string | null;
+  price?: number | null;
+  change?: number | null;
+  preMarketPrice?: number | null;
+  preMarketChange?: number | null;
+  preMarketChangePercent?: number | null;
+  postMarketPrice?: number | null;
+  postMarketChange?: number | null;
+  postMarketChangePercent?: number | null;
+}
+
+function quoteMovePercent(quote?: CardVerdictQuote): number {
+  if (!quote) return 0;
+  if (quote.marketState !== undefined) {
+    const live = getLivePrice(quote as LiveQuoteInput);
+    return live.changePercent ?? quote.changePercent ?? 0;
+  }
+  return quote.changePercent ?? 0;
 }
 
 export interface CardVerdictShortInterest {
@@ -129,7 +149,7 @@ export function getCardVerdict(
   const support = evidence.reduce((sum, item) => sum + item.supportCount, 0);
   const contra = evidence.reduce((sum, item) => sum + item.contraCount, 0);
   const lead = topEvidence(evidence);
-  const quoteMove = quote?.changePercent ?? 0;
+  const quoteMove = quoteMovePercent(quote);
   const quoteAdjustment = Math.max(-8, Math.min(8, quoteMove * 1.4));
   const base = support > 0 && contra > 0
     ? 58

@@ -297,7 +297,8 @@ export async function fetchStockQuotes(tickers: string[]): Promise<StockQuote[]>
     uniqueTickers.map(async (ticker) => {
       try {
         const response = await fetchWithTimeout(
-          `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1d&interval=1m&includePrePost=true`,
+          // 5m bars are enough for sparkline + pre/post derivation and cut Yahoo payload ~5× vs 1m.
+          `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=1d&interval=5m&includePrePost=true`,
           {
             headers: {
               "User-Agent": "Conviction/1.0",

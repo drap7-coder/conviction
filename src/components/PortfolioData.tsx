@@ -8,6 +8,13 @@ import type { PersistedPosition } from "@/lib/portfolio/persist";
 import type { StockQuote } from "@/lib/market/quotes";
 import { isFiniteNumber } from "@/lib/display/format";
 
+const PORTFOLIO_CHANGED_EVENT = "conviction-portfolio-changed";
+
+export function notifyPortfolioChanged() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(PORTFOLIO_CHANGED_EVENT));
+}
+
 function currency(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   return new Intl.NumberFormat("en-US", {
@@ -48,7 +55,9 @@ interface PortfolioData {
 
 interface PortfolioDataContextValue {
   data: PortfolioData;
+  quotes: StockQuote[];
   refresh: () => void;
+  reloadPositions: () => void;
 }
 
 const PortfolioDataContext = createContext<PortfolioDataContextValue | null>(null);
@@ -92,9 +101,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const reloadPositions = useCallback(() => {
     setPositions(loadPositions());
   }, []);
+
+  useEffect(() => {
+    reloadPositions();
+    function onChanged() {
+      reloadPositions();
+    }
+    window.addEventListener(PORTFOLIO_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(PORTFOLIO_CHANGED_EVENT, onChanged);
+  }, [reloadPositions]);
 
   const fetchQuotes = useCallback(async (tickers: string[]) => {
     if (tickers.length === 0) {
@@ -153,7 +171,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   }, [positions, quotes, loading, error]);
 
   return (
-    <PortfolioDataContext.Provider value={{ data, refresh }}>
+    <PortfolioDataContext.Provider value={{ data, quotes, refresh, reloadPositions }}>
       {children}
     </PortfolioDataContext.Provider>
   );

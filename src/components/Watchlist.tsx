@@ -657,7 +657,7 @@ export default function Watchlist({
       {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist"
-          subtitle="Bigger tile = larger company. Green/red = today’s move."
+          subtitle="Bigger tile = larger company. Color = current session move."
           loading={loading}
           sessionLabel={
             entries
