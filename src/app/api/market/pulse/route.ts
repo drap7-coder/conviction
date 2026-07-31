@@ -34,7 +34,6 @@ const INDICATORS: Array<{
   { ticker: "^VIX", label: "VIX", status: "ready" },
   { ticker: "USO", label: "Oil", status: "proxy" },
   { ticker: "^TNX", label: "10Y Yield", status: "ready", isPercentValue: true },
-  { ticker: "^MOVE", label: "MOVE Index", status: "ready" },
   { ticker: "UUP", label: "Dollar", status: "proxy" },
 ];
 
@@ -49,12 +48,11 @@ const GLOBAL_MARKETS = [
   { ticker: "VNQ", name: "U.S. Real Estate", weight: 5.5, category: "United States" },
   { ticker: "XLU", name: "Utilities", weight: 5, category: "United States" },
   { ticker: "IYT", name: "Transportation", weight: 4.5, category: "United States" },
-  { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
+  { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "United States" },
   { ticker: "EWJ", name: "Japan", weight: 14.5, category: "International" },
   { ticker: "MCHI", name: "China", weight: 10.5, category: "International" },
   { ticker: "EWU", name: "United Kingdom", weight: 9.5, category: "International" },
   { ticker: "EWC", name: "Canada", weight: 8.0, category: "International" },
-  { ticker: "ETH-USD", name: "Ethereum", weight: 6, category: "Crypto" },
   { ticker: "EWG", name: "Germany", weight: 6.5, category: "International" },
   { ticker: "EWQ", name: "France", weight: 5.5, category: "International" },
   { ticker: "INDA", name: "India", weight: 5.0, category: "International" },
@@ -65,7 +63,6 @@ const GLOBAL_MARKETS = [
   { ticker: "EWY", name: "South Korea", weight: 3.5, category: "International" },
   { ticker: "EWH", name: "Hong Kong", weight: 3.0, category: "International" },
   { ticker: "EWZ", name: "Brazil", weight: 2.5, category: "International" },
-  { ticker: "SOL-USD", name: "Solana", weight: 2, category: "Crypto" },
   { ticker: "EWW", name: "Mexico", weight: 1.0, category: "International" },
 ] as const;
 

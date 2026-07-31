@@ -19,6 +19,7 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
+import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -269,6 +270,21 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
     return null;
   }, [quotes]);
 
+  const portfolioMacroSeries = useMemo(() => {
+    const ranked = sortedPositions.map(({ pos, metrics }) => {
+      const quote = quotes.find((item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase());
+      return {
+        ticker: pos.companyId.toUpperCase(),
+        label: pos.companyId.toUpperCase(),
+        weight: metrics.weight ?? 0,
+        values: (quote?.sparkline ?? []).map((point) => point.close),
+      };
+    })
+      .filter((item) => item.values.length >= 2)
+      .sort((a, b) => b.weight - a.weight);
+    return buildMacroSeriesFromQuotes(ranked, 5);
+  }, [quotes, sortedPositions]);
+
   // ── Data-quality states ──
 
   const hasQuotes = quotes.length > 0;
@@ -465,6 +481,14 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
               sessionLabel={portfolioHeatmapSession}
             />
           )}
+
+          {!calcFailed && portfolioMacroSeries.length > 0 ? (
+            <MacroChainChart
+              series={portfolioMacroSeries}
+              title="Portfolio Chain"
+              subtitle="Top holdings by weight · last 15 points · normalized 0–100"
+            />
+          ) : null}
 
           {/* ── Portfolio exposure ── */}
           {sectorDonutData.length > 0 && (

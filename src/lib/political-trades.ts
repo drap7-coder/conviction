@@ -163,3 +163,9 @@ export async function getPoliticalTradeSummaries(tickers: string[]) {
   const uniqueTickers = [...new Set(tickers.map((ticker) => ticker.toUpperCase()))];
   return Promise.all(uniqueTickers.map((ticker) => getPoliticalTradesForTicker(ticker, 6)));
 }
+
+/** Recent STOCK Act disclosures across all tickers, newest filings first. */
+export async function getRecentPoliticalTrades(limit = 40): Promise<PoliticalTrade[]> {
+  const trades = await fetchPoliticalTrades();
+  return trades.slice(0, Math.max(1, Math.min(limit, 100)));
+}

@@ -14,28 +14,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${SITE_URL}/industries`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/trending`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.9,
-    },
-    {
       url: `${SITE_URL}/pulse`,
       lastModified: now,
       changeFrequency: "hourly",
-      priority: 0.8,
+      priority: 0.9,
     },
     {
-      url: `${SITE_URL}/quotes`,
+      url: `${SITE_URL}/smart-money`,
       lastModified: now,
       changeFrequency: "hourly",
-      priority: 0.8,
+      priority: 0.9,
     },
   ];
 

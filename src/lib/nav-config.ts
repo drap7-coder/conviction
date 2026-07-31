@@ -1,4 +1,4 @@
-import { List, Building2, TrendingUp, BarChart3, Search, type LucideIcon } from "lucide-react";
+import { List, BarChart3, Landmark, type LucideIcon } from "lucide-react";
 
 export interface NavTab {
   href: string;
@@ -8,8 +8,6 @@ export interface NavTab {
 
 export const navTabs: NavTab[] = [
   { href: "/watchlist", label: "Watchlist", icon: List },
-  { href: "/quotes", label: "Quotes", icon: Search },
-  { href: "/industries", label: "Industries", icon: Building2 },
-  { href: "/trending", label: "Trending", icon: TrendingUp },
   { href: "/pulse", label: "Pulse", icon: BarChart3 },
+  { href: "/smart-money", label: "Smart Money", icon: Landmark },
 ];

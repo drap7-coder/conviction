@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
+import { GlobalSearchPill } from "@/components/GlobalSearchPill";
 import AnimatedTitle from "@/components/AnimatedTitle";
 import { SITE_URL } from "@/lib/site";
 
@@ -70,14 +71,20 @@ export default function RootLayout({
                   className="app-logo"
                   src="/conviction-bull.png"
                 />
-<AnimatedTitle />
+                <AnimatedTitle />
               </a>
               <DesktopNav />
+              <div className="header-search">
+                <GlobalSearchPill />
+              </div>
             </div>
           </header>
           {children}
         </div>
-        <MobileTabBar />
+        <div className="mobile-chrome">
+          <GlobalSearchPill />
+          <MobileTabBar />
+        </div>
       </body>
     </html>
   );

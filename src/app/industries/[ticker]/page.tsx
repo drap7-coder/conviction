@@ -73,7 +73,7 @@ export default async function SectorPage({
       />
       <div className="detail-header">
         <div className="detail-nav">
-          <Link href="/industries" className="detail-back">
+          <Link href="/pulse" className="detail-back">
             ← Industries
           </Link>
           <span className="demo-badge">S&P sector</span>
