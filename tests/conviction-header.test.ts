@@ -11,6 +11,7 @@ function institutional(status: InstitutionalAccumulation["status"]): Institution
     manager: "test",
     displayName: "Test Manager",
     cik: "0000000001",
+    fundKind: "hedge_fund",
     issuer: "Test Co",
     classTitle: "COM",
     cusip: "000000000",

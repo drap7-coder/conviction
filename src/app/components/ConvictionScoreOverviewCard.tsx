@@ -3,10 +3,10 @@
  * and renders the composite Conviction Score overview.
  *
  * Progressive scoring: fast sources (technicals, short interest)
- * can produce a score before the slow 13F institutional call finishes.
- * Institutional upgrades the composite when it arrives.
+ * can produce a score before the slow 13F fund call finishes.
+ * Hedge / investment fund filings upgrade the composite when they arrive.
  *
- * Wired: institutional, technicals, short_interest
+ * Wired: hedge_funds, investment_funds, technicals, short_interest
  */
 
 "use client";
@@ -33,7 +33,8 @@ const EMPTY_RESULT: ConvictionScoreResult = {
   agreementAdjustment: 0,
   includedCategories: [],
   excludedCategories: [
-    "institutional",
+    "hedge_funds",
+    "investment_funds",
     "technicals",
     "short_interest",
   ],
@@ -43,7 +44,7 @@ function emptyInstitutional(): InstitutionalCategoryInput {
   return {
     results: [] as InstitutionalAccumulation[],
     status: "error",
-    message: "Institutional filings could not be loaded.",
+    message: "Fund filings could not be loaded.",
   };
 }
 

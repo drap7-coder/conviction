@@ -1,5 +1,11 @@
 import { secFetch } from "./client";
-import { INSTITUTIONAL_MANAGERS, type InstitutionalManager } from "./institutional-managers";
+import {
+  INSTITUTIONAL_MANAGERS,
+  type FundKind,
+  type InstitutionalManager,
+} from "./institutional-managers";
+
+export type { FundKind };
 
 const SEC_BASE = "https://data.sec.gov";
 const SEC_ARCHIVES = "https://www.sec.gov/Archives/edgar/data";
@@ -28,6 +34,7 @@ export interface InstitutionalAccumulation {
   manager: string;
   displayName: string;
   cik: string;
+  fundKind: FundKind;
   issuer: string | null;
   classTitle: string | null;
   cusip: string | null;
@@ -389,6 +396,7 @@ export function compareHoldings(
     manager: manager.manager,
     displayName: manager.displayName,
     cik: manager.cik,
+    fundKind: manager.kind,
     issuer: latest?.issuer ?? previous?.issuer ?? null,
     classTitle: latest?.classTitle ?? previous?.classTitle ?? null,
     cusip: latest?.cusip ?? previous?.cusip ?? null,
@@ -401,6 +409,13 @@ export function compareHoldings(
     filingDate: latestFiling.filingDate,
     status,
   };
+}
+
+export function filterAccumulationsByFundKind(
+  results: InstitutionalAccumulation[],
+  fundKind: FundKind,
+): InstitutionalAccumulation[] {
+  return results.filter((row) => row.fundKind === fundKind);
 }
 
 export async function getInstitutionalAccumulationForCompany(

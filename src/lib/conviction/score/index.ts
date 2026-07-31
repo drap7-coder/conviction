@@ -28,7 +28,7 @@ export {
   isSourceStale,
 } from "./freshness";
 
-export { toInstitutionalCategoryScore } from "./adapters/institutional";
+export { toFundCategoryScore, toInstitutionalCategoryScore } from "./adapters/institutional";
 export type { InstitutionalCategoryInput } from "./adapters/institutional";
 export { toTechnicalsCategoryScore } from "./adapters/technicals";
 export type { TechnicalCategoryInput } from "./adapters/technicals";

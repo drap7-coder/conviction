@@ -42,6 +42,7 @@ function institutionalRows(...statuses: InstitutionalAccumulation["status"][]): 
     manager: `Manager${i}`,
     displayName: `Manager${i}`,
     cik: `cik${i}`,
+    fundKind: "hedge_fund" as const,
     issuer: "Test",
     classTitle: "COM",
     cusip: `cusip${i}`,
