@@ -780,7 +780,7 @@ export default function Watchlist({
           <p>Add companies you care about.</p>
           <small>See what’s moving, why it matters, and who has been buying or selling.</small>
           <Link href="/pulse" className="brief-link">
-            Browse trending →
+            Browse market moves →
           </Link>
         </div>
       ) : focusedTicker ? (
