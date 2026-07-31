@@ -61,15 +61,16 @@
 
 /* ── Verdict: one calm, legible decision surface ── */
 
+/* Verdict stays light — the conviction dial is the navy anchor above it */
 .verdict-card {
   position: relative;
   overflow: hidden;
   padding: clamp(18px, 3vw, 30px);
-  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
+  border: 1px solid var(--border);
   border-radius: calc(var(--radius) * 1.35);
   background:
-    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 40%),
-    var(--card-accent);
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 40%),
+    var(--card);
   box-shadow: var(--shadow-sm);
 }
 

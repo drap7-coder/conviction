@@ -244,7 +244,7 @@ export default function MarketPulsePage() {
 
   return (
     <main className="markets-page">
-      <section className="market-regime-lede" aria-label="Market regime">
+      <section className="market-regime-lede ink-panel" aria-label="Market regime">
         <strong className="market-regime-label">{data.macroRegime.label}</strong>
         <p className="market-regime-summary">{data.macroRegime.summary}</p>
         {data.macroRegime.drivers.length > 0 ? (

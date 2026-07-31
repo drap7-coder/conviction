@@ -27,7 +27,7 @@ export function ConvictionScoreOverview({
 }: ConvictionScoreOverviewProps) {
   return (
     <section
-      className={`quote-card quote-conviction-card${className ? ` ${className}` : ""}`}
+      className={`quote-card quote-conviction-card ink-panel${className ? ` ${className}` : ""}`}
       aria-label="Conviction score"
     >
       <div className="quote-card-header">

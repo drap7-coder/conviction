@@ -13,6 +13,19 @@
   --card-positive: color-mix(in srgb, var(--green) 7%, #f1f4f8);
   --card-negative: color-mix(in srgb, var(--red) 7%, #f1f4f8);
   --card-warning: color-mix(in srgb, var(--amber) 7%, #f1f4f8);
+
+  /* Selective dark navy for 1–2 anchor panels per page (not every box) */
+  --ink-panel: #0b1c2c;
+  --ink-panel-elevated: #123049;
+  --on-ink: #f3f6fa;
+  --on-ink-muted: #a9b6c7;
+  --on-ink-quiet: #7f8fa3;
+  --on-ink-border: color-mix(in srgb, #ffffff 14%, transparent);
+  --on-ink-accent: #3ecfe3;
+  --on-ink-green: #3dd9a0;
+  --on-ink-red: #ff6b8a;
+  --on-ink-amber: #f0b429;
+
   --border: color-mix(in srgb, #12151a 9%, transparent);
   --border-active: color-mix(in srgb, #12151a 16%, transparent);
   --ink: #12151a;
@@ -33,6 +46,7 @@
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
   --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.06);
   --shadow-lg: 0 14px 32px rgba(15, 23, 42, 0.08);
+  --shadow-ink: 0 10px 28px rgba(11, 28, 44, 0.22);
   --shadow: var(--shadow-sm);
   --radius: 12px;
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
@@ -74,6 +88,73 @@ html, body {
   font-size: 16px;
   line-height: 1.62;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ── Ink panels: selective navy anchors on the white UI ──
+   Use sparingly (one hero statement per view). Remaps local
+   text/border/signal tokens so nested content stays readable. */
+
+.ink-panel {
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --border-active: color-mix(in srgb, #ffffff 22%, transparent);
+  --card: var(--ink-panel-elevated);
+  --card-soft: color-mix(in srgb, #ffffff 6%, var(--ink-panel));
+  --card-inset: color-mix(in srgb, #ffffff 8%, var(--ink-panel));
+  --card-accent: color-mix(in srgb, var(--on-ink-accent) 12%, var(--ink-panel));
+  --accent: var(--on-ink-accent);
+  --accent-dim: color-mix(in srgb, var(--on-ink-accent) 16%, transparent);
+  --green: var(--on-ink-green);
+  --green-dim: color-mix(in srgb, var(--on-ink-green) 16%, transparent);
+  --red: var(--on-ink-red);
+  --red-dim: color-mix(in srgb, var(--on-ink-red) 16%, transparent);
+  --amber: var(--on-ink-amber);
+  --amber-dim: color-mix(in srgb, var(--on-ink-amber) 16%, transparent);
+  --positive: var(--on-ink-green);
+  --negative: var(--on-ink-red);
+  --market-text: var(--on-ink);
+  --market-muted: var(--on-ink-muted);
+  --market-border: var(--on-ink-border);
+  --market-card: var(--ink-panel-elevated);
+  --market-green: var(--on-ink-green);
+  --market-red: var(--on-ink-red);
+  --market-live: var(--on-ink-accent);
+  color: var(--on-ink);
+  background:
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--on-ink-accent) 16%, transparent), transparent 42%),
+    linear-gradient(160deg, var(--ink-panel-elevated), var(--ink-panel) 58%);
+  border: 1px solid var(--on-ink-border);
+  box-shadow: var(--shadow-ink);
+}
+
+.ink-panel .quote-gauge-track {
+  stroke: color-mix(in srgb, #ffffff 14%, transparent);
+}
+
+.ink-panel .quote-card-title,
+.ink-panel .quote-gauge-value,
+.ink-panel .market-regime-label {
+  color: var(--on-ink);
+}
+
+.ink-panel .quote-card-meta,
+.ink-panel .quote-conviction-legend,
+.ink-panel .quote-conviction-detail,
+.ink-panel .market-regime-eyebrow,
+.ink-panel .market-regime-summary {
+  color: var(--on-ink-muted);
+}
+
+.ink-panel .market-regime-driver {
+  background: color-mix(in srgb, #ffffff 8%, transparent);
+  border-color: var(--on-ink-border);
+  color: var(--on-ink-muted);
+}
+
+.ink-panel .market-regime-driver strong {
+  color: var(--on-ink);
 }
 
 @supports (min-height: 100dvh) {
@@ -9337,8 +9418,13 @@ details > summary::before {
   color: var(--quiet);
 }
 
-.quote-conviction-card {
+.quote-conviction-card.ink-panel {
   padding-bottom: 16px;
+  border-radius: 18px;
+}
+
+.quote-conviction-card.ink-panel .quote-card-header {
+  margin-bottom: 12px;
 }
 
 .quote-conviction-ring-wrap {
@@ -9567,13 +9653,8 @@ details > summary::before {
 
 .market-regime-lede {
   margin: 0 0 12px;
-  padding: 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background:
-    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--market-live) 7%, transparent), transparent 46%),
-    var(--card-accent);
-  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
+  border-radius: 14px;
 }
 
 .market-regime-eyebrow {
