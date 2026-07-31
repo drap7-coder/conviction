@@ -248,16 +248,30 @@ details > summary::before {
 
 @media (max-width: 640px) {
   .header-search {
-    flex-basis: 148px;
-    max-width: 168px;
+    flex: 0 1 118px;
+    flex-basis: 118px;
+    min-width: 104px;
+    max-width: 132px;
   }
 
   .global-search-hint {
     display: none;
   }
 
+  .global-search-pill {
+    min-height: 30px;
+    padding: 0 8px;
+    gap: 5px;
+    border-radius: 8px;
+  }
+
   .global-search-input {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
+  }
+
+  .global-search-icon {
+    width: 13px;
+    height: 13px;
   }
 }
 

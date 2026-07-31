@@ -180,10 +180,10 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
 
   if (loading) {
     return (
-      <section className="verdict-card" aria-label="Momentum snapshot">
+      <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
         <div className="verdict-topline">
           <div>
-            <span className="verdict-eyebrow">Momentum snapshot</span>
+            <span className="verdict-eyebrow">Momentum support</span>
             <h2>Building the momentum picture…</h2>
             <p>Checking price trend, reported earnings, and analyst revisions.</p>
           </div>
@@ -203,10 +203,10 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
   const summary = buildSummary(signals);
 
   return (
-    <section className="verdict-card" aria-label="Momentum snapshot">
+    <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
       <div className="verdict-topline">
         <div>
-          <span className="verdict-eyebrow">Momentum snapshot</span>
+          <span className="verdict-eyebrow">Momentum support</span>
           <h2>{summary.headline}</h2>
           <p>{summary.summary}</p>
         </div>
