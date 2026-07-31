@@ -48,15 +48,15 @@
   border: 1px solid color-mix(in srgb, var(--accent) 26%, var(--border));
   border-radius: calc(var(--radius) * 1.35);
   background:
-    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 34%),
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 94%, black), var(--surface));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 48px rgba(0,0,0,.22);
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 34%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 92%, white), var(--surface));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7), var(--shadow-lg);
 }
 
 .verdict-card-compact {
   padding: 14px 16px 16px;
   border-radius: calc(var(--radius) * 1.1);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 22px rgba(0,0,0,.16);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.65), var(--shadow-md);
 }
 
 .verdict-card-compact .verdict-topline {
@@ -139,7 +139,7 @@
   background:
     radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--pulse-color) 11%, transparent), transparent 34%),
     color-mix(in srgb, var(--surface-elevated) 72%, var(--surface));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 12px 34px rgba(0,0,0,.17);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75), var(--shadow-md);
 }
 
 .company-pulse-card::before {
@@ -349,9 +349,8 @@
   border-radius: var(--radius);
   padding: 18px;
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--ink) 8%, transparent),
-    0 14px 34px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(255, 255, 255, 0.018);
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    var(--shadow-md);
   transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
@@ -444,8 +443,8 @@
     linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 92%, transparent), transparent 46%),
     var(--surface-elevated);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--ink) 10%, transparent),
-    0 18px 44px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    var(--shadow-lg),
     0 0 0 1px var(--accent-dim);
   transform: translateY(-4px);
 }

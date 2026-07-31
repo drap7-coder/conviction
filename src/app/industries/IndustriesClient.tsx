@@ -54,10 +54,10 @@ function tileSpan(weight: number): number {
 }
 
 function heatColor(change: number | null, maxAbs: number): string {
-  if (change === null || !Number.isFinite(change) || maxAbs === 0) return "hsl(220 5% 22%)";
+  if (change === null || !Number.isFinite(change) || maxAbs === 0) return "hsl(210 14% 88%)";
   const magnitude = Math.min(Math.abs(change) / maxAbs, 1);
-  const hue = change >= 0 ? 150 : 0;
-  return `hsl(${hue} ${44 + magnitude * 30}% ${16 + magnitude * 17}%)`;
+  const hue = change >= 0 ? 152 : 0;
+  return `hsl(${hue} ${42 + magnitude * 28}% ${78 - magnitude * 28}%)`;
 }
 
 function buildSparklinePath(points: StockHistoryPoint[]) {
@@ -141,33 +141,33 @@ export function IndustriesClient({
       {status === "success" && sectors.length > 0 ? (
         <section className="industries-heat-panel" aria-label="Sector leadership heatmap" aria-description="Tile size reflects S&amp;P 500 weight; color reflects the current market move.">
           <style>{`
-            .industries-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
+            .industries-heat-panel { margin:0 0 20px; padding:20px; background:var(--surface); border:1px solid var(--border); border-radius:12px; color:var(--ink); font-family:var(--font-mono); }
             .industries-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
             .industries-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
-            .industries-heat-subtitle { margin:6px 0 12px; color:#8b8f97; font-size:.66rem; line-height:1.45; }
+            .industries-heat-subtitle { margin:6px 0 12px; color:var(--muted); font-size:.66rem; line-height:1.45; }
             .industries-heat-session {
               display:inline-flex; align-items:center; gap:6px;
               padding:4px 9px; border-radius:999px;
-              background:rgba(251,191,36,.14); color:#fbbf24;
+              background:var(--amber-dim); color:var(--amber);
               font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
               white-space:nowrap;
             }
             .industries-heat-session-dot {
               width:6px; height:6px; border-radius:50%; background:currentColor;
-              box-shadow:0 0 0 0 rgba(251,191,36,.55);
+              box-shadow:0 0 0 0 color-mix(in srgb, var(--amber) 55%, transparent);
               animation:industries-heat-session-pulse 1.6s ease-out infinite;
             }
             @keyframes industries-heat-session-pulse {
-              0% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,.55); opacity:1; }
-              70% { transform:scale(1.15); box-shadow:0 0 0 7px rgba(251,191,36,0); opacity:.85; }
-              100% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,0); opacity:1; }
+              0% { transform:scale(1); box-shadow:0 0 0 0 color-mix(in srgb, var(--amber) 55%, transparent); opacity:1; }
+              70% { transform:scale(1.15); box-shadow:0 0 0 7px transparent; opacity:.85; }
+              100% { transform:scale(1); box-shadow:0 0 0 0 transparent; opacity:1; }
             }
             @media (prefers-reduced-motion:reduce) {
               .industries-heat-session-dot { animation:none; }
             }
             .industries-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
-            .industries-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:#f4f4f5; font:inherit; text-align:left; text-decoration:none; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
-            .industries-heat-tile:hover,.industries-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }
+            .industries-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius:8px; color:var(--ink); font:inherit; text-align:left; text-decoration:none; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
+            .industries-heat-tile:hover,.industries-heat-tile:focus-visible { filter:brightness(0.97); outline:none; transform:translateY(-1px); }
             .industries-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }
             .industries-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
             @media (max-width:767px) {

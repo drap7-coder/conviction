@@ -10,18 +10,18 @@ import { MacroChainChart, type MacroChainSeries } from "@/components/market/Macr
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 
 const COLORS = {
-  green: "#4ade80",
-  red: "#f87171",
-  yellow: "#facc15",
-  orange: "#fb923c",
-  blue: "#60a5fa",
+  green: "#0a7a52",
+  red: "#c81e4a",
+  yellow: "#b45309",
+  orange: "#c2410c",
+  blue: "#2563eb",
 };
 
 const VIX_GAUGE = {
   min: 10,
   max: 40,
   zones: [
-    { label: "Calm", end: 15, color: "#245b43" },
+    { label: "Calm", end: 15, color: "#a7f3d0" },
     { label: "Normal", end: 20, color: COLORS.green },
     { label: "Elevated", end: 25, color: COLORS.yellow },
     { label: "Danger", end: 40, color: COLORS.red },
