@@ -32,17 +32,17 @@ export function MarketNarrativePulse({ pulse }: { pulse: MarketNarrativePulseDat
   return (
     <section className="market-panel narrative-panel" aria-label="Market narratives">
       <style>{`
-        .narrative-panel { --narrative-blue:#2563eb; --narrative-purple:#7c3aed; --narrative-teal:#0f766e; --narrative-slate:#64748b; overflow:hidden; background:linear-gradient(150deg,color-mix(in srgb,var(--market-card) 94%,white),var(--market-card)); }
+        .narrative-panel { --narrative-blue:#2563eb; --narrative-purple:#7c3aed; --narrative-teal:#0f766e; --narrative-slate:#64748b; overflow:hidden; background:color-mix(in srgb,var(--surface) 40%,transparent); }
         .narrative-header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
         .narrative-header-copy { max-width:680px; }
         .narrative-kicker { display:block; margin-bottom:8px; color:var(--narrative-blue); font-size:.52rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; }
         .narrative-header h2 { font-size:1.05rem; letter-spacing:.04em; }
         .narrative-header p { max-width:610px; margin-top:8px; font-size:.71rem; line-height:1.55; }
-        .narrative-status { flex:0 0 auto; padding:5px 7px; border:1px solid color-mix(in srgb,var(--market-live) 32%,transparent); border-radius:999px; color:var(--market-live); font-size:.5rem; letter-spacing:.09em; line-height:1; }
-        .narrative-status.partial { color:var(--amber); border-color:color-mix(in srgb,var(--amber) 32%,transparent); }
+        .narrative-status { flex:0 0 auto; padding:5px 7px; border:1px solid color-mix(in srgb,var(--market-live) 18%,transparent); border-radius:999px; color:var(--market-live); font-size:.5rem; letter-spacing:.09em; line-height:1; }
+        .narrative-status.partial { color:var(--amber); border-color:color-mix(in srgb,var(--amber) 18%,transparent); }
         .narrative-status.unavailable { color:var(--market-muted); border-color:var(--market-border); }
         .narrative-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:20px; }
-        .narrative-card { --theme-accent:var(--narrative-slate); position:relative; min-width:0; overflow:hidden; padding:18px; border:1px solid color-mix(in srgb,var(--theme-accent) 18%,var(--market-border)); border-radius:12px; background:linear-gradient(145deg,color-mix(in srgb,var(--market-card) 94%,var(--theme-accent)),var(--market-card) 58%); box-shadow:inset 0 1px 0 rgba(255,255,255,.75), var(--shadow-sm); }
+        .narrative-card { --theme-accent:var(--narrative-slate); position:relative; min-width:0; overflow:hidden; padding:18px; border:1px solid color-mix(in srgb,var(--theme-accent) 12%,var(--market-border)); border-radius:12px; background:color-mix(in srgb,var(--bg) 55%,transparent); box-shadow:var(--shadow-sm); }
         .narrative-card::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:var(--theme-accent); opacity:.8; }
         .narrative-card.heat-surging { --theme-accent:var(--narrative-purple); }
         .narrative-card.heat-building { --theme-accent:var(--narrative-blue); }
@@ -60,17 +60,17 @@ export function MarketNarrativePulse({ pulse }: { pulse: MarketNarrativePulseDat
         .narrative-title { margin:15px 0 0; color:var(--market-text); font-size:1.02rem; line-height:1.2; letter-spacing:-.01em; }
         .narrative-summary { min-height:42px; margin:8px 0 0; color:color-mix(in srgb,var(--market-text) 72%,var(--market-muted)); font-size:.69rem; line-height:1.55; }
         .narrative-metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; margin-top:14px; }
-        .narrative-metric { min-width:0; padding:9px 10px; border:1px solid var(--market-border); border-radius:8px; background:rgba(15,23,42,.03); }
+        .narrative-metric { min-width:0; padding:9px 10px; border:1px solid color-mix(in srgb,var(--market-border) 65%,transparent); border-radius:8px; background:color-mix(in srgb,var(--bg) 50%,transparent); }
         .narrative-metric strong { display:block; overflow:hidden; color:var(--market-text); font-size:.79rem; font-variant-numeric:tabular-nums; line-height:1.1; text-overflow:ellipsis; white-space:nowrap; }
         .narrative-metric span { display:block; margin-top:5px; overflow:hidden; color:var(--market-muted); font-size:.45rem; letter-spacing:.06em; line-height:1.2; text-overflow:ellipsis; text-transform:uppercase; white-space:nowrap; }
         .narrative-metric strong.up { color:var(--market-green); }
         .narrative-metric strong.down { color:var(--market-red); }
         .narrative-assets { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:12px; }
         .narrative-assets-label { margin-right:2px; color:var(--market-muted); font-size:.45rem; letter-spacing:.07em; text-transform:uppercase; }
-        .narrative-asset { display:inline-flex; gap:5px; padding:5px 6px; border:1px solid var(--market-border); border-radius:999px; color:var(--market-text); background:rgba(15,23,42,.03); font-size:.49rem; font-variant-numeric:tabular-nums; }
+        .narrative-asset { display:inline-flex; gap:5px; padding:5px 6px; border:1px solid color-mix(in srgb,var(--market-border) 65%,transparent); border-radius:999px; color:var(--market-text); background:color-mix(in srgb,var(--bg) 50%,transparent); font-size:.49rem; font-variant-numeric:tabular-nums; }
         .narrative-asset .up { color:var(--market-green); }
         .narrative-asset .down { color:var(--market-red); }
-        .narrative-headline { position:relative; display:block; min-height:67px; margin-top:14px; padding:11px 34px 11px 12px; border:1px solid var(--market-border); border-radius:8px; color:var(--market-text); background:rgba(15,23,42,.03); font-size:.62rem; line-height:1.5; text-decoration:none; }
+        .narrative-headline { position:relative; display:block; min-height:67px; margin-top:14px; padding:11px 34px 11px 12px; border:1px solid color-mix(in srgb,var(--market-border) 65%,transparent); border-radius:8px; color:var(--market-text); background:color-mix(in srgb,var(--bg) 50%,transparent); font-size:.62rem; line-height:1.5; text-decoration:none; }
         .narrative-headline[href]::after { content:"↗"; position:absolute; top:50%; right:12px; color:var(--theme-accent); font-size:.78rem; transform:translateY(-50%); }
         .narrative-headline:hover { border-color:color-mix(in srgb,var(--theme-accent) 45%,var(--market-border)); color:var(--theme-accent); }
         .narrative-headline-label { display:block; margin-bottom:5px; color:var(--theme-accent); font-size:.45rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; }

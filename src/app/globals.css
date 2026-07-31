@@ -7616,10 +7616,11 @@ details > summary::before {
 /* ── Briefing header ── */
 
 .pulse-brief {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   border-radius: 20px;
   padding: 28px 24px;
+  box-shadow: var(--shadow-sm);
 }
 
 .pulse-brief-greeting {
@@ -7670,10 +7671,11 @@ details > summary::before {
 /* ── Shared card ── */
 
 .pulse-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   border-radius: var(--radius);
   padding: 20px;
+  box-shadow: var(--shadow-sm);
 }
 
 .pulse-card-header {
@@ -7708,8 +7710,8 @@ details > summary::before {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
   border-radius: 10px;
   padding: 12px 12px 10px;
   font-family: var(--font-mono);
@@ -7797,21 +7799,21 @@ details > summary::before {
 }
 
 .pulse-regime-high {
-  background: color-mix(in srgb, var(--green) 14%, transparent);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
   color: var(--green);
-  border: 1px solid var(--green-dim);
+  border: 1px solid color-mix(in srgb, var(--green) 12%, transparent);
 }
 
 .pulse-regime-medium {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
   color: var(--accent);
-  border: 1px solid var(--accent-dim);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .pulse-regime-low {
-  background: color-mix(in srgb, var(--quiet) 14%, transparent);
+  background: color-mix(in srgb, var(--quiet) 8%, transparent);
   color: var(--muted);
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
 }
 
 .pulse-regime-drivers {
@@ -7849,7 +7851,7 @@ details > summary::before {
 }
 
 .pulse-regime-mixed {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
   color: var(--accent);
 }
 
@@ -7892,15 +7894,15 @@ details > summary::before {
   display: block;
   padding: 12px 14px;
   border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
   text-decoration: none;
   transition: border-color 0.15s;
 }
 
 .pulse-attn-item:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-active));
-  background: color-mix(in srgb, var(--accent-dim) 45%, var(--surface-elevated));
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
   transform: translateY(-1px);
 }
 
@@ -7935,22 +7937,22 @@ details > summary::before {
 }
 
 .pulse-tone-positive {
-  background: color-mix(in srgb, var(--green) 14%, transparent);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
   color: var(--green);
 }
 
 .pulse-tone-negative {
-  background: color-mix(in srgb, var(--red) 14%, transparent);
+  background: color-mix(in srgb, var(--red) 7%, transparent);
   color: var(--red);
 }
 
 .pulse-tone-contested {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
   color: var(--accent);
 }
 
 .pulse-tone-quiet {
-  background: color-mix(in srgb, var(--quiet) 10%, transparent);
+  background: color-mix(in srgb, var(--quiet) 7%, transparent);
   color: var(--quiet);
 }
 
@@ -8058,7 +8060,7 @@ details > summary::before {
   text-transform: uppercase;
   padding: 1px 5px;
   border-radius: 3px;
-  background: var(--surface-elevated);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
   color: var(--quiet);
   line-height: 1.3;
 }
@@ -8124,15 +8126,14 @@ details > summary::before {
   gap: 4px;
   padding: 12px 14px;
   text-decoration: none;
-  border-bottom: 1px solid var(--border);
   border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   transition: border-color 0.15s;
 }
 
 .pulse-wl-row:last-child { border-bottom: none; }
-.pulse-wl-row:hover { border-color: var(--border-active); }
+.pulse-wl-row:hover { border-color: color-mix(in srgb, var(--accent) 22%, var(--border)); }
 
 .pulse-wl-top {
   display: flex;
@@ -9539,29 +9540,30 @@ details > summary::before {
 /* ── Pulse / market panels (shared with Macro Chain elsewhere) ── */
 
 .markets-page {
-  --market-bg: #ffffff;
-  --market-card: color-mix(in srgb, #f8fafc 72%, transparent);
-  --market-border: color-mix(in srgb, #12151a 8%, transparent);
-  --market-text: #12151a;
-  --market-muted: #5a6573;
-  --market-green: #0a7a52;
-  --market-red: #c81e4a;
-  --market-live: #0b7f92;
-  min-height: 100vh;
-  background: var(--market-bg);
+  --market-bg: transparent;
+  --market-card: color-mix(in srgb, var(--surface) 42%, transparent);
+  --market-border: color-mix(in srgb, var(--ink) 8%, transparent);
+  --market-text: var(--ink);
+  --market-muted: var(--muted);
+  --market-green: var(--green);
+  --market-red: var(--red);
+  --market-live: var(--accent);
+  min-height: 0;
+  background: transparent;
   color: var(--market-text);
-  padding: 24px;
+  padding: 0;
   font-family: var(--font-mono);
 }
 
 .market-regime-lede {
   margin: 0 0 12px;
   padding: 12px 16px;
-  border: 1px solid var(--market-border);
+  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--market-live) 12%, transparent), transparent 46%),
-    var(--market-card);
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--market-live) 5%, transparent), transparent 46%),
+    color-mix(in srgb, var(--surface) 40%, transparent);
+  box-shadow: var(--shadow-sm);
 }
 
 .market-regime-eyebrow {
@@ -9603,8 +9605,8 @@ details > summary::before {
   gap: 5px;
   padding: 4px 9px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--market-border) 80%, transparent);
-  background: color-mix(in srgb, var(--market-card) 70%, white);
+  border: 1px solid color-mix(in srgb, var(--market-border) 65%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
   font-size: 0.62rem;
   line-height: 1.2;
   color: var(--market-muted);
@@ -9624,11 +9626,11 @@ details > summary::before {
 }
 
 .market-regime-driver-rising em {
-  color: #4ade80;
+  color: var(--market-green);
 }
 
 .market-regime-driver-falling em {
-  color: #f87171;
+  color: var(--market-red);
 }
 
 .market-regime-driver-flat em,
@@ -9648,9 +9650,10 @@ details > summary::before {
 .market-index-card,
 .market-gauge-card,
 .market-panel {
-  background: var(--market-card, var(--surface));
-  border: 1px solid var(--market-border, var(--border));
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
   border-radius: 12px;
+  box-shadow: var(--shadow-sm);
 }
 
 .market-region-picker {
@@ -9660,11 +9663,12 @@ details > summary::before {
   gap: 12px;
   margin-bottom: 18px;
   padding: 12px 14px;
-  border: 1px solid var(--market-border);
+  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--market-live) 10%, transparent), transparent 42%),
-    var(--market-card);
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--market-live) 5%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface) 40%, transparent);
+  box-shadow: var(--shadow-sm);
 }
 
 .market-region-copy {
@@ -9698,10 +9702,10 @@ details > summary::before {
 .market-region-tabs button {
   min-width: 0;
   padding: 12px 13px;
-  border: 1px solid var(--market-border);
+  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
   border-radius: 8px;
   color: var(--market-text);
-  background: color-mix(in srgb, var(--market-card) 82%, transparent);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -9710,17 +9714,17 @@ details > summary::before {
 
 .market-region-tabs button:hover,
 .market-region-tabs button:focus-visible {
-  border-color: color-mix(in srgb, var(--market-live) 48%, var(--market-border));
+  border-color: color-mix(in srgb, var(--market-live) 28%, var(--market-border));
   outline: none;
   transform: translateY(-1px);
 }
 
 .market-region-tabs button.active {
-  border-color: color-mix(in srgb, var(--market-live) 58%, var(--market-border));
+  border-color: color-mix(in srgb, var(--market-live) 32%, var(--market-border));
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--market-live) 11%, transparent), transparent 75%),
-    color-mix(in srgb, var(--market-card) 90%, white);
-  box-shadow: inset 3px 0 0 var(--market-live);
+    linear-gradient(135deg, color-mix(in srgb, var(--market-live) 6%, transparent), transparent 75%),
+    color-mix(in srgb, var(--bg) 70%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--market-live) 65%, transparent);
 }
 
 .market-region-tabs strong,
@@ -9786,7 +9790,7 @@ details > summary::before {
   display: flex;
   overflow: visible;
   border-radius: 999px;
-  background: var(--market-border);
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
 .market-gauge > span:first-child {
@@ -9850,8 +9854,8 @@ details > summary::before {
   gap: 6px;
   padding: 4px 9px;
   border-radius: 999px;
-  background: rgba(251, 191, 36, 0.14);
-  color: #fbbf24;
+  background: var(--amber-dim);
+  color: var(--amber);
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -9864,14 +9868,14 @@ details > summary::before {
   height: 6px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--amber) 45%, transparent);
   animation: market-session-pulse 1.6s ease-out infinite;
 }
 
 @keyframes market-session-pulse {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.55); opacity: 1; }
-  70% { transform: scale(1.15); box-shadow: 0 0 0 7px rgba(251, 191, 36, 0); opacity: 0.85; }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251, 191, 36, 0); opacity: 1; }
+  0% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--amber) 45%, transparent); opacity: 1; }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 7px transparent; opacity: 0.85; }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; opacity: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -9898,9 +9902,10 @@ details > summary::before {
   flex-direction: column;
   gap: 3px;
   padding: 8px;
-  border: 1px solid var(--market-border, var(--border));
+  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--market-card) 92%, transparent);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  box-shadow: var(--shadow-sm);
   font-size: 0.58rem;
 }
 
@@ -9940,7 +9945,7 @@ details > summary::before {
   min-width: 0;
   min-height: 66px;
   padding: 10px;
-  border: 1px solid rgba(244, 244, 245, 0.09);
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
   border-radius: 8px;
   color: var(--market-text);
   font: inherit;
@@ -9956,7 +9961,7 @@ a.market-heat-tile {
 
 .market-heat-tile:hover,
 .market-heat-tile:focus-visible {
-  filter: brightness(1.16);
+  filter: brightness(0.97);
   outline: none;
   transform: translateY(-1px);
 }
@@ -10094,7 +10099,7 @@ a.market-heat-tile {
 
 @media (max-width: 399px) {
   .markets-page {
-    padding: 16px 14px 30px;
+    padding: 0;
   }
 
   .market-index-grid,

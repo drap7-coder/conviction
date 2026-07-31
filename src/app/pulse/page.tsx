@@ -21,10 +21,10 @@ const VIX_GAUGE = {
   min: 10,
   max: 40,
   zones: [
-    { label: "Calm", end: 15, color: "#a7f3d0" },
-    { label: "Normal", end: 20, color: COLORS.green },
-    { label: "Elevated", end: 25, color: COLORS.yellow },
-    { label: "Danger", end: 40, color: COLORS.red },
+    { label: "Calm", end: 15, color: "#bbf7d0" },
+    { label: "Normal", end: 20, color: "#86efac" },
+    { label: "Elevated", end: 25, color: "#fde68a" },
+    { label: "Danger", end: 40, color: "#fecaca" },
   ],
 };
 
@@ -32,9 +32,9 @@ const TEN_YEAR_GAUGE = {
   min: 2.5,
   max: 6,
   zones: [
-    { label: "Normal", end: 4.25, color: COLORS.green },
-    { label: "Elevated", end: 5, color: COLORS.yellow },
-    { label: "High", end: 6, color: COLORS.red },
+    { label: "Normal", end: 4.25, color: "#86efac" },
+    { label: "Elevated", end: 5, color: "#fde68a" },
+    { label: "High", end: 6, color: "#fecaca" },
   ],
 };
 
@@ -113,11 +113,11 @@ function tileSpan(weight: number): number {
 }
 
 function heatColor(change: number | null, maxAbs: number): string {
-  if (!isFiniteNumber(change) || maxAbs === 0) return "hsl(220 5% 22%)";
+  if (!isFiniteNumber(change) || maxAbs === 0) return "hsl(210 14% 88%)";
   const magnitude = Math.min(Math.abs(change) / maxAbs, 1);
-  const hue = change >= 0 ? 150 : 0;
-  const saturation = 44 + magnitude * 30;
-  const lightness = 16 + magnitude * 17;
+  const hue = change >= 0 ? 152 : 0;
+  const saturation = 42 + magnitude * 28;
+  const lightness = 78 - magnitude * 28;
   return `hsl(${hue} ${saturation}% ${lightness}%)`;
 }
 
