@@ -49,6 +49,45 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 48px rgba(0,0,0,.22);
 }
 
+.verdict-card-compact {
+  padding: 14px 16px 16px;
+  border-radius: calc(var(--radius) * 1.1);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 22px rgba(0,0,0,.16);
+}
+
+.verdict-card-compact .verdict-topline {
+  gap: 12px;
+}
+
+.verdict-card-compact .verdict-topline h2 {
+  margin-top: 4px;
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  letter-spacing: -.03em;
+}
+
+.verdict-card-compact .verdict-topline p {
+  margin-top: 4px;
+  font-size: .78rem;
+  line-height: 1.4;
+}
+
+.verdict-card-compact .signal-strip {
+  margin-top: 10px;
+  gap: 5px;
+}
+
+.verdict-card-compact .signal-pill {
+  padding: 7px 8px;
+}
+
+.verdict-card-compact .momentum-signal strong {
+  font-size: .7rem;
+}
+
+.verdict-card-compact .momentum-signal small {
+  font-size: .48rem;
+}
+
 .verdict-topline { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .verdict-eyebrow { color: var(--accent); font: 600 .61rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
 .verdict-topline h2 { margin-top: 8px; color: var(--ink); font-size: clamp(1.45rem, 3.3vw, 2.25rem); line-height: 1.04; letter-spacing: -.04em; }
