@@ -6,7 +6,6 @@ import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSectio
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { ConvictionScoreOverviewCard } from "@/app/components/ConvictionScoreOverviewCard";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
-import { MarketPanel } from "@/app/components/MarketPanel";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
@@ -101,9 +100,6 @@ export default async function CompanyPage({
           </>
         }
       >
-        <DashboardCard className="dashboard-card-technical" title="Technical analysis" summary="Moving averages, 52-week range, and current trend state.">
-          <MarketPanel ticker={upperTicker} />
-        </DashboardCard>
         <DashboardCard className="dashboard-card-institutional" title="Institutional activity" summary="Recent position changes reported by tracked managers.">
           <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
         </DashboardCard>
