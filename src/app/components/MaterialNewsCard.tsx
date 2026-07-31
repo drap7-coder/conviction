@@ -16,9 +16,10 @@ interface NewsEvidenceResponse {
 
 interface MaterialNewsCardProps {
   ticker: string;
+  companyName?: string;
 }
 
-export function MaterialNewsCard({ ticker }: MaterialNewsCardProps) {
+export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps) {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
   const [driver, setDriver] = useState<NewsDriver | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
@@ -75,7 +76,12 @@ export function MaterialNewsCard({ ticker }: MaterialNewsCardProps) {
   return (
     <div className="material-news-briefing">
       {driver || headlines.length > 0 ? (
-        <NewsDriverBrief ticker={ticker} driver={driver} headlines={headlines} />
+        <NewsDriverBrief
+          ticker={ticker}
+          companyName={companyName}
+          driver={driver}
+          headlines={headlines}
+        />
       ) : (
         <p className="material-news-status">{copy}</p>
       )}

@@ -5,6 +5,9 @@ import { useEffect, useMemo, useState } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { getConvictionBadge } from "@/lib/conviction/canonical-types";
 import { buildConvictionSnapshot } from "@/lib/conviction/canonical";
+import { deriveTodayCatalyst, type TodayCatalyst } from "@/lib/evidence/today-catalyst";
+import type { EvidenceEvent } from "@/lib/evidence/types";
+import type { NewsDriver } from "@/lib/evidence/news-driver";
 import type { StockQuote } from "@/lib/market/quotes";
 
 interface CompanyDetailHeaderProps {
@@ -41,6 +44,7 @@ export function CompanyDetailHeader({
 }: CompanyDetailHeaderProps) {
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [loading, setLoading] = useState(true);
+  const [newsCatalyst, setNewsCatalyst] = useState<TodayCatalyst | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,6 +65,45 @@ export function CompanyDetailHeader({
     void load();
     return () => { cancelled = true; };
   }, [ticker]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadNews() {
+      try {
+        const res = await fetch(`/api/evidence/news?ticker=${encodeURIComponent(ticker)}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data = (await res.json()) as {
+          events?: EvidenceEvent[];
+          driver?: NewsDriver | null;
+        };
+        if (cancelled) return;
+        const events = data.events ?? [];
+        setNewsCatalyst(
+          deriveTodayCatalyst(
+            events.slice(0, 8).map((event) => ({
+              headline: event.title,
+              date: event.date,
+              summary: event.summary,
+            })),
+            data.driver?.label,
+            { ticker, companyName },
+          ),
+        );
+      } catch {
+        // ignore
+      }
+    }
+
+    void loadNews();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [ticker, companyName]);
 
   const live = useMemo(() => quote ? getLivePrice(quote) : null, [quote]);
 
@@ -85,10 +128,9 @@ export function CompanyDetailHeader({
       : null;
   }
 
-  // ── Build a conviction snapshot for the badge ──
-  const badge = useMemo(() => {
-    // We don't have evidence data here, so build a minimal snapshot
-    if (!quote) return null;
+  // Fallback conviction badge when today’s news has no clear catalyst
+  const convictionBadge = useMemo(() => {
+    if (!quote || newsCatalyst) return null;
     const snapshot = buildConvictionSnapshot({
       ticker,
       institutional: null,
@@ -101,7 +143,7 @@ export function CompanyDetailHeader({
       week52Low: null,
     });
     return getConvictionBadge(snapshot);
-  }, [ticker, quote]);
+  }, [ticker, quote, newsCatalyst]);
 
   return (
     <div className="detail-header">
@@ -133,9 +175,13 @@ export function CompanyDetailHeader({
                   {sectorName}
                 </span>
               ) : null}
-              {badge && badge.verdict !== "Awaiting Evidence" ? (
-                <span className={`cdh-badge cdh-badge-${badge.tone}`}>
-                  {badge.verdict}
+              {newsCatalyst ? (
+                <span className={`cdh-badge cdh-badge-${newsCatalyst.tone}`}>
+                  {newsCatalyst.label}
+                </span>
+              ) : convictionBadge && convictionBadge.verdict !== "Awaiting Evidence" ? (
+                <span className={`cdh-badge cdh-badge-${convictionBadge.tone}`}>
+                  {convictionBadge.verdict}
                 </span>
               ) : null}
             </div>

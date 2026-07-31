@@ -20,6 +20,8 @@ export interface SignalBlockProps {
   dateLabel?: string | null;
   source?: SourceBadgeKind | string | null;
   strength?: EvidenceStrength | null;
+  /** Optional status chip opposite the conclusion (e.g. today’s news catalyst). */
+  badge?: { label: string; tone?: string } | null;
   eyebrow?: string | null;
   compact?: boolean;
   children?: ReactNode;
@@ -33,6 +35,7 @@ export function SignalBlock({
   dateLabel,
   source,
   strength,
+  badge,
   eyebrow,
   compact = false,
   children,
@@ -50,7 +53,11 @@ export function SignalBlock({
           {eyebrow ? <span className="signal-block-eyebrow">{eyebrow}</span> : null}
           <strong className="signal-block-conclusion">{conclusion}</strong>
         </div>
-        {strength ? (
+        {badge ? (
+          <span className={`signal-block-badge signal-block-badge-${badge.tone ?? "quiet"}`}>
+            {badge.label}
+          </span>
+        ) : strength ? (
           <span className={`signal-block-strength signal-block-strength-${tone}`}>
             {EVIDENCE_STRENGTH_LABEL[strength]}
           </span>

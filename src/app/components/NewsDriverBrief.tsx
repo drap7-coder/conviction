@@ -1,4 +1,5 @@
 import type { NewsDriver } from "@/lib/evidence/news-driver";
+import { deriveTodayCatalyst } from "@/lib/evidence/today-catalyst";
 import { SignalBlock } from "@/components/display/SignalBlock";
 
 export interface NewsBriefHeadline {
@@ -18,12 +19,14 @@ function newestDate(headlines: NewsBriefHeadline[]): string | null {
 }
 
 export function NewsDriverBrief({
-  ticker: _ticker,
+  ticker,
+  companyName,
   driver,
   headlines,
   compact = false,
 }: {
   ticker: string;
+  companyName?: string;
   driver: NewsDriver | null;
   headlines: NewsBriefHeadline[];
   compact?: boolean;
@@ -40,9 +43,19 @@ export function NewsDriverBrief({
     );
   }
 
-  const conclusion = driver?.label ?? headlines[0]?.headline ?? "Still gathering the story";
+  const topHeadlines = headlines.slice(0, 3);
+  const catalyst = deriveTodayCatalyst(
+    topHeadlines.map((h) => ({ headline: h.headline, date: h.date })),
+    driver?.label,
+    { ticker, companyName },
+  );
+
+  const conclusion = driver?.label ?? topHeadlines[0]?.headline ?? "Still gathering the story";
+  // Prefer driver explanation; avoid repeating the same headlines we list below.
   const evidence = driver?.explanation
-    ?? (headlines[1] ? headlines.slice(0, 2).map((h) => h.headline).join(" · ") : null);
+    ?? (compact && topHeadlines[1]
+      ? topHeadlines.slice(0, 2).map((h) => h.headline).join(" · ")
+      : null);
   const whyItMatters = compact
     ? null
     : driver
@@ -56,8 +69,25 @@ export function NewsDriverBrief({
       conclusion={conclusion}
       evidence={evidence}
       whyItMatters={whyItMatters}
-      dateLabel={newestDate(headlines) ?? "Recent"}
+      dateLabel={newestDate(topHeadlines) ?? "Recent"}
       source="material_news"
-    />
+      badge={catalyst ? { label: catalyst.label, tone: catalyst.tone } : null}
+    >
+      {!compact && topHeadlines.length > 0 ? (
+        <ol className="signal-block-list" aria-label={`${ticker} latest headlines`}>
+          {topHeadlines.map((item) => (
+            <li key={`${item.date}-${item.headline}`}>
+              {item.url ? (
+                <a href={item.url} target="_blank" rel="noopener noreferrer">
+                  {item.headline}
+                </a>
+              ) : (
+                item.headline
+              )}
+            </li>
+          ))}
+        </ol>
+      ) : null}
+    </SignalBlock>
   );
 }
