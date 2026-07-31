@@ -13,6 +13,28 @@
   min-width: 0;
 }
 
+.dashboard-signal-gauges {
+  padding: 16px 18px 18px;
+}
+
+.dashboard-signal-gauges .quote-signal-gauges {
+  margin-top: 4px;
+}
+
+@media (max-width: 520px) {
+  .dashboard-signal-gauges .quote-signal-gauges {
+    gap: 4px;
+  }
+
+  .dashboard-signal-gauges .quote-gauge-detail {
+    font-size: 0.58rem;
+  }
+
+  .dashboard-signal-gauges .quote-gauge-caption {
+    font-size: 0.58rem;
+  }
+}
+
 /* ── Verdict: one calm, legible decision surface ── */
 
 .verdict-card {

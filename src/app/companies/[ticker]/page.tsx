@@ -12,6 +12,7 @@ import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
+import { CompanySignalGauges } from "@/app/components/CompanySignalGauges";
 import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
@@ -93,12 +94,12 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            {/* Same card-verdict Conviction Score as Trending / Watchlist rings. */}
             <ConvictionScoreOverviewCard ticker={upperTicker} />
+            <CompanySignalGauges ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
-            <CompanyVerdict ticker={upperTicker} />
             <CompanyPulseCard ticker={upperTicker} />
+            <CompanyVerdict ticker={upperTicker} />
           </>
         }
       >
