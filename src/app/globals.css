@@ -9538,6 +9538,53 @@ details > summary::before {
   max-width: 46rem;
 }
 
+.market-regime-drivers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.market-regime-driver {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--market-border) 80%, transparent);
+  background: color-mix(in srgb, var(--market-card) 70%, #000);
+  font-size: 0.62rem;
+  line-height: 1.2;
+  color: var(--market-muted);
+}
+
+.market-regime-driver strong {
+  color: var(--market-text);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.market-regime-driver em {
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 650;
+}
+
+.market-regime-driver-rising em {
+  color: #4ade80;
+}
+
+.market-regime-driver-falling em {
+  color: #f87171;
+}
+
+.market-regime-driver-flat em,
+.market-regime-driver-mixed em,
+.market-regime-driver-unavailable em {
+  color: var(--market-muted);
+}
+
 .market-index-grid,
 .market-gauge-grid {
   display: grid;

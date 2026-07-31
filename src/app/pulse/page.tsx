@@ -242,6 +242,20 @@ export default function MarketPulsePage() {
       <section className="market-regime-lede" aria-label="Market regime">
         <strong className="market-regime-label">{data.macroRegime.label}</strong>
         <p className="market-regime-summary">{data.macroRegime.summary}</p>
+        {data.macroRegime.drivers.length > 0 ? (
+          <div className="market-regime-drivers" aria-label="What is driving this regime">
+            {data.macroRegime.drivers.map((driver) => (
+              <span
+                key={driver.id}
+                className={`market-regime-driver market-regime-driver-${driver.direction}`}
+                title={driver.explanation}
+              >
+                <strong>{driver.label}</strong>
+                <em>{driver.direction}</em>
+              </span>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="market-region-picker" aria-label="Pulse views">

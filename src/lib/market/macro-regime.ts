@@ -194,6 +194,18 @@ export function classifyMacroRegime(
       return m[t] ?? t;
     });
 
+  function commentaryFromDrivers(fallback: string): string {
+    const notable = [...drivers]
+      .filter((driver) => driver.direction === "rising" || driver.direction === "falling")
+      .sort((a, b) => {
+        const rank = { high: 0, medium: 1, low: 2 } as const;
+        return rank[a.significance] - rank[b.significance];
+      })
+      .slice(0, 3);
+    if (notable.length === 0) return fallback;
+    return notable.map((driver) => driver.explanation).join(" ");
+  }
+
   // ── Classification logic ──
 
   // Check for insufficient data first
@@ -241,6 +253,17 @@ export function classifyMacroRegime(
       label: "Risk-on",
       confidence: "medium",
       summary: "Equities are advancing with declining volatility, supporting risk asset positioning.",
+      drivers,
+      missingInputs,
+    };
+  }
+
+  // Cyclical without needing VIX down: equities advancing into rising yields and oil
+  if (equitiesUp && ratesUp && oilUp) {
+    return {
+      label: "Cyclical rotation",
+      confidence: "medium",
+      summary: "Equities are rising alongside higher yields and oil, pointing to a cyclical / value tilt rather than a clean risk-on tape.",
       drivers,
       missingInputs,
     };
@@ -312,11 +335,13 @@ export function classifyMacroRegime(
     };
   }
 
-  // Fallback: mixed signals
+  // Fallback: mixed signals — commentary must reflect the drivers that conflicted
   return {
     label: "Mixed Signals",
     confidence: "low",
-    summary: "Market indicators are sending mixed or conflicting signals. No dominant macro regime is clearly identifiable.",
+    summary: commentaryFromDrivers(
+      "Market indicators are sending mixed or conflicting signals. No dominant macro regime is clearly identifiable.",
+    ),
     drivers,
     missingInputs,
   };

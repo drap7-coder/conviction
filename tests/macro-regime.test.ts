@@ -144,6 +144,23 @@ describe("classifyMacroRegime", () => {
     ]);
     expect(result.label).toBe("Mixed Signals");
     expect(result.confidence).toBe("low");
+    expect(result.summary).toMatch(/Oil prices are declining|dollar is strengthening|Nasdaq|equity/i);
+    expect(result.summary).not.toBe(
+      "Market indicators are sending mixed or conflicting signals. No dominant macro regime is clearly identifiable.",
+    );
+  });
+
+  it("classifies cyclical rotation when equities rise with yields and oil even if VIX is flat", () => {
+    const result = classifyMacroRegime([
+      indicator("SPY", 0.6),
+      indicator("QQQ", 0.4),
+      indicator("^VIX", 0.2),
+      indicator("^TNX", 0.9),
+      indicator("USO", 1.2),
+      indicator("UUP", 0.1),
+    ]);
+    expect(result.label).toBe("Cyclical rotation");
+    expect(result.summary).toMatch(/yields|oil|cyclical/i);
   });
 
   it("returns insufficient data when too few indicators available", () => {
