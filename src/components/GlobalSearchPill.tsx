@@ -98,7 +98,7 @@ export function GlobalSearchPill() {
   return (
     <div className="global-search-dock">
       <form className="global-search-pill" onSubmit={handleSubmit} role="search">
-        <Search size={18} aria-hidden="true" className="global-search-icon" strokeWidth={2.4} />
+        <Search size={15} aria-hidden="true" className="global-search-icon" strokeWidth={2.4} />
         <input
           ref={inputRef}
           type="search"
@@ -111,7 +111,7 @@ export function GlobalSearchPill() {
             window.setTimeout(() => setShowSuggestions(false), 120);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Look up any ticker"
+          placeholder="Ticker"
           className="global-search-input"
           autoComplete="off"
           spellCheck={false}
