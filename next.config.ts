@@ -5,12 +5,27 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/rising",
-        destination: "/trending",
+        destination: "/pulse",
         permanent: true,
       },
       {
         source: "/markets",
-        destination: "/quotes",
+        destination: "/pulse",
+        permanent: true,
+      },
+      {
+        source: "/trending",
+        destination: "/pulse",
+        permanent: true,
+      },
+      {
+        source: "/industries",
+        destination: "/pulse",
+        permanent: true,
+      },
+      {
+        source: "/quotes",
+        destination: "/watchlist",
         permanent: true,
       },
     ];

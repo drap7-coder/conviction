@@ -1,28 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  YAxis,
-} from "recharts";
-import type { PulseData, PulseGlobalMarket, PulseIndicator } from "@/app/api/market/pulse/route";
+import Link from "next/link";
+import type { PulseData, PulseGlobalMarket, PulseIndicator, PulseSector } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MarketNarrativePulse } from "@/components/market/MarketNarrativePulse";
+import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
+import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 
 const COLORS = {
   green: "#4ade80",
   red: "#f87171",
-  teal: "#2dd4bf",
   yellow: "#facc15",
   orange: "#fb923c",
   blue: "#60a5fa",
 };
 
-// Gauge ranges are intentionally centralized so market-risk thresholds are easy to tune.
 const VIX_GAUGE = {
   min: 10,
   max: 40,
@@ -41,17 +35,6 @@ const TEN_YEAR_GAUGE = {
     { label: "Normal", end: 4.25, color: COLORS.green },
     { label: "Elevated", end: 5, color: COLORS.yellow },
     { label: "High", end: 6, color: COLORS.red },
-  ],
-};
-
-const MOVE_GAUGE = {
-  min: 50,
-  max: 150,
-  zones: [
-    { label: "Calm", end: 80, color: "#245b43" },
-    { label: "Normal", end: 100, color: COLORS.green },
-    { label: "Elevated", end: 120, color: COLORS.yellow },
-    { label: "Danger", end: 150, color: COLORS.red },
   ],
 };
 
@@ -96,14 +79,6 @@ function fmtPrice(value: number | null, isPercent: boolean): string {
   return value >= 10 ? value.toFixed(2) : value.toFixed(3);
 }
 
-function normalize(values: number[]): number[] {
-  if (!values.length) return [];
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  if (max === min) return values.map(() => 50);
-  return values.map((value) => ((value - min) / (max - min)) * 100);
-}
-
 function Gauge({
   label,
   value,
@@ -113,7 +88,7 @@ function Gauge({
   label: string;
   value: number | null;
   suffix?: string;
-  config: typeof VIX_GAUGE | typeof TEN_YEAR_GAUGE | typeof MOVE_GAUGE;
+  config: typeof VIX_GAUGE | typeof TEN_YEAR_GAUGE;
 }) {
   const bounded = isFiniteNumber(value) ? Math.min(config.max, Math.max(config.min, value)) : config.min;
   const marker = ((bounded - config.min) / (config.max - config.min)) * 100;
@@ -138,52 +113,6 @@ function Gauge({
   );
 }
 
-function MacroTooltip({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }> }) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="market-chart-tooltip">
-      {payload.map((item) => <span key={item.name} style={{ color: item.color }}>{item.name}: {item.value.toFixed(0)}</span>)}
-    </div>
-  );
-}
-
-function MacroChart({ indicators }: { indicators: PulseIndicator[] }) {
-  const data = useMemo(() => {
-    const lookup = new Map(indicators.map((item) => [item.ticker, item]));
-    const normalized = MACRO_SERIES.map((series) => normalize((lookup.get(series.ticker)?.history ?? []).slice(-15).map((point) => point.close)));
-    const length = Math.max(...normalized.map((points) => points.length), 0);
-    return Array.from({ length }, (_, index) => {
-      const row: Record<string, number> = { point: index };
-      MACRO_SERIES.forEach((series, seriesIndex) => {
-        const values = normalized[seriesIndex];
-        const offset = length - values.length;
-        if (index >= offset) row[series.key] = values[index - offset];
-      });
-      return row;
-    });
-  }, [indicators]);
-
-  return (
-    <section className="market-panel market-macro-panel" aria-label="Macro chain">
-      <div className="market-panel-header"><div><h2>Macro Chain</h2><p>Last 15 points · normalized 0–100</p></div></div>
-      <div className="market-macro-chart">
-        {data.length > 1 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 8, right: 4, bottom: 8, left: 4 }}>
-              <YAxis hide domain={[0, 100]} />
-              <Tooltip content={<MacroTooltip />} />
-              {MACRO_SERIES.map((series) => <Line key={series.key} type="monotone" dataKey={series.key} name={series.label} stroke={series.color} strokeWidth={2} dot={false} connectNulls isAnimationActive={false} />)}
-            </LineChart>
-          </ResponsiveContainer>
-        ) : <div className="market-chart-empty">Intraday history unavailable.</div>}
-      </div>
-      <div className="market-legend">
-        {MACRO_SERIES.map((series) => <span key={series.key}><i style={{ background: series.color }} />{series.label}</span>)}
-      </div>
-    </section>
-  );
-}
-
 function tileSpan(weight: number): number {
   if (weight > HEATMAP_SPANS.largeWeight) return 3;
   if (weight > HEATMAP_SPANS.mediumWeight) return 2;
@@ -205,12 +134,14 @@ function GlobalMarketsHeatmap({
   subtitle,
   uniformTiles = false,
   sessionLabel = null,
+  linkBase = null,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
   subtitle: string;
   uniformTiles?: boolean;
   sessionLabel?: string | null;
+  linkBase?: string | null;
 }) {
   const [selected, setSelected] = useState<PulseGlobalMarket | null>(markets[0] ?? null);
   const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
@@ -227,26 +158,80 @@ function GlobalMarketsHeatmap({
         ) : null}
       </div>
       <div className="market-sector-detail" aria-live="polite">
-        {selected ? <><span>{selected.name}</span><b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b><span>{selected.category} · {selected.ticker}</span><span className="market-detail-price">{fmtPrice(selected.price, false)}</span></> : <span>Hover or tap a market</span>}
+        {selected ? (
+          <>
+            <span>{selected.name}</span>
+            <b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b>
+            <span>{selected.category} · {selected.ticker}</span>
+            <span className="market-detail-price">{fmtPrice(selected.price, false)}</span>
+          </>
+        ) : (
+          <span>Hover or tap a market</span>
+        )}
       </div>
       <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
-        {markets.map((market) => (
-          <button
-            key={market.ticker}
-            type="button"
-            className={`market-heat-tile${selected?.ticker === market.ticker ? " selected" : ""}`}
-            style={{ gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`, background: heatColor(market.changePercent, maxAbs) }}
-            onMouseEnter={() => setSelected(market)}
-            onFocus={() => setSelected(market)}
-            onClick={() => setSelected(market)}
-            aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
-          >
-            <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
-          </button>
-        ))}
+        {markets.map((market) => {
+          const tile = (
+            <button
+              key={market.ticker}
+              type="button"
+              className={`market-heat-tile${selected?.ticker === market.ticker ? " selected" : ""}`}
+              style={{
+                gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`,
+                background: heatColor(market.changePercent, maxAbs),
+              }}
+              onMouseEnter={() => setSelected(market)}
+              onFocus={() => setSelected(market)}
+              onClick={() => setSelected(market)}
+              aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
+            >
+              <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
+            </button>
+          );
+
+          if (!linkBase) return tile;
+
+          return (
+            <Link
+              key={market.ticker}
+              href={`${linkBase}/${market.ticker}`}
+              className={`market-heat-tile${selected?.ticker === market.ticker ? " selected" : ""}`}
+              style={{
+                gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`,
+                background: heatColor(market.changePercent, maxAbs),
+              }}
+              onMouseEnter={() => setSelected(market)}
+              onFocus={() => setSelected(market)}
+              aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
+            >
+              <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );
+}
+
+function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
+  return sectors.map((sector) => ({
+    ticker: sector.ticker,
+    name: sector.name,
+    changePercent: sector.changePercent,
+    price: null,
+    weight: sector.weight,
+    category: "Sector",
+  }));
+}
+
+function indicatorsToMacroSeries(indicators: PulseIndicator[]): MacroChainSeries[] {
+  const lookup = new Map(indicators.map((item) => [item.ticker, item]));
+  return MACRO_SERIES.map((series) => ({
+    key: series.key,
+    label: series.label,
+    color: series.color,
+    values: (lookup.get(series.ticker)?.history ?? []).slice(-15).map((point) => point.close),
+  })).filter((series) => series.values.length >= 2);
 }
 
 export default function MarketPulsePage() {
@@ -263,91 +248,25 @@ export default function MarketPulsePage() {
     return () => { cancelled = true; };
   }, []);
 
+  const macroSeries = useMemo(
+    () => (data ? indicatorsToMacroSeries(data.indicators) : []),
+    [data],
+  );
+
   if (status === "loading") return <PageLoadingMotion label="Loading pulse" />;
   if (status === "error" || !data) return <div className="markets-page"><div className="market-empty">Market data is temporarily unavailable.</div></div>;
 
   const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
   const vix = indicatorMap.get("^VIX")?.price ?? null;
   const tenYear = indicatorMap.get("^TNX")?.price ?? null;
-  const move = indicatorMap.get("^MOVE")?.price ?? null;
-  const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International" && market.category !== "Crypto");
-  const cryptoMarkets = data.globalMarkets.filter((market) => market.category === "Crypto");
+  const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International");
   const internationalMarkets = data.globalMarkets.filter((market) => market.category === "International");
   const activeRegionOption = MARKET_REGION_OPTIONS.find((option) => option.id === activeRegion) ?? MARKET_REGION_OPTIONS[0];
   const activeRegionMarkets = activeRegion === "international" ? internationalMarkets : primaryMarkets;
+  const industryMarkets = sectorsToMarkets(data.sectors);
 
   return (
     <main className="markets-page">
-      <style>{`
-        .markets-page { --market-bg:#0a0a0b; --market-card:#111214; --market-border:#26282c; --market-text:#f4f4f5; --market-muted:#8b8f97; --market-green:#4ade80; --market-red:#f87171; --market-live:#2dd4bf; min-height:100vh; background:var(--market-bg); color:var(--market-text); padding:24px; font-family:var(--font-mono); }
-        .market-regime-lede { margin:0 0 18px; padding:16px 18px; border:1px solid var(--market-border); border-radius:12px; background:radial-gradient(circle at 10% 0%,color-mix(in srgb,var(--market-live) 12%,transparent),transparent 46%),var(--market-card); }
-        .market-regime-eyebrow { display:block; color:var(--market-muted); font-size:.62rem; letter-spacing:.08em; text-transform:uppercase; }
-        .market-regime-label { display:block; margin-top:6px; color:var(--market-text); font-size:1.15rem; line-height:1.2; letter-spacing:-0.01em; }
-        .market-regime-summary { margin:8px 0 0; color:var(--market-muted); font-size:.78rem; line-height:1.45; max-width:46rem; }
-        .market-index-grid,.market-gauge-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin-bottom:18px; }
-        .market-index-card,.market-gauge-card,.market-panel { background:var(--market-card); border:1px solid var(--market-border); border-radius:12px; }
-        .market-region-picker { display:grid; grid-template-columns:minmax(190px,.62fr) minmax(0,1.38fr); align-items:stretch; gap:12px; margin-bottom:18px; padding:14px; border:1px solid var(--market-border); border-radius:12px; background:radial-gradient(circle at 12% 0%,color-mix(in srgb,var(--market-live) 10%,transparent),transparent 42%),var(--market-card); }
-        .market-region-copy { display:flex; flex-direction:column; justify-content:center; padding:4px 6px; }
-        .market-region-copy span { color:var(--market-text); font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-        .market-region-copy p { margin:5px 0 0; color:var(--market-muted); font-size:.66rem; line-height:1.45; }
-        .market-region-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
-        .market-region-tabs button { min-width:0; padding:12px 13px; border:1px solid var(--market-border); border-radius:8px; color:var(--market-text); background:color-mix(in srgb,var(--market-card) 82%,transparent); font:inherit; text-align:left; cursor:pointer; transition:border-color .16s,background-color .16s,transform .16s; }
-        .market-region-tabs button:hover,.market-region-tabs button:focus-visible { border-color:color-mix(in srgb,var(--market-live) 48%,var(--market-border)); outline:none; transform:translateY(-1px); }
-        .market-region-tabs button.active { border-color:color-mix(in srgb,var(--market-live) 58%,var(--market-border)); background:linear-gradient(135deg,color-mix(in srgb,var(--market-live) 11%,transparent),transparent 75%),color-mix(in srgb,var(--market-card) 90%,#172033); box-shadow:inset 3px 0 0 var(--market-live); }
-        .market-region-tabs strong,.market-region-tabs span { display:block; }
-        .market-region-tabs strong { font-size:.82rem; }
-        .market-region-tabs span { margin-top:3px; color:var(--market-muted); font-size:.58rem; }
-        .market-region-title-break { display:none; }
-        .market-index-card { min-height:124px; padding:16px; display:grid; grid-template-columns:minmax(0,1fr) 78px; gap:8px; align-items:center; }
-        .market-index-copy { min-width:0; display:flex; flex-direction:column; align-items:flex-start; }
-        .market-card-heading { grid-column:1/-1; display:flex; justify-content:space-between; color:var(--market-muted); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; }
-        .market-index-label { color:var(--market-muted); font-size:.66rem; letter-spacing:.08em; line-height:1.35; text-transform:uppercase; }
-        .market-index-value,.market-gauge-value { margin-top:5px; font-size:1.65rem; line-height:1.05; font-variant-numeric:tabular-nums; }
-        .market-index-change { margin-top:7px; font-size:.75rem; font-variant-numeric:tabular-nums; }
-        .market-index-change.positive,.positive { color:var(--market-green); }.market-index-change.negative,.negative { color:var(--market-red); }
-        .market-fresh,.market-live { color:var(--market-live); font-size:.62rem; letter-spacing:.08em; }
-        .market-fresh { margin-top:4px; }.market-fresh.delayed { color:var(--market-muted); }
-        .market-sparkline { width:76px; height:42px; }.market-no-chart { color:var(--market-muted); text-align:center; }
-        .market-gauge-card { padding:16px; }.market-gauge-value { display:block; margin:10px 0 18px; }
-        .market-gauge { position:relative; height:10px; display:flex; overflow:visible; border-radius:999px; background:#26282c; }
-        .market-gauge > span:first-child { border-radius:999px 0 0 999px; }.market-gauge > span:nth-last-of-type(1) { border-radius:0 999px 999px 0; }
-        .market-gauge-marker { position:absolute; top:-3px; width:4px; height:16px; border-radius:2px; background:#f4f4f5; box-shadow:0 0 0 2px rgba(10,10,11,.65); transform:translateX(-50%); }
-        .market-gauge-labels { display:flex; justify-content:space-between; margin-top:7px; color:var(--market-muted); font-size:.52rem; text-transform:uppercase; }
-        .market-panel { padding:20px; margin-bottom:18px; }.market-panel-header { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }.market-panel-header h2 { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }.market-panel-header p { margin:6px 0 0; color:var(--market-muted); font-size:.66rem; line-height:1.45; }
-        .market-session-badge {
-          display:inline-flex; align-items:center; gap:6px;
-          padding:4px 9px; border-radius:999px;
-          background:rgba(251,191,36,.14); color:#fbbf24;
-          font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-          white-space:nowrap;
-        }
-        .market-session-dot {
-          width:6px; height:6px; border-radius:50%; background:currentColor;
-          box-shadow:0 0 0 0 rgba(251,191,36,.55);
-          animation:market-session-pulse 1.6s ease-out infinite;
-        }
-        @keyframes market-session-pulse {
-          0% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,.55); opacity:1; }
-          70% { transform:scale(1.15); box-shadow:0 0 0 7px rgba(251,191,36,0); opacity:.85; }
-          100% { transform:scale(1); box-shadow:0 0 0 0 rgba(251,191,36,0); opacity:1; }
-        }
-        @media (prefers-reduced-motion:reduce) { .market-session-dot { animation:none; } }
-        .market-macro-chart { height:190px; margin:16px -8px 5px; }.market-chart-empty { height:100%; display:grid; place-items:center; color:var(--market-muted); font-size:.7rem; }
-        .market-chart-tooltip { display:flex; flex-direction:column; gap:3px; padding:8px; border:1px solid var(--market-border); border-radius:6px; background:#0a0a0be8; font-size:.58rem; }
-        .market-legend { display:flex; flex-wrap:wrap; gap:8px 14px; color:var(--market-muted); font-size:.58rem; }.market-legend span { display:flex; align-items:center; gap:5px; }.market-legend i { width:8px; height:8px; border-radius:2px; }
-        .market-sector-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:13px 0 9px; color:var(--market-muted); font-size:.66rem; }.market-sector-detail > span:first-child { color:var(--market-text); }.market-detail-price { margin-left:auto; color:var(--market-text); font-variant-numeric:tabular-nums; }
-        .market-heatmap { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
-        .market-heatmap.compact { grid-template-columns:repeat(4,minmax(0,1fr)); }
-        .market-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:var(--market-text); font:inherit; text-align:left; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
-        .market-heat-tile:hover,.market-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }.market-heat-tile.selected { border-color:rgba(244,244,245,.45); }
-        .market-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }.market-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
-        .market-empty { min-height:40vh; display:grid; place-items:center; color:var(--market-muted); }
-        @media (min-width:900px) { .markets-page { max-width:1050px; margin:0 auto; }.market-index-grid,.market-gauge-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-        @media (max-width:899px) { .market-gauge-card:last-child:nth-child(odd) { grid-column:1/-1; } }
-        @media (max-width:640px) { .market-region-picker { grid-template-columns:1fr; padding:11px; }.market-region-copy { padding:2px 3px 4px; }.market-region-tabs button { width:100%; padding:11px 10px; }.market-region-title-break { display:block; } }
-        @media (max-width:399px) { .markets-page { padding:16px 14px 30px; }.market-index-grid,.market-gauge-grid { gap:10px; }.market-index-card { min-height:112px; padding:12px; grid-template-columns:minmax(0,1fr) 54px; }.market-index-value,.market-gauge-value { font-size:1.3rem; }.market-sparkline { width:54px; height:36px; }.market-index-label { font-size:.52rem; }.market-index-change { font-size:.65rem; }.market-panel { padding:16px 14px; }.market-macro-panel { padding:14px; }.market-macro-panel .market-macro-chart { height:128px; margin:10px -5px 3px; }.market-macro-panel .market-legend { flex-wrap:nowrap; justify-content:space-between; gap:4px; font-size:.46rem; }.market-macro-panel .market-legend span { gap:3px; white-space:nowrap; }.market-macro-panel .market-legend i { width:6px; height:6px; }.market-heatmap { grid-template-columns:repeat(4,minmax(0,1fr)); }.market-heat-tile { min-height:62px; padding:8px; }.market-detail-price { width:100%; margin-left:0; } }
-      `}</style>
-
       <section className="market-regime-lede" aria-label="Market regime">
         <span className="market-regime-eyebrow">Pulse</span>
         <strong className="market-regime-label">{data.macroRegime.label}</strong>
@@ -389,23 +308,36 @@ export default function MarketPulsePage() {
           title={activeRegionOption.label}
           subtitle={activeRegion === "international"
             ? "Country ETF proxies · tile size reflects relative equity-market weight"
-            : "U.S. equities and macro assets · color reflects current session move"}
+            : "U.S. equities, Bitcoin, and macro assets · color reflects current session move"}
           uniformTiles={activeRegion === "us"}
           sessionLabel={activeRegion === "us" ? (data.sessionLabel ?? null) : null}
         />
       </div>
+
+      <div id="industries">
+        <GlobalMarketsHeatmap
+          markets={industryMarkets}
+          title="Industries"
+          subtitle="Sector ETF proxies · color reflects current session move"
+          sessionLabel={data.sessionLabel ?? null}
+          linkBase="/industries"
+        />
+      </div>
+
       <MarketNarrativePulse pulse={data.marketNarratives} />
       <section className="market-gauge-grid" aria-label="Market danger zones">
         <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
         <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
-        <Gauge label="MOVE" value={move} config={MOVE_GAUGE} />
       </section>
-      <MacroChart indicators={data.indicators} />
-      <GlobalMarketsHeatmap
-        markets={cryptoMarkets}
-        title="Crypto"
-        subtitle="Major digital assets · color reflects current move"
-      />
+      <MacroChainChart series={macroSeries} />
+
+      <section id="market-moves" className="pulse-market-moves" aria-label="Market moves">
+        <div className="page-purpose" style={{ marginTop: 8 }}>
+          <span className="page-purpose-eyebrow">Trending</span>
+          <h2 className="page-purpose-title">Where is conviction changing fastest?</h2>
+        </div>
+        <MarketMovesPanel />
+      </section>
     </main>
   );
 }

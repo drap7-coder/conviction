@@ -13,6 +13,7 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -575,6 +576,22 @@ export default function Watchlist({
     );
   }, [sortedEntries, addInput]);
 
+  const watchlistMacroSeries = useMemo(() => {
+    const ranked = [...entries]
+      .map((entry) => {
+        const quote = quotes[entry.ticker];
+        return {
+          ticker: entry.ticker,
+          label: entry.ticker,
+          marketCap: quote?.marketCap ?? 0,
+          values: (quote?.sparkline ?? []).map((point) => point.close),
+        };
+      })
+      .filter((item) => item.values.length >= 2)
+      .sort((a, b) => b.marketCap - a.marketCap);
+    return buildMacroSeriesFromQuotes(ranked, 5);
+  }, [entries, quotes]);
+
   // Keyboard navigation effect
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -681,6 +698,14 @@ export default function Watchlist({
         />
       ) : null}
 
+      {!loading && watchlistMacroSeries.length > 0 ? (
+        <MacroChainChart
+          series={watchlistMacroSeries}
+          title="Watchlist Chain"
+          subtitle="Top names by market cap · last 15 points · normalized 0–100"
+        />
+      ) : null}
+
       <div className="watchlist-add">
         <div className="watchlist-input-wrap">
           <input
@@ -754,7 +779,7 @@ export default function Watchlist({
         <div className="empty-state">
           <p>Add companies you care about.</p>
           <small>See what’s moving, why it matters, and who has been buying or selling.</small>
-          <Link href="/trending" className="brief-link">
+          <Link href="/pulse" className="brief-link">
             Browse trending →
           </Link>
         </div>
