@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import { isFiniteNumber } from "@/lib/display/format";
+import { changeToneClass } from "@/lib/display/heat-color";
 import type { PositionMetrics } from "@/lib/portfolio/types";
 
 export interface PortfolioHoldingCardProps {
@@ -89,18 +90,8 @@ export function PortfolioHoldingCard({
   onRemove,
 }: PortfolioHoldingCardProps) {
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
-  const dayChangeClass =
-    isFiniteNumber(changePercent) && changePercent > 0
-      ? "positive"
-      : isFiniteNumber(changePercent) && changePercent < 0
-        ? "negative"
-        : "neutral";
-  const closeChangeClass =
-    isFiniteNumber(closeChangePercent) && closeChangePercent > 0
-      ? "positive"
-      : isFiniteNumber(closeChangePercent) && closeChangePercent < 0
-        ? "negative"
-        : "neutral";
+  const dayChangeClass = changeToneClass(changePercent);
+  const closeChangeClass = changeToneClass(closeChangePercent);
 
   const ring = ringFromVerdict(convictionTone, convictionStrength);
   const accent = holdingAccent(metrics.totalGainLoss);

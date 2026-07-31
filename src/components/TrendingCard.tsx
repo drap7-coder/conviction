@@ -14,6 +14,7 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { isFiniteNumber } from "@/lib/display/format";
+import { changeToneClass } from "@/lib/display/heat-color";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import type { StockQuote, StockHistoryPoint } from "@/lib/market/quotes";
@@ -97,18 +98,8 @@ export function TrendingCard({
   const sessionLabel = live.label;
   const hasExtendedSession = Boolean(sessionLabel && quote.price !== null);
 
-  const changeClass =
-    isFiniteNumber(live.change) && live.change > 0
-      ? "positive"
-      : isFiniteNumber(live.change) && live.change < 0
-        ? "negative"
-        : "neutral";
-  const closeChangeClass =
-    isFiniteNumber(quote.changePercent) && quote.changePercent > 0
-      ? "positive"
-      : isFiniteNumber(quote.changePercent) && quote.changePercent < 0
-        ? "negative"
-        : "neutral";
+  const changeClass = changeToneClass(live.change);
+  const closeChangeClass = changeToneClass(quote.changePercent);
 
   const verdict = getCardVerdict({
     ticker,

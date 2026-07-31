@@ -39,7 +39,7 @@ function formatShares(value: number): string {
 }
 
 function statusClass(status: AccumulationStatus): string {
-  if (status === "New" || status === "Increased") return "positive";
+  // Adds stay default ink — red is reserved for trims/exits so it stays meaningful.
   if (status === "Reduced" || status === "Exited") return "negative";
   return "neutral";
 }
@@ -215,7 +215,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
   return (
     <section className="investor-moves-panel" aria-label="Institutional moves">
-      <div className="investor-moves-intro">
+      <div className="investor-moves-intro ink-panel">
         <div>
           <span className="investor-moves-eyebrow">Where big funds are building</span>
           <h2>Recent ownership moves from large managers</h2>

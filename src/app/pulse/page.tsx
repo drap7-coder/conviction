@@ -4,27 +4,28 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { PulseData, PulseGlobalMarket, PulseIndicator, PulseSector } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
+import { heatTileColor } from "@/lib/display/heat-color";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MarketNarrativePulse } from "@/components/market/MarketNarrativePulse";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 
 const COLORS = {
-  green: "#0a7a52",
-  red: "#c81e4a",
-  yellow: "#b45309",
-  orange: "#c2410c",
-  blue: "#2563eb",
+  green: "#16A34A",
+  red: "#DC2626",
+  yellow: "#D97706",
+  orange: "#EA580C",
+  blue: "#0D9488",
 };
 
 const VIX_GAUGE = {
   min: 10,
   max: 40,
   zones: [
-    { label: "Calm", end: 15, color: "#bbf7d0" },
-    { label: "Normal", end: 20, color: "#86efac" },
-    { label: "Elevated", end: 25, color: "#fde68a" },
-    { label: "Danger", end: 40, color: "#fecaca" },
+    { label: "Calm", end: 15, color: "#16A34A" },
+    { label: "Normal", end: 20, color: "#86EFAC" },
+    { label: "Elevated", end: 25, color: "#D97706" },
+    { label: "Danger", end: 40, color: "#DC2626" },
   ],
 };
 
@@ -32,9 +33,9 @@ const TEN_YEAR_GAUGE = {
   min: 2.5,
   max: 6,
   zones: [
-    { label: "Normal", end: 4.25, color: "#86efac" },
-    { label: "Elevated", end: 5, color: "#fde68a" },
-    { label: "High", end: 6, color: "#fecaca" },
+    { label: "Normal", end: 4.25, color: "#16A34A" },
+    { label: "Elevated", end: 5, color: "#D97706" },
+    { label: "High", end: 6, color: "#DC2626" },
   ],
 };
 
@@ -112,13 +113,8 @@ function tileSpan(weight: number): number {
   return 1;
 }
 
-function heatColor(change: number | null, maxAbs: number): string {
-  if (!isFiniteNumber(change) || maxAbs === 0) return "hsl(210 14% 88%)";
-  const magnitude = Math.min(Math.abs(change) / maxAbs, 1);
-  const hue = change >= 0 ? 152 : 0;
-  const saturation = 42 + magnitude * 28;
-  const lightness = 78 - magnitude * 28;
-  return `hsl(${hue} ${saturation}% ${lightness}%)`;
+function heatColor(change: number | null, _maxAbs: number): string {
+  return heatTileColor(change);
 }
 
 function GlobalMarketsHeatmap({
