@@ -4,26 +4,29 @@
 :root {
   color-scheme: light;
   --bg: #ffffff;
-  --surface: #f4f6f8;
+  --surface: #f8fafc;
   --surface-elevated: #ffffff;
-  --border: #e3e7ec;
-  --border-active: #c5ccd6;
+  --border: color-mix(in srgb, #12151a 8%, transparent);
+  --border-active: color-mix(in srgb, #12151a 16%, transparent);
   --ink: #12151a;
   --muted: #5a6573;
   --quiet: #8490a0;
   --accent: #0b7f92;
-  --accent-dim: rgba(11, 127, 146, 0.1);
+  --accent-dim: rgba(11, 127, 146, 0.06);
   --green: #0a7a52;
-  --green-dim: rgba(10, 122, 82, 0.1);
+  --green-dim: rgba(10, 122, 82, 0.06);
   --red: #c81e4a;
-  --red-dim: rgba(200, 30, 74, 0.1);
+  --red-dim: rgba(200, 30, 74, 0.06);
   --amber: #b45309;
-  --amber-dim: rgba(180, 83, 9, 0.1);
+  --amber-dim: rgba(180, 83, 9, 0.06);
   --amber-400: #d97706;
+  --positive: var(--green);
+  --negative: var(--red);
   --on-accent: #ffffff;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 18px 44px rgba(15, 23, 42, 0.1);
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 14px 36px rgba(15, 23, 42, 0.06);
+  --shadow: var(--shadow-sm);
   --radius: 12px;
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -35,8 +38,8 @@
 
   /* Chart theme */
   --chart-surface: #ffffff;
-  --chart-grid: #e8ecf1;
-  --chart-border: #e3e7ec;
+  --chart-grid: color-mix(in srgb, #12151a 6%, transparent);
+  --chart-border: color-mix(in srgb, #12151a 8%, transparent);
   --chart-sma50: #2563eb;
   --chart-sma200: #dc2626;
 }
@@ -2253,8 +2256,9 @@ details > summary::before {
 .material-news-briefing { margin-top: 2px; }
 .material-news-status {
   padding: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
   color: var(--muted);
   font-size: 0.8rem;
 }
@@ -4239,9 +4243,9 @@ details > summary::before {
   display: grid;
   gap: 10px;
   margin-top: 12px;
-  background: var(--surface-elevated);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
   border-radius: var(--radius);
   padding: 12px;
 }
@@ -4286,11 +4290,11 @@ details > summary::before {
   gap: 12px;
   margin-top: 14px;
   background:
-    radial-gradient(circle at top right, var(--accent-dim), transparent 36%),
-    var(--surface);
-  border: 1px solid var(--border);
+    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 5%, transparent), transparent 42%),
+    color-mix(in srgb, var(--surface) 38%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   border-radius: calc(var(--radius) + 6px);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
 }
 
@@ -7379,22 +7383,22 @@ details > summary::before {
 
 .cdh-badge-positive {
   color: var(--green);
-  background: color-mix(in srgb, var(--green) 14%, transparent);
+  background: color-mix(in srgb, var(--green) 8%, transparent);
 }
 
 .cdh-badge-negative {
   color: var(--red);
-  background: color-mix(in srgb, var(--red) 14%, transparent);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
 }
 
 .cdh-badge-contested {
   color: var(--amber);
-  background: color-mix(in srgb, var(--amber) 14%, transparent);
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
 }
 
 .cdh-badge-quiet {
   color: var(--muted);
-  background: color-mix(in srgb, var(--muted) 12%, transparent);
+  background: color-mix(in srgb, var(--muted) 8%, transparent);
 }
 
 /* ── Price block ── */
@@ -8460,22 +8464,22 @@ details > summary::before {
 
 .signal-block-strength-positive {
   color: var(--green);
-  background: var(--green-dim);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
 }
 
 .signal-block-strength-negative {
   color: var(--red);
-  background: var(--red-dim);
+  background: color-mix(in srgb, var(--red) 7%, transparent);
 }
 
 .signal-block-strength-contested {
   color: var(--amber);
-  background: var(--amber-dim);
+  background: color-mix(in srgb, var(--amber) 7%, transparent);
 }
 
 .signal-block-strength-quiet {
   color: var(--muted);
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
 .signal-block-badge {
@@ -8493,22 +8497,22 @@ details > summary::before {
 
 .signal-block-badge-positive {
   color: var(--green);
-  background: var(--green-dim);
+  background: color-mix(in srgb, var(--green) 7%, transparent);
 }
 
 .signal-block-badge-negative {
   color: var(--red);
-  background: var(--red-dim);
+  background: color-mix(in srgb, var(--red) 7%, transparent);
 }
 
 .signal-block-badge-contested {
   color: var(--amber);
-  background: var(--amber-dim);
+  background: color-mix(in srgb, var(--amber) 7%, transparent);
 }
 
 .signal-block-badge-quiet {
   color: var(--muted);
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
 .signal-block-evidence,
@@ -9201,10 +9205,11 @@ details > summary::before {
 .quote-sparkline.neutral path { stroke: var(--muted); }
 
 .quote-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 42%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   border-radius: 18px;
   padding: 16px 16px 18px;
+  box-shadow: var(--shadow-sm);
 }
 
 .quote-card-header {
@@ -9394,9 +9399,9 @@ details > summary::before {
   flex-direction: column;
   gap: 4px;
   padding: 12px 10px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--bg) 65%, var(--surface));
+  background: color-mix(in srgb, var(--bg) 78%, transparent);
   text-align: center;
 }
 
@@ -9535,8 +9540,8 @@ details > summary::before {
 
 .markets-page {
   --market-bg: #ffffff;
-  --market-card: #f4f6f8;
-  --market-border: #e3e7ec;
+  --market-card: color-mix(in srgb, #f8fafc 72%, transparent);
+  --market-border: color-mix(in srgb, #12151a 8%, transparent);
   --market-text: #12151a;
   --market-muted: #5a6573;
   --market-green: #0a7a52;
