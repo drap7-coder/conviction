@@ -27,8 +27,6 @@
   /* Fixed-element dimensions */
   --ticker-z: 100;
   --bottom-tab-height: 58px;
-  --search-pill-height: 58px;
-  --mobile-chrome-height: calc(var(--bottom-tab-height) + var(--search-pill-height));
   --mobile-page-gutter: 22px;
 
   /* Chart theme */
@@ -106,7 +104,7 @@ details > summary::before {
   max-width: 960px;
   margin: 0 auto;
   padding: 22px 26px calc(
-    var(--mobile-chrome-height) + var(--mobile-page-gutter) + env(safe-area-inset-bottom)
+    var(--bottom-tab-height) + var(--mobile-page-gutter) + env(safe-area-inset-bottom)
   );
 }
 
@@ -130,7 +128,7 @@ details > summary::before {
   }
 
   .app-shell {
-    height: calc(100vh - var(--mobile-chrome-height) - env(safe-area-inset-bottom));
+    height: calc(100vh - var(--bottom-tab-height) - env(safe-area-inset-bottom));
     min-height: 0;
     padding-bottom: var(--mobile-page-gutter);
     overflow-x: hidden;
@@ -143,7 +141,7 @@ details > summary::before {
 @supports (height: 100dvh) {
   @media (max-width: 767px) {
     .app-shell {
-      height: calc(100dvh - var(--mobile-chrome-height) - env(safe-area-inset-bottom));
+      height: calc(100dvh - var(--bottom-tab-height) - env(safe-area-inset-bottom));
       min-height: 0;
     }
   }
@@ -167,88 +165,49 @@ details > summary::before {
 
 /* ── Bottom Tab Bar (mobile) ── */
 
-.mobile-chrome {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .mobile-chrome {
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: var(--ticker-z);
-  }
-}
-
 .header-search {
-  display: none;
-  flex: 1;
-  min-width: 0;
-  margin-left: 12px;
-  max-width: 360px;
-}
-
-@media (min-width: 768px) {
-  .header-search {
-    display: block;
-  }
-
-  .header-search .global-search-dock {
-    position: static;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
+  flex: 0 1 200px;
+  min-width: 132px;
+  max-width: 220px;
+  margin-left: auto;
 }
 
 .global-search-dock {
-  padding: 10px 12px;
-  border-top: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-  background:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--accent) 10%, transparent),
-      color-mix(in srgb, var(--surface-elevated) 96%, transparent) 70%
-    );
-  box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .global-search-pill {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-height: 42px;
-  padding: 0 14px;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
-  border-radius: 12px;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+  border-radius: 10px;
   background:
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--accent) 14%, var(--surface-elevated)),
+      color-mix(in srgb, var(--accent) 12%, var(--surface-elevated)),
       color-mix(in srgb, var(--surface) 92%, #0a1216)
     );
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 12%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent),
-    0 6px 18px rgba(0, 0, 0, 0.28);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .global-search-pill:focus-within {
   border-color: color-mix(in srgb, var(--accent) 85%, white);
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent),
-    0 8px 22px rgba(0, 0, 0, 0.34);
+    inset 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .global-search-icon {
@@ -264,58 +223,60 @@ details > summary::before {
   background: transparent;
   color: var(--ink);
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 550;
 }
 
 .global-search-input::placeholder {
-  color: color-mix(in srgb, var(--accent) 42%, var(--muted));
+  color: color-mix(in srgb, var(--accent) 38%, var(--muted));
   font-weight: 500;
 }
 
 .global-search-hint {
   flex-shrink: 0;
-  padding: 3px 7px;
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
-  border-radius: 6px;
+  padding: 2px 5px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 5px;
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   color: var(--accent);
-  font-size: 0.62rem;
+  font-size: 0.54rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   line-height: 1;
 }
 
-@media (max-width: 360px) {
+@media (max-width: 640px) {
+  .header-search {
+    flex-basis: 148px;
+    max-width: 168px;
+  }
+
   .global-search-hint {
     display: none;
+  }
+
+  .global-search-input {
+    font-size: 0.74rem;
   }
 }
 
 .global-search-suggestions {
   position: absolute;
-  left: 0;
+  top: calc(100% + 6px);
+  left: auto;
   right: 0;
-  bottom: calc(100% + 6px);
-  z-index: 2;
+  width: min(280px, 78vw);
+  z-index: 20;
   margin: 0;
   padding: 6px;
   list-style: none;
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface-elevated);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   max-height: 240px;
   overflow-y: auto;
-}
-
-@media (min-width: 768px) {
-  .global-search-suggestions {
-    top: calc(100% + 6px);
-    bottom: auto;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  }
 }
 
 .global-search-suggestion {
@@ -348,11 +309,11 @@ details > summary::before {
 .bottom-tab-bar {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  position: relative;
-  bottom: auto;
-  left: auto;
-  right: auto;
-  z-index: auto;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--ticker-z);
   align-items: center;
   min-height: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
   padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
@@ -365,6 +326,11 @@ details > summary::before {
 @media (min-width: 768px) {
   .bottom-tab-bar {
     display: none;
+  }
+
+  .header-search {
+    flex-basis: 220px;
+    max-width: 240px;
   }
 }
 

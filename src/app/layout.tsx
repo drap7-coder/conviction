@@ -81,10 +81,7 @@ export default function RootLayout({
           </header>
           {children}
         </div>
-        <div className="mobile-chrome">
-          <GlobalSearchPill />
-          <MobileTabBar />
-        </div>
+        <MobileTabBar />
       </body>
     </html>
   );
