@@ -18,7 +18,7 @@ export type MacroRegimeLabel =
   | "Volatility expansion"
   | "Volatility compression"
   | "Rates pressure"
-  | "Mixed signals"
+  | "Mixed Signals"
   | "Insufficient data";
 
 export type Confidence = "high" | "medium" | "low";
@@ -314,7 +314,7 @@ export function classifyMacroRegime(
 
   // Fallback: mixed signals
   return {
-    label: "Mixed signals",
+    label: "Mixed Signals",
     confidence: "low",
     summary: "Market indicators are sending mixed or conflicting signals. No dominant macro regime is clearly identifiable.",
     drivers,

@@ -142,7 +142,7 @@ describe("classifyMacroRegime", () => {
       indicator("USO", -2),
       indicator("UUP", 0.4),
     ]);
-    expect(result.label).toBe("Mixed signals");
+    expect(result.label).toBe("Mixed Signals");
     expect(result.confidence).toBe("low");
   });
 

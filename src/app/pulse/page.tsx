@@ -266,15 +266,12 @@ export default function MarketPulsePage() {
   return (
     <main className="markets-page">
       <section className="market-regime-lede" aria-label="Market regime">
-        <span className="market-regime-eyebrow">Pulse</span>
         <strong className="market-regime-label">{data.macroRegime.label}</strong>
-        <p className="market-regime-summary">{data.macroRegime.summary}</p>
       </section>
 
       <section className="market-region-picker" aria-label="Pulse views">
         <div className="market-region-copy">
-          <span>Pulse views</span>
-          <p>Switch between index leadership and the stocks moving conviction right now.</p>
+          <strong className="market-region-label">Pulse Views</strong>
         </div>
         <div className="market-region-tabs" role="tablist" aria-label="Choose a Pulse view">
           {PULSE_TABS.map((option) => (
