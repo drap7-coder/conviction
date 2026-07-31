@@ -40,24 +40,24 @@ const TEN_YEAR_GAUGE = {
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
 
-const MARKET_REGION_OPTIONS = [
+const PULSE_TABS = [
   {
-    id: "us",
-    label: "U.S. Markets",
-    labelTop: "U.S.",
-    labelBottom: "Markets",
-    description: "Domestic leadership",
+    id: "indexes",
+    label: "Indexes",
+    labelTop: "Indexes",
+    labelBottom: null,
+    description: "Major indexes and market leadership",
   },
   {
-    id: "international",
-    label: "International Markets",
-    labelTop: "International",
-    labelBottom: "Markets",
-    description: "Global leadership",
+    id: "trending",
+    label: "Trending Stocks",
+    labelTop: "Trending",
+    labelBottom: "Stocks",
+    description: "Where conviction is changing fastest",
   },
 ] as const;
 
-type MarketRegion = (typeof MARKET_REGION_OPTIONS)[number]["id"];
+type PulseTab = (typeof PULSE_TABS)[number]["id"];
 
 const MACRO_SERIES = [
   { ticker: "SPY", key: "equities", label: "Equities", color: COLORS.green },
@@ -237,7 +237,7 @@ function indicatorsToMacroSeries(indicators: PulseIndicator[]): MacroChainSeries
 export default function MarketPulsePage() {
   const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [activeRegion, setActiveRegion] = useState<MarketRegion>("us");
+  const [activeTab, setActiveTab] = useState<PulseTab>("indexes");
 
   useEffect(() => {
     let cancelled = false;
@@ -259,10 +259,8 @@ export default function MarketPulsePage() {
   const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
   const vix = indicatorMap.get("^VIX")?.price ?? null;
   const tenYear = indicatorMap.get("^TNX")?.price ?? null;
-  const primaryMarkets = data.globalMarkets.filter((market) => market.category !== "International");
+  const indexMarkets = data.globalMarkets.filter((market) => market.category !== "International");
   const internationalMarkets = data.globalMarkets.filter((market) => market.category === "International");
-  const activeRegionOption = MARKET_REGION_OPTIONS.find((option) => option.id === activeRegion) ?? MARKET_REGION_OPTIONS[0];
-  const activeRegionMarkets = activeRegion === "international" ? internationalMarkets : primaryMarkets;
   const industryMarkets = sectorsToMarkets(data.sectors);
 
   return (
@@ -273,71 +271,94 @@ export default function MarketPulsePage() {
         <p className="market-regime-summary">{data.macroRegime.summary}</p>
       </section>
 
-      <section className="market-region-picker" aria-label="Market regions">
+      <section className="market-region-picker" aria-label="Pulse views">
         <div className="market-region-copy">
-          <span>Market environment</span>
-          <p>What kind of market investors are operating in right now.</p>
+          <span>Pulse views</span>
+          <p>Switch between index leadership and the stocks moving conviction right now.</p>
         </div>
-        <div className="market-region-tabs" role="tablist" aria-label="Choose a market region">
-          {MARKET_REGION_OPTIONS.map((option) => (
+        <div className="market-region-tabs" role="tablist" aria-label="Choose a Pulse view">
+          {PULSE_TABS.map((option) => (
             <button
               key={option.id}
-              id={`market-region-tab-${option.id}`}
+              id={`pulse-tab-${option.id}`}
               type="button"
               role="tab"
               aria-label={`${option.label}: ${option.description}`}
-              aria-selected={activeRegion === option.id}
-              aria-controls="market-region-panel"
-              className={activeRegion === option.id ? "active" : ""}
-              onClick={() => setActiveRegion(option.id)}
+              aria-selected={activeTab === option.id}
+              aria-controls={`pulse-panel-${option.id}`}
+              className={activeTab === option.id ? "active" : ""}
+              onClick={() => setActiveTab(option.id)}
             >
               <strong>
                 {option.labelTop}
-                <br className="market-region-title-break" aria-hidden="true" />{" "}
-                {option.labelBottom}
+                {option.labelBottom ? (
+                  <>
+                    <br className="market-region-title-break" aria-hidden="true" />{" "}
+                    {option.labelBottom}
+                  </>
+                ) : null}
               </strong>
               <span>{option.description}</span>
             </button>
           ))}
         </div>
       </section>
-      <div id="market-region-panel" role="tabpanel" aria-labelledby={`market-region-tab-${activeRegion}`}>
-        <GlobalMarketsHeatmap
-          key={activeRegion}
-          markets={activeRegionMarkets}
-          title={activeRegionOption.label}
-          subtitle={activeRegion === "international"
-            ? "Country ETF proxies · tile size reflects relative equity-market weight"
-            : "U.S. equities, Bitcoin, and macro assets · color reflects current session move"}
-          uniformTiles={activeRegion === "us"}
-          sessionLabel={activeRegion === "us" ? (data.sessionLabel ?? null) : null}
-        />
+
+      <div
+        id="pulse-panel-indexes"
+        role="tabpanel"
+        aria-labelledby="pulse-tab-indexes"
+        hidden={activeTab !== "indexes"}
+      >
+        {activeTab === "indexes" ? (
+          <>
+            <GlobalMarketsHeatmap
+              markets={indexMarkets}
+              title="Indexes"
+              subtitle="U.S. equities, Bitcoin, and macro assets · color reflects current session move"
+              uniformTiles
+              sessionLabel={data.sessionLabel ?? null}
+            />
+            <GlobalMarketsHeatmap
+              markets={internationalMarkets}
+              title="International"
+              subtitle="Country ETF proxies · tile size reflects relative equity-market weight"
+            />
+            <div id="industries">
+              <GlobalMarketsHeatmap
+                markets={industryMarkets}
+                title="Industries"
+                subtitle="Sector ETF proxies · color reflects current session move"
+                sessionLabel={data.sessionLabel ?? null}
+                linkBase="/industries"
+              />
+            </div>
+            <MarketNarrativePulse pulse={data.marketNarratives} />
+            <section className="market-gauge-grid" aria-label="Market danger zones">
+              <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
+              <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
+            </section>
+            <MacroChainChart series={macroSeries} />
+          </>
+        ) : null}
       </div>
 
-      <div id="industries">
-        <GlobalMarketsHeatmap
-          markets={industryMarkets}
-          title="Industries"
-          subtitle="Sector ETF proxies · color reflects current session move"
-          sessionLabel={data.sessionLabel ?? null}
-          linkBase="/industries"
-        />
+      <div
+        id="pulse-panel-trending"
+        role="tabpanel"
+        aria-labelledby="pulse-tab-trending"
+        hidden={activeTab !== "trending"}
+      >
+        {activeTab === "trending" ? (
+          <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
+            <div className="page-purpose" style={{ marginTop: 8 }}>
+              <span className="page-purpose-eyebrow">Trending Stocks</span>
+              <h2 className="page-purpose-title">Where is conviction changing fastest?</h2>
+            </div>
+            <MarketMovesPanel />
+          </section>
+        ) : null}
       </div>
-
-      <MarketNarrativePulse pulse={data.marketNarratives} />
-      <section className="market-gauge-grid" aria-label="Market danger zones">
-        <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
-        <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
-      </section>
-      <MacroChainChart series={macroSeries} />
-
-      <section id="market-moves" className="pulse-market-moves" aria-label="Market moves">
-        <div className="page-purpose" style={{ marginTop: 8 }}>
-          <span className="page-purpose-eyebrow">Trending</span>
-          <h2 className="page-purpose-title">Where is conviction changing fastest?</h2>
-        </div>
-        <MarketMovesPanel />
-      </section>
     </main>
   );
 }
