@@ -12,6 +12,8 @@ import type { PortfolioPosition, PortfolioRiskFlags } from "@/lib/portfolio/type
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { getCardVerdict } from "@/lib/evidence/card-verdict";
+import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import SectorDonut from "@/components/SectorDonut";
 import { isFiniteNumber } from "@/lib/display/format";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
@@ -121,11 +123,35 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
   const [formCost, setFormCost] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
+  const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
 
   // Load positions from localStorage on mount
   useEffect(() => {
     setPositions(loadPositions());
   }, []);
+
+  useEffect(() => {
+    if (positions.length === 0) {
+      setConvictionScores({});
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadConvictionScores() {
+      const scores = await fetchConvictionScores(
+        positions.map((position) => position.ticker),
+        controller.signal,
+      );
+      if (!cancelled) setConvictionScores(scores);
+    }
+
+    void loadConvictionScores();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [positions]);
 
   // Share quotes from PortfolioDataProvider (one Yahoo fan-out for hero + holdings).
   useEffect(() => {
@@ -580,6 +606,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                   ? { changePercent: live?.changePercent ?? quote.changePercent }
                   : undefined,
               );
+              const composite = convictionScores[ticker];
 
               return (
                 <PortfolioHoldingCard
@@ -591,8 +618,8 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                   sessionLabel={live?.label ?? null}
                   closePrice={live?.label ? quote?.price ?? null : null}
                   closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                  convictionTone={verdict.tone}
-                  convictionStrength={verdict.strength}
+                  convictionTone={composite?.evidenceTone ?? verdict.tone}
+                  convictionStrength={composite ? composite.displayScore : verdict.strength}
                   shares={pos.shares}
                   metrics={metrics}
                   onEdit={handleStartEdit}

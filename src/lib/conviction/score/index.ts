@@ -44,4 +44,10 @@ export {
   formatCoverageSources,
   toneForComposite,
 } from "./build";
-export type { BuildConvictionScoreInput, ConvictionDisplayLabel } from "./build";
+export type { BuildConvictionScoreInput, ConvictionDisplayLabel, CompositeTone } from "./build";
+
+export {
+  getConvictionScoreForTicker,
+  getConvictionScoresForTickers,
+} from "./get-for-ticker";
+export type { ConvictionScoreView } from "./view";

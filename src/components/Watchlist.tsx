@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
+import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
@@ -134,6 +136,7 @@ export default function Watchlist({
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
+  const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -298,6 +301,29 @@ export default function Watchlist({
     }
 
     void loadHeadlines();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [entries]);
+
+  useEffect(() => {
+    if (entries.length === 0) {
+      setConvictionScores({});
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadConvictionScores() {
+      const scores = await fetchConvictionScores(
+        entries.map((entry) => entry.ticker),
+        controller.signal,
+      );
+      if (!cancelled) setConvictionScores(scores);
+    }
+
+    void loadConvictionScores();
     return () => {
       cancelled = true;
       controller.abort();
@@ -798,6 +824,7 @@ export default function Watchlist({
                     ? "negative"
                     : "neutral";
               const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
+              const composite = convictionScores[entry.ticker];
               const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
               const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
               const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
@@ -814,9 +841,9 @@ export default function Watchlist({
                   sessionLabel={live?.label ?? null}
                   closePrice={live?.label ? quote?.price ?? null : null}
                   closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                  convictionState={verdict.state}
-                  convictionTone={verdict.tone}
-                  convictionStrength={verdict.strength}
+                  convictionState={composite?.ringLabel ?? verdict.state}
+                  convictionTone={composite?.evidenceTone ?? verdict.tone}
+                  convictionStrength={composite ? composite.displayScore : verdict.strength}
                   evidencePills={evidencePills}
                   activityLine={activityLine}
                   headlines={headlines[entry.ticker] ?? []}
@@ -843,6 +870,7 @@ export default function Watchlist({
                   ? "negative"
                   : "neutral";
             const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
+            const composite = convictionScores[entry.ticker];
             const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
             const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
             const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
@@ -861,9 +889,9 @@ export default function Watchlist({
                 sessionLabel={live?.label ?? null}
                 closePrice={live?.label ? quote?.price ?? null : null}
                 closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                convictionState={verdict.state}
-                convictionTone={verdict.tone}
-                convictionStrength={verdict.strength}
+                convictionState={composite?.ringLabel ?? verdict.state}
+                convictionTone={composite?.evidenceTone ?? verdict.tone}
+                convictionStrength={composite ? composite.displayScore : verdict.strength}
                 evidencePills={evidencePills}
                 activityLine={activityLine}
                 headlines={headlines[entry.ticker] ?? []}

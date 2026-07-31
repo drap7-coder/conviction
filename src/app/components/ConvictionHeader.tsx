@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout } from "./evidence-request";
-import { getCardVerdict } from "@/lib/evidence/card-verdict";
+import { fetchConvictionScore } from "./fetch-conviction-score";
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 
 interface StockQuote {
   ticker: string;
@@ -22,6 +23,7 @@ interface ConvictionHeaderProps {
 
 export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps) {
   const [quote, setQuote] = useState<StockQuote | null>(null);
+  const [score, setScore] = useState<ConvictionScoreView | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,28 +37,30 @@ export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps)
           setQuote(data.quotes[0]);
         }
       } catch {
-        // Quote is optional; header still shows evidence-based verdict
+        // Quote is optional decoration beside the shared score.
       }
     }
     void load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [ticker]);
 
-  const verdict = useMemo(() => {
-    // Build a minimal CardVerdictEntry from what we have
-    return getCardVerdict(
-      {
-        ticker,
-        companyName,
-        addedAt: "",
-        status: "active",
-      },
-      quote ?? undefined,
-      undefined,
-    );
-  }, [ticker, companyName, quote]);
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    async function loadScore() {
+      const next = await fetchConvictionScore(ticker, controller.signal);
+      if (!cancelled) setScore(next);
+    }
+    void loadScore();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [ticker, companyName]);
 
-  const toneClass = verdict.tone;
+  const toneClass = score?.evidenceTone ?? "quiet";
   const changeText =
     quote?.change !== null && quote?.change !== undefined
       ? `$${ticker} ${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${quote.changePercent != null && quote.changePercent >= 0 ? "+" : ""}${(quote.changePercent ?? 0).toFixed(2)}%)`
@@ -65,9 +69,9 @@ export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps)
   return (
     <div className={`conviction-header conviction-header-${toneClass}`}>
       <div className="conviction-header-score">
-        <span className="conviction-header-score-value">{verdict.strength ?? "—"}</span>
+        <span className="conviction-header-score-value">{score?.displayScore ?? "—"}</span>
         <span className="conviction-header-score-sep">/</span>
-        <span className="conviction-header-score-state">{verdict.state}</span>
+        <span className="conviction-header-score-state">{score?.ringLabel ?? "Awaiting"}</span>
       </div>
       <div className="conviction-header-details">
         {changeText && (
@@ -75,9 +79,9 @@ export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps)
             {changeText}
           </span>
         )}
-        {verdict.insight && (
-          <span className="conviction-header-insight">{verdict.insight}</span>
-        )}
+        {score?.detail ? (
+          <span className="conviction-header-insight">{score.detail}</span>
+        ) : null}
       </div>
     </div>
   );

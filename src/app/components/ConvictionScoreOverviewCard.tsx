@@ -1,7 +1,6 @@
 /**
- * Dashboard Conviction Score — live 13F institutional scoring.
- * Same Accumulating / Holding / Distribution language as list rings, but
- * driven by tracked manager filings rather than day-move stubs.
+ * Dashboard Conviction Score — shared composite
+ * (institutional 45% + technicals 38% + short interest 17%).
  */
 
 "use client";
@@ -9,25 +8,11 @@
 import { useEffect, useState } from "react";
 import { ConvictionScoreOverview } from "@/app/components/ConvictionScoreOverview";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
-import {
-  scoreInstitutionalConviction,
-  type ConvictionRingScore,
-} from "@/lib/market/quote-gauges";
-import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
-
-const EMPTY: ConvictionRingScore = {
-  score: null,
-  tone: "neutral",
-  label: "Unavailable",
-  detail: "Loading institutional filings…",
-  added: 0,
-  reduced: 0,
-  newPositions: 0,
-  filingQuarter: null,
-};
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
+import type { GaugeTone } from "@/components/GaugeRing";
 
 export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
-  const [conviction, setConviction] = useState<ConvictionRingScore>(EMPTY);
+  const [score, setScore] = useState<ConvictionScoreView | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,48 +21,16 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
 
     async function load() {
       setLoading(true);
-      setConviction({
-        ...EMPTY,
-        detail: "Loading institutional filings…",
-      });
+      setScore(null);
       try {
-        const data = await fetchJsonWithTimeout<{
-          results?: InstitutionalAccumulation[];
-          status?: string;
-          message?: string;
-        }>(
-          `/api/evidence/institutional?ticker=${encodeURIComponent(ticker)}`,
-          26_000,
+        const data = await fetchJsonWithTimeout<ConvictionScoreView>(
+          `/api/conviction/score?ticker=${encodeURIComponent(ticker)}`,
+          45_000,
           controller.signal,
         );
-        if (cancelled) return;
-        if (data.status === "timeout" || data.status === "error") {
-          setConviction({
-            score: null,
-            tone: "neutral",
-            label: "Unavailable",
-            detail: data.message ?? "Institutional filings could not be loaded.",
-            added: 0,
-            reduced: 0,
-            newPositions: 0,
-            filingQuarter: null,
-          });
-        } else {
-          setConviction(scoreInstitutionalConviction(data.results ?? []));
-        }
+        if (!cancelled) setScore(data);
       } catch {
-        if (!cancelled) {
-          setConviction({
-            score: null,
-            tone: "neutral",
-            label: "Unavailable",
-            detail: "Institutional filings could not be loaded.",
-            added: 0,
-            reduced: 0,
-            newPositions: 0,
-            filingQuarter: null,
-          });
-        }
+        if (!cancelled) setScore(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -90,24 +43,19 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
     };
   }, [ticker]);
 
-  const detail =
-    conviction.score !== null
-      ? `Score ${conviction.score}/100 · ${conviction.detail}`
-      : conviction.detail;
+  const tone = (score?.tone ?? "neutral") as GaugeTone;
+  const detail = score?.detail
+    ?? (loading
+      ? "Loading institutional, technical, and short-interest evidence…"
+      : "Conviction score could not be loaded.");
 
   return (
     <ConvictionScoreOverview
-      score={conviction.score}
-      label={conviction.label === "Unavailable" && !loading ? "Awaiting" : conviction.label}
-      tone={conviction.tone}
+      score={score?.displayScore ?? null}
+      label={score?.ringLabel ?? "Awaiting"}
+      tone={tone}
       detail={detail}
-      meta={
-        loading
-          ? "LOADING"
-          : conviction.filingQuarter
-            ? `${conviction.filingQuarter} 13F`
-            : "13F FILINGS"
-      }
+      meta={loading ? "LOADING" : "COMPOSITE"}
       loading={loading}
       className="dashboard-conviction-overview"
     />

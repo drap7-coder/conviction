@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { isFiniteNumber } from "@/lib/display/format";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
@@ -33,6 +34,8 @@ interface TrendingCardProps {
   headlines: TrendingCardHeadline[];
   newsDriver: NewsDriver | null;
   shortInterest?: CardVerdictShortInterest;
+  /** Shared composite score — preferred over local getCardVerdict for the ring. */
+  convictionScore?: ConvictionScoreView | null;
   isTracked: boolean;
   isAdding: boolean;
   onAdd: () => void;
@@ -84,6 +87,7 @@ export function TrendingCard({
   headlines,
   newsDriver,
   shortInterest,
+  convictionScore = null,
   isTracked,
   isAdding,
   onAdd,
@@ -112,7 +116,9 @@ export function TrendingCard({
     addedAt: new Date().toISOString(),
     status: "active",
   }, quote, shortInterest);
-  const ring = ringFromVerdict(verdict.tone, verdict.strength);
+  const strength = convictionScore ? convictionScore.displayScore : verdict.strength;
+  const tone = convictionScore?.evidenceTone ?? verdict.tone;
+  const ring = ringFromVerdict(tone, strength);
   const driver = driverLine(newsDriver, headlines);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -183,10 +189,10 @@ export function TrendingCard({
             <div className="wl-ring-gauge">
               <GaugeRing
                 size="sm"
-                value={verdict.strength}
-                label={verdict.strength !== null ? String(verdict.strength) : "—"}
+                value={strength}
+                label={strength !== null ? String(strength) : "—"}
                 tone={ring.tone}
-                ariaLabel={`Conviction ${verdict.strength ?? "unavailable"}: ${ring.label}`}
+                ariaLabel={`Conviction ${strength ?? "unavailable"}: ${ring.label}`}
               />
             </div>
 

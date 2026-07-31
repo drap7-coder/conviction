@@ -8,6 +8,8 @@ import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
 import type { CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
+import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -68,6 +70,7 @@ export function MarketMovesPanel() {
   const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
+  const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
@@ -185,6 +188,29 @@ export function MarketMovesPanel() {
     };
   }, [trending]);
 
+  useEffect(() => {
+    if (trending.length === 0) {
+      setConvictionScores({});
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadConvictionScores() {
+      const scores = await fetchConvictionScores(
+        trending.map((company) => company.ticker),
+        controller.signal,
+      );
+      if (!cancelled) setConvictionScores(scores);
+    }
+
+    void loadConvictionScores();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [trending]);
+
   const handleAddTrending = async (idea: WatchlistCandidate) => {
     setAddMessage(null);
     setAddingTicker(idea.ticker);
@@ -292,6 +318,7 @@ export function MarketMovesPanel() {
                     headlines={headlines[idea.ticker] ?? []}
                     newsDriver={newsDrivers[idea.ticker] ?? null}
                     shortInterest={shortInterest[idea.ticker]}
+                    convictionScore={convictionScores[idea.ticker] ?? null}
                     isTracked={isTracked}
                     isAdding={addingTicker === idea.ticker}
                     onAdd={() => handleAddTrending(idea)}

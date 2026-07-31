@@ -57,7 +57,7 @@ export function ConvictionScoreOverview({
 
       <p className="quote-conviction-detail">
         {loading && score === null
-          ? "Loading institutional filings…"
+          ? "Loading institutional, technical, and short-interest evidence…"
           : detail}
       </p>
     </section>
