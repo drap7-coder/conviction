@@ -635,7 +635,8 @@ details > summary::before {
   border-radius: calc(var(--radius) + 4px);
   background:
     radial-gradient(circle at 12% 0%, var(--accent-dim), transparent 42%),
-    var(--surface);
+    var(--card-accent);
+  box-shadow: var(--shadow-sm);
 }
 
 .trending-view-picker-copy {
