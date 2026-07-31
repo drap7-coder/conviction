@@ -68,9 +68,7 @@
   padding: clamp(18px, 3vw, 30px);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) * 1.35);
-  background:
-    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 7%, transparent), transparent 40%),
-    var(--card);
+  background: var(--card);
   box-shadow: var(--shadow-sm);
 }
 
@@ -151,15 +149,13 @@
 /* ── Stock Pulse: attention relative to price ── */
 
 .company-pulse-card {
-  --pulse-color: #2563eb;
+  --pulse-color: var(--muted);
   position: relative;
   overflow: hidden;
   padding: clamp(16px, 2.5vw, 24px);
-  border: 1px solid color-mix(in srgb, var(--pulse-color) 16%, var(--border));
+  border: 1px solid var(--border);
   border-radius: calc(var(--radius) * 1.2);
-  background:
-    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--pulse-color) 8%, transparent), transparent 40%),
-    color-mix(in srgb, var(--pulse-color) 5%, var(--card));
+  background: var(--card);
   box-shadow: var(--shadow-sm);
 }
 
@@ -363,9 +359,7 @@
   display: flex;
   flex-direction: column;
   min-height: 168px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 42%),
-    var(--card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 18px;

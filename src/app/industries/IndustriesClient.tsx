@@ -10,6 +10,7 @@ import { getSectorSignal } from "@/lib/display/sector-signal";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { EVIDENCE_STRENGTH_LABEL, EVIDENCE_STRENGTH_TONE } from "@/lib/display/vocabulary";
 import type { SectorWithData } from "@/lib/market/industries-data";
+import { heatTileColor, changeToneClass } from "@/lib/display/heat-color";
 
 interface StockHistoryPoint {
   date: string;
@@ -53,11 +54,8 @@ function tileSpan(weight: number): number {
   return 1;
 }
 
-function heatColor(change: number | null, maxAbs: number): string {
-  if (change === null || !Number.isFinite(change) || maxAbs === 0) return "hsl(210 14% 88%)";
-  const magnitude = Math.min(Math.abs(change) / maxAbs, 1);
-  const hue = change >= 0 ? 152 : 0;
-  return `hsl(${hue} ${42 + magnitude * 28}% ${78 - magnitude * 28}%)`;
+function heatColor(change: number | null, _maxAbs: number): string {
+  return heatTileColor(change);
 }
 
 function buildSparklinePath(points: StockHistoryPoint[]) {
@@ -265,7 +263,7 @@ export function IndustriesClient({
                             {arrow ? <span className={`watchlist-row-arrow ${arrowClass}`}>{arrow} </span> : null}
                             {livePrice != null ? `$${livePrice.toLocaleString(undefined, { maximumFractionDigits: livePrice >= 100 ? 2 : 3, minimumFractionDigits: livePrice >= 1 ? 2 : 3 })}` : "—"}
                           </strong>
-                          <span className={"watchlist-row-change " + (liveChange !== null && liveChange > 0 ? "positive" : liveChange !== null && liveChange < 0 ? "negative" : "neutral")}>
+                          <span className={"watchlist-row-change " + changeToneClass(liveChangePct)}>
                             {liveChange != null && liveChangePct != null
                               ? `${liveChange > 0 ? "+" : ""}$${Math.abs(liveChange).toFixed(2)} · ${liveChangePct > 0 ? "+" : ""}${liveChangePct.toFixed(2)}%`
                               : "—"}
@@ -276,7 +274,7 @@ export function IndustriesClient({
                             <span className="watchlist-row-session-label">At close</span>
                             <span className="watchlist-row-session-price">${quote?.price != null ? quote.price.toLocaleString(undefined, { maximumFractionDigits: quote.price >= 100 ? 2 : 3, minimumFractionDigits: quote.price >= 1 ? 2 : 3 }) : "—"}</span>
                             {quote?.changePercent != null ? (
-                              <span className={`watchlist-row-session-change ${quote?.change !== null && quote.change > 0 ? "positive" : quote?.change !== null && quote.change < 0 ? "negative" : ""}`}>
+                              <span className={`watchlist-row-session-change ${changeToneClass(quote.changePercent)}`}>
                                 {quote.changePercent > 0 ? "+" : ""}{quote.changePercent.toFixed(2)}%
                               </span>
                             ) : null}

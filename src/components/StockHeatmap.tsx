@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { heatTileColor } from "@/lib/display/heat-color";
 
 export interface StockHeatmapItem {
   ticker: string;
@@ -34,12 +35,8 @@ function tileSpan(marketCap: number | null, maxMarketCap: number): number {
   return 1;
 }
 
-function heatColor(change: number | null, maxAbs: number): string {
-  if (change === null || !Number.isFinite(change) || maxAbs === 0) return "hsl(210 14% 88%)";
-  const magnitude = Math.min(Math.abs(change) / maxAbs, 1);
-  const hue = change >= 0 ? 152 : 0;
-  // Mid-light tiles keep contrast on a white page while staying readable with dark type.
-  return `hsl(${hue} ${42 + magnitude * 28}% ${78 - magnitude * 28}%)`;
+function heatColor(change: number | null, _maxAbs: number): string {
+  return heatTileColor(change);
 }
 
 const HEATMAP_STYLES = `

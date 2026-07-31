@@ -3,50 +3,62 @@
 
 :root {
   color-scheme: light;
-  --bg: #ffffff;
-  --surface: #f1f4f8;
+
+  /* ── Base (gray by default) ── */
+  --bg: #f4f5f7;
+  --surface: #fafafb;
   --surface-elevated: #ffffff;
-  --card: #f1f4f8;
-  --card-soft: #f6f8fb;
-  --card-inset: #ffffff;
-  --card-accent: color-mix(in srgb, var(--accent) 6%, #f1f4f8);
-  --card-positive: color-mix(in srgb, var(--green) 7%, #f1f4f8);
-  --card-negative: color-mix(in srgb, var(--red) 7%, #f1f4f8);
-  --card-warning: color-mix(in srgb, var(--amber) 7%, #f1f4f8);
+  --card: #ffffff;
+  --card-soft: #fafafb;
+  --card-inset: #fafafb;
+  --divider: #edeef1;
+  --border: #e4e6ea;
+  --border-active: #d1d5db;
+  --ink: #111318;
+  --muted: #6b7280;
+  --quiet: #9ca3af;
 
-  /* Selective dark navy for 1–2 anchor panels per page (not every box) */
-  --ink-panel: #0b1c2c;
-  --ink-panel-elevated: #123049;
-  --on-ink: #f3f6fa;
-  --on-ink-muted: #a9b6c7;
-  --on-ink-quiet: #7f8fa3;
-  --on-ink-border: color-mix(in srgb, #ffffff 14%, transparent);
-  --on-ink-accent: #3ecfe3;
-  --on-ink-green: #3dd9a0;
-  --on-ink-red: #ff6b8a;
-  --on-ink-amber: #f0b429;
+  /* Selection accent only — not semantic up/down, not navy hero */
+  --accent: #0d9488;
+  --accent-dim: rgba(13, 148, 136, 0.1);
+  --on-accent: #ffffff;
 
-  --border: color-mix(in srgb, #12151a 9%, transparent);
-  --border-active: color-mix(in srgb, #12151a 16%, transparent);
-  --ink: #12151a;
-  --muted: #5a6573;
-  --quiet: #8490a0;
-  --accent: #0b7f92;
-  --accent-dim: rgba(11, 127, 146, 0.08);
-  --green: #0a7a52;
-  --green-dim: rgba(10, 122, 82, 0.08);
-  --red: #c81e4a;
-  --red-dim: rgba(200, 30, 74, 0.08);
-  --amber: #b45309;
-  --amber-dim: rgba(180, 83, 9, 0.08);
+  /* ── Semantic (earned color) ── */
+  --green: #16a34a;
+  --green-dim: rgba(22, 163, 74, 0.1);
+  --green-soft: #dcfce7;
+  --amber: #d97706;
+  --amber-dim: rgba(217, 119, 6, 0.1);
   --amber-400: #d97706;
+  --red: #dc2626;
+  --red-dim: rgba(220, 38, 38, 0.1);
+  --red-soft: #fef2f2;
+  --red-mild: #f87171;
   --positive: var(--green);
   --negative: var(--red);
-  --on-accent: #ffffff;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.06);
-  --shadow-lg: 0 14px 32px rgba(15, 23, 42, 0.08);
-  --shadow-ink: 0 10px 28px rgba(11, 28, 44, 0.22);
+
+  /* Legacy tint aliases — keep gray, not incidental accent washes */
+  --card-accent: var(--card-soft);
+  --card-positive: var(--green-soft);
+  --card-negative: var(--red-soft);
+  --card-warning: color-mix(in srgb, var(--amber) 10%, #ffffff);
+
+  /* ── Navy ink panel (one per screen) ── */
+  --ink-panel: #0f172a;
+  --ink-panel-elevated: #1e293b;
+  --on-ink: #ffffff;
+  --on-ink-muted: #94a3b8;
+  --on-ink-quiet: #64748b;
+  --on-ink-border: color-mix(in srgb, #ffffff 12%, transparent);
+  --on-ink-accent: #2dd4bf;
+  --on-ink-green: #4ade80;
+  --on-ink-red: #f87171;
+  --on-ink-amber: #fbbf24;
+
+  --shadow-sm: none;
+  --shadow-md: 0 1px 2px rgba(17, 19, 24, 0.04);
+  --shadow-lg: 0 4px 12px rgba(17, 19, 24, 0.06);
+  --shadow-ink: 0 8px 24px rgba(15, 23, 42, 0.18);
   --shadow: var(--shadow-sm);
   --radius: 12px;
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
@@ -59,8 +71,8 @@
 
   /* Chart theme */
   --chart-surface: #ffffff;
-  --chart-grid: color-mix(in srgb, #12151a 6%, transparent);
-  --chart-border: color-mix(in srgb, #12151a 9%, transparent);
+  --chart-grid: var(--divider);
+  --chart-border: var(--border);
   --chart-sma50: #2563eb;
   --chart-sma200: #dc2626;
 }
@@ -99,19 +111,20 @@ html, body {
   --muted: var(--on-ink-muted);
   --quiet: var(--on-ink-quiet);
   --border: var(--on-ink-border);
-  --border-active: color-mix(in srgb, #ffffff 22%, transparent);
+  --border-active: color-mix(in srgb, #ffffff 20%, transparent);
+  --divider: color-mix(in srgb, #ffffff 10%, transparent);
   --card: var(--ink-panel-elevated);
-  --card-soft: color-mix(in srgb, #ffffff 6%, var(--ink-panel));
-  --card-inset: color-mix(in srgb, #ffffff 8%, var(--ink-panel));
-  --card-accent: color-mix(in srgb, var(--on-ink-accent) 12%, var(--ink-panel));
+  --card-soft: color-mix(in srgb, #ffffff 5%, var(--ink-panel));
+  --card-inset: color-mix(in srgb, #ffffff 7%, var(--ink-panel));
+  --card-accent: var(--card-inset);
   --accent: var(--on-ink-accent);
-  --accent-dim: color-mix(in srgb, var(--on-ink-accent) 16%, transparent);
+  --accent-dim: color-mix(in srgb, var(--on-ink-accent) 14%, transparent);
   --green: var(--on-ink-green);
-  --green-dim: color-mix(in srgb, var(--on-ink-green) 16%, transparent);
+  --green-dim: color-mix(in srgb, var(--on-ink-green) 14%, transparent);
   --red: var(--on-ink-red);
-  --red-dim: color-mix(in srgb, var(--on-ink-red) 16%, transparent);
+  --red-dim: color-mix(in srgb, var(--on-ink-red) 14%, transparent);
   --amber: var(--on-ink-amber);
-  --amber-dim: color-mix(in srgb, var(--on-ink-amber) 16%, transparent);
+  --amber-dim: color-mix(in srgb, var(--on-ink-amber) 14%, transparent);
   --positive: var(--on-ink-green);
   --negative: var(--on-ink-red);
   --market-text: var(--on-ink);
@@ -122,9 +135,7 @@ html, body {
   --market-red: var(--on-ink-red);
   --market-live: var(--on-ink-accent);
   color: var(--on-ink);
-  background:
-    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--on-ink-accent) 16%, transparent), transparent 42%),
-    linear-gradient(160deg, var(--ink-panel-elevated), var(--ink-panel) 58%);
+  background: var(--ink-panel);
   border: 1px solid var(--on-ink-border);
   box-shadow: var(--shadow-ink);
 }
@@ -714,9 +725,7 @@ details > summary::before {
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 4px);
-  background:
-    radial-gradient(circle at 12% 0%, var(--accent-dim), transparent 42%),
-    var(--card-accent);
+  background: var(--card);
   box-shadow: var(--shadow-sm);
 }
 
@@ -767,10 +776,9 @@ details > summary::before {
 }
 
 .trending-view-tabs button.active {
-  border-color: color-mix(in srgb, var(--accent) 58%, var(--border));
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent-dim) 78%, transparent), transparent 75%),
-    var(--surface-elevated);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  color: var(--ink);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
@@ -809,18 +817,13 @@ details > summary::before {
   margin-bottom: 12px;
   padding: 22px;
   overflow: hidden;
-  border: 1px solid var(--border-active);
   border-radius: calc(var(--radius) + 4px);
-  background:
-    radial-gradient(circle at 90% 10%, var(--green-dim), transparent 30%),
-    radial-gradient(circle at 10% 100%, var(--accent-dim), transparent 38%),
-    var(--surface);
 }
 
 .investor-moves-eyebrow {
   display: block;
   margin-bottom: 7px;
-  color: var(--accent);
+  color: var(--on-ink-muted);
   font-family: var(--font-mono);
   font-size: 0.66rem;
   font-weight: 700;
@@ -830,7 +833,7 @@ details > summary::before {
 
 .investor-moves-intro h2 {
   max-width: 620px;
-  color: var(--ink);
+  color: var(--on-ink);
   font-size: clamp(1.35rem, 4vw, 2.15rem);
   line-height: 1.08;
   letter-spacing: -0.035em;
@@ -839,7 +842,7 @@ details > summary::before {
 .investor-moves-intro p {
   max-width: 650px;
   margin-top: 8px;
-  color: var(--muted);
+  color: var(--on-ink-muted);
   font-size: 0.86rem;
   line-height: 1.5;
 }
@@ -847,9 +850,9 @@ details > summary::before {
 .investor-moves-stamp {
   min-width: 108px;
   padding: 13px;
-  border: 1px solid color-mix(in srgb, var(--green) 30%, var(--border));
+  border: 1px solid var(--on-ink-border);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--green-dim) 72%, var(--surface-elevated));
+  background: color-mix(in srgb, #ffffff 6%, transparent);
 }
 
 .investor-moves-stamp strong,
@@ -858,7 +861,7 @@ details > summary::before {
 }
 
 .investor-moves-stamp strong {
-  color: var(--green);
+  color: var(--on-ink);
   font-family: var(--font-mono);
   font-size: 1.45rem;
   line-height: 1;
@@ -866,7 +869,7 @@ details > summary::before {
 
 .investor-moves-stamp span {
   margin-top: 5px;
-  color: var(--quiet);
+  color: var(--on-ink-muted);
   font-family: var(--font-mono);
   font-size: 0.6rem;
   letter-spacing: 0.05em;
@@ -928,8 +931,8 @@ details > summary::before {
 
 .investor-idea-card:hover,
 .investor-idea-card:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
-  background: var(--card-accent);
+  border-color: var(--border-strong, var(--border-active));
+  background: var(--card);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
   outline: none;
@@ -1100,7 +1103,7 @@ details > summary::before {
 }
 
 .investor-manager-row strong.positive {
-  color: var(--green);
+  color: var(--ink);
 }
 
 .investor-manager-row strong.negative {
@@ -1108,7 +1111,7 @@ details > summary::before {
 }
 
 .investor-manager-row strong.neutral {
-  color: var(--quiet);
+  color: var(--ink);
 }
 
 .investor-idea-footer {
@@ -1759,6 +1762,12 @@ details > summary::before {
   color: var(--red);
 }
 
+.wl-ring-day-change.negative-mild,
+.wl-ring-at-close.negative-mild,
+.wl-ring-session.negative-mild {
+  color: var(--red-mild);
+}
+
 .wl-ring-day-change.neutral,
 .wl-ring-at-close.neutral,
 .wl-ring-session.neutral {
@@ -2004,8 +2013,12 @@ details > summary::before {
   color: var(--red);
 }
 
+.watchlist-row-change.negative-mild {
+  color: var(--red-mild);
+}
+
 .watchlist-row-change.neutral {
-  color: var(--amber);
+  color: var(--muted);
 }
 
 .watchlist-row-move-amounts {
@@ -2046,6 +2059,10 @@ details > summary::before {
 
 .watchlist-row-session-change.negative {
   color: var(--red);
+}
+
+.watchlist-row-session-change.negative-mild {
+  color: var(--red-mild);
 }
 
 /* ── ▲/▼ arrows ── */
@@ -2244,12 +2261,10 @@ details > summary::before {
   display: grid;
   gap: 12px;
   padding: 20px;
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 7px);
-  background:
-    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 38%),
-    var(--surface-elevated);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 7%, transparent);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
 }
 
 .news-driver-heading {
@@ -3212,9 +3227,7 @@ details > summary::before {
 
 .rising-transition-empty,
 .leaderboard-warning {
-  background:
-    radial-gradient(circle at top left, var(--accent-dim), transparent 34%),
-    var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 6px);
   padding: 16px;
@@ -3243,11 +3256,9 @@ details > summary::before {
   display: grid;
   gap: 7px;
   color: inherit;
-  background:
-    radial-gradient(circle at top left, var(--green-dim), transparent 36%),
-    var(--surface);
-  border: 1px solid color-mix(in srgb, var(--green) 28%, var(--border));
-  border-left: 4px solid var(--green);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--border-active);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow);
   padding: 15px;
@@ -3256,20 +3267,16 @@ details > summary::before {
 
 .rising-transition-card.status_downgrade,
 .rising-transition-card.signal_expired {
-  background:
-    radial-gradient(circle at top left, var(--amber-dim), transparent 36%),
-    var(--surface);
+  background: var(--card-warning);
   border-color: color-mix(in srgb, var(--amber) 28%, var(--border));
   border-left-color: var(--amber);
 }
 
 .rising-transition-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-active));
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--accent-dim) 80%, transparent), transparent 40%),
-    var(--surface-elevated);
+  border-color: var(--border-active);
+  background: var(--card-soft);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
 .rising-transition-card span {
@@ -3312,12 +3319,10 @@ details > summary::before {
   display: grid;
   gap: 12px;
   margin-bottom: 18px;
-  background:
-    radial-gradient(circle at top left, var(--green-dim), transparent 34%),
-    var(--surface);
-  border: 1px solid color-mix(in srgb, var(--green) 26%, var(--border));
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 6px);
-  box-shadow: 0 0 34px color-mix(in srgb, var(--green) 9%, transparent), var(--shadow);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
 }
 
@@ -3344,9 +3349,9 @@ details > summary::before {
   display: grid;
   gap: 6px;
   color: inherit;
-  background: var(--surface-elevated);
+  background: var(--card-inset);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--green);
+  border-left: 4px solid var(--border-active);
   border-radius: var(--radius);
   padding: 12px;
   transition: border-color 0.15s, transform 0.15s, background-color 0.15s;
@@ -3359,7 +3364,7 @@ details > summary::before {
 
 .rising-strip-card:hover {
   border-color: var(--border-active);
-  background: color-mix(in srgb, var(--surface-elevated) 86%, var(--accent-dim));
+  background: var(--card-soft);
   transform: translateY(-1px);
 }
 
@@ -3403,12 +3408,10 @@ details > summary::before {
 .rising-build {
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top left, var(--accent-dim), transparent 42%),
-    var(--surface);
-  border: 1px solid var(--border-active);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: 0 0 0 1px transparent, 0 0 34px rgba(0, 229, 255, 0.06);
+  box-shadow: var(--shadow-sm);
   padding: 16px;
 }
 
@@ -3748,7 +3751,7 @@ details > summary::before {
   display: block;
   font-family: var(--font-mono);
   font-size: 1.1rem;
-  color: var(--green);
+  color: var(--ink);
 }
 
 .institutional-hero-metrics .negative strong {
@@ -3772,7 +3775,7 @@ details > summary::before {
 .institutional-loading-bars span {
   display: block;
   height: 5px;
-  background: var(--green-dim);
+  background: var(--divider);
   border-radius: 999px;
   animation: loading-pulse 1.2s ease-in-out infinite;
 }
@@ -3844,12 +3847,12 @@ details > summary::before {
 
 .institutional-row.new,
 .institutional-row.increased {
-  border-top-color: var(--green-dim);
+  border-top-color: var(--divider);
 }
 
 .institutional-row.reduced,
 .institutional-row.exited {
-  border-top-color: var(--red-dim);
+  border-top-color: color-mix(in srgb, var(--red) 28%, var(--divider));
 }
 
 .institutional-metrics {
@@ -3860,7 +3863,7 @@ details > summary::before {
 
 .institutional-row.new .institutional-metrics span,
 .institutional-row.increased .institutional-metrics span {
-  color: var(--green);
+  color: var(--muted);
 }
 
 .institutional-row.reduced .institutional-metrics span,
@@ -3878,57 +3881,40 @@ details > summary::before {
 }
 
 .move-card {
-  background:
-    radial-gradient(circle at top left, var(--accent-dim), transparent 42%),
-    var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 6px);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   padding: 20px;
 }
 
 .convergence-card.convergence-broad {
-  background:
-    radial-gradient(circle at top left, var(--green-dim), transparent 34%),
-    radial-gradient(circle at center right, var(--amber-dim), transparent 30%),
-    radial-gradient(circle at bottom right, var(--accent-dim), transparent 34%),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--green) 46%, var(--border));
-  box-shadow: 0 0 34px color-mix(in srgb, var(--green) 12%, transparent), var(--shadow);
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
 }
 
 .convergence-card.convergence-multi {
-  background:
-    radial-gradient(circle at top left, var(--green-dim), transparent 38%),
-    radial-gradient(circle at bottom right, var(--accent-dim), transparent 34%),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--green) 34%, var(--border));
+  background: var(--card);
+  border-color: var(--border);
 }
 
 .convergence-card.convergence-institutional {
-  background:
-    radial-gradient(circle at top left, var(--accent-dim), transparent 40%),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
+  background: var(--card);
+  border-color: var(--border);
 }
 
 .convergence-card.convergence-watch {
-  background:
-    radial-gradient(circle at top left, var(--amber-dim), transparent 38%),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--amber) 34%, var(--border));
+  background: var(--card-warning);
+  border-color: color-mix(in srgb, var(--amber) 28%, var(--border));
 }
 
 .convergence-card.convergence-monitor {
-  background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--muted) 12%, transparent), transparent 40%),
-    var(--surface);
+  background: var(--card);
 }
 
 .political-card {
-  background:
-    radial-gradient(circle at top left, var(--amber-dim), transparent 40%),
-    var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow);
@@ -4042,10 +4028,8 @@ details > summary::before {
   justify-content: space-between;
   gap: 18px;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top left, var(--accent-dim), transparent 42%),
-    var(--surface);
-  border-color: var(--border-active);
+  background: var(--card);
+  border-color: var(--border);
 }
 
 .detail-build-hero p {
@@ -4374,9 +4358,7 @@ details > summary::before {
   display: grid;
   gap: 12px;
   margin-top: 14px;
-  background:
-    radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 5%, transparent), transparent 42%),
-    var(--card);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow-sm);
@@ -7864,6 +7846,11 @@ details > summary::before {
   color: var(--red);
 }
 
+.sf-change-negative-mild {
+  background: var(--red-soft);
+  color: var(--red-mild);
+}
+
 .sf-change-neutral {
   background: color-mix(in srgb, var(--muted) 10%, transparent);
   color: var(--muted);
@@ -9360,7 +9347,7 @@ details > summary::before {
 }
 
 .quote-gauge-track {
-  stroke: var(--border);
+  stroke: var(--divider);
 }
 
 .quote-gauge-center {
@@ -9756,9 +9743,7 @@ details > summary::before {
   padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: 12px;
-  background:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--market-live) 6%, transparent), transparent 42%),
-    var(--card-accent);
+  background: var(--card);
   box-shadow: var(--shadow-sm);
 }
 
@@ -9811,11 +9796,9 @@ details > summary::before {
 }
 
 .market-region-tabs button.active {
-  border-color: color-mix(in srgb, var(--market-live) 32%, var(--market-border));
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--market-live) 6%, transparent), transparent 75%),
-    var(--card-soft);
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--market-live) 65%, transparent);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  box-shadow: inset 3px 0 0 var(--accent);
 }
 
 .market-region-tabs strong,
@@ -9865,6 +9848,11 @@ details > summary::before {
   color: var(--market-red, var(--red));
 }
 
+.market-index-change.negative-mild,
+.negative-mild {
+  color: var(--red-mild);
+}
+
 .market-live {
   color: var(--market-live, var(--accent));
   font-size: 0.62rem;
@@ -9881,7 +9869,7 @@ details > summary::before {
   display: flex;
   overflow: visible;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: var(--divider);
 }
 
 .market-gauge > span:first-child {

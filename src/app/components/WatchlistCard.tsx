@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { isFiniteNumber } from "@/lib/display/format";
+import { changeToneClass } from "@/lib/display/heat-color";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 
 export interface WatchlistCardEvidencePill {
@@ -117,18 +118,8 @@ export function WatchlistCard({
   isFocused,
 }: WatchlistCardProps) {
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
-  const dayChangeClass =
-    isFiniteNumber(change) && change > 0
-      ? "positive"
-      : isFiniteNumber(change) && change < 0
-        ? "negative"
-        : "neutral";
-  const closeChangeClass =
-    isFiniteNumber(closeChangePercent) && closeChangePercent > 0
-      ? "positive"
-      : isFiniteNumber(closeChangePercent) && closeChangePercent < 0
-        ? "negative"
-        : "neutral";
+  const dayChangeClass = changeToneClass(change);
+  const closeChangeClass = changeToneClass(closeChangePercent);
 
   const ring = ringFromVerdict(convictionTone, convictionStrength);
   const driver = driverLine(newsDriver, headlines, activityLine);

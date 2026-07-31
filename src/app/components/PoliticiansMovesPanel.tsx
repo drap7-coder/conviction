@@ -17,7 +17,7 @@ function formatDate(value: string): string {
 }
 
 function directionClass(direction: PoliticalTrade["direction"]): string {
-  if (direction === "purchase") return "positive";
+  // Purchases stay default ink; sales use red so color marks risk, not symmetry.
   if (direction === "sale") return "negative";
   return "neutral";
 }
