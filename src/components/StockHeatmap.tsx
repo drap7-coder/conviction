@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 export interface StockHeatmapItem {
   ticker: string;
@@ -27,19 +26,6 @@ function fmtPct(value: number | null): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
-function fmtPrice(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return "—";
-  if (value >= 1000) return `$${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-  return `$${value.toFixed(value >= 10 ? 2 : 3)}`;
-}
-
-function fmtMarketCap(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return "Market cap unavailable";
-  if (value >= 1e12) return `${(value / 1e12).toFixed(1)}T market cap`;
-  if (value >= 1e9) return `${(value / 1e9).toFixed(0)}B market cap`;
-  return `${(value / 1e6).toFixed(0)}M market cap`;
-}
-
 function tileSpan(marketCap: number | null, maxMarketCap: number): number {
   if (marketCap === null || maxMarketCap <= 0) return 1;
   const ratio = marketCap / maxMarketCap;
@@ -59,7 +45,7 @@ const HEATMAP_STYLES = `
   .stock-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
   .stock-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
-  .stock-heat-subtitle { margin:6px 0 0; color:#8b8f97; font-size:.66rem; line-height:1.45; }
+  .stock-heat-subtitle { margin:6px 0 12px; color:#8b8f97; font-size:.66rem; line-height:1.45; }
   .stock-heat-session {
     display:inline-flex; align-items:center; gap:6px;
     padding:4px 9px; border-radius:999px;
@@ -80,14 +66,11 @@ const HEATMAP_STYLES = `
   @media (prefers-reduced-motion:reduce) {
     .stock-heat-session-dot { animation:none; }
   }
-  .stock-heat-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:10px 0 9px; color:#8b8f97; font-size:.66rem; }
-  .stock-heat-detail > span:first-child { color:#f4f4f5; }.stock-heat-detail b.positive { color:#4ade80; }.stock-heat-detail b.negative { color:#f87171; }
-  .stock-heat-detail a { margin-left:auto; color:#2dd4bf; text-decoration:none; }
   .stock-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
-  .stock-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:#f4f4f5; font:inherit; text-align:left; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
-  .stock-heat-tile:hover,.stock-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }.stock-heat-tile.selected { border-color:rgba(244,244,245,.5); }
+  .stock-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:#f4f4f5; font:inherit; text-align:left; text-decoration:none; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
+  .stock-heat-tile:hover,.stock-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }
   .stock-heat-tile span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.63rem; font-weight:700; }.stock-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
-  @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-tile { min-height:62px; padding:8px; }.stock-heat-detail a { width:100%; margin-left:0; } }
+  @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-tile { min-height:62px; padding:8px; } }
 `;
 
 export function StockHeatmap({
@@ -97,7 +80,6 @@ export function StockHeatmap({
   loading = false,
   sessionLabel = null,
 }: StockHeatmapProps) {
-  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const showSessionBadge = Boolean(sessionLabel);
 
   if (loading && items.length === 0) {
@@ -105,7 +87,6 @@ export function StockHeatmap({
       <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
         <style>{`
           ${HEATMAP_STYLES}
-          .stock-heat-loading-detail { width:62%; height:12px; margin:17px 0 12px; border-radius:999px; background:#26282c; }
           .stock-heat-loading-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; }
           .stock-heat-loading-tile { min-height:66px; border:1px solid rgba(244,244,245,.07); border-radius:8px; background:linear-gradient(110deg,#18191c 18%,#24262a 42%,#18191c 66%); background-size:220% 100%; animation:stock-heat-shimmer 1.35s linear infinite; }
           .stock-heat-loading-tile:nth-child(1),.stock-heat-loading-tile:nth-child(4) { grid-column:span 2; }
@@ -117,7 +98,6 @@ export function StockHeatmap({
           <h2 className="stock-heat-title">{title}</h2>
         </div>
         <p className="stock-heat-subtitle">{subtitle}</p>
-        <div className="stock-heat-loading-detail" />
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
         </div>
@@ -126,7 +106,6 @@ export function StockHeatmap({
   }
   if (items.length === 0) return null;
 
-  const selected = items.find((item) => item.ticker === selectedTicker) ?? items[0];
   const maxAbs = Math.max(...items.map((item) => Math.abs(item.changePercent ?? 0)), 0);
   const maxSizeValue = Math.max(...items.map((item) => item.sizeValue ?? item.marketCap ?? 0), 0);
 
@@ -143,29 +122,20 @@ export function StockHeatmap({
         ) : null}
       </div>
       <p className="stock-heat-subtitle">{subtitle}</p>
-      <div className="stock-heat-detail" aria-live="polite">
-        <span>{selected.name}</span>
-        <b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b>
-        <span>{selected.ticker} · {fmtPrice(selected.price)} · {selected.sizeLabel ?? fmtMarketCap(selected.marketCap)}</span>
-        <Link href={`/companies/${selected.ticker}`}>Open company →</Link>
-      </div>
       <div className="stock-heat-grid">
         {items.map((item) => {
           const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
           return (
-            <button
+            <Link
               key={item.ticker}
-              type="button"
-              className={`stock-heat-tile${selected.ticker === item.ticker ? " selected" : ""}`}
+              href={`/companies/${item.ticker}`}
+              className="stock-heat-tile"
               style={{ gridColumn: `span ${span} / span ${span}`, background: heatColor(item.changePercent, maxAbs) }}
-              onMouseEnter={() => setSelectedTicker(item.ticker)}
-              onFocus={() => setSelectedTicker(item.ticker)}
-              onClick={() => setSelectedTicker(item.ticker)}
               aria-label={`${item.name}, ${item.ticker}, ${fmtPct(item.changePercent)}`}
             >
               <span>{item.ticker}</span>
               <strong>{fmtPct(item.changePercent)}</strong>
-            </button>
+            </Link>
           );
         })}
       </div>

@@ -85,9 +85,6 @@ export function IndustriesClient({
   const [status, setStatus] = useState<EvidenceStatus>(
     initialSectors.length > 0 ? "success" : "empty",
   );
-  const [selectedTicker, setSelectedTicker] = useState<string | null>(
-    initialSectors[0]?.ticker ?? null,
-  );
   const [refreshing, setRefreshing] = useState(false);
 
   const refresh = useCallback(async (signal?: AbortSignal) => {
@@ -99,7 +96,6 @@ export function IndustriesClient({
         signal,
       );
       setSectors(data.sectors);
-      setSelectedTicker((current) => current ?? data.sectors[0]?.ticker ?? null);
       setStatus(data.sectors.length > 0 ? "success" : "empty");
     } catch {
       if (initialSectors.length === 0) setStatus("error");
@@ -120,7 +116,6 @@ export function IndustriesClient({
     };
   }, [refresh]);
 
-  const selectedSector = sectors.find((sector) => sector.ticker === selectedTicker) ?? sectors[0] ?? null;
   const maxSectorMove = Math.max(...sectors.map((sector) => Math.abs(sectorMove(sector) ?? 0)), 0);
   const showLoading = status === "loading" || (status === "idle" && sectors.length === 0);
   const industriesSessionLabel = (() => {
@@ -149,7 +144,7 @@ export function IndustriesClient({
             .industries-heat-panel { margin:0 0 20px; padding:20px; background:#111214; border:1px solid #26282c; border-radius:12px; color:#f4f4f5; font-family:var(--font-mono); }
             .industries-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
             .industries-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
-            .industries-heat-subtitle { margin:6px 0 0; color:#8b8f97; font-size:.66rem; line-height:1.45; }
+            .industries-heat-subtitle { margin:6px 0 12px; color:#8b8f97; font-size:.66rem; line-height:1.45; }
             .industries-heat-session {
               display:inline-flex; align-items:center; gap:6px;
               padding:4px 9px; border-radius:999px;
@@ -170,17 +165,12 @@ export function IndustriesClient({
             @media (prefers-reduced-motion:reduce) {
               .industries-heat-session-dot { animation:none; }
             }
-            .industries-heat-detail { min-height:28px; display:flex; align-items:center; flex-wrap:wrap; gap:7px 12px; margin:13px 0 9px; color:#8b8f97; font-size:.66rem; }
-            .industries-heat-detail > span:first-child { color:#f4f4f5; }
-            .industries-heat-detail b.positive { color:#4ade80; }.industries-heat-detail b.negative { color:#f87171; }
-            .industries-heat-detail a { margin-left:auto; color:#2dd4bf; text-decoration:none; }
             .industries-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
-            .industries-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:#f4f4f5; font:inherit; text-align:left; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
+            .industries-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:#f4f4f5; font:inherit; text-align:left; text-decoration:none; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
             .industries-heat-tile:hover,.industries-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }
-            .industries-heat-tile.selected { border-color:rgba(244,244,245,.5); }
             .industries-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }
             .industries-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
-            @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; }.industries-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.industries-heat-tile { min-height:62px; padding:8px; }.industries-heat-detail a { width:100%; margin-left:0; } }
+            @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; }.industries-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.industries-heat-tile { min-height:62px; padding:8px; } }
           `}</style>
           <div className="industries-heat-heading">
             <h2 className="industries-heat-title">
@@ -194,35 +184,22 @@ export function IndustriesClient({
             ) : null}
           </div>
           <p className="industries-heat-subtitle">Tile size reflects S&amp;P 500 weight; color reflects the current market move.</p>
-          <div className="industries-heat-detail" aria-live="polite">
-            {selectedSector ? (
-              <>
-                <span>{selectedSector.name}</span>
-                <b className={(sectorMove(selectedSector) ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(sectorMove(selectedSector))}</b>
-                <span>{(SECTOR_WEIGHTS[selectedSector.ticker] ?? 0).toFixed(1)}% weight</span>
-                <Link href={`/industries/${selectedSector.ticker}`}>Open sector →</Link>
-              </>
-            ) : <span>Hover or tap a sector</span>}
-          </div>
           <div className="industries-heat-grid">
             {sectors.map((sector) => {
               const weight = SECTOR_WEIGHTS[sector.ticker] ?? 0;
               const change = sectorMove(sector);
               const span = tileSpan(weight);
               return (
-                <button
+                <Link
                   key={sector.ticker}
-                  type="button"
-                  className={`industries-heat-tile${selectedSector?.ticker === sector.ticker ? " selected" : ""}`}
+                  href={`/industries/${sector.ticker}`}
+                  className="industries-heat-tile"
                   style={{ gridColumn: `span ${span} / span ${span}`, background: heatColor(change, maxSectorMove) }}
-                  onMouseEnter={() => setSelectedTicker(sector.ticker)}
-                  onFocus={() => setSelectedTicker(sector.ticker)}
-                  onClick={() => setSelectedTicker(sector.ticker)}
                   aria-label={`${sector.name}, ${fmtPct(change)}, ${weight.toFixed(1)} percent index weight`}
                 >
                   <span>{sector.name}</span>
                   <strong>{fmtPct(change)}</strong>
-                </button>
+                </Link>
               );
             })}
           </div>

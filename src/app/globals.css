@@ -9825,32 +9825,12 @@ details > summary::before {
   border-radius: 2px;
 }
 
-.market-sector-detail {
-  min-height: 28px;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px 12px;
-  margin: 13px 0 9px;
-  color: var(--market-muted);
-  font-size: 0.66rem;
-}
-
-.market-sector-detail > span:first-child {
-  color: var(--market-text);
-}
-
-.market-detail-price {
-  margin-left: auto;
-  color: var(--market-text);
-  font-variant-numeric: tabular-nums;
-}
-
 .market-heatmap {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: dense;
   gap: 6px;
+  margin-top: 12px;
 }
 
 .market-heatmap.compact {
@@ -9866,9 +9846,13 @@ details > summary::before {
   color: var(--market-text);
   font: inherit;
   text-align: left;
-  cursor: pointer;
+  cursor: default;
   transition: filter 0.15s, border-color 0.15s, transform 0.15s;
   text-decoration: none;
+}
+
+a.market-heat-tile {
+  cursor: pointer;
 }
 
 .market-heat-tile:hover,
@@ -9876,10 +9860,6 @@ details > summary::before {
   filter: brightness(1.16);
   outline: none;
   transform: translateY(-1px);
-}
-
-.market-heat-tile.selected {
-  border-color: rgba(244, 244, 245, 0.45);
 }
 
 .market-heat-tile span {

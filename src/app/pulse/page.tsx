@@ -72,13 +72,6 @@ function fmtPct(value: number | null): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
-function fmtPrice(value: number | null, isPercent: boolean): string {
-  if (!isFiniteNumber(value)) return "—";
-  if (isPercent) return `${value.toFixed(2)}%`;
-  if (value >= 1000) return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
-  return value >= 10 ? value.toFixed(2) : value.toFixed(3);
-}
-
 function Gauge({
   label,
   value,
@@ -143,7 +136,6 @@ function GlobalMarketsHeatmap({
   sessionLabel?: string | null;
   linkBase?: string | null;
 }) {
-  const [selected, setSelected] = useState<PulseGlobalMarket | null>(markets[0] ?? null);
   const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
 
   return (
@@ -157,55 +149,37 @@ function GlobalMarketsHeatmap({
           </span>
         ) : null}
       </div>
-      <div className="market-sector-detail" aria-live="polite">
-        {selected ? (
-          <>
-            <span>{selected.name}</span>
-            <b className={(selected.changePercent ?? 0) >= 0 ? "positive" : "negative"}>{fmtPct(selected.changePercent)}</b>
-            <span>{selected.category} · {selected.ticker}</span>
-            <span className="market-detail-price">{fmtPrice(selected.price, false)}</span>
-          </>
-        ) : (
-          <span>Hover or tap a market</span>
-        )}
-      </div>
       <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
         {markets.map((market) => {
-          const tile = (
-            <button
-              key={market.ticker}
-              type="button"
-              className={`market-heat-tile${selected?.ticker === market.ticker ? " selected" : ""}`}
-              style={{
-                gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`,
-                background: heatColor(market.changePercent, maxAbs),
-              }}
-              onMouseEnter={() => setSelected(market)}
-              onFocus={() => setSelected(market)}
-              onClick={() => setSelected(market)}
-              aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
-            >
-              <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
-            </button>
-          );
+          const tileStyle = {
+            gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`,
+            background: heatColor(market.changePercent, maxAbs),
+          } as const;
+          const label = `${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`;
 
-          if (!linkBase) return tile;
+          if (linkBase) {
+            return (
+              <Link
+                key={market.ticker}
+                href={`${linkBase}/${market.ticker}`}
+                className="market-heat-tile"
+                style={tileStyle}
+                aria-label={label}
+              >
+                <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
+              </Link>
+            );
+          }
 
           return (
-            <Link
+            <div
               key={market.ticker}
-              href={`${linkBase}/${market.ticker}`}
-              className={`market-heat-tile${selected?.ticker === market.ticker ? " selected" : ""}`}
-              style={{
-                gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`,
-                background: heatColor(market.changePercent, maxAbs),
-              }}
-              onMouseEnter={() => setSelected(market)}
-              onFocus={() => setSelected(market)}
-              aria-label={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
+              className="market-heat-tile"
+              style={tileStyle}
+              aria-label={label}
             >
               <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
-            </Link>
+            </div>
           );
         })}
       </div>
