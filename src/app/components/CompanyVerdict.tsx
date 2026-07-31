@@ -5,6 +5,7 @@ import { cachedFetch } from "@/lib/request-cache";
 import type { EarningsEvidence } from "@/lib/earnings/types";
 import { deriveTechnicalState, type StockHistoryPoint } from "@/lib/market/technical-state";
 import type { StockQuote } from "@/lib/market/quotes";
+import { getLivePrice } from "@/lib/market/live-quote";
 
 type MomentumDirection = "improving" | "mixed" | "weakening" | "unavailable";
 
@@ -146,9 +147,10 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
   }, [ticker]);
 
   const signals = useMemo<MomentumSignal[]>(() => {
+    const livePrice = state.quote ? getLivePrice(state.quote).price : null;
     const technical = deriveTechnicalState(
       state.history,
-      state.quote?.price ?? null,
+      livePrice ?? state.quote?.price ?? null,
       state.week52High,
       state.week52Low,
     );
