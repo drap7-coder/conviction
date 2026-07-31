@@ -65,7 +65,7 @@ export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps)
   return (
     <div className={`conviction-header conviction-header-${toneClass}`}>
       <div className="conviction-header-score">
-        <span className="conviction-header-score-value">{verdict.strength}</span>
+        <span className="conviction-header-score-value">{verdict.strength ?? "—"}</span>
         <span className="conviction-header-score-sep">/</span>
         <span className="conviction-header-score-state">{verdict.state}</span>
       </div>

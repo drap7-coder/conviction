@@ -140,6 +140,13 @@ export function getCardEvidence(entry: CardVerdictEntry, shortInterest?: CardVer
   return evidence;
 }
 
+/**
+ * Card / list conviction verdict.
+ *
+ * Strength is evidence-only — never tilted by the daily quote. A down day
+ * on a name with no ownership/short evidence must not invent a low score
+ * like 38; that reads as distribution when we simply lack data.
+ */
 export function getCardVerdict(
   entry: CardVerdictEntry,
   quote?: CardVerdictQuote,
@@ -150,15 +157,19 @@ export function getCardVerdict(
   const contra = evidence.reduce((sum, item) => sum + item.contraCount, 0);
   const lead = topEvidence(evidence);
   const quoteMove = quoteMovePercent(quote);
-  const quoteAdjustment = Math.max(-8, Math.min(8, quoteMove * 1.4));
-  const base = support > 0 && contra > 0
-    ? 58
-    : support > contra
-      ? 66 + Math.min(15, support * 3)
-      : contra > support
-        ? 44 - Math.min(16, contra * 4)
-        : 46;
-  const strength = Math.max(0, Math.min(99, Math.round(base + quoteAdjustment)));
+  const hasEvidence = support > 0 || contra > 0;
+
+  let strength: number | null = null;
+  if (hasEvidence) {
+    const base =
+      support > 0 && contra > 0
+        ? 58
+        : support > contra
+          ? 66 + Math.min(15, support * 3)
+          : 44 - Math.min(16, contra * 4);
+    strength = Math.max(0, Math.min(100, Math.round(base)));
+  }
+
   const evidenceStrength: EvidenceStrength = evidenceStrengthFromCounts(support, contra);
   const state = EVIDENCE_STRENGTH_LABEL[evidenceStrength];
   const tone = EVIDENCE_STRENGTH_TONE[evidenceStrength];
@@ -175,6 +186,11 @@ export function getCardVerdict(
       : "No ownership or short-interest change loaded yet."),
     recency: daysAgo(lead?.date ?? entry.lastSyncedAt ?? entry.addedAt),
     source: lead?.provider ?? (entry.status !== "active" ? "Limited coverage" : "SEC evidence"),
-    sortScore: Math.abs(strength - 50) + support * 5 + contra * 6 + Math.abs(quoteMove),
+    // Prefer names with real evidence; otherwise surface movers for triage.
+    sortScore:
+      (strength !== null ? Math.abs(strength - 50) : 0) +
+      support * 5 +
+      contra * 6 +
+      Math.abs(quoteMove),
   };
 }

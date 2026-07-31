@@ -52,13 +52,14 @@ function formatPercent(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
-function ringFromVerdict(tone: string, strength: number): {
+function ringFromVerdict(tone: string, strength: number | null): {
   tone: GaugeTone;
   label: string;
 } {
   if (tone === "positive") return { tone: "green", label: "Accumulating" };
   if (tone === "negative") return { tone: "red", label: "Distribution" };
   if (tone === "contested") return { tone: "amber", label: "Holding" };
+  if (strength === null) return { tone: "neutral", label: "Awaiting" };
   return {
     tone: strength >= 55 ? "amber" : "neutral",
     label: strength >= 55 ? "Holding" : "Awaiting",
@@ -183,9 +184,9 @@ export function TrendingCard({
               <GaugeRing
                 size="sm"
                 value={verdict.strength}
-                label={String(verdict.strength)}
+                label={verdict.strength !== null ? String(verdict.strength) : "—"}
                 tone={ring.tone}
-                ariaLabel={`Conviction ${verdict.strength}: ${ring.label}`}
+                ariaLabel={`Conviction ${verdict.strength ?? "unavailable"}: ${ring.label}`}
               />
             </div>
 

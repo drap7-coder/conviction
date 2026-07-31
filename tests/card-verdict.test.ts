@@ -50,7 +50,37 @@ describe("card verdict aggregation", () => {
     expect(verdict.evidenceStrength).toBe("awaiting");
     expect(verdict.support).toBe(0);
     expect(verdict.contra).toBe(0);
+    expect(verdict.strength).toBeNull();
     expect(verdict.insight).toBe("No ownership or short-interest change loaded yet.");
+  });
+
+  it("does not invent a low score from a down day when ownership evidence is missing", () => {
+    const verdict = getCardVerdict({
+      ...baseEntry,
+      ticker: "AAPL",
+      companyName: "Apple Inc.",
+    }, { changePercent: -6.2 });
+
+    expect(verdict.state).toBe("Awaiting Evidence");
+    expect(verdict.strength).toBeNull();
+    expect(verdict.tone).toBe("quiet");
+  });
+
+  it("scores ownership evidence without tilting by the daily quote", () => {
+    const down = getCardVerdict({
+      ...baseEntry,
+      ticker: "INTC",
+      companyName: "Intel Corporation",
+    }, { changePercent: -8 });
+    const up = getCardVerdict({
+      ...baseEntry,
+      ticker: "INTC",
+      companyName: "Intel Corporation",
+    }, { changePercent: 8 });
+
+    expect(down.strength).toBe(75);
+    expect(up.strength).toBe(75);
+    expect(down.state).toBe("Strong");
   });
 
   it("reflects elevated short interest as a homepage contradiction", () => {

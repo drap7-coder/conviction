@@ -1,6 +1,5 @@
 /**
  * Conviction Score ring shared with Trending / Watchlist cards.
- * Uses the same 0–99 card-verdict scale (not a separate composite mapping).
  */
 
 "use client";
@@ -58,7 +57,7 @@ export function ConvictionScoreOverview({
 
       <p className="quote-conviction-detail">
         {loading && score === null
-          ? "Loading live quote and short interest…"
+          ? "Loading institutional filings…"
           : detail}
       </p>
     </section>

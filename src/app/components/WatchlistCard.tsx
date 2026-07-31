@@ -39,8 +39,8 @@ export interface WatchlistCardProps {
   closeChangePercent: number | null;
   convictionState: string;
   convictionTone: string;
-  /** 0–99 score for the conviction ring */
-  convictionStrength: number;
+  /** 0–100 score for the conviction ring; null when awaiting evidence */
+  convictionStrength: number | null;
   evidencePills: WatchlistCardEvidencePill[];
   activityLine: WatchlistCardActivityLine | null;
   headlines: WatchlistCardHeadline[];
@@ -65,7 +65,7 @@ function formatPercent(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
-function ringFromVerdict(tone: string, strength: number): {
+function ringFromVerdict(tone: string, strength: number | null): {
   tone: GaugeTone;
   label: string;
 } {
@@ -78,7 +78,9 @@ function ringFromVerdict(tone: string, strength: number): {
   if (tone === "contested") {
     return { tone: "amber", label: "Holding" };
   }
-  // quiet / awaiting — still show a score, amber holding
+  if (strength === null) {
+    return { tone: "neutral", label: "Awaiting" };
+  }
   return {
     tone: strength >= 55 ? "amber" : "neutral",
     label: strength >= 55 ? "Holding" : "Awaiting",
@@ -257,10 +259,10 @@ export function WatchlistCard({
               <GaugeRing
                 size="sm"
                 value={convictionStrength}
-                label={String(convictionStrength)}
+                label={convictionStrength !== null ? String(convictionStrength) : "—"}
                 caption=""
                 tone={ring.tone}
-                ariaLabel={`Conviction ${convictionStrength}: ${ring.label}`}
+                ariaLabel={`Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`}
               />
             </div>
 

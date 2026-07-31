@@ -24,7 +24,7 @@ export interface PortfolioHoldingCardProps {
   closePrice: number | null;
   closeChangePercent: number | null;
   convictionTone: string;
-  convictionStrength: number;
+  convictionStrength: number | null;
   shares: number;
   metrics: PositionMetrics;
   onEdit: (ticker: string) => void;
@@ -54,13 +54,14 @@ function compactCurrency(value: number | null) {
   })}`;
 }
 
-function ringFromVerdict(tone: string, strength: number): {
+function ringFromVerdict(tone: string, strength: number | null): {
   tone: GaugeTone;
   label: string;
 } {
   if (tone === "positive") return { tone: "green", label: "Accumulating" };
   if (tone === "negative") return { tone: "red", label: "Distribution" };
   if (tone === "contested") return { tone: "amber", label: "Holding" };
+  if (strength === null) return { tone: "neutral", label: "Awaiting" };
   return {
     tone: strength >= 55 ? "amber" : "neutral",
     label: strength >= 55 ? "Holding" : "Awaiting",
@@ -177,10 +178,10 @@ export function PortfolioHoldingCard({
           <GaugeRing
             size="sm"
             value={convictionStrength}
-            label={String(convictionStrength)}
+            label={convictionStrength !== null ? String(convictionStrength) : "—"}
             caption=""
             tone={ring.tone}
-            ariaLabel={`Conviction ${convictionStrength}: ${ring.label}`}
+            ariaLabel={`Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`}
           />
         </div>
 
