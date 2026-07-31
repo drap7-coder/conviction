@@ -17,9 +17,9 @@ function formatMove(value: number | null): string {
 }
 
 function toneLabel(tone: MarketNarrativeTheme["marketTone"]): string {
-  if (tone === "positive") return "Positive reaction";
-  if (tone === "negative") return "Negative reaction";
-  return "Mixed reaction";
+  if (tone === "positive") return "Positive price reaction";
+  if (tone === "negative") return "Negative price reaction";
+  return "Mixed price reaction";
 }
 
 function leadAsset(theme: MarketNarrativeTheme) {
@@ -113,9 +113,9 @@ export function MarketNarrativePulse({ pulse }: { pulse: MarketNarrativePulseDat
                 <h3 className="narrative-title">{theme.label}</h3>
                 <p className="narrative-summary">{theme.summary}</p>
                 <div className="narrative-metrics">
-                  <div className="narrative-metric">
+                  <div className="narrative-metric" title="Last-hour theme mentions ÷ trailing hourly baseline ((24h − last hour) / 23, floor 0.5)">
                     <strong>{theme.velocity.toFixed(1)}×</strong>
-                    <span>Attention pace</span>
+                    <span>Attention vs baseline</span>
                   </div>
                   <div className="narrative-metric">
                     <strong>{theme.uniqueAuthorsLastHour}</strong>
@@ -160,7 +160,7 @@ export function MarketNarrativePulse({ pulse }: { pulse: MarketNarrativePulseDat
 
       <div className="narrative-footer">
         <span>{pulse.methodology} · refreshed every 5 minutes</span>
-        <span>Attention, not sentiment.</span>
+        <span>Attention vs baseline = last-hour mentions ÷ trailing hourly rate. Tone tags are price reaction.</span>
       </div>
     </section>
   );

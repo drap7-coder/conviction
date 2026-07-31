@@ -1,14 +1,32 @@
 /**
- * Shared heat-tile colors — color = direction of the move.
- * Mild tints for routine moves; fuller fills past a magnitude threshold.
+ * Shared heat-tile colors — color = direction of the session move.
+ *
+ * Tiles are two-state (up/down), not the three-state conviction legend
+ * (Accumulating / Holding / Distribution). See docs/punchlist-color-ux.md.
+ *
+ * Teal = up. Soft → mid → solid teal by magnitude.
+ * Soft red = mild downs; fuller red past the strong threshold.
  */
 
+/** Escalate past this for a clearer fill (default ±2.5%). */
 const STRONG_THRESHOLD = 2.5;
+/** Mega-moves (earnings gaps, etc.) get the solid teal / fuller red. */
+const EXTREME_THRESHOLD = 8;
 /** Sub-1% downs use soft red so full red stays reserved for real alerts. */
 const MILD_DOWN_THRESHOLD = 1;
 
 /** Neutral tile when move is missing / flat. */
 export const HEAT_NEUTRAL = "#EDEEF1";
+
+/** Positive / Accumulating teal — matches selection accent and ring legend. */
+export const HEAT_TEAL = "#0D9488";
+export const HEAT_TEAL_MID = "#5EEAD4";
+export const HEAT_TEAL_SOFT = "#CCFBF1";
+
+export const HEAT_RED_SOFT_BG = "#FEF2F2";
+export const HEAT_RED_MID = "#FECACA";
+export const HEAT_RED_STRONG = "#FCA5A5";
+export const HEAT_RED_MILD = "#F87171";
 
 export type ChangeToneClass =
   | "positive"
@@ -18,20 +36,27 @@ export type ChangeToneClass =
 
 export function heatTileColor(
   change: number | null | undefined,
-  options: { strongThreshold?: number } = {},
+  options: { strongThreshold?: number; extremeThreshold?: number } = {},
 ): string {
   if (change === null || change === undefined || !Number.isFinite(change)) {
     return HEAT_NEUTRAL;
   }
   if (Math.abs(change) < 0.05) return HEAT_NEUTRAL;
 
-  const strong = Math.abs(change) >= (options.strongThreshold ?? STRONG_THRESHOLD);
+  const strongAt = options.strongThreshold ?? STRONG_THRESHOLD;
+  const extremeAt = options.extremeThreshold ?? EXTREME_THRESHOLD;
+  const abs = Math.abs(change);
+  const extreme = abs >= extremeAt;
+  const strong = abs >= strongAt;
+
   if (change > 0) {
-    // Mild green soft → stronger green fill for notable ups
-    return strong ? "#86EFAC" : "#DCFCE7";
+    if (extreme) return HEAT_TEAL;
+    if (strong) return HEAT_TEAL_MID;
+    return HEAT_TEAL_SOFT;
   }
-  // Mild soft-red bg → stronger red tint for notable downs
-  return strong ? "#FECACA" : "#FEF2F2";
+  if (extreme) return HEAT_RED_STRONG;
+  if (strong) return HEAT_RED_MID;
+  return HEAT_RED_SOFT_BG;
 }
 
 /**

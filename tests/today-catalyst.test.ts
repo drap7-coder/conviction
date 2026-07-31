@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deriveTodayCatalyst, marketTodayIso } from "@/lib/evidence/today-catalyst";
+import { deriveTodayCatalyst, isCompanyRelevantHeadline, marketTodayIso } from "@/lib/evidence/today-catalyst";
 
 describe("deriveTodayCatalyst", () => {
   const now = new Date("2026-07-31T16:00:00-04:00");
@@ -77,6 +77,31 @@ describe("deriveTodayCatalyst", () => {
         { now },
       ),
     ).toBeNull();
+  });
+
+  it("does not badge from unscoped roundups when a ticker is known", () => {
+    expect(
+      deriveTodayCatalyst(
+        [
+          {
+            headline: "Microsoft Soars 15% as Tech Stocks Rally",
+            date: "2026-07-31",
+          },
+          {
+            headline: "Exchange-Traded Funds Higher Pre-Bell on Megacap Strength",
+            date: "2026-07-31",
+          },
+        ],
+        "Demand + competition",
+        { ticker: "TDOC", companyName: "Teladoc Health", now },
+      ),
+    ).toBeNull();
+  });
+
+  it("requires ticker or company name in the headline text", () => {
+    expect(isCompanyRelevantHeadline("Microsoft Soars 15% as Tech Stocks Rally", "TDOC", "Teladoc Health")).toBe(false);
+    expect(isCompanyRelevantHeadline("Teladoc Health cuts guidance", "TDOC", "Teladoc Health")).toBe(true);
+    expect(isCompanyRelevantHeadline("TDOC jumps after earnings", "TDOC", "Teladoc Health")).toBe(true);
   });
 
   it("formats market today in Eastern time", () => {

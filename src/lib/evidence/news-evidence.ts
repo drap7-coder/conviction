@@ -1,6 +1,7 @@
 import { getMoveEvent, type MoveEvent, type MoveEventCategory, type MoveEventConfidence } from "./move-events";
 import { fetchRssNews } from "./news-rss";
 import { buildNewsDriver, type NewsDriver } from "./news-driver";
+import { isCompanyRelevantHeadline } from "./today-catalyst";
 import type { EvidenceDirection, EvidenceEvent } from "./types";
 
 export type NewsEvidenceStatus = "success" | "empty" | "unsupported";
@@ -112,15 +113,18 @@ export async function getNewsEvidenceSummary(ticker: string, companyName?: strin
     };
   }
 
-  // 2. Fall back to live RSS headlines from Yahoo Finance
+  // 2. Fall back to live RSS headlines from Yahoo Finance — ticker/company scoped only
   try {
     const rssEvents = await fetchRssNews(upperTicker, 10);
-    if (rssEvents.length > 0) {
+    const scoped = rssEvents.filter((event) =>
+      isCompanyRelevantHeadline(`${event.title} ${event.summary}`, upperTicker, companyName),
+    );
+    if (scoped.length > 0) {
       return {
         ticker: upperTicker,
         status: "success",
-        events: rssEvents,
-        driver: buildNewsDriver(rssEvents, upperTicker, companyName),
+        events: scoped,
+        driver: buildNewsDriver(scoped, upperTicker, companyName),
         fetchedAt: new Date().toISOString(),
         source: "yahoo-finance-rss",
       };

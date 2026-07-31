@@ -59,6 +59,8 @@ interface YahooChartResult {
     exchangeName?: string;
     fullExchangeName?: string;
     regularMarketPrice?: number;
+    previousClose?: number;
+    regularMarketPreviousClose?: number;
     chartPreviousClose?: number;
     regularMarketVolume?: number;
     regularMarketDayHigh?: number;
@@ -175,9 +177,23 @@ function rangeToYahooParams(range: StockHistoryRange) {
   return { range: "1y", interval: "1d", revalidate: 60 * 60 };
 }
 
+export function resolvePreviousClose(meta?: {
+  regularMarketPreviousClose?: number;
+  previousClose?: number;
+  chartPreviousClose?: number;
+}): number | null {
+  return (
+    toFiniteNumber(meta?.regularMarketPreviousClose) ??
+    toFiniteNumber(meta?.previousClose) ??
+    toFiniteNumber(meta?.chartPreviousClose)
+  );
+}
+
 function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
   const price = toFiniteNumber(result?.meta?.regularMarketPrice);
-  const previousClose = toFiniteNumber(result?.meta?.chartPreviousClose);
+  // Prefer the session previous close over chartPreviousClose — the chart
+  // baseline can lag across weekends/splits and inflate day-change % (e.g. fake +15%).
+  const previousClose = resolvePreviousClose(result?.meta);
   const volume = toFiniteNumber(result?.meta?.regularMarketVolume);
   const change = price !== null && previousClose !== null
     ? price - previousClose

@@ -11,7 +11,7 @@ import { MacroChainChart, type MacroChainSeries } from "@/components/market/Macr
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 
 const COLORS = {
-  green: "#16A34A",
+  green: "#0D9488",
   red: "#DC2626",
   yellow: "#D97706",
   orange: "#EA580C",
@@ -22,8 +22,8 @@ const VIX_GAUGE = {
   min: 10,
   max: 40,
   zones: [
-    { label: "Calm", end: 15, color: "#16A34A" },
-    { label: "Normal", end: 20, color: "#86EFAC" },
+    { label: "Calm", end: 15, color: "#0D9488" },
+    { label: "Normal", end: 20, color: "#5EEAD4" },
     { label: "Elevated", end: 25, color: "#D97706" },
     { label: "Danger", end: 40, color: "#DC2626" },
   ],
@@ -33,7 +33,7 @@ const TEN_YEAR_GAUGE = {
   min: 2.5,
   max: 6,
   zones: [
-    { label: "Normal", end: 4.25, color: "#16A34A" },
+    { label: "Normal", end: 4.25, color: "#0D9488" },
     { label: "Elevated", end: 5, color: "#D97706" },
     { label: "High", end: 6, color: "#DC2626" },
   ],
