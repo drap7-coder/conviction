@@ -7,6 +7,7 @@ import { TrendingCard } from "@/components/TrendingCard";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
+import type { CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -66,6 +67,7 @@ export function MarketMovesPanel() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
+  const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
@@ -156,6 +158,32 @@ export function MarketMovesPanel() {
       controller.abort();
     };
   }, [requestKey]);
+
+  useEffect(() => {
+    if (trending.length === 0) return;
+    let cancelled = false;
+
+    async function loadShortInterest() {
+      const next: Record<string, CardVerdictShortInterest> = {};
+      await Promise.all(trending.map(async (company) => {
+        try {
+          const response = await fetch(
+            `/api/market/short-interest?ticker=${encodeURIComponent(company.ticker)}`,
+          );
+          if (!response.ok) return;
+          next[company.ticker] = await response.json() as CardVerdictShortInterest;
+        } catch {
+          // Optional evidence for the shared card score.
+        }
+      }));
+      if (!cancelled) setShortInterest(next);
+    }
+
+    void loadShortInterest();
+    return () => {
+      cancelled = true;
+    };
+  }, [trending]);
 
   const handleAddTrending = async (idea: WatchlistCandidate) => {
     setAddMessage(null);
@@ -263,6 +291,7 @@ export function MarketMovesPanel() {
                     sparkline={idea.sparkline ?? []}
                     headlines={headlines[idea.ticker] ?? []}
                     newsDriver={newsDrivers[idea.ticker] ?? null}
+                    shortInterest={shortInterest[idea.ticker]}
                     isTracked={isTracked}
                     isAdding={addingTicker === idea.ticker}
                     onAdd={() => handleAddTrending(idea)}

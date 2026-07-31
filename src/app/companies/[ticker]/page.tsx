@@ -93,7 +93,7 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            {/* Composite Conviction Score: institutional + earnings (50% coverage floor). */}
+            {/* Same card-verdict Conviction Score as Trending / Watchlist rings. */}
             <ConvictionScoreOverviewCard ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
