@@ -312,6 +312,10 @@ export default function MarketPulsePage() {
       >
         {activeTab === "indexes" ? (
           <>
+            <section className="market-gauge-grid" aria-label="Market danger zones">
+              <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
+              <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
+            </section>
             <GlobalMarketsHeatmap
               markets={indexMarkets}
               title="Indexes"
@@ -334,10 +338,6 @@ export default function MarketPulsePage() {
               />
             </div>
             <MarketNarrativePulse pulse={data.marketNarratives} />
-            <section className="market-gauge-grid" aria-label="Market danger zones">
-              <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
-              <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
-            </section>
             <MacroChainChart series={macroSeries} />
           </>
         ) : null}
