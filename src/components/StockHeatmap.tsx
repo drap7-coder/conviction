@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { heatTileColor } from "@/lib/display/heat-color";
+import { heatTileColor, HEAT_TEAL, HEAT_TEAL_MID, HEAT_TEAL_SOFT, HEAT_RED_SOFT_BG, HEAT_RED_MID, HEAT_RED_STRONG } from "@/lib/display/heat-color";
 
 export interface StockHeatmapItem {
   ticker: string;
@@ -44,6 +44,9 @@ const HEATMAP_STYLES = `
   .stock-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
   .stock-heat-subtitle { margin:6px 0 12px; color:var(--muted); font-size:.66rem; line-height:1.45; }
+  .stock-heat-move-legend { display:flex; flex-wrap:wrap; gap:10px 14px; margin:0 0 12px; color:var(--muted); font-size:.58rem; letter-spacing:.04em; text-transform:uppercase; }
+  .stock-heat-move-legend span { display:inline-flex; align-items:center; gap:6px; }
+  .stock-heat-swatch { width:10px; height:10px; border-radius:2px; border:1px solid color-mix(in srgb, var(--ink) 10%, transparent); }
   .stock-heat-session {
     display:inline-flex; align-items:center; gap:6px;
     padding:4px 9px; border-radius:999px;
@@ -125,6 +128,14 @@ export function StockHeatmap({
         ) : null}
       </div>
       <p className="stock-heat-subtitle">{subtitle}</p>
+      <div className="stock-heat-move-legend" aria-label="Session move color legend">
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_SOFT }} /> Mild up</span>
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_MID }} /> Strong up</span>
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL }} /> Extreme up (≥8%)</span>
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_SOFT_BG }} /> Mild down</span>
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_MID }} /> Strong down</span>
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_STRONG }} /> Extreme down</span>
+      </div>
       <div className="stock-heat-grid">
         {items.map((item) => {
           const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);

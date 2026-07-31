@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { changeToneClass, heatTileColor, HEAT_NEUTRAL } from "@/lib/display/heat-color";
+import {
+  changeToneClass,
+  heatTileColor,
+  HEAT_NEUTRAL,
+  HEAT_TEAL,
+  HEAT_TEAL_MID,
+  HEAT_TEAL_SOFT,
+  HEAT_RED_SOFT_BG,
+  HEAT_RED_MID,
+  HEAT_RED_STRONG,
+} from "@/lib/display/heat-color";
 
 describe("heatTileColor", () => {
   it("returns neutral for missing or flat moves", () => {
@@ -9,14 +19,19 @@ describe("heatTileColor", () => {
     expect(heatTileColor(0.02)).toBe(HEAT_NEUTRAL);
   });
 
-  it("uses mild tints for routine moves", () => {
-    expect(heatTileColor(1.2)).toBe("#DCFCE7");
-    expect(heatTileColor(-0.8)).toBe("#FEF2F2");
+  it("uses soft teal/red for routine moves", () => {
+    expect(heatTileColor(1.2)).toBe(HEAT_TEAL_SOFT);
+    expect(heatTileColor(-0.8)).toBe(HEAT_RED_SOFT_BG);
   });
 
-  it("escalates past the strong threshold", () => {
-    expect(heatTileColor(3)).toBe("#86EFAC");
-    expect(heatTileColor(-3)).toBe("#FECACA");
+  it("escalates past ±2.5%", () => {
+    expect(heatTileColor(3)).toBe(HEAT_TEAL_MID);
+    expect(heatTileColor(-3)).toBe(HEAT_RED_MID);
+  });
+
+  it("uses solid teal for extreme ups like +15.2%", () => {
+    expect(heatTileColor(15.2)).toBe(HEAT_TEAL);
+    expect(heatTileColor(-12)).toBe(HEAT_RED_STRONG);
   });
 });
 

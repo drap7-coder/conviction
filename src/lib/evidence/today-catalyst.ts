@@ -172,7 +172,9 @@ export function deriveTodayCatalyst(
   const relevant = headlines.filter((h) =>
     isCompanyRelevantHeadline(`${h.headline} ${h.summary ?? ""}`, opts.ticker, opts.companyName),
   );
-  const scoped = relevant.length > 0 ? relevant : headlines;
+  // Never fall back to unscoped headlines when a ticker is known — that lets
+  // market roundups ("Microsoft soars…") leak onto unrelated company cards.
+  const scoped = opts.ticker ? relevant : (relevant.length > 0 ? relevant : headlines);
 
   const recent = scoped.filter((h) => {
     const iso = normalizeDate(h.date);

@@ -100,4 +100,14 @@ describe("news evidence", () => {
     expect(driver?.explanation).not.toMatch(/oil|geopolitical/i);
     expect(driver).toMatchObject({ label: "Pipeline renewal" });
   });
+
+  it("ignores market roundups that do not mention the ticker or company", () => {
+    const driver = buildNewsDriver([
+      headline("Microsoft Soars 15% as Tech Stocks Rally"),
+      headline("Big tech leads the session higher"),
+    ], "TDOC", "Teladoc Health");
+
+    // No company-relevant theme — must not invent Demand/AI/etc from roundups
+    expect(driver?.label).toBe("Story still forming");
+  });
 });

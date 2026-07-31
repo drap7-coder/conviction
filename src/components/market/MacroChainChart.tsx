@@ -16,7 +16,7 @@ export type MacroChainSeries = {
   values: number[];
 };
 
-const DEFAULT_COLORS = ["#16A34A", "#DC2626", "#D97706", "#EA580C", "#0D9488", "#64748B", "#475569"];
+const DEFAULT_COLORS = ["#0D9488", "#DC2626", "#D97706", "#EA580C", "#64748B", "#475569", "#94A3B8"];
 
 function normalize(values: number[]): number[] {
   if (!values.length) return [];

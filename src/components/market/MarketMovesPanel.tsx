@@ -256,7 +256,7 @@ export function MarketMovesPanel() {
       {trendingStatus === "success" && trending.length > 0 ? (
         <StockHeatmap
           title="Market Moves"
-          subtitle="Tile size reflects dollar trading volume; color reflects the current market move."
+          subtitle="Tile size = dollar volume. Color = session move only (teal up / red down) — not the Accumulating / Holding / Distribution rings below."
           sessionLabel={
             trending
               .map((idea) => getLivePrice(idea.quote).label)
@@ -302,6 +302,9 @@ export function MarketMovesPanel() {
                 <span><i className="quote-dot amber" /> Holding</span>
                 <span><i className="quote-dot green" /> Accumulating</span>
               </div>
+              <p className="wl-list-legend-note">
+                Ring colors are conviction state. Heat tiles above are session up/down only.
+              </p>
             </div>
             <div className="watchlist-list">
               {trending.map((idea) => {

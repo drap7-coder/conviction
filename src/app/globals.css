@@ -18,15 +18,15 @@
   --muted: #6b7280;
   --quiet: #9ca3af;
 
-  /* Selection accent only — not semantic up/down, not navy hero */
+  /* Selection + positive / Accumulating — same teal */
   --accent: #0d9488;
   --accent-dim: rgba(13, 148, 136, 0.1);
   --on-accent: #ffffff;
 
   /* ── Semantic (earned color) ── */
-  --green: #16a34a;
-  --green-dim: rgba(22, 163, 74, 0.1);
-  --green-soft: #dcfce7;
+  --green: #0d9488;
+  --green-dim: rgba(13, 148, 136, 0.1);
+  --green-soft: #ccfbf1;
   --amber: #d97706;
   --amber-dim: rgba(217, 119, 6, 0.1);
   --amber-400: #d97706;
@@ -1616,6 +1616,13 @@ details > summary::before {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.wl-list-legend-note {
+  margin: 6px 0 0;
+  color: var(--quiet);
+  font-size: 0.62rem;
+  line-height: 1.4;
 }
 
 .watchlist-list {
