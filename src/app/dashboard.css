@@ -16,9 +16,9 @@
 .company-briefing .signal-block,
 .company-briefing .material-news-briefing {
   padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border: 1px solid var(--border);
   border-radius: 18px;
-  background: color-mix(in srgb, var(--surface) 42%, transparent);
+  background: var(--card);
   box-shadow: var(--shadow-sm);
 }
 
@@ -65,11 +65,11 @@
   position: relative;
   overflow: hidden;
   padding: clamp(18px, 3vw, 30px);
-  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--border));
   border-radius: calc(var(--radius) * 1.35);
   background:
-    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 40%),
-    color-mix(in srgb, var(--surface) 35%, transparent);
+    radial-gradient(circle at 88% 0%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 40%),
+    var(--card-accent);
   box-shadow: var(--shadow-sm);
 }
 
@@ -125,7 +125,7 @@
 .verdict-meta b { color: var(--ink); font-weight: 600; }
 .signal-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
 .momentum-signal-strip { grid-template-columns: repeat(3, 1fr); }
-.signal-pill { display: flex; justify-content: space-between; gap: 8px; padding: 9px 10px; border: 1px solid color-mix(in srgb, var(--border) 65%, transparent); border-radius: var(--radius); background: color-mix(in srgb, var(--bg) 55%, transparent); font: .58rem/1.25 var(--font-mono); }
+.signal-pill { display: flex; justify-content: space-between; gap: 8px; padding: 9px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-inset); font: .58rem/1.25 var(--font-mono); }
 .signal-pill span { color: var(--muted); }
 .signal-pill strong.positive, .earnings-row .positive { color: var(--positive); }
 .signal-pill strong.negative, .earnings-row .negative { color: var(--negative); }
@@ -150,15 +150,15 @@
 /* ── Stock Pulse: attention relative to price ── */
 
 .company-pulse-card {
-  --pulse-color: #60a5fa;
+  --pulse-color: #2563eb;
   position: relative;
   overflow: hidden;
   padding: clamp(16px, 2.5vw, 24px);
-  border: 1px solid color-mix(in srgb, var(--pulse-color) 14%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--pulse-color) 16%, var(--border));
   border-radius: calc(var(--radius) * 1.2);
   background:
-    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--pulse-color) 6%, transparent), transparent 40%),
-    color-mix(in srgb, var(--surface) 35%, transparent);
+    radial-gradient(circle at 92% 0%, color-mix(in srgb, var(--pulse-color) 8%, transparent), transparent 40%),
+    color-mix(in srgb, var(--pulse-color) 5%, var(--card));
   box-shadow: var(--shadow-sm);
 }
 
@@ -237,9 +237,9 @@
 .company-pulse-metric {
   min-width: 0;
   padding: 10px 11px;
-  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  background: var(--card-inset);
 }
 .company-pulse-metric span {
   display: block;
@@ -286,7 +286,7 @@
   .company-pulse-eyebrow i { animation: none; }
 }
 
-.earnings-hero { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-top: 18px; padding: 15px; border: 1px solid color-mix(in srgb, var(--border) 65%, transparent); border-radius: var(--radius); background: color-mix(in srgb, var(--bg) 55%, transparent); }
+.earnings-hero { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-top: 18px; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-inset); }
 .earnings-hero span { display: block; color: var(--quiet); font: .57rem/1.2 var(--font-mono); text-transform: uppercase; }
 .earnings-hero strong { display: block; margin-top: 6px; color: var(--ink); font-size: 1.05rem; }
 .evidence-help { margin: 12px 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
@@ -306,8 +306,8 @@
 }
 
 .today-peers-slot {
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  background: var(--card-inset);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 12px;
 }
@@ -363,9 +363,9 @@
   flex-direction: column;
   min-height: 168px;
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 3%, transparent), transparent 42%),
-    color-mix(in srgb, var(--surface) 40%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 42%),
+    var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 18px;
   box-shadow: var(--shadow-sm);
@@ -456,10 +456,10 @@
 }
 
 .dashboard-card:hover {
-  border-color: color-mix(in srgb, var(--accent) 18%, var(--border));
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent 46%),
-    color-mix(in srgb, var(--surface) 28%, transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 46%),
+    var(--card-accent);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
@@ -576,8 +576,8 @@ body {
   flex-direction: column;
   gap: 4px;
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  background: var(--card-inset);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   min-width: 0;
 }

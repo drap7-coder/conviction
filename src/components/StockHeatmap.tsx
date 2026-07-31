@@ -43,7 +43,7 @@ function heatColor(change: number | null, maxAbs: number): string {
 }
 
 const HEATMAP_STYLES = `
-  .stock-heat-panel { margin:0 0 20px; padding:20px; background:var(--surface); border:1px solid var(--border); border-radius:12px; color:var(--ink); font-family:var(--font-mono); }
+  .stock-heat-panel { margin:0 0 20px; padding:20px; background:var(--card); border:1px solid var(--border); border-radius:12px; color:var(--ink); font-family:var(--font-mono); box-shadow:var(--shadow-sm); }
   .stock-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
   .stock-heat-subtitle { margin:6px 0 12px; color:var(--muted); font-size:.66rem; line-height:1.45; }

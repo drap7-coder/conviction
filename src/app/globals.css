@@ -4,28 +4,35 @@
 :root {
   color-scheme: light;
   --bg: #ffffff;
-  --surface: #f8fafc;
+  --surface: #f1f4f8;
   --surface-elevated: #ffffff;
-  --border: color-mix(in srgb, #12151a 8%, transparent);
+  --card: #f1f4f8;
+  --card-soft: #f6f8fb;
+  --card-inset: #ffffff;
+  --card-accent: color-mix(in srgb, var(--accent) 6%, #f1f4f8);
+  --card-positive: color-mix(in srgb, var(--green) 7%, #f1f4f8);
+  --card-negative: color-mix(in srgb, var(--red) 7%, #f1f4f8);
+  --card-warning: color-mix(in srgb, var(--amber) 7%, #f1f4f8);
+  --border: color-mix(in srgb, #12151a 9%, transparent);
   --border-active: color-mix(in srgb, #12151a 16%, transparent);
   --ink: #12151a;
   --muted: #5a6573;
   --quiet: #8490a0;
   --accent: #0b7f92;
-  --accent-dim: rgba(11, 127, 146, 0.06);
+  --accent-dim: rgba(11, 127, 146, 0.08);
   --green: #0a7a52;
-  --green-dim: rgba(10, 122, 82, 0.06);
+  --green-dim: rgba(10, 122, 82, 0.08);
   --red: #c81e4a;
-  --red-dim: rgba(200, 30, 74, 0.06);
+  --red-dim: rgba(200, 30, 74, 0.08);
   --amber: #b45309;
-  --amber-dim: rgba(180, 83, 9, 0.06);
+  --amber-dim: rgba(180, 83, 9, 0.08);
   --amber-400: #d97706;
   --positive: var(--green);
   --negative: var(--red);
   --on-accent: #ffffff;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 6px 18px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 14px 36px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 14px 32px rgba(15, 23, 42, 0.08);
   --shadow: var(--shadow-sm);
   --radius: 12px;
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
@@ -39,7 +46,7 @@
   /* Chart theme */
   --chart-surface: #ffffff;
   --chart-grid: color-mix(in srgb, #12151a 6%, transparent);
-  --chart-border: color-mix(in srgb, #12151a 8%, transparent);
+  --chart-border: color-mix(in srgb, #12151a 9%, transparent);
   --chart-sma50: #2563eb;
   --chart-sma200: #dc2626;
 }
@@ -832,20 +839,16 @@ details > summary::before {
   padding: 17px;
   border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 2px);
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 78%, transparent), transparent 72%),
-    var(--surface);
+  background: var(--card);
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
 }
 
 .investor-idea-card:hover,
 .investor-idea-card:focus-visible {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-active));
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--accent-dim) 70%, transparent), transparent 72%),
-    var(--surface-elevated);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--card-accent);
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
   outline: none;
 }
@@ -1546,13 +1549,14 @@ details > summary::before {
 
 .wl-ring-row {
   display: block;
-  padding: 16px 10px 14px;
-  margin: 0 -2px;
-  border-bottom: 1px solid var(--border);
-  border-radius: 12px;
+  padding: 16px 14px 14px;
+  margin: 0 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   text-decoration: none;
   color: inherit;
-  background: var(--bg);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
   cursor: pointer;
   transition:
     background-color 0.16s ease,
@@ -1563,11 +1567,9 @@ details > summary::before {
 
 .wl-ring-row:hover,
 .wl-ring-row:focus-visible {
-  background: color-mix(in srgb, var(--accent-dim) 55%, var(--surface-elevated));
-  border-bottom-color: transparent;
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 28%, transparent),
-    0 8px 24px rgba(0, 0, 0, 0.22);
+  background: var(--card-accent);
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  box-shadow: var(--shadow-md);
   transform: translateY(-1px);
   outline: none;
 }
@@ -1758,7 +1760,8 @@ details > summary::before {
   padding: 10px 12px;
   padding-right: 44px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  background: var(--card-inset);
 }
 
 .wl-ring-driver-label {
@@ -1824,7 +1827,7 @@ details > summary::before {
   padding: 16px 18px;
   color: inherit;
   text-decoration: none;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  background: var(--card-inset);
   border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-radius: calc(var(--radius) + 2px);
   cursor: pointer;
@@ -2256,9 +2259,9 @@ details > summary::before {
 .material-news-briefing { margin-top: 2px; }
 .material-news-status {
   padding: 16px;
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  background: var(--card);
   color: var(--muted);
   font-size: 0.8rem;
 }
@@ -4243,8 +4246,8 @@ details > summary::before {
   display: grid;
   gap: 10px;
   margin-top: 12px;
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-left: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
   border-radius: var(--radius);
   padding: 12px;
@@ -4291,8 +4294,8 @@ details > summary::before {
   margin-top: 14px;
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 5%, transparent), transparent 42%),
-    color-mix(in srgb, var(--surface) 38%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+    var(--card);
+  border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow-sm);
   padding: 16px;
@@ -5298,7 +5301,7 @@ details > summary::before {
 
 .activity-severity-low {
   color: var(--muted);
-  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  background: var(--card-soft);
 }
 
 .activity-time {
@@ -5459,7 +5462,7 @@ details > summary::before {
   padding: 22px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  background: var(--card-inset);
 }
 
 .pf-exposure-heading {
@@ -5865,7 +5868,7 @@ details > summary::before {
   padding: 10px 12px;
   border-radius: 10px;
   border-left: 3px solid var(--border);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  background: var(--card-inset);
 }
 
 .pf-ring-holding.up {
@@ -7616,8 +7619,8 @@ details > summary::before {
 /* ── Briefing header ── */
 
 .pulse-brief {
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 20px;
   padding: 28px 24px;
   box-shadow: var(--shadow-sm);
@@ -7671,8 +7674,8 @@ details > summary::before {
 /* ── Shared card ── */
 
 .pulse-card {
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow-sm);
@@ -7710,8 +7713,8 @@ details > summary::before {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  background: var(--card-inset);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 12px 12px 10px;
   font-family: var(--font-mono);
@@ -7894,15 +7897,16 @@ details > summary::before {
   display: block;
   padding: 12px 14px;
   border-radius: var(--radius);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
 .pulse-attn-item:hover {
   border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
-  background: color-mix(in srgb, var(--accent) 4%, transparent);
+  background: var(--card-accent);
   transform: translateY(-1px);
 }
 
@@ -8127,13 +8131,17 @@ details > summary::before {
   padding: 12px 14px;
   text-decoration: none;
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  transition: border-color 0.15s;
+  background: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s, background-color 0.15s;
 }
 
 .pulse-wl-row:last-child { border-bottom: none; }
-.pulse-wl-row:hover { border-color: color-mix(in srgb, var(--accent) 22%, var(--border)); }
+.pulse-wl-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: var(--card-accent);
+}
 
 .pulse-wl-top {
   display: flex;
@@ -8353,19 +8361,20 @@ details > summary::before {
   padding: 16px 18px;
   color: inherit;
   text-decoration: none;
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: calc(var(--radius) + 2px);
+  box-shadow: var(--shadow-sm);
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .bcn-item:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-active));
-  background: color-mix(in srgb, var(--accent-dim) 50%, var(--surface-elevated));
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--card-accent);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-md);
 }
 
 .bcn-footnote {
@@ -8596,18 +8605,18 @@ details > summary::before {
   padding: 14px 16px;
   color: inherit;
   text-decoration: none;
-  background: var(--surface);
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent);
-  transition: border-color 0.15s, background-color 0.15s, transform 0.15s;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s, background-color 0.15s, transform 0.15s, box-shadow 0.15s;
 }
 
 .bcn-item:hover {
-  border-color: color-mix(in srgb, var(--accent) 35%, var(--border-active));
-  background: color-mix(in srgb, var(--accent-dim) 50%, var(--surface-elevated));
+  border-color: color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: var(--card-accent);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-md);
 }
 
 .bcn-item .signal-block-eyebrow {
@@ -8684,7 +8693,7 @@ details > summary::before {
   border-radius: calc(var(--radius) + 2px);
   border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
   border-left-width: 3px;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  background: var(--card-inset);
   text-decoration: none;
   color: inherit;
   transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
@@ -9206,8 +9215,8 @@ details > summary::before {
 .quote-sparkline.neutral path { stroke: var(--muted); }
 
 .quote-card {
-  background: color-mix(in srgb, var(--surface) 42%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 18px;
   padding: 16px 16px 18px;
   box-shadow: var(--shadow-sm);
@@ -9400,9 +9409,9 @@ details > summary::before {
   flex-direction: column;
   gap: 4px;
   padding: 12px 10px;
-  border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--bg) 78%, transparent);
+  background: var(--card-inset);
   text-align: center;
 }
 
@@ -9541,7 +9550,7 @@ details > summary::before {
 
 .markets-page {
   --market-bg: transparent;
-  --market-card: color-mix(in srgb, var(--surface) 42%, transparent);
+  --market-card: var(--card);
   --market-border: color-mix(in srgb, var(--ink) 8%, transparent);
   --market-text: var(--ink);
   --market-muted: var(--muted);
@@ -9558,11 +9567,11 @@ details > summary::before {
 .market-regime-lede {
   margin: 0 0 12px;
   padding: 12px 16px;
-  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
+  border: 1px solid var(--border);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--market-live) 5%, transparent), transparent 46%),
-    color-mix(in srgb, var(--surface) 40%, transparent);
+    radial-gradient(circle at 10% 0%, color-mix(in srgb, var(--market-live) 7%, transparent), transparent 46%),
+    var(--card-accent);
   box-shadow: var(--shadow-sm);
 }
 
@@ -9605,8 +9614,8 @@ details > summary::before {
   gap: 5px;
   padding: 4px 9px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--market-border) 65%, transparent);
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  border: 1px solid var(--border);
+  background: var(--card-inset);
   font-size: 0.62rem;
   line-height: 1.2;
   color: var(--market-muted);
@@ -9650,8 +9659,8 @@ details > summary::before {
 .market-index-card,
 .market-gauge-card,
 .market-panel {
-  background: color-mix(in srgb, var(--surface) 40%, transparent);
-  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: var(--shadow-sm);
 }
@@ -9663,11 +9672,11 @@ details > summary::before {
   gap: 12px;
   margin-bottom: 18px;
   padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
+  border: 1px solid var(--border);
   border-radius: 12px;
   background:
-    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--market-live) 5%, transparent), transparent 42%),
-    color-mix(in srgb, var(--surface) 40%, transparent);
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--market-live) 6%, transparent), transparent 42%),
+    var(--card-accent);
   box-shadow: var(--shadow-sm);
 }
 
@@ -9702,10 +9711,10 @@ details > summary::before {
 .market-region-tabs button {
   min-width: 0;
   padding: 12px 13px;
-  border: 1px solid color-mix(in srgb, var(--market-border) 70%, transparent);
+  border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--market-text);
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  background: var(--card-inset);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -9723,7 +9732,7 @@ details > summary::before {
   border-color: color-mix(in srgb, var(--market-live) 32%, var(--market-border));
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--market-live) 6%, transparent), transparent 75%),
-    color-mix(in srgb, var(--bg) 70%, transparent);
+    var(--card-soft);
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--market-live) 65%, transparent);
 }
 

@@ -41,7 +41,7 @@ export function OpenAttentionPulse({ pulse }: { pulse: OpenAttentionPulseData })
         .attention-status.unavailable { color:var(--market-muted); border-color:var(--market-border); }
         .attention-source-note { margin-top:9px!important; color:var(--market-muted); }
         .attention-list { display:grid; gap:8px; margin-top:17px; }
-        .attention-row { position:relative; display:grid; grid-template-columns:minmax(240px,1fr) 74px 64px 70px 112px; gap:13px; align-items:center; min-height:76px; padding:13px 14px; overflow:hidden; border:1px solid color-mix(in srgb,var(--market-border) 70%,transparent); border-radius:9px; background:color-mix(in srgb,var(--bg) 55%,transparent); }
+        .attention-row { position:relative; display:grid; grid-template-columns:minmax(240px,1fr) 74px 64px 70px 112px; gap:13px; align-items:center; min-height:76px; padding:13px 14px; overflow:hidden; border:1px solid var(--border); border-radius:9px; background:var(--card); box-shadow:var(--shadow-sm); }
         .attention-row::before { content:""; position:absolute; inset:0 auto 0 0; width:3px; background:var(--attention-blue); opacity:.8; }
         .attention-row.signal-attention-leading::before { background:var(--attention-purple); }
         .attention-row.signal-price-confirming::before { background:var(--market-green); }
