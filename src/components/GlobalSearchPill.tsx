@@ -98,7 +98,7 @@ export function GlobalSearchPill() {
   return (
     <div className="global-search-dock">
       <form className="global-search-pill" onSubmit={handleSubmit} role="search">
-        <Search size={16} aria-hidden="true" className="global-search-icon" />
+        <Search size={18} aria-hidden="true" className="global-search-icon" strokeWidth={2.4} />
         <input
           ref={inputRef}
           type="search"
@@ -111,16 +111,17 @@ export function GlobalSearchPill() {
             window.setTimeout(() => setShowSuggestions(false), 120);
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Search ticker or company"
+          placeholder="Look up any ticker"
           className="global-search-input"
           autoComplete="off"
           spellCheck={false}
-          aria-label="Search ticker or company"
+          aria-label="Look up any ticker or company"
           aria-autocomplete="list"
           aria-expanded={showSuggestions}
           aria-controls="global-search-suggestions"
           role="combobox"
         />
+        <span className="global-search-hint" aria-hidden="true">Quote</span>
         {showSuggestions && suggestions.length > 0 ? (
           <ul id="global-search-suggestions" className="global-search-suggestions" role="listbox">
             {suggestions.map((suggestion, index) => (
