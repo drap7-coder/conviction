@@ -13,13 +13,8 @@ export interface ConvictionScoreOverviewProps {
   detail: string;
   meta?: string | null;
   loading?: boolean;
-  /** Static placeholder until institutional + earnings composite ships. */
-  unavailable?: boolean;
   className?: string;
 }
-
-const UNAVAILABLE_DETAIL =
-  "Score requires institutional + earnings data (coming soon)";
 
 export function ConvictionScoreOverview({
   score,
@@ -28,23 +23,8 @@ export function ConvictionScoreOverview({
   detail,
   meta = null,
   loading = false,
-  unavailable = false,
   className,
 }: ConvictionScoreOverviewProps) {
-  const showUnavailable = unavailable || (loading && score === null);
-  const ringLabel = showUnavailable
-    ? "—"
-    : loading
-      ? "…"
-      : score !== null
-        ? String(score)
-        : "—";
-  const ringSublabel = showUnavailable
-    ? "COMING SOON"
-    : loading
-      ? "LOADING"
-      : label.toUpperCase();
-
   return (
     <section
       className={`quote-card quote-conviction-card ink-panel${className ? ` ${className}` : ""}`}
@@ -53,23 +33,19 @@ export function ConvictionScoreOverview({
       <div className="quote-card-header">
         <span className="quote-card-title">Conviction score</span>
         <span className="quote-card-meta">
-          {showUnavailable ? "SOON" : loading ? "LOADING" : meta ?? "LIVE"}
+          {loading ? "LOADING" : meta ?? "LIVE"}
         </span>
       </div>
 
       <div className="quote-conviction-ring-wrap">
         <GaugeRing
           size="lg"
-          value={showUnavailable ? null : score}
-          label={ringLabel}
-          sublabel={ringSublabel}
+          value={score}
+          label={loading ? "…" : score !== null ? String(score) : "—"}
+          sublabel={loading ? "LOADING" : label.toUpperCase()}
           caption=""
-          tone={showUnavailable ? "neutral" : tone}
-          ariaLabel={
-            showUnavailable
-              ? UNAVAILABLE_DETAIL
-              : `Conviction score ${score ?? "unavailable"} of 100: ${label}`
-          }
+          tone={tone}
+          ariaLabel={`Conviction score ${score ?? "unavailable"} of 100: ${label}`}
         />
       </div>
 
@@ -80,7 +56,9 @@ export function ConvictionScoreOverview({
       </div>
 
       <p className="quote-conviction-detail">
-        {showUnavailable ? UNAVAILABLE_DETAIL : detail}
+        {loading && score === null
+          ? "Loading institutional, technical, and short-interest evidence…"
+          : detail}
       </p>
     </section>
   );
