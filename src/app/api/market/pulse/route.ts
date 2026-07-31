@@ -38,17 +38,23 @@ const INDICATORS: Array<{
 ];
 
 const GLOBAL_MARKETS = [
-  { ticker: "SPY", name: "S&P 500", weight: 30, category: "United States" },
-  { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "United States" },
-  { ticker: "DIA", name: "Dow 30", weight: 14, category: "United States" },
-  { ticker: "IWM", name: "Russell 2000", weight: 9, category: "United States" },
-  { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "United States" },
-  { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "United States" },
-  { ticker: "SCHD", name: "U.S. Dividend 100", weight: 7, category: "United States" },
-  { ticker: "VNQ", name: "U.S. Real Estate", weight: 5.5, category: "United States" },
-  { ticker: "XLU", name: "Utilities", weight: 5, category: "United States" },
-  { ticker: "IYT", name: "Transportation", weight: 4.5, category: "United States" },
-  { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "United States" },
+  { ticker: "DIA", name: "Dow 30", weight: 14, category: "Major Index" },
+  { ticker: "SPY", name: "S&P 500", weight: 30, category: "Major Index" },
+  { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "Major Index" },
+  { ticker: "IWM", name: "Russell 2000", weight: 9, category: "U.S. Markets" },
+  { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "U.S. Markets" },
+  { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "U.S. Markets" },
+  { ticker: "SCHD", name: "U.S. Dividend 100", weight: 7, category: "U.S. Markets" },
+  { ticker: "VNQ", name: "U.S. Real Estate", weight: 5.5, category: "U.S. Markets" },
+  { ticker: "XLU", name: "Utilities", weight: 5, category: "U.S. Markets" },
+  { ticker: "IYT", name: "Transportation", weight: 4.5, category: "U.S. Markets" },
+  { ticker: "UUP", name: "U.S. Dollar", weight: 4, category: "U.S. Markets" },
+  { ticker: "USO", name: "Oil", weight: 8, category: "Commodity" },
+  { ticker: "GLD", name: "Gold", weight: 7, category: "Commodity" },
+  { ticker: "SLV", name: "Silver", weight: 5, category: "Commodity" },
+  { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
+  { ticker: "ETH-USD", name: "Ethereum", weight: 10, category: "Crypto" },
+  { ticker: "SOL-USD", name: "Solana", weight: 8, category: "Crypto" },
   { ticker: "EWJ", name: "Japan", weight: 14.5, category: "International" },
   { ticker: "MCHI", name: "China", weight: 10.5, category: "International" },
   { ticker: "EWU", name: "United Kingdom", weight: 9.5, category: "International" },
@@ -58,8 +64,6 @@ const GLOBAL_MARKETS = [
   { ticker: "INDA", name: "India", weight: 5.0, category: "International" },
   { ticker: "EWT", name: "Taiwan", weight: 4.8, category: "International" },
   { ticker: "EWA", name: "Australia", weight: 4.5, category: "International" },
-  { ticker: "USO", name: "Oil", weight: 4, category: "Macro" },
-  { ticker: "UUP", name: "U.S. Dollar", weight: 4, category: "Macro" },
   { ticker: "EWY", name: "South Korea", weight: 3.5, category: "International" },
   { ticker: "EWH", name: "Hong Kong", weight: 3.0, category: "International" },
   { ticker: "EWZ", name: "Brazil", weight: 2.5, category: "International" },
@@ -203,7 +207,8 @@ export async function GET() {
       changePercent: live?.changePercent ?? quote?.changePercent ?? null,
     };
   });
-  globalMarkets.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
+  // Keep definition order within each category section on Pulse.
+  // Do not resort the full list by session move.
 
   // ── Broad market narratives (free headlines + open chatter) ──
   const marketNarratives = await fetchMarketNarrativePulse(

@@ -70,7 +70,11 @@ const HEATMAP_STYLES = `
   .stock-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid rgba(244,244,245,.09); border-radius:8px; color:#f4f4f5; font:inherit; text-align:left; text-decoration:none; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
   .stock-heat-tile:hover,.stock-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }
   .stock-heat-tile span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.63rem; font-weight:700; }.stock-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
-  @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-tile { min-height:62px; padding:8px; } }
+  @media (max-width:767px) {
+    .stock-heat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .stock-heat-grid > .stock-heat-tile { grid-column:span 1 / span 1 !important; }
+  }
+  @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-tile { min-height:62px; padding:8px; } }
 `;
 
 export function StockHeatmap({
@@ -92,7 +96,8 @@ export function StockHeatmap({
           .stock-heat-loading-tile:nth-child(1),.stock-heat-loading-tile:nth-child(4) { grid-column:span 2; }
           @keyframes stock-heat-shimmer { to { background-position:-220% 0; } }
           @media (prefers-reduced-motion:reduce) { .stock-heat-loading-tile { animation:none; } }
-          @media (max-width:399px) { .stock-heat-loading-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.stock-heat-loading-tile { min-height:62px; } }
+          @media (max-width:767px) { .stock-heat-loading-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.stock-heat-loading-tile { grid-column:span 1 !important; } }
+          @media (max-width:399px) { .stock-heat-loading-tile { min-height:62px; } }
         `}</style>
         <div className="stock-heat-heading">
           <h2 className="stock-heat-title">{title}</h2>

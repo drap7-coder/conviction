@@ -9881,7 +9881,7 @@ details > summary::before {
 }
 
 .market-heatmap.compact {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .market-heat-tile {
@@ -10029,6 +10029,17 @@ a.market-heat-tile {
   }
 }
 
+@media (max-width: 767px) {
+  .market-heatmap,
+  .market-heatmap.compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .market-heatmap > .market-heat-tile {
+    grid-column: span 1 / span 1 !important;
+  }
+}
+
 @media (max-width: 399px) {
   .markets-page {
     padding: 16px 14px 30px;
@@ -10073,18 +10084,9 @@ a.market-heat-tile {
     height: 6px;
   }
 
-  .market-heatmap {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .market-heat-tile {
     min-height: 62px;
     padding: 8px;
-  }
-
-  .market-detail-price {
-    width: 100%;
-    margin-left: 0;
   }
 }
 

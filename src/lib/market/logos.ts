@@ -37,6 +37,7 @@ const DOMAIN_MAP: Record<string, string> = {
   USO: "uscfinvestments.com",
   "BTC-USD": "bitcoin.org",
   "ETH-USD": "ethereum.org",
+  "SOL-USD": "solana.com",
 };
 
 // ── Sector ETF fallback colors ──

@@ -233,8 +233,13 @@ export default function MarketPulsePage() {
   const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
   const vix = indicatorMap.get("^VIX")?.price ?? null;
   const tenYear = indicatorMap.get("^TNX")?.price ?? null;
-  const indexMarkets = data.globalMarkets.filter((market) => market.category !== "International");
-  const internationalMarkets = data.globalMarkets.filter((market) => market.category === "International");
+  const marketsByCategory = (category: string) =>
+    data.globalMarkets.filter((market) => market.category === category);
+  const majorIndexes = marketsByCategory("Major Index");
+  const usMarkets = marketsByCategory("U.S. Markets");
+  const commodities = marketsByCategory("Commodity");
+  const cryptoMarkets = marketsByCategory("Crypto");
+  const internationalMarkets = marketsByCategory("International");
   const industryMarkets = sectorsToMarkets(data.sectors);
 
   return (
@@ -303,12 +308,32 @@ export default function MarketPulsePage() {
               <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
             </section>
             <GlobalMarketsHeatmap
-              markets={indexMarkets}
-              title="Indexes"
-              subtitle="U.S. equities, Bitcoin, and macro assets · color reflects current session move"
+              markets={majorIndexes}
+              title="Major Indexes"
+              subtitle="Dow, S&P 500, and Nasdaq · color reflects current session move"
               uniformTiles
               sessionLabel={data.sessionLabel ?? null}
             />
+            <GlobalMarketsHeatmap
+              markets={commodities}
+              title="Commodities"
+              subtitle="Oil, gold, and silver · color reflects current session move"
+              uniformTiles
+            />
+            <GlobalMarketsHeatmap
+              markets={cryptoMarkets}
+              title="Crypto"
+              subtitle="Bitcoin, Ethereum, and Solana · color reflects current session move"
+              uniformTiles
+            />
+            {usMarkets.length > 0 ? (
+              <GlobalMarketsHeatmap
+                markets={usMarkets}
+                title="U.S. Markets"
+                subtitle="Breadth, style, and dollar proxies · color reflects current session move"
+                uniformTiles
+              />
+            ) : null}
             <GlobalMarketsHeatmap
               markets={internationalMarkets}
               title="International"

@@ -170,7 +170,11 @@ export function IndustriesClient({
             .industries-heat-tile:hover,.industries-heat-tile:focus-visible { filter:brightness(1.16); outline:none; transform:translateY(-1px); }
             .industries-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }
             .industries-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
-            @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; }.industries-heat-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }.industries-heat-tile { min-height:62px; padding:8px; } }
+            @media (max-width:767px) {
+              .industries-heat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
+              .industries-heat-grid > .industries-heat-tile { grid-column:span 1 / span 1 !important; }
+            }
+            @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; }.industries-heat-tile { min-height:62px; padding:8px; } }
           `}</style>
           <div className="industries-heat-heading">
             <h2 className="industries-heat-title">
