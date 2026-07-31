@@ -11,7 +11,7 @@
 import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
-import { getCardVerdict } from "@/lib/evidence/card-verdict";
+import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import { isFiniteNumber } from "@/lib/display/format";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
@@ -32,6 +32,7 @@ interface TrendingCardProps {
   sparkline: StockHistoryPoint[];
   headlines: TrendingCardHeadline[];
   newsDriver: NewsDriver | null;
+  shortInterest?: CardVerdictShortInterest;
   isTracked: boolean;
   isAdding: boolean;
   onAdd: () => void;
@@ -81,6 +82,7 @@ export function TrendingCard({
   quote,
   headlines,
   newsDriver,
+  shortInterest,
   isTracked,
   isAdding,
   onAdd,
@@ -108,7 +110,7 @@ export function TrendingCard({
     companyName,
     addedAt: new Date().toISOString(),
     status: "active",
-  }, quote);
+  }, quote, shortInterest);
   const ring = ringFromVerdict(verdict.tone, verdict.strength);
   const driver = driverLine(newsDriver, headlines);
 

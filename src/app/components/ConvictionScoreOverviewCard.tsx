@@ -1,109 +1,36 @@
 /**
- * Fetches wired evidence categories, builds CategoryScores,
- * and renders the composite Conviction Score overview.
- *
- * Progressive scoring: fast sources (technicals, short interest)
- * can produce a score before the slow 13F institutional call finishes.
- * Institutional upgrades the composite when it arrives.
- *
- * Wired: institutional, technicals, short_interest
+ * Dashboard Conviction Score — same getCardVerdict formula as Trending / Watchlist rings.
  */
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ConvictionScoreOverview } from "@/app/components/ConvictionScoreOverview";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import {
-  buildConvictionScore,
-  type ConvictionScoreResult,
-  type InstitutionalCategoryInput,
-  type ShortInterestCategoryInput,
-  type TechnicalCategoryInput,
-} from "@/lib/conviction/score";
-import type { ShortInterestSummary } from "@/lib/market/short-interest";
-import type { StockHistoryPoint } from "@/lib/market/technical-state";
+  getCardVerdict,
+  type CardVerdictShortInterest,
+} from "@/lib/evidence/card-verdict";
 import type { StockQuote } from "@/lib/market/quotes";
-import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import type { ShortInterestSummary } from "@/lib/market/short-interest";
+import type { GaugeTone } from "@/components/GaugeRing";
 
-const EMPTY_RESULT: ConvictionScoreResult = {
-  score: null,
-  label: "insufficient_evidence",
-  coverage: 0,
-  agreementAdjustment: 0,
-  includedCategories: [],
-  excludedCategories: [
-    "institutional",
-    "technicals",
-    "short_interest",
-  ],
-};
-
-function emptyInstitutional(): InstitutionalCategoryInput {
+function ringFromVerdict(tone: string, strength: number): {
+  tone: GaugeTone;
+  label: string;
+} {
+  if (tone === "positive") return { tone: "green", label: "Accumulating" };
+  if (tone === "negative") return { tone: "red", label: "Distribution" };
+  if (tone === "contested") return { tone: "amber", label: "Holding" };
   return {
-    results: [] as InstitutionalAccumulation[],
-    status: "error",
-    message: "Institutional filings could not be loaded.",
-  };
-}
-
-function emptyShortInterest(ticker: string): ShortInterestCategoryInput {
-  return {
-    ticker,
-    status: "error",
-    latest: null,
-    fetchedAt: new Date().toISOString(),
-    message: "Short interest data could not be loaded.",
-  };
-}
-
-function emptyTechnicals(): TechnicalCategoryInput {
-  return {
-    points: [],
-    currentPrice: null,
-    fiftyTwoWeekHigh: null,
-    fiftyTwoWeekLow: null,
-    fetchedAt: null,
-  };
-}
-
-function historyPointsFromResponse(
-  historyRes: {
-    history?: StockHistoryPoint[] | {
-      points?: StockHistoryPoint[];
-      fiftyTwoWeekHigh?: number | null;
-      fiftyTwoWeekLow?: number | null;
-    };
-    fetchedAt?: string;
-  } | null,
-  quote: StockQuote | null,
-): TechnicalCategoryInput {
-  if (!historyRes) return emptyTechnicals();
-  const historyPayload = historyRes.history;
-  const historyPoints = Array.isArray(historyPayload)
-    ? historyPayload
-    : Array.isArray(historyPayload?.points)
-      ? historyPayload.points
-      : [];
-  return {
-    points: historyPoints,
-    currentPrice: quote?.price ?? null,
-    fiftyTwoWeekHigh:
-      quote?.fiftyTwoWeekHigh
-      ?? (historyPayload && !Array.isArray(historyPayload)
-        ? historyPayload.fiftyTwoWeekHigh ?? null
-        : null),
-    fiftyTwoWeekLow:
-      quote?.fiftyTwoWeekLow
-      ?? (historyPayload && !Array.isArray(historyPayload)
-        ? historyPayload.fiftyTwoWeekLow ?? null
-        : null),
-    fetchedAt: historyRes.fetchedAt ?? null,
+    tone: strength >= 55 ? "amber" : "neutral",
+    label: strength >= 55 ? "Holding" : "Awaiting",
   };
 }
 
 export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
-  const [result, setResult] = useState<ConvictionScoreResult>(EMPTY_RESULT);
+  const [quote, setQuote] = useState<StockQuote | null>(null);
+  const [shortInterest, setShortInterest] = useState<CardVerdictShortInterest | undefined>(undefined);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -112,93 +39,34 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
 
     async function load() {
       setLoading(true);
-      setResult(EMPTY_RESULT);
+      setQuote(null);
+      setShortInterest(undefined);
 
-      let institutional = emptyInstitutional();
-      let technicals = emptyTechnicals();
-      let shortInterest = emptyShortInterest(ticker);
-
-      const publish = (stillLoading: boolean) => {
-        if (cancelled) return;
-        setResult(
-          buildConvictionScore({
-            ticker,
-            institutional,
-            technicals,
-            shortInterest,
-          }),
-        );
-        if (!stillLoading) setLoading(false);
-      };
-
-      // Fast path first — technicals + short interest clear the 50% gate without 13F.
-      const fast = await Promise.all([
-        fetchJsonWithTimeout<ShortInterestSummary & { status?: string; message?: string }>(
-          `/api/market/short-interest?ticker=${encodeURIComponent(ticker)}`,
-          10_000,
-          controller.signal,
-        ).catch(() => null),
-        fetchJsonWithTimeout<{
-          history?: StockHistoryPoint[] | {
-            points?: StockHistoryPoint[];
-            fiftyTwoWeekHigh?: number | null;
-            fiftyTwoWeekLow?: number | null;
-          };
-          fetchedAt?: string;
-        }>(
-          `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
-          12_000,
-          controller.signal,
-        ).catch(() => null),
+      const [quotesRes, shortRes] = await Promise.all([
         fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(
           `/api/market/quotes?tickers=${encodeURIComponent(ticker)}`,
           8_000,
+          controller.signal,
+        ).catch(() => null),
+        fetchJsonWithTimeout<ShortInterestSummary & { status?: string }>(
+          `/api/market/short-interest?ticker=${encodeURIComponent(ticker)}`,
+          10_000,
           controller.signal,
         ).catch(() => null),
       ]);
 
       if (cancelled) return;
 
-      const [shortRes, historyRes, quotesRes] = fast;
-      technicals = historyPointsFromResponse(historyRes, quotesRes?.quotes?.[0] ?? null);
-      shortInterest = shortRes
-        ? {
-            ticker: shortRes.ticker ?? ticker,
-            status: shortRes.status,
-            latest: shortRes.latest ?? null,
-            fetchedAt: shortRes.fetchedAt,
-            message: shortRes.message,
-          }
-        : emptyShortInterest(ticker);
-
-      // Show a score as soon as fast coverage is enough; keep loading until 13F returns.
-      publish(true);
-
-      try {
-        const instRes = await fetchJsonWithTimeout<{
-          results?: InstitutionalAccumulation[];
-          status?: string;
-          fetchedAt?: string;
-          message?: string;
-        }>(
-          `/api/evidence/institutional?ticker=${encodeURIComponent(ticker)}`,
-          26_000,
-          controller.signal,
-        ).catch(() => null);
-
-        if (cancelled) return;
-
-        institutional = instRes
+      setQuote(quotesRes?.quotes?.[0] ?? null);
+      setShortInterest(
+        shortRes
           ? {
-              results: instRes.results ?? [],
-              status: instRes.status,
-              fetchedAt: instRes.fetchedAt,
-              message: instRes.message,
+              status: shortRes.status as CardVerdictShortInterest["status"],
+              latest: shortRes.latest ?? null,
             }
-          : emptyInstitutional();
-      } finally {
-        publish(false);
-      }
+          : undefined,
+      );
+      setLoading(false);
     }
 
     void load();
@@ -208,9 +76,35 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
     };
   }, [ticker]);
 
+  const verdict = useMemo(() => {
+    if (!quote) return null;
+    return getCardVerdict(
+      {
+        ticker: ticker.toUpperCase(),
+        companyName: quote.name || ticker.toUpperCase(),
+        addedAt: new Date().toISOString(),
+        status: "active",
+      },
+      quote,
+      shortInterest,
+    );
+  }, [quote, shortInterest, ticker]);
+
+  const ring = verdict ? ringFromVerdict(verdict.tone, verdict.strength) : null;
+
   return (
     <ConvictionScoreOverview
-      result={result}
+      score={verdict?.strength ?? null}
+      label={ring?.label ?? "Unavailable"}
+      tone={ring?.tone ?? "neutral"}
+      detail={
+        verdict
+          ? `Score ${verdict.strength}/100 · ${verdict.insight}`
+          : loading
+            ? "Loading live quote and short interest…"
+            : "Quote unavailable — score cannot be calculated."
+      }
+      meta={loading ? "LOADING" : "LIVE"}
       loading={loading}
       className="dashboard-conviction-overview"
     />

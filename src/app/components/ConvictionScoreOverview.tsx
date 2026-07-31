@@ -1,42 +1,31 @@
 /**
- * Composite Conviction Score ring on a 0–100 display scale.
- * Internal math stays signed [-100, +100]; the dial/label show the mapped 0–100 value.
+ * Conviction Score ring shared with Trending / Watchlist cards.
+ * Uses the same 0–99 card-verdict scale (not a separate composite mapping).
  */
 
 "use client";
 
-import { GaugeRing } from "@/components/GaugeRing";
-import type { ConvictionScoreResult } from "@/lib/conviction/score";
-import {
-  dialValueFromScore,
-  displayLabelForComposite,
-  displayScoreFromSigned,
-  formatCoverageSources,
-  toneForComposite,
-} from "@/lib/conviction/score";
+import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 
-interface ConvictionScoreOverviewProps {
-  result: ConvictionScoreResult;
+export interface ConvictionScoreOverviewProps {
+  score: number | null;
+  label: string;
+  tone: GaugeTone;
+  detail: string;
+  meta?: string | null;
   loading?: boolean;
   className?: string;
 }
 
 export function ConvictionScoreOverview({
-  result,
+  score,
+  label,
+  tone,
+  detail,
+  meta = null,
   loading = false,
   className,
 }: ConvictionScoreOverviewProps) {
-  const displayLabel = displayLabelForComposite(result.label);
-  const tone = toneForComposite(result.label);
-  const dialValue = dialValueFromScore(result.score);
-  const displayScore = displayScoreFromSigned(result.score);
-  const coverageNote =
-    result.coverage > 0 && result.coverage < 1
-      ? `Based on ${formatCoverageSources(result.includedCategories)} (${Math.round(result.coverage * 100)}% coverage)`
-      : result.coverage >= 1
-        ? "Full category coverage"
-        : null;
-
   return (
     <section
       className={`quote-card quote-conviction-card${className ? ` ${className}` : ""}`}
@@ -45,23 +34,19 @@ export function ConvictionScoreOverview({
       <div className="quote-card-header">
         <span className="quote-card-title">Conviction score</span>
         <span className="quote-card-meta">
-          {loading
-            ? "LOADING"
-            : result.coverage > 0
-              ? `${Math.round(result.coverage * 100)}% COVERAGE`
-              : "COMPOSITE"}
+          {loading ? "LOADING" : meta ?? "LIVE"}
         </span>
       </div>
 
       <div className="quote-conviction-ring-wrap">
         <GaugeRing
           size="lg"
-          value={dialValue}
-          label={loading ? "…" : displayScore !== null ? String(displayScore) : "—"}
-          sublabel={loading ? "LOADING" : displayLabel.toUpperCase()}
+          value={score}
+          label={loading ? "…" : score !== null ? String(score) : "—"}
+          sublabel={loading ? "LOADING" : label.toUpperCase()}
           caption=""
           tone={tone}
-          ariaLabel={`Conviction score ${displayScore ?? "unavailable"} of 100: ${displayLabel}`}
+          ariaLabel={`Conviction score ${score ?? "unavailable"} of 100: ${label}`}
         />
       </div>
 
@@ -72,18 +57,10 @@ export function ConvictionScoreOverview({
       </div>
 
       <p className="quote-conviction-detail">
-        {loading && result.score === null
-          ? "Loading evidence across technicals and short interest…"
-          : loading && result.score !== null
-            ? "Updating score with institutional 13F filings…"
-          : result.label === "insufficient_evidence"
-            ? "Need at least 50% category coverage for a score."
-            : `Score ${displayScore}/100 · ${result.includedCategories.length} categor${result.includedCategories.length === 1 ? "y" : "ies"} included.`}
+        {loading && score === null
+          ? "Loading live quote and short interest…"
+          : detail}
       </p>
-
-      {coverageNote && !loading ? (
-        <p className="quote-conviction-coverage">{coverageNote}</p>
-      ) : null}
     </section>
   );
 }
