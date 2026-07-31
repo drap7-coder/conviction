@@ -241,6 +241,7 @@ export default function MarketPulsePage() {
     <main className="markets-page">
       <section className="market-regime-lede" aria-label="Market regime">
         <strong className="market-regime-label">{data.macroRegime.label}</strong>
+        <p className="market-regime-summary">{data.macroRegime.summary}</p>
       </section>
 
       <section className="market-region-picker" aria-label="Pulse views">
