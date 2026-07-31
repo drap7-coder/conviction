@@ -3,11 +3,18 @@ import {
   getConvictionScoreForTicker,
   getConvictionScoresForTickers,
 } from "@/lib/conviction/score";
+import { validateTicker } from "@/lib/watchlist/validate";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const MAX_BATCH = 25;
+
+async function resolveCompanyName(ticker: string): Promise<string> {
+  const resolved = await validateTicker(ticker);
+  if (resolved.valid) return resolved.companyName ?? ticker;
+  return ticker;
+}
 
 /**
  * Shared Conviction Score API.
@@ -21,7 +28,8 @@ export async function GET(request: NextRequest) {
   const batchRaw = searchParams.get("tickers")?.trim() ?? null;
 
   if (single) {
-    const score = await getConvictionScoreForTicker(single);
+    const companyName = await resolveCompanyName(single);
+    const score = await getConvictionScoreForTicker(single, { companyName });
     return NextResponse.json(score);
   }
 
@@ -39,7 +47,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const scores = await getConvictionScoresForTickers(tickers);
+    const resolved = await Promise.all(
+      tickers.map(async (ticker) => ({
+        ticker,
+        companyName: await resolveCompanyName(ticker),
+      })),
+    );
+    const scores = await getConvictionScoresForTickers(resolved);
     return NextResponse.json({ scores, count: Object.keys(scores).length });
   }
 

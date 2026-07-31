@@ -505,7 +505,7 @@ export default function QuotesPage() {
             </div>
           </section>
 
-          {/* ── Conviction score (institutional + earnings composite) ── */}
+          {/* ── Conviction score (institutional + technicals + short interest) ── */}
           <ConvictionScoreOverviewCard key={result.quote.ticker} ticker={result.quote.ticker} />
 
           {/* ── Numbers card ── */}
