@@ -26,7 +26,7 @@ function ItemCard({ item }: { item: BuildingConvictionItem }) {
  * intelligence immediately. Kept short and scannable.
  */
 export function BuildingConvictionNow() {
-  const items = getBuildingConvictionItems(3);
+  const items = getBuildingConvictionItems(5);
   if (items.length === 0) return null;
 
   return (
@@ -38,7 +38,13 @@ export function BuildingConvictionNow() {
           Ownership moves and news worth a closer look.
         </p>
       </div>
-      <div className="bcn-list">
+      <div
+        className="bcn-list"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="What’s changing cards"
+        tabIndex={0}
+      >
         {items.map((item) => (
           <ItemCard key={item.id} item={item} />
         ))}
