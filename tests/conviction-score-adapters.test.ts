@@ -113,6 +113,35 @@ describe("toTechnicalsCategoryScore", () => {
     const category = toTechnicalsCategoryScore("AAPL", { points: [] });
     expect(category.hasData).toBe(false);
   });
+
+  it("uses live session price instead of last close when provided", () => {
+    const points = risingHistory(80, 100);
+    const lastClose = points[points.length - 1]!.close;
+    const atClose = toTechnicalsCategoryScore(
+      "AAPL",
+      {
+        points,
+        currentPrice: lastClose,
+        fiftyTwoWeekHigh: lastClose,
+        fiftyTwoWeekLow: 90,
+      },
+      new Date(points[points.length - 1]!.date),
+    );
+    const inSession = toTechnicalsCategoryScore(
+      "AAPL",
+      {
+        points,
+        // Large session gap below last close should weaken the technical score.
+        currentPrice: lastClose * 0.85,
+        fiftyTwoWeekHigh: lastClose,
+        fiftyTwoWeekLow: 90,
+      },
+      new Date(points[points.length - 1]!.date),
+    );
+    expect(atClose.hasData).toBe(true);
+    expect(inSession.hasData).toBe(true);
+    expect(inSession.score).toBeLessThan(atClose.score);
+  });
 });
 
 describe("toShortInterestCategoryScore", () => {

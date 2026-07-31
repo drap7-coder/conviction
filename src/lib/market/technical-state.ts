@@ -161,12 +161,14 @@ export function deriveTechnicalState(
     ? ((latestPrice - sma200) / sma200) * 100
     : null;
 
-  // Short-term trend: % change over last 5 trading days
+  // Short-term trend: % change over last 5 trading days, anchored on live price when provided
   let shortTermTrend: number | null = null;
   if (closes.length >= 6) {
-    shortTermTrend = ((closes[closes.length - 1] - closes[closes.length - 6]) / closes[closes.length - 6]) * 100;
+    const prior = closes[closes.length - 6];
+    shortTermTrend = prior !== 0 ? ((latestPrice - prior) / prior) * 100 : null;
   } else if (closes.length >= 2) {
-    shortTermTrend = ((closes[closes.length - 1] - closes[0]) / closes[0]) * 100;
+    const prior = closes[0];
+    shortTermTrend = prior !== 0 ? ((latestPrice - prior) / prior) * 100 : null;
   }
 
   // SMA slope: % change of the SMA line over the last 20 trading periods

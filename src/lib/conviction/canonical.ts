@@ -520,9 +520,10 @@ export function buildConvictionSnapshot(input: BuildSnapshotInput): ConvictionSn
     now,
   );
 
+  const live = getLivePrice(input.quote, now);
   const technical = buildTechnicalAssessment(
     input.historyPoints,
-    input.quote.price,
+    live.price ?? input.quote.price,
     input.week52High,
     input.week52Low,
     nowISO,

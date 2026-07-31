@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { TechnicalStateCard } from "./TechnicalStateCard";
+import { getLivePrice } from "@/lib/market/live-quote";
+import type { StockQuote } from "@/lib/market/quotes";
 // Today & industry change temporarily suppressed — restore this import when re-enabling:
 // import { TodayAndIndustryCard } from "./TodayAndPeersCard";
 
@@ -34,6 +36,7 @@ interface MarketPanelProps {
 
 export function MarketPanel({ ticker }: MarketPanelProps) {
   const [history, setHistory] = useState<StockHistory | null>(null);
+  const [livePrice, setLivePrice] = useState<number | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
 
   useEffect(() => {
@@ -42,15 +45,25 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
     async function load() {
       setStatus("loading");
       try {
-        const data = await fetchJsonWithTimeout<HistoryResponse>(
-          `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
-          8_000,
-          controller.signal,
-        );
-        setHistory(data.history);
-        setStatus(data.history.points.length >= 2 ? "success" : "empty");
+        const [historyData, quotesData] = await Promise.all([
+          fetchJsonWithTimeout<HistoryResponse>(
+            `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
+            8_000,
+            controller.signal,
+          ),
+          fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(
+            `/api/market/quotes?tickers=${encodeURIComponent(ticker)}`,
+            8_000,
+            controller.signal,
+          ).catch(() => null),
+        ]);
+        setHistory(historyData.history);
+        const quote = quotesData?.quotes?.[0] ?? null;
+        setLivePrice(quote ? getLivePrice(quote).price : null);
+        setStatus(historyData.history.points.length >= 2 ? "success" : "empty");
       } catch {
         setHistory(null);
+        setLivePrice(null);
         setStatus("error");
       }
     }
@@ -59,14 +72,13 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
     return () => controller.abort();
   }, [ticker]);
 
-  // Use the year-range history for technical state, but let PriceTrendCard manage its own range
-  // Pass the year-range data only for technical indicators
+  // Prefer live session price so dashboard technicals stay session-aware.
   return (
     <>
       <TechnicalStateCard
         history={history}
         status={status}
-        currentPrice={history?.endPrice ?? null}
+        currentPrice={livePrice ?? history?.endPrice ?? null}
       />
       {/* Today & industry change temporarily suppressed — restore when ready:
       <TodayAndIndustryCard ticker={ticker} /> */}

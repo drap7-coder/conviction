@@ -24,6 +24,7 @@ import {
 import type { ShortInterestSummary } from "@/lib/market/short-interest";
 import type { StockHistoryPoint } from "@/lib/market/technical-state";
 import type { StockQuote } from "@/lib/market/quotes";
+import { getLivePrice } from "@/lib/market/live-quote";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 
 const EMPTY_RESULT: ConvictionScoreResult = {
@@ -85,9 +86,12 @@ function historyPointsFromResponse(
     : Array.isArray(historyPayload?.points)
       ? historyPayload.points
       : [];
+  // Use live session price (pre/AH) so dashboard technicals match session-aware cards.
+  const livePrice = quote ? getLivePrice(quote).price : null;
+
   return {
     points: historyPoints,
-    currentPrice: quote?.price ?? null,
+    currentPrice: livePrice ?? quote?.price ?? null,
     fiftyTwoWeekHigh:
       quote?.fiftyTwoWeekHigh
       ?? (historyPayload && !Array.isArray(historyPayload)
