@@ -19,6 +19,7 @@ import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PortfolioCheckPanel } from "@/components/PortfolioCheckPanel";
+import { PortfolioDriversPanel } from "@/components/PortfolioDriversPanel";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
@@ -560,14 +561,32 @@ export default function Portfolio({
             </div>
           )}
 
-          {/* ── Portfolio heatmap + Portfolio Check in the white shell footer ── */}
+          {/* ── Portfolio heatmap + drivers / check in the white shell footer ── */}
           {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
             <StockHeatmap
               title="Portfolio"
               subtitle="Tile size reflects position value; color reflects the current market move."
               items={portfolioHeatmapItems}
               sessionLabel={portfolioHeatmapSession}
-              footer={<PortfolioCheckPanel riskFlags={riskFlags} />}
+              footer={(
+                <>
+                  <PortfolioDriversPanel
+                    holdings={sortedPositions.map(({ pos, metrics, dailyPct }) => {
+                      const quote = quotes.find(
+                        (item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase(),
+                      );
+                      const live = quote ? getLivePrice(quote) : null;
+                      return {
+                        ticker: pos.companyId.toUpperCase(),
+                        companyName: quote?.name ?? pos.companyId.toUpperCase(),
+                        changePercent: live?.changePercent ?? dailyPct,
+                        dailyChange: metrics.dailyChange,
+                      };
+                    })}
+                  />
+                  <PortfolioCheckPanel riskFlags={riskFlags} />
+                </>
+              )}
             />
           )}
 

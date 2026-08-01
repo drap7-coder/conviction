@@ -9,6 +9,7 @@ import type { StockHistoryPoint } from "@/lib/market/quotes";
 import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
+import { MoveDriversPanel } from "@/components/MoveDriversPanel";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { InvestorMovesPanel } from "@/app/components/InvestorMovesPanel";
 import { PoliticiansMovesPanel } from "@/app/components/PoliticiansMovesPanel";
@@ -323,6 +324,28 @@ export default function RisingConvictionPage() {
                 sizeLabel: idea.activityLabel,
               };
             })}
+            footer={(
+              <MoveDriversPanel
+                holdings={trending.map((idea) => {
+                  const live = getLivePrice(idea.quote);
+                  return {
+                    ticker: idea.ticker,
+                    companyName: idea.companyName,
+                    changePercent: live.changePercent,
+                  };
+                })}
+                newsByTicker={Object.fromEntries(
+                  trending.map((idea) => [
+                    idea.ticker.toUpperCase(),
+                    {
+                      driver: newsDrivers[idea.ticker] ?? null,
+                      headlines: headlines[idea.ticker] ?? [],
+                    },
+                  ]),
+                )}
+                lede="Headlines and themes behind today’s most active names."
+              />
+            )}
           />
         ) : null}
 

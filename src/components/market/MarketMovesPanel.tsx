@@ -12,6 +12,7 @@ import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
+import { MoveDriversPanel } from "@/components/MoveDriversPanel";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 interface TrendingCompany {
@@ -288,6 +289,28 @@ export function MarketMovesPanel() {
               sizeLabel: idea.activityLabel,
             };
           })}
+          footer={(
+            <MoveDriversPanel
+              holdings={trending.map((idea) => {
+                const live = getLivePrice(idea.quote);
+                return {
+                  ticker: idea.ticker,
+                  companyName: idea.companyName,
+                  changePercent: live.changePercent,
+                };
+              })}
+              newsByTicker={Object.fromEntries(
+                trending.map((idea) => [
+                  idea.ticker.toUpperCase(),
+                  {
+                    driver: newsDrivers[idea.ticker] ?? null,
+                    headlines: headlines[idea.ticker] ?? [],
+                  },
+                ]),
+              )}
+              lede="Headlines and themes behind today’s most active names."
+            />
+          )}
         />
       ) : null}
 
