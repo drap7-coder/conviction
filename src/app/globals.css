@@ -10272,7 +10272,7 @@ details > summary::before {
 
 .pulse-view-tabs button:hover,
 .pulse-view-tabs button:focus-visible {
-  filter: brightness(1.08);
+  border-color: color-mix(in srgb, #ffffff 22%, transparent);
   outline: none;
 }
 
@@ -10384,7 +10384,7 @@ details > summary::before {
 .trending-view-tabs button:focus-visible,
 .market-region-tabs button:hover,
 .market-region-tabs button:focus-visible {
-  filter: brightness(1.08);
+  border-color: color-mix(in srgb, #ffffff 22%, transparent);
   outline: none;
   transform: none;
 }
