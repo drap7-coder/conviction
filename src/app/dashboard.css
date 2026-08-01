@@ -420,7 +420,7 @@
   flex: 1;
   flex-direction: column;
   gap: 8px;
-  min-height: 130px;
+  min-height: 112px;
   cursor: pointer;
 }
 
