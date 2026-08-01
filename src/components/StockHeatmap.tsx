@@ -41,38 +41,156 @@ function tileSpan(marketCap: number | null, maxMarketCap: number): number {
 }
 
 const HEATMAP_STYLES = `
-  .stock-heat-panel { margin:0 0 20px; padding:20px; border-radius:12px; font-family:var(--font-mono); }
-  .stock-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-  .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; color:var(--on-ink); }
-  .stock-heat-subtitle { margin:6px 0 12px; color:var(--on-ink-muted); font-size:.66rem; line-height:1.45; }
-  .stock-heat-move-legend { display:flex; flex-wrap:wrap; gap:10px 14px; margin:0 0 12px; color:var(--on-ink-muted); font-size:.58rem; letter-spacing:.04em; text-transform:uppercase; }
-  .stock-heat-move-legend span { display:inline-flex; align-items:center; gap:6px; }
-  .stock-heat-swatch { width:10px; height:10px; border-radius:2px; border:1px solid color-mix(in srgb, #ffffff 14%, transparent); }
+  .stock-heat-panel {
+    margin: 0 0 20px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-elevated);
+    box-shadow: var(--shadow-md);
+    font-family: var(--font-mono);
+    color: var(--ink);
+  }
+  .stock-heat-copy {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+    border-radius: 12px;
+    background: var(--ink-panel);
+    color: #fff;
+    box-shadow: var(--shadow-ink);
+  }
+  .stock-heat-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .stock-heat-title {
+    margin: 0;
+    display: inline-flex;
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+  .stock-heat-subtitle {
+    margin: 0;
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.22);
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 0.66rem;
+    line-height: 1.45;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .stock-heat-move-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .stock-heat-move-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.22);
+  }
+  .stock-heat-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    border: 1px solid color-mix(in srgb, #ffffff 14%, transparent);
+  }
   .stock-heat-session {
-    display:inline-flex; align-items:center; gap:6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
   .stock-heat-session-dot {
-    width:6px; height:6px; border-radius:50%; background:currentColor;
-    box-shadow:0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent);
-    animation:stock-heat-session-pulse 1.6s ease-out infinite;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent);
+    animation: stock-heat-session-pulse 1.6s ease-out infinite;
   }
   @keyframes stock-heat-session-pulse {
-    0% { transform:scale(1); box-shadow:0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent); opacity:1; }
-    70% { transform:scale(1.15); box-shadow:0 0 0 7px transparent; opacity:.85; }
-    100% { transform:scale(1); box-shadow:0 0 0 0 transparent; opacity:1; }
+    0% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent); opacity: 1; }
+    70% { transform: scale(1.15); box-shadow: 0 0 0 7px transparent; opacity: 0.85; }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; opacity: 1; }
   }
-  @media (prefers-reduced-motion:reduce) {
-    .stock-heat-session-dot { animation:none; }
+  @media (prefers-reduced-motion: reduce) {
+    .stock-heat-session-dot { animation: none; }
   }
-  .stock-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:8px; }
-  @media (max-width:767px) {
-    .stock-heat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-    .stock-heat-grid > .heat-tile { grid-column:span 1 / span 1 !important; }
+  .stock-heat-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-auto-flow: dense;
+    gap: 8px;
   }
-  @media (max-width:399px) {
-    .stock-heat-panel { padding:16px 14px; }
+  @media (max-width: 767px) {
+    .stock-heat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .stock-heat-grid > .heat-tile { grid-column: span 1 / span 1 !important; }
+  }
+  @media (max-width: 399px) {
+    .stock-heat-panel { padding: 12px; }
+    .stock-heat-copy { padding: 11px 12px; }
   }
 `;
+
+function HeatmapCopy({
+  title,
+  subtitle,
+  sessionLabel,
+  showLegend = false,
+}: {
+  title: string;
+  subtitle: string;
+  sessionLabel?: string | null;
+  showLegend?: boolean;
+}) {
+  return (
+    <div className="stock-heat-copy">
+      <div className="stock-heat-heading">
+        <h2 className="stock-heat-title">{title}</h2>
+        {sessionLabel ? (
+          <span className="stock-heat-session ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
+            <i className="stock-heat-session-dot" aria-hidden="true" />
+            {sessionLabel}
+          </span>
+        ) : null}
+      </div>
+      <p className="stock-heat-subtitle">{subtitle}</p>
+      {showLegend ? (
+        <div className="stock-heat-move-legend" aria-label="Session move color legend">
+          <span><i className="stock-heat-swatch" style={{ background: HEAT_NEUTRAL }} /> Flat</span>
+          <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_SOFT }} /> Mild up</span>
+          <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_MID }} /> Strong up (≥{HEAT_STRONG_THRESHOLD}%)</span>
+          <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL }} /> Extreme up (≥{HEAT_EXTREME_THRESHOLD}%)</span>
+          <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_SOFT_BG }} /> Mild down</span>
+          <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_MID }} /> Strong down</span>
+          <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_STRONG }} /> Extreme down</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 export function StockHeatmap({
   title,
@@ -81,11 +199,9 @@ export function StockHeatmap({
   loading = false,
   sessionLabel = null,
 }: StockHeatmapProps) {
-  const showSessionBadge = Boolean(sessionLabel);
-
   if (loading && items.length === 0) {
     return (
-      <section className="stock-heat-panel ink-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
+      <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
         <style>{`
           ${HEATMAP_STYLES}
           .stock-heat-loading-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
@@ -96,10 +212,7 @@ export function StockHeatmap({
           @media (max-width:767px) { .stock-heat-loading-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.stock-heat-loading-tile { grid-column:span 1 !important; } }
           @media (max-width:399px) { .stock-heat-loading-tile { height:6.5rem; } }
         `}</style>
-        <div className="stock-heat-heading">
-          <h2 className="stock-heat-title">{title}</h2>
-        </div>
-        <p className="stock-heat-subtitle">{subtitle}</p>
+        <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
         </div>
@@ -111,27 +224,9 @@ export function StockHeatmap({
   const maxSizeValue = Math.max(...items.map((item) => item.sizeValue ?? item.marketCap ?? 0), 0);
 
   return (
-    <section className="stock-heat-panel ink-panel" aria-label={title} aria-description={subtitle}>
+    <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
       <style>{HEATMAP_STYLES}</style>
-      <div className="stock-heat-heading">
-        <h2 className="stock-heat-title">{title}</h2>
-        {showSessionBadge ? (
-          <span className="stock-heat-session ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
-            <i className="stock-heat-session-dot" aria-hidden="true" />
-            {sessionLabel}
-          </span>
-        ) : null}
-      </div>
-      <p className="stock-heat-subtitle">{subtitle}</p>
-      <div className="stock-heat-move-legend" aria-label="Session move color legend">
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_NEUTRAL }} /> Flat</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_SOFT }} /> Mild up</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_MID }} /> Strong up (≥{HEAT_STRONG_THRESHOLD}%)</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL }} /> Extreme up (≥{HEAT_EXTREME_THRESHOLD}%)</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_SOFT_BG }} /> Mild down</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_MID }} /> Strong down</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_STRONG }} /> Extreme down</span>
-      </div>
+      <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} showLegend />
       <div className="stock-heat-grid">
         {items.map((item) => {
           const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
