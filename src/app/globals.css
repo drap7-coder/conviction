@@ -8808,7 +8808,7 @@ details > summary::before {
   .investor-moves-intro {
     grid-template-columns: 1fr;
     align-items: start;
-    padding: 18px 16px;
+    padding: 14px 16px;
   }
 
   .investor-moves-stamp {
@@ -8818,6 +8818,7 @@ details > summary::before {
     align-items: baseline;
     gap: 7px;
     padding: 9px 11px;
+    text-align: left;
   }
 
   .investor-moves-stamp span {
