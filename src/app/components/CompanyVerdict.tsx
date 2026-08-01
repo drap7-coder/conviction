@@ -181,12 +181,10 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
   if (loading) {
     return (
       <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
-        <div className="verdict-topline">
-          <div>
-            <span className="verdict-eyebrow">Momentum support</span>
-            <h2>Building the momentum picture…</h2>
-            <p>Checking price trend, reported earnings, and analyst revisions.</p>
-          </div>
+        <div className="verdict-lede ink-panel">
+          <span className="verdict-eyebrow">Momentum support</span>
+          <h2>Building the momentum picture…</h2>
+          <p>Checking price trend, reported earnings, and analyst revisions.</p>
         </div>
         <div className="signal-strip momentum-signal-strip">
           {["Price", "Earnings", "Analysts"].map((label) => (
@@ -204,12 +202,10 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
 
   return (
     <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
-      <div className="verdict-topline">
-        <div>
-          <span className="verdict-eyebrow">Momentum support</span>
-          <h2>{summary.headline}</h2>
-          <p>{summary.summary}</p>
-        </div>
+      <div className="verdict-lede ink-panel">
+        <span className="verdict-eyebrow">Momentum support</span>
+        <h2>{summary.headline}</h2>
+        <p>{summary.summary}</p>
       </div>
 
       <div className="signal-strip momentum-signal-strip">
@@ -217,7 +213,6 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
           <div className="signal-pill momentum-signal" key={signal.label} title={signal.detail}>
             <span>{signal.label}</span>
             <strong className={signal.direction}>{directionLabel(signal.direction)}</strong>
-            {signal.label === "Price" ? <small>{signal.detail}</small> : null}
           </div>
         ))}
       </div>
