@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import type { PulseData, PulseGlobalMarket, PulseIndicator, PulseSector } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
-import { heatTileColor } from "@/lib/display/heat-color";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { HeatTile } from "@/components/HeatTile";
 import { MarketNarrativePulse } from "@/components/market/MarketNarrativePulse";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
@@ -113,8 +112,8 @@ function tileSpan(weight: number): number {
   return 1;
 }
 
-function heatColor(change: number | null, _maxAbs: number): string {
-  return heatTileColor(change);
+function companyDashboardHref(ticker: string): string {
+  return `/companies/${encodeURIComponent(ticker)}`;
 }
 
 function GlobalMarketsHeatmap({
@@ -123,17 +122,13 @@ function GlobalMarketsHeatmap({
   subtitle,
   uniformTiles = false,
   sessionLabel = null,
-  linkBase = null,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
   subtitle: string;
   uniformTiles?: boolean;
   sessionLabel?: string | null;
-  linkBase?: string | null;
 }) {
-  const maxAbs = Math.max(...markets.map((market) => Math.abs(market.changePercent ?? 0)), 0);
-
   return (
     <section className="market-panel market-sector-panel" aria-label={`${title} leadership`} aria-description={subtitle}>
       <div className="market-panel-header">
@@ -147,35 +142,16 @@ function GlobalMarketsHeatmap({
       </div>
       <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
         {markets.map((market) => {
-          const tileStyle = {
-            gridColumn: uniformTiles ? "span 1 / span 1" : `span ${tileSpan(market.weight)} / span ${tileSpan(market.weight)}`,
-            background: heatColor(market.changePercent, maxAbs),
-          } as const;
-          const label = `${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`;
-
-          if (linkBase) {
-            return (
-              <Link
-                key={market.ticker}
-                href={`${linkBase}/${market.ticker}`}
-                className="market-heat-tile"
-                style={tileStyle}
-                aria-label={label}
-              >
-                <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
-              </Link>
-            );
-          }
-
+          const span = uniformTiles ? 1 : tileSpan(market.weight);
           return (
-            <div
+            <HeatTile
               key={market.ticker}
-              className="market-heat-tile"
-              style={tileStyle}
-              aria-label={label}
-            >
-              <span>{market.name}</span><strong>{fmtPct(market.changePercent)}</strong>
-            </div>
+              label={market.ticker}
+              changePercent={market.changePercent}
+              href={companyDashboardHref(market.ticker)}
+              ariaLabel={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
+              style={{ gridColumn: `span ${span} / span ${span}` }}
+            />
           );
         })}
       </div>
@@ -306,42 +282,41 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={majorIndexes}
               title="Major Indexes"
-              subtitle="Dow, S&P 500, and Nasdaq · color reflects current session move"
+              subtitle="Dow, S&P 500, and Nasdaq · tap any tile for the company dashboard"
               uniformTiles
               sessionLabel={data.sessionLabel ?? null}
             />
             <GlobalMarketsHeatmap
               markets={commodities}
               title="Commodities"
-              subtitle="Oil, gold, and silver · color reflects current session move"
+              subtitle="Oil, gold, and silver · tap any tile for the company dashboard"
               uniformTiles
             />
             <GlobalMarketsHeatmap
               markets={cryptoMarkets}
               title="Crypto"
-              subtitle="Bitcoin, Ethereum, and Solana · color reflects current session move"
+              subtitle="Bitcoin, Ethereum, and Solana · tap any tile for the company dashboard"
               uniformTiles
             />
             {usMarkets.length > 0 ? (
               <GlobalMarketsHeatmap
                 markets={usMarkets}
                 title="U.S. Markets"
-                subtitle="Breadth, style, and dollar proxies · color reflects current session move"
+                subtitle="Breadth, style, and dollar proxies · tap any tile for the company dashboard"
                 uniformTiles
               />
             ) : null}
             <GlobalMarketsHeatmap
               markets={internationalMarkets}
               title="International"
-              subtitle="Country ETF proxies · tile size reflects relative equity-market weight"
+              subtitle="Country ETF proxies · tap any tile for the company dashboard"
             />
             <div id="industries">
               <GlobalMarketsHeatmap
                 markets={industryMarkets}
                 title="Industries"
-                subtitle="Sector ETF proxies · color reflects current session move"
+                subtitle="Sector ETF proxies · tap any tile for the company dashboard"
                 sessionLabel={data.sessionLabel ?? null}
-                linkBase="/industries"
               />
             </div>
             <MarketNarrativePulse pulse={data.marketNarratives} />
