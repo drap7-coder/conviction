@@ -43,7 +43,10 @@
   --card-negative: var(--red-soft);
   --card-warning: color-mix(in srgb, var(--amber) 10%, #ffffff);
 
-  /* ── Navy ink panel (one per screen) ── */
+  /* ── Navy ink surfaces ──
+     Heroes: .ink-panel (one narrative lede per view)
+     Items:  .ink-box + .ink-box--up|down|amber|quiet (color-coded dark boxes)
+     Chips:  .ink-chip  (highlighted text within those boxes) */
   --ink-panel: #0f172a;
   --ink-panel-elevated: #1e293b;
   --on-ink: #ffffff;
@@ -102,11 +105,14 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Ink panels: selective navy anchors on the white UI ──
-   Use sparingly (one hero statement per view). Remaps local
-   text/border/signal tokens so nested content stays readable. */
+/* ── Ink surfaces: navy anchors on the white UI ──
+   .ink-panel — one hero statement per view
+   .ink-box   — color-coded dark item boxes (grids, signals, cards)
+   .ink-chip  — highlighted status text inside those boxes
+   Both remap local text/border/signal tokens for nested content. */
 
-.ink-panel {
+.ink-panel,
+.ink-box {
   --ink: var(--on-ink);
   --muted: var(--on-ink-muted);
   --quiet: var(--on-ink-quiet);
@@ -135,9 +141,95 @@ html, body {
   --market-red: var(--on-ink-red);
   --market-live: var(--on-ink-accent);
   color: var(--on-ink);
+}
+
+.ink-panel {
   background: var(--ink-panel);
   border: 1px solid var(--on-ink-border);
   box-shadow: var(--shadow-ink);
+}
+
+.ink-box {
+  background: var(--ink-panel-elevated);
+  border: 1px solid var(--on-ink-border);
+  border-radius: calc(var(--radius) + 2px);
+  box-shadow: var(--shadow-ink);
+}
+
+.ink-box--up {
+  background: color-mix(in srgb, var(--on-ink-green) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-green) 38%, transparent);
+}
+
+.ink-box--down {
+  background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-red) 38%, transparent);
+}
+
+.ink-box--amber {
+  background: color-mix(in srgb, var(--on-ink-amber) 14%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-amber) 34%, transparent);
+}
+
+.ink-box--quiet {
+  background: var(--ink-panel-elevated);
+  border-color: var(--on-ink-border);
+}
+
+.ink-box .ink-box {
+  box-shadow: none;
+}
+
+.ink-box-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.ink-box-label {
+  display: block;
+  color: var(--on-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ink-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+  color: var(--on-ink);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ink-chip--up {
+  background: color-mix(in srgb, var(--on-ink-green) 22%, transparent);
+  color: var(--on-ink-green);
+}
+
+.ink-chip--down {
+  background: color-mix(in srgb, var(--on-ink-red) 22%, transparent);
+  color: var(--on-ink-red);
+}
+
+.ink-chip--amber {
+  background: color-mix(in srgb, var(--on-ink-amber) 22%, transparent);
+  color: var(--on-ink-amber);
+}
+
+.ink-chip--quiet {
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+  color: var(--on-ink-muted);
 }
 
 .ink-panel .quote-gauge-track {
@@ -922,20 +1014,33 @@ details > summary::before {
   flex-direction: column;
   gap: 13px;
   padding: 17px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--on-ink-border);
   border-radius: calc(var(--radius) + 2px);
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+  background: var(--ink-panel);
+  color: var(--on-ink);
+  box-shadow: var(--shadow-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --card: var(--ink-panel-elevated);
+  --accent: var(--on-ink-accent);
+  --positive: var(--on-ink-green);
+  --negative: var(--on-ink-red);
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
 }
 
 .investor-idea-card:hover,
 .investor-idea-card:focus-visible {
-  border-color: var(--border-strong, var(--border-active));
-  background: var(--card);
-  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, #ffffff 22%, transparent);
+  filter: brightness(1.04);
   transform: translateY(-1px);
   outline: none;
+}
+
+.investor-idea-card .signal-block.ink-box {
+  /* Nested tone box sits inside the navy shell */
+  box-shadow: none;
 }
 
 .investor-idea-card-top {
@@ -5545,9 +5650,17 @@ details > summary::before {
 
 .pf-exposure-card {
   padding: 22px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--on-ink-border);
   border-radius: var(--radius);
-  background: var(--card-inset);
+  background: var(--ink-panel-elevated);
+  color: var(--on-ink);
+  box-shadow: var(--shadow-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --card: var(--ink-panel-elevated);
+  --card-inset: color-mix(in srgb, #ffffff 7%, var(--ink-panel));
 }
 
 .pf-exposure-heading {
@@ -8529,6 +8642,12 @@ details > summary::before {
   display: grid;
   gap: 5px;
   min-width: 0;
+  padding: 12px 14px;
+}
+
+.signal-block.ink-box {
+  /* Tone fill comes from ink-box--; keep readable padding on dark surface. */
+  gap: 6px;
 }
 
 .signal-block-compact {
@@ -9767,10 +9886,21 @@ details > summary::before {
 .market-index-card,
 .market-gauge-card,
 .market-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--ink-panel-elevated);
+  border: 1px solid var(--on-ink-border);
   border-radius: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-ink);
+  color: var(--on-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --card: var(--ink-panel-elevated);
+  --market-text: var(--on-ink);
+  --market-muted: var(--on-ink-muted);
+  --market-border: var(--on-ink-border);
+  --market-green: var(--on-ink-green);
+  --market-red: var(--on-ink-red);
 }
 
 .market-region-picker {
@@ -9780,10 +9910,17 @@ details > summary::before {
   gap: 12px;
   margin-bottom: 18px;
   padding: 12px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--on-ink-border);
   border-radius: 12px;
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
+  background: var(--ink-panel-elevated);
+  box-shadow: var(--shadow-ink);
+  color: var(--on-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --market-text: var(--on-ink);
+  --market-muted: var(--on-ink-muted);
 }
 
 .market-region-copy {
@@ -10146,9 +10283,11 @@ a.heat-tile {
 
 .politician-trade-card {
   padding: 14px 16px;
-  border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface);
+}
+
+.politician-trade-card .politician-trade-ticker {
+  color: var(--on-ink-accent);
 }
 
 .politician-trade-top {

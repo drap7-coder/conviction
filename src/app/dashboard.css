@@ -73,42 +73,54 @@
 }
 
 .verdict-card-compact {
-  padding: 14px 16px 16px;
-  border-radius: calc(var(--radius) * 1.1);
-  box-shadow: var(--shadow-sm);
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-.verdict-card-compact .verdict-topline {
-  gap: 12px;
+.verdict-lede {
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 14px;
 }
 
-.verdict-card-compact .verdict-topline h2 {
-  margin-top: 4px;
-  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
-  letter-spacing: -.03em;
+.verdict-lede .verdict-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--on-ink-muted);
 }
 
-.verdict-card-compact .verdict-topline p {
-  margin-top: 4px;
-  font-size: .78rem;
-  line-height: 1.4;
+.verdict-lede h2 {
+  margin: 0;
+  max-width: 34rem;
+  color: var(--on-ink);
+  font-size: clamp(1.2rem, 3vw, 1.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.035em;
 }
 
-.verdict-card-compact .signal-strip {
-  margin-top: 10px;
-  gap: 5px;
+.verdict-lede p {
+  max-width: 40rem;
+  margin: 8px 0 0;
+  color: var(--on-ink-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
 }
 
-.verdict-card-compact .signal-pill {
-  padding: 7px 8px;
+.verdict-lede .momentum-ink-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 14px;
 }
 
-.verdict-card-compact .momentum-signal strong {
-  font-size: .7rem;
-}
-
-.verdict-card-compact .momentum-signal small {
-  font-size: .48rem;
+.verdict-lede .momentum-ink-grid .ink-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  box-shadow: none;
 }
 
 .verdict-topline { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
@@ -149,28 +161,16 @@
 /* ── Stock Pulse: attention relative to price ── */
 
 .company-pulse-card {
-  --pulse-color: var(--muted);
   position: relative;
   overflow: hidden;
   padding: clamp(16px, 2.5vw, 24px);
-  border: 1px solid var(--border);
   border-radius: calc(var(--radius) * 1.2);
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
 }
 
-.company-pulse-card::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--pulse-color);
-  opacity: .85;
+.company-pulse-card.ink-box .company-pulse-metric.ink-box {
+  padding: 10px 12px;
+  border-radius: 10px;
 }
-
-.company-pulse-card.pulse-leading { --pulse-color: #a78bfa; }
-.company-pulse-card.pulse-confirming { --pulse-color: var(--positive); }
-.company-pulse-card.pulse-cooling { --pulse-color: var(--quiet); }
 
 .company-pulse-heading {
   display: flex;
@@ -184,7 +184,7 @@
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  color: var(--pulse-color);
+  color: var(--muted);
   font: 600 .59rem/1 var(--font-mono);
   letter-spacing: .11em;
   text-transform: uppercase;
@@ -193,8 +193,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--pulse-color);
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--pulse-color) 45%, transparent);
+  background: var(--accent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent);
   animation: company-pulse-breathe 1.5s ease-out infinite;
 }
 .company-pulse-heading h2 {
@@ -544,8 +544,7 @@
   .verdict-topline { align-items: flex-start; gap: 12px; }
   .verdict-score { flex-basis: 64px; }
   .signal-strip { grid-template-columns: 1fr 1fr; }
-  .momentum-signal-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .signal-pill { display: grid; }
+  .verdict-lede .momentum-ink-grid { grid-template-columns: 1fr; }
   .company-pulse-heading { gap: 10px; }
   .company-pulse-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .company-pulse-footer { flex-direction: column; gap: 3px; }

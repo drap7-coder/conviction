@@ -4,7 +4,7 @@
  * One shared intelligence format:
  *   Conclusion → Evidence → Why it matters → Date · Source
  *
- * Use this instead of inventing per-page card copy structures.
+ * Rendered as a color-coded ink box with highlighted status chips.
  */
 
 import type { ReactNode } from "react";
@@ -12,6 +12,7 @@ import { SourceBadge } from "./SourceBadge";
 import type { SourceBadge as SourceBadgeKind } from "@/lib/display/vocabulary";
 import type { EvidenceStrength } from "@/lib/display/vocabulary";
 import { EVIDENCE_STRENGTH_LABEL, EVIDENCE_STRENGTH_TONE } from "@/lib/display/vocabulary";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 
 export interface SignalBlockProps {
   conclusion: string;
@@ -41,11 +42,13 @@ export function SignalBlock({
   children,
   className = "",
 }: SignalBlockProps) {
-  const tone = strength ? EVIDENCE_STRENGTH_TONE[strength] : null;
+  const semantic = badge?.tone ?? (strength ? EVIDENCE_STRENGTH_TONE[strength] : null);
+  const inkTone = inkToneFromSemantic(semantic);
+  const chipLabel = badge?.label ?? (strength ? EVIDENCE_STRENGTH_LABEL[strength] : null);
 
   return (
     <section
-      className={`signal-block ${compact ? "signal-block-compact" : ""} ${className}`.trim()}
+      className={`signal-block ${inkBoxClass(inkTone)} ${compact ? "signal-block-compact" : ""} ${className}`.trim()}
       aria-label={conclusion}
     >
       <div className="signal-block-heading">
@@ -53,14 +56,8 @@ export function SignalBlock({
           {eyebrow ? <span className="signal-block-eyebrow">{eyebrow}</span> : null}
           <strong className="signal-block-conclusion">{conclusion}</strong>
         </div>
-        {badge ? (
-          <span className={`signal-block-badge signal-block-badge-${badge.tone ?? "quiet"}`}>
-            {badge.label}
-          </span>
-        ) : strength ? (
-          <span className={`signal-block-strength signal-block-strength-${tone}`}>
-            {EVIDENCE_STRENGTH_LABEL[strength]}
-          </span>
+        {chipLabel ? (
+          <span className={inkChipClass(inkTone)}>{chipLabel}</span>
         ) : null}
       </div>
 
