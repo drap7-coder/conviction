@@ -49,12 +49,17 @@ const PULSE_TABS = [
   {
     id: "indexes",
     label: "Indexes",
-    description: "Major indexes and market leadership",
+    description: "Market temperature",
+  },
+  {
+    id: "sectors",
+    label: "Sectors",
+    description: "Industry leadership",
   },
   {
     id: "trending",
     label: "Trending",
-    description: "Where conviction is changing fastest",
+    description: "Stock conviction moves",
   },
 ] as const;
 
@@ -344,18 +349,28 @@ export default function MarketPulsePage() {
               narrativeGroup="International"
               narratives={data.marketNarratives.themes}
             />
-            <div id="industries">
-              <GlobalMarketsHeatmap
-                markets={industryMarkets}
-                title="Industries"
-                subtitle="Sector ETF proxies"
-                narrativeGroup="Industries"
-                narratives={data.marketNarratives.themes}
-                sessionLabel={data.sessionLabel ?? null}
-              />
-            </div>
             <MacroChainChart series={macroSeries} />
           </>
+        ) : null}
+      </div>
+
+      <div
+        id="pulse-panel-sectors"
+        role="tabpanel"
+        aria-labelledby="pulse-tab-sectors"
+        hidden={activeTab !== "sectors"}
+      >
+        {activeTab === "sectors" ? (
+          <div id="industries">
+            <GlobalMarketsHeatmap
+              markets={industryMarkets}
+              title="Sectors"
+              subtitle="Sector ETF proxies — where leadership is rotating"
+              narrativeGroup="Industries"
+              narratives={data.marketNarratives.themes}
+              sessionLabel={data.sessionLabel ?? null}
+            />
+          </div>
         ) : null}
       </div>
 
