@@ -11,6 +11,7 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { InvestorMovesPanel } from "@/app/components/InvestorMovesPanel";
+import { PoliticiansMovesPanel } from "@/app/components/PoliticiansMovesPanel";
 import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 
@@ -400,14 +401,7 @@ export default function RisingConvictionPage() {
         aria-labelledby="trending-tab-politicians"
         hidden={activeView !== "politicians"}
       >
-        <section className="trending-stub" aria-label="Political trades">
-          <span className="page-purpose-eyebrow">Politicians</span>
-          <h2 className="page-purpose-title">Congressional disclosures are next</h2>
-          <p>
-            This lens will rank STOCK Act disclosures by freshness and materiality.
-            Company-level political trades remain available on each company page.
-          </p>
-        </section>
+        {activeView === "politicians" ? <PoliticiansMovesPanel /> : null}
       </div>
     </div>
   );
