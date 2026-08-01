@@ -5,10 +5,14 @@ import type { PulseData, PulseGlobalMarket, PulseIndicator, PulseSector } from "
 import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { HeatTile } from "@/components/HeatTile";
-import { MarketNarrativePulse } from "@/components/market/MarketNarrativePulse";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
-import { MoveDriversPanel } from "@/components/MoveDriversPanel";
+import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
+import {
+  themesForHeatmapGroup,
+  type MarketNarrativeTheme,
+  type NarrativeHeatmapGroup,
+} from "@/lib/market/market-narratives";
 
 const COLORS = {
   green: "#0D9488",
@@ -117,16 +121,21 @@ function GlobalMarketsHeatmap({
   markets,
   title,
   subtitle,
+  narrativeGroup,
+  narratives,
   uniformTiles = false,
   sessionLabel = null,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
   subtitle: string;
+  narrativeGroup: NarrativeHeatmapGroup;
+  narratives: MarketNarrativeTheme[];
   uniformTiles?: boolean;
   sessionLabel?: string | null;
 }) {
   if (markets.length === 0) return null;
+  const groupThemes = themesForHeatmapGroup(narratives, narrativeGroup);
 
   return (
     <section
@@ -162,16 +171,7 @@ function GlobalMarketsHeatmap({
         })}
       </div>
       <div className="stock-heat-footer">
-        <MoveDriversPanel
-          holdings={markets.map((market) => ({
-            ticker: market.ticker,
-            companyName: market.name,
-            changePercent: market.changePercent,
-          }))}
-          title="What’s driving the move"
-          lede={`Headlines and themes behind ${title.toLowerCase()} session moves.`}
-          limit={Math.min(markets.length, 8)}
-        />
+        <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
       </div>
     </section>
   );
@@ -298,6 +298,8 @@ export default function MarketPulsePage() {
               markets={majorIndexes}
               title="Major Indexes"
               subtitle="Dow, S&P 500, and Nasdaq · tap any tile for the company dashboard"
+              narrativeGroup="Major Index"
+              narratives={data.marketNarratives.themes}
               uniformTiles
               sessionLabel={data.sessionLabel ?? null}
             />
@@ -305,12 +307,16 @@ export default function MarketPulsePage() {
               markets={commodities}
               title="Commodities"
               subtitle="Oil, gold, and silver · tap any tile for the company dashboard"
+              narrativeGroup="Commodity"
+              narratives={data.marketNarratives.themes}
               uniformTiles
             />
             <GlobalMarketsHeatmap
               markets={cryptoMarkets}
               title="Crypto"
               subtitle="Bitcoin, Ethereum, and Solana · tap any tile for the company dashboard"
+              narrativeGroup="Crypto"
+              narratives={data.marketNarratives.themes}
               uniformTiles
             />
             {usMarkets.length > 0 ? (
@@ -318,6 +324,8 @@ export default function MarketPulsePage() {
                 markets={usMarkets}
                 title="U.S. Markets"
                 subtitle="Breadth, style, and dollar proxies · tap any tile for the company dashboard"
+                narrativeGroup="U.S. Markets"
+                narratives={data.marketNarratives.themes}
                 uniformTiles
               />
             ) : null}
@@ -325,16 +333,19 @@ export default function MarketPulsePage() {
               markets={internationalMarkets}
               title="International"
               subtitle="Country ETF proxies · tap any tile for the company dashboard"
+              narrativeGroup="International"
+              narratives={data.marketNarratives.themes}
             />
             <div id="industries">
               <GlobalMarketsHeatmap
                 markets={industryMarkets}
                 title="Industries"
                 subtitle="Sector ETF proxies · tap any tile for the company dashboard"
+                narrativeGroup="Industries"
+                narratives={data.marketNarratives.themes}
                 sessionLabel={data.sessionLabel ?? null}
               />
             </div>
-            <MarketNarrativePulse pulse={data.marketNarratives} />
             <MacroChainChart series={macroSeries} />
           </>
         ) : null}

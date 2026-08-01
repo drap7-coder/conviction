@@ -7,11 +7,22 @@ const CACHE_SECONDS = 5 * 60;
 export type NarrativeHeat = "surging" | "building" | "steady" | "quiet";
 export type NarrativeMarketTone = "positive" | "negative" | "mixed";
 
+/** Pulse heatmap groups these narratives attach to (one primary group each). */
+export type NarrativeHeatmapGroup =
+  | "Major Index"
+  | "U.S. Markets"
+  | "Commodity"
+  | "Crypto"
+  | "International"
+  | "Industries";
+
 export interface NarrativeThemeConfig {
   id: string;
   label: string;
   query: string;
   newsTicker: string;
+  /** Which Pulse heatmap shell owns this narrative. */
+  heatmapGroup: NarrativeHeatmapGroup;
   assets: Array<{ ticker: string; label: string }>;
   headlinePattern: RegExp;
 }
@@ -22,72 +33,78 @@ export const MARKET_NARRATIVE_THEMES: NarrativeThemeConfig[] = [
     label: "AI + Compute",
     query: "Nvidia",
     newsTicker: "NVDA",
+    heatmapGroup: "Major Index",
     assets: [
-      { ticker: "NVDA", label: "NVIDIA" },
-      { ticker: "SOXX", label: "Semiconductors" },
-      { ticker: "QQQ", label: "Nasdaq" },
+      { ticker: "QQQ", label: "Nasdaq 100" },
+      { ticker: "SPY", label: "S&P 500" },
+      { ticker: "DIA", label: "Dow 30" },
     ],
-    headlinePattern: /ai|artificial intelligence|chip|semiconductor|nvidia|data center/i,
+    headlinePattern: /ai|artificial intelligence|chip|semiconductor|nvidia|data center|nasdaq|s&p/i,
   },
   {
     id: "rates-fed",
-    label: "Rates + Fed",
+    label: "Rates + Breadth",
     query: "Federal Reserve",
     newsTicker: "TLT",
+    heatmapGroup: "U.S. Markets",
     assets: [
-      { ticker: "^TNX", label: "10Y Yield" },
-      { ticker: "TLT", label: "Long Treasuries" },
-      { ticker: "XLF", label: "Financials" },
+      { ticker: "IWM", label: "Russell 2000" },
+      { ticker: "UUP", label: "U.S. Dollar" },
+      { ticker: "XLU", label: "Utilities" },
     ],
-    headlinePattern: /fed|rate|yield|treasury|inflation/i,
+    headlinePattern: /fed|rate|yield|treasury|inflation|dollar|breadth|small cap/i,
   },
   {
     id: "energy-oil",
-    label: "Energy + Oil",
+    label: "Energy + Metals",
     query: "oil",
-    newsTicker: "XLE",
+    newsTicker: "USO",
+    heatmapGroup: "Commodity",
     assets: [
       { ticker: "USO", label: "Oil" },
-      { ticker: "XLE", label: "Energy" },
-      { ticker: "OXY", label: "Occidental" },
+      { ticker: "GLD", label: "Gold" },
+      { ticker: "SLV", label: "Silver" },
     ],
-    headlinePattern: /oil|crude|opec|energy|gas/i,
+    headlinePattern: /oil|crude|opec|energy|gas|gold|silver|commodity/i,
   },
   {
     id: "crypto-liquidity",
     label: "Crypto + Liquidity",
     query: "Bitcoin",
     newsTicker: "BTC-USD",
+    heatmapGroup: "Crypto",
     assets: [
       { ticker: "BTC-USD", label: "Bitcoin" },
       { ticker: "ETH-USD", label: "Ethereum" },
-      { ticker: "COIN", label: "Coinbase" },
+      { ticker: "SOL-USD", label: "Solana" },
     ],
-    headlinePattern: /bitcoin|ethereum|crypto|stablecoin|digital asset/i,
+    headlinePattern: /bitcoin|ethereum|solana|crypto|stablecoin|digital asset/i,
   },
   {
     id: "trade-supply",
-    label: "Trade + Supply Chain",
+    label: "Trade + Global",
     query: "tariffs",
-    newsTicker: "SPY",
+    newsTicker: "MCHI",
+    heatmapGroup: "International",
     assets: [
-      { ticker: "SPY", label: "S&P 500" },
       { ticker: "MCHI", label: "China" },
-      { ticker: "SOXX", label: "Semiconductors" },
+      { ticker: "EWJ", label: "Japan" },
+      { ticker: "EWT", label: "Taiwan" },
     ],
-    headlinePattern: /tariff|trade|export|china|supply chain/i,
+    headlinePattern: /tariff|trade|export|china|japan|taiwan|supply chain|global/i,
   },
   {
     id: "consumer-demand",
-    label: "Consumer + Inflation",
+    label: "Sector Leadership",
     query: "inflation",
     newsTicker: "XLY",
+    heatmapGroup: "Industries",
     assets: [
+      { ticker: "XLK", label: "Technology" },
       { ticker: "XLY", label: "Discretionary" },
-      { ticker: "XLP", label: "Staples" },
-      { ticker: "WMT", label: "Walmart" },
+      { ticker: "XLF", label: "Financials" },
     ],
-    headlinePattern: /consumer|inflation|retail|spending|price|demand/i,
+    headlinePattern: /consumer|inflation|retail|spending|sector|financials|technology|discretionary/i,
   },
 ];
 
@@ -100,6 +117,7 @@ export interface NarrativeAssetMove {
 export interface MarketNarrativeTheme {
   id: string;
   label: string;
+  heatmapGroup: NarrativeHeatmapGroup;
   heat: NarrativeHeat;
   marketTone: NarrativeMarketTone;
   score: number;
@@ -109,6 +127,15 @@ export interface MarketNarrativeTheme {
   summary: string;
   headline: { title: string; url: string | null; date: string } | null;
   assets: NarrativeAssetMove[];
+}
+
+export function themesForHeatmapGroup(
+  themes: MarketNarrativeTheme[],
+  group: NarrativeHeatmapGroup | string,
+): MarketNarrativeTheme[] {
+  return themes
+    .filter((theme) => theme.heatmapGroup === group)
+    .sort((a, b) => b.score - a.score);
 }
 
 export interface MarketNarrativePulse {
@@ -300,6 +327,7 @@ async function fetchTheme(
   return {
     id: config.id,
     label: config.label,
+    heatmapGroup: config.heatmapGroup,
     ...scored,
     mentionsLastHour: stats.mentionsLastHour,
     uniqueAuthorsLastHour: stats.uniqueAuthorsLastHour,
