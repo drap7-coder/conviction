@@ -1,10 +1,16 @@
 /**
  * Client helper for the shared Conviction Score API.
  * Every list/dashboard surface should use this — no local score heuristics.
+ *
+ * List pages fetch per-ticker with limited concurrency so scores paint as
+ * they arrive (batch endpoints can exceed client timeouts once quality is included).
  */
 
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
+
+const SINGLE_TIMEOUT_MS = 45_000;
+const LIST_CONCURRENCY = 4;
 
 export async function fetchConvictionScore(
   ticker: string,
@@ -13,7 +19,7 @@ export async function fetchConvictionScore(
   try {
     return await fetchJsonWithTimeout<ConvictionScoreView>(
       `/api/conviction/score?ticker=${encodeURIComponent(ticker)}`,
-      45_000,
+      SINGLE_TIMEOUT_MS,
       signal,
     );
   } catch {
@@ -21,43 +27,43 @@ export async function fetchConvictionScore(
   }
 }
 
+export type ConvictionScoresProgress = (
+  scores: Record<string, ConvictionScoreView>,
+) => void;
+
+/**
+ * Load shared Conviction Scores for many tickers.
+ * Calls `onProgress` as each ticker completes so Watchlist rings fill in.
+ */
 export async function fetchConvictionScores(
   tickers: string[],
   signal?: AbortSignal,
+  onProgress?: ConvictionScoresProgress,
 ): Promise<Record<string, ConvictionScoreView>> {
   const unique = [...new Set(tickers.map((ticker) => ticker.trim().toUpperCase()).filter(Boolean))];
   if (unique.length === 0) return {};
 
   const scores: Record<string, ConvictionScoreView> = {};
-  const batches = Array.from(
-    { length: Math.ceil(unique.length / 25) },
-    (_, index) => unique.slice(index * 25, index * 25 + 25),
-  );
+  let cursor = 0;
 
-  for (const batch of batches) {
-    try {
-      const data = await fetchJsonWithTimeout<{ scores?: Record<string, ConvictionScoreView> }>(
-        `/api/conviction/score?tickers=${encodeURIComponent(batch.join(","))}`,
-        55_000,
-        signal,
-      );
-      Object.assign(scores, data.scores ?? {});
-    } catch {
-      // Batch failed — fall through to per-ticker backfill below.
+  async function worker() {
+    while (cursor < unique.length) {
+      if (signal?.aborted) return;
+      const index = cursor++;
+      const ticker = unique[index];
+      const score = await fetchConvictionScore(ticker, signal);
+      if (signal?.aborted) return;
+      if (score) {
+        scores[ticker] = score;
+        onProgress?.({ ...scores });
+      }
     }
   }
 
-  // Backfill any missing tickers individually so a batch timeout cannot leave
-  // a name stuck on a different (legacy) score path.
-  const missing = unique.filter((ticker) => !scores[ticker]);
-  if (missing.length > 0) {
-    await Promise.all(
-      missing.map(async (ticker) => {
-        const score = await fetchConvictionScore(ticker, signal);
-        if (score) scores[ticker] = score;
-      }),
-    );
-  }
-
+  const workers = Array.from(
+    { length: Math.min(LIST_CONCURRENCY, unique.length) },
+    () => worker(),
+  );
+  await Promise.all(workers);
   return scores;
 }

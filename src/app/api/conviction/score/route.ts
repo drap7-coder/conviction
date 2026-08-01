@@ -47,13 +47,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const resolved = await Promise.all(
-      tickers.map(async (ticker) => ({
-        ticker,
-        companyName: await resolveCompanyName(ticker),
-      })),
+    // Use the ticker as the company-name fallback — full SEC name resolution
+    // added multi-second latency before the first score could return.
+    const scores = await getConvictionScoresForTickers(
+      tickers.map((ticker) => ({ ticker, companyName: ticker })),
     );
-    const scores = await getConvictionScoresForTickers(resolved);
     return NextResponse.json({ scores, count: Object.keys(scores).length });
   }
 
