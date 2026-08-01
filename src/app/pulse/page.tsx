@@ -234,51 +234,59 @@ export default function MarketPulsePage() {
 
   return (
     <main className="markets-page">
-      <section className="market-regime-lede ink-panel" aria-label="Market regime">
-        <strong className="market-regime-label">{data.macroRegime.label}</strong>
-        <p className="market-regime-summary">{data.macroRegime.summary}</p>
-        {data.macroRegime.drivers.length > 0 ? (
-          <div className="market-regime-drivers" aria-label="What is driving this regime">
-            {data.macroRegime.drivers.map((driver) => (
-              <span
-                key={driver.id}
-                className={`market-regime-driver market-regime-driver-${driver.direction}`}
-                title={driver.explanation}
+      <section className="view-switch-shell" aria-label="Pulse">
+        <div className="view-switch-lede market-regime-lede ink-panel">
+          <span className="market-regime-eyebrow">Pulse</span>
+          <strong className="market-regime-label">{data.macroRegime.label}</strong>
+          <p className="market-regime-summary">{data.macroRegime.summary}</p>
+          {data.macroRegime.drivers.length > 0 ? (
+            <div className="market-regime-drivers" aria-label="What is driving this regime">
+              {data.macroRegime.drivers.map((driver) => (
+                <span
+                  key={driver.id}
+                  className={`market-regime-driver market-regime-driver-${driver.direction}`}
+                  title={driver.explanation}
+                >
+                  <strong>{driver.label}</strong>
+                  <em className={`ink-chip ink-chip--${
+                    driver.direction === "rising"
+                      ? "up"
+                      : driver.direction === "falling"
+                        ? "down"
+                        : driver.direction === "mixed"
+                          ? "amber"
+                          : "quiet"
+                  }`}>{driver.direction}</em>
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="view-switch-picker pulse-view-picker">
+          <p className="view-switch-hint" id="pulse-view-hint">Choose a view</p>
+          <div
+            className="pulse-view-tabs"
+            role="tablist"
+            aria-labelledby="pulse-view-hint"
+          >
+            {PULSE_TABS.map((option) => (
+              <button
+                key={option.id}
+                id={`pulse-tab-${option.id}`}
+                type="button"
+                role="tab"
+                aria-label={`${option.label}: ${option.description}`}
+                aria-selected={activeTab === option.id}
+                aria-controls={`pulse-panel-${option.id}`}
+                className={activeTab === option.id ? "active" : ""}
+                onClick={() => setActiveTab(option.id)}
               >
-                <strong>{driver.label}</strong>
-                <em className={`ink-chip ink-chip--${
-                  driver.direction === "rising"
-                    ? "up"
-                    : driver.direction === "falling"
-                      ? "down"
-                      : driver.direction === "mixed"
-                        ? "amber"
-                        : "quiet"
-                }`}>{driver.direction}</em>
-              </span>
+                <strong>{option.label}</strong>
+                <span>{option.description}</span>
+              </button>
             ))}
           </div>
-        ) : null}
-      </section>
-
-      <section className="pulse-view-picker" aria-label="Pulse views">
-        <div className="pulse-view-tabs" role="tablist" aria-label="Choose a Pulse view">
-          {PULSE_TABS.map((option) => (
-            <button
-              key={option.id}
-              id={`pulse-tab-${option.id}`}
-              type="button"
-              role="tab"
-              aria-label={`${option.label}: ${option.description}`}
-              aria-selected={activeTab === option.id}
-              aria-controls={`pulse-panel-${option.id}`}
-              className={activeTab === option.id ? "active" : ""}
-              onClick={() => setActiveTab(option.id)}
-            >
-              <strong>{option.label}</strong>
-              <span>{option.description}</span>
-            </button>
-          ))}
         </div>
       </section>
 
