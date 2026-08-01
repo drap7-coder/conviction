@@ -10,7 +10,8 @@ import { getSectorSignal } from "@/lib/display/sector-signal";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { EVIDENCE_STRENGTH_LABEL, EVIDENCE_STRENGTH_TONE } from "@/lib/display/vocabulary";
 import type { SectorWithData } from "@/lib/market/industries-data";
-import { heatTileColor, changeToneClass } from "@/lib/display/heat-color";
+import { changeToneClass } from "@/lib/display/heat-color";
+import { HeatTile } from "@/components/HeatTile";
 
 interface StockHistoryPoint {
   date: string;
@@ -52,10 +53,6 @@ function tileSpan(weight: number): number {
   if (weight > HEATMAP_SPANS.largeWeight) return 3;
   if (weight > HEATMAP_SPANS.mediumWeight) return 2;
   return 1;
-}
-
-function heatColor(change: number | null, _maxAbs: number): string {
-  return heatTileColor(change);
 }
 
 function buildSparklinePath(points: StockHistoryPoint[]) {
@@ -114,7 +111,6 @@ export function IndustriesClient({
     };
   }, [refresh]);
 
-  const maxSectorMove = Math.max(...sectors.map((sector) => Math.abs(sectorMove(sector) ?? 0)), 0);
   const showLoading = status === "loading" || (status === "idle" && sectors.length === 0);
   const industriesSessionLabel = (() => {
     for (const sector of sectors) {
@@ -163,16 +159,12 @@ export function IndustriesClient({
             @media (prefers-reduced-motion:reduce) {
               .industries-heat-session-dot { animation:none; }
             }
-            .industries-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
-            .industries-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius:8px; color:var(--ink); font:inherit; text-align:left; text-decoration:none; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
-            .industries-heat-tile:hover,.industries-heat-tile:focus-visible { filter:brightness(0.97); outline:none; transform:translateY(-1px); }
-            .industries-heat-tile span { display:block; overflow:hidden; font-size:.63rem; font-weight:700; line-height:1.2; }
-            .industries-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
+            .industries-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:8px; }
             @media (max-width:767px) {
               .industries-heat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-              .industries-heat-grid > .industries-heat-tile { grid-column:span 1 / span 1 !important; }
+              .industries-heat-grid > .heat-tile { grid-column:span 1 / span 1 !important; }
             }
-            @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; }.industries-heat-tile { min-height:62px; padding:8px; } }
+            @media (max-width:399px) { .industries-heat-panel { padding:16px 14px; } }
           `}</style>
           <div className="industries-heat-heading">
             <h2 className="industries-heat-title">
@@ -185,23 +177,21 @@ export function IndustriesClient({
               </span>
             ) : null}
           </div>
-          <p className="industries-heat-subtitle">Tile size reflects S&amp;P 500 weight; color reflects the current market move.</p>
+          <p className="industries-heat-subtitle">Tile size reflects S&amp;P 500 weight; tap any tile for the company dashboard.</p>
           <div className="industries-heat-grid">
             {sectors.map((sector) => {
               const weight = SECTOR_WEIGHTS[sector.ticker] ?? 0;
               const change = sectorMove(sector);
               const span = tileSpan(weight);
               return (
-                <Link
+                <HeatTile
                   key={sector.ticker}
-                  href={`/industries/${sector.ticker}`}
-                  className="industries-heat-tile"
-                  style={{ gridColumn: `span ${span} / span ${span}`, background: heatColor(change, maxSectorMove) }}
-                  aria-label={`${sector.name}, ${fmtPct(change)}, ${weight.toFixed(1)} percent index weight`}
-                >
-                  <span>{sector.name}</span>
-                  <strong>{fmtPct(change)}</strong>
-                </Link>
+                  label={sector.ticker}
+                  changePercent={change}
+                  href={`/companies/${encodeURIComponent(sector.ticker)}`}
+                  ariaLabel={`${sector.name}, ${fmtPct(change)}, ${weight.toFixed(1)} percent index weight`}
+                  style={{ gridColumn: `span ${span} / span ${span}` }}
+                />
               );
             })}
           </div>

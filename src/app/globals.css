@@ -10038,7 +10038,7 @@ details > summary::before {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: dense;
-  gap: 6px;
+  gap: 8px;
   margin-top: 12px;
 }
 
@@ -10046,44 +10046,66 @@ details > summary::before {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.market-heat-tile {
+/* Shared magnitude heat tiles (Pulse, Industries, StockHeatmap) */
+.heat-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   min-width: 0;
-  min-height: 66px;
-  padding: 10px;
-  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
-  border-radius: 8px;
-  color: var(--market-text);
+  height: 7rem;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+  border-radius: 12px;
+  color: #fff;
   font: inherit;
   text-align: left;
+  text-decoration: none;
   cursor: default;
   transition: filter 0.15s, border-color 0.15s, transform 0.15s;
-  text-decoration: none;
 }
 
-a.market-heat-tile {
+a.heat-tile {
   cursor: pointer;
 }
 
-.market-heat-tile:hover,
-.market-heat-tile:focus-visible {
-  filter: brightness(0.97);
+.heat-tile:hover,
+.heat-tile:focus-visible {
+  filter: brightness(1.06);
   outline: none;
   transform: translateY(-1px);
 }
 
-.market-heat-tile span {
-  display: block;
-  overflow: hidden;
-  font-size: 0.63rem;
-  font-weight: 700;
+.heat-tile-ticker {
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
   line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.market-heat-tile strong {
-  display: block;
-  margin-top: 6px;
+.heat-tile-pct {
+  display: inline-flex;
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 5px 9px;
+  border-radius: 8px;
   font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
 }
+
+/* Pulse / Industries grids use the shared .heat-tile component class */
 
 .market-empty {
   min-height: 40vh;
@@ -10197,7 +10219,7 @@ a.market-heat-tile {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .market-heatmap > .market-heat-tile {
+  .market-heatmap > .heat-tile {
     grid-column: span 1 / span 1 !important;
   }
 }
@@ -10205,6 +10227,19 @@ a.market-heat-tile {
 @media (max-width: 399px) {
   .markets-page {
     padding: 0;
+  }
+
+  .heat-tile {
+    height: 6.5rem;
+    padding: 10px;
+  }
+
+  .heat-tile-ticker {
+    font-size: 0.68rem;
+  }
+
+  .heat-tile-pct {
+    font-size: 0.72rem;
   }
 
   .market-index-grid,
@@ -10244,11 +10279,6 @@ a.market-heat-tile {
   .market-macro-panel .market-legend i {
     width: 6px;
     height: 6px;
-  }
-
-  .market-heat-tile {
-    min-height: 62px;
-    padding: 8px;
   }
 }
 

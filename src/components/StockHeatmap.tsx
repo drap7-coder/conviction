@@ -1,10 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { HeatTile } from "@/components/HeatTile";
 import {
-  heatBand,
-  heatChipColors,
-  heatTileColor,
   HEAT_EXTREME_THRESHOLD,
   HEAT_STRONG_THRESHOLD,
   HEAT_TEAL,
@@ -33,12 +30,6 @@ interface StockHeatmapProps {
   loading?: boolean;
   /** Live session chip — "Pre-Market" / "After Hours" when extended hours are active */
   sessionLabel?: string | null;
-}
-
-function fmtPct(value: number | null): string {
-  if (value === null || !Number.isFinite(value)) return "—";
-  if (Math.abs(value) < 0.05) return "FLAT";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
 function tileSpan(marketCap: number | null, maxMarketCap: number): number {
@@ -78,38 +69,12 @@ const HEATMAP_STYLES = `
     .stock-heat-session-dot { animation:none; }
   }
   .stock-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:8px; }
-  .stock-heat-tile {
-    display:flex; flex-direction:column; justify-content:space-between;
-    min-width:0; height:7rem; padding:12px;
-    border:1px solid color-mix(in srgb, #ffffff 8%, transparent);
-    border-radius:12px; color:#fff; font:inherit; text-align:left;
-    text-decoration:none; cursor:pointer;
-    transition:filter .15s, border-color .15s, transform .15s;
-  }
-  .stock-heat-tile:hover,.stock-heat-tile:focus-visible { filter:brightness(1.06); outline:none; transform:translateY(-1px); }
-  .stock-heat-ticker {
-    display:inline-flex; align-self:flex-start;
-    padding:4px 8px; border-radius:6px;
-    background:rgba(0,0,0,.3); color:rgba(255,255,255,.9);
-    font-size:.72rem; font-weight:600; letter-spacing:.02em;
-    line-height:1.2; max-width:100%;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .stock-heat-pct {
-    display:inline-flex; align-self:flex-start;
-    margin-top:auto; padding:5px 9px; border-radius:8px;
-    font-size:.78rem; font-weight:700; letter-spacing:.01em;
-    line-height:1.15; font-variant-numeric:tabular-nums;
-  }
   @media (max-width:767px) {
     .stock-heat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-    .stock-heat-grid > .stock-heat-tile { grid-column:span 1 / span 1 !important; }
+    .stock-heat-grid > .heat-tile { grid-column:span 1 / span 1 !important; }
   }
   @media (max-width:399px) {
     .stock-heat-panel { padding:16px 14px; }
-    .stock-heat-tile { height:6.5rem; padding:10px; }
-    .stock-heat-ticker { font-size:.68rem; }
-    .stock-heat-pct { font-size:.72rem; }
   }
 `;
 
@@ -174,27 +139,15 @@ export function StockHeatmap({
       <div className="stock-heat-grid">
         {items.map((item) => {
           const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
-          const band = heatBand(item.changePercent);
-          const chip = heatChipColors(item.changePercent);
           return (
-            <Link
+            <HeatTile
               key={item.ticker}
-              href={`/companies/${item.ticker}`}
-              className={`stock-heat-tile stock-heat-tile-${band}`}
-              style={{
-                gridColumn: `span ${span} / span ${span}`,
-                background: heatTileColor(item.changePercent),
-              }}
-              aria-label={`${item.name}, ${item.ticker}, ${fmtPct(item.changePercent)}`}
-            >
-              <span className="stock-heat-ticker">{item.ticker}</span>
-              <strong
-                className="stock-heat-pct"
-                style={{ background: chip.background, color: chip.color }}
-              >
-                {fmtPct(item.changePercent)}
-              </strong>
-            </Link>
+              label={item.ticker}
+              changePercent={item.changePercent}
+              href={`/companies/${encodeURIComponent(item.ticker)}`}
+              ariaLabel={`${item.name}, ${item.ticker}, ${item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(1)}%`}`}
+              style={{ gridColumn: `span ${span} / span ${span}` }}
+            />
           );
         })}
       </div>
