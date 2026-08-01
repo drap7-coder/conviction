@@ -119,32 +119,39 @@ export default function SmartMoneyPage() {
 
   return (
     <div className="smart-money-page">
-      <section className="market-regime-lede ink-panel" aria-label="Smart Money">
-        <span className="market-regime-eyebrow">Smart Money</span>
-        <strong className="market-regime-label">Where capital is being put to work</strong>
-        <p className="market-regime-summary">
-          Institutional 13F moves and STOCK Act disclosures, ranked by materiality and freshness.
-        </p>
-      </section>
+      <section className="view-switch-shell" aria-label="Smart Money">
+        <div className="view-switch-lede market-regime-lede ink-panel">
+          <span className="market-regime-eyebrow">Smart Money</span>
+          <strong className="market-regime-label">Where capital is being put to work</strong>
+          <p className="market-regime-summary">
+            Institutional 13F moves and STOCK Act disclosures, ranked by materiality and freshness.
+          </p>
+        </div>
 
-      <section className="pulse-view-picker" aria-label="Smart Money views">
-        <div className="pulse-view-tabs" role="tablist" aria-label="Choose a Smart Money view">
-          {SMART_MONEY_VIEWS.map((view) => (
-            <button
-              key={view.id}
-              id={`smart-money-tab-${view.id}`}
-              type="button"
-              role="tab"
-              aria-label={`${view.label}: ${view.description}`}
-              aria-selected={activeView === view.id}
-              aria-controls={`smart-money-panel-${view.id}`}
-              className={activeView === view.id ? "active" : ""}
-              onClick={() => setActiveView(view.id)}
-            >
-              <strong>{view.label}</strong>
-              <span>{view.description}</span>
-            </button>
-          ))}
+        <div className="view-switch-picker pulse-view-picker">
+          <p className="view-switch-hint" id="smart-money-view-hint">Choose a view</p>
+          <div
+            className="pulse-view-tabs"
+            role="tablist"
+            aria-labelledby="smart-money-view-hint"
+          >
+            {SMART_MONEY_VIEWS.map((view) => (
+              <button
+                key={view.id}
+                id={`smart-money-tab-${view.id}`}
+                type="button"
+                role="tab"
+                aria-label={`${view.label}: ${view.description}`}
+                aria-selected={activeView === view.id}
+                aria-controls={`smart-money-panel-${view.id}`}
+                className={activeView === view.id ? "active" : ""}
+                onClick={() => setActiveView(view.id)}
+              >
+                <strong>{view.label}</strong>
+                <span>{view.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
