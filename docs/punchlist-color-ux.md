@@ -20,16 +20,19 @@ Do not map Accumulating → tile green or Distribution → tile red. Tiles answe
 | Holding | Amber `#D97706` |
 | Distribution | Red `#DC2626` |
 
-### Heat tile escalation
+### Heat tile escalation (dark magnitude tiles)
 
-| Band | Threshold | Up fill | Down fill |
+| Band | Threshold | Tile fill | % chip |
 |---|---|---|---|
-| Flat | `|Δ| < 0.05%` | `#EDEEF1` | `#EDEEF1` |
-| Mild | `< 2.5%` | soft teal | `#FEF2F2` |
-| Strong | `≥ 2.5%` | mid teal | `#FECACA` |
-| Extreme | `≥ 8%` | solid teal `#0D9488` | fuller red |
+| Flat | `|Δ| < 0.05%` | `#262626` | `#404040` / `#E5E5E5` |
+| Mild up | `< 2.5%` | emerald-900 | emerald-800 / 100 |
+| Strong up | `≥ 2.5%` | emerald-700 | emerald-600 / white |
+| Extreme up | `≥ 8%` | emerald-500 | emerald-400 / 950 |
+| Mild down | `< 2.5%` | rose-950 | rose-900 / 100 |
+| Strong down | `≥ 2.5%` | rose-800 | rose-700 / white |
+| Extreme down | `≥ 8%` | rose-600 | rose-500 / white |
 
-A +15.2% name (e.g. AMZN on a gap day) must land in the **extreme** band, not the mild tint.
+Ticker sits in a `bg-black/30` pill (legible on every fill). Percent is its own contrast-matched chip.
 
 ## Bugs
 
