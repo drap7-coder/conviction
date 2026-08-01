@@ -1,7 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { heatTileColor, HEAT_TEAL, HEAT_TEAL_MID, HEAT_TEAL_SOFT, HEAT_RED_SOFT_BG, HEAT_RED_MID, HEAT_RED_STRONG } from "@/lib/display/heat-color";
+import {
+  heatBand,
+  heatChipColors,
+  heatTileColor,
+  HEAT_EXTREME_THRESHOLD,
+  HEAT_STRONG_THRESHOLD,
+  HEAT_TEAL,
+  HEAT_TEAL_MID,
+  HEAT_TEAL_SOFT,
+  HEAT_RED_SOFT_BG,
+  HEAT_RED_MID,
+  HEAT_RED_STRONG,
+  HEAT_NEUTRAL,
+} from "@/lib/display/heat-color";
 
 export interface StockHeatmapItem {
   ticker: string;
@@ -24,6 +37,7 @@ interface StockHeatmapProps {
 
 function fmtPct(value: number | null): string {
   if (value === null || !Number.isFinite(value)) return "—";
+  if (Math.abs(value) < 0.05) return "FLAT";
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
@@ -33,10 +47,6 @@ function tileSpan(marketCap: number | null, maxMarketCap: number): number {
   if (ratio >= 0.45) return 3;
   if (ratio >= 0.12) return 2;
   return 1;
-}
-
-function heatColor(change: number | null, _maxAbs: number): string {
-  return heatTileColor(change);
 }
 
 const HEATMAP_STYLES = `
@@ -67,15 +77,40 @@ const HEATMAP_STYLES = `
   @media (prefers-reduced-motion:reduce) {
     .stock-heat-session-dot { animation:none; }
   }
-  .stock-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:6px; }
-  .stock-heat-tile { min-width:0; min-height:66px; padding:10px; border:1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius:8px; color:var(--ink); font:inherit; text-align:left; text-decoration:none; cursor:pointer; transition:filter .15s,border-color .15s,transform .15s; }
-  .stock-heat-tile:hover,.stock-heat-tile:focus-visible { filter:brightness(0.97); outline:none; transform:translateY(-1px); }
-  .stock-heat-tile span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:.63rem; font-weight:700; }.stock-heat-tile strong { display:block; margin-top:6px; font-size:.78rem; }
+  .stock-heat-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); grid-auto-flow:dense; gap:8px; }
+  .stock-heat-tile {
+    display:flex; flex-direction:column; justify-content:space-between;
+    min-width:0; height:7rem; padding:12px;
+    border:1px solid color-mix(in srgb, #ffffff 8%, transparent);
+    border-radius:12px; color:#fff; font:inherit; text-align:left;
+    text-decoration:none; cursor:pointer;
+    transition:filter .15s, border-color .15s, transform .15s;
+  }
+  .stock-heat-tile:hover,.stock-heat-tile:focus-visible { filter:brightness(1.06); outline:none; transform:translateY(-1px); }
+  .stock-heat-ticker {
+    display:inline-flex; align-self:flex-start;
+    padding:4px 8px; border-radius:6px;
+    background:rgba(0,0,0,.3); color:rgba(255,255,255,.9);
+    font-size:.72rem; font-weight:600; letter-spacing:.02em;
+    line-height:1.2; max-width:100%;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .stock-heat-pct {
+    display:inline-flex; align-self:flex-start;
+    margin-top:auto; padding:5px 9px; border-radius:8px;
+    font-size:.78rem; font-weight:700; letter-spacing:.01em;
+    line-height:1.15; font-variant-numeric:tabular-nums;
+  }
   @media (max-width:767px) {
     .stock-heat-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
     .stock-heat-grid > .stock-heat-tile { grid-column:span 1 / span 1 !important; }
   }
-  @media (max-width:399px) { .stock-heat-panel { padding:16px 14px; }.stock-heat-tile { min-height:62px; padding:8px; } }
+  @media (max-width:399px) {
+    .stock-heat-panel { padding:16px 14px; }
+    .stock-heat-tile { height:6.5rem; padding:10px; }
+    .stock-heat-ticker { font-size:.68rem; }
+    .stock-heat-pct { font-size:.72rem; }
+  }
 `;
 
 export function StockHeatmap({
@@ -92,13 +127,13 @@ export function StockHeatmap({
       <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
         <style>{`
           ${HEATMAP_STYLES}
-          .stock-heat-loading-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:6px; }
-          .stock-heat-loading-tile { min-height:66px; border:1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius:8px; background:linear-gradient(110deg,var(--surface) 18%,#e8ecf1 42%,var(--surface) 66%); background-size:220% 100%; animation:stock-heat-shimmer 1.35s linear infinite; }
+          .stock-heat-loading-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
+          .stock-heat-loading-tile { height:7rem; border:1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius:12px; background:linear-gradient(110deg,#262626 18%,#404040 42%,#262626 66%); background-size:220% 100%; animation:stock-heat-shimmer 1.35s linear infinite; }
           .stock-heat-loading-tile:nth-child(1),.stock-heat-loading-tile:nth-child(4) { grid-column:span 2; }
           @keyframes stock-heat-shimmer { to { background-position:-220% 0; } }
           @media (prefers-reduced-motion:reduce) { .stock-heat-loading-tile { animation:none; } }
           @media (max-width:767px) { .stock-heat-loading-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.stock-heat-loading-tile { grid-column:span 1 !important; } }
-          @media (max-width:399px) { .stock-heat-loading-tile { min-height:62px; } }
+          @media (max-width:399px) { .stock-heat-loading-tile { height:6.5rem; } }
         `}</style>
         <div className="stock-heat-heading">
           <h2 className="stock-heat-title">{title}</h2>
@@ -112,7 +147,6 @@ export function StockHeatmap({
   }
   if (items.length === 0) return null;
 
-  const maxAbs = Math.max(...items.map((item) => Math.abs(item.changePercent ?? 0)), 0);
   const maxSizeValue = Math.max(...items.map((item) => item.sizeValue ?? item.marketCap ?? 0), 0);
 
   return (
@@ -129,9 +163,10 @@ export function StockHeatmap({
       </div>
       <p className="stock-heat-subtitle">{subtitle}</p>
       <div className="stock-heat-move-legend" aria-label="Session move color legend">
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_NEUTRAL }} /> Flat</span>
         <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_SOFT }} /> Mild up</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_MID }} /> Strong up</span>
-        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL }} /> Extreme up (≥8%)</span>
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL_MID }} /> Strong up (≥{HEAT_STRONG_THRESHOLD}%)</span>
+        <span><i className="stock-heat-swatch" style={{ background: HEAT_TEAL }} /> Extreme up (≥{HEAT_EXTREME_THRESHOLD}%)</span>
         <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_SOFT_BG }} /> Mild down</span>
         <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_MID }} /> Strong down</span>
         <span><i className="stock-heat-swatch" style={{ background: HEAT_RED_STRONG }} /> Extreme down</span>
@@ -139,16 +174,26 @@ export function StockHeatmap({
       <div className="stock-heat-grid">
         {items.map((item) => {
           const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
+          const band = heatBand(item.changePercent);
+          const chip = heatChipColors(item.changePercent);
           return (
             <Link
               key={item.ticker}
               href={`/companies/${item.ticker}`}
-              className="stock-heat-tile"
-              style={{ gridColumn: `span ${span} / span ${span}`, background: heatColor(item.changePercent, maxAbs) }}
+              className={`stock-heat-tile stock-heat-tile-${band}`}
+              style={{
+                gridColumn: `span ${span} / span ${span}`,
+                background: heatTileColor(item.changePercent),
+              }}
               aria-label={`${item.name}, ${item.ticker}, ${fmtPct(item.changePercent)}`}
             >
-              <span>{item.ticker}</span>
-              <strong>{fmtPct(item.changePercent)}</strong>
+              <span className="stock-heat-ticker">{item.ticker}</span>
+              <strong
+                className="stock-heat-pct"
+                style={{ background: chip.background, color: chip.color }}
+              >
+                {fmtPct(item.changePercent)}
+              </strong>
             </Link>
           );
         })}
