@@ -297,7 +297,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={majorIndexes}
               title="Major Indexes"
-              subtitle="Dow, S&P 500, and Nasdaq · tap any tile for the company dashboard"
+              subtitle="Dow, S&P 500, and Nasdaq"
               narrativeGroup="Major Index"
               narratives={data.marketNarratives.themes}
               uniformTiles
@@ -306,7 +306,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={commodities}
               title="Commodities"
-              subtitle="Oil, gold, and silver · tap any tile for the company dashboard"
+              subtitle="Oil, gold, and silver"
               narrativeGroup="Commodity"
               narratives={data.marketNarratives.themes}
               uniformTiles
@@ -314,7 +314,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={cryptoMarkets}
               title="Crypto"
-              subtitle="Bitcoin, Ethereum, and Solana · tap any tile for the company dashboard"
+              subtitle="Bitcoin, Ethereum, and Solana"
               narrativeGroup="Crypto"
               narratives={data.marketNarratives.themes}
               uniformTiles
@@ -323,7 +323,7 @@ export default function MarketPulsePage() {
               <GlobalMarketsHeatmap
                 markets={usMarkets}
                 title="U.S. Markets"
-                subtitle="Breadth, style, and dollar proxies · tap any tile for the company dashboard"
+                subtitle="Breadth, style, and dollar proxies"
                 narrativeGroup="U.S. Markets"
                 narratives={data.marketNarratives.themes}
                 uniformTiles
@@ -332,7 +332,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={internationalMarkets}
               title="International"
-              subtitle="Country ETF proxies · tap any tile for the company dashboard"
+              subtitle="Country ETF proxies"
               narrativeGroup="International"
               narratives={data.marketNarratives.themes}
             />
@@ -340,7 +340,7 @@ export default function MarketPulsePage() {
               <GlobalMarketsHeatmap
                 markets={industryMarkets}
                 title="Industries"
-                subtitle="Sector ETF proxies · tap any tile for the company dashboard"
+                subtitle="Sector ETF proxies"
                 narrativeGroup="Industries"
                 narratives={data.marketNarratives.themes}
                 sessionLabel={data.sessionLabel ?? null}

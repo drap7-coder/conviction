@@ -30,12 +30,12 @@ export function BuildingConvictionNow() {
   if (items.length === 0) return null;
 
   return (
-    <section className="bcn-module" aria-label="What’s changing now">
+    <section className="bcn-module bcn-module-nested" aria-label="What’s changing now">
       <div className="bcn-header">
         <span className="bcn-eyebrow">Now</span>
         <h2 className="bcn-title">What’s changing</h2>
         <p className="bcn-lede">
-          Ownership moves and news worth a closer look.
+          Ownership moves worth a closer look.
         </p>
       </div>
       <div

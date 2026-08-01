@@ -44,42 +44,32 @@ export function MarketNarrativeDriversPanel({
 }) {
   if (themes.length === 0) {
     return (
-      <section className="bcn-module move-drivers-panel" aria-label="What’s driving the move">
+      <section className="bcn-module bcn-module-nested move-drivers-panel" aria-label="What’s driving the move">
         <div className="bcn-header">
-          <span className="bcn-eyebrow">Narratives</span>
+          <span className="bcn-eyebrow">Now</span>
           <h2 className="bcn-title">What’s driving the move</h2>
           <p className="bcn-lede">
-            Themes carrying attention across {groupLabel.toLowerCase()}.
+            No clear theme for {groupLabel.toLowerCase()} right now.
           </p>
-        </div>
-        <div className="bcn-list" role="region" aria-label="What’s driving the move cards">
-          <div className="bcn-item">
-            <SignalBlock
-              compact
-              conclusion="No live narrative for this set yet"
-              evidence="Attention and headline feeds are quiet or temporarily unavailable."
-              badge={{ label: "Quiet", tone: "quiet" }}
-            />
-          </div>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="bcn-module move-drivers-panel" aria-label="What’s driving the move">
+    <section className="bcn-module bcn-module-nested move-drivers-panel" aria-label="What’s driving the move">
       <div className="bcn-header">
-        <span className="bcn-eyebrow">Narratives</span>
+        <span className="bcn-eyebrow">Now</span>
         <h2 className="bcn-title">What’s driving the move</h2>
         <p className="bcn-lede">
-          Themes carrying attention across {groupLabel.toLowerCase()}.
+          The theme moving {groupLabel.toLowerCase()} today.
         </p>
       </div>
       <div
         className="bcn-list"
         role="region"
         aria-roledescription="carousel"
-        aria-label={`${groupLabel} narratives`}
+        aria-label={`${groupLabel} drivers`}
         tabIndex={0}
       >
         {themes.map((theme) => {
@@ -92,8 +82,10 @@ export function MarketNarrativeDriversPanel({
           const toneChip = inkChipClass(
             inkToneFromSemantic(theme.marketTone === "mixed" ? "mixed" : theme.marketTone),
           );
-          const conclusion = theme.headline?.title ?? theme.summary;
-          const evidence = theme.headline ? theme.summary : (linked || "Linked markets are mixed.");
+          // Theme first; headline supports it — avoids a long RSS line as the lead.
+          const conclusion = theme.summary;
+          const evidence = theme.headline?.title
+            ?? (linked || "Linked markets are mixed.");
           const href = theme.headline?.url
             ?? (lead ? `/companies/${encodeURIComponent(lead.ticker)}` : null);
 
@@ -103,8 +95,8 @@ export function MarketNarrativeDriversPanel({
               eyebrow={theme.label}
               conclusion={conclusion}
               evidence={evidence}
-              dateLabel={formatHeadlineDate(theme.headline?.date) ?? `${theme.velocity.toFixed(1)}× attention`}
-              source="material_news"
+              dateLabel={formatHeadlineDate(theme.headline?.date)}
+              source={theme.headline ? "material_news" : "market_data"}
               badge={{ label: heatLabel(theme.heat), tone: heatTone(theme.heat) }}
             >
               <p className="signal-block-why">
@@ -151,7 +143,7 @@ export function MarketNarrativeDriversPanel({
         })}
       </div>
       <p className="bcn-footnote">
-        Attention vs baseline from open chatter · tone tags reflect session reaction.
+        Based on recent headlines and how linked markets are moving.
       </p>
     </section>
   );

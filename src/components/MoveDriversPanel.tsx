@@ -50,9 +50,10 @@ export function MoveDriversPanel({
   holdings,
   newsByTicker: preloadedNews,
   title = "What’s driving the move",
-  lede = "Headlines and themes behind the session moves.",
-  eyebrow = "News",
+  lede = "Why these names are moving today.",
+  eyebrow = "Now",
   limit = 8,
+  nested = false,
 }: {
   holdings: MoveDriverHolding[];
   /** When provided, skip the news-batch fetch (e.g. Trending already loaded it). */
@@ -61,6 +62,8 @@ export function MoveDriversPanel({
   lede?: string;
   eyebrow?: string;
   limit?: number;
+  /** Quieter header when nested under a heatmap shell. */
+  nested?: boolean;
 }) {
   const [fetchedNews, setFetchedNews] = useState<Record<string, MoveDriverNews>>({});
   const [loaded, setLoaded] = useState(Boolean(preloadedNews));
@@ -145,7 +148,10 @@ export function MoveDriversPanel({
   if (holdings.length === 0) return null;
 
   return (
-    <section className="bcn-module move-drivers-panel" aria-label={title}>
+    <section
+      className={`bcn-module move-drivers-panel${nested ? " bcn-module-nested" : ""}`}
+      aria-label={title}
+    >
       <div className="bcn-header">
         <span className="bcn-eyebrow">{eyebrow}</span>
         <h2 className="bcn-title">{title}</h2>
@@ -169,21 +175,24 @@ export function MoveDriversPanel({
             { ticker: holding.ticker, companyName: holding.companyName ?? undefined },
           );
           const moveLabel = formatMove(holding.changePercent);
+          const hasNews = Boolean(driver?.label || top[0]?.headline);
           const conclusion =
             driver?.label
             ?? top[0]?.headline
             ?? (loaded
               ? (moveLabel
                 ? `${holding.ticker} is ${moveLabel.replace(" today", "")} today`
-                : "No clear news driver yet")
-              : "Loading the story…");
+                : "No clear driver yet")
+              : "Loading…");
           const evidence =
             driver?.explanation
-            ?? (top[1]
-              ? top.slice(0, 2).map((h) => h.headline).join(" · ")
-              : (loaded && !top[0]
-                ? "Price is moving without a clean company headline in the latest feed."
-                : moveLabel));
+            ?? (top[0] && driver?.label
+              ? top[0].headline
+              : top[1]
+                ? top.slice(0, 2).map((h) => h.headline).join(" · ")
+                : (loaded && !top[0]
+                  ? "Session move without a clear headline yet."
+                  : moveLabel));
 
           return (
             <Link
@@ -196,8 +205,8 @@ export function MoveDriversPanel({
                 eyebrow={holding.ticker}
                 conclusion={conclusion}
                 evidence={evidence}
-                dateLabel={newestDate(top) ?? (loaded ? "Recent" : "—")}
-                source="material_news"
+                dateLabel={newestDate(top) ?? (loaded && hasNews ? "Recent" : null)}
+                source={hasNews ? "material_news" : "market_data"}
                 badge={catalyst ? { label: catalyst.label, tone: catalyst.tone } : (
                   moveLabel ? { label: moveLabel, tone: (holding.changePercent ?? 0) >= 0 ? "positive" : "negative" } : null
                 )}
@@ -207,7 +216,7 @@ export function MoveDriversPanel({
         })}
       </div>
       <p className="bcn-footnote">
-        News helps explain the move — check ownership filings before deciding.
+        Headlines help explain the move — confirm with filings before deciding.
       </p>
     </section>
   );
