@@ -104,6 +104,14 @@ describe("deriveTodayCatalyst", () => {
     expect(isCompanyRelevantHeadline("TDOC jumps after earnings", "TDOC", "Teladoc Health")).toBe(true);
   });
 
+  it("matches ETF and crypto headline aliases", () => {
+    expect(isCompanyRelevantHeadline("Bitcoin Falls To 3-Week Low", "BTC-USD")).toBe(true);
+    expect(isCompanyRelevantHeadline("S&P 500 Earnings Season Update", "SPY")).toBe(true);
+    expect(isCompanyRelevantHeadline("Nasdaq-100 rebounds into the close", "QQQ")).toBe(true);
+    expect(isCompanyRelevantHeadline("Crude prices jump on supply risk", "USO")).toBe(true);
+    expect(isCompanyRelevantHeadline("Apple beats estimates", "BTC-USD")).toBe(false);
+  });
+
   it("formats market today in Eastern time", () => {
     expect(marketTodayIso(now)).toBe("2026-07-31");
   });
