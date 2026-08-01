@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
-import { getConvictionBadge } from "@/lib/conviction/canonical-types";
-import { buildConvictionSnapshot } from "@/lib/conviction/canonical";
+import { fetchConvictionScore } from "@/app/components/fetch-conviction-score";
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { deriveTodayCatalyst, type TodayCatalyst } from "@/lib/evidence/today-catalyst";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
@@ -45,6 +45,7 @@ export function CompanyDetailHeader({
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [newsCatalyst, setNewsCatalyst] = useState<TodayCatalyst | null>(null);
+  const [convictionScore, setConvictionScore] = useState<ConvictionScoreView | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,6 +106,20 @@ export function CompanyDetailHeader({
     };
   }, [ticker, companyName]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+    async function loadScore() {
+      const next = await fetchConvictionScore(ticker, controller.signal);
+      if (!cancelled) setConvictionScore(next);
+    }
+    void loadScore();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [ticker]);
+
   const live = useMemo(() => quote ? getLivePrice(quote) : null, [quote]);
 
   const isExtendedSession = live?.session === "pre_market" || live?.session === "after_hours";
@@ -128,22 +143,20 @@ export function CompanyDetailHeader({
       : null;
   }
 
-  // Fallback conviction badge when today’s news has no clear catalyst
+  // Same shared score as the dashboard ring — only when news has no clear catalyst.
   const convictionBadge = useMemo(() => {
-    if (!quote || newsCatalyst) return null;
-    const snapshot = buildConvictionSnapshot({
-      ticker,
-      institutional: null,
-      insider: null,
-      earnings: null,
-      political: null,
-      historyPoints: [],
-      quote,
-      week52High: null,
-      week52Low: null,
-    });
-    return getConvictionBadge(snapshot);
-  }, [ticker, quote, newsCatalyst]);
+    if (newsCatalyst || !convictionScore || convictionScore.displayScore === null) return null;
+    return {
+      verdict: convictionScore.ringLabel,
+      tone: convictionScore.tone === "green"
+        ? "positive"
+        : convictionScore.tone === "red"
+          ? "negative"
+          : convictionScore.tone === "amber"
+            ? "contested"
+            : "quiet",
+    };
+  }, [newsCatalyst, convictionScore]);
 
   return (
     <div className="detail-header">
@@ -179,7 +192,7 @@ export function CompanyDetailHeader({
                 <span className={`cdh-badge cdh-badge-${newsCatalyst.tone}`}>
                   {newsCatalyst.label}
                 </span>
-              ) : convictionBadge && convictionBadge.verdict !== "Awaiting Evidence" ? (
+              ) : convictionBadge && convictionBadge.verdict !== "Awaiting" ? (
                 <span className={`cdh-badge cdh-badge-${convictionBadge.tone}`}>
                   {convictionBadge.verdict}
                 </span>

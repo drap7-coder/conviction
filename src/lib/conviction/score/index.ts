@@ -51,3 +51,19 @@ export {
   getConvictionScoresForTickers,
 } from "./get-for-ticker";
 export type { ConvictionScoreView } from "./view";
+
+export { calculateQualityComposite } from "./quality/calculate";
+export { blendEvidenceAndQuality } from "./quality/blend";
+export { buildQualityFactors } from "./quality/factors";
+export {
+  EVIDENCE_BLEND_WEIGHT,
+  QUALITY_BLEND_WEIGHT,
+  QUALITY_FACTOR_WEIGHTS,
+  QUALITY_MIN_COVERAGE,
+} from "./quality/weights";
+export type {
+  QualityCompositeResult,
+  QualityFactorId,
+  QualityFactorScore,
+} from "./quality/types";
+export type { BlendedConvictionScore } from "./quality/blend";
