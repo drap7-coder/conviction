@@ -40,12 +40,17 @@ export function ConvictionScoreOverview({
       <div className="quote-conviction-ring-wrap">
         <GaugeRing
           size="lg"
-          value={score}
+          value={loading ? null : score}
           label={loading ? "…" : score !== null ? String(score) : "—"}
-          sublabel={loading ? "LOADING" : label.toUpperCase()}
+          sublabel={loading ? "SCORING" : label.toUpperCase()}
           caption=""
           tone={tone}
-          ariaLabel={`Conviction score ${score ?? "unavailable"} of 100: ${label}`}
+          loading={loading}
+          ariaLabel={
+            loading
+              ? "Conviction score computing"
+              : `Conviction score ${score ?? "unavailable"} of 100: ${label}`
+          }
         />
       </div>
 

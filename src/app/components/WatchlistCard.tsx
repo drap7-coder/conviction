@@ -43,6 +43,8 @@ export interface WatchlistCardProps {
   convictionTone: string;
   /** 0–100 score for the conviction ring; null when awaiting evidence */
   convictionStrength: number | null;
+  /** True while the shared score request is still in flight. */
+  scoreLoading?: boolean;
   evidencePills: WatchlistCardEvidencePill[];
   activityLine: WatchlistCardActivityLine | null;
   headlines: WatchlistCardHeadline[];
@@ -111,6 +113,7 @@ export function WatchlistCard({
   convictionState,
   convictionTone,
   convictionStrength,
+  scoreLoading = false,
   activityLine,
   headlines,
   newsDriver,
@@ -261,11 +264,28 @@ export function WatchlistCard({
             <div className="wl-ring-gauge">
               <GaugeRing
                 size="sm"
-                value={convictionStrength}
-                label={convictionStrength !== null ? String(convictionStrength) : "—"}
-                caption={convictionStrength !== null ? ring.label : "Score"}
+                value={scoreLoading ? null : convictionStrength}
+                label={
+                  scoreLoading
+                    ? "…"
+                    : convictionStrength !== null
+                      ? String(convictionStrength)
+                      : "—"
+                }
+                caption={
+                  scoreLoading
+                    ? "Scoring"
+                    : convictionStrength !== null
+                      ? ring.label
+                      : "Score"
+                }
                 tone={ring.tone}
-                ariaLabel={`Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`}
+                loading={scoreLoading}
+                ariaLabel={
+                  scoreLoading
+                    ? `Conviction score computing for ${ticker}`
+                    : `Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`
+                }
               />
             </div>
 

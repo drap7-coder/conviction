@@ -124,6 +124,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
   const [formError, setFormError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
+  const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
 
   // Load positions from localStorage on mount
   useEffect(() => {
@@ -135,17 +136,29 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
   useEffect(() => {
     if (!convictionTickerKey) {
       setConvictionScores({});
+      setPendingScores({});
       return;
     }
     let cancelled = false;
     const tickers = convictionTickerKey.split(",").filter(Boolean);
+    const initialPending: Record<string, true> = {};
+    for (const ticker of tickers) initialPending[ticker] = true;
+    setPendingScores(initialPending);
 
     async function loadConvictionScores() {
-      await fetchConvictionScores(tickers, undefined, (partial) => {
-        if (!cancelled) {
-          setConvictionScores((prev) => ({ ...prev, ...partial }));
+      await fetchConvictionScores(tickers, undefined, (partial, settled) => {
+        if (cancelled) return;
+        setConvictionScores((prev) => ({ ...prev, ...partial }));
+        if (settled) {
+          setPendingScores((prev) => {
+            if (!prev[settled.ticker]) return prev;
+            const next = { ...prev };
+            delete next[settled.ticker];
+            return next;
+          });
         }
       });
+      if (!cancelled) setPendingScores({});
     }
 
     void loadConvictionScores();
@@ -617,6 +630,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                   closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
                   convictionTone={composite?.tone ?? "neutral"}
                   convictionStrength={composite?.displayScore ?? null}
+                  scoreLoading={Boolean(pendingScores[ticker])}
                   shares={pos.shares}
                   metrics={metrics}
                   onEdit={handleStartEdit}
