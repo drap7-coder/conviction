@@ -307,20 +307,22 @@ export default function Watchlist({
     };
   }, [entries]);
 
+  const convictionTickerKey = entries.map((entry) => entry.ticker).join(",");
+
   useEffect(() => {
-    if (entries.length === 0) {
+    if (!convictionTickerKey) {
       setConvictionScores({});
       return;
     }
     let cancelled = false;
     const controller = new AbortController();
+    const tickers = convictionTickerKey.split(",").filter(Boolean);
 
     async function loadConvictionScores() {
-      const scores = await fetchConvictionScores(
-        entries.map((entry) => entry.ticker),
-        controller.signal,
-      );
-      if (!cancelled) setConvictionScores(scores);
+      // Paint each ring as it arrives — batch timeouts left every card on "—".
+      await fetchConvictionScores(tickers, controller.signal, (partial) => {
+        if (!cancelled) setConvictionScores(partial);
+      });
     }
 
     void loadConvictionScores();
@@ -328,7 +330,7 @@ export default function Watchlist({
       cancelled = true;
       controller.abort();
     };
-  }, [entries]);
+  }, [convictionTickerKey]);
 
   useEffect(() => {
     if (entries.length === 0) return;

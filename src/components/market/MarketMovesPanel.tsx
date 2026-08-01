@@ -188,20 +188,21 @@ export function MarketMovesPanel() {
     };
   }, [trending]);
 
+  const convictionTickerKey = trending.map((company) => company.ticker).join(",");
+
   useEffect(() => {
-    if (trending.length === 0) {
+    if (!convictionTickerKey) {
       setConvictionScores({});
       return;
     }
     let cancelled = false;
     const controller = new AbortController();
+    const tickers = convictionTickerKey.split(",").filter(Boolean);
 
     async function loadConvictionScores() {
-      const scores = await fetchConvictionScores(
-        trending.map((company) => company.ticker),
-        controller.signal,
-      );
-      if (!cancelled) setConvictionScores(scores);
+      await fetchConvictionScores(tickers, controller.signal, (partial) => {
+        if (!cancelled) setConvictionScores(partial);
+      });
     }
 
     void loadConvictionScores();
@@ -209,7 +210,7 @@ export function MarketMovesPanel() {
       cancelled = true;
       controller.abort();
     };
-  }, [trending]);
+  }, [convictionTickerKey]);
 
   const handleAddTrending = async (idea: WatchlistCandidate) => {
     setAddMessage(null);

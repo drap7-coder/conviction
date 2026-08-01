@@ -130,20 +130,21 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
     setPositions(loadPositions());
   }, []);
 
+  const convictionTickerKey = positions.map((position) => position.ticker).join(",");
+
   useEffect(() => {
-    if (positions.length === 0) {
+    if (!convictionTickerKey) {
       setConvictionScores({});
       return;
     }
     let cancelled = false;
     const controller = new AbortController();
+    const tickers = convictionTickerKey.split(",").filter(Boolean);
 
     async function loadConvictionScores() {
-      const scores = await fetchConvictionScores(
-        positions.map((position) => position.ticker),
-        controller.signal,
-      );
-      if (!cancelled) setConvictionScores(scores);
+      await fetchConvictionScores(tickers, controller.signal, (partial) => {
+        if (!cancelled) setConvictionScores(partial);
+      });
     }
 
     void loadConvictionScores();
@@ -151,7 +152,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
       cancelled = true;
       controller.abort();
     };
-  }, [positions]);
+  }, [convictionTickerKey]);
 
   // Share quotes from PortfolioDataProvider (one Yahoo fan-out for hero + holdings).
   useEffect(() => {

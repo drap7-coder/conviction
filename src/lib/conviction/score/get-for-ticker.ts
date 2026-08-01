@@ -202,7 +202,7 @@ export async function getConvictionScoreForTicker(
   return toView(upper, blended, categories);
 }
 
-const DEFAULT_CONCURRENCY = 3;
+const DEFAULT_CONCURRENCY = 4;
 
 /**
  * Batch loader with limited concurrency — institutional SEC work is rate-limited.
