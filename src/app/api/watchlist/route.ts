@@ -1,9 +1,23 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import { isAuthConfigured } from "@/lib/auth-readiness";
+import { getConvictionScoresForTickers } from "@/lib/conviction/score";
 import { getWatchlist, isKvEnabled } from "@/lib/watchlist/persist";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { getUserWatchlist, isUserWatchlistAvailable } from "@/lib/user-watchlist";
+
+/** Warm the shared score cache so Watchlist rings can resolve quickly. */
+function warmScores(tickers: string[]) {
+  const unique = [...new Set(tickers.map((ticker) => ticker.trim().toUpperCase()).filter(Boolean))];
+  if (unique.length === 0) return;
+  after(async () => {
+    try {
+      await getConvictionScoresForTickers(unique);
+    } catch {
+      // Warming is best-effort — Watchlist still fetches directly.
+    }
+  });
+}
 
 /**
  * GET /api/watchlist
@@ -19,6 +33,7 @@ export async function GET() {
 
     if (userId) {
       const entries = await getUserWatchlist(userId);
+      warmScores(entries.map((entry) => entry.ticker));
       return NextResponse.json({
         entries,
         authenticated: true,
@@ -38,6 +53,7 @@ export async function GET() {
     }
 
     const entries = await getWatchlist();
+    warmScores(entries.map((entry) => entry.ticker));
 
     return NextResponse.json({
       entries: [],

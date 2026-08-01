@@ -200,19 +200,19 @@ export default function RisingConvictionPage() {
       return;
     }
     let cancelled = false;
-    const controller = new AbortController();
     const tickers = convictionTickerKey.split(",").filter(Boolean);
 
     async function loadConvictionScores() {
-      await fetchConvictionScores(tickers, controller.signal, (partial) => {
-        if (!cancelled) setConvictionScores(partial);
+      await fetchConvictionScores(tickers, undefined, (partial) => {
+        if (!cancelled) {
+          setConvictionScores((prev) => ({ ...prev, ...partial }));
+        }
       });
     }
 
     void loadConvictionScores();
     return () => {
       cancelled = true;
-      controller.abort();
     };
   }, [convictionTickerKey]);
 

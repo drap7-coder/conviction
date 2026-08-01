@@ -22,6 +22,7 @@ import {
   type BuildConvictionScoreInput,
   type ConvictionDisplayLabel,
 } from "./build";
+import { getCachedConvictionScore, setCachedConvictionScore } from "./cache";
 import { blendEvidenceAndQuality } from "./quality/blend";
 import { calculateQualityComposite } from "./quality/calculate";
 import { buildQualityFactors } from "./quality/factors";
@@ -162,10 +163,15 @@ function buildInput(
  */
 export async function getConvictionScoreForTicker(
   ticker: string,
-  options: { companyName?: string } = {},
+  options: { companyName?: string; skipCache?: boolean } = {},
 ): Promise<ConvictionScoreView> {
   const upper = ticker.trim().toUpperCase();
   const companyName = options.companyName?.trim() || upper;
+
+  if (!options.skipCache) {
+    const cached = getCachedConvictionScore(upper);
+    if (cached) return cached;
+  }
 
   const [institutional, shortInterest, history, quotes, earnings, fundamentals] =
     await Promise.all([
@@ -199,7 +205,9 @@ export async function getConvictionScoreForTicker(
     }),
   );
   const blended = blendEvidenceAndQuality(evidence, quality);
-  return toView(upper, blended, categories);
+  const view = toView(upper, blended, categories);
+  setCachedConvictionScore(view);
+  return view;
 }
 
 const DEFAULT_CONCURRENCY = 4;
