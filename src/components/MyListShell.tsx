@@ -45,6 +45,14 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 
   return (
     <div className="my-list-shell">
+      <section className="market-regime-lede ink-panel" aria-label="My list">
+        <span className="market-regime-eyebrow">My list</span>
+        <strong className="market-regime-label">Companies you follow and holdings you own</strong>
+        <p className="market-regime-summary">
+          Switch between your watchlist and portfolio without leaving this page.
+        </p>
+      </section>
+
       <section className="pulse-view-picker my-list-view-picker" aria-label="My list views">
         <div className="pulse-view-tabs" role="tablist" aria-label="Choose a list view">
           {MY_LIST_VIEWS.map((view) => (
@@ -95,18 +103,24 @@ export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) 
   return (
     <Suspense
       fallback={
-        <section className="pulse-view-picker my-list-view-picker" aria-hidden="true">
-          <div className="pulse-view-tabs">
-            <button type="button" className="active" disabled>
-              <strong>Watchlist</strong>
-              <span>Loading your lists…</span>
-            </button>
-            <button type="button" disabled>
-              <strong>Portfolio</strong>
-              <span>Holdings you own</span>
-            </button>
-          </div>
-        </section>
+        <div aria-hidden="true">
+          <section className="market-regime-lede ink-panel">
+            <span className="market-regime-eyebrow">My list</span>
+            <strong className="market-regime-label">Loading your lists…</strong>
+          </section>
+          <section className="pulse-view-picker my-list-view-picker">
+            <div className="pulse-view-tabs">
+              <button type="button" className="active" disabled>
+                <strong>Watchlist</strong>
+                <span>Companies you follow</span>
+              </button>
+              <button type="button" disabled>
+                <strong>Portfolio</strong>
+                <span>Holdings you own</span>
+              </button>
+            </div>
+          </section>
+        </div>
       }
     >
       <PortfolioDataProvider>

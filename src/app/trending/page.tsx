@@ -46,22 +46,16 @@ const TRENDING_VIEWS = [
   {
     id: "market",
     label: "Market",
-    labelTop: "Market",
-    labelBottom: "Moves",
     description: "Where conviction is changing fastest in liquid names",
   },
   {
     id: "investors",
     label: "Institutions",
-    labelTop: "Institutions",
-    labelBottom: "Funds",
-    description: "Where tracked managers disclosed new or larger positions",
+    description: "Tracked managers disclosing new or larger positions",
   },
   {
     id: "politicians",
     label: "Politicians",
-    labelTop: "Politicians",
-    labelBottom: "Trades",
     description: "Congressional disclosures ranked by freshness",
   },
 ] as const;
@@ -267,17 +261,16 @@ export default function RisingConvictionPage() {
 
   return (
     <div>
-      <div className="page-purpose">
-        <span className="page-purpose-eyebrow">Trending</span>
-        <h2 className="page-purpose-title">Where is conviction changing fastest?</h2>
-      </div>
+      <section className="market-regime-lede ink-panel" aria-label="Trending">
+        <span className="market-regime-eyebrow">Trending</span>
+        <strong className="market-regime-label">Where conviction is changing fastest</strong>
+        <p className="market-regime-summary">
+          Ranked by materiality and freshness — not by event count alone.
+        </p>
+      </section>
 
-      <section className="trending-view-picker" aria-label="Trending views">
-        <div className="trending-view-picker-copy">
-          <span>Signal lenses</span>
-          <p>Ranked by materiality and freshness — not by event count alone.</p>
-        </div>
-        <div className="trending-view-tabs" role="tablist" aria-label="Choose a Trending view">
+      <section className="pulse-view-picker" aria-label="Trending views">
+        <div className="pulse-view-tabs" role="tablist" aria-label="Choose a Trending view">
           {TRENDING_VIEWS.map((view) => (
             <button
               key={view.id}
@@ -290,11 +283,7 @@ export default function RisingConvictionPage() {
               className={activeView === view.id ? "active" : ""}
               onClick={() => setActiveView(view.id)}
             >
-              <strong>
-                {view.labelTop}
-                <br className="trending-view-title-break" aria-hidden="true" />{" "}
-                {view.labelBottom}
-              </strong>
+              <strong>{view.label}</strong>
               <span>{view.description}</span>
             </button>
           ))}

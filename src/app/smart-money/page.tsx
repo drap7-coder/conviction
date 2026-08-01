@@ -1,24 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { InvestorMovesPanel } from "@/app/components/InvestorMovesPanel";
 import { PoliticiansMovesPanel } from "@/app/components/PoliticiansMovesPanel";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
-import { useEffect } from "react";
 
 const SMART_MONEY_VIEWS = [
   {
     id: "institutions",
     label: "Institutions",
-    labelTop: "Institutions",
-    labelBottom: "Funds",
-    description: "Where tracked managers disclosed new or larger positions",
+    description: "Tracked managers disclosing new or larger positions",
   },
   {
     id: "politicians",
     label: "Politicians",
-    labelTop: "Politicians",
-    labelBottom: "Trades",
     description: "Congressional STOCK Act disclosures by freshness",
   },
 ] as const;
@@ -123,18 +118,17 @@ export default function SmartMoneyPage() {
   };
 
   return (
-    <div>
-      <div className="page-purpose">
-        <span className="page-purpose-eyebrow">Smart Money</span>
-        <h2 className="page-purpose-title">Where are institutions and politicians putting capital?</h2>
-      </div>
+    <div className="smart-money-page">
+      <section className="market-regime-lede ink-panel" aria-label="Smart Money">
+        <span className="market-regime-eyebrow">Smart Money</span>
+        <strong className="market-regime-label">Where capital is being put to work</strong>
+        <p className="market-regime-summary">
+          Institutional 13F moves and STOCK Act disclosures, ranked by materiality and freshness.
+        </p>
+      </section>
 
-      <section className="trending-view-picker" aria-label="Smart Money views">
-        <div className="trending-view-picker-copy">
-          <span>Signal lenses</span>
-          <p>Institutional 13F moves and STOCK Act disclosures, ranked by materiality and freshness.</p>
-        </div>
-        <div className="trending-view-tabs" role="tablist" aria-label="Choose a Smart Money view">
+      <section className="pulse-view-picker" aria-label="Smart Money views">
+        <div className="pulse-view-tabs" role="tablist" aria-label="Choose a Smart Money view">
           {SMART_MONEY_VIEWS.map((view) => (
             <button
               key={view.id}
@@ -147,11 +141,7 @@ export default function SmartMoneyPage() {
               className={activeView === view.id ? "active" : ""}
               onClick={() => setActiveView(view.id)}
             >
-              <strong>
-                {view.labelTop}
-                <br className="trending-view-title-break" aria-hidden="true" />{" "}
-                {view.labelBottom}
-              </strong>
+              <strong>{view.label}</strong>
               <span>{view.description}</span>
             </button>
           ))}

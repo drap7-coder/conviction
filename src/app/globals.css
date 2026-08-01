@@ -898,70 +898,53 @@ details > summary::before {
   margin: 20px 0 24px;
 }
 
+/* Legacy trending-view-* aliases → shared pulse-view ink segmented control */
 .trending-view-picker {
-  display: grid;
-  grid-template-columns: minmax(190px, 0.62fr) minmax(0, 1.38fr);
-  align-items: stretch;
-  gap: 12px;
-  margin-bottom: 18px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
+  margin: 0 0 18px;
+  padding: 5px;
+  border: 1px solid var(--on-ink-border);
+  border-radius: 14px;
+  background: var(--ink-panel);
+  box-shadow: var(--shadow-ink);
 }
 
 .trending-view-picker-copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 4px 6px;
-}
-
-.trending-view-picker-copy span {
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.trending-view-picker-copy p {
-  margin-top: 5px;
-  color: var(--quiet);
-  font-size: 0.76rem;
-  line-height: 1.45;
+  display: none;
 }
 
 .trending-view-tabs {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 4px;
 }
 
 .trending-view-tabs button {
   min-width: 0;
-  padding: 12px 13px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface-elevated) 82%, transparent);
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--on-ink-muted);
+  background: transparent;
+  font: inherit;
+  font-family: var(--font-mono);
   text-align: left;
-  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
 }
 
 .trending-view-tabs button:hover,
 .trending-view-tabs button:focus-visible {
-  border-color: var(--border-active);
+  color: var(--on-ink);
+  background: color-mix(in srgb, #ffffff 5%, transparent);
   outline: none;
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .trending-view-tabs button.active {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-  color: var(--ink);
-  box-shadow: inset 3px 0 0 var(--accent);
+  color: var(--on-ink);
+  background: var(--ink-panel-elevated);
+  border-color: color-mix(in srgb, #ffffff 16%, transparent);
+  box-shadow: none;
 }
 
 .trending-view-tabs strong,
@@ -970,8 +953,9 @@ details > summary::before {
 }
 
 .trending-view-tabs strong {
-  color: var(--ink);
-  font-size: 0.82rem;
+  color: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .trending-view-title-break {
@@ -979,10 +963,15 @@ details > summary::before {
 }
 
 .trending-view-tabs span {
-  margin-top: 2px;
-  color: var(--quiet);
+  margin-top: 4px;
+  color: var(--on-ink-quiet);
   font-family: var(--font-mono);
   font-size: 0.62rem;
+  line-height: 1.35;
+}
+
+.trending-view-tabs button.active span {
+  color: var(--on-ink-muted);
 }
 
 /* ── Investor Moves (Trending lens) ── */
@@ -1074,10 +1063,10 @@ details > summary::before {
 .investor-filter-row button {
   flex: 0 0 auto;
   padding: 7px 11px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--on-ink-border);
   border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted);
+  background: var(--ink-panel);
+  color: var(--on-ink-muted);
   font-family: var(--font-mono);
   font-size: 0.64rem;
   transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
@@ -1086,9 +1075,9 @@ details > summary::before {
 .investor-filter-row button:hover,
 .investor-filter-row button:focus-visible,
 .investor-filter-row button.active {
-  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
-  background: var(--accent-dim);
-  color: var(--ink);
+  border-color: color-mix(in srgb, #ffffff 20%, transparent);
+  background: var(--ink-panel-elevated);
+  color: var(--on-ink);
   outline: none;
 }
 
@@ -8826,29 +8815,23 @@ details > summary::before {
 
 @media (max-width: 640px) {
   .trending-view-picker {
-    grid-template-columns: 1fr;
-    padding: 11px;
-  }
-
-  .trending-view-picker-copy {
-    padding: 2px 3px 4px;
+    padding: 5px;
   }
 
   .trending-view-tabs {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
     margin: 0;
     overflow: visible;
-    padding: 1px;
   }
 
   .trending-view-tabs button {
     width: 100%;
-    padding: 11px 10px;
+    padding: 11px 12px;
   }
 
   .trending-view-title-break {
-    display: block;
+    display: none;
   }
 
   .investor-moves-intro {
@@ -10302,7 +10285,7 @@ details > summary::before {
 
 .pulse-view-tabs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 4px;
   padding: 5px;
   border: 1px solid var(--on-ink-border);
