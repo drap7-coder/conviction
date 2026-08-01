@@ -41,27 +41,23 @@ function tileSpan(marketCap: number | null, maxMarketCap: number): number {
 }
 
 const HEATMAP_STYLES = `
-  .stock-heat-panel { margin:0 0 20px; padding:20px; background:var(--card); border:1px solid var(--border); border-radius:12px; color:var(--ink); font-family:var(--font-mono); box-shadow:var(--shadow-sm); }
+  .stock-heat-panel { margin:0 0 20px; padding:20px; border-radius:12px; font-family:var(--font-mono); }
   .stock-heat-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-  .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; }
-  .stock-heat-subtitle { margin:6px 0 12px; color:var(--muted); font-size:.66rem; line-height:1.45; }
-  .stock-heat-move-legend { display:flex; flex-wrap:wrap; gap:10px 14px; margin:0 0 12px; color:var(--muted); font-size:.58rem; letter-spacing:.04em; text-transform:uppercase; }
+  .stock-heat-title { margin:0; font-size:.78rem; letter-spacing:.09em; text-transform:uppercase; color:var(--on-ink); }
+  .stock-heat-subtitle { margin:6px 0 12px; color:var(--on-ink-muted); font-size:.66rem; line-height:1.45; }
+  .stock-heat-move-legend { display:flex; flex-wrap:wrap; gap:10px 14px; margin:0 0 12px; color:var(--on-ink-muted); font-size:.58rem; letter-spacing:.04em; text-transform:uppercase; }
   .stock-heat-move-legend span { display:inline-flex; align-items:center; gap:6px; }
-  .stock-heat-swatch { width:10px; height:10px; border-radius:2px; border:1px solid color-mix(in srgb, var(--ink) 10%, transparent); }
+  .stock-heat-swatch { width:10px; height:10px; border-radius:2px; border:1px solid color-mix(in srgb, #ffffff 14%, transparent); }
   .stock-heat-session {
     display:inline-flex; align-items:center; gap:6px;
-    padding:4px 9px; border-radius:999px;
-    background:var(--amber-dim); color:var(--amber);
-    font-size:.62rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-    white-space:nowrap;
   }
   .stock-heat-session-dot {
     width:6px; height:6px; border-radius:50%; background:currentColor;
-    box-shadow:0 0 0 0 color-mix(in srgb, var(--amber) 55%, transparent);
+    box-shadow:0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent);
     animation:stock-heat-session-pulse 1.6s ease-out infinite;
   }
   @keyframes stock-heat-session-pulse {
-    0% { transform:scale(1); box-shadow:0 0 0 0 color-mix(in srgb, var(--amber) 55%, transparent); opacity:1; }
+    0% { transform:scale(1); box-shadow:0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent); opacity:1; }
     70% { transform:scale(1.15); box-shadow:0 0 0 7px transparent; opacity:.85; }
     100% { transform:scale(1); box-shadow:0 0 0 0 transparent; opacity:1; }
   }
@@ -89,11 +85,11 @@ export function StockHeatmap({
 
   if (loading && items.length === 0) {
     return (
-      <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
+      <section className="stock-heat-panel ink-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
         <style>{`
           ${HEATMAP_STYLES}
           .stock-heat-loading-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
-          .stock-heat-loading-tile { height:7rem; border:1px solid color-mix(in srgb, var(--ink) 8%, transparent); border-radius:12px; background:linear-gradient(110deg,#262626 18%,#404040 42%,#262626 66%); background-size:220% 100%; animation:stock-heat-shimmer 1.35s linear infinite; }
+          .stock-heat-loading-tile { height:7rem; border:1px solid color-mix(in srgb, #ffffff 10%, transparent); border-radius:12px; background:linear-gradient(110deg,#262626 18%,#404040 42%,#262626 66%); background-size:220% 100%; animation:stock-heat-shimmer 1.35s linear infinite; }
           .stock-heat-loading-tile:nth-child(1),.stock-heat-loading-tile:nth-child(4) { grid-column:span 2; }
           @keyframes stock-heat-shimmer { to { background-position:-220% 0; } }
           @media (prefers-reduced-motion:reduce) { .stock-heat-loading-tile { animation:none; } }
@@ -115,12 +111,12 @@ export function StockHeatmap({
   const maxSizeValue = Math.max(...items.map((item) => item.sizeValue ?? item.marketCap ?? 0), 0);
 
   return (
-    <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
+    <section className="stock-heat-panel ink-panel" aria-label={title} aria-description={subtitle}>
       <style>{HEATMAP_STYLES}</style>
       <div className="stock-heat-heading">
         <h2 className="stock-heat-title">{title}</h2>
         {showSessionBadge ? (
-          <span className="stock-heat-session" aria-label={`${sessionLabel} session`}>
+          <span className="stock-heat-session ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
             <i className="stock-heat-session-dot" aria-hidden="true" />
             {sessionLabel}
           </span>

@@ -12,6 +12,7 @@ import {
 import { summarizeCorporateEventActivity } from "@/lib/sec/corporate-disclosure-activity";
 import type { MajorOwnershipSummary } from "@/lib/sec/major-ownership";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
+import { inkBoxClass, inkChipClass } from "@/lib/display/ink-tone";
 
 interface MoveExplanationSectionProps {
   ticker: string;
@@ -389,27 +390,39 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           </div>
         </div>
       ) : error ? (
-        <div className="move-card">
+        <div className={`move-card ${inkBoxClass("quiet")}`}>
           <h3>{error}</h3>
           <p className="move-answer">Data is not available at this moment. Retry in a moment.</p>
         </div>
       ) : event ? (
-        <div className={`move-card convergence-card convergence-monitor confidence-${event.confidence}`}>
+        <div className={`move-card ink-panel convergence-card convergence-monitor confidence-${event.confidence}`}>
           <div className="move-card-top">
             <div>
               <span className="move-eyebrow">{formatDate(event.date)}</span>
               <h3>Evidence around the move</h3>
               <p className="convergence-detail">These events add context but do not determine the momentum snapshot.</p>
             </div>
-            <span className="move-confidence convergence-badge neutral">
+            <span className={`${inkChipClass("quiet")} convergence-badge`}>
               Context
             </span>
           </div>
 
           <div className="convergence-signal-grid" aria-label="Supporting evidence">
-            <div className="signal-tile neutral">
+            <div className={`signal-tile ${inkBoxClass(
+              institutionalStatus === "timeout" || institutionalStatus === "error"
+                ? "quiet"
+                : institutionalPositive
+                  ? "up"
+                  : "quiet",
+            )}`}>
               <span className="move-eyebrow">Institutional</span>
-              <strong>
+              <strong className={inkChipClass(
+                institutionalStatus === "timeout" || institutionalStatus === "error"
+                  ? "quiet"
+                  : institutionalPositive
+                    ? "up"
+                    : "quiet",
+              )}>
                 {institutionalStatus === "timeout" || institutionalStatus === "error"
                   ? "Data unavailable"
                   : institutionalPositive
@@ -418,27 +431,47 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               </strong>
               <p>{institutionalText}</p>
             </div>
-            <div className="signal-tile neutral">
+            <div className={`signal-tile ${inkBoxClass(hasRecentInsiderBuy ? "up" : "quiet")}`}>
               <span className="move-eyebrow">Insider</span>
-              <strong>{hasRecentInsiderBuy ? "Open-market buying" : "No recent open-market buy"}</strong>
+              <strong className={inkChipClass(hasRecentInsiderBuy ? "up" : "quiet")}>
+                {hasRecentInsiderBuy ? "Open-market buying" : "No recent open-market buy"}
+              </strong>
               <p>
                 {insider.leadPurchase
                   ? `${insider.leadPurchase.metadata?.insiderName ?? "Insider"} bought ${insider.leadPurchase.metadata?.shares?.toLocaleString() ?? "shares"}${formatMoney(insider.leadPurchase.metadata?.totalValue) ? ` / ${formatMoney(insider.leadPurchase.metadata?.totalValue)}` : ""}.`
                   : "Grants, tax withholding, and option exercises do not count as conviction."}
               </p>
             </div>
-            <div className="signal-tile neutral">
+            <div className={`signal-tile ${inkBoxClass(hasPoliticalPurchase ? "up" : "quiet")}`}>
               <span className="move-eyebrow">Political</span>
-              <strong>{hasPoliticalPurchase ? "Disclosed purchase" : "No political purchase"}</strong>
+              <strong className={inkChipClass(hasPoliticalPurchase ? "up" : "quiet")}>
+                {hasPoliticalPurchase ? "Disclosed purchase" : "No political purchase"}
+              </strong>
               <p>
                 {politicalPurchase
                   ? `${politicalPurchase.filerName} reported a ${politicalPurchase.amountRange} purchase, filed ${formatDate(politicalPurchase.filingDate)}.`
                   : "Political sales and exchanges do not count as positive conviction."}
               </p>
             </div>
-            <div className="signal-tile neutral">
+            <div className={`signal-tile ${inkBoxClass(
+              shortInterest
+                ? shortInterestDirection === "offset"
+                  ? "down"
+                  : shortInterestDirection === "positive"
+                    ? "up"
+                    : "quiet"
+                : "quiet",
+            )}`}>
               <span className="move-eyebrow">Short interest</span>
-              <strong>
+              <strong className={inkChipClass(
+                shortInterest
+                  ? shortInterestDirection === "offset"
+                    ? "down"
+                    : shortInterestDirection === "positive"
+                      ? "up"
+                      : "quiet"
+                  : "quiet",
+              )}>
                 {shortInterest
                   ? shortInterestDirection === "offset"
                     ? "Short pressure elevated"
@@ -456,9 +489,9 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               </p>
             </div>
             {hasLeadershipChangeCluster ? (
-              <div className="signal-tile neutral">
+              <div className={`signal-tile ${inkBoxClass("amber")}`}>
                 <span className="move-eyebrow">Management</span>
-                <strong>Leadership changes active</strong>
+                <strong className={inkChipClass("amber")}>Leadership changes active</strong>
                 <p>
                   {corporateActivity?.copy}
                   {corporateActivity?.latestEventDate ? ` Latest filed ${formatDate(corporateActivity.latestEventDate)}.` : ""}
@@ -466,9 +499,11 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
               </div>
             ) : null}
             {hasCounterSignal ? (
-              <div className="signal-tile neutral">
+              <div className={`signal-tile ${inkBoxClass("down")}`}>
                 <span className="move-eyebrow">Signal offset</span>
-                <strong>{hasInsiderOffset && hasPoliticalOffset ? "Selling present" : hasInsiderOffset ? "Insider selling present" : "Political sale present"}</strong>
+                <strong className={inkChipClass("down")}>
+                  {hasInsiderOffset && hasPoliticalOffset ? "Selling present" : hasInsiderOffset ? "Insider selling present" : "Political sale present"}
+                </strong>
                 <p>
                   {insider.leadSale
                     ? `${insider.leadSale.metadata?.insiderName ?? "Insider"} sold ${insider.leadSale.metadata?.shares?.toLocaleString() ?? "shares"}${formatMoney(insider.leadSale.metadata?.totalValue) ? ` / ${formatMoney(insider.leadSale.metadata?.totalValue)}` : ""}.`

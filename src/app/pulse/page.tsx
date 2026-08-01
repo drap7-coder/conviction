@@ -341,7 +341,7 @@ export default function MarketPulsePage() {
       >
         {activeTab === "trending" ? (
           <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
-            <div className="page-purpose" style={{ marginTop: 8 }}>
+            <div className="page-purpose ink-panel" style={{ marginTop: 8, padding: "14px 16px" }}>
               <span className="page-purpose-eyebrow">Trending Stocks</span>
               <h2 className="page-purpose-title">Where is conviction changing fastest?</h2>
             </div>

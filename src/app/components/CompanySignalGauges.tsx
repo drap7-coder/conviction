@@ -156,7 +156,9 @@ export function CompanySignalGauges({ ticker }: { ticker: string }) {
       <section className="quote-card dashboard-signal-gauges ink-box ink-box--quiet" aria-label="Signal gauges">
         <div className="quote-card-header">
           <span className="quote-card-title">Signal gauges</span>
-          <span className="quote-card-meta">{loading ? "LOADING" : "LIVE"}</span>
+          <span className={`quote-card-meta ink-chip ${loading ? "ink-chip--quiet" : "ink-chip--up"}`}>
+            {loading ? "Loading" : "Live"}
+          </span>
         </div>
         <div className="quote-signal-gauges">
           <GaugeRing
@@ -186,8 +188,8 @@ export function CompanySignalGauges({ ticker }: { ticker: string }) {
       <section className="quote-card dashboard-signal-gauges ink-box ink-box--quiet" aria-label="Technical gauges">
         <div className="quote-card-header">
           <span className="quote-card-title">Technical</span>
-          <span className="quote-card-meta">
-            {loading ? "LOADING" : technical.label === "Insufficient Data" ? "NO DATA" : technical.label.toUpperCase()}
+          <span className={`quote-card-meta ink-chip ${loading || technical.label === "Insufficient Data" ? "ink-chip--quiet" : "ink-chip--amber"}`}>
+            {loading ? "Loading" : technical.label === "Insufficient Data" ? "No data" : technical.label}
           </span>
         </div>
         <div className="quote-signal-gauges quote-signal-gauges-pair">

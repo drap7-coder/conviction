@@ -116,7 +116,7 @@ export function InstitutionalConvictionSection({
       </div>
 
       {status === "loading" || status === "idle" ? (
-        <div className="institutional-hero loading">
+        <div className="institutional-hero ink-panel loading">
           <div>
             <span className="institutional-eyebrow">SEC Form 13F</span>
             <h3>Checking the 15 tracked managers...</h3>
@@ -136,7 +136,7 @@ export function InstitutionalConvictionSection({
           </button>
         </div>
       ) : activeCount === 0 ? (
-        <div className="institutional-hero">
+        <div className="institutional-hero ink-panel">
           <div>
             <span className="institutional-eyebrow">SEC Form 13F</span>
             <h3>No tracked-manager activity found</h3>
@@ -146,7 +146,7 @@ export function InstitutionalConvictionSection({
       ) : (
         <>
           {priority === "primary" ? (
-            <div className="institutional-hero">
+            <div className="institutional-hero ink-panel">
               <div>
                 <span className="institutional-eyebrow">SEC Form 13F · 15 tracked managers</span>
                 <h3>
@@ -161,15 +161,15 @@ export function InstitutionalConvictionSection({
                 </p>
               </div>
               <div className="institutional-hero-metrics">
-                <div>
+                <div className="ink-box ink-box--up">
                   <strong>{positiveRows.length}</strong>
                   <span>adding</span>
                 </div>
-                <div>
+                <div className="ink-box ink-box--quiet">
                   <strong>{formatShares(netShareChange)}</strong>
                   <span>net shares</span>
                 </div>
-                <div>
+                <div className="ink-box ink-box--quiet">
                   <strong>{activeCount}</strong>
                   <span>changes</span>
                 </div>

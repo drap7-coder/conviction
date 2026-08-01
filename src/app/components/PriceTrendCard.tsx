@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { computeSma, buildSmaPath } from "@/lib/market/technical-state";
+import { inkBoxClass, inkChipClass } from "@/lib/display/ink-tone";
 
 type TrendRange = "1d" | "1w" | "1m" | "6m" | "1y";
 
@@ -151,14 +152,18 @@ export function PriceTrendCard({
     };
   }, [history]);
 
+  const moveTone = status === "success"
+    ? (isPositive ? "up" : "down")
+    : "quiet";
+
   return (
-    <section className="price-trend-card" aria-label={`${ticker} price trend`}>
+    <section className={`price-trend-card ${inkBoxClass("quiet")}`} aria-label={`${ticker} price trend`}>
       <div className="price-trend-top">
         {showQuote ? (
           <div className="price-trend-quote">
             <strong>{history?.endPrice ? formatPrice(history.endPrice) : status === "loading" ? "Loading market tape" : "Trend unavailable"}</strong>
             {status === "success" ? (
-              <span className={isPositive ? "trend-positive" : "trend-negative"}>
+              <span className={inkChipClass(moveTone)}>
                 {formatChange(history?.change)}
                 <span aria-hidden="true"> · </span>
                 {formatPercent(history?.changePercent)}

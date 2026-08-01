@@ -7,6 +7,7 @@ import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { WatchlistCardHeadline } from "@/app/components/WatchlistCard";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 
 export interface WatchlistAttentionItem {
   ticker: string;
@@ -110,45 +111,53 @@ export function WatchlistNeedsAttention({
 
   return (
     <section className="wl-attention" aria-label="Needs attention">
-      <div className="wl-attention-header">
+      <div className="wl-attention-header ink-panel">
         <div>
           <span className="wl-attention-eyebrow">Needs attention</span>
           <h2 className="wl-attention-title">Start here</h2>
         </div>
-        <span className="wl-attention-count">{items.length}</span>
+        <span className={inkChipClass("amber")}>{items.length}</span>
       </div>
 
       <div className="wl-attention-list">
-        {items.map((item) => (
-          <Link
-            key={item.ticker}
-            href={`/companies/${item.ticker}`}
-            className={`wl-attention-item wl-attention-p${item.priority}`}
-          >
-            <div className="wl-attention-top">
-              <div className="wl-attention-identity">
-                <strong className="wl-attention-ticker">{item.ticker}</strong>
-                <span className="wl-attention-name">{item.companyName}</span>
-              </div>
-              <span className={`wl-attention-badge wl-attention-tone-${item.tone}`}>
-                {item.strengthLabel}
-              </span>
-            </div>
-            <p className="wl-attention-reason">{item.reason}</p>
-            <div className="wl-attention-meta">
-              {item.changePercent !== null && Number.isFinite(item.changePercent) ? (
-                <span className={item.changePercent >= 0 ? "up" : "down"}>
-                  {item.changePercent >= 0 ? "+" : ""}
-                  {item.changePercent.toFixed(1)}%
+        {items.map((item) => {
+          const tone = inkToneFromSemantic(item.tone);
+          const moveTone = item.changePercent === null || !Number.isFinite(item.changePercent) || item.changePercent === 0
+            ? "quiet" as const
+            : item.changePercent > 0
+              ? "up" as const
+              : "down" as const;
+          return (
+            <Link
+              key={item.ticker}
+              href={`/companies/${item.ticker}`}
+              className={`wl-attention-item ${inkBoxClass(tone)} wl-attention-p${item.priority}`}
+            >
+              <div className="wl-attention-top">
+                <div className="wl-attention-identity">
+                  <strong className="wl-attention-ticker">{item.ticker}</strong>
+                  <span className="wl-attention-name">{item.companyName}</span>
+                </div>
+                <span className={inkChipClass(tone)}>
+                  {item.strengthLabel}
                 </span>
-              ) : null}
-              {item.sessionLabel ? (
-                <span className="wl-attention-session">{item.sessionLabel}</span>
-              ) : null}
-              <span className="wl-attention-action">{item.action}</span>
-            </div>
-          </Link>
-        ))}
+              </div>
+              <p className="wl-attention-reason">{item.reason}</p>
+              <div className="wl-attention-meta">
+                {item.changePercent !== null && Number.isFinite(item.changePercent) ? (
+                  <span className={inkChipClass(moveTone)}>
+                    {item.changePercent >= 0 ? "+" : ""}
+                    {item.changePercent.toFixed(1)}%
+                  </span>
+                ) : null}
+                {item.sessionLabel ? (
+                  <span className={`${inkChipClass("amber")} wl-attention-session`}>{item.sessionLabel}</span>
+                ) : null}
+                <span className="wl-attention-action">{item.action}</span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </section>
   );

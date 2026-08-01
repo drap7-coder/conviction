@@ -39,7 +39,7 @@ export function GuestModeBanner({
   }
 
   return (
-    <div className="guest-banner" role="status">
+    <div className="guest-banner ink-box ink-box--quiet" role="status">
       <span className="guest-banner-text">
         Browsing as guest — sign in to save your watchlist across devices.
       </span>

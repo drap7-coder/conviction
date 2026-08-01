@@ -284,8 +284,10 @@
 }
 
 .earnings-hero { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-top: 18px; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-inset); }
+.earnings-hero.ink-box { background: var(--ink-panel-elevated); border-color: var(--on-ink-border); box-shadow: none; }
 .earnings-hero span { display: block; color: var(--quiet); font: .57rem/1.2 var(--font-mono); text-transform: uppercase; }
 .earnings-hero strong { display: block; margin-top: 6px; color: var(--ink); font-size: 1.05rem; }
+.earnings-row .ink-chip { font-size: .55rem; }
 .evidence-help { margin: 12px 0; color: var(--muted); font-size: .72rem; line-height: 1.45; }
 .earnings-table { border-top: 1px solid var(--border); }
 .earnings-row { display: grid; grid-template-columns: 1.4fr repeat(3, .7fr); gap: 8px; padding: 8px 2px; border-bottom: 1px solid var(--border); color: var(--muted); font: .61rem/1.2 var(--font-mono); }
@@ -364,7 +366,34 @@
   border-radius: var(--radius);
   padding: 18px;
   box-shadow: var(--shadow-sm);
-  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s, transform 0.15s, filter 0.15s;
+}
+
+/* Keep ink fill when DashboardCard opts into the shared ink system. */
+.dashboard-card.ink-box {
+  background: var(--ink-panel-elevated);
+  border-color: var(--on-ink-border);
+  box-shadow: var(--shadow-ink);
+}
+
+.dashboard-card.ink-box--up {
+  background: color-mix(in srgb, var(--on-ink-green) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-green) 38%, transparent);
+}
+
+.dashboard-card.ink-box--down {
+  background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-red) 38%, transparent);
+}
+
+.dashboard-card.ink-box--amber {
+  background: color-mix(in srgb, var(--on-ink-amber) 14%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-amber) 34%, transparent);
+}
+
+.dashboard-card.ink-box--quiet {
+  background: var(--ink-panel-elevated);
+  border-color: var(--on-ink-border);
 }
 
 .dashboard-card[open] {
@@ -445,6 +474,10 @@
   opacity: 0.55;
 }
 
+.dashboard-card.ink-box::before {
+  display: none;
+}
+
 .dashboard-card > * {
   position: relative;
   z-index: 1;
@@ -457,6 +490,15 @@
     var(--card-accent);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+.dashboard-card.ink-box:hover,
+.dashboard-card.ink-box:focus-within {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  background: var(--ink-panel-elevated);
+  border-color: var(--on-ink-border);
+  box-shadow: var(--shadow-ink);
 }
 
 /* ── Card overrides for inner content ── */
