@@ -35,6 +35,8 @@ interface TrendingCardProps {
   newsDriver: NewsDriver | null;
   /** Shared composite score from /api/conviction/score — sole ring source. */
   convictionScore?: ConvictionScoreView | null;
+  /** True while the shared score request is still in flight. */
+  scoreLoading?: boolean;
   isTracked: boolean;
   isAdding: boolean;
   onAdd: () => void;
@@ -85,6 +87,7 @@ export function TrendingCard({
   headlines,
   newsDriver,
   convictionScore = null,
+  scoreLoading = false,
   isTracked,
   isAdding,
   onAdd,
@@ -169,10 +172,16 @@ export function TrendingCard({
             <div className="wl-ring-gauge">
               <GaugeRing
                 size="sm"
-                value={ring.value}
-                label={ring.value !== null ? String(ring.value) : "—"}
+                value={scoreLoading ? null : ring.value}
+                label={scoreLoading ? "…" : ring.value !== null ? String(ring.value) : "—"}
+                caption={scoreLoading ? "Scoring" : undefined}
                 tone={ring.tone}
-                ariaLabel={`Conviction ${ring.value ?? "unavailable"}: ${ring.label}`}
+                loading={scoreLoading}
+                ariaLabel={
+                  scoreLoading
+                    ? `Conviction score computing for ${ticker}`
+                    : `Conviction ${ring.value ?? "unavailable"}: ${ring.label}`
+                }
               />
             </div>
 

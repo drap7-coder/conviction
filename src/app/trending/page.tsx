@@ -106,6 +106,7 @@ export default function RisingConvictionPage() {
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [requestKey, setRequestKey] = useState(0);
   const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
+  const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -197,17 +198,29 @@ export default function RisingConvictionPage() {
   useEffect(() => {
     if (!convictionTickerKey) {
       setConvictionScores({});
+      setPendingScores({});
       return;
     }
     let cancelled = false;
     const tickers = convictionTickerKey.split(",").filter(Boolean);
+    const initialPending: Record<string, true> = {};
+    for (const ticker of tickers) initialPending[ticker] = true;
+    setPendingScores(initialPending);
 
     async function loadConvictionScores() {
-      await fetchConvictionScores(tickers, undefined, (partial) => {
-        if (!cancelled) {
-          setConvictionScores((prev) => ({ ...prev, ...partial }));
+      await fetchConvictionScores(tickers, undefined, (partial, settled) => {
+        if (cancelled) return;
+        setConvictionScores((prev) => ({ ...prev, ...partial }));
+        if (settled) {
+          setPendingScores((prev) => {
+            if (!prev[settled.ticker]) return prev;
+            const next = { ...prev };
+            delete next[settled.ticker];
+            return next;
+          });
         }
       });
+      if (!cancelled) setPendingScores({});
     }
 
     void loadConvictionScores();
@@ -365,6 +378,7 @@ export default function RisingConvictionPage() {
                       headlines={headlines[idea.ticker] ?? []}
                       newsDriver={newsDrivers[idea.ticker] ?? null}
                       convictionScore={convictionScores[idea.ticker] ?? null}
+                      scoreLoading={Boolean(pendingScores[idea.ticker])}
                       isTracked={isTracked}
                       isAdding={addingTicker === idea.ticker}
                       onAdd={() => handleAddTrending(idea)}

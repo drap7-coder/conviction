@@ -140,6 +140,7 @@ export default function Watchlist({
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
   const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
+  const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -315,6 +316,7 @@ export default function Watchlist({
   useEffect(() => {
     if (!convictionTickerKey) {
       setConvictionScores({});
+      setPendingScores({});
       return;
     }
     let cancelled = false;
@@ -326,13 +328,27 @@ export default function Watchlist({
       setConvictionScores((prev) => ({ ...prev, ...cached }));
     }
 
+    const initialPending: Record<string, true> = {};
+    for (const ticker of tickers) {
+      if (cached[ticker]?.displayScore == null) initialPending[ticker] = true;
+    }
+    setPendingScores(initialPending);
+
     async function loadConvictionScores() {
       // Do not abort in-flight score work — remount/reload races were wiping rings.
-      await fetchConvictionScores(tickers, undefined, (partial) => {
-        if (!cancelled) {
-          setConvictionScores((prev) => ({ ...prev, ...partial }));
+      await fetchConvictionScores(tickers, undefined, (partial, settled) => {
+        if (cancelled) return;
+        setConvictionScores((prev) => ({ ...prev, ...partial }));
+        if (settled) {
+          setPendingScores((prev) => {
+            if (!prev[settled.ticker]) return prev;
+            const next = { ...prev };
+            delete next[settled.ticker];
+            return next;
+          });
         }
       });
+      if (!cancelled) setPendingScores({});
     }
 
     void loadConvictionScores();
@@ -728,6 +744,7 @@ export default function Watchlist({
               convictionState={composite?.ringLabel ?? "Awaiting"}
               convictionTone={composite?.tone ?? "neutral"}
               convictionStrength={composite?.displayScore ?? null}
+              scoreLoading={Boolean(pendingScores[entry.ticker])}
               evidencePills={evidencePills}
               activityLine={activityLine}
               headlines={headlines[entry.ticker] ?? []}
@@ -776,6 +793,7 @@ export default function Watchlist({
             convictionState={composite?.ringLabel ?? "Awaiting"}
             convictionTone={composite?.tone ?? "neutral"}
             convictionStrength={composite?.displayScore ?? null}
+            scoreLoading={Boolean(pendingScores[entry.ticker])}
             evidencePills={evidencePills}
             activityLine={activityLine}
             headlines={headlines[entry.ticker] ?? []}

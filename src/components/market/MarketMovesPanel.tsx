@@ -71,6 +71,7 @@ export function MarketMovesPanel() {
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
   const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
+  const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
@@ -193,17 +194,29 @@ export function MarketMovesPanel() {
   useEffect(() => {
     if (!convictionTickerKey) {
       setConvictionScores({});
+      setPendingScores({});
       return;
     }
     let cancelled = false;
     const tickers = convictionTickerKey.split(",").filter(Boolean);
+    const initialPending: Record<string, true> = {};
+    for (const ticker of tickers) initialPending[ticker] = true;
+    setPendingScores(initialPending);
 
     async function loadConvictionScores() {
-      await fetchConvictionScores(tickers, undefined, (partial) => {
-        if (!cancelled) {
-          setConvictionScores((prev) => ({ ...prev, ...partial }));
+      await fetchConvictionScores(tickers, undefined, (partial, settled) => {
+        if (cancelled) return;
+        setConvictionScores((prev) => ({ ...prev, ...partial }));
+        if (settled) {
+          setPendingScores((prev) => {
+            if (!prev[settled.ticker]) return prev;
+            const next = { ...prev };
+            delete next[settled.ticker];
+            return next;
+          });
         }
       });
+      if (!cancelled) setPendingScores({});
     }
 
     void loadConvictionScores();
@@ -322,6 +335,7 @@ export function MarketMovesPanel() {
                     headlines={headlines[idea.ticker] ?? []}
                     newsDriver={newsDrivers[idea.ticker] ?? null}
                     convictionScore={convictionScores[idea.ticker] ?? null}
+                    scoreLoading={Boolean(pendingScores[idea.ticker])}
                     isTracked={isTracked}
                     isAdding={addingTicker === idea.ticker}
                     onAdd={() => handleAddTrending(idea)}

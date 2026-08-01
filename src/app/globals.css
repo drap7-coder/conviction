@@ -9389,6 +9389,43 @@ details > summary::before {
   stroke: var(--divider);
 }
 
+.quote-gauge-spinner {
+  stroke: var(--ink);
+  opacity: 0.55;
+}
+
+.quote-gauge-spinner-group {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: quote-gauge-spin 0.85s linear infinite;
+}
+
+.quote-gauge-loading .quote-gauge-value {
+  color: var(--quiet);
+}
+
+.quote-gauge-loading .quote-gauge-caption,
+.quote-gauge-loading .quote-gauge-sublabel {
+  color: var(--quiet);
+}
+
+@keyframes quote-gauge-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quote-gauge-spinner-group {
+    animation: none;
+  }
+
+  .quote-gauge-spinner {
+    opacity: 0.35;
+    stroke-dasharray: 4 8;
+  }
+}
+
 .quote-gauge-center {
   position: absolute;
   inset: 0;

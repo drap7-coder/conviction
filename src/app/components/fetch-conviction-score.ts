@@ -29,8 +29,14 @@ export async function fetchConvictionScore(
   }
 }
 
+export type ConvictionScoreSettled = {
+  ticker: string;
+  ok: boolean;
+};
+
 export type ConvictionScoresProgress = (
   scores: Record<string, ConvictionScoreView>,
+  settled?: ConvictionScoreSettled,
 ) => void;
 
 function readSessionScoreCache(): Record<string, ConvictionScoreView> {
@@ -75,6 +81,7 @@ export function peekCachedConvictionScores(
 /**
  * Load shared Conviction Scores for many tickers.
  * Calls `onProgress` as each ticker completes so Watchlist rings fill in.
+ * `settled` is set on every finished fetch (success or failure) so rings can stop spinning.
  */
 export async function fetchConvictionScores(
   tickers: string[],
@@ -100,14 +107,14 @@ export async function fetchConvictionScores(
     while (cursor < missing.length) {
       if (signal?.aborted) return;
       const index = cursor++;
-      const ticker = missing[index];
+      const ticker = missing[index]!;
       const score = await fetchConvictionScore(ticker, signal);
       if (signal?.aborted) return;
       if (score) {
         scores[ticker] = score;
         writeSessionScoreCache({ [ticker]: score });
-        onProgress?.({ ...scores });
       }
+      onProgress?.({ ...scores }, { ticker, ok: Boolean(score) });
     }
   }
 

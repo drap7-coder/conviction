@@ -26,6 +26,8 @@ export interface PortfolioHoldingCardProps {
   closeChangePercent: number | null;
   convictionTone: string;
   convictionStrength: number | null;
+  /** True while the shared score request is still in flight. */
+  scoreLoading?: boolean;
   shares: number;
   metrics: PositionMetrics;
   onEdit: (ticker: string) => void;
@@ -83,6 +85,7 @@ export function PortfolioHoldingCard({
   closeChangePercent,
   convictionTone,
   convictionStrength,
+  scoreLoading = false,
   shares,
   metrics,
   onEdit,
@@ -167,11 +170,22 @@ export function PortfolioHoldingCard({
         <div className="wl-ring-gauge">
           <GaugeRing
             size="sm"
-            value={convictionStrength}
-            label={convictionStrength !== null ? String(convictionStrength) : "—"}
-            caption=""
+            value={scoreLoading ? null : convictionStrength}
+            label={
+              scoreLoading
+                ? "…"
+                : convictionStrength !== null
+                  ? String(convictionStrength)
+                  : "—"
+            }
+            caption={scoreLoading ? "Scoring" : ""}
             tone={ring.tone}
-            ariaLabel={`Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`}
+            loading={scoreLoading}
+            ariaLabel={
+              scoreLoading
+                ? `Conviction score computing for ${ticker}`
+                : `Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`
+            }
           />
         </div>
 

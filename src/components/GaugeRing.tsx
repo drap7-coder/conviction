@@ -1,5 +1,5 @@
 /**
- * Circular gauge / conviction ring used on the Quotes page.
+ * Circular gauge / conviction ring used on Quotes, Watchlist, Trending, Portfolio.
  */
 
 "use client";
@@ -21,6 +21,8 @@ interface GaugeRingProps {
   size?: "sm" | "lg";
   /** Optional aria label override. */
   ariaLabel?: string;
+  /** True while the score is still computing — ring spins. */
+  loading?: boolean;
 }
 
 const TONE_STROKE: Record<GaugeTone, string> = {
@@ -39,6 +41,7 @@ export function GaugeRing({
   tone = "neutral",
   size = "sm",
   ariaLabel,
+  loading = false,
 }: GaugeRingProps) {
   const radius = size === "lg" ? 58 : 30;
   const stroke = size === "lg" ? 10 : 5.5;
@@ -46,12 +49,14 @@ export function GaugeRing({
   const circumference = 2 * Math.PI * radius;
   const clamped = value === null ? 0 : Math.max(0, Math.min(100, value));
   const dash = (clamped / 100) * circumference;
+  const spinnerDash = circumference * 0.28;
 
   return (
     <div
-      className={`quote-gauge quote-gauge-${size} quote-gauge-tone-${tone}`}
+      className={`quote-gauge quote-gauge-${size} quote-gauge-tone-${tone}${loading ? " quote-gauge-loading" : ""}`}
       role="img"
       aria-label={ariaLabel ?? `${caption}: ${label}`}
+      aria-busy={loading || undefined}
     >
       <div className="quote-gauge-ring">
         <svg
@@ -69,18 +74,35 @@ export function GaugeRing({
             fill="none"
             strokeWidth={stroke}
           />
-          <circle
-            className="quote-gauge-fill"
-            cx={view / 2}
-            cy={view / 2}
-            r={radius}
-            fill="none"
-            stroke={TONE_STROKE[tone]}
-            strokeWidth={stroke}
-            strokeLinecap="round"
-            strokeDasharray={`${dash} ${circumference}`}
-            transform={`rotate(-90 ${view / 2} ${view / 2})`}
-          />
+          {loading ? (
+            <g className="quote-gauge-spinner-group">
+              <circle
+                className="quote-gauge-spinner"
+                cx={view / 2}
+                cy={view / 2}
+                r={radius}
+                fill="none"
+                stroke={TONE_STROKE.neutral}
+                strokeWidth={stroke}
+                strokeLinecap="round"
+                strokeDasharray={`${spinnerDash} ${circumference}`}
+                transform={`rotate(-90 ${view / 2} ${view / 2})`}
+              />
+            </g>
+          ) : (
+            <circle
+              className="quote-gauge-fill"
+              cx={view / 2}
+              cy={view / 2}
+              r={radius}
+              fill="none"
+              stroke={TONE_STROKE[tone]}
+              strokeWidth={stroke}
+              strokeLinecap="round"
+              strokeDasharray={`${dash} ${circumference}`}
+              transform={`rotate(-90 ${view / 2} ${view / 2})`}
+            />
+          )}
         </svg>
         <div className="quote-gauge-center">
           <strong className="quote-gauge-value">{label}</strong>

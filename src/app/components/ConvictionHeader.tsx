@@ -24,6 +24,7 @@ interface ConvictionHeaderProps {
 export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps) {
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [score, setScore] = useState<ConvictionScoreView | null>(null);
+  const [scoreLoading, setScoreLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,8 +51,12 @@ export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps)
     let cancelled = false;
     const controller = new AbortController();
     async function loadScore() {
+      setScoreLoading(true);
       const next = await fetchConvictionScore(ticker, controller.signal);
-      if (!cancelled) setScore(next);
+      if (!cancelled) {
+        setScore(next);
+        setScoreLoading(false);
+      }
     }
     void loadScore();
     return () => {
@@ -67,11 +72,15 @@ export function ConvictionHeader({ ticker, companyName }: ConvictionHeaderProps)
       : null;
 
   return (
-    <div className={`conviction-header conviction-header-${toneClass}`}>
+    <div className={`conviction-header conviction-header-${toneClass}${scoreLoading ? " conviction-header-loading" : ""}`}>
       <div className="conviction-header-score">
-        <span className="conviction-header-score-value">{score?.displayScore ?? "—"}</span>
+        <span className="conviction-header-score-value">
+          {scoreLoading ? "…" : score?.displayScore ?? "—"}
+        </span>
         <span className="conviction-header-score-sep">/</span>
-        <span className="conviction-header-score-state">{score?.ringLabel ?? "Awaiting"}</span>
+        <span className="conviction-header-score-state">
+          {scoreLoading ? "Scoring" : score?.ringLabel ?? "Awaiting"}
+        </span>
       </div>
       <div className="conviction-header-details">
         {changeText && (
