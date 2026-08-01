@@ -15,10 +15,10 @@ export function CompanyDashboard({
         {briefing}
       </div>
       <div className="section-header detail-pages-header">
-        <h2 className="section-title">Supporting evidence</h2>
+        <h2 className="section-title">Evidence</h2>
         <span className="section-count">Scroll · tap to open</span>
       </div>
-      <div className="dashboard-evidence-row" aria-label="Supporting evidence cards">
+      <div className="dashboard-evidence-row" aria-label="Evidence cards">
         {children}
       </div>
     </div>
@@ -41,7 +41,6 @@ export function DashboardCard({
   return (
     <details className={`dashboard-card ink-box ink-box--quiet ${className ?? ""}`.trim()}>
       <summary className="dashboard-card-summary">
-        <span className="dashboard-card-kicker">Supporting evidence</span>
         <strong>{title}</strong>
         <span className="dashboard-card-description">{summary}</span>
         <span className="dashboard-card-action" aria-hidden="true">

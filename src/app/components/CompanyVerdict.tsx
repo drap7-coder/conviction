@@ -218,7 +218,7 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
   if (loading) {
     return (
       <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
-        <div className="verdict-lede ink-panel">
+        <div className="verdict-lede ink-box ink-box--quiet">
           <span className="verdict-eyebrow">Momentum support</span>
           <h2>Building the momentum picture…</h2>
           <p>Checking price trend, reported earnings, and analyst revisions.</p>
@@ -238,7 +238,7 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
 
   return (
     <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
-      <div className="verdict-lede ink-panel">
+      <div className="verdict-lede ink-box ink-box--quiet">
         <span className="verdict-eyebrow">Momentum support</span>
         <h2>{summary.headline}</h2>
         <p>{summary.summary}</p>

@@ -5,6 +5,7 @@ import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { NewsDriverBrief } from "./NewsDriverBrief";
+import { SignalBlock } from "@/components/display/SignalBlock";
 
 interface NewsEvidenceResponse {
   events: EvidenceEvent[];
@@ -61,30 +62,56 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
     };
   }, [ticker]);
 
-  const copy = status === "loading" || status === "idle"
-    ? "Reading the latest coverage…"
-    : status === "timeout" || status === "error"
-      ? "News context is temporarily unavailable."
-      : "No clear news catalyst found.";
-
   const headlines = events.slice(0, 3).map((event) => ({
     headline: event.title,
     url: event.sourceUrl ?? null,
     date: event.date,
   }));
 
+  if (status === "loading" || status === "idle") {
+    return (
+      <SignalBlock
+        eyebrow="What’s driving the move"
+        conclusion="Reading the latest coverage…"
+        evidence="Checking headlines for a clear catalyst."
+        dateLabel="—"
+        source="material_news"
+      />
+    );
+  }
+
+  if (status === "timeout" || status === "error") {
+    return (
+      <SignalBlock
+        eyebrow="What’s driving the move"
+        conclusion="News context is temporarily unavailable"
+        evidence="Ownership filings and company disclosures still show the fuller picture."
+        dateLabel="—"
+        source="material_news"
+      />
+    );
+  }
+
+  if (!driver && headlines.length === 0) {
+    return (
+      <SignalBlock
+        eyebrow="What’s driving the move"
+        conclusion="No clear news catalyst found"
+        evidence="Ownership filings and company disclosures still show the fuller picture."
+        dateLabel="—"
+        source="material_news"
+      />
+    );
+  }
+
   return (
-    <div className="material-news-briefing">
-      {driver || headlines.length > 0 ? (
-        <NewsDriverBrief
-          ticker={ticker}
-          companyName={companyName}
-          driver={driver}
-          headlines={headlines}
-        />
-      ) : (
-        <p className="material-news-status">{copy}</p>
-      )}
-    </div>
+    <NewsDriverBrief
+      ticker={ticker}
+      companyName={companyName}
+      driver={driver}
+      headlines={headlines}
+      showBadge={false}
+      showWhy={false}
+    />
   );
 }

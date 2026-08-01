@@ -112,7 +112,7 @@ export default async function CompanyPage({
         <DashboardCard className="dashboard-card-political" title="Political disclosures" summary="Reported purchases and sales involving public officials.">
           <PoliticalTradesSection ticker={upperTicker} />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-conviction" title="Filings and market context" summary="Short interest, ownership filings, and corporate disclosures.">
+        <DashboardCard className="dashboard-card-conviction" title="Filings & market context" summary="Short interest, ownership filings, and corporate disclosures.">
           <MoveExplanationSection ticker={upperTicker} />
           <details className="other-events">
             <summary>Other filings &amp; events</summary>
