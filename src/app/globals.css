@@ -1122,10 +1122,13 @@ details > summary::before {
 
 .investor-idea-card:hover,
 .investor-idea-card:focus-visible {
-  border-color: color-mix(in srgb, #ffffff 22%, transparent);
-  filter: brightness(1.04);
-  transform: translateY(-1px);
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
+  filter: none;
+  transform: none;
   outline: none;
+  box-shadow:
+    var(--shadow-ink),
+    inset 0 0 0 999px color-mix(in srgb, #ffffff 4%, transparent);
 }
 
 .investor-idea-card .signal-block.ink-box {
