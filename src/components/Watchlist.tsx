@@ -130,9 +130,12 @@ function highlightMatch(text: string, query: string) {
 export default function Watchlist({
   children,
   hidePurpose = false,
+  composeFirst = false,
 }: {
   children?: ReactNode;
   hidePurpose?: boolean;
+  /** Put the Track compose bar under portfolio value / above list content. */
+  composeFirst?: boolean;
 }) {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
@@ -809,32 +812,14 @@ export default function Watchlist({
     </div>
   );
 
-  return (
-    <div>
-      {!hidePurpose ? (
-        <div className="page-purpose">
-          <span className="page-purpose-eyebrow">Watchlist</span>
-          <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
-        </div>
-      ) : null}
-
-      {!loading && entries.length > 0 ? (
-        <div className="wl-list-header">
-          <div className="wl-list-title-row">
-            <h3 className="wl-list-title">Watchlist</h3>
-            <span className="wl-list-count">
-              {entries.length} symbol{entries.length === 1 ? "" : "s"}
-            </span>
-          </div>
-          <div className="wl-conviction-legend" aria-label="Conviction ring legend">
-            <span><i className="quote-dot red" /> Distribution</span>
-            <span><i className="quote-dot amber" /> Holding</span>
-            <span><i className="quote-dot green" /> Accumulating</span>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="watchlist-add">
+  const composeBar = (
+    <section className="list-compose ink-panel" aria-label="Track a company">
+      <div className="list-compose-copy">
+        <span className="list-compose-eyebrow">Watchlist</span>
+        <strong className="list-compose-title">Track a company</strong>
+        <p className="list-compose-help">Search a ticker or company name to follow it here.</p>
+      </div>
+      <div className="watchlist-add list-compose-fields">
         <div className="watchlist-input-wrap">
           <input
             ref={addInputRef}
@@ -844,7 +829,7 @@ export default function Watchlist({
             onKeyDown={handleAddKeyDown}
             onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
             onBlur={() => { window.setTimeout(() => setShowSuggestions(false), 120); }}
-            placeholder="Add company (ticker or name)"
+            placeholder="Ticker or company name"
             disabled={adding}
             className="watchlist-input"
             role="combobox"
@@ -877,15 +862,32 @@ export default function Watchlist({
         <button
           onClick={handleAdd}
           disabled={adding || !addInput.trim()}
-          className="watchlist-add-button"
+          className="watchlist-add-button list-compose-cta"
         >
-          {adding ? "Adding..." : "Track"}
+          {adding ? "Adding…" : "Track"}
         </button>
       </div>
+      {searchResult ? (
+        <p className={`watchlist-message info list-compose-message`}>{searchResult.text}</p>
+      ) : null}
+      {addMessage ? (
+        <p className={`watchlist-message ${addMessage.type} list-compose-message`}>
+          {addMessage.text}
+        </p>
+      ) : null}
+    </section>
+  );
 
-      {searchResult && (
-        <p className={`watchlist-message info`}>{searchResult.text}</p>
-      )}
+  return (
+    <div>
+      {!hidePurpose ? (
+        <div className="page-purpose">
+          <span className="page-purpose-eyebrow">Watchlist</span>
+          <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
+        </div>
+      ) : null}
+
+      {composeFirst ? composeBar : null}
 
       <GuestModeBanner
         authenticated={authenticated}
@@ -893,13 +895,25 @@ export default function Watchlist({
         accountLabel={accountLabel}
       />
 
-      {addMessage && (
-        <p className={`watchlist-message ${addMessage.type}`}>
-          {addMessage.text}
-        </p>
-      )}
+      {!composeFirst ? composeBar : null}
 
-      {/* Heatmap under Portfolio value (MyListShell hero), before company rows. */}
+      {!loading && entries.length > 0 ? (
+        <div className="wl-list-header">
+          <div className="wl-list-title-row">
+            <h3 className="wl-list-title">Watchlist</h3>
+            <span className="wl-list-count">
+              {entries.length} symbol{entries.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          <div className="wl-conviction-legend" aria-label="Conviction ring legend">
+            <span><i className="quote-dot red" /> Distribution</span>
+            <span><i className="quote-dot amber" /> Holding</span>
+            <span><i className="quote-dot green" /> Accumulating</span>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Heatmap under Portfolio value + compose, before company rows. */}
       {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist"
