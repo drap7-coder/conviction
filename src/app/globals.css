@@ -10322,14 +10322,24 @@ details > summary::before {
 }
 
 .view-switch-hint {
-  margin: 0 0 8px;
-  padding: 0 2px;
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  display: none;
+}
+
+.investor-moves-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.view-switch-shell .pulse-view-tabs button {
+  justify-content: center;
+  align-items: center;
+  min-height: 48px;
+  gap: 0;
+}
+
+.view-switch-shell .pulse-view-tabs strong {
+  align-self: center;
 }
 
 /* Shared view toggles — dark option tiles, heatmap-style label chips. */

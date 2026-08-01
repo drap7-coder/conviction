@@ -67,7 +67,7 @@ function HeatmapCopy({
           </span>
         ) : null}
       </div>
-      <p className="stock-heat-subtitle">{subtitle}</p>
+      {subtitle.trim() ? <p className="stock-heat-subtitle">{subtitle}</p> : null}
       {showLegend ? (
         <div className="stock-heat-move-legend" aria-label="Session move color legend">
           <span><i className="stock-heat-swatch" style={{ background: HEAT_NEUTRAL }} /> Flat</span>
@@ -120,7 +120,7 @@ export function StockHeatmap({
 
   return (
     <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
-      <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} showLegend />
+      <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
       <div className="stock-heat-grid">
         {items.map((item) => {
           const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);

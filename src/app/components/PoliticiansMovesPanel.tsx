@@ -87,13 +87,6 @@ export function PoliticiansMovesPanel() {
   if (status === "loading" || status === "idle") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Political trades" aria-busy="true">
-        <div className="investor-moves-intro ink-panel">
-          <div>
-            <span className="investor-moves-eyebrow">Politicians · STOCK Act</span>
-            <h2>Recent trades from public officials</h2>
-            <p>House and Senate filings ranked by freshness.</p>
-          </div>
-        </div>
         <PageLoadingMotion label="Loading congressional disclosures" />
       </section>
     );
@@ -116,25 +109,9 @@ export function PoliticiansMovesPanel() {
     );
   }
 
-  const summaryBits = [
-    summary.purchases > 0 ? `${summary.purchases} purchase${summary.purchases === 1 ? "" : "s"}` : null,
-    summary.sales > 0 ? `${summary.sales} sale${summary.sales === 1 ? "" : "s"}` : null,
-    summary.late > 0 ? `${summary.late} late filing${summary.late === 1 ? "" : "s"}` : null,
-  ].filter(Boolean);
-
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
-      <div className="investor-moves-intro ink-panel">
-        <div>
-          <span className="investor-moves-eyebrow">Politicians · STOCK Act</span>
-          <h2>Recent trades from public officials</h2>
-          <p>
-            House and Senate filings ranked by freshness
-            {summaryBits.length > 0 ? ` — ${summaryBits.join(", ")}.` : "."}
-            {" "}
-            Open a company for the full evidence panel.
-          </p>
-        </div>
+      <div className="investor-moves-toolbar">
         <div className="investor-moves-stamp">
           <strong>{summary.filerCount}</strong>
           <span>officials filing</span>

@@ -32,11 +32,7 @@ export function BuildingConvictionNow() {
   return (
     <section className="bcn-module bcn-module-nested" aria-label="What’s changing now">
       <div className="bcn-header">
-        <span className="bcn-eyebrow">Now</span>
         <h2 className="bcn-title">What’s changing</h2>
-        <p className="bcn-lede">
-          Ownership moves worth a closer look.
-        </p>
       </div>
       <div
         className="bcn-list"
@@ -49,9 +45,6 @@ export function BuildingConvictionNow() {
           <ItemCard key={item.id} item={item} />
         ))}
       </div>
-      <p className="bcn-footnote">
-        Fund filings can lag by weeks and may not match today’s holdings.
-      </p>
     </section>
   );
 }

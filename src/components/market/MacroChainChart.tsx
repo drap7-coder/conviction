@@ -88,7 +88,7 @@ export function MacroChainChart({
       <div className="market-panel-header">
         <div>
           <h2>{title}</h2>
-          <p>{subtitle}</p>
+          {subtitle.trim() ? <p>{subtitle}</p> : null}
         </div>
       </div>
       <div className="market-macro-chart">

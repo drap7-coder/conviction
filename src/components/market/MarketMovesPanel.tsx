@@ -231,7 +231,7 @@ export function MarketMovesPanel() {
 
       <StockHeatmap
         title="Market Moves"
-        subtitle="Bigger tile = more dollar volume. Color = session move. Tap through for the company."
+        subtitle=""
         sessionLabel={
           trending
             .map((idea) => getLivePrice(idea.quote).label)
@@ -272,7 +272,6 @@ export function MarketMovesPanel() {
                 },
               ]),
             )}
-            lede="Why today’s most active names are moving."
             nested
           />
         )}

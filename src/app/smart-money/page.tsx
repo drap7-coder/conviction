@@ -123,17 +123,13 @@ export default function SmartMoneyPage() {
         <div className="view-switch-lede market-regime-lede ink-panel">
           <span className="market-regime-eyebrow">Smart Money</span>
           <strong className="market-regime-label">Where capital is being put to work</strong>
-          <p className="market-regime-summary">
-            Institutional 13F moves and STOCK Act disclosures, ranked by materiality and freshness.
-          </p>
         </div>
 
         <div className="view-switch-picker pulse-view-picker">
-          <p className="view-switch-hint" id="smart-money-view-hint">Choose a view</p>
           <div
             className="pulse-view-tabs"
             role="tablist"
-            aria-labelledby="smart-money-view-hint"
+            aria-label="Choose a Smart Money view"
           >
             {SMART_MONEY_VIEWS.map((view) => (
               <button
@@ -148,7 +144,6 @@ export default function SmartMoneyPage() {
                 onClick={() => setActiveView(view.id)}
               >
                 <strong>{view.label}</strong>
-                <span>{view.description}</span>
               </button>
             ))}
           </div>

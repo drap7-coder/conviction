@@ -153,9 +153,9 @@ export function MoveDriversPanel({
       aria-label={title}
     >
       <div className="bcn-header">
-        <span className="bcn-eyebrow">{eyebrow}</span>
+        {!nested && eyebrow.trim() ? <span className="bcn-eyebrow">{eyebrow}</span> : null}
         <h2 className="bcn-title">{title}</h2>
-        <p className="bcn-lede">{lede}</p>
+        {!nested && lede.trim() ? <p className="bcn-lede">{lede}</p> : null}
       </div>
       <div
         className="bcn-list"
@@ -215,9 +215,11 @@ export function MoveDriversPanel({
           );
         })}
       </div>
-      <p className="bcn-footnote">
-        Headlines help explain the move — confirm with filings before deciding.
-      </p>
+      {!nested ? (
+        <p className="bcn-footnote">
+          Headlines help explain the move — confirm with filings before deciding.
+        </p>
+      ) : null}
     </section>
   );
 }

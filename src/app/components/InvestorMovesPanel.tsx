@@ -190,13 +190,6 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
   if (status === "loading" || status === "idle") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves" aria-busy="true">
-        <div className="investor-moves-intro ink-panel">
-          <div>
-            <span className="investor-moves-eyebrow">Institutions · Form 13F</span>
-            <h2>Ownership moves from large managers</h2>
-            <p>Comparing the two latest filings from notable investors.</p>
-          </div>
-        </div>
         <PageLoadingMotion label="Reading institutional filings" />
       </section>
     );
@@ -221,14 +214,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves">
-      <div className="investor-moves-intro ink-panel">
-        <div>
-          <span className="investor-moves-eyebrow">Institutions · Form 13F</span>
-          <h2>Ownership moves from large managers</h2>
-          <p>
-            New positions, meaningful adds, and companies held across multiple notable investors.
-          </p>
-        </div>
+      <div className="investor-moves-toolbar">
         <div className="investor-moves-stamp">
           <strong>{response?.managerCount ?? 0}</strong>
           <span>managers read</span>
