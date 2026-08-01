@@ -320,7 +320,6 @@ export function MarketMovesPanel() {
                     sparkline={idea.sparkline ?? []}
                     headlines={headlines[idea.ticker] ?? []}
                     newsDriver={newsDrivers[idea.ticker] ?? null}
-                    shortInterest={shortInterest[idea.ticker]}
                     convictionScore={convictionScores[idea.ticker] ?? null}
                     isTracked={isTracked}
                     isAdding={addingTicker === idea.ticker}

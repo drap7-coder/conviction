@@ -11,7 +11,6 @@
 import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
-import { getCardVerdict, type CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { isFiniteNumber } from "@/lib/display/format";
 import { changeToneClass } from "@/lib/display/heat-color";
@@ -34,8 +33,7 @@ interface TrendingCardProps {
   sparkline: StockHistoryPoint[];
   headlines: TrendingCardHeadline[];
   newsDriver: NewsDriver | null;
-  shortInterest?: CardVerdictShortInterest;
-  /** Shared composite score — preferred over local getCardVerdict for the ring. */
+  /** Shared composite score from /api/conviction/score — sole ring source. */
   convictionScore?: ConvictionScoreView | null;
   isTracked: boolean;
   isAdding: boolean;
@@ -56,17 +54,16 @@ function formatPercent(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
-function ringFromVerdict(tone: string, strength: number | null): {
+function ringFromComposite(score: ConvictionScoreView | null): {
   tone: GaugeTone;
   label: string;
+  value: number | null;
 } {
-  if (tone === "positive") return { tone: "green", label: "Accumulating" };
-  if (tone === "negative") return { tone: "red", label: "Distribution" };
-  if (tone === "contested") return { tone: "amber", label: "Holding" };
-  if (strength === null) return { tone: "neutral", label: "Awaiting" };
+  if (!score) return { tone: "neutral", label: "Awaiting", value: null };
   return {
-    tone: strength >= 55 ? "amber" : "neutral",
-    label: strength >= 55 ? "Holding" : "Awaiting",
+    tone: score.tone,
+    label: score.ringLabel,
+    value: score.displayScore,
   };
 }
 
@@ -87,7 +84,6 @@ export function TrendingCard({
   quote,
   headlines,
   newsDriver,
-  shortInterest,
   convictionScore = null,
   isTracked,
   isAdding,
@@ -101,15 +97,8 @@ export function TrendingCard({
   const changeClass = changeToneClass(live.change);
   const closeChangeClass = changeToneClass(quote.changePercent);
 
-  const verdict = getCardVerdict({
-    ticker,
-    companyName,
-    addedAt: new Date().toISOString(),
-    status: "active",
-  }, quote, shortInterest);
-  const strength = convictionScore ? convictionScore.displayScore : verdict.strength;
-  const tone = convictionScore?.evidenceTone ?? verdict.tone;
-  const ring = ringFromVerdict(tone, strength);
+  // Shared composite only — never fall back to getCardVerdict heuristics.
+  const ring = ringFromComposite(convictionScore);
   const driver = driverLine(newsDriver, headlines);
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -180,10 +169,10 @@ export function TrendingCard({
             <div className="wl-ring-gauge">
               <GaugeRing
                 size="sm"
-                value={strength}
-                label={strength !== null ? String(strength) : "—"}
+                value={ring.value}
+                label={ring.value !== null ? String(ring.value) : "—"}
                 tone={ring.tone}
-                ariaLabel={`Conviction ${strength ?? "unavailable"}: ${ring.label}`}
+                ariaLabel={`Conviction ${ring.value ?? "unavailable"}: ${ring.label}`}
               />
             </div>
 

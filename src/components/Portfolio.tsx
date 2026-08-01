@@ -11,7 +11,6 @@ import {
 import type { PortfolioPosition, PortfolioRiskFlags } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
-import { getCardVerdict } from "@/lib/evidence/card-verdict";
 import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import SectorDonut from "@/components/SectorDonut";
@@ -595,17 +594,6 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
               const ticker = pos.companyId.toUpperCase();
               const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
               const live = quote ? getLivePrice(quote) : null;
-              const verdict = getCardVerdict(
-                {
-                  ticker,
-                  companyName: ticker,
-                  addedAt: new Date().toISOString(),
-                  status: "active",
-                },
-                quote
-                  ? { changePercent: live?.changePercent ?? quote.changePercent }
-                  : undefined,
-              );
               const composite = convictionScores[ticker];
 
               return (
@@ -618,8 +606,8 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                   sessionLabel={live?.label ?? null}
                   closePrice={live?.label ? quote?.price ?? null : null}
                   closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                  convictionTone={composite?.evidenceTone ?? verdict.tone}
-                  convictionStrength={composite ? composite.displayScore : verdict.strength}
+                  convictionTone={composite?.tone ?? "neutral"}
+                  convictionStrength={composite?.displayScore ?? null}
                   shares={pos.shares}
                   metrics={metrics}
                   onEdit={handleStartEdit}

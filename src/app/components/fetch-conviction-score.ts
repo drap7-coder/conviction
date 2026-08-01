@@ -1,5 +1,6 @@
 /**
  * Client helper for the shared Conviction Score API.
+ * Every list/dashboard surface should use this — no local score heuristics.
  */
 
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
@@ -42,8 +43,20 @@ export async function fetchConvictionScores(
       );
       Object.assign(scores, data.scores ?? {});
     } catch {
-      // Leave missing tickers absent — UI falls back to awaiting.
+      // Batch failed — fall through to per-ticker backfill below.
     }
+  }
+
+  // Backfill any missing tickers individually so a batch timeout cannot leave
+  // a name stuck on a different (legacy) score path.
+  const missing = unique.filter((ticker) => !scores[ticker]);
+  if (missing.length > 0) {
+    await Promise.all(
+      missing.map(async (ticker) => {
+        const score = await fetchConvictionScore(ticker, signal);
+        if (score) scores[ticker] = score;
+      }),
+    );
   }
 
   return scores;
