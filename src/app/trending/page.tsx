@@ -50,12 +50,12 @@ const TRENDING_VIEWS = [
   {
     id: "investors",
     label: "Institutions",
-    description: "Tracked managers disclosing new or larger positions",
+    description: "13F ownership moves",
   },
   {
     id: "politicians",
     label: "Politicians",
-    description: "Congressional disclosures ranked by freshness",
+    description: "STOCK Act disclosures",
   },
 ] as const;
 

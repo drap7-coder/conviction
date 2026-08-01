@@ -6,6 +6,8 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type { PoliticalTrade } from "@/lib/political-trades";
 
+type DirectionFilter = "all" | "purchase" | "sale";
+
 function formatDate(value: string): string {
   if (!value) return "—";
   return new Intl.DateTimeFormat("en-US", {
@@ -26,6 +28,7 @@ function directionTone(direction: PoliticalTrade["direction"]): "up" | "down" | 
 export function PoliticiansMovesPanel() {
   const [trades, setTrades] = useState<PoliticalTrade[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
+  const [filter, setFilter] = useState<DirectionFilter>("all");
   const [requestKey, setRequestKey] = useState(0);
 
   useEffect(() => {
@@ -76,20 +79,38 @@ export function PoliticiansMovesPanel() {
     };
   }, [trades]);
 
+  const visibleTrades = useMemo(() => {
+    if (filter === "all") return trades;
+    return trades.filter((trade) => trade.direction === filter);
+  }, [filter, trades]);
+
   if (status === "loading" || status === "idle") {
-    return <PageLoadingMotion label="Loading congressional disclosures" />;
+    return (
+      <section className="investor-moves-panel smart-money-panel" aria-label="Political trades" aria-busy="true">
+        <div className="investor-moves-intro ink-panel">
+          <div>
+            <span className="investor-moves-eyebrow">Politicians · STOCK Act</span>
+            <h2>Recent trades from public officials</h2>
+            <p>House and Senate filings ranked by freshness.</p>
+          </div>
+        </div>
+        <PageLoadingMotion label="Loading congressional disclosures" />
+      </section>
+    );
   }
 
-  if (status !== "success" || trades.length === 0) {
+  if (status === "error" || status === "timeout" || status === "empty") {
     return (
-      <section className="smart-money-politicians" aria-label="Political trades">
+      <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
         <div className="investor-moves-intro ink-panel">
-          <span className="investor-moves-eyebrow">STOCK Act · Congressional disclosures</span>
-          <h2>The disclosure feed is quiet right now</h2>
-          <p>STOCK Act filings will appear here when the source responds.</p>
-          <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
-            Retry
-          </button>
+          <div>
+            <span className="investor-moves-eyebrow">Politicians · STOCK Act</span>
+            <h2>The disclosure feed is quiet right now</h2>
+            <p>STOCK Act filings will appear here when the source responds.</p>
+            <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+              Retry
+            </button>
+          </div>
         </div>
       </section>
     );
@@ -102,10 +123,10 @@ export function PoliticiansMovesPanel() {
   ].filter(Boolean);
 
   return (
-    <section className="smart-money-politicians" aria-label="Political trades">
+    <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
       <div className="investor-moves-intro ink-panel">
         <div>
-          <span className="investor-moves-eyebrow">STOCK Act · Congressional disclosures</span>
+          <span className="investor-moves-eyebrow">Politicians · STOCK Act</span>
           <h2>Recent trades from public officials</h2>
           <p>
             House and Senate filings ranked by freshness
@@ -120,35 +141,73 @@ export function PoliticiansMovesPanel() {
         </div>
       </div>
 
-      <div className="politician-trade-list">
-        {trades.map((trade) => {
-          const tone = directionTone(trade.direction);
-          return (
-          <article key={trade.id} className={`politician-trade-card ink-box ink-box--${tone}`}>
-            <div className="politician-trade-top">
-              <Link href={`/companies/${trade.ticker}`} className="politician-trade-ticker">
-                {trade.ticker}
-              </Link>
-              <span className={`ink-chip ink-chip--${tone}`}>
-                {trade.transactionType}
-              </span>
-            </div>
-            <div className="politician-trade-meta">
-              <strong>{trade.filerName}</strong>
-              <span>{trade.office}</span>
-              {trade.party ? <span>{trade.party}</span> : null}
-              {trade.state ? <span>{trade.state}</span> : null}
-            </div>
-            <div className="politician-trade-amounts">
-              <span>{trade.amountRange}</span>
-              <span>Filed {formatDate(trade.filingDate)}</span>
-              {trade.transactionDate ? <span>Traded {formatDate(trade.transactionDate)}</span> : null}
-              {trade.isLate ? <span className="ink-chip ink-chip--amber">Late filing</span> : null}
-            </div>
-          </article>
-          );
-        })}
+      <div className="investor-filter-row" role="group" aria-label="Filter by trade direction">
+        <span className="investor-filter-label">Filter</span>
+        <button
+          type="button"
+          aria-pressed={filter === "all"}
+          className={filter === "all" ? "active" : ""}
+          onClick={() => setFilter("all")}
+        >
+          All trades
+        </button>
+        <button
+          type="button"
+          aria-pressed={filter === "purchase"}
+          className={filter === "purchase" ? "active" : ""}
+          onClick={() => setFilter("purchase")}
+        >
+          Purchases
+        </button>
+        <button
+          type="button"
+          aria-pressed={filter === "sale"}
+          className={filter === "sale" ? "active" : ""}
+          onClick={() => setFilter("sale")}
+        >
+          Sales
+        </button>
       </div>
+
+      {visibleTrades.length === 0 ? (
+        <div className="investor-moves-filter-empty">
+          No disclosures match this filter right now.
+        </div>
+      ) : (
+        <div className="politician-trade-list">
+          {visibleTrades.map((trade) => {
+            const tone = directionTone(trade.direction);
+            return (
+              <article key={trade.id} className={`politician-trade-card ink-box ink-box--${tone}`}>
+                <div className="politician-trade-top">
+                  <Link href={`/companies/${trade.ticker}`} className="politician-trade-ticker">
+                    {trade.ticker}
+                  </Link>
+                  <span className={`ink-chip ink-chip--${tone}`}>
+                    {trade.transactionType}
+                  </span>
+                </div>
+                <div className="politician-trade-meta">
+                  <strong>{trade.filerName}</strong>
+                  <span>{trade.office}</span>
+                  {trade.party ? <span>{trade.party}</span> : null}
+                  {trade.state ? <span>{trade.state}</span> : null}
+                </div>
+                <div className="politician-trade-amounts">
+                  <span>{trade.amountRange}</span>
+                  <span>Filed {formatDate(trade.filingDate)}</span>
+                  {trade.transactionDate ? <span>Traded {formatDate(trade.transactionDate)}</span> : null}
+                  {trade.isLate ? <span className="ink-chip ink-chip--amber">Late filing</span> : null}
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      <p className="investor-moves-disclaimer">
+        STOCK Act filings can land days after the trade. Amounts are reported in ranges, not exact sizes.
+      </p>
     </section>
   );
 }
