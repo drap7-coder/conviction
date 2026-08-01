@@ -93,9 +93,9 @@ export default async function CompanyPage({
         briefing={
           <>
             <ConvictionScoreOverviewCard ticker={upperTicker} />
+            <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
             <CompanySignalGauges ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
-            <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
             <CompanyVerdict ticker={upperTicker} />
           </>
         }

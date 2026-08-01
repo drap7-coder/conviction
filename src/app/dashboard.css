@@ -22,11 +22,39 @@
   box-shadow: var(--shadow-sm);
 }
 
+/* What’s driving the move — lead briefing surface after the score */
+.company-briefing .material-news-briefing {
+  order: 0;
+  padding: 18px 18px 16px;
+  border-color: color-mix(in srgb, var(--ink) 18%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ink) 3.5%, var(--card)) 0%, var(--card) 48%),
+    var(--card);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 color-mix(in srgb, #ffffff 55%, transparent);
+}
+
 .company-briefing .material-news-briefing .signal-block {
   padding: 0;
   border: none;
   background: transparent;
   box-shadow: none;
+}
+
+.company-briefing .material-news-briefing .signal-block-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: var(--quiet);
+}
+
+.company-briefing .material-news-briefing .signal-block-conclusion {
+  font-size: 1.12rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.company-briefing .material-news-briefing .signal-block-evidence {
+  font-size: 0.88rem;
+  line-height: 1.45;
 }
 
 .company-briefing .price-trend-card {

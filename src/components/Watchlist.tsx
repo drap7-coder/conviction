@@ -2,43 +2,21 @@
 
 import Link from "next/link";
 import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
-import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
-import {
-  fetchConvictionScores,
-  peekCachedConvictionScores,
-} from "@/app/components/fetch-conviction-score";
-import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
-import { WatchlistCard, type WatchlistCardEvidencePill, type WatchlistCardActivityLine, type WatchlistCardHeadline } from "@/app/components/WatchlistCard";
+import type { WatchlistCardHeadline } from "@/app/components/WatchlistCard";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { StockHeatmap } from "@/components/StockHeatmap";
+import { MoveDriversPanel } from "@/components/MoveDriversPanel";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
-
-function buildSparklinePath(points: Array<{ close: number }>) {
-  if (points.length < 2) return "";
-  const width = 320;
-  const height = 96;
-  const padding = 6;
-  const closes = points.map((point) => point.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const spread = max - min || 1;
-
-  return points.map((point, index) => {
-    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
-    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join(" ");
-}
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
@@ -77,42 +55,6 @@ function markBrowserWatchlistMigrated() {
   window.localStorage.setItem(WATCHLIST_MIGRATION_KEY, "1");
 }
 
-function buildEvidencePills(entry: CardVerdictEntry, shortInterest?: CardVerdictShortInterest): WatchlistCardEvidencePill[] {
-  const pills: WatchlistCardEvidencePill[] = [];
-  const evidence = getCardEvidence(entry, shortInterest);
-
-  for (const item of evidence) {
-    if (item.provider === "SEC 13F") {
-      pills.push({
-        type: "Ownership",
-        text: item.text,
-        direction: item.direction === "positive" ? "positive" : item.direction === "negative" ? "negative" : "neutral",
-      });
-    } else if (item.provider === "FINRA short interest") {
-      pills.push({
-        type: "Short interest",
-        text: item.text,
-        direction: item.direction === "positive" ? "positive" : "negative",
-      });
-    }
-  }
-
-  return pills;
-}
-
-function buildActivityLine(recency: string, insight: string, source: string): WatchlistCardActivityLine | null {
-  if (!insight || insight.startsWith("No ownership or short-interest") || insight.startsWith("Limited SEC coverage") || insight.startsWith("No high-conviction") || insight.startsWith("SEC coverage is limited")) {
-    return null;
-  }
-  const short = insight.replace(/\.$/, "");
-  const sourceLabel = source === "SEC 13F"
-    ? "Ownership"
-    : source === "FINRA short interest"
-      ? "Short interest"
-      : source;
-  return { timestamp: recency, text: short, source: sourceLabel };
-}
-
 function highlightMatch(text: string, query: string) {
   const q = query.trim();
   if (!q) return text;
@@ -141,9 +83,6 @@ export default function Watchlist({
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
-  const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
-  const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
-  const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -167,12 +106,8 @@ export default function Watchlist({
 
   // Removal state
   const [removing, setRemoving] = useState<string | null>(null);
-  const [focusedCardIndex, setFocusedCardIndex] = useState(-1);
-  const [focusedTicker, setFocusedTicker] = useState<string | null>(null);
-  const watchlistListRef = useRef<HTMLDivElement>(null);
 
   // Search state
-  const [searchMode, setSearchMode] = useState<"default" | "matching">("default");
   const [searchResult, setSearchResult] = useState<{ type: "navigate" | "filter" | "unrecognized"; text: string } | null>(null);
 
   const loadWatchlist = useCallback(async () => {
@@ -314,76 +249,6 @@ export default function Watchlist({
     };
   }, [entries]);
 
-  const convictionTickerKey = entries.map((entry) => entry.ticker).join(",");
-
-  useEffect(() => {
-    if (!convictionTickerKey) {
-      setConvictionScores({});
-      setPendingScores({});
-      return;
-    }
-    let cancelled = false;
-    const tickers = convictionTickerKey.split(",").filter(Boolean);
-
-    // Show last-known scores immediately so rings never blank on remount.
-    const cached = peekCachedConvictionScores(tickers);
-    if (Object.keys(cached).length > 0) {
-      setConvictionScores((prev) => ({ ...prev, ...cached }));
-    }
-
-    const initialPending: Record<string, true> = {};
-    for (const ticker of tickers) {
-      if (cached[ticker]?.displayScore == null) initialPending[ticker] = true;
-    }
-    setPendingScores(initialPending);
-
-    async function loadConvictionScores() {
-      // Do not abort in-flight score work — remount/reload races were wiping rings.
-      await fetchConvictionScores(tickers, undefined, (partial, settled) => {
-        if (cancelled) return;
-        setConvictionScores((prev) => ({ ...prev, ...partial }));
-        if (settled) {
-          setPendingScores((prev) => {
-            if (!prev[settled.ticker]) return prev;
-            const next = { ...prev };
-            delete next[settled.ticker];
-            return next;
-          });
-        }
-      });
-      if (!cancelled) setPendingScores({});
-    }
-
-    void loadConvictionScores();
-    return () => {
-      cancelled = true;
-    };
-  }, [convictionTickerKey]);
-
-  useEffect(() => {
-    if (entries.length === 0) return;
-    let cancelled = false;
-
-    async function loadShortInterest() {
-      const nextShortInterest: Record<string, CardVerdictShortInterest> = {};
-      await Promise.all(entries.map(async (entry) => {
-        try {
-          const response = await fetch(`/api/market/short-interest?ticker=${encodeURIComponent(entry.ticker)}`);
-          if (!response.ok) return;
-          nextShortInterest[entry.ticker] = await response.json() as CardVerdictShortInterest;
-        } catch {
-          // Short interest is optional evidence; don't block the card.
-        }
-      }));
-      if (!cancelled) setShortInterest(nextShortInterest);
-    }
-
-    void loadShortInterest();
-    return () => {
-      cancelled = true;
-    };
-  }, [entries]);
-
   const handleAddValue = async (value?: string) => {
     const input = (value ?? addInput).trim();
     if (!input) return;
@@ -452,37 +317,6 @@ export default function Watchlist({
     const whyMatch = input.match(/^(why\s+is\s+|what\s+changed\s+for\s+)([a-z]+)/);
     if (whyMatch && entries.some((e) => e.ticker.toLowerCase() === whyMatch[2])) {
       window.location.href = `/companies/${whyMatch[2].toUpperCase()}`;
-      return;
-    }
-
-    // "Which names are weakening?"
-    if (/weaken|deteriorat/.test(input)) {
-      setSearchMode("matching");
-      setSearchResult({ type: "filter", text: "Showing weakening names." });
-      // Reset after a few seconds
-      setTimeout(() => { setSearchMode("default"); setSearchResult(null); }, 5000);
-      return;
-    }
-
-    // "What deserves attention today?"
-    if (/attention|alert|concern/.test(input) || /deserves.*attention/.test(input)) {
-      const attentionItems = [...entries].sort((a, b) => {
-        const aV = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
-        const bV = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
-        return bV.sortScore - aV.sortScore;
-      });
-      const weakening = attentionItems.filter((entry) => {
-        const v = getCardVerdict(entry, quotes[entry.ticker], shortInterest[entry.ticker]);
-        return v.state === "Weak";
-      });
-      if (weakening.length > 0) {
-        setSearchMode("matching");
-        setSearchResult({ type: "filter", text: `Showing ${weakening.length} name${weakening.length > 1 ? "s" : ""} needing attention.` });
-        setTimeout(() => { setSearchMode("default"); setSearchResult(null); }, 5000);
-      } else {
-        setSearchResult({ type: "unrecognized", text: "No weakening names found." });
-        setTimeout(() => setSearchResult(null), 3000);
-      }
       return;
     }
 
@@ -608,30 +442,6 @@ export default function Watchlist({
     if (e.key === "Enter") handleAdd();
   };
 
-  const sortedEntries = useMemo(() => {
-    return [...entries].sort((a, b) => {
-      const aVerdict = getCardVerdict(a, quotes[a.ticker], shortInterest[a.ticker]);
-      const bVerdict = getCardVerdict(b, quotes[b.ticker], shortInterest[b.ticker]);
-      const strengthRank = (state: string) =>
-        state === "Weak" ? 3 : state === "Mixed" ? 2 : state === "Strong" ? 1 : 0;
-      const aChanged = strengthRank(aVerdict.state) + ((headlines[a.ticker]?.length ?? 0) > 0 ? 1 : 0);
-      const bChanged = strengthRank(bVerdict.state) + ((headlines[b.ticker]?.length ?? 0) > 0 ? 1 : 0);
-      if (bChanged !== aChanged) return bChanged - aChanged;
-
-      return bVerdict.sortScore - aVerdict.sortScore || a.ticker.localeCompare(b.ticker);
-    });
-  }, [entries, quotes, shortInterest, headlines]);
-
-  const filteredEntries = useMemo(() => {
-    if (!addInput) return sortedEntries;
-    const lowerCaseInput = addInput.toLowerCase();
-    return sortedEntries.filter(
-      (entry) =>
-        entry.ticker.toLowerCase().includes(lowerCaseInput) ||
-        entry.companyName.toLowerCase().includes(lowerCaseInput)
-    );
-  }, [sortedEntries, addInput]);
-
   const watchlistMacroSeries = useMemo(() => {
     const ranked = [...entries]
       .map((entry) => {
@@ -648,169 +458,26 @@ export default function Watchlist({
     return buildMacroSeriesFromQuotes(ranked, 5);
   }, [entries, quotes]);
 
-  // Keyboard navigation effect
+  // Shortcut: press K to focus Track compose.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
           target.isContentEditable)
       ) {
         return;
       }
-
-      if (event.key === 'K' || event.key === 'k') {
+      if (event.key === "K" || event.key === "k") {
         event.preventDefault();
         addInputRef.current?.focus();
-      } else if (['ArrowUp', 'ArrowDown', 'j', 'k'].includes(event.key)) {
-        event.preventDefault();
-
-        setFocusedCardIndex((prevIndex) => {
-          let newIndex = prevIndex;
-          const maxIndex = filteredEntries.length - 1;
-
-          if (event.key === 'j' || event.key === 'ArrowDown') {
-            newIndex = Math.min(prevIndex + 1, maxIndex);
-          } else if (event.key === 'k' || event.key === 'ArrowUp') {
-            newIndex = Math.max(prevIndex - 1, 0);
-          }
-
-          if (maxIndex < 0) return -1;
-          if (newIndex > maxIndex) newIndex = maxIndex;
-          if (newIndex < 0) newIndex = 0;
-
-          if (watchlistListRef.current && newIndex !== prevIndex) {
-            const focusedCardElement = watchlistListRef.current.children[newIndex] as HTMLElement;
-            if (focusedCardElement) {
-              focusedCardElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }
-          return newIndex;
-        });
-      } else if (event.key === 'Enter' && focusedCardIndex !== -1 && filteredEntries[focusedCardIndex]) {
-        setFocusedTicker(filteredEntries[focusedCardIndex].ticker);
-      } else if (event.key === 'Escape') {
-        setFocusedTicker(null);
       }
     };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [addInputRef, filteredEntries, focusedCardIndex, focusedTicker, watchlistListRef]);
-
-  const scoredList = loading ? (
-    <PageLoadingMotion label="Loading watchlist" />
-  ) : entries.length === 0 ? (
-    <div className="empty-state">
-      <p>Add companies you care about.</p>
-      <small>See what’s moving, why it matters, and who has been buying or selling.</small>
-      <Link href="/pulse" className="brief-link">
-        Browse market moves →
-      </Link>
-    </div>
-  ) : focusedTicker ? (
-    <div className="focused-card-container">
-      {filteredEntries
-        .filter((entry) => entry.ticker === focusedTicker)
-        .map((entry) => {
-          const quote = quotes[entry.ticker];
-          const live = quote ? getLivePrice(quote) : null;
-          const quoteDirection = live?.change === null || live?.change === undefined
-            ? "neutral"
-            : live.change > 0
-              ? "positive"
-              : live.change < 0
-                ? "negative"
-                : "neutral";
-          const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
-          const composite = convictionScores[entry.ticker];
-          const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
-          const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
-          const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
-
-          return (
-            <WatchlistCard
-              key={entry.ticker}
-              ticker={entry.ticker}
-              companyName={entry.companyName}
-              price={live?.price ?? quote?.price ?? null}
-              change={live?.change ?? quote?.change ?? null}
-              changePercent={live?.changePercent ?? quote?.changePercent ?? null}
-              marketCap={quote?.marketCap ?? null}
-              sessionLabel={live?.label ?? null}
-              closePrice={live?.label ? quote?.price ?? null : null}
-              closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-              convictionState={composite?.ringLabel ?? "Awaiting"}
-              convictionTone={composite?.tone ?? "neutral"}
-              convictionStrength={composite?.displayScore ?? null}
-              scoreLoading={Boolean(pendingScores[entry.ticker])}
-              evidencePills={evidencePills}
-              activityLine={activityLine}
-              headlines={headlines[entry.ticker] ?? []}
-              newsDriver={newsDrivers[entry.ticker] ?? null}
-              sparklinePath={sparklinePath}
-              sparklineDirection={quoteDirection}
-              onRemove={handleRemove}
-              isRemoving={removing === entry.ticker}
-              isFocused={true}
-            />
-          );
-        })}
-    </div>
-  ) : (
-    <div className="watchlist-list" ref={watchlistListRef}>
-      {filteredEntries.map((entry, index) => {
-        const quote = quotes[entry.ticker];
-        const live = quote ? getLivePrice(quote) : null;
-        const quoteDirection = live?.change === null || live?.change === undefined
-          ? "neutral"
-          : live.change > 0
-            ? "positive"
-            : live.change < 0
-              ? "negative"
-              : "neutral";
-        const verdict = getCardVerdict(entry, quote, shortInterest[entry.ticker]);
-        const composite = convictionScores[entry.ticker];
-        const sparklinePath = buildSparklinePath(quote?.sparkline ?? []);
-        const evidencePills = buildEvidencePills(entry, shortInterest[entry.ticker]);
-        const activityLine = buildActivityLine(verdict.recency, verdict.insight, verdict.source);
-
-        const isCardFocused = focusedCardIndex === index;
-
-        return (
-          <WatchlistCard
-            key={entry.ticker}
-            ticker={entry.ticker}
-            companyName={entry.companyName}
-            price={live?.price ?? quote?.price ?? null}
-            change={live?.change ?? quote?.change ?? null}
-            changePercent={live?.changePercent ?? quote?.changePercent ?? null}
-            marketCap={quote?.marketCap ?? null}
-            sessionLabel={live?.label ?? null}
-            closePrice={live?.label ? quote?.price ?? null : null}
-            closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-            convictionState={composite?.ringLabel ?? "Awaiting"}
-            convictionTone={composite?.tone ?? "neutral"}
-            convictionStrength={composite?.displayScore ?? null}
-            scoreLoading={Boolean(pendingScores[entry.ticker])}
-            evidencePills={evidencePills}
-            activityLine={activityLine}
-            headlines={headlines[entry.ticker] ?? []}
-            newsDriver={newsDrivers[entry.ticker] ?? null}
-            sparklinePath={sparklinePath}
-            sparklineDirection={quoteDirection}
-            onRemove={handleRemove}
-            isRemoving={removing === entry.ticker}
-            isFocused={isCardFocused}
-          />
-        );
-      })}
-    </div>
-  );
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const composeBar = (
     <section className="list-compose ink-panel" aria-label="Track a company">
@@ -897,27 +564,23 @@ export default function Watchlist({
 
       {!composeFirst ? composeBar : null}
 
-      {!loading && entries.length > 0 ? (
-        <div className="wl-list-header">
-          <div className="wl-list-title-row">
-            <h3 className="wl-list-title">Watchlist</h3>
-            <span className="wl-list-count">
-              {entries.length} symbol{entries.length === 1 ? "" : "s"}
-            </span>
-          </div>
-          <div className="wl-conviction-legend" aria-label="Conviction ring legend">
-            <span><i className="quote-dot red" /> Distribution</span>
-            <span><i className="quote-dot amber" /> Holding</span>
-            <span><i className="quote-dot green" /> Accumulating</span>
-          </div>
+      {loading ? <PageLoadingMotion label="Loading watchlist" compact /> : null}
+
+      {!loading && entries.length === 0 ? (
+        <div className="empty-state">
+          <p>Add companies you care about.</p>
+          <small>Track names above, then tap a heatmap tile to open the company dashboard.</small>
+          <Link href="/pulse" className="brief-link">
+            Browse market moves →
+          </Link>
         </div>
       ) : null}
 
-      {/* Heatmap under Portfolio value + compose; What’s changing nests in the shell footer. */}
+      {/* Heatmap-first watchlist: tiles are the list; hover shows what’s driving the move. */}
       {loading || entries.length > 0 || children ? (
         <StockHeatmap
           title="Watchlist"
-          subtitle="Bigger tile = larger company. Color = current session move."
+          subtitle="Tap a tile for the company dashboard. Hover to see what’s driving the move."
           loading={loading}
           sessionLabel={
             entries
@@ -930,19 +593,73 @@ export default function Watchlist({
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;
+            const driver = newsDrivers[entry.ticker];
+            const topHeadline = headlines[entry.ticker]?.[0]?.headline ?? null;
             return {
               ticker: entry.ticker,
               name: entry.companyName,
               price: live?.price ?? quote?.price ?? null,
               changePercent: live?.changePercent ?? quote?.changePercent ?? null,
               marketCap: quote?.marketCap ?? null,
+              driverText: driver?.label ?? topHeadline,
             };
           })}
-          footer={children}
+          footer={(
+            <>
+              {entries.length > 0 ? (
+                <MoveDriversPanel
+                  holdings={entries.map((entry) => {
+                    const quote = quotes[entry.ticker];
+                    const live = quote ? getLivePrice(quote) : null;
+                    return {
+                      ticker: entry.ticker,
+                      companyName: entry.companyName,
+                      changePercent: live?.changePercent ?? quote?.changePercent ?? null,
+                    };
+                  })}
+                  newsByTicker={Object.fromEntries(
+                    entries.map((entry) => [
+                      entry.ticker.toUpperCase(),
+                      {
+                        driver: newsDrivers[entry.ticker] ?? null,
+                        headlines: headlines[entry.ticker] ?? [],
+                      },
+                    ]),
+                  )}
+                  lede="Headlines and themes behind the companies you follow."
+                />
+              ) : null}
+              {children}
+            </>
+          )}
         />
       ) : null}
 
-      {scoredList}
+      {!loading && entries.length > 0 ? (
+        <div className="wl-manage-row" aria-label="Manage watchlist names">
+          <span className="wl-manage-label">
+            {entries.length} symbol{entries.length === 1 ? "" : "s"}
+          </span>
+          <div className="wl-manage-chips">
+            {entries.map((entry) => (
+              <span key={entry.ticker} className="wl-manage-chip">
+                <Link href={`/companies/${encodeURIComponent(entry.ticker)}`}>
+                  {entry.ticker}
+                </Link>
+                <button
+                  type="button"
+                  className="wl-manage-remove"
+                  onClick={() => void handleRemove(entry.ticker)}
+                  disabled={removing === entry.ticker}
+                  aria-label={`Remove ${entry.ticker} from watchlist`}
+                >
+                  {removing === entry.ticker ? "…" : "×"}
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {!loading && watchlistMacroSeries.length > 0 ? (
         <MacroChainChart
@@ -953,7 +670,7 @@ export default function Watchlist({
       ) : null}
 
       <p className="watchlist-footnote">
-        Ownership data comes from public SEC filings and can lag by weeks.
+        Ownership data comes from public SEC filings and can lag by weeks. Tap any heatmap tile for the full company story.
       </p>
     </div>
   );
