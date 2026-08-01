@@ -255,8 +255,7 @@ export function WatchlistCard({
                 size="sm"
                 value={convictionStrength}
                 label={convictionStrength !== null ? String(convictionStrength) : "—"}
-                sublabel={convictionStrength !== null ? ring.label : "Score"}
-                caption=""
+                caption={convictionStrength !== null ? ring.label : "Score"}
                 tone={ring.tone}
                 ariaLabel={`Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`}
               />

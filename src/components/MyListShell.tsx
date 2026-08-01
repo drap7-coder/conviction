@@ -4,7 +4,7 @@ import { Suspense, type ReactNode, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Watchlist from "@/components/Watchlist";
 import Portfolio from "@/components/Portfolio";
-import { PortfolioDataProvider, PortfolioHero } from "@/components/PortfolioData";
+import { PortfolioDataProvider, PortfolioHero, usePortfolioData } from "@/components/PortfolioData";
 
 const MY_LIST_VIEWS = [
   { id: "watchlist", label: "Watchlist" },
@@ -21,6 +21,7 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeView = parseView(searchParams.get("view"));
+  const { data: portfolio } = usePortfolioData();
 
   const setActiveView = useCallback(
     (view: MyListView) => {
@@ -29,6 +30,10 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
     },
     [router],
   );
+
+  // Empty $0 portfolio hero was pushing scored watchlist rows far below the fold.
+  const showPortfolioHero =
+    activeView === "portfolio" || portfolio.hasData || portfolio.loading;
 
   return (
     <div>
@@ -56,7 +61,7 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
         </div>
       </section>
 
-      <PortfolioHero />
+      {showPortfolioHero ? <PortfolioHero /> : null}
 
       <div
         id="my-list-panel-watchlist"
