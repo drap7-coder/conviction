@@ -153,7 +153,7 @@ export function CompanySignalGauges({ ticker }: { ticker: string }) {
 
   return (
     <>
-      <section className="quote-card dashboard-signal-gauges" aria-label="Signal gauges">
+      <section className="quote-card dashboard-signal-gauges ink-box ink-box--quiet" aria-label="Signal gauges">
         <div className="quote-card-header">
           <span className="quote-card-title">Signal gauges</span>
           <span className="quote-card-meta">{loading ? "LOADING" : "LIVE"}</span>
@@ -183,7 +183,7 @@ export function CompanySignalGauges({ ticker }: { ticker: string }) {
         </div>
       </section>
 
-      <section className="quote-card dashboard-signal-gauges" aria-label="Technical gauges">
+      <section className="quote-card dashboard-signal-gauges ink-box ink-box--quiet" aria-label="Technical gauges">
         <div className="quote-card-header">
           <span className="quote-card-title">Technical</span>
           <span className="quote-card-meta">

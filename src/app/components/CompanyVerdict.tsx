@@ -6,6 +6,7 @@ import type { EarningsEvidence } from "@/lib/earnings/types";
 import { deriveTechnicalState, type StockHistoryPoint } from "@/lib/market/technical-state";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic, type InkTone } from "@/lib/display/ink-tone";
 
 type MomentumDirection = "improving" | "mixed" | "weakening" | "unavailable";
 
@@ -32,11 +33,16 @@ interface MomentumSignal {
   detail: string;
 }
 
-function directionLabel(direction: MomentumDirection) {
-  if (direction === "improving") return "↗ Improving";
-  if (direction === "weakening") return "↘ Weakening";
-  if (direction === "mixed") return "→ Mixed";
-  return "— Unavailable";
+function directionLabel(direction: MomentumDirection | "checking") {
+  if (direction === "improving") return "Improving";
+  if (direction === "weakening") return "Weakening";
+  if (direction === "mixed") return "Mixed";
+  if (direction === "checking") return "Checking";
+  return "Unavailable";
+}
+
+function directionTone(direction: MomentumDirection): InkTone {
+  return inkToneFromSemantic(direction);
 }
 
 function classifyScore(score: number | null | undefined): MomentumDirection {
@@ -94,6 +100,37 @@ function buildSummary(signals: MomentumSignal[]) {
     headline: "Mixed momentum",
     summary: `${clauses.join(", ").replace(/, ([^,]*)$/, ", but $1")}.`,
   };
+}
+
+function MomentumBoxes({
+  signals,
+}: {
+  signals: Array<{
+    label: string;
+    direction: MomentumDirection | "checking";
+    detail?: string;
+  }>;
+}) {
+  return (
+    <div className="ink-box-grid momentum-ink-grid" aria-label="Momentum signals">
+      {signals.map((signal) => {
+        const tone =
+          signal.direction === "checking"
+            ? "quiet"
+            : directionTone(signal.direction);
+        return (
+          <div
+            key={signal.label}
+            className={inkBoxClass(tone)}
+            title={signal.detail}
+          >
+            <span className="ink-box-label">{signal.label}</span>
+            <span className={inkChipClass(tone)}>{directionLabel(signal.direction)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function CompanyVerdict({ ticker }: { ticker: string }) {
@@ -181,20 +218,17 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
   if (loading) {
     return (
       <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
-        <div className="verdict-topline">
-          <div>
-            <span className="verdict-eyebrow">Momentum support</span>
-            <h2>Building the momentum picture…</h2>
-            <p>Checking price trend, reported earnings, and analyst revisions.</p>
-          </div>
-        </div>
-        <div className="signal-strip momentum-signal-strip">
-          {["Price", "Earnings", "Analysts"].map((label) => (
-            <div className="signal-pill momentum-signal" key={label}>
-              <span>{label}</span>
-              <strong className="missing">Checking</strong>
-            </div>
-          ))}
+        <div className="verdict-lede ink-panel">
+          <span className="verdict-eyebrow">Momentum support</span>
+          <h2>Building the momentum picture…</h2>
+          <p>Checking price trend, reported earnings, and analyst revisions.</p>
+          <MomentumBoxes
+            signals={[
+              { label: "Price", direction: "checking" },
+              { label: "Earnings", direction: "checking" },
+              { label: "Analysts", direction: "checking" },
+            ]}
+          />
         </div>
       </section>
     );
@@ -204,22 +238,11 @@ export function CompanyVerdict({ ticker }: { ticker: string }) {
 
   return (
     <section className="verdict-card verdict-card-compact" aria-label="Momentum support">
-      <div className="verdict-topline">
-        <div>
-          <span className="verdict-eyebrow">Momentum support</span>
-          <h2>{summary.headline}</h2>
-          <p>{summary.summary}</p>
-        </div>
-      </div>
-
-      <div className="signal-strip momentum-signal-strip">
-        {signals.map((signal) => (
-          <div className="signal-pill momentum-signal" key={signal.label} title={signal.detail}>
-            <span>{signal.label}</span>
-            <strong className={signal.direction}>{directionLabel(signal.direction)}</strong>
-            {signal.label === "Price" ? <small>{signal.detail}</small> : null}
-          </div>
-        ))}
+      <div className="verdict-lede ink-panel">
+        <span className="verdict-eyebrow">Momentum support</span>
+        <h2>{summary.headline}</h2>
+        <p>{summary.summary}</p>
+        <MomentumBoxes signals={signals} />
       </div>
     </section>
   );

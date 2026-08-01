@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import { isFiniteNumber } from "@/lib/display/format";
 import { changeToneClass } from "@/lib/display/heat-color";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 import type { PositionMetrics } from "@/lib/portfolio/types";
 
 export interface PortfolioHoldingCardProps {
@@ -91,6 +92,13 @@ export function PortfolioHoldingCard({
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
   const dayChangeClass = changeToneClass(changePercent);
   const closeChangeClass = changeToneClass(closeChangePercent);
+  const moveTone = inkToneFromSemantic(
+    dayChangeClass === "positive"
+      ? "positive"
+      : dayChangeClass === "negative" || dayChangeClass === "negative-mild"
+        ? "negative"
+        : "quiet",
+  );
 
   const ring = ringFromComposite(convictionTone, convictionStrength);
   const accent = holdingAccent(metrics.totalGainLoss);
@@ -133,7 +141,7 @@ export function PortfolioHoldingCard({
   return (
     <Link
       href={`/companies/${ticker}`}
-      className="wl-ring-row"
+      className={`wl-ring-row ${inkBoxClass(moveTone)}`}
       title={`${displayName} — open dashboard`}
     >
       <div className="wl-ring-row-main">
@@ -148,10 +156,10 @@ export function PortfolioHoldingCard({
               {price !== null ? `$${formatPrice(price)}` : "—"}
             </strong>
             {sessionLabel ? (
-              <span className="wl-ring-session-chip">{sessionLabel}</span>
+              <span className="ink-chip ink-chip--quiet wl-ring-session-chip">{sessionLabel}</span>
             ) : null}
           </div>
-          <span className={`wl-ring-day-change ${dayChangeClass}`}>
+          <span className={`${inkChipClass(moveTone)} wl-ring-day-change`}>
             {formatPercent(changePercent)}
           </span>
           {hasExtendedSession ? (

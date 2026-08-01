@@ -16,10 +16,11 @@ function formatDate(value: string): string {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
-function directionClass(direction: PoliticalTrade["direction"]): string {
-  // Purchases stay default ink; sales use red so color marks risk, not symmetry.
-  if (direction === "sale") return "negative";
-  return "neutral";
+function directionTone(direction: PoliticalTrade["direction"]): "up" | "down" | "quiet" {
+  // Purchases stay constructive; sales use red so color marks risk, not symmetry.
+  if (direction === "sale") return "down";
+  if (direction === "purchase") return "up";
+  return "quiet";
 }
 
 export function PoliticiansMovesPanel() {
@@ -120,13 +121,15 @@ export function PoliticiansMovesPanel() {
       </div>
 
       <div className="politician-trade-list">
-        {trades.map((trade) => (
-          <article key={trade.id} className="politician-trade-card">
+        {trades.map((trade) => {
+          const tone = directionTone(trade.direction);
+          return (
+          <article key={trade.id} className={`politician-trade-card ink-box ink-box--${tone}`}>
             <div className="politician-trade-top">
               <Link href={`/companies/${trade.ticker}`} className="politician-trade-ticker">
                 {trade.ticker}
               </Link>
-              <span className={`politician-trade-dir ${directionClass(trade.direction)}`}>
+              <span className={`ink-chip ink-chip--${tone}`}>
                 {trade.transactionType}
               </span>
             </div>
@@ -143,7 +146,8 @@ export function PoliticiansMovesPanel() {
               {trade.isLate ? <span className="politician-trade-late">Late filing</span> : null}
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

@@ -43,7 +43,10 @@
   --card-negative: var(--red-soft);
   --card-warning: color-mix(in srgb, var(--amber) 10%, #ffffff);
 
-  /* ── Navy ink panel (one per screen) ── */
+  /* ── Navy ink surfaces ──
+     Heroes: .ink-panel (one narrative lede per view)
+     Items:  .ink-box + .ink-box--up|down|amber|quiet (color-coded dark boxes)
+     Chips:  .ink-chip  (highlighted text within those boxes) */
   --ink-panel: #0f172a;
   --ink-panel-elevated: #1e293b;
   --on-ink: #ffffff;
@@ -102,11 +105,14 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Ink panels: selective navy anchors on the white UI ──
-   Use sparingly (one hero statement per view). Remaps local
-   text/border/signal tokens so nested content stays readable. */
+/* ── Ink surfaces: navy anchors on the white UI ──
+   .ink-panel — one hero statement per view
+   .ink-box   — color-coded dark item boxes (grids, signals, cards)
+   .ink-chip  — highlighted status text inside those boxes
+   Both remap local text/border/signal tokens for nested content. */
 
-.ink-panel {
+.ink-panel,
+.ink-box {
   --ink: var(--on-ink);
   --muted: var(--on-ink-muted);
   --quiet: var(--on-ink-quiet);
@@ -135,9 +141,95 @@ html, body {
   --market-red: var(--on-ink-red);
   --market-live: var(--on-ink-accent);
   color: var(--on-ink);
+}
+
+.ink-panel {
   background: var(--ink-panel);
   border: 1px solid var(--on-ink-border);
   box-shadow: var(--shadow-ink);
+}
+
+.ink-box {
+  background: var(--ink-panel-elevated);
+  border: 1px solid var(--on-ink-border);
+  border-radius: calc(var(--radius) + 2px);
+  box-shadow: var(--shadow-ink);
+}
+
+.ink-box--up {
+  background: color-mix(in srgb, var(--on-ink-green) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-green) 38%, transparent);
+}
+
+.ink-box--down {
+  background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-red) 38%, transparent);
+}
+
+.ink-box--amber {
+  background: color-mix(in srgb, var(--on-ink-amber) 14%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-amber) 34%, transparent);
+}
+
+.ink-box--quiet {
+  background: var(--ink-panel-elevated);
+  border-color: var(--on-ink-border);
+}
+
+.ink-box .ink-box {
+  box-shadow: none;
+}
+
+.ink-box-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.ink-box-label {
+  display: block;
+  color: var(--on-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ink-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+  color: var(--on-ink);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.ink-chip--up {
+  background: color-mix(in srgb, var(--on-ink-green) 22%, transparent);
+  color: var(--on-ink-green);
+}
+
+.ink-chip--down {
+  background: color-mix(in srgb, var(--on-ink-red) 22%, transparent);
+  color: var(--on-ink-red);
+}
+
+.ink-chip--amber {
+  background: color-mix(in srgb, var(--on-ink-amber) 22%, transparent);
+  color: var(--on-ink-amber);
+}
+
+.ink-chip--quiet {
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+  color: var(--on-ink-muted);
 }
 
 .ink-panel .quote-gauge-track {
@@ -922,20 +1014,33 @@ details > summary::before {
   flex-direction: column;
   gap: 13px;
   padding: 17px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--on-ink-border);
   border-radius: calc(var(--radius) + 2px);
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
-  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+  background: var(--ink-panel);
+  color: var(--on-ink);
+  box-shadow: var(--shadow-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --card: var(--ink-panel-elevated);
+  --accent: var(--on-ink-accent);
+  --positive: var(--on-ink-green);
+  --negative: var(--on-ink-red);
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
 }
 
 .investor-idea-card:hover,
 .investor-idea-card:focus-visible {
-  border-color: var(--border-strong, var(--border-active));
-  background: var(--card);
-  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, #ffffff 22%, transparent);
+  filter: brightness(1.04);
   transform: translateY(-1px);
   outline: none;
+}
+
+.investor-idea-card .signal-block.ink-box {
+  /* Nested tone box sits inside the navy shell */
+  box-shadow: none;
 }
 
 .investor-idea-card-top {
@@ -1654,7 +1759,13 @@ details > summary::before {
     background-color 0.16s ease,
     border-color 0.16s ease,
     box-shadow 0.16s ease,
-    transform 0.16s ease;
+    transform 0.16s ease,
+    filter 0.16s ease;
+}
+
+.wl-ring-row.ink-box {
+  /* Tone fill from ink-box--*; remapped tokens keep nested text readable. */
+  box-shadow: var(--shadow-ink);
 }
 
 .wl-ring-row:hover,
@@ -1664,6 +1775,14 @@ details > summary::before {
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
   outline: none;
+}
+
+.wl-ring-row.ink-box:hover,
+.wl-ring-row.ink-box:focus-visible {
+  background: inherit;
+  filter: brightness(1.06);
+  border-color: color-mix(in srgb, #ffffff 24%, transparent);
+  box-shadow: var(--shadow-ink);
 }
 
 .wl-ring-row:hover .wl-ring-ticker,
@@ -1676,9 +1795,21 @@ details > summary::before {
   background: color-mix(in srgb, var(--accent-dim) 35%, var(--surface));
 }
 
+.wl-ring-row.ink-box:hover .wl-ring-driver,
+.wl-ring-row.ink-box:focus-visible .wl-ring-driver {
+  background: color-mix(in srgb, #ffffff 8%, transparent);
+}
+
 .wl-ring-row.focused-card {
   background: color-mix(in srgb, var(--accent-dim) 70%, var(--surface-elevated));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.wl-ring-row.ink-box.focused-card {
+  box-shadow:
+    var(--shadow-ink),
+    inset 0 0 0 1px color-mix(in srgb, var(--on-ink-accent) 45%, transparent);
+  filter: brightness(1.04);
 }
 
 .wl-ring-row-main {
@@ -1794,6 +1925,20 @@ details > summary::before {
   text-transform: uppercase;
   white-space: nowrap;
   line-height: 1.2;
+}
+
+.wl-ring-row.ink-box .wl-ring-session-chip.ink-chip {
+  font-size: 0.58rem;
+}
+
+.wl-ring-row.ink-box .wl-ring-day-change.ink-chip {
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+}
+
+.wl-ring-row.ink-box .wl-ring-driver {
+  background: color-mix(in srgb, #ffffff 6%, transparent);
+  border: 1px solid var(--on-ink-border);
 }
 
 .wl-ring-at-close {
@@ -5545,9 +5690,17 @@ details > summary::before {
 
 .pf-exposure-card {
   padding: 22px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--on-ink-border);
   border-radius: var(--radius);
-  background: var(--card-inset);
+  background: var(--ink-panel-elevated);
+  color: var(--on-ink);
+  box-shadow: var(--shadow-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --card: var(--ink-panel-elevated);
+  --card-inset: color-mix(in srgb, #ffffff 7%, var(--ink-panel));
 }
 
 .pf-exposure-heading {
@@ -5952,38 +6105,29 @@ details > summary::before {
   margin: 12px 0 0;
   padding: 10px 12px;
   border-radius: 10px;
-  border-left: 3px solid var(--border);
-  background: var(--card-inset);
+  border: 1px solid var(--on-ink-border);
+  border-left-width: 3px;
+  background: color-mix(in srgb, #ffffff 6%, transparent);
 }
 
 .pf-ring-holding.up {
-  border-left-color: var(--green);
-  background: color-mix(in srgb, var(--green-dim) 55%, var(--surface));
+  border-left-color: var(--on-ink-green);
+  background: color-mix(in srgb, var(--on-ink-green) 12%, transparent);
 }
 
 .pf-ring-holding.down {
-  border-left-color: var(--red);
-  background: color-mix(in srgb, var(--red-dim) 50%, var(--surface));
+  border-left-color: var(--on-ink-red);
+  background: color-mix(in srgb, var(--on-ink-red) 12%, transparent);
 }
 
 .pf-ring-holding.flat {
-  border-left-color: var(--amber);
-  background: color-mix(in srgb, var(--amber-dim) 40%, var(--surface));
+  border-left-color: var(--on-ink-amber);
+  background: color-mix(in srgb, var(--on-ink-amber) 12%, transparent);
 }
 
-.wl-ring-row:hover .pf-ring-holding.up,
-.wl-ring-row:focus-visible .pf-ring-holding.up {
-  background: color-mix(in srgb, var(--green-dim) 70%, var(--surface-elevated));
-}
-
-.wl-ring-row:hover .pf-ring-holding.down,
-.wl-ring-row:focus-visible .pf-ring-holding.down {
-  background: color-mix(in srgb, var(--red-dim) 65%, var(--surface-elevated));
-}
-
-.wl-ring-row:hover .pf-ring-holding.flat,
-.wl-ring-row:focus-visible .pf-ring-holding.flat {
-  background: color-mix(in srgb, var(--amber-dim) 55%, var(--surface-elevated));
+.wl-ring-row.ink-box:hover .pf-ring-holding,
+.wl-ring-row.ink-box:focus-visible .pf-ring-holding {
+  filter: brightness(1.05);
 }
 
 .pf-ring-holding-item {
@@ -6470,18 +6614,20 @@ details > summary::before {
   font-family: var(--font-mono);
   font-size: 0.76rem;
   line-height: 1.4;
+  border: 1px solid var(--on-ink-border);
+  color: var(--on-ink);
 }
 
 .pf-state-warn {
-  background: color-mix(in srgb, var(--red) 10%, transparent);
-  border: 1px solid var(--red-dim);
-  color: var(--muted);
+  background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-red) 38%, transparent);
+  color: var(--on-ink-muted);
 }
 
 .pf-state-info {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border: 1px solid var(--accent-dim);
-  color: var(--muted);
+  background: color-mix(in srgb, var(--on-ink-accent) 14%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-accent) 34%, transparent);
+  color: var(--on-ink-muted);
 }
 
 /* ── Sort buttons ── */
@@ -8529,6 +8675,12 @@ details > summary::before {
   display: grid;
   gap: 5px;
   min-width: 0;
+  padding: 12px 14px;
+}
+
+.signal-block.ink-box {
+  /* Tone fill comes from ink-box--; keep readable padding on dark surface. */
+  gap: 6px;
 }
 
 .signal-block-compact {
@@ -9767,10 +9919,21 @@ details > summary::before {
 .market-index-card,
 .market-gauge-card,
 .market-panel {
-  background: var(--card);
-  border: 1px solid var(--border);
+  background: var(--ink-panel-elevated);
+  border: 1px solid var(--on-ink-border);
   border-radius: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-ink);
+  color: var(--on-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --card: var(--ink-panel-elevated);
+  --market-text: var(--on-ink);
+  --market-muted: var(--on-ink-muted);
+  --market-border: var(--on-ink-border);
+  --market-green: var(--on-ink-green);
+  --market-red: var(--on-ink-red);
 }
 
 .market-region-picker {
@@ -9780,10 +9943,17 @@ details > summary::before {
   gap: 12px;
   margin-bottom: 18px;
   padding: 12px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--on-ink-border);
   border-radius: 12px;
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
+  background: var(--ink-panel-elevated);
+  box-shadow: var(--shadow-ink);
+  color: var(--on-ink);
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --market-text: var(--on-ink);
+  --market-muted: var(--on-ink-muted);
 }
 
 .market-region-copy {
@@ -10146,9 +10316,11 @@ a.heat-tile {
 
 .politician-trade-card {
   padding: 14px 16px;
-  border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface);
+}
+
+.politician-trade-card .politician-trade-ticker {
+  color: var(--on-ink-accent);
 }
 
 .politician-trade-top {

@@ -17,6 +17,7 @@ import { changeToneClass } from "@/lib/display/heat-color";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import type { StockQuote, StockHistoryPoint } from "@/lib/market/quotes";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 
 interface TrendingCardHeadline {
   headline: string;
@@ -94,8 +95,15 @@ export function TrendingCard({
   const sessionLabel = live.label;
   const hasExtendedSession = Boolean(sessionLabel && quote.price !== null);
 
-  const changeClass = changeToneClass(live.change);
+  const changeClass = changeToneClass(live.changePercent);
   const closeChangeClass = changeToneClass(quote.changePercent);
+  const moveTone = inkToneFromSemantic(
+    changeClass === "positive"
+      ? "positive"
+      : changeClass === "negative" || changeClass === "negative-mild"
+        ? "negative"
+        : "quiet",
+  );
 
   // Shared composite only — never fall back to getCardVerdict heuristics.
   const ring = ringFromComposite(convictionScore);
@@ -132,7 +140,7 @@ export function TrendingCard({
       <div className="terminal-card-inner">
         <Link
           href={`/companies/${ticker}`}
-          className="wl-ring-row"
+          className={`wl-ring-row ${inkBoxClass(moveTone)}`}
           title={`${companyName} — open dashboard`}
         >
           <div className="wl-ring-row-main">
@@ -150,10 +158,10 @@ export function TrendingCard({
                   {live.price !== null ? `$${formatPrice(live.price)}` : "—"}
                 </strong>
                 {sessionLabel ? (
-                  <span className="wl-ring-session-chip">{sessionLabel}</span>
+                  <span className="ink-chip ink-chip--quiet wl-ring-session-chip">{sessionLabel}</span>
                 ) : null}
               </div>
-              <span className={`wl-ring-day-change ${changeClass}`}>
+              <span className={`${inkChipClass(moveTone)} wl-ring-day-change`}>
                 {formatPercent(live.changePercent)}
               </span>
               {hasExtendedSession ? (

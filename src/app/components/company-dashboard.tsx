@@ -39,14 +39,14 @@ export function DashboardCard({
   summary: string;
 }) {
   return (
-    <details className={`dashboard-card ${className ?? ""}`}>
+    <details className={`dashboard-card ink-box ink-box--quiet ${className ?? ""}`.trim()}>
       <summary className="dashboard-card-summary">
         <span className="dashboard-card-kicker">Supporting evidence</span>
         <strong>{title}</strong>
         <span className="dashboard-card-description">{summary}</span>
         <span className="dashboard-card-action" aria-hidden="true">
-          <span className="dashboard-card-open-label">View details</span>
-          <span className="dashboard-card-close-label">Close</span>
+          <span className="ink-chip ink-chip--quiet dashboard-card-open-label">View details</span>
+          <span className="ink-chip ink-chip--quiet dashboard-card-close-label">Close</span>
           <span className="dashboard-card-chevron">›</span>
         </span>
       </summary>

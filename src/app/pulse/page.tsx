@@ -228,7 +228,15 @@ export default function MarketPulsePage() {
                 title={driver.explanation}
               >
                 <strong>{driver.label}</strong>
-                <em>{driver.direction}</em>
+                <em className={`ink-chip ink-chip--${
+                  driver.direction === "rising"
+                    ? "up"
+                    : driver.direction === "falling"
+                      ? "down"
+                      : driver.direction === "mixed"
+                        ? "amber"
+                        : "quiet"
+                }`}>{driver.direction}</em>
               </span>
             ))}
           </div>
