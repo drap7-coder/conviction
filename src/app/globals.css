@@ -10722,9 +10722,32 @@ details > summary::before {
   color: var(--ink);
 }
 
-.wl-manage-remove:disabled {
+.wl-manage-remove:disabled,
+.wl-manage-add:disabled {
   opacity: 0.5;
   cursor: wait;
+}
+
+.wl-manage-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--quiet);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.wl-manage-add:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
 }
 
 /* Context feeds nested under tiles in the white heatmap shell */

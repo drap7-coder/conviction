@@ -3,16 +3,13 @@
 import { useEffect, useState } from "react";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
-import { TrendingCard } from "@/components/TrendingCard";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
-import type { CardVerdictShortInterest } from "@/lib/evidence/card-verdict";
-import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
-import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { MoveDriversPanel } from "@/components/MoveDriversPanel";
+import { TrendingManageChips } from "@/components/TrendingManageChips";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 interface TrendingCompany {
@@ -70,9 +67,6 @@ export function MarketMovesPanel() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
   const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
-  const [shortInterest, setShortInterest] = useState<Record<string, CardVerdictShortInterest>>({});
-  const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
-  const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
@@ -164,68 +158,6 @@ export function MarketMovesPanel() {
     };
   }, [requestKey]);
 
-  useEffect(() => {
-    if (trending.length === 0) return;
-    let cancelled = false;
-
-    async function loadShortInterest() {
-      const next: Record<string, CardVerdictShortInterest> = {};
-      await Promise.all(trending.map(async (company) => {
-        try {
-          const response = await fetch(
-            `/api/market/short-interest?ticker=${encodeURIComponent(company.ticker)}`,
-          );
-          if (!response.ok) return;
-          next[company.ticker] = await response.json() as CardVerdictShortInterest;
-        } catch {
-          // Optional evidence for the shared card score.
-        }
-      }));
-      if (!cancelled) setShortInterest(next);
-    }
-
-    void loadShortInterest();
-    return () => {
-      cancelled = true;
-    };
-  }, [trending]);
-
-  const convictionTickerKey = trending.map((company) => company.ticker).join(",");
-
-  useEffect(() => {
-    if (!convictionTickerKey) {
-      setConvictionScores({});
-      setPendingScores({});
-      return;
-    }
-    let cancelled = false;
-    const tickers = convictionTickerKey.split(",").filter(Boolean);
-    const initialPending: Record<string, true> = {};
-    for (const ticker of tickers) initialPending[ticker] = true;
-    setPendingScores(initialPending);
-
-    async function loadConvictionScores() {
-      await fetchConvictionScores(tickers, undefined, (partial, settled) => {
-        if (cancelled) return;
-        setConvictionScores((prev) => ({ ...prev, ...partial }));
-        if (settled) {
-          setPendingScores((prev) => {
-            if (!prev[settled.ticker]) return prev;
-            const next = { ...prev };
-            delete next[settled.ticker];
-            return next;
-          });
-        }
-      });
-      if (!cancelled) setPendingScores({});
-    }
-
-    void loadConvictionScores();
-    return () => {
-      cancelled = true;
-    };
-  }, [convictionTickerKey]);
-
   const handleAddTrending = async (idea: WatchlistCandidate) => {
     setAddMessage(null);
     setAddingTicker(idea.ticker);
@@ -260,6 +192,35 @@ export function MarketMovesPanel() {
     }
   };
 
+  const handleRemoveTrending = (ticker: string) => {
+    const next = new Set(trackedTickers);
+    next.delete(ticker);
+    setTrackedTickers(next);
+    fetch(`/api/watchlist/${ticker}`, { method: "DELETE" }).catch(() => {});
+  };
+
+  if (trendingStatus === "loading" || trendingStatus === "idle") {
+    return (
+      <div className="market-moves-panel">
+        <PageLoadingMotion label="Finding active names" />
+      </div>
+    );
+  }
+
+  if (trending.length === 0) {
+    return (
+      <div className="market-moves-panel">
+        <div className="empty-state">
+          <p>No market moves loaded right now.</p>
+          <small>Market activity is temporarily unavailable.</small>
+          <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="market-moves-panel">
       {addMessage ? (
@@ -268,113 +229,68 @@ export function MarketMovesPanel() {
         </p>
       ) : null}
 
-      {trendingStatus === "success" && trending.length > 0 ? (
-        <StockHeatmap
-          title="Market Moves"
-          subtitle="Tile size = dollar volume. Color = session move only (teal up / red down) — not the Accumulating / Holding / Distribution rings below."
-          sessionLabel={
-            trending
-              .map((idea) => getLivePrice(idea.quote).label)
-              .find((label): label is string => Boolean(label)) ?? null
-          }
-          items={trending.map((idea) => {
-            const live = getLivePrice(idea.quote);
-            return {
-              ticker: idea.ticker,
-              name: idea.companyName,
-              price: live.price,
-              changePercent: live.changePercent,
-              marketCap: idea.quote.marketCap,
-              sizeValue: idea.quote.dollarVolume,
-              sizeLabel: idea.activityLabel,
-            };
-          })}
-          footer={(
-            <MoveDriversPanel
-              holdings={trending.map((idea) => {
-                const live = getLivePrice(idea.quote);
-                return {
-                  ticker: idea.ticker,
-                  companyName: idea.companyName,
-                  changePercent: live.changePercent,
-                };
-              })}
-              newsByTicker={Object.fromEntries(
-                trending.map((idea) => [
-                  idea.ticker.toUpperCase(),
-                  {
-                    driver: newsDrivers[idea.ticker] ?? null,
-                    headlines: headlines[idea.ticker] ?? [],
-                  },
-                ]),
-              )}
-              lede="Headlines and themes behind today’s most active names."
-            />
-          )}
-        />
-      ) : null}
-
-      <section className="trending-section" aria-label="Market moves">
-        {trendingStatus === "loading" || trendingStatus === "idle" ? (
-          <PageLoadingMotion label="Finding active names" />
-        ) : trending.length === 0 ? (
-          <div className="empty-state">
-            <p>No market moves loaded right now.</p>
-            <small>Market activity is temporarily unavailable.</small>
-            <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
-              Retry
-            </button>
-          </div>
-        ) : (
-          <>
-            <div className="wl-list-header">
-              <div className="wl-list-title-row">
-                <h3 className="wl-list-title">Market Moves</h3>
-                <span className="wl-list-count">
-                  {trending.length} symbol{trending.length === 1 ? "" : "s"}
-                </span>
-              </div>
-              <div className="wl-conviction-legend" aria-label="Conviction ring legend">
-                <span><i className="quote-dot red" /> Distribution</span>
-                <span><i className="quote-dot amber" /> Holding</span>
-                <span><i className="quote-dot green" /> Accumulating</span>
-              </div>
-              <p className="wl-list-legend-note">
-                Ring colors are conviction state. Heat tiles above are session up/down only.
-              </p>
-            </div>
-            <div className="watchlist-list">
-              {trending.map((idea) => {
-                const isTracked = trackedTickers.has(idea.ticker);
-                return (
-                  <TrendingCard
-                    key={idea.ticker}
-                    ticker={idea.ticker}
-                    companyName={idea.companyName}
-                    rank={idea.activityRank}
-                    activityLabel={idea.activityLabel}
-                    quote={idea.quote}
-                    sparkline={idea.sparkline ?? []}
-                    headlines={headlines[idea.ticker] ?? []}
-                    newsDriver={newsDrivers[idea.ticker] ?? null}
-                    convictionScore={convictionScores[idea.ticker] ?? null}
-                    scoreLoading={Boolean(pendingScores[idea.ticker])}
-                    isTracked={isTracked}
-                    isAdding={addingTicker === idea.ticker}
-                    onAdd={() => handleAddTrending(idea)}
-                    onRemove={() => {
-                      const next = new Set(trackedTickers);
-                      next.delete(idea.ticker);
-                      setTrackedTickers(next);
-                      fetch(`/api/watchlist/${idea.ticker}`, { method: "DELETE" }).catch(() => {});
-                    }}
-                  />
-                );
-              })}
-            </div>
-          </>
+      <StockHeatmap
+        title="Market Moves"
+        subtitle="Tap a tile for the company dashboard. Hover to see what’s driving the move. Tile size = dollar volume."
+        sessionLabel={
+          trending
+            .map((idea) => getLivePrice(idea.quote).label)
+            .find((label): label is string => Boolean(label)) ?? null
+        }
+        items={trending.map((idea) => {
+          const live = getLivePrice(idea.quote);
+          const driver = newsDrivers[idea.ticker]?.label ?? headlines[idea.ticker]?.[0]?.headline ?? null;
+          return {
+            ticker: idea.ticker,
+            name: idea.companyName,
+            price: live.price,
+            changePercent: live.changePercent,
+            marketCap: idea.quote.marketCap,
+            sizeValue: idea.quote.dollarVolume,
+            sizeLabel: idea.activityLabel,
+            driverText: driver
+              ? `${driver}${idea.activityLabel ? ` · ${idea.activityLabel}` : ""}`
+              : idea.activityLabel,
+          };
+        })}
+        footer={(
+          <MoveDriversPanel
+            holdings={trending.map((idea) => {
+              const live = getLivePrice(idea.quote);
+              return {
+                ticker: idea.ticker,
+                companyName: idea.companyName,
+                changePercent: live.changePercent,
+              };
+            })}
+            newsByTicker={Object.fromEntries(
+              trending.map((idea) => [
+                idea.ticker.toUpperCase(),
+                {
+                  driver: newsDrivers[idea.ticker] ?? null,
+                  headlines: headlines[idea.ticker] ?? [],
+                },
+              ]),
+            )}
+            lede="Headlines and themes behind today’s most active names."
+          />
         )}
-      </section>
+      />
+
+      <TrendingManageChips
+        items={trending.map((idea) => ({
+          ticker: idea.ticker,
+          companyName: idea.companyName,
+          activityLabel: idea.activityLabel,
+        }))}
+        trackedTickers={trackedTickers}
+        addingTicker={addingTicker}
+        onAdd={(item) => void handleAddTrending({
+          ticker: item.ticker,
+          companyName: item.companyName ?? item.ticker,
+        })}
+        onRemove={handleRemoveTrending}
+      />
     </div>
   );
 }
