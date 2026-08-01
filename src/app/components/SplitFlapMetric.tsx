@@ -7,6 +7,9 @@ interface SplitFlapMetricProps {
   label: string;
   change?: string;
   isPositive?: boolean;
+  /** Optional surface variant — `ink` for navy narrative panels. */
+  variant?: "default" | "ink" | "hero";
+  className?: string;
 }
 
 const FLAP_DURATION_MS = 220;
@@ -17,6 +20,8 @@ export function SplitFlapMetric({
   label,
   change,
   isPositive,
+  variant = "default",
+  className,
 }: SplitFlapMetricProps) {
   const [characters, setCharacters] = useState(() => value.split(''));
   const [flippingChars, setFlippingChars] = useState<Record<number, boolean>>({});
@@ -77,8 +82,16 @@ export function SplitFlapMetric({
       ? 'sf-change-negative'
       : 'sf-change-neutral';
 
+  const rootClass = [
+    "sf-card",
+    variant !== "default" ? `sf-card-${variant}` : "",
+    className ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className="sf-card">
+    <div className={rootClass}>
       <span className="sf-label">{label}</span>
       <div className="sf-body">
         <div className="sf-chars" aria-label={`${label}: ${value}`}>
@@ -88,20 +101,20 @@ export function SplitFlapMetric({
               <span
                 key={`${index}-${character}`}
                 aria-hidden="true"
-                className={`sf-char${isFlipping ? ' animate-flap' : ''}`}
+                className={`sf-char${isFlipping ? " animate-flap" : ""}`}
                 style={{
                   animationDuration: `${FLAP_DURATION_MS}ms`,
                   animationDelay: `${index * STAGGER_MS}ms`,
                 }}
               >
-                {character === ' ' ? '\u00A0' : character}
+                {character === " " ? "\u00A0" : character}
               </span>
             );
           })}
         </div>
-        {change && (
+        {change ? (
           <span className={`sf-change ${changeClass}`}>{change}</span>
-        )}
+        ) : null}
       </div>
     </div>
   );

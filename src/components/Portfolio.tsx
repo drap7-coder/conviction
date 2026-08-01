@@ -21,6 +21,7 @@ import { StockHeatmap } from "@/components/StockHeatmap";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
+import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -434,22 +435,29 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
 
       {hasData && (
         <>
-          {/* ── Hero ── */}
+          {/* ── Hero (split-flap value; usually rendered by MyListShell PortfolioHero) ── */}
           {!hideHero && (
-            <div className="pf-hero">
-              <div className="pf-hero-value">
-                <span className="pf-hero-total">{currency(portfolioMetrics.totalMarketValue)}</span>
-                {(portfolioMetrics.dailyChange ?? null) !== null && (
-                  <span className={`pf-hero-change ${(portfolioMetrics.dailyChange ?? 0) >= 0 ? "up" : "down"}`}>
-                    {signedCurrency(portfolioMetrics.dailyChange)}{" "}
-                    {percent(portfolioMetrics.dailyChangePercent)}
-                  </span>
-                )}
+            <section className="pf-hero ink-panel" aria-label="Portfolio value">
+              <div className="pf-hero-flap">
+                <SplitFlapMetric
+                  variant="hero"
+                  label="Portfolio value"
+                  value={currency(portfolioMetrics.totalMarketValue)}
+                  change={
+                    portfolioMetrics.dailyChange !== null
+                      ? `${signedCurrency(portfolioMetrics.dailyChange)} ${percent(portfolioMetrics.dailyChangePercent)}`
+                      : undefined
+                  }
+                  isPositive={
+                    portfolioMetrics.dailyChange === null
+                      ? undefined
+                      : (portfolioMetrics.dailyChange ?? 0) >= 0
+                  }
+                />
                 {portfolioHeatmapSession ? (
                   <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span>
                 ) : null}
               </div>
-              {/* Unrealized G/L line */}
               {portfolioMetrics.totalUnrealizedGL !== null && (
                 <div className={`pf-hero-secondary ${(portfolioMetrics.totalUnrealizedGL ?? 0) >= 0 ? "up" : "down"}`}>
                   Unrealized {signedCurrency(portfolioMetrics.totalUnrealizedGL)}
@@ -461,7 +469,7 @@ export default function Portfolio({ hideHero = false }: { hideHero?: boolean }) 
                   )}
                 </div>
               )}
-            </div>
+            </section>
           )}
 
           {/* ── Loading / Error / Refresh ── */}

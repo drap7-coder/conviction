@@ -5407,58 +5407,59 @@ details > summary::before {
 
 /* ── Portfolio Page (redesign) ── */
 
-/* ── Hero ── */
+/* ── Hero (navy narrative panel + split-flap value) ── */
 
 .pf-hero {
-  margin-bottom: 24px;
+  margin: 0 0 20px;
+  padding: 18px 20px;
+  border-radius: calc(var(--radius) + 4px);
 }
 
-.pf-hero-label {
-  font-size: 0.7rem;
-  color: var(--quiet);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: var(--font-mono);
-  margin-bottom: 4px;
-  display: block;
-}
-
-.pf-hero-value {
-  font-size: 2.4rem;
-  font-weight: 800;
-  font-family: var(--font-mono);
-  color: var(--ink);
+.pf-hero-flap {
   display: flex;
-  align-items: baseline;
-  gap: 14px;
   flex-wrap: wrap;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+  align-items: flex-end;
+  gap: 10px 14px;
 }
 
-.pf-hero-change {
-  font-size: 1rem;
-  font-weight: 700;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+.pf-hero .sf-card-hero {
+  flex: 1 1 auto;
+  min-width: min(100%, 220px);
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.pf-hero .sf-card-hero .sf-label {
+  color: var(--on-ink-muted);
+  margin-bottom: 8px;
+}
+
+.pf-hero .sf-card-hero .sf-char {
+  color: var(--on-ink);
+  font-size: clamp(1.55rem, 4.5vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.pf-hero .sf-card-hero .sf-change {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  padding: 3px 8px;
 }
 
 .pf-hero-session-chip {
   display: inline-flex;
   align-items: center;
-  margin-left: 8px;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border-radius: 999px;
-  background: rgba(251, 191, 36, 0.14);
-  color: #d97706;
+  background: color-mix(in srgb, var(--on-ink-amber) 16%, transparent);
+  color: var(--on-ink-amber);
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
-  vertical-align: middle;
 }
 
 .pf-hero-change.up {
@@ -6412,19 +6413,37 @@ details > summary::before {
 }
 
 .pf-hero-secondary {
-  font-size: 0.88rem;
+  margin-top: 12px;
+  font-size: 0.78rem;
   font-weight: 600;
   font-family: var(--font-mono);
-  margin-top: 2px;
+  color: var(--on-ink-muted);
 }
 
+.pf-hero.ink-panel .pf-hero-secondary.up { color: var(--on-ink-green); }
+.pf-hero.ink-panel .pf-hero-secondary.down { color: var(--on-ink-red); }
 .pf-hero-secondary.up { color: var(--green); }
 .pf-hero-secondary.down { color: var(--red); }
 
 .pf-hero-note {
   font-weight: 400;
-  color: var(--quiet);
-  font-size: 0.72rem;
+  color: var(--on-ink-muted);
+  font-size: 0.68rem;
+  font-family: var(--font-mono);
+}
+
+.sf-card-ink {
+  background: transparent;
+  border-color: var(--on-ink-border);
+}
+
+.sf-card-ink .sf-label,
+.sf-card-ink .sf-char {
+  color: var(--on-ink);
+}
+
+.sf-card-ink .sf-label {
+  color: var(--on-ink-muted);
 }
 
 /* ── Data-quality state cards ── */

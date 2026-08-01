@@ -32,18 +32,10 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 
   return (
     <div>
-      <div className="page-purpose">
-        <span className="page-purpose-eyebrow">My Positions</span>
-        <h2 className="page-purpose-title">Watch what you follow, or review what you own.</h2>
-      </div>
-
-      {/* Portfolio value always visible */}
-      <PortfolioHero />
-
       <section className="trending-view-picker" aria-label="My list views">
         <div className="trending-view-picker-copy">
           <span>My positions</span>
-          <p>Watch what you follow, or review what you own.</p>
+          <p>Switch between companies you follow and holdings you own.</p>
         </div>
         <div className="trending-view-tabs" role="tablist" aria-label="Choose a list view">
           {MY_LIST_VIEWS.map((view) => (
@@ -63,6 +55,8 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
           ))}
         </div>
       </section>
+
+      <PortfolioHero />
 
       <div
         id="my-list-panel-watchlist"
@@ -89,7 +83,16 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 
 export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) {
   return (
-    <Suspense fallback={<div className="page-purpose"><span className="page-purpose-eyebrow">My Positions</span><h2 className="page-purpose-title">Watch what you follow, or review what you own.</h2></div>}>
+    <Suspense
+      fallback={
+        <section className="trending-view-picker" aria-hidden="true">
+          <div className="trending-view-picker-copy">
+            <span>My positions</span>
+            <p>Loading your lists…</p>
+          </div>
+        </section>
+      }
+    >
       <PortfolioDataProvider>
         <MyListShellInner publicFeed={publicFeed} />
       </PortfolioDataProvider>

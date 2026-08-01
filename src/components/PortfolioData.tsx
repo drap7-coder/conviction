@@ -7,6 +7,7 @@ import { computePortfolioMetrics } from "@/lib/portfolio/calculations";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
 import type { StockQuote } from "@/lib/market/quotes";
 import { isFiniteNumber } from "@/lib/display/format";
+import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 
 const PORTFOLIO_CHANGED_EVENT = "conviction-portfolio-changed";
 
@@ -38,6 +39,11 @@ function percent(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   const sign = value >= 0 ? "+" : "";
   return `${sign}${value.toFixed(2)}%`;
+}
+
+function changeLine(dailyChange: number | null, dailyChangePercent: number | null): string | undefined {
+  if (dailyChange === null) return undefined;
+  return `${signedCurrency(dailyChange)} ${percent(dailyChangePercent)}`;
 }
 
 interface PortfolioData {
@@ -177,51 +183,47 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   );
 }
 
+/** Navy narrative panel with split-flap portfolio value — shared across My List. */
 export function PortfolioHero() {
   const { data } = usePortfolioData();
 
-  if (data.loading) {
-    return (
-      <div className="pf-hero">
-        <div className="pf-hero-value">
-          <span className="pf-hero-total">—</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data.hasData) {
-    return (
-      <div className="pf-hero">
-        <div className="pf-hero-value">
-          <span className="pf-hero-total">$0.00</span>
-          <span className="pf-hero-note">No positions yet</span>
-        </div>
-      </div>
-    );
-  }
+  const value = data.loading
+    ? "—"
+    : data.hasData
+      ? currency(data.totalMarketValue)
+      : "$0.00";
+  const change = data.loading || !data.hasData
+    ? undefined
+    : changeLine(data.dailyChange, data.dailyChangePercent);
+  const isPositive = data.dailyChange === null || data.dailyChange === undefined
+    ? undefined
+    : data.dailyChange >= 0;
 
   return (
-    <div className="pf-hero">
-      <div className="pf-hero-value">
-        <span className="pf-hero-total">{currency(data.totalMarketValue)}</span>
-        {data.dailyChange !== null && (
-          <span className={`pf-hero-change ${data.dailyChange >= 0 ? "up" : "down"}`}>
-            {signedCurrency(data.dailyChange)} {percent(data.dailyChangePercent)}
-          </span>
-        )}
+    <section className="pf-hero ink-panel" aria-label="Portfolio value">
+      <div className="pf-hero-flap">
+        <SplitFlapMetric
+          variant="hero"
+          label="Portfolio value"
+          value={value}
+          change={change}
+          isPositive={isPositive}
+        />
         {data.sessionLabel ? (
           <span className="pf-hero-session-chip">{data.sessionLabel}</span>
         ) : null}
+        {!data.loading && !data.hasData ? (
+          <span className="pf-hero-note">No positions yet</span>
+        ) : null}
       </div>
-      {data.totalUnrealizedGL !== null && (
+      {!data.loading && data.hasData && data.totalUnrealizedGL !== null ? (
         <div className={`pf-hero-secondary ${data.totalUnrealizedGL >= 0 ? "up" : "down"}`}>
           Unrealized {signedCurrency(data.totalUnrealizedGL)}
-          {data.totalUnrealizedGLPercent !== null && (
+          {data.totalUnrealizedGLPercent !== null ? (
             <> ({percent(data.totalUnrealizedGLPercent)})</>
-          )}
+          ) : null}
         </div>
-      )}
-    </div>
+      ) : null}
+    </section>
   );
 }
