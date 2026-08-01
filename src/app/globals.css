@@ -898,15 +898,14 @@ details > summary::before {
   margin: 20px 0 24px;
 }
 
-/* Legacy trending-view-* aliases → shared white pulse-view toggle */
+/* Legacy trending-view-* aliases → shared pulse-view toggle look */
 .trending-view-picker {
   margin: 0 0 18px;
-  padding: 5px;
+  padding: 6px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface-elevated);
   box-shadow: var(--shadow-md);
-  color: var(--ink);
 }
 
 .trending-view-picker-copy {
@@ -916,63 +915,11 @@ details > summary::before {
 .trending-view-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 4px;
-}
-
-.trending-view-tabs button {
-  min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  color: var(--muted);
-  background: transparent;
-  font: inherit;
-  font-family: var(--font-mono);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
-}
-
-.trending-view-tabs button:hover,
-.trending-view-tabs button:focus-visible {
-  color: var(--ink);
-  background: var(--card-inset);
-  outline: none;
-  transform: none;
-}
-
-.trending-view-tabs button.active {
-  color: var(--ink);
-  background: var(--card);
-  border-color: var(--border-active);
-  box-shadow: var(--shadow-md);
-}
-
-.trending-view-tabs strong,
-.trending-view-tabs span {
-  display: block;
-}
-
-.trending-view-tabs strong {
-  color: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
+  gap: 6px;
 }
 
 .trending-view-title-break {
   display: none;
-}
-
-.trending-view-tabs span {
-  margin-top: 4px;
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  line-height: 1.35;
-}
-
-.trending-view-tabs button.active span {
-  color: var(--muted);
 }
 
 /* ── Investor Moves (Trending lens) ── */
@@ -10279,7 +10226,7 @@ details > summary::before {
   --market-red: var(--on-ink-red);
 }
 
-/* Shared view toggles — white container under dark ink ledes (not dark-on-dark). */
+/* Shared view toggles — white shell, dark option tiles, heatmap-style label chips. */
 .pulse-view-picker {
   margin: 0 0 18px;
 }
@@ -10287,69 +10234,93 @@ details > summary::before {
 .pulse-view-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 4px;
-  padding: 5px;
+  gap: 6px;
+  padding: 6px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface-elevated);
   box-shadow: var(--shadow-md);
-  color: var(--ink);
+  color: #fff;
 }
 
 .pulse-view-tabs button {
   min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  color: var(--muted);
-  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+  border-radius: 12px;
+  color: #fff;
+  background: #1e293b;
   font: inherit;
   font-family: var(--font-mono);
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+  transition: border-color 0.16s ease, background-color 0.16s ease, filter 0.16s ease;
+}
+
+/* Two distinct dark option colors so adjacent choices read apart. */
+.pulse-view-tabs button:nth-child(odd) {
+  background: #0f172a;
+}
+
+.pulse-view-tabs button:nth-child(even) {
+  background: #1e293b;
 }
 
 .pulse-view-tabs button:hover,
 .pulse-view-tabs button:focus-visible {
-  color: var(--ink);
-  background: var(--card-inset);
+  filter: brightness(1.08);
   outline: none;
 }
 
 .pulse-view-tabs button.active {
-  color: var(--ink);
-  background: var(--card);
-  border-color: var(--border-active);
-  box-shadow: var(--shadow-md);
+  background: #134e4a;
+  border-color: color-mix(in srgb, var(--on-ink-accent) 45%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--on-ink-accent) 28%, transparent);
+  filter: none;
 }
 
 .pulse-view-tabs strong,
 .pulse-view-tabs span {
-  display: block;
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
 }
 
+/* Heatmap-style little label containers */
 .pulse-view-tabs strong {
-  color: inherit;
-  font-size: 0.9rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   line-height: 1.2;
 }
 
 .pulse-view-tabs span {
-  margin-top: 4px;
-  color: var(--quiet);
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.62rem;
-  line-height: 1.35;
-}
-
-.pulse-view-tabs button.active span {
-  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
 }
 
 .pulse-view-tabs button.active strong {
-  color: var(--ink);
+  background: rgba(0, 0, 0, 0.38);
+  color: #fff;
+}
+
+.pulse-view-tabs button.active span {
+  background: rgba(0, 0, 0, 0.28);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Legacy aliases kept for any residual markup */
@@ -10358,12 +10329,11 @@ details > summary::before {
   grid-template-columns: minmax(0, 1fr);
   gap: 0;
   margin-bottom: 18px;
-  padding: 5px;
+  padding: 6px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface-elevated);
   box-shadow: var(--shadow-md);
-  color: var(--ink);
 }
 
 .market-region-copy {
@@ -10373,58 +10343,103 @@ details > summary::before {
 .market-region-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.market-region-tabs button {
-  min-width: 0;
-  padding: 12px 14px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  color: var(--muted);
-  background: transparent;
-  font: inherit;
-  font-family: var(--font-mono);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
-}
-
-.market-region-tabs button:hover,
-.market-region-tabs button:focus-visible {
-  color: var(--ink);
-  background: var(--card-inset);
-  outline: none;
-  transform: none;
-}
-
-.market-region-tabs button.active {
-  color: var(--ink);
-  background: var(--card);
-  border-color: var(--border-active);
-  box-shadow: var(--shadow-md);
-}
-
-.market-region-tabs strong,
-.market-region-tabs span {
-  display: block;
-}
-
-.market-region-tabs strong {
-  color: inherit;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.market-region-tabs span {
-  margin-top: 4px;
-  color: var(--quiet);
-  font-size: 0.62rem;
-  line-height: 1.35;
+  gap: 6px;
 }
 
 .market-region-title-break {
   display: none;
+}
+
+/* Apply dark option + heatmap chips to legacy tab class names too */
+.trending-view-tabs button,
+.market-region-tabs button {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+  border-radius: 12px;
+  color: #fff;
+  background: #1e293b;
+  font: inherit;
+  font-family: var(--font-mono);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, filter 0.16s ease;
+}
+
+.trending-view-tabs button:nth-child(odd),
+.market-region-tabs button:nth-child(odd) {
+  background: #0f172a;
+}
+
+.trending-view-tabs button:nth-child(even),
+.market-region-tabs button:nth-child(even) {
+  background: #1e293b;
+}
+
+.trending-view-tabs button:hover,
+.trending-view-tabs button:focus-visible,
+.market-region-tabs button:hover,
+.market-region-tabs button:focus-visible {
+  filter: brightness(1.08);
+  outline: none;
+  transform: none;
+}
+
+.trending-view-tabs button.active,
+.market-region-tabs button.active {
+  background: #134e4a;
+  border-color: color-mix(in srgb, var(--on-ink-accent) 45%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--on-ink-accent) 28%, transparent);
+  filter: none;
+}
+
+.trending-view-tabs strong,
+.trending-view-tabs span,
+.market-region-tabs strong,
+.market-region-tabs span {
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.trending-view-tabs strong,
+.market-region-tabs strong {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.trending-view-tabs span,
+.market-region-tabs span {
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+
+.trending-view-tabs button.active strong,
+.market-region-tabs button.active strong {
+  background: rgba(0, 0, 0, 0.38);
+  color: #fff;
+}
+
+.trending-view-tabs button.active span,
+.market-region-tabs button.active span {
+  background: rgba(0, 0, 0, 0.28);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .market-card-heading {
