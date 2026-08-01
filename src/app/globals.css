@@ -10771,16 +10771,75 @@ details > summary::before {
   border-top: 1px solid var(--border);
 }
 
+/* Driver carousels: fill the heatmap shell, narrower cards, peek the next one */
 .stock-heat-footer .bcn-list,
 .market-heatmap-shell .stock-heat-footer .bcn-list {
-  margin-inline: 0;
-  padding-inline: 0;
+  gap: 10px;
+  margin-inline: -10px;
+  padding: 2px 10px 6px;
   padding-bottom: 4px;
+}
+
+.stock-heat-panel > .stock-heat-footer .bcn-list,
+.market-heatmap-shell > .stock-heat-footer .bcn-list {
+  /* Bleed to the white shell edges (shell padding is 18px / 12px). */
+  margin-inline: -18px;
+  padding-inline: 18px;
+  width: auto;
+}
+
+.stock-heat-footer .bcn-item,
+.market-heatmap-shell .stock-heat-footer .bcn-item {
+  /* Narrower than page BCN (1.5) so more of the row fills and the next card peeks. */
+  flex: 0 0 clamp(11.5rem, 72%, 15.5rem);
+}
+
+.stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item,
+.market-heatmap-shell .stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item {
+  flex-basis: 100%;
+  max-width: none;
 }
 
 .stock-heat-footer .bcn-footnote,
 .market-heatmap-shell .stock-heat-footer .bcn-footnote {
   color: var(--quiet);
+}
+
+@media (min-width: 768px) {
+  .stock-heat-footer .bcn-list,
+  .market-heatmap-shell .stock-heat-footer .bcn-list {
+    gap: 12px;
+  }
+
+  .stock-heat-footer .bcn-item,
+  .market-heatmap-shell .stock-heat-footer .bcn-item {
+    flex-basis: clamp(13rem, 38%, 17rem);
+  }
+
+  .stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item,
+  .market-heatmap-shell .stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item {
+    flex-basis: 100%;
+  }
+}
+
+@media (min-width: 1100px) {
+  .stock-heat-footer .bcn-item,
+  .market-heatmap-shell .stock-heat-footer .bcn-item {
+    flex-basis: clamp(14rem, 30%, 18rem);
+  }
+}
+
+@media (max-width: 399px) {
+  .stock-heat-panel > .stock-heat-footer .bcn-list,
+  .market-heatmap-shell > .stock-heat-footer .bcn-list {
+    margin-inline: -12px;
+    padding-inline: 12px;
+  }
+
+  .stock-heat-footer .bcn-item,
+  .market-heatmap-shell .stock-heat-footer .bcn-item {
+    flex-basis: clamp(10.5rem, 78%, 14rem);
+  }
 }
 
 .stock-heat-loading-grid {
