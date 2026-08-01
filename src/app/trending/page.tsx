@@ -11,6 +11,8 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { InvestorMovesPanel } from "@/app/components/InvestorMovesPanel";
+import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
+import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 
 interface TrendingCompany {
   ticker: string;
@@ -102,6 +104,7 @@ export default function RisingConvictionPage() {
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [requestKey, setRequestKey] = useState(0);
+  const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -187,6 +190,29 @@ export default function RisingConvictionPage() {
       controller.abort();
     };
   }, [requestKey]);
+
+  useEffect(() => {
+    if (trending.length === 0) {
+      setConvictionScores({});
+      return;
+    }
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function loadConvictionScores() {
+      const scores = await fetchConvictionScores(
+        trending.map((company) => company.ticker),
+        controller.signal,
+      );
+      if (!cancelled) setConvictionScores(scores);
+    }
+
+    void loadConvictionScores();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [trending]);
 
   // ── Add/remove functions ──
 
@@ -336,6 +362,7 @@ export default function RisingConvictionPage() {
                       sparkline={idea.sparkline ?? []}
                       headlines={headlines[idea.ticker] ?? []}
                       newsDriver={newsDrivers[idea.ticker] ?? null}
+                      convictionScore={convictionScores[idea.ticker] ?? null}
                       isTracked={isTracked}
                       isAdding={addingTicker === idea.ticker}
                       onAdd={() => handleAddTrending(idea)}

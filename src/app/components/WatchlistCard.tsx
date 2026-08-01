@@ -66,26 +66,25 @@ function formatPercent(value: number | null) {
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
-function ringFromVerdict(tone: string, strength: number | null): {
+function ringFromComposite(input: {
+  tone?: string | null;
+  label?: string | null;
+  strength: number | null;
+}): {
   tone: GaugeTone;
   label: string;
 } {
-  if (tone === "positive") {
-    return { tone: "green", label: "Accumulating" };
+  // Prefer explicit composite ring fields from /api/conviction/score.
+  if (input.tone === "green" || input.tone === "amber" || input.tone === "red" || input.tone === "neutral") {
+    return {
+      tone: input.tone,
+      label: input.label ?? (input.strength === null ? "Awaiting" : "Holding"),
+    };
   }
-  if (tone === "negative") {
-    return { tone: "red", label: "Distribution" };
-  }
-  if (tone === "contested") {
-    return { tone: "amber", label: "Holding" };
-  }
-  if (strength === null) {
-    return { tone: "neutral", label: "Awaiting" };
-  }
-  return {
-    tone: strength >= 55 ? "amber" : "neutral",
-    label: strength >= 55 ? "Holding" : "Awaiting",
-  };
+  if (input.tone === "positive") return { tone: "green", label: input.label ?? "Accumulating" };
+  if (input.tone === "negative") return { tone: "red", label: input.label ?? "Distribution" };
+  if (input.tone === "contested") return { tone: "amber", label: input.label ?? "Holding" };
+  return { tone: "neutral", label: input.label ?? "Awaiting" };
 }
 
 function driverLine(
@@ -108,6 +107,7 @@ export function WatchlistCard({
   sessionLabel,
   closePrice,
   closeChangePercent,
+  convictionState,
   convictionTone,
   convictionStrength,
   activityLine,
@@ -121,7 +121,11 @@ export function WatchlistCard({
   const dayChangeClass = changeToneClass(change);
   const closeChangeClass = changeToneClass(closeChangePercent);
 
-  const ring = ringFromVerdict(convictionTone, convictionStrength);
+  const ring = ringFromComposite({
+    tone: convictionTone,
+    label: convictionState,
+    strength: convictionStrength,
+  });
   const driver = driverLine(newsDriver, headlines, activityLine);
 
   const [swipeOffset, setSwipeOffset] = useState(0);

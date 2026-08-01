@@ -841,9 +841,9 @@ export default function Watchlist({
                   sessionLabel={live?.label ?? null}
                   closePrice={live?.label ? quote?.price ?? null : null}
                   closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                  convictionState={composite?.ringLabel ?? verdict.state}
-                  convictionTone={composite?.evidenceTone ?? verdict.tone}
-                  convictionStrength={composite ? composite.displayScore : verdict.strength}
+                  convictionState={composite?.ringLabel ?? "Awaiting"}
+                  convictionTone={composite?.tone ?? "neutral"}
+                  convictionStrength={composite?.displayScore ?? null}
                   evidencePills={evidencePills}
                   activityLine={activityLine}
                   headlines={headlines[entry.ticker] ?? []}
@@ -889,9 +889,9 @@ export default function Watchlist({
                 sessionLabel={live?.label ?? null}
                 closePrice={live?.label ? quote?.price ?? null : null}
                 closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                convictionState={composite?.ringLabel ?? verdict.state}
-                convictionTone={composite?.evidenceTone ?? verdict.tone}
-                convictionStrength={composite ? composite.displayScore : verdict.strength}
+                convictionState={composite?.ringLabel ?? "Awaiting"}
+                convictionTone={composite?.tone ?? "neutral"}
+                convictionStrength={composite?.displayScore ?? null}
                 evidencePills={evidencePills}
                 activityLine={activityLine}
                 headlines={headlines[entry.ticker] ?? []}

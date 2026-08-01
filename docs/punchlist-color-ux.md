@@ -39,5 +39,5 @@ A +15.2% name (e.g. AMZN on a gap day) must land in the **extreme** band, not th
 ## UX polish
 
 3. Narrative tone tags: **price reaction** (not ambiguous “reaction”).
-4. Conviction Score: keep the live composite fetch (do not replace with a “coming soon” placeholder).
+4. Conviction Score: one calc only — `/api/conviction/score` (`displayScore` / `tone` / `ringLabel`). List surfaces must not fall back to `getCardVerdict` heuristics.
 5. **Attention pace** `N×` = last-hour theme mentions ÷ trailing hourly baseline (`(24h − last hour) / 23`, floor 0.5). Expose that baseline in the UI.

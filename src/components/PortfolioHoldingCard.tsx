@@ -55,18 +55,17 @@ function compactCurrency(value: number | null) {
   })}`;
 }
 
-function ringFromVerdict(tone: string, strength: number | null): {
+function ringFromComposite(tone: string, strength: number | null): {
   tone: GaugeTone;
   label: string;
 } {
+  if (tone === "green") return { tone: "green", label: "Accumulating" };
+  if (tone === "red") return { tone: "red", label: "Distribution" };
+  if (tone === "amber") return { tone: "amber", label: "Holding" };
   if (tone === "positive") return { tone: "green", label: "Accumulating" };
   if (tone === "negative") return { tone: "red", label: "Distribution" };
   if (tone === "contested") return { tone: "amber", label: "Holding" };
-  if (strength === null) return { tone: "neutral", label: "Awaiting" };
-  return {
-    tone: strength >= 55 ? "amber" : "neutral",
-    label: strength >= 55 ? "Holding" : "Awaiting",
-  };
+  return { tone: "neutral", label: strength === null ? "Awaiting" : "Holding" };
 }
 
 function holdingAccent(totalGainLoss: number | null): "up" | "down" | "flat" {
@@ -93,7 +92,7 @@ export function PortfolioHoldingCard({
   const dayChangeClass = changeToneClass(changePercent);
   const closeChangeClass = changeToneClass(closeChangePercent);
 
-  const ring = ringFromVerdict(convictionTone, convictionStrength);
+  const ring = ringFromComposite(convictionTone, convictionStrength);
   const accent = holdingAccent(metrics.totalGainLoss);
   const displayName = companyName?.trim() || ticker;
 
