@@ -113,7 +113,7 @@ export default function Portfolio({
   composeFirst = false,
 }: {
   hideHero?: boolean;
-  /** Keep Add position open under portfolio value / above holdings. */
+  /** Render Add position above holdings (My List). */
   composeFirst?: boolean;
 }) {
   const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
@@ -121,7 +121,7 @@ export default function Portfolio({
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAddForm, setShowAddForm] = useState(composeFirst);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [sort, setSort] = useState<SortState>({ key: "value", dir: "desc" });
   // Track whether data has ever loaded successfully (for data-quality states)
   const [quotesEverLoaded, setQuotesEverLoaded] = useState(false);
@@ -373,8 +373,7 @@ export default function Portfolio({
     setFormShares("");
     setFormCost("");
     setEditingTicker(null);
-    // Keep the compose bar open when it lives under portfolio value.
-    setShowAddForm(composeFirst);
+    setShowAddForm(false);
   }
 
   function handleRemove(ticker: string) {
@@ -427,43 +426,65 @@ export default function Portfolio({
     return sort.dir === "desc" ? " ↓" : " ↑";
   }
 
+  // Open once for empty books so the first add is obvious; stay collapsed when holdings exist.
+  useEffect(() => {
+    if (loading) return;
+    if (!hasData) setShowAddForm(true);
+  }, [loading, hasData]);
+
+  const composeExpanded = Boolean(editingTicker) || showAddForm;
+
+  function toggleCompose() {
+    if (editingTicker) return;
+    setShowAddForm((open) => !open);
+  }
+
   const composeBar = (
-    <section className="list-compose ink-panel" aria-label="Add a position">
-      <div className="list-compose-copy">
-        <span className="list-compose-eyebrow">Portfolio</span>
-        <strong className="list-compose-title">
-          {editingTicker ? `Edit ${editingTicker}` : "Add a position"}
-        </strong>
-        <p className="list-compose-help">
-          {hasData
-            ? "Enter ticker, shares, and average cost to update holdings."
-            : "Add your first holding to start tracking portfolio value."}
-        </p>
-      </div>
-      {(composeFirst || showAddForm || !hasData) ? (
-        <div className="pf-add-form-wrap list-compose-fields">
-          <AddForm
-            editingTicker={editingTicker}
-            formTicker={formTicker}
-            formShares={formShares}
-            formCost={formCost}
-            formError={formError}
-            onTickerChange={setFormTicker}
-            onSharesChange={setFormShares}
-            onCostChange={setFormCost}
-            onSubmit={handleAdd}
-            onCancel={handleCancelEdit}
-          />
+    <section
+      className={`list-compose ink-panel ${composeExpanded ? "is-open" : "is-collapsed"}`}
+      aria-label="Add a position"
+    >
+      <button
+        type="button"
+        className="list-compose-toggle"
+        aria-expanded={composeExpanded}
+        aria-controls="portfolio-add-form"
+        onClick={toggleCompose}
+      >
+        <div className="list-compose-copy">
+          <span className="list-compose-eyebrow">Portfolio</span>
+          <strong className="list-compose-title">
+            {editingTicker ? `Edit ${editingTicker}` : "Add a position"}
+          </strong>
+          {!composeExpanded ? (
+            <span className="list-compose-toggle-hint">Ticker, shares, and average cost</span>
+          ) : null}
         </div>
-      ) : (
-        <button
-          type="button"
-          className="list-compose-cta pf-add-toggle"
-          onClick={() => setShowAddForm(true)}
-        >
-          + Add position
-        </button>
-      )}
+        <span className="list-compose-chevron" aria-hidden="true" />
+      </button>
+      {composeExpanded ? (
+        <>
+          <p className="list-compose-help">
+            {hasData
+              ? "Enter ticker, shares, and average cost to update holdings."
+              : "Add your first holding to start tracking portfolio value."}
+          </p>
+          <div id="portfolio-add-form" className="pf-add-form-wrap list-compose-fields">
+            <AddForm
+              editingTicker={editingTicker}
+              formTicker={formTicker}
+              formShares={formShares}
+              formCost={formCost}
+              formError={formError}
+              onTickerChange={setFormTicker}
+              onSharesChange={setFormShares}
+              onCostChange={setFormCost}
+              onSubmit={handleAdd}
+              onCancel={handleCancelEdit}
+            />
+          </div>
+        </>
+      ) : null}
     </section>
   );
 
