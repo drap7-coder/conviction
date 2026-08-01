@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { getCardVerdict, getCardEvidence, type CardVerdictShortInterest, type CardVerdictEntry } from "@/lib/evidence/card-verdict";
-import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
+import {
+  fetchConvictionScores,
+  peekCachedConvictionScores,
+} from "@/app/components/fetch-conviction-score";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
@@ -315,20 +318,26 @@ export default function Watchlist({
       return;
     }
     let cancelled = false;
-    const controller = new AbortController();
     const tickers = convictionTickerKey.split(",").filter(Boolean);
 
+    // Show last-known scores immediately so rings never blank on remount.
+    const cached = peekCachedConvictionScores(tickers);
+    if (Object.keys(cached).length > 0) {
+      setConvictionScores((prev) => ({ ...prev, ...cached }));
+    }
+
     async function loadConvictionScores() {
-      // Paint each ring as it arrives — batch timeouts left every card on "—".
-      await fetchConvictionScores(tickers, controller.signal, (partial) => {
-        if (!cancelled) setConvictionScores(partial);
+      // Do not abort in-flight score work — remount/reload races were wiping rings.
+      await fetchConvictionScores(tickers, undefined, (partial) => {
+        if (!cancelled) {
+          setConvictionScores((prev) => ({ ...prev, ...partial }));
+        }
       });
     }
 
     void loadConvictionScores();
     return () => {
       cancelled = true;
-      controller.abort();
     };
   }, [convictionTickerKey]);
 
