@@ -189,11 +189,13 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
   if (status === "loading" || status === "idle") {
     return (
-      <section className="investor-moves-panel" aria-label="Institutional moves" aria-busy="true">
+      <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves" aria-busy="true">
         <div className="investor-moves-intro ink-panel">
-          <span className="investor-moves-eyebrow">Where big funds are building</span>
-          <h2>Recent ownership moves from large managers</h2>
-          <p>Comparing the two latest filings from notable investors.</p>
+          <div>
+            <span className="investor-moves-eyebrow">Institutions · Form 13F</span>
+            <h2>Ownership moves from large managers</h2>
+            <p>Comparing the two latest filings from notable investors.</p>
+          </div>
         </div>
         <PageLoadingMotion label="Reading institutional filings" />
       </section>
@@ -202,25 +204,27 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
   if (status === "error" || status === "timeout" || status === "empty") {
     return (
-      <section className="investor-moves-panel" aria-label="Institutional moves">
+      <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves">
         <div className="investor-moves-intro ink-panel">
-          <span className="investor-moves-eyebrow">SEC Form 13F · Institutional Moves</span>
-          <h2>The filing feed is quiet right now</h2>
-          <p>{response?.message ?? "No qualifying institutional ideas were found in the latest comparison."}</p>
-          <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
-            Retry
-          </button>
+          <div>
+            <span className="investor-moves-eyebrow">Institutions · Form 13F</span>
+            <h2>The filing feed is quiet right now</h2>
+            <p>{response?.message ?? "No qualifying institutional ideas were found in the latest comparison."}</p>
+            <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+              Retry
+            </button>
+          </div>
         </div>
       </section>
     );
   }
 
   return (
-    <section className="investor-moves-panel" aria-label="Institutional moves">
+    <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves">
       <div className="investor-moves-intro ink-panel">
         <div>
-          <span className="investor-moves-eyebrow">Where big funds are building</span>
-          <h2>Recent ownership moves from large managers</h2>
+          <span className="investor-moves-eyebrow">Institutions · Form 13F</span>
+          <h2>Ownership moves from large managers</h2>
           <p>
             New positions, meaningful adds, and companies held across multiple notable investors.
           </p>
@@ -232,6 +236,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
       </div>
 
       <div className="investor-filter-row" role="group" aria-label="Filter by investor">
+        <span className="investor-filter-label">Filter</span>
         <button
           type="button"
           aria-pressed={filter === "all"}
