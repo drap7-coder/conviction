@@ -25,7 +25,7 @@ function evidenceResult(score: number | null): ConvictionScoreResult {
       coverage: 0.4,
       agreementAdjustment: 0,
       includedCategories: ["institutional"],
-      excludedCategories: ["technicals", "short_interest"],
+      excludedCategories: ["insider", "technicals", "short_interest"],
     };
   }
   return {
@@ -33,7 +33,7 @@ function evidenceResult(score: number | null): ConvictionScoreResult {
     label: labelForScore(score),
     coverage: 1,
     agreementAdjustment: 0,
-    includedCategories: ["institutional", "technicals", "short_interest"],
+    includedCategories: ["institutional", "insider", "technicals", "short_interest"],
     excludedCategories: [],
   };
 }
@@ -51,8 +51,8 @@ function factor(
 }
 
 describe("SCORING_VERSION", () => {
-  it("bumps for the quality blend contract", () => {
-    expect(SCORING_VERSION).toBe("1.4.0");
+  it("bumps for free evidence upgrades on the quality blend contract", () => {
+    expect(SCORING_VERSION).toBe("1.5.2");
   });
 });
 
@@ -147,7 +147,7 @@ describe("blendEvidenceAndQuality", () => {
         ticker: "TEST",
         category: "institutional",
         score: 40,
-        baseWeight: 0.45,
+        baseWeight: 0.34,
         hasData: true,
         isStale: false,
         sourceDate: "2026-07-01",
@@ -157,9 +157,21 @@ describe("blendEvidenceAndQuality", () => {
       },
       {
         ticker: "TEST",
+        category: "insider",
+        score: 40,
+        baseWeight: 0.16,
+        hasData: true,
+        isStale: false,
+        sourceDate: "2026-07-01",
+        updatedAt: "2026-07-27T12:00:00.000Z",
+        explanation: "insider",
+        scoringVersion: SCORING_VERSION,
+      },
+      {
+        ticker: "TEST",
         category: "technicals",
         score: 40,
-        baseWeight: 0.38,
+        baseWeight: 0.36,
         hasData: true,
         isStale: false,
         sourceDate: "2026-07-01",
@@ -170,8 +182,8 @@ describe("blendEvidenceAndQuality", () => {
       {
         ticker: "TEST",
         category: "short_interest",
-        score: 40,
-        baseWeight: 0.17,
+        score: 10,
+        baseWeight: 0.14,
         hasData: true,
         isStale: false,
         sourceDate: "2026-07-01",
@@ -182,7 +194,8 @@ describe("blendEvidenceAndQuality", () => {
     ];
     const evidence = calculateConvictionScore(categories);
     expect(evidence.agreementAdjustment).toBe(5);
-    expect(evidence.score).toBe(45);
+    // (40*0.34 + 40*0.16 + 40*0.36 + 10*0.14) + 5
+    expect(evidence.score).toBe(Math.round(40 * 0.34 + 40 * 0.16 + 40 * 0.36 + 10 * 0.14) + 5);
 
     const quality = calculateQualityComposite([
       factor({ factor: "margin_moat", score: -80 }),
@@ -194,8 +207,30 @@ describe("blendEvidenceAndQuality", () => {
     ]);
     const blended = blendEvidenceAndQuality(evidence, quality);
     // Evidence half still includes +5; blend uses that evidence score as-is.
-    expect(blended.evidenceScore).toBe(45);
-    expect(blended.score).toBe(Math.round(quality.score! * 0.65 + 45 * 0.35));
+    expect(blended.evidenceScore).toBe(evidence.score);
+    expect(blended.score).toBe(
+      Math.round(quality.score! * 0.65 + evidence.score! * 0.35),
+    );
+  });
+
+  it("mildly tilts blend weights for mega-caps toward quality", () => {
+    const evidence = evidenceResult(40);
+    const quality = calculateQualityComposite([
+      factor({ factor: "margin_moat", score: 80 }),
+      factor({ factor: "balance_sheet", score: 80 }),
+      factor({ factor: "fcf_strength", score: 80 }),
+      factor({ factor: "earnings_consistency", score: 80 }),
+      factor({ factor: "ownership_base", score: 80 }),
+      factor({ factor: "capital_return", score: 80 }),
+    ]);
+    const mid = blendEvidenceAndQuality(evidence, quality);
+    const mega = blendEvidenceAndQuality(evidence, quality, {
+      marketCap: 500_000_000_000,
+    });
+    expect(mega.qualityWeight).toBeGreaterThan(mid.qualityWeight);
+    expect(mega.score).toBe(
+      Math.round(quality.score! * 0.72 + 40 * 0.28),
+    );
   });
 });
 
@@ -213,7 +248,7 @@ describe("buildQualityFactors", () => {
         previousShares: 1_000_000,
         shareChange: 0,
         percentageChange: 0,
-        reportedValue: 1,
+        reportedValue: 5_000_000_000,
         filingQuarter: "2026-03-31",
         filingDate: "2026-05-15",
         status: "Unchanged",
@@ -229,7 +264,7 @@ describe("buildQualityFactors", () => {
         previousShares: 100_000,
         shareChange: 400_000,
         percentageChange: 400,
-        reportedValue: 1,
+        reportedValue: 25_000_000,
         filingQuarter: "2026-03-31",
         filingDate: "2026-05-15",
         status: "Increased",
@@ -241,6 +276,13 @@ describe("buildQualityFactors", () => {
     expect(ownership?.hasData).toBe(true);
     expect(ownership?.score).toBeGreaterThan(0);
     expect(ownership?.explanation).toMatch(/Berkshire/);
+
+    // Tiny durable book should not outrank a large trading book on dollars alone —
+    // but Berkshire's multi-billion book here should clearly dominate Citadel.
+    const tradingOnly = buildQualityFactors({
+      institutionalResults: [holders[1]!],
+    }).find((item) => item.factor === "ownership_base");
+    expect(ownership!.score).toBeGreaterThan(tradingOnly!.score);
   });
 
   it("builds fundamentals factors from Nasdaq payload shape", () => {

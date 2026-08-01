@@ -1,9 +1,9 @@
 /**
  * Server-side Conviction Score loader — the single entry point for every UI.
  *
- * Builds evidence via calculateConvictionScore (unchanged), quality via
- * calculateQualityComposite, then blends 65% quality / 35% evidence so
- * Watchlist, Trending, Portfolio, and the company dashboard all show one score.
+ * Builds evidence via calculateConvictionScore, quality via
+ * calculateQualityComposite, then blends quality-led (~65/35, size-tilted)
+ * so Watchlist, Trending, Portfolio, and the company dashboard all show one score.
  */
 
 import { fetchEarningsEvidence } from "@/lib/earnings/fetch";
@@ -11,6 +11,10 @@ import { fetchCompanyFundamentals } from "@/lib/market/fundamentals";
 import { getInstitutionalAccumulationForCompany } from "@/lib/sec/institutional";
 import { fetchShortInterestSummary } from "@/lib/market/short-interest";
 import { fetchStockHistory, fetchStockQuotes } from "@/lib/market/quotes";
+import { fetchSectorProfile } from "@/lib/market/sector-profile";
+import { fetchInsiderTransactions } from "@/lib/sec/client";
+import { getStoredTransactions, recordToTx } from "@/lib/sec/persist";
+import type { InsiderTransaction } from "@/lib/sec/types";
 import { withTimeout } from "@/lib/request-timeout";
 import {
   buildCategoryScores,
@@ -114,15 +118,44 @@ async function settled<T>(promise: Promise<T>): Promise<T | null> {
   }
 }
 
+async function loadInsiderTransactions(ticker: string): Promise<{
+  transactions: InsiderTransaction[];
+  status: "success" | "empty" | "error";
+  fetchedAt: string;
+}> {
+  const fetchedAt = new Date().toISOString();
+  try {
+    const stored = await getStoredTransactions(ticker);
+    if (stored.length > 0) {
+      return {
+        transactions: stored.map(recordToTx),
+        status: "success",
+        fetchedAt,
+      };
+    }
+
+    const result = await withTimeout(fetchInsiderTransactions(ticker), 12_000);
+    return {
+      transactions: result.allTransactions ?? [],
+      status: (result.allTransactions?.length ?? 0) > 0 ? "success" : "empty",
+      fetchedAt: result.fetchedAt ?? fetchedAt,
+    };
+  } catch {
+    return { transactions: [], status: "error", fetchedAt };
+  }
+}
+
 function buildInput(
   ticker: string,
   institutional: Awaited<ReturnType<typeof getInstitutionalAccumulationForCompany>> | null,
+  insider: Awaited<ReturnType<typeof loadInsiderTransactions>> | null,
   shortInterest: Awaited<ReturnType<typeof fetchShortInterestSummary>> | null,
   history: Awaited<ReturnType<typeof fetchStockHistory>> | null,
   quote: Awaited<ReturnType<typeof fetchStockQuotes>>[number] | null,
 ): BuildConvictionScoreInput {
   return {
     ticker,
+    marketCap: quote?.marketCap ?? null,
     institutional: institutional
       ? {
           results: institutional.results ?? [],
@@ -133,6 +166,17 @@ function buildInput(
           results: [],
           status: "error",
           message: "Institutional filings unavailable.",
+        },
+    insider: insider
+      ? {
+          transactions: insider.transactions,
+          status: insider.status,
+          fetchedAt: insider.fetchedAt,
+        }
+      : {
+          transactions: [],
+          status: "error",
+          message: "Insider Form 4 filings unavailable.",
         },
     technicals: {
       points: history?.points ?? [],
@@ -173,28 +217,48 @@ export async function getConvictionScoreForTicker(
     if (cached) return cached;
   }
 
-  const [institutional, shortInterest, history, quotes, earnings, fundamentals] =
-    await Promise.all([
-      settled(
-        withTimeout(
-          getInstitutionalAccumulationForCompany(upper, companyName),
-          22_000,
-        ),
+  const [
+    institutional,
+    insider,
+    shortInterest,
+    history,
+    quotes,
+    profile,
+    earnings,
+    fundamentals,
+  ] = await Promise.all([
+    settled(
+      withTimeout(
+        getInstitutionalAccumulationForCompany(upper, companyName),
+        22_000,
       ),
-      settled(fetchShortInterestSummary(upper)),
-      settled(fetchStockHistory(upper, "1y")),
-      settled(fetchStockQuotes([upper])),
-      settled(withTimeout(fetchEarningsEvidence(upper), 12_000)),
-      settled(withTimeout(fetchCompanyFundamentals(upper), 10_000)),
-    ]);
+    ),
+    loadInsiderTransactions(upper),
+    settled(fetchShortInterestSummary(upper)),
+    settled(fetchStockHistory(upper, "1y")),
+    settled(fetchStockQuotes([upper])),
+    // Chart meta often omits marketCap — quoteSummary price module is reliable.
+    settled(withTimeout(fetchSectorProfile(upper), 6_000)),
+    settled(withTimeout(fetchEarningsEvidence(upper), 12_000)),
+    settled(withTimeout(fetchCompanyFundamentals(upper), 10_000)),
+  ]);
 
+  const quote = quotes?.[0] ?? null;
+  const marketCap =
+    quote?.marketCap
+    ?? history?.marketCap
+    ?? profile?.marketCap
+    ?? null;
   const input = buildInput(
     upper,
     institutional,
+    insider,
     shortInterest,
     history,
-    quotes?.[0] ?? null,
+    quote ? { ...quote, marketCap } : quote,
   );
+  // Ensure size regime sees marketCap even when quote object is null.
+  if (input.marketCap == null) input.marketCap = marketCap;
   const categories = buildCategoryScores(input);
   const evidence = buildConvictionScore(input);
   const quality = calculateQualityComposite(
@@ -204,7 +268,7 @@ export async function getConvictionScoreForTicker(
       institutionalResults: institutional?.results ?? [],
     }),
   );
-  const blended = blendEvidenceAndQuality(evidence, quality);
+  const blended = blendEvidenceAndQuality(evidence, quality, { marketCap });
   const view = toView(upper, blended, categories);
   setCachedConvictionScore(view);
   return view;

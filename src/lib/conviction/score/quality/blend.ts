@@ -1,11 +1,12 @@
 /**
- * Final Conviction Score = quality × 0.65 + evidence × 0.35.
+ * Final Conviction Score = quality × ~0.65 + evidence × ~0.35.
  *
  * evidenceComposite is exactly calculateConvictionScore(...) — untouched.
- * Labels apply to the blended score, not either half alone.
+ * Size can mildly tilt the blend weights; labels apply to the blended score.
  */
 
 import { labelForScore } from "../labels";
+import { blendWeightsForMarketCap } from "../size-regime";
 import type { ConvictionScoreLabel, ConvictionScoreResult } from "../types";
 import type { QualityCompositeResult } from "./types";
 import { EVIDENCE_BLEND_WEIGHT, QUALITY_BLEND_WEIGHT } from "./weights";
@@ -23,6 +24,11 @@ export interface BlendedConvictionScore {
   quality: QualityCompositeResult;
 }
 
+export interface BlendOptions {
+  /** Yahoo market cap — mild size tilt on quality/evidence blend weights. */
+  marketCap?: number | null;
+}
+
 function clampScore(value: number): number {
   return Math.max(-100, Math.min(100, Math.round(value)));
 }
@@ -32,20 +38,25 @@ function clampScore(value: number): number {
  *
  * - Evidence insufficient → withhold (quality alone does not mint a score)
  * - Quality missing → fall back to evidence (prior behavior)
- * - Both present → 65/35 blend; agreement stays inside evidence only
+ * - Both present → quality-led blend; agreement stays inside evidence only
  */
 export function blendEvidenceAndQuality(
   evidence: ConvictionScoreResult,
   quality: QualityCompositeResult,
+  options: BlendOptions = {},
 ): BlendedConvictionScore {
+  const { qualityWeight, evidenceWeight } = blendWeightsForMarketCap(
+    options.marketCap,
+  );
+
   if (evidence.score === null) {
     return {
       score: null,
       label: "insufficient_evidence",
       evidenceScore: null,
       qualityScore: quality.score,
-      evidenceWeight: EVIDENCE_BLEND_WEIGHT,
-      qualityWeight: QUALITY_BLEND_WEIGHT,
+      evidenceWeight: evidenceWeight || EVIDENCE_BLEND_WEIGHT,
+      qualityWeight: qualityWeight || QUALITY_BLEND_WEIGHT,
       blended: false,
       evidence,
       quality,
@@ -58,8 +69,8 @@ export function blendEvidenceAndQuality(
       label: evidence.label,
       evidenceScore: evidence.score,
       qualityScore: null,
-      evidenceWeight: EVIDENCE_BLEND_WEIGHT,
-      qualityWeight: QUALITY_BLEND_WEIGHT,
+      evidenceWeight,
+      qualityWeight,
       blended: false,
       evidence,
       quality,
@@ -67,7 +78,7 @@ export function blendEvidenceAndQuality(
   }
 
   const score = clampScore(
-    quality.score * QUALITY_BLEND_WEIGHT + evidence.score * EVIDENCE_BLEND_WEIGHT,
+    quality.score * qualityWeight + evidence.score * evidenceWeight,
   );
 
   return {
@@ -75,8 +86,8 @@ export function blendEvidenceAndQuality(
     label: labelForScore(score),
     evidenceScore: evidence.score,
     qualityScore: quality.score,
-    evidenceWeight: EVIDENCE_BLEND_WEIGHT,
-    qualityWeight: QUALITY_BLEND_WEIGHT,
+    evidenceWeight,
+    qualityWeight,
     blended: true,
     evidence,
     quality,

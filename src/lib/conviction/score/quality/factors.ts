@@ -7,31 +7,13 @@ import type { EarningsEvidence } from "@/lib/earnings/types";
 import type { CompanyFundamentals } from "@/lib/market/fundamentals";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 import { clampSignedScore } from "../freshness";
+import {
+  DURABLE_MANAGERS,
+  institutionalDollarWeight,
+  managerStyle,
+} from "../manager-style";
 import type { QualityFactorId, QualityFactorScore } from "./types";
 import { QUALITY_FACTOR_WEIGHTS } from "./weights";
-
-/** Long-horizon / durable capital — quality of who holds, not what they just did. */
-const DURABLE_MANAGERS = new Set([
-  "Berkshire Hathaway",
-  "Baupost Group",
-  "Pershing Square Capital Management",
-  "Duquesne Family Office",
-  "Scion Asset Management",
-  "Bridgewater Associates",
-]);
-
-/** Faster / trading-oriented managers — still institutional, less quality signal. */
-const TRADING_MANAGERS = new Set([
-  "Citadel Advisors",
-  "Renaissance Technologies",
-  "D. E. Shaw",
-  "Coatue Management",
-  "Tiger Global Management",
-  "Lone Pine Capital",
-  "Viking Global Investors",
-  "Third Point",
-  "Soros Fund Management",
-]);
 
 function emptyFactor(
   factor: QualityFactorId,
@@ -254,17 +236,22 @@ export function scoreOwnershipBase(
     );
   }
 
-  let durable = 0;
-  let trading = 0;
-  let other = 0;
+  let durableW = 0;
+  let tradingW = 0;
+  let otherW = 0;
   for (const row of holdings) {
-    if (DURABLE_MANAGERS.has(row.manager)) durable += 1;
-    else if (TRADING_MANAGERS.has(row.manager)) trading += 1;
-    else other += 1;
+    const weight = institutionalDollarWeight(row);
+    const style = managerStyle(row.manager);
+    if (style === "durable") durableW += weight;
+    else if (style === "trading") tradingW += weight;
+    else otherW += weight;
   }
 
-  // Who holds — not whether they just added. Durable capital dominates.
-  const score = clampSignedScore(durable * 28 + other * 10 + trading * 4 - 15);
+  const total = durableW + tradingW + otherW || 1;
+  // Who holds — dollar-weighted. Durable capital dominates trading books.
+  const score = clampSignedScore(
+    (durableW / total) * 90 + (otherW / total) * 30 + (tradingW / total) * 8 - 18,
+  );
   const names = holdings
     .filter((row) => DURABLE_MANAGERS.has(row.manager))
     .map((row) => row.displayName)

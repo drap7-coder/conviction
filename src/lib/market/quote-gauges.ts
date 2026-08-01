@@ -1,11 +1,18 @@
 /**
  * Score institutional 13F activity into a 0–100 conviction ring.
  * Green = accumulating, amber = holding, red = distributing.
+ *
+ * Moves are dollar-weighted and style-tilted (durable > other > trading)
+ * so Berkshire-sized books are not equal to tiny trading books.
  */
 
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 import { summarizeInstitutionalEvidence } from "@/lib/sec/institutional";
 import type { GaugeTone } from "@/components/GaugeRing";
+import {
+  institutionalDollarWeight,
+  managerStyleMultiplier,
+} from "@/lib/conviction/score/manager-style";
 
 export interface ConvictionRingScore {
   score: number | null;
@@ -16,6 +23,18 @@ export interface ConvictionRingScore {
   reduced: number;
   newPositions: number;
   filingQuarter: string | null;
+}
+
+const STATUS_DELTA: Record<InstitutionalAccumulation["status"], number> = {
+  New: 14,
+  Increased: 9,
+  Unchanged: 0,
+  Reduced: -9,
+  Exited: -14,
+};
+
+function rowFlowWeight(row: InstitutionalAccumulation): number {
+  return institutionalDollarWeight(row) * managerStyleMultiplier(row.manager);
 }
 
 /**
@@ -38,14 +57,15 @@ export function scoreInstitutionalConviction(
   }
 
   const summary = summarizeInstitutionalEvidence(results);
-  let score = 50;
+  const weights = results.map(rowFlowWeight);
+  const totalWeight = weights.reduce((sum, weight) => sum + weight, 0) || 1;
 
-  for (const result of results) {
-    if (result.status === "New") score += 14;
-    else if (result.status === "Increased") score += 9;
-    else if (result.status === "Reduced") score -= 9;
-    else if (result.status === "Exited") score -= 14;
-  }
+  let score = 50;
+  results.forEach((result, index) => {
+    // Preserve average per-manager contribution when weights are equal.
+    const relative = (weights[index]! / totalWeight) * results.length;
+    score += (STATUS_DELTA[result.status] ?? 0) * relative;
+  });
 
   // Soft tilt from aggregate share change magnitude.
   const magnitude = Math.min(Math.abs(summary.aggregateShareChange) / 1_000_000, 8);
