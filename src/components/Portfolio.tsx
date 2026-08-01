@@ -452,23 +452,14 @@ export default function Portfolio({
         onClick={toggleCompose}
       >
         <div className="list-compose-copy">
-          <span className="list-compose-eyebrow">Portfolio</span>
           <strong className="list-compose-title">
             {editingTicker ? `Edit ${editingTicker}` : "Add a position"}
           </strong>
-          {!composeExpanded ? (
-            <span className="list-compose-toggle-hint">Ticker, shares, and average cost</span>
-          ) : null}
         </div>
         <span className="list-compose-chevron" aria-hidden="true" />
       </button>
       {composeExpanded ? (
         <>
-          <p className="list-compose-help">
-            {hasData
-              ? "Enter ticker, shares, and average cost to update holdings."
-              : "Add your first holding to start tracking portfolio value."}
-          </p>
           <div id="portfolio-add-form" className="pf-add-form-wrap list-compose-fields">
             <AddForm
               editingTicker={editingTicker}
@@ -586,7 +577,7 @@ export default function Portfolio({
           {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
             <StockHeatmap
               title="Portfolio"
-              subtitle="Bigger tile = larger position. Color = session move. Tap through for the company."
+              subtitle=""
               items={portfolioHeatmapItems}
               sessionLabel={portfolioHeatmapSession}
               footer={(
@@ -615,7 +606,7 @@ export default function Portfolio({
             <MacroChainChart
               series={portfolioMacroSeries}
               title="Portfolio Chain"
-              subtitle="Top holdings by weight · last 15 points · normalized 0–100"
+              subtitle=""
             />
           ) : null}
 

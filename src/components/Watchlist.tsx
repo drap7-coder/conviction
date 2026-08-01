@@ -482,9 +482,7 @@ export default function Watchlist({
   const composeBar = (
     <section className="list-compose ink-panel" aria-label="Track a company">
       <div className="list-compose-copy">
-        <span className="list-compose-eyebrow">Watchlist</span>
         <strong className="list-compose-title">Track a company</strong>
-        <p className="list-compose-help">Search a ticker or company name to follow it here.</p>
       </div>
       <div className="watchlist-add list-compose-fields">
         <div className="watchlist-input-wrap">
@@ -580,7 +578,7 @@ export default function Watchlist({
       {loading || entries.length > 0 || children ? (
         <StockHeatmap
           title="Watchlist"
-          subtitle="Bigger tile = larger company. Color = session move. Tap through for the company."
+          subtitle=""
           loading={loading}
           sessionLabel={
             entries
@@ -626,7 +624,6 @@ export default function Watchlist({
                       },
                     ]),
                   )}
-                  lede="Why the names you follow are moving."
                   nested
                 />
               ) : null}
@@ -666,13 +663,9 @@ export default function Watchlist({
         <MacroChainChart
           series={watchlistMacroSeries}
           title="Watchlist Chain"
-          subtitle="Top names by market cap · last 15 points · normalized 0–100"
+          subtitle=""
         />
       ) : null}
-
-      <p className="watchlist-footnote">
-        Ownership data comes from public SEC filings and can lag by weeks.
-      </p>
     </div>
   );
 }

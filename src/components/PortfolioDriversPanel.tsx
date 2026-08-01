@@ -15,7 +15,6 @@ export function PortfolioDriversPanel({ holdings }: { holdings: PortfolioDriverH
     <MoveDriversPanel
       holdings={holdings}
       title="What’s driving the move"
-      lede="Why your holdings are moving today."
       nested
     />
   );

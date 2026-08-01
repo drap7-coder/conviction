@@ -46,11 +46,7 @@ export function MarketNarrativeDriversPanel({
     return (
       <section className="bcn-module bcn-module-nested move-drivers-panel" aria-label="What’s driving the move">
         <div className="bcn-header">
-          <span className="bcn-eyebrow">Now</span>
           <h2 className="bcn-title">What’s driving the move</h2>
-          <p className="bcn-lede">
-            No clear theme for {groupLabel.toLowerCase()} right now.
-          </p>
         </div>
       </section>
     );
@@ -59,11 +55,7 @@ export function MarketNarrativeDriversPanel({
   return (
     <section className="bcn-module bcn-module-nested move-drivers-panel" aria-label="What’s driving the move">
       <div className="bcn-header">
-        <span className="bcn-eyebrow">Now</span>
         <h2 className="bcn-title">What’s driving the move</h2>
-        <p className="bcn-lede">
-          The theme moving {groupLabel.toLowerCase()} today.
-        </p>
       </div>
       <div
         className="bcn-list"
@@ -142,9 +134,6 @@ export function MarketNarrativeDriversPanel({
           );
         })}
       </div>
-      <p className="bcn-footnote">
-        Based on recent headlines and how linked markets are moving.
-      </p>
     </section>
   );
 }

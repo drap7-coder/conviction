@@ -48,18 +48,14 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
       <section className="view-switch-shell" aria-label="My list">
         <div className="view-switch-lede market-regime-lede ink-panel">
           <span className="market-regime-eyebrow">My list</span>
-          <strong className="market-regime-label">Companies you follow and holdings you own</strong>
-          <p className="market-regime-summary">
-            Switch between your watchlist and portfolio without leaving this page.
-          </p>
+          <strong className="market-regime-label">Your companies and holdings</strong>
         </div>
 
         <div className="view-switch-picker pulse-view-picker my-list-view-picker">
-          <p className="view-switch-hint" id="my-list-view-hint">Choose a view</p>
           <div
             className="pulse-view-tabs"
             role="tablist"
-            aria-labelledby="my-list-view-hint"
+            aria-label="Choose a list view"
           >
             {MY_LIST_VIEWS.map((view) => (
               <button
@@ -74,7 +70,6 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
                 onClick={() => setActiveView(view.id)}
               >
                 <strong>{view.label}</strong>
-                <span>{view.description}</span>
               </button>
             ))}
           </div>
@@ -114,18 +109,15 @@ export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) 
           <section className="view-switch-shell">
             <div className="view-switch-lede market-regime-lede ink-panel">
               <span className="market-regime-eyebrow">My list</span>
-              <strong className="market-regime-label">Loading your lists…</strong>
+              <strong className="market-regime-label">Loading…</strong>
             </div>
             <div className="view-switch-picker pulse-view-picker my-list-view-picker">
-              <p className="view-switch-hint">Choose a view</p>
               <div className="pulse-view-tabs">
                 <button type="button" className="active" disabled>
                   <strong>Watchlist</strong>
-                  <span>Companies you follow</span>
                 </button>
                 <button type="button" disabled>
                   <strong>Portfolio</strong>
-                  <span>Holdings you own</span>
                 </button>
               </div>
             </div>

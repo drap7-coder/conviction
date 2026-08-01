@@ -217,7 +217,7 @@ function GlobalMarketsHeatmap({
             </span>
           ) : null}
         </div>
-        <p className="market-heatmap-subtitle">{subtitle}</p>
+        {subtitle.trim() ? <p className="market-heatmap-subtitle">{subtitle}</p> : null}
       </div>
       <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
         {markets.map((market) => {
@@ -336,11 +336,10 @@ export default function MarketPulsePage() {
         </div>
 
         <div className="view-switch-picker pulse-view-picker">
-          <p className="view-switch-hint" id="pulse-view-hint">Choose a view</p>
           <div
             className="pulse-view-tabs"
             role="tablist"
-            aria-labelledby="pulse-view-hint"
+            aria-label="Choose a Pulse view"
           >
             {PULSE_TABS.map((option) => (
               <button
@@ -355,7 +354,6 @@ export default function MarketPulsePage() {
                 onClick={() => setActiveTab(option.id)}
               >
                 <strong>{option.label}</strong>
-                <span>{option.description}</span>
               </button>
             ))}
           </div>
@@ -377,7 +375,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={majorIndexes}
               title="Major Indexes"
-              subtitle="Dow, S&P 500, and Nasdaq"
+              subtitle=""
               narrativeGroup="Major Index"
               narratives={data.marketNarratives.themes}
               uniformTiles
@@ -386,7 +384,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={commodities}
               title="Commodities"
-              subtitle="Oil, gold, and silver"
+              subtitle=""
               narrativeGroup="Commodity"
               narratives={data.marketNarratives.themes}
               uniformTiles
@@ -394,7 +392,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={cryptoMarkets}
               title="Crypto"
-              subtitle="Bitcoin, Ethereum, and Solana"
+              subtitle=""
               narrativeGroup="Crypto"
               narratives={data.marketNarratives.themes}
               uniformTiles
@@ -403,7 +401,7 @@ export default function MarketPulsePage() {
               <GlobalMarketsHeatmap
                 markets={usMarkets}
                 title="U.S. Markets"
-                subtitle="Breadth, style, and dollar proxies"
+                subtitle=""
                 narrativeGroup="U.S. Markets"
                 narratives={data.marketNarratives.themes}
                 uniformTiles
@@ -412,7 +410,7 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={internationalMarkets}
               title="International"
-              subtitle="Country ETF proxies"
+              subtitle=""
               narrativeGroup="International"
               narratives={data.marketNarratives.themes}
             />
@@ -437,7 +435,7 @@ export default function MarketPulsePage() {
               <GlobalMarketsHeatmap
                 markets={industryMarkets}
                 title="Sectors"
-                subtitle="Sector ETF proxies — where leadership is rotating"
+                subtitle=""
                 narrativeGroup="Industries"
                 narratives={data.marketNarratives.themes}
                 sessionLabel={data.sessionLabel ?? null}

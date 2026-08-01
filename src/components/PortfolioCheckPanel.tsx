@@ -103,11 +103,7 @@ export function PortfolioCheckPanel({ riskFlags }: { riskFlags: PortfolioRiskFla
   return (
     <section className="bcn-module bcn-module-nested" aria-label="Portfolio check">
       <div className="bcn-header">
-        <span className="bcn-eyebrow">Check</span>
         <h2 className="bcn-title">Portfolio Check</h2>
-        <p className="bcn-lede">
-          Concentration and data gaps to watch.
-        </p>
       </div>
       <div
         className="bcn-list"
@@ -128,9 +124,6 @@ export function PortfolioCheckPanel({ riskFlags }: { riskFlags: PortfolioRiskFla
           </div>
         ))}
       </div>
-      <p className="bcn-footnote">
-        Rules-based checks only — not a recommendation to buy or sell.
-      </p>
     </section>
   );
 }
