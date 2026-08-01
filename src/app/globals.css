@@ -10527,55 +10527,198 @@ details > summary::before {
   margin-bottom: 18px;
 }
 
-/* Pulse heatmaps: white shell + dark title box (same pattern as StockHeatmap). */
+/* Heatmaps: bright white shell + nested dark title box (Watchlist + Pulse). */
+.stock-heat-panel,
 .market-heatmap-shell {
-  margin-bottom: 18px;
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow-md);
+  margin: 0 0 20px;
+  padding: 18px;
+  border: 1px solid var(--border-active);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
   color: var(--ink);
   font-family: var(--font-mono);
 }
 
+.stock-heat-copy,
 .market-heatmap-copy {
   display: grid;
   gap: 8px;
-  margin-bottom: 12px;
-  padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
   border-radius: 12px;
-  background: var(--ink-panel);
+  background: #0f172a;
   color: #fff;
-  box-shadow: var(--shadow-ink);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
 }
 
+.stock-heat-heading,
 .market-heatmap-shell .market-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
   margin: 0;
 }
 
+.stock-heat-title,
 .market-heatmap-shell .market-panel-header h2 {
+  margin: 0;
   display: inline-flex;
-  padding: 4px 8px;
+  padding: 5px 9px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.3);
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 0.72rem;
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.2;
 }
 
+.stock-heat-subtitle,
 .market-heatmap-subtitle {
   margin: 0;
-  padding: 5px 9px;
+  padding: 6px 10px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.22);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.66rem;
+  background: rgba(0, 0, 0, 0.25);
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 0.68rem;
   line-height: 1.45;
   width: fit-content;
   max-width: 100%;
+}
+
+.stock-heat-move-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.58rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stock-heat-move-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.stock-heat-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, #ffffff 14%, transparent);
+}
+
+.stock-heat-session {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stock-heat-session-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent);
+  animation: stock-heat-session-pulse 1.6s ease-out infinite;
+}
+
+@keyframes stock-heat-session-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent); opacity: 1; }
+  70% { transform: scale(1.15); box-shadow: 0 0 0 7px transparent; opacity: 0.85; }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stock-heat-session-dot { animation: none; }
+}
+
+.stock-heat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f4f5f7;
+  border: 1px solid var(--border);
+}
+
+.stock-heat-loading-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f4f5f7;
+  border: 1px solid var(--border);
+}
+
+.stock-heat-loading-tile {
+  height: 7rem;
+  border: 1px solid color-mix(in srgb, #111318 8%, transparent);
+  border-radius: 12px;
+  background: linear-gradient(110deg, #e5e7eb 18%, #f3f4f6 42%, #e5e7eb 66%);
+  background-size: 220% 100%;
+  animation: stock-heat-shimmer 1.35s linear infinite;
+}
+
+.stock-heat-loading-tile:nth-child(1),
+.stock-heat-loading-tile:nth-child(4) {
+  grid-column: span 2;
+}
+
+@keyframes stock-heat-shimmer {
+  to { background-position: -220% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stock-heat-loading-tile { animation: none; }
+}
+
+@media (max-width: 767px) {
+  .stock-heat-grid,
+  .stock-heat-loading-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .stock-heat-grid > .heat-tile,
+  .stock-heat-loading-tile {
+    grid-column: span 1 / span 1 !important;
+  }
+}
+
+@media (max-width: 399px) {
+  .stock-heat-panel,
+  .market-heatmap-shell {
+    padding: 12px;
+  }
+
+  .stock-heat-copy,
+  .market-heatmap-copy {
+    padding: 12px;
+  }
+
+  .stock-heat-loading-tile {
+    height: 6.5rem;
+  }
+}
+
+.market-heatmap-shell .market-heatmap {
+  padding: 10px;
+  border-radius: 12px;
+  background: #f4f5f7;
+  border: 1px solid var(--border);
 }
 
 .market-panel-header {
@@ -10909,14 +11052,6 @@ a.heat-tile {
 
   .market-panel {
     padding: 16px 14px;
-  }
-
-  .market-heatmap-shell {
-    padding: 12px;
-  }
-
-  .market-heatmap-copy {
-    padding: 11px 12px;
   }
 
   .market-macro-panel {

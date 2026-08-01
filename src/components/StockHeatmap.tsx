@@ -40,120 +40,6 @@ function tileSpan(marketCap: number | null, maxMarketCap: number): number {
   return 1;
 }
 
-const HEATMAP_STYLES = `
-  .stock-heat-panel {
-    margin: 0 0 20px;
-    padding: 14px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface-elevated);
-    box-shadow: var(--shadow-md);
-    font-family: var(--font-mono);
-    color: var(--ink);
-  }
-  .stock-heat-copy {
-    display: grid;
-    gap: 8px;
-    margin-bottom: 12px;
-    padding: 12px 14px;
-    border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
-    border-radius: 12px;
-    background: var(--ink-panel);
-    color: #fff;
-    box-shadow: var(--shadow-ink);
-  }
-  .stock-heat-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-  .stock-heat-title {
-    margin: 0;
-    display: inline-flex;
-    padding: 4px 8px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.3);
-    color: rgba(255, 255, 255, 0.95);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    line-height: 1.2;
-  }
-  .stock-heat-subtitle {
-    margin: 0;
-    padding: 5px 9px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.22);
-    color: rgba(255, 255, 255, 0.82);
-    font-size: 0.66rem;
-    line-height: 1.45;
-    width: fit-content;
-    max-width: 100%;
-  }
-  .stock-heat-move-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 12px;
-    margin: 0;
-    color: rgba(255, 255, 255, 0.72);
-    font-size: 0.58rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-  }
-  .stock-heat-move-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 3px 7px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.22);
-  }
-  .stock-heat-swatch {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    border: 1px solid color-mix(in srgb, #ffffff 14%, transparent);
-  }
-  .stock-heat-session {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .stock-heat-session-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent);
-    animation: stock-heat-session-pulse 1.6s ease-out infinite;
-  }
-  @keyframes stock-heat-session-pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--on-ink-amber) 55%, transparent); opacity: 1; }
-    70% { transform: scale(1.15); box-shadow: 0 0 0 7px transparent; opacity: 0.85; }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; opacity: 1; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .stock-heat-session-dot { animation: none; }
-  }
-  .stock-heat-grid {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-    grid-auto-flow: dense;
-    gap: 8px;
-  }
-  @media (max-width: 767px) {
-    .stock-heat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .stock-heat-grid > .heat-tile { grid-column: span 1 / span 1 !important; }
-  }
-  @media (max-width: 399px) {
-    .stock-heat-panel { padding: 12px; }
-    .stock-heat-copy { padding: 11px 12px; }
-  }
-`;
-
 function HeatmapCopy({
   title,
   subtitle,
@@ -202,16 +88,6 @@ export function StockHeatmap({
   if (loading && items.length === 0) {
     return (
       <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
-        <style>{`
-          ${HEATMAP_STYLES}
-          .stock-heat-loading-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px; }
-          .stock-heat-loading-tile { height:7rem; border:1px solid color-mix(in srgb, #ffffff 10%, transparent); border-radius:12px; background:linear-gradient(110deg,#262626 18%,#404040 42%,#262626 66%); background-size:220% 100%; animation:stock-heat-shimmer 1.35s linear infinite; }
-          .stock-heat-loading-tile:nth-child(1),.stock-heat-loading-tile:nth-child(4) { grid-column:span 2; }
-          @keyframes stock-heat-shimmer { to { background-position:-220% 0; } }
-          @media (prefers-reduced-motion:reduce) { .stock-heat-loading-tile { animation:none; } }
-          @media (max-width:767px) { .stock-heat-loading-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }.stock-heat-loading-tile { grid-column:span 1 !important; } }
-          @media (max-width:399px) { .stock-heat-loading-tile { height:6.5rem; } }
-        `}</style>
         <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
@@ -225,7 +101,6 @@ export function StockHeatmap({
 
   return (
     <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
-      <style>{HEATMAP_STYLES}</style>
       <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} showLegend />
       <div className="stock-heat-grid">
         {items.map((item) => {
