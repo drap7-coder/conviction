@@ -10527,6 +10527,57 @@ details > summary::before {
   margin-bottom: 18px;
 }
 
+/* Pulse heatmaps: white shell + dark title box (same pattern as StockHeatmap). */
+.market-heatmap-shell {
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+
+.market-heatmap-copy {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+  border-radius: 12px;
+  background: var(--ink-panel);
+  color: #fff;
+  box-shadow: var(--shadow-ink);
+}
+
+.market-heatmap-shell .market-panel-header {
+  margin: 0;
+}
+
+.market-heatmap-shell .market-panel-header h2 {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.market-heatmap-subtitle {
+  margin: 0;
+  padding: 5px 9px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.66rem;
+  line-height: 1.45;
+  width: fit-content;
+  max-width: 100%;
+}
+
 .market-panel-header {
   display: flex;
   align-items: center;
@@ -10562,6 +10613,11 @@ details > summary::before {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.market-heatmap-copy .market-session-badge.ink-chip {
+  background: color-mix(in srgb, var(--on-ink-amber) 22%, transparent);
+  color: var(--on-ink-amber);
 }
 
 .market-session-dot {
@@ -10853,6 +10909,14 @@ a.heat-tile {
 
   .market-panel {
     padding: 16px 14px;
+  }
+
+  .market-heatmap-shell {
+    padding: 12px;
+  }
+
+  .market-heatmap-copy {
+    padding: 11px 12px;
   }
 
   .market-macro-panel {

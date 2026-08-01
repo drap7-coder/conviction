@@ -126,15 +126,22 @@ function GlobalMarketsHeatmap({
   sessionLabel?: string | null;
 }) {
   return (
-    <section className="market-panel market-sector-panel" aria-label={`${title} leadership`} aria-description={subtitle}>
-      <div className="market-panel-header">
-        <div><h2>{title}</h2></div>
-        {sessionLabel ? (
-          <span className="market-session-badge" aria-label={`${sessionLabel} session`}>
-            <i className="market-session-dot" aria-hidden="true" />
-            {sessionLabel}
-          </span>
-        ) : null}
+    <section
+      className="market-heatmap-shell market-sector-panel"
+      aria-label={`${title} leadership`}
+      aria-description={subtitle}
+    >
+      <div className="market-heatmap-copy">
+        <div className="market-panel-header">
+          <h2>{title}</h2>
+          {sessionLabel ? (
+            <span className="market-session-badge ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
+              <i className="market-session-dot" aria-hidden="true" />
+              {sessionLabel}
+            </span>
+          ) : null}
+        </div>
+        <p className="market-heatmap-subtitle">{subtitle}</p>
       </div>
       <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
         {markets.map((market) => {
