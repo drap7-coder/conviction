@@ -22,7 +22,17 @@ const COLORS = {
   blue: "#0D9488",
 };
 
-const VIX_GAUGE = {
+type GaugeConfig = {
+  min: number;
+  max: number;
+  zones: Array<{ label: string; end: number; color: string }>;
+  /** Digits after the decimal for the big number. */
+  decimals?: number;
+  /** Prefixed + for positive values (spreads / day moves). */
+  signed?: boolean;
+};
+
+const VIX_GAUGE: GaugeConfig = {
   min: 10,
   max: 40,
   zones: [
@@ -33,13 +43,39 @@ const VIX_GAUGE = {
   ],
 };
 
-const TEN_YEAR_GAUGE = {
+const TEN_YEAR_GAUGE: GaugeConfig = {
   min: 2.5,
   max: 6,
   zones: [
     { label: "Normal", end: 4.25, color: "#0D9488" },
     { label: "Elevated", end: 5, color: "#D97706" },
     { label: "High", end: 6, color: "#DC2626" },
+  ],
+};
+
+/** Average sector day-move for Cyclical / Defensive leadership. */
+const SECTOR_MOVE_GAUGE: GaugeConfig = {
+  min: -3,
+  max: 3,
+  decimals: 2,
+  signed: true,
+  zones: [
+    { label: "Soft", end: -1, color: "#DC2626" },
+    { label: "Mixed", end: 1, color: "#D97706" },
+    { label: "Firm", end: 3, color: "#0D9488" },
+  ],
+};
+
+/** Relative day-move vs SPY for breadth / small-cap risk appetite. */
+const RELATIVE_SPREAD_GAUGE: GaugeConfig = {
+  min: -2,
+  max: 2,
+  decimals: 2,
+  signed: true,
+  zones: [
+    { label: "Lagging", end: -0.5, color: "#DC2626" },
+    { label: "Inline", end: 0.5, color: "#D97706" },
+    { label: "Leading", end: 2, color: "#0D9488" },
   ],
 };
 
@@ -78,6 +114,26 @@ function fmtPct(value: number | null): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
+function avg(values: number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function relativeSpread(
+  lead: number | null | undefined,
+  baseline: number | null | undefined,
+): number | null {
+  if (!isFiniteNumber(lead) || !isFiniteNumber(baseline)) return null;
+  return lead - baseline;
+}
+
+function formatGaugeValue(value: number, config: GaugeConfig): string {
+  const decimals = config.decimals ?? 2;
+  const body = value.toFixed(decimals);
+  if (config.signed && value > 0) return `+${body}`;
+  return body;
+}
+
 function Gauge({
   label,
   value,
@@ -87,7 +143,7 @@ function Gauge({
   label: string;
   value: number | null;
   suffix?: string;
-  config: typeof VIX_GAUGE | typeof TEN_YEAR_GAUGE;
+  config: GaugeConfig;
 }) {
   const bounded = isFiniteNumber(value) ? Math.min(config.max, Math.max(config.min, value)) : config.min;
   const marker = ((bounded - config.min) / (config.max - config.min)) * 100;
@@ -98,8 +154,11 @@ function Gauge({
       <div className="market-card-heading">
         <span>{label}</span><span className="market-live">LIVE</span>
       </div>
-      <strong className="market-gauge-value">{isFiniteNumber(value) ? value.toFixed(2) : "—"}{suffix}</strong>
-      <div className="market-gauge" aria-label={`${label} risk gauge`}>
+      <strong className="market-gauge-value">
+        {isFiniteNumber(value) ? formatGaugeValue(value, config) : "—"}
+        {suffix}
+      </strong>
+      <div className="market-gauge" aria-label={`${label} gauge`}>
         {config.zones.map((zone) => {
           const width = ((zone.end - previousEnd) / (config.max - config.min)) * 100;
           previousEnd = zone.end;
@@ -237,6 +296,14 @@ export default function MarketPulsePage() {
   const internationalMarkets = marketsByCategory("International");
   const industryMarkets = sectorsToMarkets(data.sectors);
 
+  const changeFor = (ticker: string) =>
+    data.globalMarkets.find((market) => market.ticker === ticker)?.changePercent ?? null;
+  const spyChange = changeFor("SPY");
+  const equalWeightLead = relativeSpread(changeFor("RSP"), spyChange);
+  const smallCapLead = relativeSpread(changeFor("IWM"), spyChange);
+  const cyclicalAvg = avg(data.sectorLeadership.characteristics.cyclical);
+  const defensiveAvg = avg(data.sectorLeadership.characteristics.defensive);
+
   return (
     <main className="markets-page">
       <section className="view-switch-shell" aria-label="Pulse">
@@ -361,16 +428,22 @@ export default function MarketPulsePage() {
         hidden={activeTab !== "sectors"}
       >
         {activeTab === "sectors" ? (
-          <div id="industries">
-            <GlobalMarketsHeatmap
-              markets={industryMarkets}
-              title="Sectors"
-              subtitle="Sector ETF proxies — where leadership is rotating"
-              narrativeGroup="Industries"
-              narratives={data.marketNarratives.themes}
-              sessionLabel={data.sessionLabel ?? null}
-            />
-          </div>
+          <>
+            <section className="market-gauge-grid" aria-label="Sector leadership gauges">
+              <Gauge label="Cyclical" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+              <Gauge label="Defensive" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+            </section>
+            <div id="industries">
+              <GlobalMarketsHeatmap
+                markets={industryMarkets}
+                title="Sectors"
+                subtitle="Sector ETF proxies — where leadership is rotating"
+                narrativeGroup="Industries"
+                narratives={data.marketNarratives.themes}
+                sessionLabel={data.sessionLabel ?? null}
+              />
+            </div>
+          </>
         ) : null}
       </div>
 
@@ -381,9 +454,15 @@ export default function MarketPulsePage() {
         hidden={activeTab !== "trending"}
       >
         {activeTab === "trending" ? (
-          <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
-            <MarketMovesPanel />
-          </section>
+          <>
+            <section className="market-gauge-grid" aria-label="Trending breadth gauges">
+              <Gauge label="Equal weight" value={equalWeightLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
+              <Gauge label="Small caps" value={smallCapLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
+            </section>
+            <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
+              <MarketMovesPanel />
+            </section>
+          </>
         ) : null}
       </div>
     </main>
