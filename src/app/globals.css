@@ -932,16 +932,6 @@ details > summary::before {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-@media (max-width: 640px) {
-  .markets-page .view-switch-shell .pulse-view-tabs {
-    grid-template-columns: 1fr;
-  }
-
-  .markets-page .view-switch-shell .pulse-view-tabs button {
-    padding-right: 34px;
-  }
-}
-
 .investor-moves-panel,
 .smart-money-panel {
   margin-bottom: 24px;
