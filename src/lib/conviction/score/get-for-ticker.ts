@@ -1,10 +1,13 @@
 /**
- * Server-side Conviction Score loader.
+ * Server-side Conviction Score loader — the single entry point for every UI.
  *
- * Fetches institutional + technicals + short interest once, builds the
- * composite, and returns a display DTO every UI surface can reuse.
+ * Builds evidence via calculateConvictionScore (unchanged), quality via
+ * calculateQualityComposite, then blends 65% quality / 35% evidence so
+ * Watchlist, Trending, Portfolio, and the company dashboard all show one score.
  */
 
+import { fetchEarningsEvidence } from "@/lib/earnings/fetch";
+import { fetchCompanyFundamentals } from "@/lib/market/fundamentals";
 import { getInstitutionalAccumulationForCompany } from "@/lib/sec/institutional";
 import { fetchShortInterestSummary } from "@/lib/market/short-interest";
 import { fetchStockHistory, fetchStockQuotes } from "@/lib/market/quotes";
@@ -19,6 +22,9 @@ import {
   type BuildConvictionScoreInput,
   type ConvictionDisplayLabel,
 } from "./build";
+import { blendEvidenceAndQuality } from "./quality/blend";
+import { calculateQualityComposite } from "./quality/calculate";
+import { buildQualityFactors } from "./quality/factors";
 import type { CategoryScore } from "./types";
 import { MIN_COVERAGE, SCORING_VERSION } from "./weights";
 import type { ConvictionScoreView } from "./view";
@@ -42,34 +48,45 @@ function ringLabelFromDisplay(
 
 function toView(
   ticker: string,
-  result: ReturnType<typeof buildConvictionScore>,
+  blended: ReturnType<typeof blendEvidenceAndQuality>,
   categories: CategoryScore[],
 ): ConvictionScoreView {
-  const displayLabel = displayLabelForComposite(result.label);
-  const displayScore = displayScoreFromSigned(result.score);
-  const sources = formatCoverageSources(result.includedCategories);
+  const displayLabel = displayLabelForComposite(blended.label);
+  const displayScore = displayScoreFromSigned(blended.score);
+  const sources = formatCoverageSources(blended.evidence.includedCategories);
+  const qualitySources = blended.quality.includedFactors
+    .map((factor) => factor.replace(/_/g, " "))
+    .join(" + ");
 
   let detail: string;
-  if (result.score === null) {
+  if (blended.score === null) {
     detail =
-      result.coverage < MIN_COVERAGE
-        ? `Need more evidence (coverage ${Math.round(result.coverage * 100)}% · need ${Math.round(MIN_COVERAGE * 100)}%).`
+      blended.evidence.coverage < MIN_COVERAGE
+        ? `Need more evidence (coverage ${Math.round(blended.evidence.coverage * 100)}% · need ${Math.round(MIN_COVERAGE * 100)}%).`
         : "Insufficient evidence for a conviction score.";
-  } else {
+  } else if (blended.blended) {
+    detail = `Score ${displayScore}/100 · quality ${displayScoreFromSigned(blended.qualityScore)} + evidence ${displayScoreFromSigned(blended.evidenceScore)}`;
+  } else if (blended.qualityScore === null) {
     detail = `Score ${displayScore}/100 · ${sources}`;
+  } else {
+    detail = `Score ${displayScore}/100 · ${sources}${qualitySources ? ` · quality ${qualitySources}` : ""}`;
   }
 
   return {
     ticker,
-    score: result.score,
+    score: blended.score,
     displayScore,
-    label: result.label,
+    label: blended.label,
     displayLabel,
     ringLabel: ringLabelFromDisplay(displayLabel),
-    tone: toneForComposite(result.label),
+    tone: toneForComposite(blended.label),
     evidenceTone: evidenceToneFromDisplay(displayLabel),
-    coverage: result.coverage,
-    includedCategories: result.includedCategories,
+    evidenceScore: blended.evidenceScore,
+    qualityScore: blended.qualityScore,
+    blended: blended.blended,
+    coverage: blended.evidence.coverage,
+    includedCategories: blended.evidence.includedCategories,
+    includedQualityFactors: blended.quality.includedFactors,
     detail,
     categories: categories.map((category) => ({
       category: category.category,
@@ -77,6 +94,12 @@ function toView(
       hasData: category.hasData,
       isStale: category.isStale,
       explanation: category.explanation,
+    })),
+    qualityFactors: blended.quality.factors.map((factor) => ({
+      factor: factor.factor,
+      score: factor.score,
+      hasData: factor.hasData,
+      explanation: factor.explanation,
     })),
     scoringVersion: SCORING_VERSION,
   };
@@ -135,7 +158,7 @@ function buildInput(
 
 /**
  * Build the shared Conviction Score for one ticker.
- * Partial source failures become missing categories (lower coverage), not hard errors.
+ * Partial source failures become missing categories/factors, not hard errors.
  */
 export async function getConvictionScoreForTicker(
   ticker: string,
@@ -144,17 +167,20 @@ export async function getConvictionScoreForTicker(
   const upper = ticker.trim().toUpperCase();
   const companyName = options.companyName?.trim() || upper;
 
-  const [institutional, shortInterest, history, quotes] = await Promise.all([
-    settled(
-      withTimeout(
-        getInstitutionalAccumulationForCompany(upper, companyName),
-        22_000,
+  const [institutional, shortInterest, history, quotes, earnings, fundamentals] =
+    await Promise.all([
+      settled(
+        withTimeout(
+          getInstitutionalAccumulationForCompany(upper, companyName),
+          22_000,
+        ),
       ),
-    ),
-    settled(fetchShortInterestSummary(upper)),
-    settled(fetchStockHistory(upper, "1y")),
-    settled(fetchStockQuotes([upper])),
-  ]);
+      settled(fetchShortInterestSummary(upper)),
+      settled(fetchStockHistory(upper, "1y")),
+      settled(fetchStockQuotes([upper])),
+      settled(withTimeout(fetchEarningsEvidence(upper), 12_000)),
+      settled(withTimeout(fetchCompanyFundamentals(upper), 10_000)),
+    ]);
 
   const input = buildInput(
     upper,
@@ -164,8 +190,16 @@ export async function getConvictionScoreForTicker(
     quotes?.[0] ?? null,
   );
   const categories = buildCategoryScores(input);
-  const result = buildConvictionScore(input);
-  return toView(upper, result, categories);
+  const evidence = buildConvictionScore(input);
+  const quality = calculateQualityComposite(
+    buildQualityFactors({
+      fundamentals,
+      earnings,
+      institutionalResults: institutional?.results ?? [],
+    }),
+  );
+  const blended = blendEvidenceAndQuality(evidence, quality);
+  return toView(upper, blended, categories);
 }
 
 const DEFAULT_CONCURRENCY = 3;

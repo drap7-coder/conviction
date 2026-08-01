@@ -1,6 +1,6 @@
 /**
- * Dashboard Conviction Score — shared composite
- * (institutional 45% + technicals 38% + short interest 17%).
+ * Dashboard Conviction Score — same calc as Watchlist / Trending / Portfolio:
+ * quality (65%) + evidence composite (35%).
  */
 
 "use client";
@@ -46,7 +46,7 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
   const tone = (score?.tone ?? "neutral") as GaugeTone;
   const detail = score?.detail
     ?? (loading
-      ? "Loading institutional, technical, and short-interest evidence…"
+      ? "Loading quality and evidence for the shared conviction score…"
       : "Conviction score could not be loaded.");
 
   return (
@@ -55,7 +55,7 @@ export function ConvictionScoreOverviewCard({ ticker }: { ticker: string }) {
       label={score?.ringLabel ?? "Awaiting"}
       tone={tone}
       detail={detail}
-      meta={loading ? "LOADING" : "COMPOSITE"}
+      meta={loading ? "LOADING" : score?.blended ? "QUALITY + EVIDENCE" : "COMPOSITE"}
       loading={loading}
       className="dashboard-conviction-overview"
     />
