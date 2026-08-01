@@ -1927,6 +1927,20 @@ details > summary::before {
   line-height: 1.2;
 }
 
+.wl-ring-row.ink-box .wl-ring-session-chip.ink-chip {
+  font-size: 0.58rem;
+}
+
+.wl-ring-row.ink-box .wl-ring-day-change.ink-chip {
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+}
+
+.wl-ring-row.ink-box .wl-ring-driver {
+  background: color-mix(in srgb, #ffffff 6%, transparent);
+  border: 1px solid var(--on-ink-border);
+}
+
 .wl-ring-at-close {
   font-size: 0.7rem;
   font-weight: 600;
@@ -6091,38 +6105,29 @@ details > summary::before {
   margin: 12px 0 0;
   padding: 10px 12px;
   border-radius: 10px;
-  border-left: 3px solid var(--border);
-  background: var(--card-inset);
+  border: 1px solid var(--on-ink-border);
+  border-left-width: 3px;
+  background: color-mix(in srgb, #ffffff 6%, transparent);
 }
 
 .pf-ring-holding.up {
-  border-left-color: var(--green);
-  background: color-mix(in srgb, var(--green-dim) 55%, var(--surface));
+  border-left-color: var(--on-ink-green);
+  background: color-mix(in srgb, var(--on-ink-green) 12%, transparent);
 }
 
 .pf-ring-holding.down {
-  border-left-color: var(--red);
-  background: color-mix(in srgb, var(--red-dim) 50%, var(--surface));
+  border-left-color: var(--on-ink-red);
+  background: color-mix(in srgb, var(--on-ink-red) 12%, transparent);
 }
 
 .pf-ring-holding.flat {
-  border-left-color: var(--amber);
-  background: color-mix(in srgb, var(--amber-dim) 40%, var(--surface));
+  border-left-color: var(--on-ink-amber);
+  background: color-mix(in srgb, var(--on-ink-amber) 12%, transparent);
 }
 
-.wl-ring-row:hover .pf-ring-holding.up,
-.wl-ring-row:focus-visible .pf-ring-holding.up {
-  background: color-mix(in srgb, var(--green-dim) 70%, var(--surface-elevated));
-}
-
-.wl-ring-row:hover .pf-ring-holding.down,
-.wl-ring-row:focus-visible .pf-ring-holding.down {
-  background: color-mix(in srgb, var(--red-dim) 65%, var(--surface-elevated));
-}
-
-.wl-ring-row:hover .pf-ring-holding.flat,
-.wl-ring-row:focus-visible .pf-ring-holding.flat {
-  background: color-mix(in srgb, var(--amber-dim) 55%, var(--surface-elevated));
+.wl-ring-row.ink-box:hover .pf-ring-holding,
+.wl-ring-row.ink-box:focus-visible .pf-ring-holding {
+  filter: brightness(1.05);
 }
 
 .pf-ring-holding-item {
