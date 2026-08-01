@@ -52,7 +52,7 @@ function factor(
 
 describe("SCORING_VERSION", () => {
   it("bumps for free evidence upgrades on the quality blend contract", () => {
-    expect(SCORING_VERSION).toBe("1.5.1");
+    expect(SCORING_VERSION).toBe("1.5.2");
   });
 });
 
@@ -147,7 +147,7 @@ describe("blendEvidenceAndQuality", () => {
         ticker: "TEST",
         category: "institutional",
         score: 40,
-        baseWeight: 0.36,
+        baseWeight: 0.34,
         hasData: true,
         isStale: false,
         sourceDate: "2026-07-01",
@@ -159,7 +159,7 @@ describe("blendEvidenceAndQuality", () => {
         ticker: "TEST",
         category: "insider",
         score: 40,
-        baseWeight: 0.2,
+        baseWeight: 0.16,
         hasData: true,
         isStale: false,
         sourceDate: "2026-07-01",
@@ -171,7 +171,7 @@ describe("blendEvidenceAndQuality", () => {
         ticker: "TEST",
         category: "technicals",
         score: 40,
-        baseWeight: 0.3,
+        baseWeight: 0.36,
         hasData: true,
         isStale: false,
         sourceDate: "2026-07-01",
@@ -194,8 +194,8 @@ describe("blendEvidenceAndQuality", () => {
     ];
     const evidence = calculateConvictionScore(categories);
     expect(evidence.agreementAdjustment).toBe(5);
-    // (40*0.36 + 40*0.2 + 40*0.3 + 10*0.14) + 5
-    expect(evidence.score).toBe(Math.round(40 * 0.36 + 40 * 0.2 + 40 * 0.3 + 10 * 0.14) + 5);
+    // (40*0.34 + 40*0.16 + 40*0.36 + 10*0.14) + 5
+    expect(evidence.score).toBe(Math.round(40 * 0.34 + 40 * 0.16 + 40 * 0.36 + 10 * 0.14) + 5);
 
     const quality = calculateQualityComposite([
       factor({ factor: "margin_moat", score: -80 }),

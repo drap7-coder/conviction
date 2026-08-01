@@ -82,7 +82,7 @@ describe("toInstitutionalCategoryScore", () => {
     const category = toInstitutionalCategoryScore("AAPL", { results: [] });
     expect(category.hasData).toBe(false);
     expect(category.category).toBe("institutional");
-    expect(category.baseWeight).toBe(0.36);
+    expect(category.baseWeight).toBe(0.34);
   });
 
   it("remaps 0–100 ring onto signed [-100, +100]", () => {
@@ -143,7 +143,7 @@ describe("toInsiderCategoryScore", () => {
     const category = toInsiderCategoryScore("AAPL", { transactions: [] });
     expect(category.hasData).toBe(false);
     expect(category.category).toBe("insider");
-    expect(category.baseWeight).toBe(0.2);
+    expect(category.baseWeight).toBe(0.16);
   });
 
   it("scores open-market purchases as positive", () => {
@@ -222,7 +222,7 @@ describe("toTechnicalsCategoryScore", () => {
       new Date(points[points.length - 1]!.date),
     );
     expect(category.hasData).toBe(true);
-    expect(category.baseWeight).toBe(0.3);
+    expect(category.baseWeight).toBe(0.36);
     expect(category.score).toBeGreaterThan(0);
   });
 
@@ -324,7 +324,7 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.66);
+    expect(result.coverage).toBeCloseTo(0.7);
     expect(result.score).not.toBeNull();
     expect(result.label).not.toBe("insufficient_evidence");
     expect(result.includedCategories).toEqual(["institutional", "technicals"]);
@@ -390,7 +390,7 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.8);
+    expect(result.coverage).toBeCloseTo(0.84);
     expect(result.score).not.toBeNull();
     expect(result.includedCategories).toEqual([
       "institutional",
@@ -410,7 +410,7 @@ describe("buildConvictionScore", () => {
 
     expect(result.score).toBeNull();
     expect(result.label).toBe("insufficient_evidence");
-    expect(result.coverage).toBeCloseTo(0.36);
+    expect(result.coverage).toBeCloseTo(0.34);
   });
 
   it("maps signed composite onto 0–100 display helpers", () => {

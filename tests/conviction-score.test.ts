@@ -44,8 +44,7 @@ describe("calculateCoverage", () => {
       category({ category: "technicals", hasData: false }),
       category({ category: "short_interest", hasData: true, isStale: true, score: 80 }),
     ]);
-    // 0.36 only
-    expect(coverage).toBeCloseTo(0.36);
+    expect(coverage).toBeCloseTo(CATEGORY_WEIGHTS.institutional);
   });
 });
 
@@ -121,8 +120,7 @@ describe("calculateConvictionScore", () => {
       category({ category: "technicals", hasData: false }),
     ]);
 
-    // 0.36 < 0.50
-    expect(result.coverage).toBeCloseTo(0.36);
+    expect(result.coverage).toBeCloseTo(CATEGORY_WEIGHTS.institutional);
     expect(result.score).toBeNull();
     expect(result.label).toBe("insufficient_evidence");
     expect(result.includedCategories).toEqual(["institutional"]);
@@ -135,9 +133,12 @@ describe("calculateConvictionScore", () => {
       category({ category: "technicals", score: 0 }),
     ]);
 
-    expect(result.coverage).toBeCloseTo(0.66);
-    // Renormalized: (100*0.36 + 0*0.30) / 0.66
-    expect(result.score).toBe(Math.round((100 * 0.36) / 0.66));
+    const coverage =
+      CATEGORY_WEIGHTS.institutional + CATEGORY_WEIGHTS.technicals;
+    expect(result.coverage).toBeCloseTo(coverage);
+    expect(result.score).toBe(
+      Math.round((100 * CATEGORY_WEIGHTS.institutional) / coverage),
+    );
     expect(result.label).toBe("positive");
     expect(result.agreementAdjustment).toBe(0);
     expect(result.includedCategories).toEqual(["institutional", "technicals"]);
@@ -154,7 +155,10 @@ describe("calculateConvictionScore", () => {
     );
 
     const expected = Math.round(
-      (40 * 0.36 + 20 * 0.2 + 10 * 0.3 + 0 * 0.14) / 1,
+      (40 * CATEGORY_WEIGHTS.institutional
+        + 20 * CATEGORY_WEIGHTS.insider
+        + 10 * CATEGORY_WEIGHTS.technicals
+        + 0 * CATEGORY_WEIGHTS.short_interest) / 1,
     );
 
     expect(result.coverage).toBeCloseTo(1);
@@ -172,10 +176,28 @@ describe("calculateConvictionScore", () => {
       category({ category: "short_interest", hasData: false }),
     ]);
 
-    // coverage 0.66; weighted avg = (100*0.36 + 50*0.30) / 0.66
-    expect(result.coverage).toBeCloseTo(0.66);
-    expect(result.score).toBe(Math.round((100 * 0.36 + 50 * 0.3) / 0.66));
+    const coverage =
+      CATEGORY_WEIGHTS.institutional + CATEGORY_WEIGHTS.technicals;
+    expect(result.coverage).toBeCloseTo(coverage);
+    expect(result.score).toBe(
+      Math.round(
+        (100 * CATEGORY_WEIGHTS.institutional + 50 * CATEGORY_WEIGHTS.technicals)
+          / coverage,
+      ),
+    );
     expect(result.label).toBe("strong_positive");
+  });
+
+  it("scores when only technicals + short interest are present", () => {
+    const result = calculateConvictionScore([
+      category({ category: "technicals", score: 50 }),
+      category({ category: "short_interest", score: 50 }),
+    ]);
+
+    const coverage =
+      CATEGORY_WEIGHTS.technicals + CATEGORY_WEIGHTS.short_interest;
+    expect(result.coverage).toBeCloseTo(coverage);
+    expect(result.score).toBe(50);
   });
 
   it("excludes stale categories from coverage and the composite", () => {
@@ -185,11 +207,12 @@ describe("calculateConvictionScore", () => {
       category({ category: "short_interest", score: 50 }),
     ]);
 
-    // usable: technicals 0.30 + short 0.14 = 0.44 < 0.50 → insufficient
-    expect(result.coverage).toBeCloseTo(0.44);
+    const coverage =
+      CATEGORY_WEIGHTS.technicals + CATEGORY_WEIGHTS.short_interest;
+    expect(result.coverage).toBeCloseTo(coverage);
     expect(result.includedCategories).toEqual(["technicals", "short_interest"]);
     expect(result.excludedCategories).toEqual(["institutional"]);
-    expect(result.score).toBeNull();
+    expect(result.score).toBe(50);
   });
 
   it("applies positive agreement adjustment when three categories are bullish", () => {
@@ -202,7 +225,11 @@ describe("calculateConvictionScore", () => {
       }),
     );
 
-    expect(result.coverage).toBeCloseTo(0.86);
+    expect(result.coverage).toBeCloseTo(
+      CATEGORY_WEIGHTS.institutional
+        + CATEGORY_WEIGHTS.insider
+        + CATEGORY_WEIGHTS.technicals,
+    );
     expect(result.agreementAdjustment).toBe(5);
     expect(result.score).toBe(45);
     expect(result.label).toBe("positive");
@@ -233,7 +260,9 @@ describe("calculateConvictionScore", () => {
       }),
     );
 
-    expect(result.coverage).toBeCloseTo(0.66);
+    expect(result.coverage).toBeCloseTo(
+      CATEGORY_WEIGHTS.institutional + CATEGORY_WEIGHTS.technicals,
+    );
     expect(result.agreementAdjustment).toBe(0);
     expect(result.score).toBe(50);
   });
@@ -271,7 +300,7 @@ describe("calculateConvictionScore", () => {
 
     expect(result.excludedCategories).toEqual(["institutional", "short_interest"]);
     expect(result.includedCategories).toEqual(["technicals"]);
-    expect(result.coverage).toBeCloseTo(0.3);
+    expect(result.coverage).toBeCloseTo(CATEGORY_WEIGHTS.technicals);
     expect(result.score).toBeNull();
   });
 
@@ -280,7 +309,9 @@ describe("calculateConvictionScore", () => {
       category({ category: "institutional", score: 40 }),
       category({ category: "insider", score: 20 }),
     ]);
-    expect(result.coverage).toBeCloseTo(0.56);
+    expect(result.coverage).toBeCloseTo(
+      CATEGORY_WEIGHTS.institutional + CATEGORY_WEIGHTS.insider,
+    );
     expect(result.score).not.toBeNull();
   });
 });
