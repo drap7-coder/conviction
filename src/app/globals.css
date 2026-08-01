@@ -1531,6 +1531,58 @@ details > summary::before {
   border-radius: 14px;
 }
 
+.list-compose.is-collapsed {
+  gap: 0;
+  padding: 10px 14px;
+}
+
+.list-compose-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.list-compose-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--on-ink-accent) 55%, transparent);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
+.list-compose-toggle-hint {
+  color: var(--on-ink-quiet);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.list-compose-chevron {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--on-ink-muted);
+  border-bottom: 2px solid var(--on-ink-muted);
+  transform: rotate(45deg);
+  transition: transform 160ms ease;
+  margin-top: -4px;
+}
+
+.list-compose.is-open .list-compose-chevron {
+  margin-top: 2px;
+  transform: rotate(225deg);
+}
+
+.list-compose.is-collapsed .list-compose-title {
+  font-size: 0.98rem;
+}
+
 .list-compose-copy {
   display: grid;
   gap: 4px;
