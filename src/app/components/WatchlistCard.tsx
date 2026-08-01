@@ -6,6 +6,7 @@ import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { isFiniteNumber } from "@/lib/display/format";
 import { changeToneClass } from "@/lib/display/heat-color";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 
 export interface WatchlistCardEvidencePill {
   type: string;
@@ -118,8 +119,15 @@ export function WatchlistCard({
   isFocused,
 }: WatchlistCardProps) {
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
-  const dayChangeClass = changeToneClass(change);
+  const dayChangeClass = changeToneClass(changePercent);
   const closeChangeClass = changeToneClass(closeChangePercent);
+  const moveTone = inkToneFromSemantic(
+    dayChangeClass === "positive"
+      ? "positive"
+      : dayChangeClass === "negative" || dayChangeClass === "negative-mild"
+        ? "negative"
+        : "quiet",
+  );
 
   const ring = ringFromComposite({
     tone: convictionTone,
@@ -219,7 +227,7 @@ export function WatchlistCard({
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
-          className={`wl-ring-row ${isFocused ? "focused-card" : ""}`}
+          className={`wl-ring-row ${inkBoxClass(moveTone)}${isFocused ? " focused-card" : ""}`}
           title={`${companyName} — open dashboard`}
         >
           <div className="wl-ring-row-main">
@@ -234,10 +242,10 @@ export function WatchlistCard({
                   {price !== null ? `$${formatPrice(price)}` : "—"}
                 </strong>
                 {sessionLabel ? (
-                  <span className="wl-ring-session-chip">{sessionLabel}</span>
+                  <span className="ink-chip ink-chip--quiet wl-ring-session-chip">{sessionLabel}</span>
                 ) : null}
               </div>
-              <span className={`wl-ring-day-change ${dayChangeClass}`}>
+              <span className={`${inkChipClass(moveTone)} wl-ring-day-change`}>
                 {formatPercent(changePercent)}
               </span>
               {hasExtendedSession ? (

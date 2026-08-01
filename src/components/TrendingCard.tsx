@@ -17,6 +17,7 @@ import { changeToneClass } from "@/lib/display/heat-color";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import type { StockQuote, StockHistoryPoint } from "@/lib/market/quotes";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 
 interface TrendingCardHeadline {
   headline: string;

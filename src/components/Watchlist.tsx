@@ -881,9 +881,7 @@ export default function Watchlist({
         </p>
       )}
 
-      {/* Scored company rows first — heatmap/chain were burying the rings below the fold. */}
-      {scoredList}
-
+      {/* Heatmap under Portfolio value (MyListShell hero), before company rows. */}
       {loading || entries.length > 0 ? (
         <StockHeatmap
           title="Watchlist"
@@ -910,6 +908,8 @@ export default function Watchlist({
           })}
         />
       ) : null}
+
+      {scoredList}
 
       {!loading && watchlistMacroSeries.length > 0 ? (
         <MacroChainChart
