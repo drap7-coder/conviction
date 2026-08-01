@@ -44,10 +44,17 @@ export function toShortInterestCategoryScore(
     };
   }
 
-  // Rising SI → negative for longs; falling SI → positive.
-  let score = clampSignedScore(-latest.changePercent);
+  // Blend level (days to cover) with trend (Δ%). High + rising SI is most bearish.
+  const changeScore = clampSignedScore(-latest.changePercent);
+  let levelScore = 0;
+  if (latest.daysToCover >= 8) levelScore = -35;
+  else if (latest.daysToCover >= 5) levelScore = -18;
+  else if (latest.daysToCover >= 3) levelScore = -5;
+  else if (latest.daysToCover > 0 && latest.daysToCover < 2) levelScore = 12;
+
+  let score = clampSignedScore(changeScore * 0.65 + levelScore * 0.35);
   if (latest.daysToCover >= 5 && latest.changePercent > 0) {
-    score = clampSignedScore(score - 15);
+    score = clampSignedScore(score - 12);
   } else if (latest.daysToCover >= 5 && latest.changePercent < 0) {
     score = clampSignedScore(score + 10);
   }

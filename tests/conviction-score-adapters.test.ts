@@ -4,16 +4,22 @@ import {
   dialValueFromScore,
   displayLabelForComposite,
   displayScoreFromSigned,
+  evidenceWeightsForMarketCap,
+  mapInsiderNetScore,
+  sizeBucketFromMarketCap,
+  toInsiderCategoryScore,
   toInstitutionalCategoryScore,
   toShortInterestCategoryScore,
   toTechnicalsCategoryScore,
 } from "@/lib/conviction/score";
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
+import type { InsiderTransaction } from "@/lib/sec/types";
 
 function row(
   status: InstitutionalAccumulation["status"],
   shareChange = 0,
   filingDate = "2026-05-15",
+  overrides: Partial<InstitutionalAccumulation> = {},
 ): InstitutionalAccumulation {
   return {
     manager: "Test",
@@ -30,6 +36,7 @@ function row(
     filingQuarter: "2026Q1",
     filingDate,
     status,
+    ...overrides,
   };
 }
 
@@ -44,12 +51,38 @@ function risingHistory(days = 60, start = 100) {
   });
 }
 
+function purchase(overrides: Partial<InsiderTransaction> = {}): InsiderTransaction {
+  return {
+    id: "tx-1",
+    ticker: "AAPL",
+    cik: "0000320193",
+    accessionNumber: "0001",
+    filingUrl: "https://example.com",
+    insiderName: "Tim Cook",
+    insiderRole: "CEO",
+    isDirector: true,
+    isOfficer: true,
+    isTenPercentOwner: false,
+    transactionDate: "2026-07-10",
+    filingDate: "2026-07-12",
+    transactionCode: "P",
+    transactionType: "purchase",
+    shares: 10_000,
+    pricePerShare: 200,
+    totalValue: 2_000_000,
+    sharesOwnedAfter: 100_000,
+    isDirectOwnership: true,
+    ownershipChange: null,
+    ...overrides,
+  };
+}
+
 describe("toInstitutionalCategoryScore", () => {
   it("maps empty filings to hasData false", () => {
     const category = toInstitutionalCategoryScore("AAPL", { results: [] });
     expect(category.hasData).toBe(false);
     expect(category.category).toBe("institutional");
-    expect(category.baseWeight).toBe(0.45);
+    expect(category.baseWeight).toBe(0.36);
   });
 
   it("remaps 0–100 ring onto signed [-100, +100]", () => {
@@ -71,6 +104,65 @@ describe("toInstitutionalCategoryScore", () => {
     expect(category.hasData).toBe(true);
     expect(category.isStale).toBe(true);
   });
+
+  it("weights durable dollar books above tiny trading books", () => {
+    const durableHeavy = toInstitutionalCategoryScore("AAPL", {
+      results: [
+        row("New", 1_000_000, "2026-05-15", {
+          manager: "Berkshire Hathaway",
+          displayName: "Berkshire",
+          reportedValue: 5_000_000_000,
+        }),
+        row("Reduced", -10_000, "2026-05-15", {
+          manager: "Citadel Advisors",
+          displayName: "Citadel",
+          reportedValue: 50_000,
+        }),
+      ],
+    });
+    const tradingHeavy = toInstitutionalCategoryScore("AAPL", {
+      results: [
+        row("Reduced", -1_000_000, "2026-05-15", {
+          manager: "Berkshire Hathaway",
+          displayName: "Berkshire",
+          reportedValue: 5_000_000_000,
+        }),
+        row("New", 10_000, "2026-05-15", {
+          manager: "Citadel Advisors",
+          displayName: "Citadel",
+          reportedValue: 50_000,
+        }),
+      ],
+    });
+    expect(durableHeavy.score).toBeGreaterThan(tradingHeavy.score);
+  });
+});
+
+describe("toInsiderCategoryScore", () => {
+  it("maps empty Form 4 activity to hasData false", () => {
+    const category = toInsiderCategoryScore("AAPL", { transactions: [] });
+    expect(category.hasData).toBe(false);
+    expect(category.category).toBe("insider");
+    expect(category.baseWeight).toBe(0.2);
+  });
+
+  it("scores open-market purchases as positive", () => {
+    const category = toInsiderCategoryScore(
+      "AAPL",
+      { transactions: [purchase()] },
+      new Date("2026-07-28"),
+    );
+    expect(category.hasData).toBe(true);
+    expect(category.score).toBeGreaterThan(0);
+    expect(category.explanation).toMatch(/buying|Form 4/i);
+  });
+
+  it("maps engine net scores onto [-100, +100]", () => {
+    expect(mapInsiderNetScore(0)).toBe(0);
+    expect(mapInsiderNetScore(200)).toBeGreaterThan(80);
+    expect(mapInsiderNetScore(200)).toBeLessThanOrEqual(100);
+    expect(mapInsiderNetScore(-200)).toBeLessThan(-80);
+  });
 });
 
 describe("toTechnicalsCategoryScore", () => {
@@ -88,7 +180,7 @@ describe("toTechnicalsCategoryScore", () => {
       new Date(points[points.length - 1]!.date),
     );
     expect(category.hasData).toBe(true);
-    expect(category.baseWeight).toBe(0.38);
+    expect(category.baseWeight).toBe(0.3);
     expect(category.score).toBeGreaterThan(0);
   });
 
@@ -137,7 +229,7 @@ describe("toShortInterestCategoryScore", () => {
     }, new Date("2026-07-28"));
     expect(category.hasData).toBe(true);
     expect(category.score).toBeLessThan(0);
-    expect(category.baseWeight).toBe(0.17);
+    expect(category.baseWeight).toBe(0.14);
   });
 
   it("returns no data when short interest is empty", () => {
@@ -148,6 +240,27 @@ describe("toShortInterestCategoryScore", () => {
       fetchedAt: "2026-07-28T00:00:00.000Z",
     });
     expect(category.hasData).toBe(false);
+  });
+});
+
+describe("size regimes", () => {
+  it("classifies market-cap buckets", () => {
+    expect(sizeBucketFromMarketCap(500_000_000)).toBe("small");
+    expect(sizeBucketFromMarketCap(10_000_000_000)).toBe("mid");
+    expect(sizeBucketFromMarketCap(100_000_000_000)).toBe("large");
+    expect(sizeBucketFromMarketCap(500_000_000_000)).toBe("mega");
+    expect(sizeBucketFromMarketCap(null)).toBe("unknown");
+  });
+
+  it("boosts insider weight for small caps vs mega caps", () => {
+    const small = evidenceWeightsForMarketCap(1_000_000_000);
+    const mega = evidenceWeightsForMarketCap(500_000_000_000);
+    expect(small.insider).toBeGreaterThan(mega.insider);
+    expect(mega.institutional).toBeGreaterThan(small.institutional);
+    const smallSum = Object.values(small).reduce((a, b) => a + b, 0);
+    const megaSum = Object.values(mega).reduce((a, b) => a + b, 0);
+    expect(smallSum).toBeCloseTo(1);
+    expect(megaSum).toBeCloseTo(1);
   });
 });
 
@@ -169,10 +282,35 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(0.83);
+    expect(result.coverage).toBeCloseTo(0.66);
     expect(result.score).not.toBeNull();
     expect(result.label).not.toBe("insufficient_evidence");
     expect(result.includedCategories).toEqual(["institutional", "technicals"]);
+  });
+
+  it("includes insider when Form 4 purchases are present", () => {
+    const points = risingHistory(80, 100);
+    const last = points[points.length - 1]!;
+    const result = buildConvictionScore({
+      ticker: "AAPL",
+      institutional: {
+        results: [row("New", 500_000, "2026-06-15")],
+      },
+      insider: {
+        transactions: [purchase()],
+      },
+      technicals: {
+        points,
+        currentPrice: last.close,
+        fiftyTwoWeekHigh: last.close,
+        fiftyTwoWeekLow: 90,
+      },
+      now: new Date("2026-07-28"),
+    });
+
+    expect(result.includedCategories).toContain("insider");
+    expect(result.coverage).toBeGreaterThan(0.8);
+    expect(result.score).not.toBeNull();
   });
 
   it("includes technicals and short interest in coverage", () => {
@@ -210,14 +348,13 @@ describe("buildConvictionScore", () => {
       now: new Date("2026-07-28"),
     });
 
-    expect(result.coverage).toBeCloseTo(1);
+    expect(result.coverage).toBeCloseTo(0.8);
     expect(result.score).not.toBeNull();
     expect(result.includedCategories).toEqual([
       "institutional",
       "technicals",
       "short_interest",
     ]);
-    expect(result.excludedCategories).toEqual([]);
   });
 
   it("withholds the score when only institutional is present", () => {
@@ -231,7 +368,7 @@ describe("buildConvictionScore", () => {
 
     expect(result.score).toBeNull();
     expect(result.label).toBe("insufficient_evidence");
-    expect(result.coverage).toBeCloseTo(0.45);
+    expect(result.coverage).toBeCloseTo(0.36);
   });
 
   it("maps signed composite onto 0–100 display helpers", () => {

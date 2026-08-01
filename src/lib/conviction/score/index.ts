@@ -30,10 +30,19 @@ export {
 
 export { toInstitutionalCategoryScore } from "./adapters/institutional";
 export type { InstitutionalCategoryInput } from "./adapters/institutional";
+export { toInsiderCategoryScore, mapInsiderNetScore } from "./adapters/insider";
+export type { InsiderCategoryInput } from "./adapters/insider";
 export { toTechnicalsCategoryScore } from "./adapters/technicals";
 export type { TechnicalCategoryInput } from "./adapters/technicals";
 export { toShortInterestCategoryScore } from "./adapters/short-interest";
 export type { ShortInterestCategoryInput } from "./adapters/short-interest";
+
+export {
+  blendWeightsForMarketCap,
+  evidenceWeightsForMarketCap,
+  sizeBucketFromMarketCap,
+} from "./size-regime";
+export type { SizeBucket, BlendWeightPair } from "./size-regime";
 
 export {
   buildCategoryScores,

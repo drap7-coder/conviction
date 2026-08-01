@@ -3,9 +3,11 @@
  */
 
 import { toInstitutionalCategoryScore, type InstitutionalCategoryInput } from "./adapters/institutional";
+import { toInsiderCategoryScore, type InsiderCategoryInput } from "./adapters/insider";
 import { toShortInterestCategoryScore, type ShortInterestCategoryInput } from "./adapters/short-interest";
 import { toTechnicalsCategoryScore, type TechnicalCategoryInput } from "./adapters/technicals";
 import { calculateConvictionScore } from "./calculate";
+import { evidenceWeightsForMarketCap } from "./size-regime";
 import type {
   CategoryScore,
   ConvictionScoreLabel,
@@ -19,8 +21,11 @@ export type CompositeTone = "green" | "amber" | "red" | "neutral";
 export interface BuildConvictionScoreInput {
   ticker: string;
   institutional?: InstitutionalCategoryInput | null;
+  insider?: InsiderCategoryInput | null;
   technicals?: TechnicalCategoryInput | null;
   shortInterest?: ShortInterestCategoryInput | null;
+  /** Yahoo market cap — size-aware evidence reweight when present. */
+  marketCap?: number | null;
   now?: Date;
 }
 
@@ -42,11 +47,15 @@ function emptyCategory(ticker: string, category: EvidenceCategory, now: Date): C
 export function buildCategoryScores(input: BuildConvictionScoreInput): CategoryScore[] {
   const now = input.now ?? new Date();
   const ticker = input.ticker.toUpperCase();
+  const weights = evidenceWeightsForMarketCap(input.marketCap);
 
   const byCategory: Record<EvidenceCategory, CategoryScore> = {
     institutional: input.institutional
       ? toInstitutionalCategoryScore(ticker, input.institutional, now)
       : emptyCategory(ticker, "institutional", now),
+    insider: input.insider
+      ? toInsiderCategoryScore(ticker, input.insider, now)
+      : emptyCategory(ticker, "insider", now),
     technicals: input.technicals
       ? toTechnicalsCategoryScore(ticker, input.technicals, now)
       : emptyCategory(ticker, "technicals", now),
@@ -58,7 +67,10 @@ export function buildCategoryScores(input: BuildConvictionScoreInput): CategoryS
       : emptyCategory(ticker, "short_interest", now),
   };
 
-  return EVIDENCE_CATEGORIES.map((category) => byCategory[category]);
+  return EVIDENCE_CATEGORIES.map((category) => ({
+    ...byCategory[category],
+    baseWeight: weights[category],
+  }));
 }
 
 export function buildConvictionScore(input: BuildConvictionScoreInput): ConvictionScoreResult {
