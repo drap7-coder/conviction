@@ -82,7 +82,7 @@ export function PoliticiansMovesPanel() {
   if (status !== "success" || trades.length === 0) {
     return (
       <section className="smart-money-politicians" aria-label="Political trades">
-        <div className="investor-moves-intro">
+        <div className="investor-moves-intro ink-panel">
           <span className="investor-moves-eyebrow">STOCK Act · Congressional disclosures</span>
           <h2>The disclosure feed is quiet right now</h2>
           <p>STOCK Act filings will appear here when the source responds.</p>
