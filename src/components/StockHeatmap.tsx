@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { HeatTile } from "@/components/HeatTile";
 import {
   HEAT_EXTREME_THRESHOLD,
@@ -30,6 +31,8 @@ interface StockHeatmapProps {
   loading?: boolean;
   /** Live session chip — "Pre-Market" / "After Hours" when extended hours are active */
   sessionLabel?: string | null;
+  /** Context feed nested under the tiles inside the white shell (e.g. What’s changing). */
+  footer?: ReactNode;
 }
 
 function tileSpan(marketCap: number | null, maxMarketCap: number): number {
@@ -84,7 +87,12 @@ export function StockHeatmap({
   items,
   loading = false,
   sessionLabel = null,
+  footer = null,
 }: StockHeatmapProps) {
+  const footerSlot = footer ? (
+    <div className="stock-heat-footer">{footer}</div>
+  ) : null;
+
   if (loading && items.length === 0) {
     return (
       <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
@@ -92,10 +100,19 @@ export function StockHeatmap({
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
         </div>
+        {footerSlot}
       </section>
     );
   }
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    if (!footerSlot) return null;
+    return (
+      <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
+        <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
+        {footerSlot}
+      </section>
+    );
+  }
 
   const maxSizeValue = Math.max(...items.map((item) => item.sizeValue ?? item.marketCap ?? 0), 0);
 
@@ -117,6 +134,7 @@ export function StockHeatmap({
           );
         })}
       </div>
+      {footerSlot}
     </section>
   );
 }

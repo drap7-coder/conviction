@@ -8,7 +8,7 @@ import {
   computeSectorAllocation,
   computeRiskFlags,
 } from "@/lib/portfolio/calculations";
-import type { PortfolioPosition, PortfolioRiskFlags } from "@/lib/portfolio/types";
+import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
@@ -18,6 +18,7 @@ import { isFiniteNumber } from "@/lib/display/format";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { StockHeatmap } from "@/components/StockHeatmap";
+import { PortfolioCheckPanel } from "@/components/PortfolioCheckPanel";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
@@ -559,13 +560,14 @@ export default function Portfolio({
             </div>
           )}
 
-          {/* ── Portfolio heatmap ── */}
-          {!calcFailed && portfolioHeatmapItems.length > 0 && (
+          {/* ── Portfolio heatmap + Portfolio Check in the white shell footer ── */}
+          {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
             <StockHeatmap
               title="Portfolio"
               subtitle="Tile size reflects position value; color reflects the current market move."
               items={portfolioHeatmapItems}
               sessionLabel={portfolioHeatmapSession}
+              footer={<PortfolioCheckPanel riskFlags={riskFlags} />}
             />
           )}
 
@@ -665,84 +667,6 @@ export default function Portfolio({
               <button className="pf-clear-btn" onClick={handleClearAll}>Clear All</button>
             </div>
           )}
-
-          {/* ════════════════ BOTTOM CARD GRID ════════════════ */}
-          <div className="pf-bottom-grid">
-            {/* ── Portfolio Check card ── */}
-            {!calcFailed && (
-            <section className="pf-section pf-check-card pf-bottom-card" aria-label="Portfolio check">
-              <div className="pf-check-header">
-                <h2 className="pf-section-title">Portfolio Check</h2>
-              </div>
-              <div className="pf-check-items">
-                {/* Single-position concentration */}
-                {riskFlags.singleConcentration.length > 0 && riskFlags.singleConcentration.map((p) => (
-                  <div key={p.ticker} className="pf-check-item ink-box ink-box--down pf-check-warn">
-                    <span className="pf-check-tag ink-chip ink-chip--down">Position</span>
-                    <span className="pf-check-text">
-                      <strong>{p.ticker}</strong> represents <strong>{weightPct(p.weight)}</strong> of your portfolio.
-                    </span>
-                  </div>
-                ))}
-                {/* Elevated position weights */}
-                {riskFlags.elevatedPositions.length > 0 && riskFlags.elevatedPositions.map((p) => (
-                  <div key={p.ticker} className="pf-check-item ink-box ink-box--amber pf-check-note">
-                    <span className="pf-check-tag ink-chip ink-chip--amber">Note</span>
-                    <span className="pf-check-text">
-                      <strong>{p.ticker}</strong> is <strong>{weightPct(p.weight)}</strong> of the portfolio.
-                    </span>
-                  </div>
-                ))}
-                {/* Sector concentration */}
-                {riskFlags.sectorConcentration.length > 0 && riskFlags.sectorConcentration.map((s) => (
-                  <div key={s.sector} className="pf-check-item ink-box ink-box--down pf-check-warn">
-                    <span className="pf-check-tag ink-chip ink-chip--down">Sector</span>
-                    <span className="pf-check-text">
-                      <strong>{s.sector}</strong> accounts for <strong>{weightPct(s.weight)}</strong> of invested assets.
-                    </span>
-                  </div>
-                ))}
-                {/* Top-three concentration */}
-                {riskFlags.topThreeExceedsSixty && (
-                  <div className="pf-check-item ink-box ink-box--down pf-check-warn">
-                    <span className="pf-check-tag ink-chip ink-chip--down">Diversification</span>
-                    <span className="pf-check-text">
-                      Your three largest positions account for <strong>{weightPct(riskFlags.topThreeCombinedWeight)}</strong> of the portfolio.
-                    </span>
-                  </div>
-                )}
-                {/* Missing data flags */}
-                {riskFlags.missingCostCount > 0 && (
-                  <div className="pf-check-item ink-box ink-box--quiet pf-check-info">
-                    <span className="pf-check-tag ink-chip ink-chip--quiet">Data</span>
-                    <span className="pf-check-text">
-                      Cost basis is missing for <strong>{riskFlags.missingCostCount}</strong> position{riskFlags.missingCostCount > 1 ? "s" : ""}.
-                    </span>
-                  </div>
-                )}
-                {riskFlags.missingPriceCount > 0 && (
-                  <div className="pf-check-item ink-box ink-box--quiet pf-check-info">
-                    <span className="pf-check-tag ink-chip ink-chip--quiet">Data</span>
-                    <span className="pf-check-text">
-                      Current price is unavailable for <strong>{riskFlags.missingPriceCount}</strong> position{riskFlags.missingPriceCount > 1 ? "s" : ""}.
-                    </span>
-                  </div>
-                )}
-                {/* All clear */}
-                {riskFlags.singleConcentration.length === 0 &&
-                 riskFlags.elevatedPositions.length === 0 &&
-                 riskFlags.sectorConcentration.length === 0 &&
-                 !riskFlags.topThreeExceedsSixty &&
-                 riskFlags.missingCostCount === 0 &&
-                 riskFlags.missingPriceCount === 0 && (
-                  <div className="pf-check-item ink-box ink-box--up pf-check-clear">
-                    <span className="pf-check-text">No concentration warnings. Your portfolio is well-diversified.</span>
-                  </div>
-                )}
-              </div>
-            </section>
-            )}
-          </div>
         </>
       )}
     </div>

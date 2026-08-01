@@ -913,8 +913,8 @@ export default function Watchlist({
         </div>
       ) : null}
 
-      {/* Heatmap under Portfolio value + compose, before company rows. */}
-      {loading || entries.length > 0 ? (
+      {/* Heatmap under Portfolio value + compose; What’s changing nests in the shell footer. */}
+      {loading || entries.length > 0 || children ? (
         <StockHeatmap
           title="Watchlist"
           subtitle="Bigger tile = larger company. Color = current session move."
@@ -938,6 +938,7 @@ export default function Watchlist({
               marketCap: quote?.marketCap ?? null,
             };
           })}
+          footer={children}
         />
       ) : null}
 
@@ -950,8 +951,6 @@ export default function Watchlist({
           subtitle="Top names by market cap · last 15 points · normalized 0–100"
         />
       ) : null}
-
-      {children}
 
       <p className="watchlist-footnote">
         Ownership data comes from public SEC filings and can lag by weeks.

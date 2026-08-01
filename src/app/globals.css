@@ -10654,6 +10654,28 @@ details > summary::before {
   border: 1px solid var(--border);
 }
 
+/* What’s changing / Portfolio Check nested under tiles in the white shell */
+.stock-heat-footer {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.stock-heat-footer .bcn-module {
+  margin: 0;
+  padding-top: 0;
+}
+
+.stock-heat-footer .bcn-list {
+  margin-inline: 0;
+  padding-inline: 0;
+  padding-bottom: 4px;
+}
+
+.stock-heat-footer .bcn-footnote {
+  color: var(--quiet);
+}
+
 .stock-heat-loading-grid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
