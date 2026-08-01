@@ -580,7 +580,7 @@ export default function Watchlist({
       {loading || entries.length > 0 || children ? (
         <StockHeatmap
           title="Watchlist"
-          subtitle="Tap a tile for the company dashboard. Hover to see what’s driving the move."
+          subtitle="Bigger tile = larger company. Color = session move. Tap through for the company."
           loading={loading}
           sessionLabel={
             entries
@@ -626,7 +626,8 @@ export default function Watchlist({
                       },
                     ]),
                   )}
-                  lede="Headlines and themes behind the companies you follow."
+                  lede="Why the names you follow are moving."
+                  nested
                 />
               ) : null}
               {children}
@@ -670,7 +671,7 @@ export default function Watchlist({
       ) : null}
 
       <p className="watchlist-footnote">
-        Ownership data comes from public SEC filings and can lag by weeks. Tap any heatmap tile for the full company story.
+        Ownership data comes from public SEC filings and can lag by weeks.
       </p>
     </div>
   );

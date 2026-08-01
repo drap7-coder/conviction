@@ -565,7 +565,7 @@ export default function Portfolio({
           {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
             <StockHeatmap
               title="Portfolio"
-              subtitle="Tile size reflects position value; color reflects the current market move."
+              subtitle="Bigger tile = larger position. Color = session move. Tap through for the company."
               items={portfolioHeatmapItems}
               sessionLabel={portfolioHeatmapSession}
               footer={(

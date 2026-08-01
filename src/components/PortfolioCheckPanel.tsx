@@ -101,12 +101,12 @@ export function PortfolioCheckPanel({ riskFlags }: { riskFlags: PortfolioRiskFla
   const items = useMemo(() => buildCheckItems(riskFlags), [riskFlags]);
 
   return (
-    <section className="bcn-module" aria-label="Portfolio check">
+    <section className="bcn-module bcn-module-nested" aria-label="Portfolio check">
       <div className="bcn-header">
         <span className="bcn-eyebrow">Check</span>
         <h2 className="bcn-title">Portfolio Check</h2>
         <p className="bcn-lede">
-          Concentration and data gaps worth a closer look.
+          Concentration and data gaps to watch.
         </p>
       </div>
       <div

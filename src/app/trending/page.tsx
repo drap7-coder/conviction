@@ -279,7 +279,7 @@ export default function RisingConvictionPage() {
           <>
             <StockHeatmap
               title="Trending"
-              subtitle="Tap a tile for the company dashboard. Hover to see what’s driving the move. Tile size = dollar volume."
+              subtitle="Bigger tile = more dollar volume. Color = session move. Tap through for the company."
               sessionLabel={
                 trending
                   .map((idea) => getLivePrice(idea.quote).label)
@@ -320,7 +320,8 @@ export default function RisingConvictionPage() {
                       },
                     ]),
                   )}
-                  lede="Headlines and themes behind today’s most active names."
+                  lede="Why today’s most active names are moving."
+                  nested
                 />
               )}
             />

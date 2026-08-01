@@ -62,7 +62,7 @@ export function HeatTile({
       </strong>
       {driverText ? (
         <span className="heat-tile-tooltip" role="tooltip">
-          <span className="heat-tile-tooltip-label">What’s driving the move</span>
+          <span className="heat-tile-tooltip-label">Driving the move</span>
           <span className="heat-tile-tooltip-text">{driverText}</span>
         </span>
       ) : null}

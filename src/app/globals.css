@@ -10766,6 +10766,41 @@ details > summary::before {
   padding-top: 0;
 }
 
+/* Nested under heatmap shells: quieter titles, full-width header */
+.bcn-module-nested .bcn-header,
+.stock-heat-footer .bcn-header,
+.market-heatmap-shell .stock-heat-footer .bcn-header {
+  max-width: none;
+  gap: 2px;
+}
+
+.bcn-module-nested .bcn-title,
+.stock-heat-footer .bcn-title,
+.market-heatmap-shell .stock-heat-footer .bcn-title {
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.bcn-module-nested .bcn-lede,
+.stock-heat-footer .bcn-lede,
+.market-heatmap-shell .stock-heat-footer .bcn-lede {
+  font-size: 0.8rem;
+}
+
+.bcn-module-nested .bcn-eyebrow,
+.stock-heat-footer .bcn-eyebrow,
+.market-heatmap-shell .stock-heat-footer .bcn-eyebrow {
+  font-size: 0.58rem;
+}
+
+@media (min-width: 768px) {
+  .bcn-module-nested .bcn-title,
+  .stock-heat-footer .bcn-title,
+  .market-heatmap-shell .stock-heat-footer .bcn-title {
+    font-size: 1.12rem;
+  }
+}
+
 .stock-heat-footer .bcn-module + .bcn-module {
   padding-top: 16px;
   border-top: 1px solid var(--border);
