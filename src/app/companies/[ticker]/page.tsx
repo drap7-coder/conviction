@@ -1,12 +1,9 @@
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
-import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
-import { CompanyVerdict } from "@/app/components/CompanyVerdict";
+import { CompanyHero } from "@/app/components/CompanyHero";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
-import { ConvictionScoreOverviewCard } from "@/app/components/ConvictionScoreOverviewCard";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
-import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
@@ -74,14 +71,14 @@ export default async function CompanyPage({
   };
 
   return (
-    <div>
+    <div className="company-page">
       <script
         type="application/ld+json"
         suppressHydrationWarning
         // Safe: server-side JSON literal for structured data.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CompanyDetailHeader
+      <CompanyHero
         ticker={upperTicker}
         companyName={companyName}
         sectorName={sector?.name ?? null}
@@ -92,11 +89,8 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            <ConvictionScoreOverviewCard ticker={upperTicker} />
-            <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
-            <CompanySignalGauges ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
-            <CompanyVerdict ticker={upperTicker} />
+            <CompanySignalGauges ticker={upperTicker} />
           </>
         }
       >

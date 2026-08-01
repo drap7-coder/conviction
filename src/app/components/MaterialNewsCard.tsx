@@ -18,9 +18,11 @@ interface NewsEvidenceResponse {
 interface MaterialNewsCardProps {
   ticker: string;
   companyName?: string;
+  /** Compact driver for the company hero (badge on, no headline list). */
+  compact?: boolean;
 }
 
-export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps) {
+export function MaterialNewsCard({ ticker, companyName, compact = false }: MaterialNewsCardProps) {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
   const [driver, setDriver] = useState<NewsDriver | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
@@ -71,6 +73,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
   if (status === "loading" || status === "idle") {
     return (
       <SignalBlock
+        compact={compact}
         eyebrow="What’s driving the move"
         conclusion="Reading the latest coverage…"
         evidence="Checking headlines for a clear catalyst."
@@ -83,6 +86,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
   if (status === "timeout" || status === "error") {
     return (
       <SignalBlock
+        compact={compact}
         eyebrow="What’s driving the move"
         conclusion="News context is temporarily unavailable"
         evidence="Ownership filings and company disclosures still show the fuller picture."
@@ -95,6 +99,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
   if (!driver && headlines.length === 0) {
     return (
       <SignalBlock
+        compact={compact}
         eyebrow="What’s driving the move"
         conclusion="No clear news catalyst found"
         evidence="Ownership filings and company disclosures still show the fuller picture."
@@ -110,7 +115,8 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
       companyName={companyName}
       driver={driver}
       headlines={headlines}
-      showBadge={false}
+      compact={compact}
+      showBadge
       showWhy={false}
     />
   );
