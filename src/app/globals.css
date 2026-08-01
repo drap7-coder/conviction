@@ -6590,14 +6590,13 @@ details > summary::before {
 .pf-state-warn {
   background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
   border-color: color-mix(in srgb, var(--on-ink-red) 38%, transparent);
-  border: 1px solid var(--red-dim);
-  color: var(--muted);
+  color: var(--on-ink-muted);
 }
 
 .pf-state-info {
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  border: 1px solid var(--accent-dim);
-  color: var(--muted);
+  background: color-mix(in srgb, var(--on-ink-accent) 14%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-accent) 34%, transparent);
+  color: var(--on-ink-muted);
 }
 
 /* ── Sort buttons ── */
