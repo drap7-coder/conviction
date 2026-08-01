@@ -8,6 +8,7 @@ import { HeatTile } from "@/components/HeatTile";
 import { MarketNarrativePulse } from "@/components/market/MarketNarrativePulse";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
+import { MoveDriversPanel } from "@/components/MoveDriversPanel";
 
 const COLORS = {
   green: "#0D9488",
@@ -125,6 +126,8 @@ function GlobalMarketsHeatmap({
   uniformTiles?: boolean;
   sessionLabel?: string | null;
 }) {
+  if (markets.length === 0) return null;
+
   return (
     <section
       className="market-heatmap-shell market-sector-panel"
@@ -157,6 +160,18 @@ function GlobalMarketsHeatmap({
             />
           );
         })}
+      </div>
+      <div className="stock-heat-footer">
+        <MoveDriversPanel
+          holdings={markets.map((market) => ({
+            ticker: market.ticker,
+            companyName: market.name,
+            changePercent: market.changePercent,
+          }))}
+          title="What’s driving the move"
+          lede={`Headlines and themes behind ${title.toLowerCase()} session moves.`}
+          limit={Math.min(markets.length, 8)}
+        />
       </div>
     </section>
   );

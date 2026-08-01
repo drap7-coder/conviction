@@ -10654,8 +10654,9 @@ details > summary::before {
   border: 1px solid var(--border);
 }
 
-/* What’s changing / Portfolio Check nested under tiles in the white shell */
-.stock-heat-footer {
+/* Context feeds nested under tiles in the white heatmap shell */
+.stock-heat-footer,
+.market-heatmap-shell .stock-heat-footer {
   display: grid;
   gap: 18px;
   margin-top: 16px;
@@ -10663,7 +10664,8 @@ details > summary::before {
   border-top: 1px solid var(--border);
 }
 
-.stock-heat-footer .bcn-module {
+.stock-heat-footer .bcn-module,
+.market-heatmap-shell .stock-heat-footer .bcn-module {
   margin: 0;
   padding-top: 0;
 }
@@ -10673,13 +10675,15 @@ details > summary::before {
   border-top: 1px solid var(--border);
 }
 
-.stock-heat-footer .bcn-list {
+.stock-heat-footer .bcn-list,
+.market-heatmap-shell .stock-heat-footer .bcn-list {
   margin-inline: 0;
   padding-inline: 0;
   padding-bottom: 4px;
 }
 
-.stock-heat-footer .bcn-footnote {
+.stock-heat-footer .bcn-footnote,
+.market-heatmap-shell .stock-heat-footer .bcn-footnote {
   color: var(--quiet);
 }
 
