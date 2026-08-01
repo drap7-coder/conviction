@@ -348,11 +348,6 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
 
   return (
     <section className="move-section">
-      <div className="section-header mt-16">
-        <h2 className="section-title">Supporting evidence</h2>
-        <span className="section-count">Events + disclosures</span>
-      </div>
-
       {status === "loading" || status === "idle" ? (
         <div className="detail-build-panel" aria-live="polite">
           <div className="move-card loading detail-build-hero">
@@ -399,8 +394,8 @@ export function MoveExplanationSection({ ticker }: MoveExplanationSectionProps) 
           <div className="move-card-top">
             <div>
               <span className="move-eyebrow">{formatDate(event.date)}</span>
-              <h3>Evidence around the move</h3>
-              <p className="convergence-detail">These events add context but do not determine the momentum snapshot.</p>
+              <h3>Market context</h3>
+              <p className="convergence-detail">Short interest, ownership, and filings that sit around the move.</p>
             </div>
             <span className={`${inkChipClass("quiet")} convergence-badge`}>
               Context

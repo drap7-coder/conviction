@@ -9,52 +9,33 @@
 
 .company-briefing {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 
-.company-briefing .signal-block,
-.company-briefing .material-news-briefing {
-  padding: 14px 16px;
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
+/* Driver uses the shared ink SignalBlock — no second light shell. */
+.company-briefing > .signal-block {
+  margin: 0;
 }
 
-/* What’s driving the move — lead briefing surface after the score */
-.company-briefing .material-news-briefing {
-  order: 0;
-  padding: 18px 18px 16px;
-  border-color: color-mix(in srgb, var(--ink) 18%, var(--border));
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--ink) 3.5%, var(--card)) 0%, var(--card) 48%),
-    var(--card);
-  box-shadow: var(--shadow-sm), inset 0 1px 0 color-mix(in srgb, #ffffff 55%, transparent);
+.company-briefing .signal-block-eyebrow {
+  font-size: 0.64rem;
+  letter-spacing: 0.08em;
 }
 
-.company-briefing .material-news-briefing .signal-block {
-  padding: 0;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-}
-
-.company-briefing .material-news-briefing .signal-block-eyebrow {
-  font-size: 0.68rem;
-  letter-spacing: 0.1em;
-  color: var(--quiet);
-}
-
-.company-briefing .material-news-briefing .signal-block-conclusion {
-  font-size: 1.12rem;
+.company-briefing .signal-block-conclusion {
+  font-size: 1.06rem;
   line-height: 1.25;
   letter-spacing: -0.02em;
 }
 
-.company-briefing .material-news-briefing .signal-block-evidence {
-  font-size: 0.88rem;
+.company-briefing .signal-block-evidence {
+  font-size: 0.84rem;
   line-height: 1.45;
+}
+
+.company-briefing .signal-block-list {
+  margin-top: 8px;
 }
 
 .company-briefing .price-trend-card {
@@ -67,6 +48,12 @@
 
 .dashboard-signal-gauges .quote-signal-gauges {
   margin-top: 4px;
+}
+
+.dashboard-technical-gauges {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--on-ink-border);
 }
 
 .quote-signal-gauges-pair {
@@ -89,7 +76,6 @@
 
 /* ── Verdict: one calm, legible decision surface ── */
 
-/* Verdict stays light — the conviction dial is the navy anchor above it */
 .verdict-card {
   position: relative;
   overflow: hidden;
@@ -108,15 +94,16 @@
   box-shadow: none;
 }
 
+/* Quiet ink box — score remains the only ink-panel hero above. */
 .verdict-lede {
   margin: 0;
-  padding: 16px 18px;
-  border-radius: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
 }
 
 .verdict-lede .verdict-eyebrow {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: var(--on-ink-muted);
 }
 
@@ -124,17 +111,17 @@
   margin: 0;
   max-width: 34rem;
   color: var(--on-ink);
-  font-size: clamp(1.2rem, 3vw, 1.75rem);
-  line-height: 1.1;
-  letter-spacing: -0.035em;
+  font-size: 1.08rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 .verdict-lede p {
   max-width: 40rem;
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: var(--on-ink-muted);
-  font-size: 0.86rem;
-  line-height: 1.5;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 .verdict-lede .momentum-ink-grid {
@@ -437,16 +424,9 @@
   cursor: pointer;
 }
 
-.dashboard-card-kicker {
-  color: var(--accent);
-  font: 600 .58rem/1.2 var(--font-mono);
-  letter-spacing: .1em;
-  text-transform: uppercase;
-}
-
 .dashboard-card-summary > strong {
   color: var(--ink);
-  font-size: 1.15rem;
+  font-size: 1.08rem;
   line-height: 1.2;
 }
 

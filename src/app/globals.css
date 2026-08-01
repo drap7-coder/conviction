@@ -2769,13 +2769,10 @@ details > summary::before {
 .news-driver-brief-compact .news-driver-headlines { gap: 5px; padding-top: 8px; }
 .news-driver-brief-compact .news-driver-headlines li { font-size: 0.73rem; }
 
-.material-news-briefing { margin-top: 2px; }
+.material-news-briefing { margin: 0; }
 .material-news-status {
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--card);
-  color: var(--muted);
+  margin: 0;
+  color: var(--on-ink-muted);
   font-size: 0.8rem;
 }
 

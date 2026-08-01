@@ -18,25 +18,36 @@ function newestDate(headlines: NewsBriefHeadline[]): string | null {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+function sameHeadline(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
+}
+
 export function NewsDriverBrief({
   ticker,
   companyName,
   driver,
   headlines,
   compact = false,
+  /** Hide catalyst chip when the page header already shows it. */
+  showBadge = true,
+  /** Extra “why it matters” line — usually off on the company dashboard. */
+  showWhy = true,
 }: {
   ticker: string;
   companyName?: string;
   driver: NewsDriver | null;
   headlines: NewsBriefHeadline[];
   compact?: boolean;
+  showBadge?: boolean;
+  showWhy?: boolean;
 }) {
   if (!driver && headlines.length === 0) {
     return (
       <SignalBlock
         compact={compact}
-        conclusion="No recent news loaded yet"
-        evidence="Open the company page for ownership filings and more detail."
+        eyebrow="What’s driving the move"
+        conclusion="No clear news catalyst found"
+        evidence="Ownership filings and company disclosures still show the fuller picture."
         dateLabel="—"
         source="material_news"
       />
@@ -56,11 +67,14 @@ export function NewsDriverBrief({
     ?? (compact && topHeadlines[1]
       ? topHeadlines.slice(0, 2).map((h) => h.headline).join(" · ")
       : null);
-  const whyItMatters = compact
+  const whyItMatters = !showWhy || compact
     ? null
     : driver
       ? "News helps explain the move — check ownership filings before deciding."
       : "Headlines are clues. Confirm with ownership and company filings before deciding.";
+
+  // Don't re-list the conclusion as headline #1.
+  const listHeadlines = topHeadlines.filter((item) => !sameHeadline(item.headline, conclusion));
 
   return (
     <SignalBlock
@@ -71,11 +85,11 @@ export function NewsDriverBrief({
       whyItMatters={whyItMatters}
       dateLabel={newestDate(topHeadlines) ?? "Recent"}
       source="material_news"
-      badge={catalyst ? { label: catalyst.label, tone: catalyst.tone } : null}
+      badge={showBadge && catalyst ? { label: catalyst.label, tone: catalyst.tone } : null}
     >
-      {!compact && topHeadlines.length > 0 ? (
+      {!compact && listHeadlines.length > 0 ? (
         <ol className="signal-block-list" aria-label={`${ticker} latest headlines`}>
-          {topHeadlines.map((item) => (
+          {listHeadlines.map((item) => (
             <li key={`${item.date}-${item.headline}`}>
               {item.url ? (
                 <a href={item.url} target="_blank" rel="noopener noreferrer">

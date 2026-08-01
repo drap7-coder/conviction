@@ -151,72 +151,67 @@ export function CompanySignalGauges({ ticker }: { ticker: string }) {
   const sma50Value = smaGaugeValue(technical.sma50Delta);
   const sma200Value = smaGaugeValue(technical.sma200Delta);
 
-  return (
-    <>
-      <section className="quote-card dashboard-signal-gauges ink-box ink-box--quiet" aria-label="Signal gauges">
-        <div className="quote-card-header">
-          <span className="quote-card-title">Signal gauges</span>
-          <span className={`quote-card-meta ink-chip ${loading ? "ink-chip--quiet" : "ink-chip--up"}`}>
-            {loading ? "Loading" : "Live"}
-          </span>
-        </div>
-        <div className="quote-signal-gauges">
-          <GaugeRing
-            value={dayPct}
-            label={dayPct !== null ? `${Math.round(dayPct)}%` : "—"}
-            detail={quote ? formatRange(quote.dayLow, quote.dayHigh) : "—"}
-            caption="Day range"
-            tone={toneForRange(dayPct)}
-          />
-          <GaugeRing
-            value={weekPct}
-            label={weekPct !== null ? `${Math.round(weekPct)}%` : "—"}
-            detail={quote ? formatRange(quote.fiftyTwoWeekLow, quote.fiftyTwoWeekHigh) : "—"}
-            caption="52-week range"
-            tone={toneForRange(weekPct)}
-          />
-          <GaugeRing
-            value={volumePct !== null ? Math.min(100, volumePct) : null}
-            label={volumePct !== null ? `${Math.round(volumePct)}%` : "—"}
-            detail={averageVolume ? "vs avg volume" : "Avg unavailable"}
-            caption="Volume"
-            tone={toneForVolume(volumePct)}
-          />
-        </div>
-      </section>
+  const technicalChip = loading
+    ? "Loading"
+    : technical.label === "Insufficient Data"
+      ? "No data"
+      : technical.label;
 
-      <section className="quote-card dashboard-signal-gauges ink-box ink-box--quiet" aria-label="Technical gauges">
-        <div className="quote-card-header">
-          <span className="quote-card-title">Technical</span>
-          <span className={`quote-card-meta ink-chip ${loading || technical.label === "Insufficient Data" ? "ink-chip--quiet" : "ink-chip--amber"}`}>
-            {loading ? "Loading" : technical.label === "Insufficient Data" ? "No data" : technical.label}
-          </span>
-        </div>
-        <div className="quote-signal-gauges quote-signal-gauges-pair">
-          <GaugeRing
-            value={sma50Value}
-            label={formatDelta(technical.sma50Delta)}
-            detail={
-              technical.sma50 !== null
-                ? `${technical.sma50Relation ?? "vs"} ${formatPrice(technical.sma50)}`
-                : "SMA50 unavailable"
-            }
-            caption="vs SMA50"
-            tone={toneForSma(technical.sma50Delta)}
-          />
-          <GaugeRing
-            value={sma200Value}
-            label={formatDelta(technical.sma200Delta)}
-            detail={
-              technical.sma200 !== null
-                ? `${technical.sma200Relation ?? "vs"} ${formatPrice(technical.sma200)}`
-                : "SMA200 unavailable"
-            }
-            caption="vs SMA200"
-            tone={toneForSma(technical.sma200Delta)}
-          />
-        </div>
-      </section>
-    </>
+  return (
+    <section className="quote-card dashboard-signal-gauges ink-box ink-box--quiet" aria-label="Market gauges">
+      <div className="quote-card-header">
+        <span className="quote-card-title">Market gauges</span>
+        <span className={`quote-card-meta ink-chip ${loading ? "ink-chip--quiet" : "ink-chip--up"}`}>
+          {loading ? "Loading" : technicalChip === "No data" ? "Live" : technicalChip}
+        </span>
+      </div>
+      <div className="quote-signal-gauges">
+        <GaugeRing
+          value={dayPct}
+          label={dayPct !== null ? `${Math.round(dayPct)}%` : "—"}
+          detail={quote ? formatRange(quote.dayLow, quote.dayHigh) : "—"}
+          caption="Day range"
+          tone={toneForRange(dayPct)}
+        />
+        <GaugeRing
+          value={weekPct}
+          label={weekPct !== null ? `${Math.round(weekPct)}%` : "—"}
+          detail={quote ? formatRange(quote.fiftyTwoWeekLow, quote.fiftyTwoWeekHigh) : "—"}
+          caption="52-week range"
+          tone={toneForRange(weekPct)}
+        />
+        <GaugeRing
+          value={volumePct !== null ? Math.min(100, volumePct) : null}
+          label={volumePct !== null ? `${Math.round(volumePct)}%` : "—"}
+          detail={averageVolume ? "vs avg volume" : "Avg unavailable"}
+          caption="Volume"
+          tone={toneForVolume(volumePct)}
+        />
+      </div>
+      <div className="quote-signal-gauges quote-signal-gauges-pair dashboard-technical-gauges">
+        <GaugeRing
+          value={sma50Value}
+          label={formatDelta(technical.sma50Delta)}
+          detail={
+            technical.sma50 !== null
+              ? `${technical.sma50Relation ?? "vs"} ${formatPrice(technical.sma50)}`
+              : "SMA50 unavailable"
+          }
+          caption="vs SMA50"
+          tone={toneForSma(technical.sma50Delta)}
+        />
+        <GaugeRing
+          value={sma200Value}
+          label={formatDelta(technical.sma200Delta)}
+          detail={
+            technical.sma200 !== null
+              ? `${technical.sma200Relation ?? "vs"} ${formatPrice(technical.sma200)}`
+              : "SMA200 unavailable"
+          }
+          caption="vs SMA200"
+          tone={toneForSma(technical.sma200Delta)}
+        />
+      </div>
+    </section>
   );
 }
