@@ -10656,6 +10656,8 @@ details > summary::before {
 
 /* What’s changing / Portfolio Check nested under tiles in the white shell */
 .stock-heat-footer {
+  display: grid;
+  gap: 18px;
   margin-top: 16px;
   padding-top: 16px;
   border-top: 1px solid var(--border);
@@ -10664,6 +10666,11 @@ details > summary::before {
 .stock-heat-footer .bcn-module {
   margin: 0;
   padding-top: 0;
+}
+
+.stock-heat-footer .bcn-module + .bcn-module {
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
 }
 
 .stock-heat-footer .bcn-list {
