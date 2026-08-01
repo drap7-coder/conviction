@@ -6583,10 +6583,13 @@ details > summary::before {
   font-family: var(--font-mono);
   font-size: 0.76rem;
   line-height: 1.4;
+  border: 1px solid var(--on-ink-border);
+  color: var(--on-ink);
 }
 
 .pf-state-warn {
-  background: color-mix(in srgb, var(--red) 10%, transparent);
+  background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-red) 38%, transparent);
   border: 1px solid var(--red-dim);
   color: var(--muted);
 }
