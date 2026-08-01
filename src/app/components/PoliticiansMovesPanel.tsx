@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type { PoliticalTrade } from "@/lib/political-trades";
@@ -55,34 +55,68 @@ export function PoliticiansMovesPanel() {
     };
   }, [requestKey]);
 
+  const summary = useMemo(() => {
+    const filers = new Set<string>();
+    let purchases = 0;
+    let sales = 0;
+    let late = 0;
+    for (const trade of trades) {
+      if (trade.filerName) filers.add(trade.filerName);
+      if (trade.direction === "purchase") purchases += 1;
+      if (trade.direction === "sale") sales += 1;
+      if (trade.isLate) late += 1;
+    }
+    return {
+      filerCount: filers.size,
+      purchases,
+      sales,
+      late,
+      disclosures: trades.length,
+    };
+  }, [trades]);
+
   if (status === "loading" || status === "idle") {
     return <PageLoadingMotion label="Loading congressional disclosures" />;
   }
 
   if (status !== "success" || trades.length === 0) {
     return (
-      <div className="empty-state">
-        <p>Congressional disclosures are unavailable right now.</p>
-        <small>STOCK Act filings will appear here when the source responds.</small>
-        <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
-          Retry
-        </button>
-      </div>
+      <section className="smart-money-politicians" aria-label="Political trades">
+        <div className="investor-moves-intro">
+          <span className="investor-moves-eyebrow">STOCK Act · Congressional disclosures</span>
+          <h2>The disclosure feed is quiet right now</h2>
+          <p>STOCK Act filings will appear here when the source responds.</p>
+          <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+            Retry
+          </button>
+        </div>
+      </section>
     );
   }
 
+  const summaryBits = [
+    summary.purchases > 0 ? `${summary.purchases} purchase${summary.purchases === 1 ? "" : "s"}` : null,
+    summary.sales > 0 ? `${summary.sales} sale${summary.sales === 1 ? "" : "s"}` : null,
+    summary.late > 0 ? `${summary.late} late filing${summary.late === 1 ? "" : "s"}` : null,
+  ].filter(Boolean);
+
   return (
     <section className="smart-money-politicians" aria-label="Political trades">
-      <div className="wl-list-header">
-        <div className="wl-list-title-row">
-          <h3 className="wl-list-title">Politicians</h3>
-          <span className="wl-list-count">
-            {trades.length} disclosure{trades.length === 1 ? "" : "s"}
-          </span>
+      <div className="investor-moves-intro ink-panel">
+        <div>
+          <span className="investor-moves-eyebrow">STOCK Act · Congressional disclosures</span>
+          <h2>Recent trades from public officials</h2>
+          <p>
+            House and Senate filings ranked by freshness
+            {summaryBits.length > 0 ? ` — ${summaryBits.join(", ")}.` : "."}
+            {" "}
+            Open a company for the full evidence panel.
+          </p>
         </div>
-        <p className="smart-money-lede">
-          STOCK Act filings ranked by filing freshness. Open a company for the full evidence panel.
-        </p>
+        <div className="investor-moves-stamp">
+          <strong>{summary.filerCount}</strong>
+          <span>officials filing</span>
+        </div>
       </div>
 
       <div className="politician-trade-list">
