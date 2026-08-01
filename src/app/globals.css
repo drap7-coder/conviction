@@ -1855,7 +1855,27 @@ details > summary::before {
 
 .wl-ring-row.ink-box {
   /* Tone fill from ink-box--*; remapped tokens keep nested text readable. */
+  position: relative;
+  isolation: isolate;
   box-shadow: var(--shadow-ink);
+  overflow: hidden;
+}
+
+/* Soft white veil — avoids filter:brightness washing tone fills + chips. */
+.wl-ring-row.ink-box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  pointer-events: none;
+  z-index: 0;
+  transition: background-color 0.16s ease;
+}
+
+.wl-ring-row.ink-box > * {
+  position: relative;
+  z-index: 1;
 }
 
 .wl-ring-row:hover,
@@ -1869,10 +1889,41 @@ details > summary::before {
 
 .wl-ring-row.ink-box:hover,
 .wl-ring-row.ink-box:focus-visible {
-  background: inherit;
-  filter: brightness(1.06);
-  border-color: color-mix(in srgb, #ffffff 24%, transparent);
+  filter: none;
+  transform: none;
+  /* Keep each tone’s own fill; only lift the border. */
+  background: var(--ink-panel-elevated);
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
   box-shadow: var(--shadow-ink);
+}
+
+.wl-ring-row.ink-box--up:hover,
+.wl-ring-row.ink-box--up:focus-visible {
+  background: color-mix(in srgb, var(--on-ink-green) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-green) 48%, transparent);
+}
+
+.wl-ring-row.ink-box--down:hover,
+.wl-ring-row.ink-box--down:focus-visible {
+  background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-red) 48%, transparent);
+}
+
+.wl-ring-row.ink-box--amber:hover,
+.wl-ring-row.ink-box--amber:focus-visible {
+  background: color-mix(in srgb, var(--on-ink-amber) 14%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-amber) 44%, transparent);
+}
+
+.wl-ring-row.ink-box--quiet:hover,
+.wl-ring-row.ink-box--quiet:focus-visible {
+  background: var(--ink-panel-elevated);
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
+}
+
+.wl-ring-row.ink-box:hover::after,
+.wl-ring-row.ink-box:focus-visible::after {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
 }
 
 .wl-ring-row:hover .wl-ring-ticker,
@@ -1887,7 +1938,7 @@ details > summary::before {
 
 .wl-ring-row.ink-box:hover .wl-ring-driver,
 .wl-ring-row.ink-box:focus-visible .wl-ring-driver {
-  background: color-mix(in srgb, #ffffff 8%, transparent);
+  background: color-mix(in srgb, #ffffff 10%, transparent);
 }
 
 .wl-ring-row.focused-card {
@@ -1896,10 +1947,14 @@ details > summary::before {
 }
 
 .wl-ring-row.ink-box.focused-card {
+  filter: none;
   box-shadow:
     var(--shadow-ink),
     inset 0 0 0 1px color-mix(in srgb, var(--on-ink-accent) 45%, transparent);
-  filter: brightness(1.04);
+}
+
+.wl-ring-row.ink-box.focused-card::after {
+  background: color-mix(in srgb, #ffffff 4%, transparent);
 }
 
 .wl-ring-row-main {
@@ -6243,7 +6298,8 @@ details > summary::before {
 
 .wl-ring-row.ink-box:hover .pf-ring-holding,
 .wl-ring-row.ink-box:focus-visible .pf-ring-holding {
-  filter: brightness(1.05);
+  filter: none;
+  border-color: color-mix(in srgb, #ffffff 22%, transparent);
 }
 
 .pf-ring-holding-item {
@@ -8741,12 +8797,17 @@ details > summary::before {
 }
 
 .bcn-item:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.04);
+  transform: none;
+  filter: none;
+}
+
+.bcn-item:hover .signal-block.ink-box {
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
 }
 
 .bcn-item .signal-block {
   height: 100%;
+  transition: border-color 0.16s ease;
 }
 
 .bcn-footnote {
@@ -8991,8 +9052,8 @@ details > summary::before {
 }
 
 .bcn-item:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.04);
+  transform: none;
+  filter: none;
 }
 
 .bcn-item .signal-block-eyebrow {
@@ -9050,18 +9111,42 @@ details > summary::before {
 }
 
 .wl-attention-item {
+  position: relative;
+  isolation: isolate;
   display: grid;
   gap: 8px;
   padding: 14px 16px;
   border-radius: calc(var(--radius) + 2px);
   text-decoration: none;
   color: inherit;
-  transition: filter 0.18s ease, transform 0.18s ease;
+  overflow: hidden;
+  transition: border-color 0.18s ease;
+}
+
+.wl-attention-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: transparent;
+  pointer-events: none;
+  z-index: 0;
+  transition: background-color 0.18s ease;
+}
+
+.wl-attention-item > * {
+  position: relative;
+  z-index: 1;
 }
 
 .wl-attention-item:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
+  filter: none;
+  transform: none;
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
+}
+
+.wl-attention-item:hover::after {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
 }
 
 .wl-attention-p1 { border-left: 3px solid var(--on-ink-red); }

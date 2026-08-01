@@ -494,10 +494,10 @@
 
 .dashboard-card.ink-box:hover,
 .dashboard-card.ink-box:focus-within {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
+  filter: none;
+  transform: none;
   background: var(--ink-panel-elevated);
-  border-color: var(--on-ink-border);
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
   box-shadow: var(--shadow-ink);
 }
 
