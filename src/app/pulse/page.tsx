@@ -44,15 +44,11 @@ const PULSE_TABS = [
   {
     id: "indexes",
     label: "Indexes",
-    labelTop: "Indexes",
-    labelBottom: null,
     description: "Major indexes and market leadership",
   },
   {
     id: "trending",
-    label: "Trending Stocks",
-    labelTop: "Trending",
-    labelBottom: "Stocks",
+    label: "Trending",
     description: "Where conviction is changing fastest",
   },
 ] as const;
@@ -243,11 +239,8 @@ export default function MarketPulsePage() {
         ) : null}
       </section>
 
-      <section className="market-region-picker" aria-label="Pulse views">
-        <div className="market-region-copy">
-          <strong className="market-region-label">Pulse Views</strong>
-        </div>
-        <div className="market-region-tabs" role="tablist" aria-label="Choose a Pulse view">
+      <section className="pulse-view-picker" aria-label="Pulse views">
+        <div className="pulse-view-tabs" role="tablist" aria-label="Choose a Pulse view">
           {PULSE_TABS.map((option) => (
             <button
               key={option.id}
@@ -260,15 +253,7 @@ export default function MarketPulsePage() {
               className={activeTab === option.id ? "active" : ""}
               onClick={() => setActiveTab(option.id)}
             >
-              <strong>
-                {option.labelTop}
-                {option.labelBottom ? (
-                  <>
-                    <br className="market-region-title-break" aria-hidden="true" />{" "}
-                    {option.labelBottom}
-                  </>
-                ) : null}
-              </strong>
+              <strong>{option.label}</strong>
               <span>{option.description}</span>
             </button>
           ))}
@@ -341,10 +326,6 @@ export default function MarketPulsePage() {
       >
         {activeTab === "trending" ? (
           <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
-            <div className="page-purpose ink-panel" style={{ marginTop: 8, padding: "14px 16px" }}>
-              <span className="page-purpose-eyebrow">Trending Stocks</span>
-              <h2 className="page-purpose-title">Where is conviction changing fastest?</h2>
-            </div>
             <MarketMovesPanel />
           </section>
         ) : null}
