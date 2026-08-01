@@ -898,14 +898,15 @@ details > summary::before {
   margin: 20px 0 24px;
 }
 
-/* Legacy trending-view-* aliases → shared pulse-view ink segmented control */
+/* Legacy trending-view-* aliases → shared white pulse-view toggle */
 .trending-view-picker {
   margin: 0 0 18px;
   padding: 5px;
-  border: 1px solid var(--on-ink-border);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: var(--ink-panel);
-  box-shadow: var(--shadow-ink);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
 }
 
 .trending-view-picker-copy {
@@ -923,7 +924,7 @@ details > summary::before {
   padding: 12px 14px;
   border: 1px solid transparent;
   border-radius: 10px;
-  color: var(--on-ink-muted);
+  color: var(--muted);
   background: transparent;
   font: inherit;
   font-family: var(--font-mono);
@@ -934,17 +935,17 @@ details > summary::before {
 
 .trending-view-tabs button:hover,
 .trending-view-tabs button:focus-visible {
-  color: var(--on-ink);
-  background: color-mix(in srgb, #ffffff 5%, transparent);
+  color: var(--ink);
+  background: var(--card-inset);
   outline: none;
   transform: none;
 }
 
 .trending-view-tabs button.active {
-  color: var(--on-ink);
-  background: var(--ink-panel-elevated);
-  border-color: color-mix(in srgb, #ffffff 16%, transparent);
-  box-shadow: none;
+  color: var(--ink);
+  background: var(--card);
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-md);
 }
 
 .trending-view-tabs strong,
@@ -964,14 +965,14 @@ details > summary::before {
 
 .trending-view-tabs span {
   margin-top: 4px;
-  color: var(--on-ink-quiet);
+  color: var(--quiet);
   font-family: var(--font-mono);
   font-size: 0.62rem;
   line-height: 1.35;
 }
 
 .trending-view-tabs button.active span {
-  color: var(--on-ink-muted);
+  color: var(--muted);
 }
 
 /* ── Investor Moves (Trending lens) ── */
@@ -10278,7 +10279,7 @@ details > summary::before {
   --market-red: var(--on-ink-red);
 }
 
-/* Pulse Indexes / Trending — ink segmented control (no light chips on navy). */
+/* Shared view toggles — white container under dark ink ledes (not dark-on-dark). */
 .pulse-view-picker {
   margin: 0 0 18px;
 }
@@ -10288,10 +10289,11 @@ details > summary::before {
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 4px;
   padding: 5px;
-  border: 1px solid var(--on-ink-border);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: var(--ink-panel);
-  box-shadow: var(--shadow-ink);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
 }
 
 .pulse-view-tabs button {
@@ -10299,7 +10301,7 @@ details > summary::before {
   padding: 12px 14px;
   border: 1px solid transparent;
   border-radius: 10px;
-  color: var(--on-ink-muted);
+  color: var(--muted);
   background: transparent;
   font: inherit;
   font-family: var(--font-mono);
@@ -10310,16 +10312,16 @@ details > summary::before {
 
 .pulse-view-tabs button:hover,
 .pulse-view-tabs button:focus-visible {
-  color: var(--on-ink);
-  background: color-mix(in srgb, #ffffff 5%, transparent);
+  color: var(--ink);
+  background: var(--card-inset);
   outline: none;
 }
 
 .pulse-view-tabs button.active {
-  color: var(--on-ink);
-  background: var(--ink-panel-elevated);
-  border-color: color-mix(in srgb, #ffffff 16%, transparent);
-  box-shadow: none;
+  color: var(--ink);
+  background: var(--card);
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-md);
 }
 
 .pulse-view-tabs strong,
@@ -10337,13 +10339,17 @@ details > summary::before {
 
 .pulse-view-tabs span {
   margin-top: 4px;
-  color: var(--on-ink-quiet);
+  color: var(--quiet);
   font-size: 0.62rem;
   line-height: 1.35;
 }
 
 .pulse-view-tabs button.active span {
-  color: var(--on-ink-muted);
+  color: var(--muted);
+}
+
+.pulse-view-tabs button.active strong {
+  color: var(--ink);
 }
 
 /* Legacy aliases kept for any residual markup */
@@ -10353,11 +10359,11 @@ details > summary::before {
   gap: 0;
   margin-bottom: 18px;
   padding: 5px;
-  border: 1px solid var(--on-ink-border);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: var(--ink-panel);
-  box-shadow: var(--shadow-ink);
-  color: var(--on-ink);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
 }
 
 .market-region-copy {
@@ -10375,7 +10381,7 @@ details > summary::before {
   padding: 12px 14px;
   border: 1px solid transparent;
   border-radius: 10px;
-  color: var(--on-ink-muted);
+  color: var(--muted);
   background: transparent;
   font: inherit;
   font-family: var(--font-mono);
@@ -10386,17 +10392,17 @@ details > summary::before {
 
 .market-region-tabs button:hover,
 .market-region-tabs button:focus-visible {
-  color: var(--on-ink);
-  background: color-mix(in srgb, #ffffff 5%, transparent);
+  color: var(--ink);
+  background: var(--card-inset);
   outline: none;
   transform: none;
 }
 
 .market-region-tabs button.active {
-  color: var(--on-ink);
-  background: var(--ink-panel-elevated);
-  border-color: color-mix(in srgb, #ffffff 16%, transparent);
-  box-shadow: none;
+  color: var(--ink);
+  background: var(--card);
+  border-color: var(--border-active);
+  box-shadow: var(--shadow-md);
 }
 
 .market-region-tabs strong,
@@ -10412,7 +10418,7 @@ details > summary::before {
 
 .market-region-tabs span {
   margin-top: 4px;
-  color: var(--on-ink-quiet);
+  color: var(--quiet);
   font-size: 0.62rem;
   line-height: 1.35;
 }
