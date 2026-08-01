@@ -1,7 +1,7 @@
 import type { EvidenceCategory } from "./types";
 
 /** Version of this composite scoring contract. Bump when the formula changes. */
-export const SCORING_VERSION = "1.5.0";
+export const SCORING_VERSION = "1.5.1";
 
 /** Minimum weight coverage required before a composite score is returned. */
 export const MIN_COVERAGE = 0.5;

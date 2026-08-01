@@ -1,6 +1,8 @@
 /**
  * Normalize Form 4 insider conviction into a CategoryScore.
- * Uses the existing calculateConviction engine — open-market buys/sells only.
+ *
+ * Only open-market purchases count. Insider sales (liquidity / tax / 10b5-1)
+ * are ignored — they are not treated as a bearish conviction signal.
  */
 
 import { calculateConviction } from "@/lib/sec/conviction-engine";
@@ -24,12 +26,19 @@ function latestSourceDate(transactions: InsiderTransaction[]): string | null {
   return dates[0] ?? null;
 }
 
+/** Purchases only — sales never enter the Conviction Score. */
+function purchaseTransactions(
+  transactions: InsiderTransaction[],
+): InsiderTransaction[] {
+  return transactions.filter((tx) => tx.transactionType === "purchase");
+}
+
 /**
- * Map engine netScore onto [-100, +100].
- * Engine units are roughly "points per $100K" with role multipliers —
- * tanh keeps mega Form 4 clusters from saturating every name at ±100.
+ * Map purchase-driven engine netScore onto [0, +100].
+ * Negatives should not appear once sales are filtered out.
  */
 export function mapInsiderNetScore(netScore: number): number {
+  if (netScore <= 0) return 0;
   return clampSignedScore(Math.tanh(netScore / 80) * 100);
 }
 
@@ -40,8 +49,8 @@ export function toInsiderCategoryScore(
 ): CategoryScore {
   const updatedAt = input.fetchedAt ?? now.toISOString();
   const failed = input.status === "timeout" || input.status === "error";
-  const transactions = input.transactions ?? [];
-  const conviction = calculateConviction(transactions);
+  const purchases = purchaseTransactions(input.transactions ?? []);
+  const conviction = calculateConviction(purchases);
   const hasSignal = !failed && conviction.contributingTransactions > 0;
 
   if (!hasSignal) {
@@ -58,22 +67,16 @@ export function toInsiderCategoryScore(
         input.message
         ?? (failed
           ? "Insider Form 4 filings could not be loaded."
-          : "No meaningful open-market Form 4 activity in the scoring window."),
+          : "No open-market insider purchases in the scoring window (sales ignored)."),
       scoringVersion: SCORING_VERSION,
     };
   }
 
   const score = mapInsiderNetScore(conviction.netScore);
-  const sourceDate = latestSourceDate(transactions);
+  const sourceDate = latestSourceDate(purchases);
   const isStale = isSourceStale(sourceDate, now);
   const purchased = conviction.totalPurchased;
-  const sold = conviction.totalSold;
-  const explanation =
-    conviction.label === "bullish"
-      ? `Insider open-market buying (${conviction.contributingTransactions} filings · $${Math.round(purchased).toLocaleString()} bought).`
-      : conviction.label === "bearish"
-        ? `Insider open-market selling (${conviction.contributingTransactions} filings · $${Math.round(sold).toLocaleString()} sold).`
-        : `Mixed insider Form 4 flow (net ${conviction.netScore > 0 ? "+" : ""}${conviction.netScore}).`;
+  const explanation = `Insider open-market buying (${conviction.contributingTransactions} filings · $${Math.round(purchased).toLocaleString()} bought).`;
 
   return {
     ticker: ticker.toUpperCase(),

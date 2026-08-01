@@ -52,7 +52,7 @@ function factor(
 
 describe("SCORING_VERSION", () => {
   it("bumps for free evidence upgrades on the quality blend contract", () => {
-    expect(SCORING_VERSION).toBe("1.5.0");
+    expect(SCORING_VERSION).toBe("1.5.1");
   });
 });
 

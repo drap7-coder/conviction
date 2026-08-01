@@ -11,6 +11,7 @@ import { fetchCompanyFundamentals } from "@/lib/market/fundamentals";
 import { getInstitutionalAccumulationForCompany } from "@/lib/sec/institutional";
 import { fetchShortInterestSummary } from "@/lib/market/short-interest";
 import { fetchStockHistory, fetchStockQuotes } from "@/lib/market/quotes";
+import { fetchSectorProfile } from "@/lib/market/sector-profile";
 import { fetchInsiderTransactions } from "@/lib/sec/client";
 import { getStoredTransactions, recordToTx } from "@/lib/sec/persist";
 import type { InsiderTransaction } from "@/lib/sec/types";
@@ -216,31 +217,48 @@ export async function getConvictionScoreForTicker(
     if (cached) return cached;
   }
 
-  const [institutional, insider, shortInterest, history, quotes, earnings, fundamentals] =
-    await Promise.all([
-      settled(
-        withTimeout(
-          getInstitutionalAccumulationForCompany(upper, companyName),
-          22_000,
-        ),
+  const [
+    institutional,
+    insider,
+    shortInterest,
+    history,
+    quotes,
+    profile,
+    earnings,
+    fundamentals,
+  ] = await Promise.all([
+    settled(
+      withTimeout(
+        getInstitutionalAccumulationForCompany(upper, companyName),
+        22_000,
       ),
-      loadInsiderTransactions(upper),
-      settled(fetchShortInterestSummary(upper)),
-      settled(fetchStockHistory(upper, "1y")),
-      settled(fetchStockQuotes([upper])),
-      settled(withTimeout(fetchEarningsEvidence(upper), 12_000)),
-      settled(withTimeout(fetchCompanyFundamentals(upper), 10_000)),
-    ]);
+    ),
+    loadInsiderTransactions(upper),
+    settled(fetchShortInterestSummary(upper)),
+    settled(fetchStockHistory(upper, "1y")),
+    settled(fetchStockQuotes([upper])),
+    // Chart meta often omits marketCap — quoteSummary price module is reliable.
+    settled(withTimeout(fetchSectorProfile(upper), 6_000)),
+    settled(withTimeout(fetchEarningsEvidence(upper), 12_000)),
+    settled(withTimeout(fetchCompanyFundamentals(upper), 10_000)),
+  ]);
 
   const quote = quotes?.[0] ?? null;
+  const marketCap =
+    quote?.marketCap
+    ?? history?.marketCap
+    ?? profile?.marketCap
+    ?? null;
   const input = buildInput(
     upper,
     institutional,
     insider,
     shortInterest,
     history,
-    quote,
+    quote ? { ...quote, marketCap } : quote,
   );
+  // Ensure size regime sees marketCap even when quote object is null.
+  if (input.marketCap == null) input.marketCap = marketCap;
   const categories = buildCategoryScores(input);
   const evidence = buildConvictionScore(input);
   const quality = calculateQualityComposite(
@@ -250,9 +268,7 @@ export async function getConvictionScoreForTicker(
       institutionalResults: institutional?.results ?? [],
     }),
   );
-  const blended = blendEvidenceAndQuality(evidence, quality, {
-    marketCap: quote?.marketCap ?? null,
-  });
+  const blended = blendEvidenceAndQuality(evidence, quality, { marketCap });
   const view = toView(upper, blended, categories);
   setCachedConvictionScore(view);
   return view;

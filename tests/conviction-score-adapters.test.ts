@@ -157,11 +157,53 @@ describe("toInsiderCategoryScore", () => {
     expect(category.explanation).toMatch(/buying|Form 4/i);
   });
 
-  it("maps engine net scores onto [-100, +100]", () => {
+  it("ignores insider sales entirely (not a conviction signal)", () => {
+    const category = toInsiderCategoryScore(
+      "AAPL",
+      {
+        transactions: [
+          purchase({
+            id: "sale-1",
+            transactionType: "sale",
+            transactionCode: "S",
+            totalValue: 8_000_000,
+            shares: 40_000,
+          }),
+        ],
+      },
+      new Date("2026-07-28"),
+    );
+    expect(category.hasData).toBe(false);
+    expect(category.score).toBe(0);
+    expect(category.explanation).toMatch(/sales ignored|No open-market insider purchases/i);
+  });
+
+  it("still scores purchases when mixed with sales", () => {
+    const category = toInsiderCategoryScore(
+      "AAPL",
+      {
+        transactions: [
+          purchase(),
+          purchase({
+            id: "sale-1",
+            transactionType: "sale",
+            transactionCode: "S",
+            totalValue: 8_000_000,
+            shares: 40_000,
+          }),
+        ],
+      },
+      new Date("2026-07-28"),
+    );
+    expect(category.hasData).toBe(true);
+    expect(category.score).toBeGreaterThan(0);
+  });
+
+  it("maps purchase net scores onto [0, +100]", () => {
     expect(mapInsiderNetScore(0)).toBe(0);
+    expect(mapInsiderNetScore(-200)).toBe(0);
     expect(mapInsiderNetScore(200)).toBeGreaterThan(80);
     expect(mapInsiderNetScore(200)).toBeLessThanOrEqual(100);
-    expect(mapInsiderNetScore(-200)).toBeLessThan(-80);
   });
 });
 
