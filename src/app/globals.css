@@ -1837,13 +1837,17 @@ details > summary::before {
   font-size: 0.78rem;
 }
 
-.wl-ring-gauge .quote-gauge-sm .quote-gauge-sublabel {
-  font-size: 0.42rem;
+.wl-ring-gauge .quote-gauge-caption {
+  margin-top: 2px;
+  font-size: 0.52rem;
+  font-weight: 700;
   letter-spacing: 0.04em;
-  max-width: 52px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-transform: uppercase;
+  color: var(--muted);
+  max-width: 64px;
+  line-height: 1.15;
+  white-space: normal;
+  text-align: center;
 }
 
 .wl-ring-gauge .quote-gauge-svg {
