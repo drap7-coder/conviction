@@ -928,6 +928,10 @@ details > summary::before {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.markets-page .view-switch-shell .pulse-view-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .investor-moves-panel,
 .smart-money-panel {
   margin-bottom: 24px;
