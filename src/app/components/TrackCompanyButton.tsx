@@ -88,13 +88,13 @@ export function TrackCompanyButton({ ticker, companyName }: TrackCompanyButtonPr
   if (tracked && !message) return null;
 
   return (
-    <div className="track-company-action">
+    <div className="track-company-action company-hero-track">
       {!tracked ? (
-        <button className="watchlist-add-button" disabled={busy} onClick={toggleTracked} type="button">
-          {busy ? "Saving..." : "Track"}
+        <button className="company-hero-track-btn" disabled={busy} onClick={toggleTracked} type="button">
+          {busy ? "Saving…" : "Track"}
         </button>
       ) : null}
-      {message ? <span>{message}</span> : null}
+      {message ? <span className="company-hero-track-msg">{message}</span> : null}
     </div>
   );
 }
