@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
+import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 
 interface InsiderActivitySectionProps {
   ticker: string;
@@ -200,13 +201,13 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
       ) : null}
 
       {status === "loading" || status === "idle" ? (
-        <div className="evidence-panel">
+        <div className={`evidence-panel ${inkBoxClass("quiet")}`}>
           <p style={{ color: "var(--quiet)", fontSize: "0.65rem" }}>
             Loading insider transactions...
           </p>
         </div>
       ) : error && events.length === 0 ? (
-        <div className="evidence-panel" style={{ borderColor: "var(--amber-dim)" }}>
+        <div className={`evidence-panel ${inkBoxClass("amber")}`}>
           <p style={{ color: "var(--muted)", fontSize: "0.65rem" }}>
             {error}
           </p>
@@ -217,7 +218,7 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
           ) : null}
         </div>
       ) : events.length === 0 ? (
-        <div className="evidence-panel">
+        <div className={`evidence-panel ${inkBoxClass("quiet")}`}>
           <p style={{ color: "var(--quiet)", fontSize: "0.65rem" }}>
             No insider activity data. Click &quot;Refresh from SEC&quot; to fetch.
           </p>
@@ -226,47 +227,50 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
         <>
           {/* Conviction summary */}
           <div className="evidence-grid" style={{ marginBottom: 12 }}>
-            <div className="evidence-panel">
-              <h3 style={{
-                color: label === "bullish" ? "var(--green)" : label === "bearish" ? "var(--red)" : "var(--muted)",
-                fontSize: "0.7rem",
-                marginBottom: 4,
-              }}>
-                {label === "bullish" ? "▲ Bullish Insider Activity" :
-                 label === "bearish" ? "▼ Bearish Insider Activity" :
-                 label === "neutral" ? "◆ Neutral Insider Activity" :
-                 "— No Signal"}
+            <div className={`evidence-panel ${inkBoxClass(
+              label === "bullish" ? "up" : label === "bearish" ? "down" : "quiet",
+            )}`}>
+              <h3 style={{ fontSize: "0.7rem", marginBottom: 8 }}>
+                <span className={inkChipClass(
+                  label === "bullish" ? "up" : label === "bearish" ? "down" : "quiet",
+                )}>
+                  {label === "bullish" ? "Constructive insider activity" :
+                   label === "bearish" ? "Adverse insider activity" :
+                   label === "neutral" ? "Neutral insider activity" :
+                   "No signal"}
+                </span>
               </h3>
               <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--muted)" }}>
-                Conviction score: <span style={{
-                  color: netScore > 0 ? "var(--green)" : netScore < 0 ? "var(--red)" : "var(--muted)",
-                }}>
+                Conviction score:{" "}
+                <span className={inkChipClass(
+                  netScore > 0 ? "up" : netScore < 0 ? "down" : "quiet",
+                )}>
                   {netScore > 0 ? "+" : ""}{netScore}
                 </span>
               </p>
-              <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--muted)" }}>
-                Net shares: <span style={{
-                  color: netShares > 0 ? "var(--green)" : netShares < 0 ? "var(--red)" : "var(--muted)",
-                }}>
+              <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--muted)", marginTop: 6 }}>
+                Net shares:{" "}
+                <span className={inkChipClass(
+                  netShares > 0 ? "up" : netShares < 0 ? "down" : "quiet",
+                )}>
                   {netShares > 0 ? "+" : ""}{netShares.toLocaleString()}
                 </span>
               </p>
             </div>
-            <div className="evidence-panel">
-              <h3 style={{ fontSize: "0.7rem", marginBottom: 4 }}>Past 90 days</h3>
+            <div className={`evidence-panel ${inkBoxClass("quiet")}`}>
+              <h3 style={{ fontSize: "0.7rem", marginBottom: 8 }}>Past 90 days</h3>
               {grouped.map((g) => (
                 <div key={g.type} style={{
                   display: "flex",
                   justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 8,
                   fontFamily: "var(--font-mono)",
                   fontSize: "0.55rem",
                   color: "var(--muted)",
-                  padding: "2px 0",
+                  padding: "4px 0",
                 }}>
-                  <span style={{
-                    color: g.color === "positive" ? "var(--green)" :
-                           g.color === "negative" ? "var(--red)" : "var(--muted)",
-                  }}>
+                  <span className={inkChipClass(inkToneFromSemantic(g.color))}>
                     {g.count} {g.label}
                   </span>
                   <span>{g.totalShares.toLocaleString()} shares{g.totalValue ? ` / $${(g.totalValue / 1000).toFixed(0)}K` : ""}</span>

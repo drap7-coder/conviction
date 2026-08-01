@@ -143,7 +143,7 @@ export function PoliticiansMovesPanel() {
               <span>{trade.amountRange}</span>
               <span>Filed {formatDate(trade.filingDate)}</span>
               {trade.transactionDate ? <span>Traded {formatDate(trade.transactionDate)}</span> : null}
-              {trade.isLate ? <span className="politician-trade-late">Late filing</span> : null}
+              {trade.isLate ? <span className="ink-chip ink-chip--amber">Late filing</span> : null}
             </div>
           </article>
           );

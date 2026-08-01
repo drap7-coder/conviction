@@ -86,12 +86,12 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
       </div>
 
       {status === "loading" || status === "idle" ? (
-        <div className="political-card loading">
+        <div className="political-card ink-box ink-box--quiet loading">
           <span className="move-eyebrow">Checking disclosures...</span>
           <h3>Looking for reported political trades.</h3>
         </div>
       ) : error ? (
-        <div className="political-card">
+        <div className="political-card ink-box ink-box--quiet">
           <h3>{error}</h3>
           <p>Congressional disclosures are delayed and source availability can vary.</p>
           <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
@@ -99,13 +99,13 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
           </button>
         </div>
       ) : !summary || summary.trades.length === 0 ? (
-        <div className="political-card">
+        <div className="political-card ink-box ink-box--quiet">
           <span className="move-eyebrow">Public disclosures</span>
           <h3>No recent political trade match found</h3>
           <p>No matching ticker was found in the open congressional-trade feed currently loaded.</p>
         </div>
       ) : (
-        <div className="political-card">
+        <div className="political-card ink-box ink-box--quiet">
           <div className="move-card-top">
             <div>
               <span className="move-eyebrow">Open congressional-trade feed</span>
@@ -115,7 +115,7 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
                   : `${summary.trades.length} disclosed trade${summary.trades.length === 1 ? "" : "s"}`}
               </h3>
             </div>
-            <span className="move-confidence">
+            <span className="ink-chip ink-chip--quiet">
               {summary.latestFilingDate ? `Filed ${formatDate(summary.latestFilingDate)}` : "Filing date unavailable"}
             </span>
           </div>
@@ -128,15 +128,15 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
           ) : null}
 
           <div className="political-facts">
-            <div>
+            <div className="ink-box ink-box--up">
               <strong>{summary.purchases.length}</strong>
               <span>purchases</span>
             </div>
-            <div>
+            <div className="ink-box ink-box--down">
               <strong>{summary.sales.length}</strong>
               <span>sales</span>
             </div>
-            <div>
+            <div className="ink-box ink-box--quiet">
               <strong>{formatAmount(summary.totalEstimatedPurchases)}</strong>
               <span>est. buys</span>
             </div>
@@ -145,7 +145,7 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
           <div className="political-trade-list">
             {summary.trades.slice(0, 6).map((trade) => (
               <a
-                className={`political-trade-row ${trade.direction}`}
+                className={`political-trade-row ink-box ink-box--${trade.direction === "purchase" ? "up" : trade.direction === "sale" ? "down" : "quiet"}`}
                 href={trade.sourceUrl}
                 key={trade.id}
                 rel="noreferrer"
@@ -156,7 +156,7 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
                   <span>{trade.office} · {trade.party ?? "—"}{trade.state ? `-${trade.state}` : ""}</span>
                 </div>
                 <div>
-                  <strong>{trade.transactionType}</strong>
+                  <strong className={`ink-chip ink-chip--${trade.direction === "purchase" ? "up" : trade.direction === "sale" ? "down" : "quiet"}`}>{trade.transactionType}</strong>
                   <span>{trade.amountRange} · filed {formatDate(trade.filingDate)}</span>
                 </div>
               </a>

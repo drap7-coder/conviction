@@ -12,6 +12,7 @@ import type {
   InstitutionalMarketResult,
 } from "@/lib/sec/institutional";
 import type { EvidenceStrength } from "@/lib/display/vocabulary";
+import { inkChipClass } from "@/lib/display/ink-tone";
 
 type InvestorMovesResponse = InstitutionalMarketResult & {
   status?: "success" | "timeout" | "error";
@@ -38,10 +39,11 @@ function formatShares(value: number): string {
   return amount.toLocaleString();
 }
 
-function statusClass(status: AccumulationStatus): string {
-  // Adds stay default ink — red is reserved for trims/exits so it stays meaningful.
-  if (status === "Reduced" || status === "Exited") return "negative";
-  return "neutral";
+function statusChipClass(status: AccumulationStatus): string {
+  // Adds stay quiet — red is reserved for trims/exits so it stays meaningful.
+  if (status === "Reduced" || status === "Exited") return inkChipClass("down");
+  if (status === "New" || status === "Increased") return inkChipClass("up");
+  return inkChipClass("quiet");
 }
 
 function moveSummary(move: InstitutionalMarketIdea["moves"][number]): string {
@@ -188,7 +190,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
   if (status === "loading" || status === "idle") {
     return (
       <section className="investor-moves-panel" aria-label="Institutional moves" aria-busy="true">
-        <div className="investor-moves-intro">
+        <div className="investor-moves-intro ink-panel">
           <span className="investor-moves-eyebrow">Where big funds are building</span>
           <h2>Recent ownership moves from large managers</h2>
           <p>Comparing the two latest filings from notable investors.</p>
@@ -201,7 +203,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
   if (status === "error" || status === "timeout" || status === "empty") {
     return (
       <section className="investor-moves-panel" aria-label="Institutional moves">
-        <div className="investor-moves-intro">
+        <div className="investor-moves-intro ink-panel">
           <span className="investor-moves-eyebrow">SEC Form 13F · Institutional Moves</span>
           <h2>The filing feed is quiet right now</h2>
           <p>{response?.message ?? "No qualifying institutional ideas were found in the latest comparison."}</p>
@@ -318,7 +320,7 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
                         >
                           {move.displayName}
                         </button>
-                        <strong className={statusClass(move.status)}>{moveSummary(move)}</strong>
+                        <strong className={statusChipClass(move.status)}>{moveSummary(move)}</strong>
                       </div>
                     ))}
                   </div>

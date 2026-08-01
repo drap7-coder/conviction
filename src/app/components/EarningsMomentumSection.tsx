@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { EarningsEvidence } from "@/lib/earnings/types";
+import { inkBoxClass, inkChipClass } from "@/lib/display/ink-tone";
 
 export function EarningsMomentumSection({ ticker }: { ticker: string }) {
   const [data, setData] = useState<EarningsEvidence | null>(null);
@@ -22,7 +23,7 @@ export function EarningsMomentumSection({ ticker }: { ticker: string }) {
       </div>
       {!data ? <p className="evidence-empty">Checking reported results and estimate changes…</p> : data.status === "unavailable" ? <p className="evidence-empty">{data.message}</p> : (
         <>
-          <div className="earnings-hero">
+          <div className={`earnings-hero ${inkBoxClass("quiet")}`}>
             <div><span>Estimate direction</span><strong>{data.momentum}</strong></div>
             <div><span>Signal score</span><strong>{data.score !== null && data.score > 0 ? "+" : ""}{data.score ?? "—"}</strong></div>
           </div>
@@ -31,7 +32,14 @@ export function EarningsMomentumSection({ ticker }: { ticker: string }) {
             <div className="earnings-row header"><span>Quarter</span><span>Actual</span><span>Estimate</span><span>Result</span></div>
             {data.history.map((quarter) => {
               const beat = quarter.actualEps >= quarter.estimatedEps;
-              return <div className="earnings-row" key={`${quarter.fiscalQuarter}-${quarter.reportedDate}`}><span>{quarter.fiscalQuarter}</span><span>{quarter.actualEps.toFixed(2)}</span><span>{quarter.estimatedEps.toFixed(2)}</span><strong className={beat ? "positive" : "negative"}>{beat ? "Beat" : "Miss"}</strong></div>;
+              return (
+                <div className="earnings-row" key={`${quarter.fiscalQuarter}-${quarter.reportedDate}`}>
+                  <span>{quarter.fiscalQuarter}</span>
+                  <span>{quarter.actualEps.toFixed(2)}</span>
+                  <span>{quarter.estimatedEps.toFixed(2)}</span>
+                  <strong className={inkChipClass(beat ? "up" : "down")}>{beat ? "Beat" : "Miss"}</strong>
+                </div>
+              );
             })}
           </div>
           <p className="evidence-source">Source: Nasdaq earnings data · revisions cover the last four weeks</p>
