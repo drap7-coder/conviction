@@ -35,12 +35,14 @@ export async function GET(request: NextRequest) {
 
   await Promise.all(tickers.map(async (ticker) => {
     try {
+      // Prefer SEC-resolved company names when available, but still fetch news for
+      // ETFs / crypto / indexes that aren't in the equity ticker dataset.
       const resolved = await validateTicker(ticker);
-      if (!resolved.valid) {
-        results[ticker] = { headline: null, url: null, date: null, driver: null, headlines: [] };
-        return;
-      }
-      const summary = await getNewsEvidenceSummary(resolved.ticker, resolved.companyName ?? resolved.ticker);
+      const lookupTicker = resolved.valid ? resolved.ticker : ticker;
+      const lookupName = resolved.valid
+        ? (resolved.companyName ?? resolved.ticker)
+        : ticker;
+      const summary = await getNewsEvidenceSummary(lookupTicker, lookupName);
       const event = summary.events[0];
       const headlines = summary.events.slice(0, 3).map((newsEvent) => ({
         headline: newsEvent.title.slice(0, 200),

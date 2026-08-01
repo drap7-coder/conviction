@@ -1,11 +1,13 @@
 // ── Lightweight RSS news fetcher ──
 // Fetches Yahoo Finance RSS by ticker to provide real recent headlines.
-// No API key required. Uses the Yahoo Finance RSS feed format.
-// Falls back to empty gracefully on fetch/parse errors or unsupported tickers.
+// Falls back to Google News RSS when Yahoo returns off-topic / empty feeds.
+// No API key required. Degrades to empty on fetch/parse errors.
 
 import type { EvidenceEvent } from "./types";
+import { getMarketInstrumentAlias } from "./market-instrument-aliases";
 
 const YAHOO_RSS_BASE = "https://finance.yahoo.com/rss/headline";
+const GOOGLE_NEWS_RSS = "https://news.google.com/rss/search";
 
 interface RssItem {
   title: string;
@@ -55,7 +57,15 @@ function extractTag(xml: string, tag: string): string | null {
 }
 
 function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/\s+/g, " ").trim();
+  return html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function parseRssDate(dateStr: string): string {
@@ -69,14 +79,7 @@ function parseRssDate(dateStr: string): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/**
- * Fetch recent RSS headlines for a ticker from Yahoo Finance.
- * Returns up to `limit` items, deduplicated by title within the response.
- */
-export async function fetchRssNews(ticker: string, limit = 5): Promise<EvidenceEvent[]> {
-  const url = `${YAHOO_RSS_BASE}?s=${encodeURIComponent(ticker.toUpperCase())}`;
-
-  let text: string;
+async function fetchRssXml(url: string): Promise<string | null> {
   try {
     const response = await fetch(url, {
       headers: {
@@ -85,15 +88,19 @@ export async function fetchRssNews(ticker: string, limit = 5): Promise<EvidenceE
       next: { revalidate: 300 },
       signal: AbortSignal.timeout(8_000),
     });
-    if (!response.ok) return [];
-    text = await response.text();
+    if (!response.ok) return null;
+    return await response.text();
   } catch {
-    return [];
+    return null;
   }
+}
 
-  const items = parseRssXml(text);
-  if (items.length === 0) return [];
-
+function itemsToEvents(
+  items: RssItem[],
+  ticker: string,
+  limit: number,
+  sourceLabel: string,
+): EvidenceEvent[] {
   const events: EvidenceEvent[] = [];
   const seen = new Set<string>();
 
@@ -121,12 +128,68 @@ export async function fetchRssNews(ticker: string, limit = 5): Promise<EvidenceE
       size: 0.5,
       strength: 0.5,
       isContradiction: false,
-      aiExplanation: "Sourced RSS headline from Yahoo Finance.",
+      aiExplanation: `Sourced RSS headline from ${sourceLabel}.`,
       metadata: {
-        transactionClass: "Yahoo Finance RSS",
+        transactionClass: sourceLabel,
       },
     });
   }
 
   return events;
+}
+
+function googleNewsQuery(ticker: string, companyName?: string | null): string {
+  const alias = getMarketInstrumentAlias(ticker);
+  if (alias) return alias.searchQuery;
+  const name = companyName?.trim();
+  if (name && name.toUpperCase() !== ticker.toUpperCase()) {
+    return `"${ticker}" OR "${name}"`;
+  }
+  return `"${ticker}" stock`;
+}
+
+/**
+ * Fetch recent RSS headlines for a ticker.
+ * Tries Yahoo Finance first, then Google News when Yahoo is empty/off-topic upstream.
+ */
+export async function fetchRssNews(
+  ticker: string,
+  limit = 5,
+  companyName?: string | null,
+): Promise<EvidenceEvent[]> {
+  const upper = ticker.toUpperCase();
+  const yahooUrl = `${YAHOO_RSS_BASE}?s=${encodeURIComponent(upper)}`;
+  const yahooXml = await fetchRssXml(yahooUrl);
+  if (yahooXml) {
+    const yahooItems = parseRssXml(yahooXml);
+    if (yahooItems.length > 0) {
+      return itemsToEvents(yahooItems, upper, limit, "Yahoo Finance RSS");
+    }
+  }
+
+  const query = googleNewsQuery(upper, companyName);
+  const googleUrl =
+    `${GOOGLE_NEWS_RSS}?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+  const googleXml = await fetchRssXml(googleUrl);
+  if (!googleXml) return [];
+  const googleItems = parseRssXml(googleXml);
+  return itemsToEvents(googleItems, upper, limit, "Google News RSS");
+}
+
+/**
+ * Fetch Google News RSS for a ticker/company (used when Yahoo headlines
+ * exist but none are company-relevant).
+ */
+export async function fetchGoogleNewsRss(
+  ticker: string,
+  limit = 5,
+  companyName?: string | null,
+): Promise<EvidenceEvent[]> {
+  const upper = ticker.toUpperCase();
+  const query = googleNewsQuery(upper, companyName);
+  const googleUrl =
+    `${GOOGLE_NEWS_RSS}?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
+  const googleXml = await fetchRssXml(googleUrl);
+  if (!googleXml) return [];
+  return itemsToEvents(parseRssXml(googleXml), upper, limit, "Google News RSS");
 }

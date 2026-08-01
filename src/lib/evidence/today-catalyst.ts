@@ -3,6 +3,8 @@
  * Used on the company dashboard header and material-news brief.
  */
 
+import { matchesMarketInstrumentAlias } from "./market-instrument-aliases";
+
 export type TodayCatalystTone = "positive" | "negative" | "contested" | "quiet";
 
 export interface TodayCatalyst {
@@ -145,12 +147,18 @@ export function isCompanyRelevantHeadline(
   companyName?: string | null,
 ): boolean {
   if (!ticker) return true;
+  // Strip share-class / yahoo suffixes so BTC-USD matches BTC when needed.
+  const bare = ticker.replace(/-USD$/i, "");
   const escaped = ticker.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const bareEscaped = bare.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   if (new RegExp(`\\b${escaped}\\b`, "i").test(text)) return true;
+  if (bare !== ticker && new RegExp(`\\b${bareEscaped}\\b`, "i").test(text)) return true;
   const token = companyToken(companyName, ticker);
   if (token && new RegExp(`\\b${token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(text)) {
     return true;
   }
+  // ETFs / crypto proxies: match common headline language (Bitcoin, S&P 500, …)
+  if (matchesMarketInstrumentAlias(text, ticker)) return true;
   return false;
 }
 

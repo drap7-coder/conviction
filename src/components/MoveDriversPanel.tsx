@@ -172,10 +172,18 @@ export function MoveDriversPanel({
           const conclusion =
             driver?.label
             ?? top[0]?.headline
-            ?? (loaded ? "No recent news loaded yet" : "Loading the story…");
+            ?? (loaded
+              ? (moveLabel
+                ? `${holding.ticker} is ${moveLabel.replace(" today", "")} today`
+                : "No clear news driver yet")
+              : "Loading the story…");
           const evidence =
             driver?.explanation
-            ?? (top[1] ? top.slice(0, 2).map((h) => h.headline).join(" · ") : moveLabel);
+            ?? (top[1]
+              ? top.slice(0, 2).map((h) => h.headline).join(" · ")
+              : (loaded && !top[0]
+                ? "Price is moving without a clean company headline in the latest feed."
+                : moveLabel));
 
           return (
             <Link

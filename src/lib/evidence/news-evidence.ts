@@ -1,5 +1,5 @@
 import { getMoveEvent, type MoveEvent, type MoveEventCategory, type MoveEventConfidence } from "./move-events";
-import { fetchRssNews } from "./news-rss";
+import { fetchGoogleNewsRss, fetchRssNews } from "./news-rss";
 import { buildNewsDriver, type NewsDriver } from "./news-driver";
 import { isCompanyRelevantHeadline } from "./today-catalyst";
 import type { EvidenceDirection, EvidenceEvent } from "./types";
@@ -113,12 +113,21 @@ export async function getNewsEvidenceSummary(ticker: string, companyName?: strin
     };
   }
 
-  // 2. Fall back to live RSS headlines from Yahoo Finance — ticker/company scoped only
+  // 2. Live RSS — Yahoo first, then Google News when Yahoo is empty/off-topic
   try {
-    const rssEvents = await fetchRssNews(upperTicker, 10);
-    const scoped = rssEvents.filter((event) =>
+    const yahooEvents = await fetchRssNews(upperTicker, 10, companyName);
+    let scoped = yahooEvents.filter((event) =>
       isCompanyRelevantHeadline(`${event.title} ${event.summary}`, upperTicker, companyName),
     );
+
+    // Yahoo often returns a mixed “market” feed; search Google for on-topic headlines.
+    if (scoped.length === 0) {
+      const googleEvents = await fetchGoogleNewsRss(upperTicker, 10, companyName);
+      scoped = googleEvents.filter((event) =>
+        isCompanyRelevantHeadline(`${event.title} ${event.summary}`, upperTicker, companyName),
+      );
+    }
+
     if (scoped.length > 0) {
       return {
         ticker: upperTicker,

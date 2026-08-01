@@ -1,4 +1,4 @@
-import { fetchRssNews } from "@/lib/evidence/news-rss";
+import { fetchGoogleNewsRss, fetchRssNews } from "@/lib/evidence/news-rss";
 import { fetchWithTimeout } from "@/lib/request-timeout";
 
 const BLUESKY_SEARCH_URL = "https://api.bsky.app/xrpc/app.bsky.feed.searchPosts";
@@ -316,13 +316,20 @@ async function fetchTheme(
   assets: NarrativeAssetMove[],
   now: Date,
 ): Promise<MarketNarrativeTheme> {
-  const [chatter, headlines] = await Promise.all([
+  const [chatter, yahooHeadlines] = await Promise.all([
     fetchThemeChatter(config.query, now),
     fetchRssNews(config.newsTicker, 6),
   ]);
   const stats = windowStats(chatter, now);
   const scored = scoreNarrative({ ...stats, assetMoves: assets.map((asset) => asset.changePercent) });
-  const matchedHeadline = headlines.find((headline) => config.headlinePattern.test(headline.title));
+
+  let matchedHeadline = yahooHeadlines.find((headline) => config.headlinePattern.test(headline.title));
+  if (!matchedHeadline) {
+    const googleHeadlines = await fetchGoogleNewsRss(config.newsTicker, 8);
+    matchedHeadline = googleHeadlines.find((headline) => config.headlinePattern.test(headline.title))
+      ?? googleHeadlines[0]
+      ?? null;
+  }
 
   return {
     id: config.id,
