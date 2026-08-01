@@ -9120,12 +9120,8 @@ details > summary::before {
 }
 
 .wl-attention-action {
-  color: var(--on-ink-muted);
-}
-
-.wl-attention-action {
   margin-left: auto;
-  color: var(--ink);
+  color: var(--on-ink-muted);
   letter-spacing: 0.02em;
 }
 
