@@ -1,5 +1,43 @@
 import { describe, expect, it } from "vitest";
-import { scoreNarrative } from "@/lib/market/market-narratives";
+import {
+  MARKET_NARRATIVE_THEMES,
+  scoreNarrative,
+  themesForHeatmapGroup,
+  type MarketNarrativeTheme,
+} from "@/lib/market/market-narratives";
+
+describe("MARKET_NARRATIVE_THEMES heatmap mapping", () => {
+  it("assigns each theme to a Pulse heatmap group", () => {
+    const groups = new Set(MARKET_NARRATIVE_THEMES.map((theme) => theme.heatmapGroup));
+    expect(groups.has("Major Index")).toBe(true);
+    expect(groups.has("U.S. Markets")).toBe(true);
+    expect(groups.has("Commodity")).toBe(true);
+    expect(groups.has("Crypto")).toBe(true);
+    expect(groups.has("International")).toBe(true);
+    expect(groups.has("Industries")).toBe(true);
+  });
+
+  it("filters themes for a heatmap group by score", () => {
+    const themes = MARKET_NARRATIVE_THEMES.map((config, index) => ({
+      id: config.id,
+      label: config.label,
+      heatmapGroup: config.heatmapGroup,
+      heat: "steady" as const,
+      marketTone: "mixed" as const,
+      score: index + 1,
+      velocity: 1,
+      mentionsLastHour: 1,
+      uniqueAuthorsLastHour: 1,
+      summary: "test",
+      headline: null,
+      assets: [],
+    })) satisfies MarketNarrativeTheme[];
+
+    const crypto = themesForHeatmapGroup(themes, "Crypto");
+    expect(crypto).toHaveLength(1);
+    expect(crypto[0]?.id).toBe("crypto-liquidity");
+  });
+});
 
 describe("scoreNarrative", () => {
   it("marks broad, accelerating chatter as surging", () => {
