@@ -155,7 +155,7 @@ export function MoveDriversPanel({
       <div className="bcn-header">
         <span className="bcn-eyebrow">{eyebrow}</span>
         <h2 className="bcn-title">{title}</h2>
-        <p className="bcn-lede">{lede}</p>
+        {lede.trim() ? <p className="bcn-lede">{lede}</p> : null}
       </div>
       <div
         className="bcn-list"

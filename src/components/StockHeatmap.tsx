@@ -67,7 +67,7 @@ function HeatmapCopy({
           </span>
         ) : null}
       </div>
-      <p className="stock-heat-subtitle">{subtitle}</p>
+      {subtitle.trim() ? <p className="stock-heat-subtitle">{subtitle}</p> : null}
       {showLegend ? (
         <div className="stock-heat-move-legend" aria-label="Session move color legend">
           <span><i className="stock-heat-swatch" style={{ background: HEAT_NEUTRAL }} /> Flat</span>
