@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { TechnicalStateCard } from "./TechnicalStateCard";
-// Today & industry change temporarily suppressed — restore this import when re-enabling:
-// import { TodayAndIndustryCard } from "./TodayAndPeersCard";
 
 interface StockHistoryPoint {
   date: string;
@@ -59,17 +57,11 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
     return () => controller.abort();
   }, [ticker]);
 
-  // Use the year-range history for technical state, but let PriceTrendCard manage its own range
-  // Pass the year-range data only for technical indicators
   return (
-    <>
-      <TechnicalStateCard
-        history={history}
-        status={status}
-        currentPrice={history?.endPrice ?? null}
-      />
-      {/* Today & industry change temporarily suppressed — restore when ready:
-      <TodayAndIndustryCard ticker={ticker} /> */}
-    </>
+    <TechnicalStateCard
+      history={history}
+      status={status}
+      currentPrice={history?.endPrice ?? null}
+    />
   );
 }
