@@ -145,11 +145,16 @@ function clauseForSignal(signal: ConvictionSignalDisplay): string | null {
     return "institutions mixed";
   }
   if (signal.category === "technicals") {
-    if (/fallen below the short-term|caution/i.test(signal.headline)) {
+    if (
+      /fallen below the short-term|caution|below sma50, above sma200/i.test(signal.headline)
+    ) {
       return "chart soft near-term";
     }
-    if (/above the short-term|momentum/i.test(signal.headline)) {
-      return "chart mixed";
+    if (/above sma50 and sma200|above the short-term|momentum/i.test(signal.headline)) {
+      return "chart supportive";
+    }
+    if (/below sma50 and sma200/i.test(signal.headline)) {
+      return "chart weak";
     }
     return "chart mixed";
   }
