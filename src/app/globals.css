@@ -9989,6 +9989,71 @@ details > summary::before {
   }
 }
 
+.conviction-signals-synthesis {
+  margin: 0 0 10px;
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.conviction-signal-notes,
+.conviction-signal-quality {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 88%, #ffffff);
+}
+
+.conviction-signal-notes-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--quiet);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.conviction-signal-notes ul,
+.conviction-signal-quality ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.conviction-signal-notes li,
+.conviction-signal-quality li {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.conviction-signal-quality li {
+  display: grid;
+  gap: 2px;
+}
+
+.conviction-signal-quality li strong {
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: capitalize;
+}
+
+.conviction-signal-legend-item.signal-status-quiet strong {
+  color: var(--muted);
+}
+
+.conviction-signal-strip .signal-status-quiet {
+  opacity: 0.55;
+}
+
 .conviction-signal-balance {
   display: flex;
   align-items: center;
