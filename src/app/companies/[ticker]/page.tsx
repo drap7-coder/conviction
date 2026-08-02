@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
-import { CompanyVerdict } from "@/app/components/CompanyVerdict";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { ConvictionScoreOverviewCard } from "@/app/components/ConvictionScoreOverviewCard";
@@ -96,7 +95,6 @@ export default async function CompanyPage({
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
             <CompanySignalGauges ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
-            <CompanyVerdict ticker={upperTicker} />
           </>
         }
       >

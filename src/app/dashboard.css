@@ -74,116 +74,9 @@
   }
 }
 
-/* ── Verdict: one calm, legible decision surface ── */
-
-.verdict-card {
-  position: relative;
-  overflow: hidden;
-  padding: clamp(18px, 3vw, 30px);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) * 1.35);
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
-}
-
-.verdict-card-compact {
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-/* Quiet ink box — score remains the only ink-panel hero above. */
-.verdict-lede {
-  margin: 0;
-  padding: 14px 16px;
-  border-radius: 12px;
-}
-
-.verdict-lede .verdict-eyebrow {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--on-ink-muted);
-}
-
-.verdict-lede h2 {
-  margin: 0;
-  max-width: 34rem;
-  color: var(--on-ink);
-  font-size: 1.08rem;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-.verdict-lede p {
-  max-width: 40rem;
-  margin: 6px 0 0;
-  color: var(--on-ink-muted);
-  font-size: 0.8rem;
-  line-height: 1.45;
-}
-
-.verdict-lede .momentum-ink-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 14px;
-}
-
-.verdict-lede .momentum-ink-grid .ink-box {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-  box-shadow: none;
-}
-
-.verdict-topline { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.verdict-eyebrow { color: var(--accent); font: 600 .61rem/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
-.verdict-topline h2 { margin-top: 8px; color: var(--ink); font-size: clamp(1.45rem, 3.3vw, 2.25rem); line-height: 1.04; letter-spacing: -.04em; }
-.verdict-topline p { max-width: 680px; margin-top: 8px; color: var(--muted); font-size: .88rem; line-height: 1.5; }
-.verdict-score { flex: 0 0 92px; text-align: center; }
-.verdict-score strong { display: block; color: var(--ink); font: 500 clamp(2rem, 5vw, 3.35rem)/.95 var(--font-mono); letter-spacing: -.08em; }
-.verdict-score span { color: var(--quiet); font: .57rem/1 var(--font-mono); text-transform: uppercase; }
-.verdict-score.bullish strong { color: var(--positive); }
-.verdict-score.bearish strong { color: var(--negative); }
-.verdict-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; padding-top: 13px; border-top: 1px solid var(--border); color: var(--quiet); font: .62rem/1.4 var(--font-mono); }
-.verdict-meta b { color: var(--ink); font-weight: 600; }
-.signal-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; }
-.momentum-signal-strip { grid-template-columns: repeat(3, 1fr); }
-.signal-pill { display: flex; justify-content: space-between; gap: 8px; padding: 9px 10px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-inset); font: .58rem/1.25 var(--font-mono); }
-.signal-pill span { color: var(--muted); }
-.signal-pill strong.positive, .earnings-row .positive { color: var(--positive); }
-.signal-pill strong.negative, .earnings-row .negative { color: var(--negative); }
-.signal-pill strong.neutral { color: var(--ink); }
-.signal-pill strong.missing { color: var(--quiet); }
-.momentum-signal { display: grid; gap: 6px; }
-.momentum-signal span { text-transform: uppercase; letter-spacing: .08em; }
-.momentum-signal strong { color: var(--ink); font-size: .76rem; }
-.momentum-signal strong.improving { color: var(--positive); }
-.momentum-signal strong.weakening { color: var(--negative); }
-.momentum-signal strong.unavailable { color: var(--quiet); }
-.momentum-signal small {
-  color: var(--quiet);
-  font: .52rem/1.35 var(--font-mono);
-  letter-spacing: 0;
-  text-transform: none;
-}
-.verdict-explainer { margin-top: 11px; color: var(--quiet); font-size: .67rem; }
-.verdict-explainer summary, .other-events > summary { cursor: pointer; color: var(--muted); font: .61rem/1.4 var(--font-mono); }
-.verdict-explainer p { max-width: 780px; margin-top: 7px; line-height: 1.45; }
-
-/* ── Stock Pulse: attention relative to price ── */
-
-
-
-
-
-70%, 100% { box-shadow: 0 0 0 7px transparent; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-}
+.other-events > summary { cursor: pointer; color: var(--muted); font: .61rem/1.4 var(--font-mono); }
+.earnings-row .positive { color: var(--positive); }
+.earnings-row .negative { color: var(--negative); }
 
 .earnings-hero { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-top: 18px; padding: 15px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-inset); }
 .earnings-hero.ink-box { background: var(--ink-panel-elevated); border-color: var(--on-ink-border); box-shadow: none; }
@@ -453,10 +346,6 @@
     min-height: 280px;
   }
 
-  .verdict-topline { align-items: flex-start; gap: 12px; }
-  .verdict-score { flex-basis: 64px; }
-  .signal-strip { grid-template-columns: 1fr 1fr; }
-  .verdict-lede .momentum-ink-grid { grid-template-columns: 1fr; }
 }
 
 /* ── Prevent page-level overflow ── */
