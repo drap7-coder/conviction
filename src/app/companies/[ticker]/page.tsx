@@ -3,7 +3,7 @@ import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosur
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
-import { ConvictionScoreOverviewCard } from "@/app/components/ConvictionScoreOverviewCard";
+import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
@@ -91,7 +91,7 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            <ConvictionScoreOverviewCard ticker={upperTicker} />
+            <ConvictionSignalsCard ticker={upperTicker} />
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
             <CompanySignalGauges ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
