@@ -25,6 +25,8 @@ export interface SignalBlockProps {
   badge?: { label: string; tone?: string } | null;
   eyebrow?: string | null;
   compact?: boolean;
+  /** Hide date/source footer — useful in dense carousels. */
+  hideMeta?: boolean;
   children?: ReactNode;
   className?: string;
 }
@@ -39,12 +41,14 @@ export function SignalBlock({
   badge,
   eyebrow,
   compact = false,
+  hideMeta = false,
   children,
   className = "",
 }: SignalBlockProps) {
   const semantic = badge?.tone ?? (strength ? EVIDENCE_STRENGTH_TONE[strength] : null);
   const inkTone = inkToneFromSemantic(semantic);
   const chipLabel = badge?.label ?? (strength ? EVIDENCE_STRENGTH_LABEL[strength] : null);
+  const showMeta = !hideMeta && Boolean(dateLabel || source);
 
   return (
     <section
@@ -65,7 +69,7 @@ export function SignalBlock({
       {whyItMatters ? <p className="signal-block-why">{whyItMatters}</p> : null}
       {children}
 
-      {(dateLabel || source) ? (
+      {showMeta ? (
         <div className="signal-block-meta">
           {dateLabel ? <span>{dateLabel}</span> : null}
           {dateLabel && source ? <span aria-hidden="true">·</span> : null}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
@@ -18,6 +18,17 @@ interface NewsEvidenceResponse {
 interface MaterialNewsCardProps {
   ticker: string;
   companyName?: string;
+}
+
+function DriverShell({ children }: { children: ReactNode }) {
+  return (
+    <section className="company-driver-module" aria-label="What’s driving the move">
+      <div className="company-driver-header">
+        <h2 className="company-driver-title">What’s driving the move</h2>
+      </div>
+      {children}
+    </section>
+  );
 }
 
 export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps) {
@@ -70,48 +81,54 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
 
   if (status === "loading" || status === "idle") {
     return (
-      <SignalBlock
-        eyebrow="What’s driving the move"
-        conclusion="Reading the latest coverage…"
-        evidence="Checking headlines for a clear catalyst."
-        dateLabel="—"
-        source="material_news"
-      />
+      <DriverShell>
+        <SignalBlock
+          eyebrow={ticker}
+          conclusion="Reading the latest coverage…"
+          evidence="Checking headlines for a clear catalyst."
+          hideMeta
+        />
+      </DriverShell>
     );
   }
 
   if (status === "timeout" || status === "error") {
     return (
-      <SignalBlock
-        eyebrow="What’s driving the move"
-        conclusion="News context is temporarily unavailable"
-        evidence="Ownership filings and company disclosures still show the fuller picture."
-        dateLabel="—"
-        source="material_news"
-      />
+      <DriverShell>
+        <SignalBlock
+          eyebrow={ticker}
+          conclusion="News context is temporarily unavailable"
+          evidence="Ownership filings and company disclosures still show the fuller picture."
+          hideMeta
+        />
+      </DriverShell>
     );
   }
 
   if (!driver && headlines.length === 0) {
     return (
-      <SignalBlock
-        eyebrow="What’s driving the move"
-        conclusion="No clear news catalyst found"
-        evidence="Ownership filings and company disclosures still show the fuller picture."
-        dateLabel="—"
-        source="material_news"
-      />
+      <DriverShell>
+        <SignalBlock
+          eyebrow={ticker}
+          conclusion="No clear news catalyst found"
+          evidence="Ownership filings and company disclosures still show the fuller picture."
+          hideMeta
+        />
+      </DriverShell>
     );
   }
 
   return (
-    <NewsDriverBrief
-      ticker={ticker}
-      companyName={companyName}
-      driver={driver}
-      headlines={headlines}
-      showBadge={false}
-      showWhy={false}
-    />
+    <DriverShell>
+      <NewsDriverBrief
+        ticker={ticker}
+        companyName={companyName}
+        driver={driver}
+        headlines={headlines}
+        eyebrow={ticker}
+        showBadge
+        showWhy={false}
+      />
+    </DriverShell>
   );
 }

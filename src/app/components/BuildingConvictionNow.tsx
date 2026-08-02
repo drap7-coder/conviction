@@ -10,11 +10,10 @@ function ItemCard({ item }: { item: BuildingConvictionItem }) {
     <Link href={item.href} className="bcn-item">
       <SignalBlock
         compact
+        hideMeta
         eyebrow={item.subject}
         conclusion={item.conclusion}
         evidence={item.evidence}
-        dateLabel={item.dateLabel}
-        source={item.sourceLabel}
         strength={item.strength}
       />
     </Link>

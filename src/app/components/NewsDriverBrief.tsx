@@ -32,6 +32,8 @@ export function NewsDriverBrief({
   showBadge = true,
   /** Extra “why it matters” line — usually off on the company dashboard. */
   showWhy = true,
+  /** Override eyebrow; pass null to omit (section title lives outside). */
+  eyebrow = "What’s driving the move",
 }: {
   ticker: string;
   companyName?: string;
@@ -40,12 +42,13 @@ export function NewsDriverBrief({
   compact?: boolean;
   showBadge?: boolean;
   showWhy?: boolean;
+  eyebrow?: string | null;
 }) {
   if (!driver && headlines.length === 0) {
     return (
       <SignalBlock
         compact={compact}
-        eyebrow="What’s driving the move"
+        eyebrow={eyebrow}
         conclusion="No clear news catalyst found"
         evidence="Ownership filings and company disclosures still show the fuller picture."
         dateLabel="—"
@@ -79,7 +82,7 @@ export function NewsDriverBrief({
   return (
     <SignalBlock
       compact={compact}
-      eyebrow="What’s driving the move"
+      eyebrow={eyebrow}
       conclusion={conclusion}
       evidence={evidence}
       whyItMatters={whyItMatters}
