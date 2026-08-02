@@ -143,93 +143,92 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
   };
 
   return (
-    <section className="quote-card conviction-signals-card" aria-label="Conviction signals">
-      <div className="quote-card-header conviction-signals-header">
-        <div>
-          <span className="quote-card-title">Conviction signals</span>
-          <p>See the evidence directly—without blending it into one score.</p>
-        </div>
-        <span className="quote-card-meta">
-          {loading ? "UPDATING" : `${availableCount} OF ${signals.length} LIVE`}
+    <section className="conviction-signals-card" aria-label="Conviction signals">
+      <div className="conviction-signals-header">
+        <h2 className="conviction-signals-title">Conviction signals</h2>
+        <span className="conviction-signals-meta">
+          {loading ? "Updating" : `${availableCount} of ${signals.length} live`}
         </span>
       </div>
 
-      <div className="conviction-signal-balance" aria-label={`${bullishCount} bullish and ${bearishCount} bearish signals`}>
-        <strong>{bullishCount} bullish</strong>
-        <span aria-hidden="true">·</span>
-        <strong>{bearishCount} bearish</strong>
-        <span aria-hidden="true">·</span>
-        <span>{availableCount} current</span>
-      </div>
+      <div className="conviction-signals-body">
+        <div className="conviction-signal-balance" aria-label={`${bullishCount} bullish and ${bearishCount} bearish signals`}>
+          <strong>{bullishCount} bullish</strong>
+          <span aria-hidden="true">·</span>
+          <strong>{bearishCount} bearish</strong>
+          <span aria-hidden="true">·</span>
+          <span>{availableCount} current</span>
+        </div>
 
-      <div className="conviction-signal-strip" aria-hidden="true">
-        {signals.map((signal) => (
-          <i className={`signal-tone-${signal.tone} signal-status-${signal.status}`} key={signal.category} />
-        ))}
-      </div>
+        <div className="conviction-signal-strip" aria-hidden="true">
+          {signals.map((signal) => (
+            <i className={`signal-tone-${signal.tone} signal-status-${signal.status}`} key={signal.category} />
+          ))}
+        </div>
 
-      <div className="conviction-signal-legend">
-        {signals.map((signal) => (
-          <div className={`conviction-signal-legend-item signal-tone-${signal.tone}`} key={signal.category}>
-            <span><i aria-hidden="true" />{signal.label}</span>
-            <strong>{signalStateLabel(signal)}</strong>
+        <div className="conviction-signal-legend">
+          {signals.map((signal) => (
+            <div className={`conviction-signal-legend-item signal-tone-${signal.tone}`} key={signal.category}>
+              <span><i aria-hidden="true" />{signal.label}</span>
+              <strong>{signalStateLabel(signal)}</strong>
+            </div>
+          ))}
+        </div>
+
+        {disagreement ? (
+          <div className="conviction-signal-warning" role="note">
+            <AlertTriangle aria-hidden="true" />
+            <p>
+              <strong>Signals disagree.</strong>{" "}
+              {disagreement.positive.join(" and ")} lean bullish, while{" "}
+              {disagreement.negative.join(" and ")} lean bearish.
+            </p>
           </div>
-        ))}
-      </div>
+        ) : null}
 
-      {disagreement ? (
-        <div className="conviction-signal-warning" role="note">
-          <AlertTriangle aria-hidden="true" />
-          <p>
-            <strong>Signals disagree.</strong>{" "}
-            {disagreement.positive.join(" and ")} lean bullish, while{" "}
-            {disagreement.negative.join(" and ")} lean bearish.
-          </p>
+        <div className="conviction-why-heading">
+          <span>Strongest signals</span>
+          <small>Tap to expand</small>
         </div>
-      ) : null}
 
-      <div className="conviction-why-heading">
-        <span>Strongest signals</span>
-        <small>Tap to expand</small>
-      </div>
-
-      {strongestSignals.length > 0 ? (
-        <div className="conviction-signal-cards">
-          {strongestSignals.map((signal) => {
-            const isExpanded = expanded.has(signal.category);
-            const detailId = `conviction-signal-${ticker}-${signal.category}`;
-            return (
-              <article className={`conviction-signal-card signal-tone-${signal.tone}`} key={signal.category}>
-                <button
-                  type="button"
-                  aria-expanded={isExpanded}
-                  aria-controls={detailId}
-                  onClick={() => toggleSignal(signal.category)}
-                >
-                  <span className="conviction-signal-icon"><DirectionIcon tone={signal.tone} /></span>
-                  <span className="conviction-signal-copy">
-                    <span className="conviction-signal-card-label">
-                      {signal.label}
-                      {signal.status === "stale" ? <em>Stale</em> : null}
+        {strongestSignals.length > 0 ? (
+          <div className="conviction-signal-cards">
+            {strongestSignals.map((signal) => {
+              const isExpanded = expanded.has(signal.category);
+              const detailId = `conviction-signal-${ticker}-${signal.category}`;
+              return (
+                <article className={`conviction-signal-card signal-tone-${signal.tone}`} key={signal.category}>
+                  <button
+                    type="button"
+                    aria-expanded={isExpanded}
+                    aria-controls={detailId}
+                    onClick={() => toggleSignal(signal.category)}
+                  >
+                    <span className="conviction-signal-icon"><DirectionIcon tone={signal.tone} /></span>
+                    <span className="conviction-signal-copy">
+                      <span className="conviction-signal-card-label">
+                        {signal.label}
+                        {signal.status === "stale" ? <em>Stale</em> : null}
+                      </span>
+                      <strong>{signal.headline}</strong>
                     </span>
-                    <strong>{signal.headline}</strong>
-                  </span>
-                  <ChevronDown className={isExpanded ? "expanded" : ""} aria-hidden="true" />
-                </button>
-                {isExpanded ? (
-                  <div className="conviction-signal-detail" id={detailId}>
-                    <p>{signal.detail}</p>
-                  </div>
-                ) : null}
-              </article>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="conviction-signals-empty">
-          {loading ? "Checking available evidence sources…" : "No current signals are available for this company yet."}
-        </p>
-      )}
+                    <ChevronDown className={isExpanded ? "expanded" : ""} aria-hidden="true" />
+                  </button>
+                  {isExpanded ? (
+                    <div className="conviction-signal-detail" id={detailId}>
+                      <p>{signal.detail}</p>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="conviction-signals-empty">
+            {loading ? "Checking available evidence sources…" : "No current signals are available for this company yet."}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
