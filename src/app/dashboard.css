@@ -123,16 +123,6 @@
 .earnings-row { display: grid; grid-template-columns: 1.4fr repeat(3, .7fr); gap: 8px; padding: 8px 2px; border-bottom: 1px solid var(--border); color: var(--muted); font: .61rem/1.2 var(--font-mono); }
 .earnings-row.header { color: var(--quiet); font-size: .54rem; text-transform: uppercase; }
 
-.earnings-street-catalyst {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 12px 0 0;
-  color: var(--muted);
-  font: .68rem/1.35 var(--font-mono);
-}
-
 .earnings-grades {
   margin-top: 16px;
   padding-top: 12px;
@@ -153,11 +143,6 @@
   font-weight: 800;
   letter-spacing: .08em;
   text-transform: uppercase;
-}
-
-.earnings-grades-heading small {
-  color: var(--quiet);
-  font: .58rem/1.2 var(--font-mono);
 }
 
 .earnings-grades ul {
