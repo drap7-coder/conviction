@@ -9889,6 +9889,94 @@ details > summary::before {
   min-width: 0;
 }
 
+/* LinkedIn-style build motion while conviction signals load. */
+.conviction-signals-build.rising-build {
+  margin: 0 0 2px;
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.conviction-signals-build-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.conviction-signals-build-eyebrow {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--quiet);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.conviction-signals-build-top p {
+  margin: 0;
+  max-width: 28rem;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.conviction-signal-strip-build {
+  margin-bottom: 12px;
+}
+
+.conviction-signal-strip-build i {
+  background: linear-gradient(90deg, var(--border), var(--surface), var(--border));
+  background-size: 200% 100%;
+  animation: rising-shimmer 1.4s ease-in-out infinite;
+}
+
+.conviction-signal-strip-build i:nth-child(2) { animation-delay: 0.1s; }
+.conviction-signal-strip-build i:nth-child(3) { animation-delay: 0.2s; }
+.conviction-signal-strip-build i:nth-child(4) { animation-delay: 0.3s; }
+
+.conviction-signals-build-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.conviction-signals-build-card.rising-build-card {
+  padding: 12px;
+  border-radius: 12px;
+  background: #0f172a;
+  border-color: color-mix(in srgb, #ffffff 12%, transparent);
+}
+
+.conviction-signals-build-card .rising-build-chip,
+.conviction-signals-build-card .rising-build-title,
+.conviction-signals-build-card .rising-build-score,
+.conviction-signals-build-card .rising-build-copy {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, #ffffff 10%, transparent),
+    color-mix(in srgb, #ffffff 18%, transparent),
+    color-mix(in srgb, #ffffff 10%, transparent)
+  );
+  background-size: 200% 100%;
+}
+
+.conviction-signals-build-card .rising-scan-line {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.12), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .conviction-signal-strip-build i,
+  .conviction-signals-build-card .rising-build-chip,
+  .conviction-signals-build-card .rising-build-title,
+  .conviction-signals-build-card .rising-build-score,
+  .conviction-signals-build-card .rising-build-copy,
+  .conviction-signals-build-card .rising-scan-line {
+    animation: none;
+  }
+}
+
 .conviction-signal-balance {
   display: flex;
   align-items: center;
@@ -10036,9 +10124,7 @@ details > summary::before {
 
 .conviction-signal-card {
   overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: 13px;
-  background: color-mix(in srgb, var(--bg) 50%, var(--surface));
+  /* Tone fill/border come from shared .ink-box / .ink-box--* */
 }
 
 .conviction-signal-card > button {
@@ -10048,12 +10134,16 @@ details > summary::before {
   gap: 10px;
   width: 100%;
   min-height: 66px;
-  padding: 11px 12px;
+  padding: 12px 13px;
+  color: inherit;
   text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }
 
 .conviction-signal-card > button:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid color-mix(in srgb, #ffffff 45%, transparent);
   outline-offset: -2px;
 }
 
@@ -10063,8 +10153,8 @@ details > summary::before {
   width: 30px;
   height: 30px;
   border-radius: 9px;
-  background: color-mix(in srgb, var(--quiet) 14%, transparent);
-  color: var(--quiet);
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+  color: var(--on-ink-muted);
 }
 
 .conviction-signal-icon svg {
@@ -10073,55 +10163,38 @@ details > summary::before {
 }
 
 .signal-tone-positive .conviction-signal-icon {
-  background: var(--green-dim);
-  color: var(--green);
+  background: color-mix(in srgb, var(--on-ink-green) 18%, transparent);
+  color: var(--on-ink-green);
 }
 
 .signal-tone-negative .conviction-signal-icon {
-  background: var(--red-dim);
-  color: var(--red);
-}
-
-.signal-tone-attention .conviction-signal-icon {
-  background: var(--accent-dim);
-  color: var(--accent);
+  background: color-mix(in srgb, var(--on-ink-red) 18%, transparent);
+  color: var(--on-ink-red);
 }
 
 .conviction-signal-copy {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 3px;
+  gap: 6px;
 }
 
-.conviction-signal-card-label {
+.conviction-signal-card-top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
-  color: var(--quiet);
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  line-height: 1.2;
-  text-transform: uppercase;
-}
-
-.conviction-signal-card-label em {
-  padding: 2px 5px;
-  border-radius: 999px;
-  background: var(--amber-dim);
-  color: var(--amber);
-  font-size: 0.52rem;
-  font-style: normal;
+  gap: 6px;
+  min-width: 0;
 }
 
 .conviction-signal-copy > strong {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--ink);
-  font-size: 0.82rem;
-  font-weight: 700;
+  color: var(--on-ink);
+  font-size: 0.84rem;
+  font-weight: 650;
   line-height: 1.35;
+  letter-spacing: -0.01em;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
@@ -10129,7 +10202,7 @@ details > summary::before {
 .conviction-signal-card > button > svg {
   width: 16px;
   height: 16px;
-  color: var(--quiet);
+  color: var(--on-ink-quiet);
   transition: transform 0.18s ease;
 }
 
@@ -10137,14 +10210,14 @@ details > summary::before {
 
 .conviction-signal-detail {
   margin: 0 12px;
-  padding: 0 0 12px 40px;
-  border-top: 1px solid var(--border);
+  padding: 10px 0 12px 40px;
+  border-top: 1px solid var(--on-ink-border);
 }
 
 .conviction-signal-detail p {
-  margin: 9px 0 3px;
-  color: var(--muted);
-  font-size: 0.72rem;
+  margin: 0;
+  color: var(--on-ink-muted);
+  font-size: 0.74rem;
   line-height: 1.5;
 }
 

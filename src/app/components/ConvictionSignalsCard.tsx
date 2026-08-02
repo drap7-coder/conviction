@@ -16,8 +16,10 @@ import {
   signalToneFromScore,
   type ConvictionSignalCategory,
   type ConvictionSignalDisplay,
+  type ConvictionSignalTone,
 } from "@/lib/conviction/signal-display";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
+import { inkBoxClass, inkChipClass, type InkTone } from "@/lib/display/ink-tone";
 
 const SIGNAL_LABELS: Record<ConvictionSignalCategory, string> = {
   institutional: "Institutional",
@@ -27,6 +29,12 @@ const SIGNAL_LABELS: Record<ConvictionSignalCategory, string> = {
 };
 
 const SIGNAL_ORDER = Object.keys(SIGNAL_LABELS) as ConvictionSignalCategory[];
+
+function inkToneForSignal(tone: ConvictionSignalTone): InkTone {
+  if (tone === "positive") return "up";
+  if (tone === "negative") return "down";
+  return "quiet";
+}
 
 function unavailableSignal(
   category: ConvictionSignalCategory,
@@ -79,6 +87,45 @@ function signalsFromView(view: ConvictionScoreView): ConvictionSignalDisplay[] {
       strength: source.hasData ? Math.abs(source.score) : 0,
     };
   });
+}
+
+
+function ConvictionSignalsBuildMotion() {
+  return (
+    <div
+      className="conviction-signals-build rising-build"
+      role="status"
+      aria-live="polite"
+      aria-label="Building conviction signals"
+    >
+      <div className="conviction-signals-build-top">
+        <div>
+          <span className="conviction-signals-build-eyebrow">Building signals</span>
+          <p>Reading institutional, insider, technical, and short-interest evidence…</p>
+        </div>
+        <div className="rising-build-meter" aria-hidden="true">
+          <span /><span /><span /><span />
+        </div>
+      </div>
+      <div className="conviction-signal-strip conviction-signal-strip-build" aria-hidden="true">
+        <i /><i /><i /><i />
+      </div>
+      <div className="conviction-signals-build-grid" aria-hidden="true">
+        {SIGNAL_ORDER.map((category) => (
+          <div className="rising-build-card conviction-signals-build-card" key={category}>
+            <span className="rising-scan-line" />
+            <div className="rising-build-row">
+              <span className="rising-build-chip" />
+              <span className="rising-build-title" />
+              <span className="rising-build-score" />
+            </div>
+            <span className="rising-build-copy" />
+            <span className="rising-build-copy short" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function DirectionIcon({ tone }: Pick<ConvictionSignalDisplay, "tone">) {
@@ -152,6 +199,10 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
       </div>
 
       <div className="conviction-signals-body">
+        {loading ? <ConvictionSignalsBuildMotion /> : null}
+
+        {!loading ? (
+          <>
         <div className="conviction-signal-balance" aria-label={`${bullishCount} bullish and ${bearishCount} bearish signals`}>
           <strong>{bullishCount} bullish</strong>
           <span aria-hidden="true">·</span>
@@ -197,7 +248,10 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
               const isExpanded = expanded.has(signal.category);
               const detailId = `conviction-signal-${ticker}-${signal.category}`;
               return (
-                <article className={`conviction-signal-card signal-tone-${signal.tone}`} key={signal.category}>
+                <article
+                  className={`conviction-signal-card ${inkBoxClass(inkToneForSignal(signal.tone))} signal-tone-${signal.tone}`}
+                  key={signal.category}
+                >
                   <button
                     type="button"
                     aria-expanded={isExpanded}
@@ -206,9 +260,16 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
                   >
                     <span className="conviction-signal-icon"><DirectionIcon tone={signal.tone} /></span>
                     <span className="conviction-signal-copy">
-                      <span className="conviction-signal-card-label">
-                        {signal.label}
-                        {signal.status === "stale" ? <em>Stale</em> : null}
+                      <span className="conviction-signal-card-top">
+                        <span className={inkChipClass(inkToneForSignal(signal.tone))}>
+                          {signal.label}
+                        </span>
+                        <span className={inkChipClass(inkToneForSignal(signal.tone))}>
+                          {signalStateLabel(signal)}
+                        </span>
+                        {signal.status === "stale" ? (
+                          <span className={inkChipClass("amber")}>Stale</span>
+                        ) : null}
                       </span>
                       <strong>{signal.headline}</strong>
                     </span>
@@ -225,9 +286,11 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
           </div>
         ) : (
           <p className="conviction-signals-empty">
-            {loading ? "Checking available evidence sources…" : "No current signals are available for this company yet."}
+            No current signals are available for this company yet.
           </p>
         )}
+          </>
+        ) : null}
       </div>
     </section>
   );
