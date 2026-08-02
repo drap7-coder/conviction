@@ -89,6 +89,45 @@ function signalsFromView(view: ConvictionScoreView): ConvictionSignalDisplay[] {
   });
 }
 
+
+function ConvictionSignalsBuildMotion() {
+  return (
+    <div
+      className="conviction-signals-build rising-build"
+      role="status"
+      aria-live="polite"
+      aria-label="Building conviction signals"
+    >
+      <div className="conviction-signals-build-top">
+        <div>
+          <span className="conviction-signals-build-eyebrow">Building signals</span>
+          <p>Reading institutional, insider, technical, and short-interest evidence…</p>
+        </div>
+        <div className="rising-build-meter" aria-hidden="true">
+          <span /><span /><span /><span />
+        </div>
+      </div>
+      <div className="conviction-signal-strip conviction-signal-strip-build" aria-hidden="true">
+        <i /><i /><i /><i />
+      </div>
+      <div className="conviction-signals-build-grid" aria-hidden="true">
+        {SIGNAL_ORDER.map((category) => (
+          <div className="rising-build-card conviction-signals-build-card" key={category}>
+            <span className="rising-scan-line" />
+            <div className="rising-build-row">
+              <span className="rising-build-chip" />
+              <span className="rising-build-title" />
+              <span className="rising-build-score" />
+            </div>
+            <span className="rising-build-copy" />
+            <span className="rising-build-copy short" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function DirectionIcon({ tone }: Pick<ConvictionSignalDisplay, "tone">) {
   if (tone === "positive") return <TrendingUp aria-hidden="true" />;
   if (tone === "negative") return <TrendingDown aria-hidden="true" />;
@@ -160,6 +199,10 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
       </div>
 
       <div className="conviction-signals-body">
+        {loading ? <ConvictionSignalsBuildMotion /> : null}
+
+        {!loading ? (
+          <>
         <div className="conviction-signal-balance" aria-label={`${bullishCount} bullish and ${bearishCount} bearish signals`}>
           <strong>{bullishCount} bullish</strong>
           <span aria-hidden="true">·</span>
@@ -243,9 +286,11 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
           </div>
         ) : (
           <p className="conviction-signals-empty">
-            {loading ? "Checking available evidence sources…" : "No current signals are available for this company yet."}
+            No current signals are available for this company yet.
           </p>
         )}
+          </>
+        ) : null}
       </div>
     </section>
   );
