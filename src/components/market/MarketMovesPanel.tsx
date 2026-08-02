@@ -239,7 +239,6 @@ export function MarketMovesPanel() {
         }
         items={trending.map((idea) => {
           const live = getLivePrice(idea.quote);
-          const driver = newsDrivers[idea.ticker]?.label ?? headlines[idea.ticker]?.[0]?.headline ?? null;
           return {
             ticker: idea.ticker,
             name: idea.companyName,
@@ -248,9 +247,6 @@ export function MarketMovesPanel() {
             marketCap: idea.quote.marketCap,
             sizeValue: idea.quote.dollarVolume,
             sizeLabel: idea.activityLabel,
-            driverText: driver
-              ? `${driver}${idea.activityLabel ? ` · ${idea.activityLabel}` : ""}`
-              : idea.activityLabel,
           };
         })}
         footer={(

@@ -16,8 +16,6 @@ export interface HeatTileProps {
   /** Accessible name — usually company/market name + move. */
   ariaLabel: string;
   href?: string | null;
-  /** Optional “What’s driving the move” line shown on hover. */
-  driverText?: string | null;
   className?: string;
   style?: CSSProperties;
 }
@@ -34,7 +32,6 @@ export function HeatTile({
   changePercent,
   ariaLabel,
   href = null,
-  driverText = null,
   className,
   style,
 }: HeatTileProps) {
@@ -43,7 +40,6 @@ export function HeatTile({
   const classes = [
     "heat-tile",
     `heat-tile-${band}`,
-    driverText ? "heat-tile-has-driver" : null,
     className,
   ].filter(Boolean).join(" ");
   const tileStyle: CSSProperties = {
@@ -60,12 +56,6 @@ export function HeatTile({
       >
         {fmtPct(changePercent)}
       </strong>
-      {driverText ? (
-        <span className="heat-tile-tooltip" role="tooltip">
-          <span className="heat-tile-tooltip-label">Driving the move</span>
-          <span className="heat-tile-tooltip-text">{driverText}</span>
-        </span>
-      ) : null}
     </>
   );
 
@@ -75,8 +65,7 @@ export function HeatTile({
         href={href}
         className={classes}
         style={tileStyle}
-        aria-label={driverText ? `${ariaLabel}. ${driverText}` : ariaLabel}
-        title={driverText ?? undefined}
+        aria-label={ariaLabel}
       >
         {body}
       </Link>
@@ -87,8 +76,7 @@ export function HeatTile({
     <div
       className={classes}
       style={tileStyle}
-      aria-label={driverText ? `${ariaLabel}. ${driverText}` : ariaLabel}
-      title={driverText ?? undefined}
+      aria-label={ariaLabel}
     >
       {body}
     </div>

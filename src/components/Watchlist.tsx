@@ -574,7 +574,6 @@ export default function Watchlist({
         </div>
       ) : null}
 
-      {/* Heatmap-first watchlist: tiles are the list; hover shows what’s driving the move. */}
       {loading || entries.length > 0 || children ? (
         <StockHeatmap
           title="Watchlist"
@@ -591,15 +590,12 @@ export default function Watchlist({
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;
-            const driver = newsDrivers[entry.ticker];
-            const topHeadline = headlines[entry.ticker]?.[0]?.headline ?? null;
             return {
               ticker: entry.ticker,
               name: entry.companyName,
               price: live?.price ?? quote?.price ?? null,
               changePercent: live?.changePercent ?? quote?.changePercent ?? null,
               marketCap: quote?.marketCap ?? null,
-              driverText: driver?.label ?? topHeadline,
             };
           })}
           footer={(
