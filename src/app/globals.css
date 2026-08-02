@@ -898,30 +898,6 @@ details > summary::before {
   margin: 20px 0 24px;
 }
 
-/* Legacy trending-view-* aliases → shared pulse-view toggle look */
-.trending-view-picker {
-  margin: 0 0 18px;
-  padding: 6px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow-md);
-}
-
-.trending-view-picker-copy {
-  display: none;
-}
-
-.trending-view-tabs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 6px;
-}
-
-.trending-view-title-break {
-  display: none;
-}
-
 /* ── Smart Money / Investor Moves panels ── */
 
 .smart-money-page .view-switch-shell .pulse-view-tabs {
@@ -3803,80 +3779,6 @@ details > summary::before {
   gap: 16px;
 }
 
-.rising-strip {
-  display: grid;
-  gap: 12px;
-  margin-bottom: 18px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 6px);
-  box-shadow: var(--shadow-sm);
-  padding: 16px;
-}
-
-.rising-strip-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.rising-strip-header h2 {
-  color: var(--ink);
-  font-size: 1.18rem;
-  line-height: 1.2;
-}
-
-.rising-strip-list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.rising-strip-card {
-  display: grid;
-  gap: 6px;
-  color: inherit;
-  background: var(--card-inset);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--border-active);
-  border-radius: var(--radius);
-  padding: 12px;
-  transition: border-color 0.15s, transform 0.15s, background-color 0.15s;
-}
-
-.rising-strip-card.status_downgrade,
-.rising-strip-card.signal_expired {
-  border-left-color: var(--amber);
-}
-
-.rising-strip-card:hover {
-  border-color: var(--border-active);
-  background: var(--card-soft);
-  transform: translateY(-1px);
-}
-
-.rising-strip-card span {
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.64rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.rising-strip-card strong {
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.92rem;
-  line-height: 1.3;
-}
-
-.rising-strip-card p {
-  color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1.4;
-}
-
 .brief-link {
   flex-shrink: 0;
   font-family: var(--font-mono);
@@ -5570,57 +5472,6 @@ details > summary::before {
   opacity: 0.78;
 }
 
-/* ── Journal ── */
-
-.journal-list {
-  display: grid;
-  gap: 10px;
-}
-
-.journal-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-}
-
-.journal-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
-.journal-thesis {
-  font-size: 0.75rem;
-  color: var(--ink);
-  line-height: 1.5;
-  margin-bottom: 8px;
-}
-
-.journal-details {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-
-.journal-detail {
-  font-size: 0.65rem;
-}
-
-.journal-detail-label {
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.55rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.journal-detail-value {
-  color: var(--muted);
-  margin-top: 1px;
-}
-
 .status-badge {
   font-family: var(--font-mono);
   font-size: 0.55rem;
@@ -5670,18 +5521,6 @@ details > summary::before {
   font-size: 0.95rem;
   color: var(--muted);
   margin-top: 2px;
-}
-
-.track-company-action {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-}
-
-.track-company-action span {
-  color: var(--quiet);
-  font-size: 0.78rem;
 }
 
 .detail-overview {
@@ -7426,14 +7265,7 @@ details > summary::before {
     flex-direction: column;
   }
 
-  .rising-strip-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
 
-  .rising-strip-list {
-    grid-template-columns: 1fr;
-  }
 
   .leaderboard-warning {
     align-items: flex-start;
@@ -7478,9 +7310,6 @@ details > summary::before {
     grid-template-columns: 1fr;
   }
 
-  .journal-details {
-    grid-template-columns: 1fr;
-  }
 
   /* ── Portfolio mobile ── */
 
@@ -8834,25 +8663,9 @@ details > summary::before {
 }
 
 @media (max-width: 640px) {
-  .trending-view-picker {
-    padding: 5px;
-  }
 
-  .trending-view-tabs {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    margin: 0;
-    overflow: visible;
-  }
 
-  .trending-view-tabs button {
-    width: 100%;
-    padding: 11px 12px;
-  }
 
-  .trending-view-title-break {
-    display: none;
-  }
 
   .investor-moves-intro {
     grid-template-columns: 1fr;
@@ -10207,15 +10020,6 @@ details > summary::before {
 }
 
 .market-regime-label,
-.market-region-label {
-  display: block;
-  color: var(--market-text);
-  font-size: 1.15rem;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
-  font-weight: 700;
-}
-
 .market-regime-summary {
   margin: 8px 0 0;
   color: var(--market-muted);
@@ -10484,133 +10288,6 @@ details > summary::before {
 }
 
 /* Legacy aliases kept for any residual markup */
-.market-region-picker {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 0;
-  margin-bottom: 18px;
-  padding: 6px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow-md);
-}
-
-.market-region-copy {
-  display: none;
-}
-
-.market-region-tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.market-region-title-break {
-  display: none;
-}
-
-/* Apply dark option + heatmap chips to legacy tab class names too */
-.trending-view-tabs button,
-.market-region-tabs button {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
-  border-radius: 12px;
-  color: #fff;
-  background: #1e293b;
-  font: inherit;
-  font-family: var(--font-mono);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background-color 0.16s ease, filter 0.16s ease;
-}
-
-.trending-view-tabs button:nth-child(odd),
-.market-region-tabs button:nth-child(odd) {
-  background: #0f172a;
-}
-
-.trending-view-tabs button:nth-child(even),
-.market-region-tabs button:nth-child(even) {
-  background: #1e293b;
-}
-
-.trending-view-tabs button:hover,
-.trending-view-tabs button:focus-visible,
-.market-region-tabs button:hover,
-.market-region-tabs button:focus-visible {
-  border-color: color-mix(in srgb, #ffffff 22%, transparent);
-  outline: none;
-  transform: none;
-}
-
-.trending-view-tabs button.active,
-.market-region-tabs button.active {
-  background: #134e4a;
-  border-color: color-mix(in srgb, var(--on-ink-accent) 45%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--on-ink-accent) 28%, transparent);
-  filter: none;
-}
-
-.trending-view-tabs strong,
-.trending-view-tabs span,
-.market-region-tabs strong,
-.market-region-tabs span {
-  display: inline-flex;
-  align-self: flex-start;
-  max-width: 100%;
-}
-
-.trending-view-tabs strong,
-.market-region-tabs strong {
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.3);
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-}
-
-.trending-view-tabs span,
-.market-region-tabs span {
-  padding: 5px 9px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.22);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.3;
-}
-
-.trending-view-tabs button.active strong,
-.market-region-tabs button.active strong {
-  background: rgba(0, 0, 0, 0.38);
-  color: #fff;
-}
-
-.trending-view-tabs button.active span,
-.market-region-tabs button.active span {
-  background: rgba(0, 0, 0, 0.28);
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.market-card-heading {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: space-between;
-  color: var(--market-muted, var(--muted));
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
 .market-gauge-value {
   display: block;
@@ -11427,24 +11104,11 @@ a.heat-tile {
 
 @media (max-width: 640px) {
   .pulse-view-tabs button,
-  .market-region-tabs button {
-    width: 100%;
-    padding: 11px 12px;
-  }
 
   .pulse-view-tabs strong,
-  .market-region-tabs strong {
-    font-size: 0.84rem;
-  }
 
   .pulse-view-tabs span,
-  .market-region-tabs span {
-    font-size: 0.58rem;
-  }
 
-  .market-region-title-break {
-    display: none;
-  }
 }
 
 @media (max-width: 767px) {
