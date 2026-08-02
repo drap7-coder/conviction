@@ -78,12 +78,15 @@ export function scoreInstitutionalConviction(
   const reduced = summary.reduced.length + summary.exited.length;
   const newPositions = summary.newPositions.length;
 
+  const addingCount = summary.positiveCount;
+  const cuttingCount = summary.negativeCount;
+
   if (score >= 60) {
     return {
       score,
       tone: "green",
       label: "Accumulating",
-      detail: `${summary.positiveCount} tracked manager${summary.positiveCount === 1 ? "" : "s"} adding or opening.`,
+      detail: `${addingCount} tracked manager${addingCount === 1 ? "" : "s"} adding or opening.`,
       added,
       reduced,
       newPositions,
@@ -95,18 +98,29 @@ export function scoreInstitutionalConviction(
       score,
       tone: "red",
       label: "Distribution",
-      detail: `${summary.negativeCount} tracked manager${summary.negativeCount === 1 ? "" : "s"} trimming or exiting.`,
+      detail: `${cuttingCount} tracked manager${cuttingCount === 1 ? "" : "s"} trimming or exiting.`,
       added,
       reduced,
       newPositions,
       filingQuarter,
     };
   }
+
+  // Holding band — but mixed adds/cuts should not read as "steady".
+  let holdingDetail = "Tracked managers are mostly holding steady.";
+  if (addingCount > 0 && cuttingCount > 0) {
+    holdingDetail = `${addingCount} adding or opening, ${cuttingCount} trimming or exiting.`;
+  } else if (addingCount > 0) {
+    holdingDetail = `${addingCount} tracked manager${addingCount === 1 ? "" : "s"} adding, but the book is still near holding.`;
+  } else if (cuttingCount > 0) {
+    holdingDetail = `${cuttingCount} tracked manager${cuttingCount === 1 ? "" : "s"} trimming, but the book is still near holding.`;
+  }
+
   return {
     score,
     tone: "amber",
     label: "Holding",
-    detail: "Tracked managers are mostly holding steady.",
+    detail: holdingDetail,
     added,
     reduced,
     newPositions,

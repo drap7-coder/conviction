@@ -63,4 +63,18 @@ describe("quote-gauges", () => {
     expect(conviction.tone).toBe("red");
     expect(conviction.label).toBe("Distribution");
   });
+
+  it("describes mixed holding books instead of calling them steady", () => {
+    const conviction = scoreInstitutionalConviction([
+      row("New", 180_000),
+      row("Increased", 90_000),
+      row("Unchanged", 0),
+      row("Reduced", -270_000),
+      row("Exited", -385_000),
+    ]);
+    expect(conviction.label).toBe("Holding");
+    expect(conviction.detail).toMatch(/adding or opening/i);
+    expect(conviction.detail).toMatch(/trimming or exiting/i);
+    expect(conviction.detail).not.toMatch(/holding steady/i);
+  });
 });

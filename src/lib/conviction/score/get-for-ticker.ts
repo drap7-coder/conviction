@@ -118,28 +118,69 @@ async function settled<T>(promise: Promise<T>): Promise<T | null> {
   }
 }
 
-async function loadInsiderTransactions(ticker: string): Promise<{
+type InsiderLoadResult = {
   transactions: InsiderTransaction[];
   status: "success" | "empty" | "error";
   fetchedAt: string;
-}> {
+};
+
+/** Short process cache so parallel 13F work doesn't force repeat Form 4 pulls. */
+const insiderLoadCache = new Map<string, { expiresAt: number; value: InsiderLoadResult }>();
+const INSIDER_LOAD_CACHE_TTL_MS = 15 * 60 * 1000;
+
+async function fetchInsiderFromSec(ticker: string): Promise<InsiderLoadResult> {
+  const fetchedAt = new Date().toISOString();
+  // Share the SEC rate-limit queue with institutional 13F work; give Form 4
+  // enough room so parallel score loads don't false-fail into "No data".
+  const result = await withTimeout(fetchInsiderTransactions(ticker), 28_000);
+  return {
+    transactions: result.allTransactions ?? [],
+    status: (result.allTransactions?.length ?? 0) > 0 ? "success" : "empty",
+    fetchedAt: result.fetchedAt ?? fetchedAt,
+  };
+}
+
+async function loadInsiderTransactions(ticker: string): Promise<InsiderLoadResult> {
+  const upper = ticker.toUpperCase();
+  const cached = insiderLoadCache.get(upper);
+  if (cached && Date.now() <= cached.expiresAt) {
+    return cached.value;
+  }
+
   const fetchedAt = new Date().toISOString();
   try {
-    const stored = await getStoredTransactions(ticker);
+    const stored = await getStoredTransactions(upper);
     if (stored.length > 0) {
-      return {
+      const value: InsiderLoadResult = {
         transactions: stored.map(recordToTx),
         status: "success",
         fetchedAt,
       };
+      insiderLoadCache.set(upper, {
+        expiresAt: Date.now() + INSIDER_LOAD_CACHE_TTL_MS,
+        value,
+      });
+      return value;
     }
 
-    const result = await withTimeout(fetchInsiderTransactions(ticker), 12_000);
-    return {
-      transactions: result.allTransactions ?? [],
-      status: (result.allTransactions?.length ?? 0) > 0 ? "success" : "empty",
-      fetchedAt: result.fetchedAt ?? fetchedAt,
-    };
+    try {
+      const value = await fetchInsiderFromSec(upper);
+      insiderLoadCache.set(upper, {
+        expiresAt: Date.now() + INSIDER_LOAD_CACHE_TTL_MS,
+        value,
+      });
+      return value;
+    } catch {
+      // One retry after a brief pause — first attempt often loses the SEC queue
+      // to parallel tracked-manager 13F fetches during score builds.
+      await new Promise((resolve) => setTimeout(resolve, 750));
+      const value = await fetchInsiderFromSec(upper);
+      insiderLoadCache.set(upper, {
+        expiresAt: Date.now() + INSIDER_LOAD_CACHE_TTL_MS,
+        value,
+      });
+      return value;
+    }
   } catch {
     return { transactions: [], status: "error", fetchedAt };
   }
@@ -217,9 +258,12 @@ export async function getConvictionScoreForTicker(
     if (cached) return cached;
   }
 
+  // Resolve Form 4s before the tracked-manager 13F fan-out so purchases-only
+  // mega-caps don't false-fail as "No data" while waiting on the SEC queue.
+  const insider = await loadInsiderTransactions(upper);
+
   const [
     institutional,
-    insider,
     shortInterest,
     history,
     quotes,
@@ -233,7 +277,6 @@ export async function getConvictionScoreForTicker(
         22_000,
       ),
     ),
-    loadInsiderTransactions(upper),
     settled(fetchShortInterestSummary(upper)),
     settled(fetchStockHistory(upper, "1y")),
     settled(fetchStockQuotes([upper])),
@@ -270,7 +313,16 @@ export async function getConvictionScoreForTicker(
   );
   const blended = blendEvidenceAndQuality(evidence, quality, { marketCap });
   const view = toView(upper, blended, categories);
-  setCachedConvictionScore(view);
+  // Don't pin transient SEC/source failures in the 10-minute cache — otherwise
+  // mega-caps stick on "No data" for insider after a single rate-limit timeout.
+  const hasTransientSourceFailure = view.categories.some((category) =>
+    /could not be loaded|filings unavailable|data is unavailable/i.test(
+      category.explanation,
+    ),
+  );
+  if (!hasTransientSourceFailure) {
+    setCachedConvictionScore(view);
+  }
   return view;
 }
 
