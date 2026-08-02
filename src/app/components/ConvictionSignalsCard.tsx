@@ -16,8 +16,10 @@ import {
   signalToneFromScore,
   type ConvictionSignalCategory,
   type ConvictionSignalDisplay,
+  type ConvictionSignalTone,
 } from "@/lib/conviction/signal-display";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
+import { inkBoxClass, inkChipClass, type InkTone } from "@/lib/display/ink-tone";
 
 const SIGNAL_LABELS: Record<ConvictionSignalCategory, string> = {
   institutional: "Institutional",
@@ -27,6 +29,12 @@ const SIGNAL_LABELS: Record<ConvictionSignalCategory, string> = {
 };
 
 const SIGNAL_ORDER = Object.keys(SIGNAL_LABELS) as ConvictionSignalCategory[];
+
+function inkToneForSignal(tone: ConvictionSignalTone): InkTone {
+  if (tone === "positive") return "up";
+  if (tone === "negative") return "down";
+  return "quiet";
+}
 
 function unavailableSignal(
   category: ConvictionSignalCategory,
@@ -197,7 +205,10 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
               const isExpanded = expanded.has(signal.category);
               const detailId = `conviction-signal-${ticker}-${signal.category}`;
               return (
-                <article className={`conviction-signal-card signal-tone-${signal.tone}`} key={signal.category}>
+                <article
+                  className={`conviction-signal-card ${inkBoxClass(inkToneForSignal(signal.tone))} signal-tone-${signal.tone}`}
+                  key={signal.category}
+                >
                   <button
                     type="button"
                     aria-expanded={isExpanded}
@@ -206,9 +217,16 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
                   >
                     <span className="conviction-signal-icon"><DirectionIcon tone={signal.tone} /></span>
                     <span className="conviction-signal-copy">
-                      <span className="conviction-signal-card-label">
-                        {signal.label}
-                        {signal.status === "stale" ? <em>Stale</em> : null}
+                      <span className="conviction-signal-card-top">
+                        <span className={inkChipClass(inkToneForSignal(signal.tone))}>
+                          {signal.label}
+                        </span>
+                        <span className={inkChipClass(inkToneForSignal(signal.tone))}>
+                          {signalStateLabel(signal)}
+                        </span>
+                        {signal.status === "stale" ? (
+                          <span className={inkChipClass("amber")}>Stale</span>
+                        ) : null}
                       </span>
                       <strong>{signal.headline}</strong>
                     </span>
