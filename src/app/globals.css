@@ -8767,7 +8767,7 @@ details > summary::before {
 }
 
 .bcn-item {
-  display: block;
+  display: flex;
   flex: 0 0 calc((100% - 12px) / 1.5);
   min-width: 0;
   padding: 0;
@@ -8792,6 +8792,8 @@ details > summary::before {
 }
 
 .bcn-item .signal-block {
+  flex: 1;
+  min-height: 8.75rem;
   height: 100%;
   transition: border-color 0.16s ease;
 }
@@ -8849,7 +8851,9 @@ details > summary::before {
 }
 
 .signal-block-compact {
-  gap: 4px;
+  gap: 6px;
+  padding: 12px 13px;
+  align-content: start;
 }
 
 .signal-block-heading {
@@ -8862,7 +8866,7 @@ details > summary::before {
 .signal-block-heading-text {
   min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 3px;
 }
 
 .signal-block-eyebrow {
@@ -8883,7 +8887,12 @@ details > summary::before {
 }
 
 .signal-block-compact .signal-block-conclusion {
-  font-size: 0.96rem;
+  font-size: 0.92rem;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .signal-block-strength {
@@ -8967,7 +8976,19 @@ details > summary::before {
 
 .signal-block-compact .signal-block-evidence,
 .signal-block-compact .signal-block-why {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.signal-block-compact .signal-block-heading .ink-chip {
+  flex-shrink: 0;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .signal-block-meta {
@@ -9024,27 +9045,11 @@ details > summary::before {
   background: var(--border-active);
 }
 
-/* Building Conviction Now items host SignalBlock — no outer card shell */
-.bcn-item {
-  display: block;
-  padding: 0;
-  color: inherit;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius);
-  box-shadow: none;
-  transition: transform 0.15s, filter 0.15s;
-}
-
-.bcn-item:hover {
-  transform: none;
-  filter: none;
-}
-
 .bcn-item .signal-block-eyebrow {
-  text-transform: none;
-  letter-spacing: 0.02em;
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--on-ink-muted);
 }
 
 .investor-idea-card .signal-block {
@@ -10604,18 +10609,25 @@ details > summary::before {
 }
 
 /* Nested under heatmap shells: quieter titles, full-width header */
+.bcn-module-nested {
+  gap: 10px;
+}
+
 .bcn-module-nested .bcn-header,
 .stock-heat-footer .bcn-header,
 .market-heatmap-shell .stock-heat-footer .bcn-header {
   max-width: none;
   gap: 2px;
+  padding: 0 2px;
 }
 
 .bcn-module-nested .bcn-title,
 .stock-heat-footer .bcn-title,
 .market-heatmap-shell .stock-heat-footer .bcn-title {
-  font-size: 1.05rem;
+  font-size: 0.98rem;
+  font-weight: 650;
   letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .bcn-module-nested .bcn-lede,
@@ -10634,7 +10646,7 @@ details > summary::before {
   .bcn-module-nested .bcn-title,
   .stock-heat-footer .bcn-title,
   .market-heatmap-shell .stock-heat-footer .bcn-title {
-    font-size: 1.12rem;
+    font-size: 1.02rem;
   }
 }
 

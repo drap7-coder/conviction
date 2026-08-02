@@ -27,16 +27,6 @@ export type MoveDriverNews = {
   headlines: MoveDriverHeadline[];
 };
 
-function newestDate(headlines: MoveDriverHeadline[]): string | null {
-  if (headlines.length === 0) return null;
-  const sorted = [...headlines].sort((a, b) => b.date.localeCompare(a.date));
-  const raw = sorted[0]?.date;
-  if (!raw) return null;
-  const d = new Date(`${raw}T12:00:00`);
-  if (!Number.isFinite(d.getTime())) return raw;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
 function formatMove(changePercent: number | null | undefined): string | null {
   if (!isFiniteNumber(changePercent)) return null;
   return `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(1)}% today`;
@@ -175,7 +165,6 @@ export function MoveDriversPanel({
             { ticker: holding.ticker, companyName: holding.companyName ?? undefined },
           );
           const moveLabel = formatMove(holding.changePercent);
-          const hasNews = Boolean(driver?.label || top[0]?.headline);
           const conclusion =
             driver?.label
             ?? top[0]?.headline
@@ -202,11 +191,10 @@ export function MoveDriversPanel({
             >
               <SignalBlock
                 compact
+                hideMeta
                 eyebrow={holding.ticker}
                 conclusion={conclusion}
                 evidence={evidence}
-                dateLabel={newestDate(top) ?? (loaded && hasNews ? "Recent" : null)}
-                source={hasNews ? "material_news" : "market_data"}
                 badge={catalyst ? { label: catalyst.label, tone: catalyst.tone } : (
                   moveLabel ? { label: moveLabel, tone: (holding.changePercent ?? 0) >= 0 ? "positive" : "negative" } : null
                 )}

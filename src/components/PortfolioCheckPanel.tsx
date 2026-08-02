@@ -116,6 +116,7 @@ export function PortfolioCheckPanel({ riskFlags }: { riskFlags: PortfolioRiskFla
           <div key={item.id} className="bcn-item">
             <SignalBlock
               compact
+              hideMeta
               eyebrow={item.eyebrow}
               conclusion={item.conclusion}
               evidence={item.evidence}

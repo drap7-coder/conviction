@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { SignalBlock } from "@/components/display/SignalBlock";
-import { inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 import type { MarketNarrativeTheme, NarrativeHeat } from "@/lib/market/market-narratives";
 import { isFiniteNumber } from "@/lib/display/format";
 
@@ -22,13 +21,6 @@ function heatTone(heat: NarrativeHeat): string {
 function formatMove(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
-
-function formatHeadlineDate(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  const d = new Date(`${raw}T12:00:00`);
-  if (!Number.isFinite(d.getTime())) return raw;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 /**
@@ -71,10 +63,7 @@ export function MarketNarrativeDriversPanel({
           const linked = theme.assets
             .map((asset) => `${asset.ticker} ${formatMove(asset.changePercent)}`)
             .join(" · ");
-          const toneChip = inkChipClass(
-            inkToneFromSemantic(theme.marketTone === "mixed" ? "mixed" : theme.marketTone),
-          );
-          // Theme first; headline supports it — avoids a long RSS line as the lead.
+          // Theme summary leads; one support line only (headline preferred, else linked moves).
           const conclusion = theme.summary;
           const evidence = theme.headline?.title
             ?? (linked || "Linked markets are mixed.");
@@ -84,25 +73,12 @@ export function MarketNarrativeDriversPanel({
           const card = (
             <SignalBlock
               compact
+              hideMeta
               eyebrow={theme.label}
               conclusion={conclusion}
               evidence={evidence}
-              dateLabel={formatHeadlineDate(theme.headline?.date)}
-              source={theme.headline ? "material_news" : "market_data"}
               badge={{ label: heatLabel(theme.heat), tone: heatTone(theme.heat) }}
-            >
-              <p className="signal-block-why">
-                <span className={toneChip}>
-                  {theme.marketTone === "positive"
-                    ? "Constructive"
-                    : theme.marketTone === "negative"
-                      ? "Adverse"
-                      : "Mixed"}
-                </span>
-                {" "}
-                {linked}
-              </p>
-            </SignalBlock>
+            />
           );
 
           if (theme.headline?.url) {

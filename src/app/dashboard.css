@@ -13,29 +13,64 @@
   min-width: 0;
 }
 
-/* Driver uses the shared ink SignalBlock — no second light shell. */
-.company-briefing > .signal-block {
+/* What’s driving the move — title outside the ink block */
+.company-driver-module {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.company-driver-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px;
+}
+
+.company-driver-title {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.company-briefing .company-driver-module .signal-block {
   margin: 0;
 }
 
-.company-briefing .signal-block-eyebrow {
-  font-size: 0.64rem;
-  letter-spacing: 0.08em;
+.company-briefing .company-driver-module .signal-block-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.company-briefing .signal-block-conclusion {
-  font-size: 1.06rem;
-  line-height: 1.25;
+.company-briefing .company-driver-module .signal-block-conclusion {
+  font-size: 1.08rem;
+  line-height: 1.28;
   letter-spacing: -0.02em;
 }
 
-.company-briefing .signal-block-evidence {
+.company-briefing .company-driver-module .signal-block-evidence {
   font-size: 0.84rem;
   line-height: 1.45;
 }
 
-.company-briefing .signal-block-list {
+.company-briefing .company-driver-module .signal-block-list {
   margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--on-ink-border);
+}
+
+.company-briefing .company-driver-module .signal-block-list li {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.company-briefing .company-driver-module .signal-block-meta {
+  margin-top: 4px;
 }
 
 .company-briefing .price-trend-card {
