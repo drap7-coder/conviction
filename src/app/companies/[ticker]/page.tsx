@@ -33,8 +33,8 @@ export async function generateMetadata({
   const resolvedCompany = await validateTicker(upperTicker);
   const companyName = resolvedCompany.companyName ?? upperTicker;
 
-  const title = `${companyName} (${upperTicker}) — Conviction`;
-  const description = `Explore conviction signals, institutional activity, insider activity, earnings momentum, and political disclosures for ${companyName} (${upperTicker}).`;
+  const title = `${companyName} (${upperTicker})`;
+  const description = `Ownership signals, institutional activity, insider filings, earnings, and what’s driving ${companyName} (${upperTicker}).`;
 
   return {
     title,
@@ -43,7 +43,7 @@ export async function generateMetadata({
       canonical: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
     },
     openGraph: {
-      title,
+      title: `${title} · CONVICTION`,
       description,
       url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
       siteName: "CONVICTION",
@@ -67,9 +67,9 @@ export default async function CompanyPage({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${companyName} (${upperTicker}) — Conviction`,
+    name: `${companyName} (${upperTicker}) · CONVICTION`,
     url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
-    description: `Explore conviction signals and filings for ${companyName} (${upperTicker}).`,
+    description: `Ownership signals and filings for ${companyName} (${upperTicker}).`,
   };
 
   return (

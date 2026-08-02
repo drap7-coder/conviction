@@ -23,13 +23,13 @@ export async function generateMetadata({
   const sector = getSectorByTicker(upperTicker);
   if (!sector) {
     return {
-      title: `${upperTicker} — Conviction`,
-      description: "Explore conviction signals for this sector.",
+      title: upperTicker,
+      description: "Ownership signals for this sector.",
     };
   }
 
-  const title = `${sector.name} (${sector.ticker}) — Conviction`;
-  const description = `Explore conviction signals and supporting evidence for the ${sector.name} sector (${sector.ticker}).`;
+  const title = `${sector.name} (${sector.ticker})`;
+  const description = `Ownership signals and market context for the ${sector.name} sector (${sector.ticker}).`;
 
   return {
     title,
@@ -38,7 +38,7 @@ export async function generateMetadata({
       canonical: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
     },
     openGraph: {
-      title,
+      title: `${title} · CONVICTION`,
       description,
       url: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
       siteName: "CONVICTION",
@@ -59,9 +59,9 @@ export default async function SectorPage({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${sector.name} (${sector.ticker}) — Conviction`,
+    name: `${sector.name} (${sector.ticker}) · CONVICTION`,
     url: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
-    description: `Explore conviction signals for the ${sector.name} sector (${sector.ticker}).`,
+    description: `Ownership signals for the ${sector.name} sector (${sector.ticker}).`,
   };
 
   return (

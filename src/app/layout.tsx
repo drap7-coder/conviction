@@ -4,7 +4,12 @@ import "./globals.css";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
 import AnimatedTitle from "@/components/AnimatedTitle";
-import { SITE_URL } from "@/lib/site";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_TITLE,
+  SITE_URL,
+} from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,17 +23,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: "CONVICTION — Evidence Detection",
-  description: "Find material changes before they become obvious.",
+  title: {
+    default: SITE_TITLE,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
   },
   openGraph: {
-    title: "CONVICTION — Evidence Detection",
-    description: "Find material changes before they become obvious.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     url: SITE_URL,
-    siteName: "CONVICTION",
+    siteName: SITE_NAME,
     images: [
       {
         url: "/conviction-og.png",
@@ -41,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "CONVICTION — Evidence Detection",
-    description: "Find material changes before they become obvious.",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
     images: ["/conviction-og.png"],
   },
 };

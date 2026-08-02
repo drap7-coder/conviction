@@ -1,6 +1,6 @@
-# CONVICTION — Evidence Detection
+# CONVICTION — Ownership Signals
 
-Find material changes before they become obvious.
+Track institutional ownership, insider filings, and what’s driving the move — on your watchlist and across the market.
 
 ## Getting Started
 
@@ -16,12 +16,11 @@ Optional env:
 FMP_API_KEY=your_key_here
 ```
 
-## Architecture
+## Product surfaces
 
-- **Watchlist** — Companies you follow with latest evidence
-- **Emerging** — New companies surfaced by deterministic reason codes
-- **Journal** — Thesis tracking and outcome review
-- **Evidence Timeline** — Event history per company
+- **Watchlist / Portfolio** — Companies and holdings you follow
+- **Pulse** — Indexes, sectors, and trending heatmaps
+- **Smart Money** — Institutional 13F moves and political disclosures
 
 ## Data Sources (V1)
 
