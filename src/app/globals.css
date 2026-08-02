@@ -10681,11 +10681,11 @@ details > summary::before {
   margin-bottom: 18px;
 }
 
-/* Heatmaps: bright white shell + nested dark title box (Watchlist + Pulse). */
+/* Heatmaps: bright white shell + flush dark title (Watchlist + Pulse). */
 .stock-heat-panel,
 .market-heatmap-shell {
   margin: 0 0 20px;
-  padding: 18px;
+  padding: 0 0 14px;
   border: 1px solid var(--border-active);
   border-radius: 16px;
   background: #ffffff;
@@ -10696,17 +10696,19 @@ details > summary::before {
   min-width: 0;
 }
 
+/* Title bar sits flush on the card so header + tiles read as one unit. */
 .stock-heat-copy,
 .market-heatmap-copy {
   display: grid;
-  gap: 8px;
-  margin: 0 0 14px;
-  padding: 14px 16px;
-  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
-  border-radius: 12px;
+  gap: 6px;
+  margin: 0;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  border-radius: 0;
   background: #0f172a;
   color: #fff;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+  box-shadow: none;
 }
 
 .stock-heat-heading,
@@ -10723,15 +10725,56 @@ details > summary::before {
 .market-heatmap-shell .market-panel-header h2 {
   margin: 0;
   display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.stock-heat-title {
+  /* Watchlist / Portfolio keep a quiet label chip. */
   padding: 5px 9px;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.35);
-  color: rgba(255, 255, 255, 0.96);
-  font-size: 0.74rem;
-  font-weight: 700;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
-  line-height: 1.2;
+  font-size: 0.74rem;
+}
+
+/* Little day-status square in the Pulse asset-class header. */
+.pulse-day-status {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: color-mix(in srgb, #ffffff 28%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 18%, transparent);
+}
+
+.pulse-day-status--up {
+  background: var(--on-ink-green);
+  box-shadow: none;
+}
+
+.pulse-day-status--down {
+  background: var(--on-ink-red);
+  box-shadow: none;
+}
+
+.pulse-day-status--amber {
+  background: var(--on-ink-amber);
+  box-shadow: none;
+}
+
+.pulse-day-status--quiet {
+  background: color-mix(in srgb, #ffffff 28%, transparent);
 }
 
 .stock-heat-subtitle,
@@ -10804,7 +10847,8 @@ details > summary::before {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: dense;
   gap: 8px;
-  padding: 10px;
+  margin: 10px 12px 0;
+  padding: 8px;
   border-radius: 12px;
   background: #f4f5f7;
   border: 1px solid var(--border);
@@ -10910,10 +10954,61 @@ details > summary::before {
 .stock-heat-footer,
 .market-heatmap-shell .stock-heat-footer {
   display: grid;
-  gap: 14px;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
+  gap: 10px;
+  margin: 10px 12px 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* Pulse: “Why it’s moving” divider + one narrative card (no carousel). */
+.pulse-why-block {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pulse-why-divider {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  color: var(--quiet);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pulse-why-divider::before,
+.pulse-why-divider::after {
+  content: "";
+  height: 1px;
+  background: var(--border);
+}
+
+.pulse-why-divider span {
+  white-space: nowrap;
+}
+
+.pulse-why-card {
+  display: block;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.pulse-why-card .signal-block {
+  min-height: 0;
+}
+
+.pulse-why-empty {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--card-inset);
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
 }
 
 .stock-heat-footer .bcn-module,
@@ -11052,7 +11147,8 @@ details > summary::before {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
-  padding: 10px;
+  margin: 10px 12px 0;
+  padding: 8px;
   border-radius: 12px;
   background: #f4f5f7;
   border: 1px solid var(--border);
@@ -11095,12 +11191,22 @@ details > summary::before {
 @media (max-width: 399px) {
   .stock-heat-panel,
   .market-heatmap-shell {
-    padding: 12px;
+    padding: 0 0 12px;
   }
 
   .stock-heat-copy,
   .market-heatmap-copy {
-    padding: 12px;
+    padding: 10px 12px;
+  }
+
+  .stock-heat-grid,
+  .market-heatmap-shell .market-heatmap {
+    margin-inline: 10px;
+  }
+
+  .stock-heat-footer,
+  .market-heatmap-shell .stock-heat-footer {
+    margin-inline: 10px;
   }
 
   .stock-heat-loading-tile {
@@ -11109,7 +11215,8 @@ details > summary::before {
 }
 
 .market-heatmap-shell .market-heatmap {
-  padding: 10px;
+  margin: 10px 12px 0;
+  padding: 8px;
   border-radius: 12px;
   background: #f4f5f7;
   border: 1px solid var(--border);
@@ -11228,11 +11335,16 @@ details > summary::before {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: dense;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 0;
 }
 
 .market-heatmap.compact {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Compact Pulse groups (indexes / commodities): shorter tiles under the header. */
+.market-heatmap-shell .market-heatmap.compact .heat-tile {
+  height: 5.25rem;
 }
 
 /* Shared magnitude heat tiles (Pulse, Industries, StockHeatmap) */

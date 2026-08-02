@@ -24,8 +24,8 @@ function formatMove(value: number | null): string {
 }
 
 /**
- * What’s driving the move for a Pulse heatmap group — market narratives
- * as SignalBlock cards (replaces the old bottom narrative card grid).
+ * Why it’s moving — one narrative card per Pulse asset-class shell
+ * (no shared carousel across groups).
  */
 export function MarketNarrativeDriversPanel({
   themes,
@@ -34,82 +34,63 @@ export function MarketNarrativeDriversPanel({
   themes: MarketNarrativeTheme[];
   groupLabel: string;
 }) {
-  if (themes.length === 0) {
+  const theme = themes[0] ?? null;
+
+  if (!theme) {
     return (
-      <section className="bcn-module bcn-module-nested move-drivers-panel" aria-label="What’s driving the move">
-        <div className="bcn-header">
-          <h2 className="bcn-title">What’s driving the move</h2>
+      <section className="pulse-why-block" aria-label="Why it’s moving">
+        <div className="pulse-why-divider">
+          <span>Why it’s moving</span>
         </div>
+        <p className="pulse-why-empty">No clear driver for {groupLabel} yet.</p>
       </section>
     );
   }
 
+  const lead = [...theme.assets]
+    .filter((asset) => asset.changePercent !== null)
+    .sort((a, b) => Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0))[0] ?? null;
+  const linked = theme.assets
+    .map((asset) => `${asset.ticker} ${formatMove(asset.changePercent)}`)
+    .join(" · ");
+  const conclusion = theme.summary;
+  const evidence = theme.headline?.title
+    ?? (linked || "Linked markets are mixed.");
+  const href = theme.headline?.url
+    ?? (lead ? `/companies/${encodeURIComponent(lead.ticker)}` : null);
+
+  const card = (
+    <SignalBlock
+      compact
+      hideMeta
+      eyebrow={theme.label}
+      conclusion={conclusion}
+      evidence={evidence}
+      badge={{ label: heatLabel(theme.heat), tone: heatTone(theme.heat) }}
+    />
+  );
+
   return (
-    <section className="bcn-module bcn-module-nested move-drivers-panel" aria-label="What’s driving the move">
-      <div className="bcn-header">
-        <h2 className="bcn-title">What’s driving the move</h2>
+    <section className="pulse-why-block" aria-label="Why it’s moving">
+      <div className="pulse-why-divider">
+        <span>Why it’s moving</span>
       </div>
-      <div
-        className="bcn-list"
-        role="region"
-        aria-roledescription="carousel"
-        aria-label={`${groupLabel} drivers`}
-        tabIndex={0}
-      >
-        {themes.map((theme) => {
-          const lead = [...theme.assets]
-            .filter((asset) => asset.changePercent !== null)
-            .sort((a, b) => Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0))[0] ?? null;
-          const linked = theme.assets
-            .map((asset) => `${asset.ticker} ${formatMove(asset.changePercent)}`)
-            .join(" · ");
-          // Theme summary leads; one support line only (headline preferred, else linked moves).
-          const conclusion = theme.summary;
-          const evidence = theme.headline?.title
-            ?? (linked || "Linked markets are mixed.");
-          const href = theme.headline?.url
-            ?? (lead ? `/companies/${encodeURIComponent(lead.ticker)}` : null);
-
-          const card = (
-            <SignalBlock
-              compact
-              hideMeta
-              eyebrow={theme.label}
-              conclusion={conclusion}
-              evidence={evidence}
-              badge={{ label: heatLabel(theme.heat), tone: heatTone(theme.heat) }}
-            />
-          );
-
-          if (theme.headline?.url) {
-            return (
-              <a
-                key={theme.id}
-                href={theme.headline.url}
-                className="bcn-item"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {card}
-              </a>
-            );
-          }
-
-          if (href) {
-            return (
-              <Link key={theme.id} href={href} className="bcn-item">
-                {card}
-              </Link>
-            );
-          }
-
-          return (
-            <div key={theme.id} className="bcn-item">
-              {card}
-            </div>
-          );
-        })}
-      </div>
+      {theme.headline?.url ? (
+        <a
+          href={theme.headline.url}
+          className="pulse-why-card"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {card}
+        </a>
+      ) : href ? (
+        <Link href={href} className="pulse-why-card">
+          {card}
+        </Link>
+      ) : (
+        <div className="pulse-why-card">{card}</div>
+      )}
     </section>
   );
 }

@@ -13,6 +13,7 @@ import {
   type MarketNarrativeTheme,
   type NarrativeHeatmapGroup,
 } from "@/lib/market/market-narratives";
+import type { InkTone } from "@/lib/display/ink-tone";
 
 const COLORS = {
   green: "#0D9488",
@@ -181,6 +182,28 @@ function companyDashboardHref(ticker: string): string {
   return `/companies/${encodeURIComponent(ticker)}`;
 }
 
+/** Day-status square beside the asset-class title (up / down / mixed). */
+function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
+  const values = markets
+    .map((market) => market.changePercent)
+    .filter((value): value is number => isFiniteNumber(value));
+  if (values.length === 0) return "quiet";
+  const up = values.filter((value) => value > 0.05).length;
+  const down = values.filter((value) => value < -0.05).length;
+  if (up > 0 && down > 0) return "amber";
+  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+  if (avg > 0.05) return "up";
+  if (avg < -0.05) return "down";
+  return "quiet";
+}
+
+function groupDayStatusLabel(tone: InkTone): string {
+  if (tone === "up") return "Up on the day";
+  if (tone === "down") return "Down on the day";
+  if (tone === "amber") return "Mixed on the day";
+  return "Flat on the day";
+}
+
 function GlobalMarketsHeatmap({
   markets,
   title,
@@ -200,6 +223,7 @@ function GlobalMarketsHeatmap({
 }) {
   if (markets.length === 0) return null;
   const groupThemes = themesForHeatmapGroup(narratives, narrativeGroup);
+  const dayTone = groupDayTone(markets);
 
   return (
     <section
@@ -209,7 +233,14 @@ function GlobalMarketsHeatmap({
     >
       <div className="market-heatmap-copy">
         <div className="market-panel-header">
-          <h2>{title}</h2>
+          <h2>
+            <i
+              className={`pulse-day-status pulse-day-status--${dayTone}`}
+              aria-label={groupDayStatusLabel(dayTone)}
+              title={groupDayStatusLabel(dayTone)}
+            />
+            {title}
+          </h2>
           {sessionLabel ? (
             <span className="market-session-badge ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
               <i className="market-session-dot" aria-hidden="true" />
