@@ -3,9 +3,9 @@ import { BuildingConvictionNow } from "@/app/components/BuildingConvictionNow";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Watchlist — CONVICTION",
+  title: "Watchlist",
   description:
-    "What changed in the companies you follow — ownership moves, news behind the move, and what deserves a closer look.",
+    "Ownership moves and what’s driving the stocks you follow — institutional filings, insider activity, and catalysts in one watchlist.",
   alternates: {
     canonical: "/watchlist",
   },
