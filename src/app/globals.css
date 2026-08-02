@@ -10596,9 +10596,9 @@ details > summary::before {
 .stock-heat-footer,
 .market-heatmap-shell .stock-heat-footer {
   display: grid;
-  gap: 18px;
-  margin-top: 16px;
-  padding-top: 16px;
+  gap: 14px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--border);
 }
 
@@ -10610,7 +10610,7 @@ details > summary::before {
 
 /* Nested under heatmap shells: quieter titles, full-width header */
 .bcn-module-nested {
-  gap: 10px;
+  gap: 8px;
 }
 
 .bcn-module-nested .bcn-header,
@@ -10628,6 +10628,7 @@ details > summary::before {
   font-weight: 650;
   letter-spacing: -0.02em;
   line-height: 1.2;
+  color: var(--ink);
 }
 
 .bcn-module-nested .bcn-lede,
@@ -10651,17 +10652,16 @@ details > summary::before {
 }
 
 .stock-heat-footer .bcn-module + .bcn-module {
-  padding-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--border);
 }
 
-/* Driver carousels: fill the heatmap shell, narrower cards, peek the next one */
+/* Driver / check carousels: fill the heatmap shell, peek the next card */
 .stock-heat-footer .bcn-list,
 .market-heatmap-shell .stock-heat-footer .bcn-list {
   gap: 10px;
   margin-inline: -10px;
-  padding: 2px 10px 6px;
-  padding-bottom: 4px;
+  padding: 0 10px 2px;
 }
 
 .stock-heat-panel > .stock-heat-footer .bcn-list,
@@ -10674,14 +10674,23 @@ details > summary::before {
 
 .stock-heat-footer .bcn-item,
 .market-heatmap-shell .stock-heat-footer .bcn-item {
-  /* Narrower than page BCN (1.5) so more of the row fills and the next card peeks. */
-  flex: 0 0 clamp(11.5rem, 72%, 15.5rem);
+  flex: 0 0 clamp(13rem, 78%, 17rem);
+}
+
+.stock-heat-footer .bcn-item .signal-block,
+.market-heatmap-shell .stock-heat-footer .bcn-item .signal-block {
+  min-height: 8.25rem;
 }
 
 .stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item,
 .market-heatmap-shell .stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item {
   flex-basis: 100%;
   max-width: none;
+}
+
+.stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item .signal-block,
+.market-heatmap-shell .stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item .signal-block {
+  min-height: 0;
 }
 
 .stock-heat-footer .bcn-footnote,
@@ -10697,7 +10706,7 @@ details > summary::before {
 
   .stock-heat-footer .bcn-item,
   .market-heatmap-shell .stock-heat-footer .bcn-item {
-    flex-basis: clamp(13rem, 38%, 17rem);
+    flex-basis: clamp(14.5rem, 42%, 18.5rem);
   }
 
   .stock-heat-footer .bcn-list:has(> .bcn-item:only-child) .bcn-item,
@@ -10709,7 +10718,7 @@ details > summary::before {
 @media (min-width: 1100px) {
   .stock-heat-footer .bcn-item,
   .market-heatmap-shell .stock-heat-footer .bcn-item {
-    flex-basis: clamp(14rem, 30%, 18rem);
+    flex-basis: clamp(15rem, 32%, 19rem);
   }
 }
 
@@ -10722,7 +10731,7 @@ details > summary::before {
 
   .stock-heat-footer .bcn-item,
   .market-heatmap-shell .stock-heat-footer .bcn-item {
-    flex-basis: clamp(10.5rem, 78%, 14rem);
+    flex-basis: clamp(12rem, 82%, 15.5rem);
   }
 }
 
