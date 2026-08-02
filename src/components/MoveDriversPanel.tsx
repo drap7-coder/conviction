@@ -176,13 +176,10 @@ export function MoveDriversPanel({
             ?? catalyst?.label
             ?? top[0]?.headline
             ?? (loaded ? "No clear driver yet" : "Loading…");
+          const supportHeadline = top.find((item) => item.headline !== conclusion)?.headline ?? null;
           const evidence =
             driver?.explanation
-            ?? (top[0] && driver?.label && top[0].headline !== driver.label
-              ? top[0].headline
-              : top[0] && !driver?.label
-                ? null
-                : top[1]?.headline)
+            ?? supportHeadline
             ?? (loaded && !top[0] ? "Session move without a clear headline yet." : null);
 
           return (
