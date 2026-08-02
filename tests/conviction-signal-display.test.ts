@@ -93,7 +93,7 @@ describe("conviction signal display", () => {
       signal("Insider buying", "neutral", 8, "quiet", { category: "insider" }),
       signal("Technicals", "neutral", 15, "available", {
         category: "technicals",
-        headline: "Price has fallen below the short-term average while staying above the long-term trend. Caution warranted.",
+        headline: "Below SMA50, above SMA200",
       }),
       signal("Short interest", "neutral", 2, "available", {
         category: "short_interest",

@@ -1,19 +1,10 @@
 "use client";
 
-import {
-  AlertTriangle,
-  ChevronDown,
-  Minus,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import {
   isInsiderQuietMessage,
-  notableSignalNotes,
   qualityHighlightsFromFactors,
-  rankConvictionSignals,
   signalDisagreement,
   signalStateLabel,
   signalToneFromScore,
@@ -24,28 +15,44 @@ import {
   type ConvictionSignalTone,
 } from "@/lib/conviction/signal-display";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
-import { inkBoxClass, inkChipClass, type InkTone } from "@/lib/display/ink-tone";
 
 const SIGNAL_LABELS: Record<ConvictionSignalCategory, string> = {
   institutional: "Institutional",
-  insider: "Insider buying",
+  insider: "Insider",
   technicals: "Technicals",
   short_interest: "Short interest",
 };
 
 const SIGNAL_ORDER = Object.keys(SIGNAL_LABELS) as ConvictionSignalCategory[];
 
-const SIGNAL_DETAIL: Record<ConvictionSignalCategory, string> = {
-  institutional: "See Institutional activity below for the tracked-manager 13F moves behind this read.",
-  insider: "Only open-market purchases count. Sales, grants, and 10b5-1 activity are ignored.",
-  technicals: "See the SMA gauges and price trend below for the chart structure behind this read.",
-  short_interest: "Short-interest level and change come from the latest FINRA settlement.",
-};
+/** Keep row copy short — full evidence lives in sections below. */
+function compactHeadline(category: ConvictionSignalCategory, headline: string): string {
+  const text = headline.replace(/\s+/g, " ").trim();
 
-function inkToneForSignal(tone: ConvictionSignalTone): InkTone {
-  if (tone === "positive") return "up";
-  if (tone === "negative") return "down";
-  return "quiet";
+  if (category === "insider" && /no open-market/i.test(text)) {
+    return "No open-market buying";
+  }
+  if (category === "technicals") {
+    if (/fallen below the short-term/i.test(text) && /above the long-term/i.test(text)) {
+      return "Below SMA50, above SMA200";
+    }
+    if (/above the short-term/i.test(text) && /above the long-term/i.test(text)) {
+      return "Above SMA50 and SMA200";
+    }
+    if (/below the short-term/i.test(text) && /below the long-term/i.test(text)) {
+      return "Below SMA50 and SMA200";
+    }
+  }
+  if (category === "short_interest") {
+    const change = text.match(/([+-]?\d+(?:\.\d+)%)/);
+    const dtc = text.match(/([\d.]+)\s*days to cover/i);
+    if (change && dtc) {
+      const direction = /fell|eased/i.test(text) ? "fell" : /rose|climb/i.test(text) ? "rose" : "changed";
+      return `SI ${direction} ${change[1]} · ${dtc[1]} DTC`;
+    }
+  }
+  if (text.length <= 72) return text;
+  return `${text.slice(0, 71).trimEnd()}…`;
 }
 
 function unavailableSignal(
@@ -66,11 +73,7 @@ function unavailableSignal(
 
 function initialSignals(): ConvictionSignalDisplay[] {
   return SIGNAL_ORDER.map((category) =>
-    unavailableSignal(
-      category,
-      `Checking ${SIGNAL_LABELS[category].toLowerCase()} evidence…`,
-      "loading",
-    ),
+    unavailableSignal(category, "Checking…", "loading"),
   );
 }
 
@@ -80,10 +83,9 @@ function signalsFromView(view: ConvictionScoreView): ConvictionSignalDisplay[] {
   return SIGNAL_ORDER.map((category) => {
     const source = byCategory.get(category);
     if (!source) {
-      return unavailableSignal(category, `${SIGNAL_LABELS[category]} evidence is unavailable.`);
+      return unavailableSignal(category, "Unavailable");
     }
 
-    // Purchases-only mega-caps: treat empty buying as Quiet, not missing data.
     if (
       category === "insider"
       && !source.hasData
@@ -94,8 +96,8 @@ function signalsFromView(view: ConvictionScoreView): ConvictionSignalDisplay[] {
         label: SIGNAL_LABELS[category],
         tone: "neutral",
         status: "quiet",
-        headline: "No open-market insider purchases in the current window.",
-        detail: SIGNAL_DETAIL.insider,
+        headline: "No open-market buying",
+        detail: "Purchases only — sales ignored.",
         strength: 8,
       };
     }
@@ -109,64 +111,24 @@ function signalsFromView(view: ConvictionScoreView): ConvictionSignalDisplay[] {
       label: SIGNAL_LABELS[category],
       tone: signalToneFromScore(source.score, source.hasData, source.isStale),
       status,
-      headline: source.explanation,
-      detail: source.isStale
-        ? "This evidence is shown for context but is too old to count as current."
-        : SIGNAL_DETAIL[category],
+      headline: compactHeadline(category, source.explanation || "No detail"),
+      detail: source.explanation,
       strength: source.hasData ? Math.abs(source.score) : 0,
     };
   });
 }
 
-function ConvictionSignalsBuildMotion() {
-  return (
-    <div
-      className="conviction-signals-build rising-build"
-      role="status"
-      aria-live="polite"
-      aria-label="Building conviction signals"
-    >
-      <div className="conviction-signals-build-top">
-        <div>
-          <span className="conviction-signals-build-eyebrow">Building signals</span>
-          <p>Reading institutional, insider, technical, and short-interest evidence…</p>
-        </div>
-        <div className="rising-build-meter" aria-hidden="true">
-          <span /><span /><span /><span />
-        </div>
-      </div>
-      <div className="conviction-signal-strip conviction-signal-strip-build" aria-hidden="true">
-        <i /><i /><i /><i />
-      </div>
-      <div className="conviction-signals-build-grid" aria-hidden="true">
-        {SIGNAL_ORDER.map((category) => (
-          <div className="rising-build-card conviction-signals-build-card" key={category}>
-            <span className="rising-scan-line" />
-            <div className="rising-build-row">
-              <span className="rising-build-chip" />
-              <span className="rising-build-title" />
-              <span className="rising-build-score" />
-            </div>
-            <span className="rising-build-copy" />
-            <span className="rising-build-copy short" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DirectionIcon({ tone }: Pick<ConvictionSignalDisplay, "tone">) {
-  if (tone === "positive") return <TrendingUp aria-hidden="true" />;
-  if (tone === "negative") return <TrendingDown aria-hidden="true" />;
-  return <Minus aria-hidden="true" />;
+function toneClass(tone: ConvictionSignalTone, status: ConvictionSignalDisplay["status"]): string {
+  if (status === "quiet") return "quiet";
+  if (status === "unavailable" || status === "loading") return "unavailable";
+  if (status === "stale") return "stale";
+  return tone;
 }
 
 export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
   const [signals, setSignals] = useState<ConvictionSignalDisplay[]>(initialSignals);
   const [qualityHighlights, setQualityHighlights] = useState<ConvictionQualityHighlight[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expanded, setExpanded] = useState<Set<ConvictionSignalCategory>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -174,7 +136,6 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
 
     setSignals(initialSignals());
     setQualityHighlights([]);
-    setExpanded(new Set());
     setLoading(true);
 
     async function load() {
@@ -186,12 +147,12 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
         );
         if (!cancelled) {
           setSignals(signalsFromView(view));
-          setQualityHighlights(qualityHighlightsFromFactors(view.qualityFactors ?? []));
+          setQualityHighlights(qualityHighlightsFromFactors(view.qualityFactors ?? [], 2));
         }
       } catch {
         if (!cancelled) {
           setSignals(SIGNAL_ORDER.map((category) =>
-            unavailableSignal(category, `${SIGNAL_LABELS[category]} evidence could not be loaded.`),
+            unavailableSignal(category, "Could not load"),
           ));
           setQualityHighlights([]);
         }
@@ -207,159 +168,68 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
     };
   }, [ticker]);
 
-  const strongestSignals = useMemo(() => rankConvictionSignals(signals), [signals]);
-  const disagreement = useMemo(() => signalDisagreement(signals), [signals]);
   const synthesis = useMemo(() => synthesizeConvictionSignals(signals), [signals]);
-  const notes = useMemo(() => notableSignalNotes(signals), [signals]);
-  const availableCount = signals.filter((signal) =>
-    signal.status === "available" || signal.status === "quiet",
-  ).length;
-  const bullishCount = signals.filter((signal) => signal.status === "available" && signal.tone === "positive").length;
-  const bearishCount = signals.filter((signal) => signal.status === "available" && signal.tone === "negative").length;
-  const quietCount = signals.filter((signal) =>
-    (signal.status === "available" && signal.tone === "neutral")
-    || signal.status === "quiet",
-  ).length;
-
-  const toggleSignal = (category: ConvictionSignalCategory) => {
-    // TODO: Add a full-trail action for `/companies/${ticker}/evidence/${category}` when that route exists.
-    setExpanded((current) => {
-      const next = new Set(current);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
-      return next;
-    });
-  };
+  const disagreement = useMemo(() => signalDisagreement(signals), [signals]);
+  const qualityLine = useMemo(() => {
+    if (qualityHighlights.length === 0) return null;
+    return qualityHighlights
+      .map((item) => item.explanation.replace(/\.$/, ""))
+      .join(" · ");
+  }, [qualityHighlights]);
 
   return (
     <section className="conviction-signals-card" aria-label="Conviction signals">
       <div className="conviction-signals-header">
         <h2 className="conviction-signals-title">Conviction signals</h2>
         <span className="conviction-signals-meta">
-          {loading ? "Updating" : `${availableCount} of ${signals.length} live`}
+          {loading ? "Updating" : "Live"}
         </span>
       </div>
 
       <div className="conviction-signals-body">
-        {loading ? <ConvictionSignalsBuildMotion /> : null}
-
-        {!loading ? (
-          <>
-        <p className="conviction-signals-synthesis">{synthesis}</p>
-
-        <div className="conviction-signal-balance" aria-label={`${bullishCount} bullish, ${bearishCount} bearish, and ${quietCount} quiet signals`}>
-          <strong>{bullishCount} bullish</strong>
-          <span aria-hidden="true">·</span>
-          <strong>{bearishCount} bearish</strong>
-          <span aria-hidden="true">·</span>
-          <span>{quietCount} quiet</span>
-        </div>
-
-        <div className="conviction-signal-strip" aria-hidden="true">
-          {signals.map((signal) => (
-            <i className={`signal-tone-${signal.tone} signal-status-${signal.status}`} key={signal.category} />
-          ))}
-        </div>
-
-        <div className="conviction-signal-legend">
-          {signals.map((signal) => (
-            <div className={`conviction-signal-legend-item signal-tone-${signal.tone} signal-status-${signal.status}`} key={signal.category}>
-              <span><i aria-hidden="true" />{signal.label}</span>
-              <strong>{signalStateLabel(signal)}</strong>
-            </div>
-          ))}
-        </div>
-
-        {notes.length > 0 ? (
-          <div className="conviction-signal-notes" aria-label="What stands out">
-            <span className="conviction-signal-notes-label">What stands out</span>
-            <ul>
-              {notes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        {qualityHighlights.length > 0 ? (
-          <div className="conviction-signal-quality" aria-label="Business context">
-            <span className="conviction-signal-notes-label">Business context</span>
-            <ul>
-              {qualityHighlights.map((item) => (
-                <li key={item.factor}>
-                  <strong>{item.factor}</strong>
-                  <span>{item.explanation}</span>
+        {loading ? (
+          <div className="conviction-signals-loading" role="status" aria-live="polite">
+            <p className="conviction-signals-synthesis conviction-signals-synthesis-loading">
+              Reading ownership, insider, chart, and short-interest evidence…
+            </p>
+            <ul className="conviction-signal-list" aria-hidden="true">
+              {SIGNAL_ORDER.map((category) => (
+                <li className="conviction-signal-row is-loading" key={category}>
+                  <span className="conviction-signal-name">{SIGNAL_LABELS[category]}</span>
+                  <span className="conviction-signal-state">…</span>
+                  <span className="conviction-signal-fact" />
                 </li>
               ))}
             </ul>
           </div>
-        ) : null}
+        ) : (
+          <>
+            <p className="conviction-signals-synthesis">{synthesis}</p>
 
-        {disagreement ? (
-          <div className="conviction-signal-warning" role="note">
-            <AlertTriangle aria-hidden="true" />
-            <p>
-              <strong>Signals disagree.</strong>{" "}
-              {disagreement.positive.join(" and ")} lean bullish, while{" "}
-              {disagreement.negative.join(" and ")} lean bearish.
-            </p>
-          </div>
-        ) : null}
-
-        <div className="conviction-why-heading">
-          <span>Signal detail</span>
-          <small>Tap to expand</small>
-        </div>
-
-        {strongestSignals.length > 0 ? (
-          <div className="conviction-signal-cards">
-            {strongestSignals.map((signal) => {
-              const isExpanded = expanded.has(signal.category);
-              const detailId = `conviction-signal-${ticker}-${signal.category}`;
-              return (
-                <article
-                  className={`conviction-signal-card ${inkBoxClass(inkToneForSignal(signal.tone))} signal-tone-${signal.tone} signal-status-${signal.status}`}
+            <ul className="conviction-signal-list">
+              {signals.map((signal) => (
+                <li
+                  className={`conviction-signal-row tone-${toneClass(signal.tone, signal.status)}`}
                   key={signal.category}
                 >
-                  <button
-                    type="button"
-                    aria-expanded={isExpanded}
-                    aria-controls={detailId}
-                    onClick={() => toggleSignal(signal.category)}
-                  >
-                    <span className="conviction-signal-icon"><DirectionIcon tone={signal.tone} /></span>
-                    <span className="conviction-signal-copy">
-                      <span className="conviction-signal-card-top">
-                        <span className={inkChipClass(inkToneForSignal(signal.tone))}>
-                          {signal.label}
-                        </span>
-                        <span className={inkChipClass(inkToneForSignal(signal.tone))}>
-                          {signalStateLabel(signal)}
-                        </span>
-                        {signal.status === "stale" ? (
-                          <span className={inkChipClass("amber")}>Stale</span>
-                        ) : null}
-                      </span>
-                      <strong>{signal.headline}</strong>
-                    </span>
-                    <ChevronDown className={isExpanded ? "expanded" : ""} aria-hidden="true" />
-                  </button>
-                  {isExpanded ? (
-                    <div className="conviction-signal-detail" id={detailId}>
-                      <p>{signal.detail}</p>
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })}
-          </div>
-        ) : (
-          <p className="conviction-signals-empty">
-            No current signals are available for this company yet.
-          </p>
-        )}
+                  <span className="conviction-signal-name">{signal.label}</span>
+                  <span className="conviction-signal-state">{signalStateLabel(signal)}</span>
+                  <span className="conviction-signal-fact">{signal.headline}</span>
+                </li>
+              ))}
+            </ul>
+
+            {disagreement ? (
+              <p className="conviction-signal-disagreement" role="note">
+                Disagree: {disagreement.positive.join(", ")} bullish · {disagreement.negative.join(", ")} bearish
+              </p>
+            ) : null}
+
+            {qualityLine ? (
+              <p className="conviction-signal-quality-line">{qualityLine}</p>
+            ) : null}
           </>
-        ) : null}
+        )}
       </div>
     </section>
   );

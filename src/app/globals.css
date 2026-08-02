@@ -9897,7 +9897,7 @@ details > summary::before {
 .conviction-signals-body {
   display: grid;
   gap: 0;
-  padding: 12px 14px 0;
+  padding: 14px 14px 12px;
   min-width: 0;
 }
 
@@ -9990,337 +9990,106 @@ details > summary::before {
 }
 
 .conviction-signals-synthesis {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   color: var(--ink);
-  font-size: 0.84rem;
-  font-weight: 600;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1.35;
+  letter-spacing: -0.015em;
 }
 
-.conviction-signal-notes,
-.conviction-signal-quality {
-  margin: 0 0 14px;
-  padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surface) 88%, #ffffff);
+.conviction-signals-synthesis-loading {
+  color: var(--muted);
+  font-weight: 500;
 }
 
-.conviction-signal-notes-label {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--quiet);
-  font-size: 0.62rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.conviction-signal-notes ul,
-.conviction-signal-quality ul {
+.conviction-signal-list {
   margin: 0;
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 6px;
+  border-top: 1px solid var(--border);
 }
 
-.conviction-signal-notes li,
-.conviction-signal-quality li {
+.conviction-signal-row {
+  display: grid;
+  grid-template-columns: 7.5rem 5.5rem minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+
+.conviction-signal-name {
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 650;
+  line-height: 1.3;
+}
+
+.conviction-signal-state {
+  color: var(--quiet);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+.conviction-signal-fact {
   color: var(--muted);
   font-size: 0.74rem;
+  line-height: 1.35;
+  min-width: 0;
+}
+
+.conviction-signal-row.tone-positive .conviction-signal-state { color: var(--green); }
+.conviction-signal-row.tone-negative .conviction-signal-state { color: var(--red); }
+.conviction-signal-row.tone-quiet .conviction-signal-state,
+.conviction-signal-row.tone-neutral .conviction-signal-state { color: var(--muted); }
+.conviction-signal-row.tone-unavailable .conviction-signal-state,
+.conviction-signal-row.tone-stale .conviction-signal-state,
+.conviction-signal-row.is-loading .conviction-signal-state {
+  color: var(--quiet);
+}
+
+.conviction-signal-row.is-loading .conviction-signal-fact {
+  height: 0.74rem;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--border), var(--surface), var(--border));
+  background-size: 200% 100%;
+  animation: rising-shimmer 1.4s ease-in-out infinite;
+}
+
+.conviction-signal-disagreement {
+  margin: 10px 0 0;
+  color: var(--amber);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.conviction-signal-quality-line {
+  margin: 10px 0 0;
+  color: var(--quiet);
+  font-size: 0.68rem;
   line-height: 1.4;
 }
 
-.conviction-signal-quality li {
-  display: grid;
-  gap: 2px;
-}
-
-.conviction-signal-quality li strong {
-  color: var(--ink);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: capitalize;
-}
-
-.conviction-signal-legend-item.signal-status-quiet strong {
-  color: var(--muted);
-}
-
-.conviction-signal-strip .signal-status-quiet {
-  opacity: 0.55;
-}
-
-.conviction-signal-balance {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 10px;
-  color: var(--quiet);
-  font-size: 0.72rem;
-}
-
-.conviction-signal-balance strong:first-child { color: var(--green); }
-.conviction-signal-balance strong:nth-of-type(2) { color: var(--red); }
-
-.conviction-signal-strip {
-  display: flex;
-  gap: 3px;
-  width: 100%;
-  height: 8px;
-  margin-bottom: 13px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--border);
-}
-
-.conviction-signal-strip i {
-  flex: 1 1 0;
-  min-width: 0;
-  background: var(--quiet);
-}
-
-.conviction-signal-strip .signal-tone-positive { background: var(--green); }
-.conviction-signal-strip .signal-tone-negative { background: var(--red); }
-.conviction-signal-strip .signal-tone-attention { background: var(--accent); }
-.conviction-signal-strip .signal-tone-neutral { background: var(--muted); }
-.conviction-signal-strip .signal-tone-unavailable,
-.conviction-signal-strip .signal-status-loading,
-.conviction-signal-strip .signal-status-stale { opacity: 0.3; }
-
-.conviction-signal-legend {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 12px;
-  margin-bottom: 16px;
-}
-
-.conviction-signal-legend-item,
-.conviction-signal-legend-item > span {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.conviction-signal-legend-item {
-  justify-content: space-between;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 0.68rem;
-}
-
-.conviction-signal-legend-item > span {
-  gap: 6px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.conviction-signal-legend-item i {
-  width: 7px;
-  height: 7px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--quiet);
-}
-
-.conviction-signal-legend-item strong {
-  flex-shrink: 0;
-  color: var(--quiet);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.conviction-signal-legend-item.signal-tone-positive i { background: var(--green); }
-.conviction-signal-legend-item.signal-tone-positive strong { color: var(--green); }
-.conviction-signal-legend-item.signal-tone-negative i { background: var(--red); }
-.conviction-signal-legend-item.signal-tone-negative strong { color: var(--red); }
-.conviction-signal-legend-item.signal-tone-attention i { background: var(--accent); }
-.conviction-signal-legend-item.signal-tone-attention strong { color: var(--accent); }
-.conviction-signal-legend-item.signal-tone-neutral i { background: var(--muted); }
-
-.conviction-signal-warning {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin: 2px 0 16px;
-  padding: 10px 11px;
-  border: 1px solid color-mix(in srgb, var(--amber) 32%, var(--border));
-  border-radius: 12px;
-  background: var(--amber-dim);
-  color: color-mix(in srgb, var(--amber) 80%, var(--ink));
-}
-
-.conviction-signal-warning svg {
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.conviction-signal-warning p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.72rem;
-  line-height: 1.45;
-}
-
-.conviction-signal-warning strong { color: var(--amber); }
-
-.conviction-why-heading {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 9px;
-}
-
-.conviction-why-heading > span {
-  color: var(--quiet);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.conviction-why-heading small {
-  color: var(--quiet);
-  font-size: 0.62rem;
-}
-
-.conviction-signal-cards {
-  display: grid;
-  gap: 8px;
-}
-
-.conviction-signal-card {
-  overflow: hidden;
-  /* Tone fill/border come from shared .ink-box / .ink-box--* */
-}
-
-.conviction-signal-card > button {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  min-height: 66px;
-  padding: 12px 13px;
-  color: inherit;
-  text-align: left;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.conviction-signal-card > button:focus-visible {
-  outline: 2px solid color-mix(in srgb, #ffffff 45%, transparent);
-  outline-offset: -2px;
-}
-
-.conviction-signal-icon {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
-  background: color-mix(in srgb, #ffffff 10%, transparent);
-  color: var(--on-ink-muted);
-}
-
-.conviction-signal-icon svg {
-  width: 17px;
-  height: 17px;
-}
-
-.signal-tone-positive .conviction-signal-icon {
-  background: color-mix(in srgb, var(--on-ink-green) 18%, transparent);
-  color: var(--on-ink-green);
-}
-
-.signal-tone-negative .conviction-signal-icon {
-  background: color-mix(in srgb, var(--on-ink-red) 18%, transparent);
-  color: var(--on-ink-red);
-}
-
-.conviction-signal-copy {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 6px;
-}
-
-.conviction-signal-card-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.conviction-signal-copy > strong {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--on-ink);
-  font-size: 0.84rem;
-  font-weight: 650;
-  line-height: 1.35;
-  letter-spacing: -0.01em;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.conviction-signal-card > button > svg {
-  width: 16px;
-  height: 16px;
-  color: var(--on-ink-quiet);
-  transition: transform 0.18s ease;
-}
-
-.conviction-signal-card > button > svg.expanded { transform: rotate(180deg); }
-
-.conviction-signal-detail {
-  margin: 0 12px;
-  padding: 10px 0 12px 40px;
-  border-top: 1px solid var(--on-ink-border);
-}
-
-.conviction-signal-detail p {
-  margin: 0;
-  color: var(--on-ink-muted);
-  font-size: 0.74rem;
-  line-height: 1.5;
-}
-
-.conviction-signal-detail span {
-  color: var(--quiet);
-  font-size: 0.62rem;
-}
-
-.conviction-signals-empty {
-  margin: 0;
-  padding: 14px 10px;
-  border: 1px dashed var(--border);
-  border-radius: 12px;
-  color: var(--quiet);
-  font-size: 0.75rem;
-  text-align: center;
-}
-
-@media (min-width: 680px) {
-  .conviction-signal-legend {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+@media (max-width: 560px) {
+  .conviction-signal-row {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "name state"
+      "fact fact";
+    gap: 4px 10px;
+    padding: 11px 0;
   }
 
-  .conviction-signal-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .conviction-signal-name { grid-area: name; }
+  .conviction-signal-state { grid-area: state; justify-self: end; }
+  .conviction-signal-fact { grid-area: fact; }
 }
 
 .quote-dot {
