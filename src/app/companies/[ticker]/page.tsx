@@ -67,9 +67,9 @@ export default async function CompanyPage({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${companyName} (${upperTicker}) — Conviction`,
+    name: `${companyName} (${upperTicker}) · CONVICTION`,
     url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
-    description: `Explore conviction signals and filings for ${companyName} (${upperTicker}).`,
+    description: `Ownership signals and filings for ${companyName} (${upperTicker}).`,
   };
 
   return (
