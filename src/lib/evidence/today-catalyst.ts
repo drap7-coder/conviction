@@ -12,7 +12,14 @@ export interface TodayCatalyst {
   label: string;
   tone: TodayCatalystTone;
   /** Why this badge was chosen — for tests / debugging */
-  kind: "earnings" | "trial" | "guidance" | "deal" | "regulatory" | "news";
+  kind:
+    | "earnings"
+    | "trial"
+    | "guidance"
+    | "deal"
+    | "regulatory"
+    | "analyst"
+    | "news";
 }
 
 export interface CatalystHeadlineInput {
@@ -36,6 +43,10 @@ interface CatalystRule {
   /** Higher wins when multiple rules match */
   priority: number;
 }
+
+/** Headlines that look like upgrades but are not Street rating actions. */
+const ANALYST_FALSE_POSITIVE =
+  /\bcredit rating\b|\bsoftware upgrade\b|\bsystem upgrade\b|\bfirmware upgrade\b|\bnetwork upgrade\b|\binfrastructure upgrade\b|\bplant upgrade\b|\bfacility upgrade\b|\bdebt (?:rating|upgrade|downgrade)\b|\bmoodys\b|\bmoody'?s\b|\bs&p global ratings\b|\bfitch ratings\b/i;
 
 const CATALYST_RULES: CatalystRule[] = [
   {
@@ -77,6 +88,30 @@ const CATALYST_RULES: CatalystRule[] = [
     priority: 88,
     pattern:
       /\braises? guidance\b|\blifts? guidance\b|\braises? outlook\b|\bupbeat (?:outlook|guidance)/i,
+  },
+  {
+    kind: "analyst",
+    label: "Analyst upgrade",
+    tone: "positive",
+    priority: 96,
+    pattern:
+      /\b(?:analysts?|brokerages?)\b.{0,48}\bupgrad|\bupgrad(?:e|ed|es|ing)\b.{0,48}\b(?:to|overweight|outperform|buy|equal[\s-]?weight|neutral|hold|rating|price target)|\braises?\s+(?:the\s+)?(?:price\s+)?target|\bprice target raised|\bpt raised\b|\binitiates?(?:\s+\w+){0,3}\s+coverage|\breiterates?\s+(?:a\s+)?(?:buy|overweight|outperform)\b/i,
+  },
+  {
+    kind: "analyst",
+    label: "Analyst downgrade",
+    tone: "negative",
+    priority: 97,
+    pattern:
+      /\b(?:analysts?|brokerages?)\b.{0,48}\bdowngrad|\bdowngrad(?:e|ed|es|ing)\b.{0,48}\b(?:to|underweight|underperform|sell|equal[\s-]?weight|neutral|hold|rating|price target)|\bcuts?\s+(?:the\s+)?(?:price\s+)?target|\bprice target cut\b|\bpt cut\b|\breiterates?\s+(?:a\s+)?(?:sell|underweight|underperform)\b/i,
+  },
+  {
+    kind: "analyst",
+    label: "Price target move",
+    tone: "contested",
+    priority: 86,
+    pattern:
+      /\bprice targets?\b|\bpt to \$?\d|\btarget (?:price )?to \$?\d|\braises? .{0,20}\btarget\b|\blifts? .{0,20}\btarget\b|\bcuts? .{0,20}\btarget\b/i,
   },
   {
     kind: "deal",
@@ -127,9 +162,56 @@ function matchRule(text: string): CatalystRule | null {
   let best: CatalystRule | null = null;
   for (const rule of CATALYST_RULES) {
     if (!rule.pattern.test(text)) continue;
+    // Skip Street-action rules when the headline is about credit ratings / IT upgrades.
+    if (rule.kind === "analyst" && ANALYST_FALSE_POSITIVE.test(text)) continue;
     if (!best || rule.priority > best.priority) best = rule;
   }
   return best;
+}
+
+export interface GradeActionCatalystInput {
+  date: string;
+  direction: "upgrade" | "downgrade" | "maintain" | "initiate" | "other";
+  firm?: string | null;
+  previousGrade?: string | null;
+  newGrade?: string | null;
+  action?: string | null;
+}
+
+/**
+ * Structured Street actions (FMP grades) → same badge language as news catalysts.
+ * Only recent upgrade/downgrade/initiate rows mint a badge.
+ */
+export function catalystFromGradeActions(
+  actions: GradeActionCatalystInput[],
+  options: DeriveTodayCatalystOptions = {},
+): TodayCatalyst | null {
+  const now = options.now ?? new Date();
+  const todayIso = marketTodayIso(now);
+
+  const recent = actions.filter((action) => {
+    if (action.direction !== "upgrade" && action.direction !== "downgrade" && action.direction !== "initiate") {
+      return false;
+    }
+    const iso = normalizeDate(action.date);
+    return iso ? isTodayOrYesterday(iso, todayIso) : false;
+  });
+
+  if (recent.length === 0) return null;
+
+  const upgrades = recent.filter((action) => action.direction === "upgrade" || action.direction === "initiate");
+  const downgrades = recent.filter((action) => action.direction === "downgrade");
+
+  if (upgrades.length > 0 && downgrades.length > 0) {
+    return { label: "Street mixed", tone: "contested", kind: "analyst" };
+  }
+  if (downgrades.length > 0) {
+    return { label: "Analyst downgrade", tone: "negative", kind: "analyst" };
+  }
+  if (upgrades.some((action) => action.direction === "initiate")) {
+    return { label: "Coverage initiated", tone: "positive", kind: "analyst" };
+  }
+  return { label: "Analyst upgrade", tone: "positive", kind: "analyst" };
 }
 
 function companyToken(companyName: string | null | undefined, ticker: string): string | null {
@@ -237,6 +319,9 @@ export function deriveTodayCatalyst(
   }
   if (theme.includes("strategic") || theme.includes("options")) {
     return { label: "Deal news", tone: "contested", kind: "deal" };
+  }
+  if (theme.includes("street") || theme.includes("analyst")) {
+    return { label: "Street focus", tone: "contested", kind: "analyst" };
   }
 
   return null;

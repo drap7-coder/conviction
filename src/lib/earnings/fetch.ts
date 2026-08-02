@@ -7,6 +7,8 @@
 
 import { clampScore } from "@/lib/conviction/scoring";
 import type {
+  AnalystGradeAction,
+  AnalystGradeDirection,
   EarningsEvidence,
   EarningsForecast,
   EarningsQuarter,
@@ -52,6 +54,7 @@ type FmpGradeRow = {
   symbol?: string;
   date?: string;
   action?: string;
+  gradingCompany?: string;
   previousGrade?: string;
   newGrade?: string;
 };
@@ -189,20 +192,66 @@ function mapFmpForecasts(rows: FmpEstimateRow[]): EarningsForecast[] {
     }));
 }
 
+/** Classify a raw FMP grade row into a directional Street action. */
+export function classifyGradeDirection(
+  action: string | null | undefined,
+  previousGrade?: string | null,
+  newGrade?: string | null,
+): AnalystGradeDirection {
+  const normalized = String(action ?? "").toLowerCase().trim();
+  if (normalized.includes("upgrade")) return "upgrade";
+  if (normalized.includes("downgrade")) return "downgrade";
+  if (normalized.includes("initiat")) return "initiate";
+  if (normalized.includes("maintain") || normalized.includes("reiterat")) return "maintain";
+
+  // Some providers put the new rating in `action` without upgrade/downgrade wording.
+  const grade = normalized || String(newGrade ?? "").toLowerCase();
+  const previous = String(previousGrade ?? "").toLowerCase();
+  if (grade === "buy" || grade === "outperform" || grade === "overweight") {
+    if (previous && previous !== grade) return "upgrade";
+    return "other";
+  }
+  if (grade === "sell" || grade === "underperform" || grade === "underweight") {
+    if (previous && previous !== grade) return "downgrade";
+    return "other";
+  }
+  return "other";
+}
+
+/** Normalize FMP `/grades` rows for UI + catalyst badges. */
+export function mapFmpGradeActions(grades: FmpGradeRow[], limit = 12): AnalystGradeAction[] {
+  return grades
+    .map((grade) => {
+      const action = String(grade.action ?? "").trim();
+      const previousGrade = grade.previousGrade ? String(grade.previousGrade) : null;
+      const newGrade = grade.newGrade ? String(grade.newGrade) : null;
+      return {
+        date: String(grade.date ?? "").slice(0, 10),
+        firm: grade.gradingCompany ? String(grade.gradingCompany) : null,
+        action: action || (newGrade ?? "Grade update"),
+        previousGrade,
+        newGrade,
+        direction: classifyGradeDirection(action, previousGrade, newGrade),
+      };
+    })
+    .filter((grade) => grade.date.length >= 8)
+    .slice(0, limit);
+}
+
 /** Map recent analyst grade actions into synthetic revision up/down counts. */
 function forecastsFromGrades(grades: FmpGradeRow[]): EarningsForecast[] {
   if (grades.length === 0) return [];
   let revisionsUp = 0;
   let revisionsDown = 0;
   for (const grade of grades.slice(0, 20)) {
-    const action = String(grade.action ?? "").toLowerCase();
-    if (action.includes("upgrade") || action === "buy" || action === "outperform") {
+    const direction = classifyGradeDirection(
+      grade.action,
+      grade.previousGrade,
+      grade.newGrade,
+    );
+    if (direction === "upgrade" || direction === "initiate") {
       revisionsUp += 1;
-    } else if (
-      action.includes("downgrade")
-      || action === "sell"
-      || action === "underperform"
-    ) {
+    } else if (direction === "downgrade") {
       revisionsDown += 1;
     }
   }
@@ -226,10 +275,13 @@ function forecastsFromGrades(grades: FmpGradeRow[]): EarningsForecast[] {
   ];
 }
 
-async function fetchNasdaqBundle(symbol: string): Promise<{
+type EarningsBundle = {
   history: EarningsQuarter[];
   forecasts: EarningsForecast[];
-} | null> {
+  gradeActions: AnalystGradeAction[];
+};
+
+async function fetchNasdaqBundle(symbol: string): Promise<EarningsBundle | null> {
   const [surprise, forecast] = await Promise.all([
     getJson<SurpriseResponse>(
       `https://api.nasdaq.com/api/company/${encodeURIComponent(symbol)}/earnings-surprise`,
@@ -242,16 +294,14 @@ async function fetchNasdaqBundle(symbol: string): Promise<{
   return {
     history: mapNasdaqHistory(surprise?.data?.earningsSurpriseTable?.rows),
     forecasts: mapNasdaqForecasts(forecast?.data?.quarterlyForecast?.rows),
+    gradeActions: [],
   };
 }
 
 async function fetchFmpBundle(
   symbol: string,
   apiKey: string,
-): Promise<{
-  history: EarningsQuarter[];
-  forecasts: EarningsForecast[];
-} | null> {
+): Promise<EarningsBundle | null> {
   const key = encodeURIComponent(apiKey);
   const sym = encodeURIComponent(symbol);
   const [earnings, estimates, grades] = await Promise.all([
@@ -277,6 +327,7 @@ async function fetchFmpBundle(
   const history = mapFmpHistory(earningsRows);
   const estimateForecasts = mapFmpForecasts(estimateRows);
   const gradeForecasts = forecastsFromGrades(gradeRows);
+  const gradeActions = mapFmpGradeActions(gradeRows);
   // Prefer estimate rows for consensus; use grades for revision pressure when estimates lack up/down.
   const forecasts =
     estimateForecasts.length > 0
@@ -291,17 +342,21 @@ async function fetchFmpBundle(
         )
       : gradeForecasts;
 
-  return { history, forecasts };
+  return { history, forecasts, gradeActions };
 }
 
 async function firstBundle(
   variants: string[],
-  fetcher: (symbol: string) => Promise<{ history: EarningsQuarter[]; forecasts: EarningsForecast[] } | null>,
-): Promise<{ history: EarningsQuarter[]; forecasts: EarningsForecast[]; symbol: string } | null> {
+  fetcher: (symbol: string) => Promise<EarningsBundle | null>,
+): Promise<(EarningsBundle & { symbol: string }) | null> {
   for (const symbol of variants) {
     const bundle = await fetcher(symbol);
     if (!bundle) continue;
-    if (bundle.history.length > 0 || bundle.forecasts.length > 0) {
+    if (
+      bundle.history.length > 0
+      || bundle.forecasts.length > 0
+      || bundle.gradeActions.length > 0
+    ) {
       return { ...bundle, symbol };
     }
   }
@@ -313,6 +368,7 @@ function unavailable(ticker: string, message?: string): EarningsEvidence {
     ticker,
     history: [],
     forecasts: [],
+    gradeActions: [],
     historyScore: null,
     revisionScore: null,
     score: null,
@@ -334,6 +390,7 @@ export async function fetchEarningsEvidence(ticker: string): Promise<EarningsEvi
 
   let history: EarningsQuarter[] = [];
   let forecasts: EarningsForecast[] = [];
+  let gradeActions: AnalystGradeAction[] = [];
   let usedFmp = false;
   let usedNasdaq = false;
 
@@ -342,6 +399,7 @@ export async function fetchEarningsEvidence(ticker: string): Promise<EarningsEvi
     if (fmp) {
       history = fmp.history;
       forecasts = fmp.forecasts;
+      gradeActions = fmp.gradeActions;
       usedFmp = true;
     }
   }
@@ -377,7 +435,7 @@ export async function fetchEarningsEvidence(ticker: string): Promise<EarningsEvi
     }
   }
 
-  if (history.length === 0 && forecasts.length === 0) {
+  if (history.length === 0 && forecasts.length === 0 && gradeActions.length === 0) {
     return unavailable(
       normalized,
       apiKey
@@ -387,7 +445,11 @@ export async function fetchEarningsEvidence(ticker: string): Promise<EarningsEvi
   }
 
   const scored = scoreEarningsParts(history, forecasts);
-  if (scored.status === "unavailable" || scored.score === null) {
+  // Grades-only coverage is still useful explanatory evidence even without a score.
+  if (
+    (scored.status === "unavailable" || scored.score === null)
+    && gradeActions.length === 0
+  ) {
     return unavailable(normalized, "Earnings evidence could not be scored for this symbol.");
   }
 
@@ -395,7 +457,12 @@ export async function fetchEarningsEvidence(ticker: string): Promise<EarningsEvi
     ticker: normalized,
     history,
     forecasts,
+    gradeActions,
     ...scored,
+    status:
+      scored.status === "unavailable" && gradeActions.length > 0
+        ? "partial"
+        : scored.status,
     nextEarningsDate: null,
     source: usedFmp ? "fmp" : usedNasdaq ? "nasdaq" : "unavailable",
     message: usedFmp && usedNasdaq ? "Combined FMP primary with Nasdaq revision fallback." : undefined,

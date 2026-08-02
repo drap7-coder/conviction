@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  classifyGradeDirection,
   earningsTickerVariants,
+  mapFmpGradeActions,
   scoreEarningsParts,
 } from "@/lib/earnings/fetch";
 import type { EarningsForecast, EarningsQuarter } from "@/lib/earnings/types";
@@ -50,5 +52,44 @@ describe("scoreEarningsParts", () => {
     expect(scored.historyScore).toBe(25);
     expect(scored.revisionScore).toBeNull();
     expect(scored.score).toBe(25);
+  });
+});
+
+describe("analyst grade mapping", () => {
+  it("classifies upgrade, downgrade, initiate, and maintain actions", () => {
+    expect(classifyGradeDirection("upgrade")).toBe("upgrade");
+    expect(classifyGradeDirection("downgrade")).toBe("downgrade");
+    expect(classifyGradeDirection("initiate")).toBe("initiate");
+    expect(classifyGradeDirection("maintain")).toBe("maintain");
+    expect(classifyGradeDirection("buy", "Hold", "Buy")).toBe("upgrade");
+    expect(classifyGradeDirection("sell", "Hold", "Sell")).toBe("downgrade");
+  });
+
+  it("maps FMP grade rows into UI actions", () => {
+    const actions = mapFmpGradeActions([
+      {
+        date: "2026-07-31",
+        gradingCompany: "Morgan Stanley",
+        action: "upgrade",
+        previousGrade: "Equal-Weight",
+        newGrade: "Overweight",
+      },
+      {
+        date: "2026-07-28",
+        gradingCompany: "JPMorgan",
+        action: "maintain",
+        previousGrade: "Overweight",
+        newGrade: "Overweight",
+      },
+    ]);
+
+    expect(actions).toHaveLength(2);
+    expect(actions[0]).toMatchObject({
+      firm: "Morgan Stanley",
+      direction: "upgrade",
+      previousGrade: "Equal-Weight",
+      newGrade: "Overweight",
+    });
+    expect(actions[1]?.direction).toBe("maintain");
   });
 });
