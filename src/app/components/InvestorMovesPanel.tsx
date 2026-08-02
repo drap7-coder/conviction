@@ -278,49 +278,51 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
                   </div>
                 </div>
 
-                <SignalBlock
-                  compact
-                  conclusion={
-                    filter !== "all"
-                      ? `${filter} activity in ${idea.ticker}`
-                      : ideaConclusion(idea)
-                  }
-                  evidence={
-                    filter !== "all"
-                      ? (() => {
-                          const move = idea.moves.find((item) => item.displayName === filter);
-                          return move ? moveSummary(move) : ideaEvidence(idea);
-                        })()
-                      : ideaEvidence(idea)
-                  }
-                  whyItMatters="Fund filings can arrive weeks late and may not match today’s holdings."
-                  dateLabel={idea.filingQuarter ? `Holdings as of ${formatDate(idea.filingQuarter)}` : null}
-                  source="sec_filing"
-                  strength={strength}
-                >
-                  <div className="investor-manager-list">
-                    {idea.moves.map((move) => (
-                      <div
-                        className={`investor-manager-row${filter === move.displayName ? " selected" : ""}`}
-                        key={`${idea.ticker}-${move.displayName}`}
-                      >
-                        <button
-                          type="button"
-                          className="investor-manager-name"
-                          onClick={() => setFilter(move.displayName)}
+                <div className="investor-idea-body">
+                  <SignalBlock
+                    compact
+                    conclusion={
+                      filter !== "all"
+                        ? `${filter} activity in ${idea.ticker}`
+                        : ideaConclusion(idea)
+                    }
+                    evidence={
+                      filter !== "all"
+                        ? (() => {
+                            const move = idea.moves.find((item) => item.displayName === filter);
+                            return move ? moveSummary(move) : ideaEvidence(idea);
+                          })()
+                        : ideaEvidence(idea)
+                    }
+                    whyItMatters="Fund filings can arrive weeks late and may not match today’s holdings."
+                    dateLabel={idea.filingQuarter ? `Holdings as of ${formatDate(idea.filingQuarter)}` : null}
+                    source="sec_filing"
+                    strength={strength}
+                  >
+                    <div className="investor-manager-list">
+                      {idea.moves.map((move) => (
+                        <div
+                          className={`investor-manager-row${filter === move.displayName ? " selected" : ""}`}
+                          key={`${idea.ticker}-${move.displayName}`}
                         >
-                          {move.displayName}
-                        </button>
-                        <strong className={statusChipClass(move.status)}>{moveSummary(move)}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </SignalBlock>
+                          <button
+                            type="button"
+                            className="investor-manager-name"
+                            onClick={() => setFilter(move.displayName)}
+                          >
+                            {move.displayName}
+                          </button>
+                          <strong className={statusChipClass(move.status)}>{moveSummary(move)}</strong>
+                        </div>
+                      ))}
+                    </div>
+                  </SignalBlock>
 
-                <div className="investor-idea-footer">
-                  <Link href={`/companies/${idea.ticker}`} className="investor-idea-footer-link">
-                    Open company →
-                  </Link>
+                  <div className="investor-idea-footer">
+                    <Link href={`/companies/${idea.ticker}`} className="investor-idea-footer-link">
+                      Open company →
+                    </Link>
+                  </div>
                 </div>
               </article>
             );

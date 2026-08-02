@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type { PoliticalTrade } from "@/lib/political-trades";
@@ -155,26 +156,32 @@ export function PoliticiansMovesPanel() {
           {visibleTrades.map((trade) => {
             const tone = directionTone(trade.direction);
             return (
-              <article key={trade.id} className={`politician-trade-card ink-box ink-box--${tone}`}>
-                <div className="politician-trade-top">
-                  <Link href={`/companies/${trade.ticker}`} className="politician-trade-ticker">
-                    {trade.ticker}
+              <article key={trade.id} className="politician-trade-card">
+                <div className="politician-trade-card-top">
+                  <Link href={`/companies/${trade.ticker}`} className="politician-trade-company">
+                    <LogoDisplay ticker={trade.ticker} size="card" />
+                    <div>
+                      <strong>{trade.ticker}</strong>
+                      <span>{trade.assetName}</span>
+                    </div>
                   </Link>
                   <span className={`ink-chip ink-chip--${tone}`}>
                     {trade.transactionType}
                   </span>
                 </div>
-                <div className="politician-trade-meta">
-                  <strong>{trade.filerName}</strong>
-                  <span>{trade.office}</span>
-                  {trade.party ? <span>{trade.party}</span> : null}
-                  {trade.state ? <span>{trade.state}</span> : null}
-                </div>
-                <div className="politician-trade-amounts">
-                  <span>{trade.amountRange}</span>
-                  <span>Filed {formatDate(trade.filingDate)}</span>
-                  {trade.transactionDate ? <span>Traded {formatDate(trade.transactionDate)}</span> : null}
-                  {trade.isLate ? <span className="ink-chip ink-chip--amber">Late filing</span> : null}
+                <div className="politician-trade-body">
+                  <div className="politician-trade-meta">
+                    <strong>{trade.filerName}</strong>
+                    <span>{trade.office}</span>
+                    {trade.party ? <span>{trade.party}</span> : null}
+                    {trade.state ? <span>{trade.state}</span> : null}
+                  </div>
+                  <div className="politician-trade-amounts">
+                    <span>{trade.amountRange}</span>
+                    <span>Filed {formatDate(trade.filingDate)}</span>
+                    {trade.transactionDate ? <span>Traded {formatDate(trade.transactionDate)}</span> : null}
+                    {trade.isLate ? <span className="politician-trade-late">Late filing</span> : null}
+                  </div>
                 </div>
               </article>
             );
