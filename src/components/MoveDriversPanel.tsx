@@ -27,9 +27,9 @@ export type MoveDriverNews = {
   headlines: MoveDriverHeadline[];
 };
 
-function formatMove(changePercent: number | null | undefined): string | null {
+function formatMoveChip(changePercent: number | null | undefined): string | null {
   if (!isFiniteNumber(changePercent)) return null;
-  return `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(1)}% today`;
+  return `${changePercent > 0 ? "+" : ""}${changePercent.toFixed(1)}%`;
 }
 
 /**
@@ -164,24 +164,23 @@ export function MoveDriversPanel({
             driver?.label,
             { ticker: holding.ticker, companyName: holding.companyName ?? undefined },
           );
-          const moveLabel = formatMove(holding.changePercent);
+          const moveChip = formatMoveChip(holding.changePercent);
+          const moveTone =
+            !isFiniteNumber(holding.changePercent) ? "quiet"
+              : holding.changePercent > 0.05 ? "positive"
+                : holding.changePercent < -0.05 ? "negative"
+                  : "quiet";
+          // Driver/catalyst leads; session % stays on the chip for scan.
           const conclusion =
             driver?.label
+            ?? catalyst?.label
             ?? top[0]?.headline
-            ?? (loaded
-              ? (moveLabel
-                ? `${holding.ticker} is ${moveLabel.replace(" today", "")} today`
-                : "No clear driver yet")
-              : "Loading…");
+            ?? (loaded ? "No clear driver yet" : "Loading…");
+          const supportHeadline = top.find((item) => item.headline !== conclusion)?.headline ?? null;
           const evidence =
             driver?.explanation
-            ?? (top[0] && driver?.label
-              ? top[0].headline
-              : top[1]
-                ? top.slice(0, 2).map((h) => h.headline).join(" · ")
-                : (loaded && !top[0]
-                  ? "Session move without a clear headline yet."
-                  : moveLabel));
+            ?? supportHeadline
+            ?? (loaded && !top[0] ? "Session move without a clear headline yet." : null);
 
           return (
             <Link
@@ -195,9 +194,9 @@ export function MoveDriversPanel({
                 eyebrow={holding.ticker}
                 conclusion={conclusion}
                 evidence={evidence}
-                badge={catalyst ? { label: catalyst.label, tone: catalyst.tone } : (
-                  moveLabel ? { label: moveLabel, tone: (holding.changePercent ?? 0) >= 0 ? "positive" : "negative" } : null
-                )}
+                badge={moveChip
+                  ? { label: moveChip, tone: moveTone }
+                  : (catalyst ? { label: catalyst.label, tone: catalyst.tone } : null)}
               />
             </Link>
           );

@@ -5,7 +5,7 @@ import { SignalBlock } from "@/components/display/SignalBlock";
 import type { PortfolioRiskFlags } from "@/lib/portfolio/types";
 import { isFiniteNumber } from "@/lib/display/format";
 
-function weightPct(value: number | null): string {
+function weightChip(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   return `${value.toFixed(0)}%`;
 }
@@ -25,9 +25,9 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
     items.push({
       id: `conc-${p.ticker}`,
       eyebrow: p.ticker,
-      conclusion: `${weightPct(p.weight)} of your portfolio`,
-      evidence: "Single-name weight is above 20%. A sharp move here would dominate results.",
-      badge: { label: "Position", tone: "negative" },
+      conclusion: "Single-name concentration",
+      evidence: "Above 20% of the book — a sharp move here would dominate results.",
+      badge: { label: weightChip(p.weight), tone: "negative" },
     });
   }
 
@@ -35,9 +35,9 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
     items.push({
       id: `elev-${p.ticker}`,
       eyebrow: p.ticker,
-      conclusion: `${weightPct(p.weight)} of the portfolio`,
-      evidence: "Weight is elevated (12–20%). Worth watching if the position keeps growing.",
-      badge: { label: "Note", tone: "amber" },
+      conclusion: "Elevated weight",
+      evidence: "12–20% of the book — watch if the position keeps growing.",
+      badge: { label: weightChip(p.weight), tone: "amber" },
     });
   }
 
@@ -45,9 +45,9 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
     items.push({
       id: `sector-${s.sector}`,
       eyebrow: s.sector,
-      conclusion: `${weightPct(s.weight)} of invested assets`,
-      evidence: "Sector weight is above 35%. Returns may move together in that group.",
-      badge: { label: "Sector", tone: "negative" },
+      conclusion: "Sector concentration",
+      evidence: "Above 35% of invested assets — those names may move together.",
+      badge: { label: weightChip(s.weight), tone: "negative" },
     });
   }
 
@@ -55,9 +55,9 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
     items.push({
       id: "top-three",
       eyebrow: "Top three",
-      conclusion: `${weightPct(flags.topThreeCombinedWeight)} of the portfolio`,
-      evidence: "Your three largest positions account for more than 60% of the book.",
-      badge: { label: "Diversification", tone: "negative" },
+      conclusion: "Book is top-heavy",
+      evidence: "Largest three positions are more than 60% of the portfolio.",
+      badge: { label: weightChip(flags.topThreeCombinedWeight), tone: "negative" },
     });
   }
 
@@ -66,7 +66,7 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
       id: "missing-cost",
       eyebrow: "Cost basis",
       conclusion: `Missing for ${flags.missingCostCount} position${flags.missingCostCount > 1 ? "s" : ""}`,
-      evidence: "Add average cost so unrealized gain/loss covers the full book.",
+      evidence: "Add average cost for full unrealized gain/loss coverage.",
       badge: { label: "Data", tone: "quiet" },
     });
   }
@@ -76,7 +76,7 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
       id: "missing-price",
       eyebrow: "Prices",
       conclusion: `Unavailable for ${flags.missingPriceCount} position${flags.missingPriceCount > 1 ? "s" : ""}`,
-      evidence: "Totals and day change reflect only positions with a current price.",
+      evidence: "Totals reflect only positions with a current price.",
       badge: { label: "Data", tone: "quiet" },
     });
   }
@@ -86,7 +86,7 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
       id: "all-clear",
       eyebrow: "Concentration",
       conclusion: "No concentration warnings",
-      evidence: "Single-name and sector weights look balanced for this book.",
+      evidence: "Single-name and sector weights look balanced.",
       badge: { label: "Clear", tone: "positive" },
     });
   }
@@ -103,7 +103,7 @@ export function PortfolioCheckPanel({ riskFlags }: { riskFlags: PortfolioRiskFla
   return (
     <section className="bcn-module bcn-module-nested" aria-label="Portfolio check">
       <div className="bcn-header">
-        <h2 className="bcn-title">Portfolio Check</h2>
+        <h2 className="bcn-title">Portfolio check</h2>
       </div>
       <div
         className="bcn-list"
