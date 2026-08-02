@@ -46,13 +46,15 @@ export function SignalBlock({
   className = "",
 }: SignalBlockProps) {
   const semantic = badge?.tone ?? (strength ? EVIDENCE_STRENGTH_TONE[strength] : null);
-  const inkTone = inkToneFromSemantic(semantic);
+  const chipTone = inkToneFromSemantic(semantic);
+  // Compact carousel cards stay navy; status color lives on the chip only.
+  const boxTone = compact ? "quiet" : chipTone;
   const chipLabel = badge?.label ?? (strength ? EVIDENCE_STRENGTH_LABEL[strength] : null);
   const showMeta = !hideMeta && Boolean(dateLabel || source);
 
   return (
     <section
-      className={`signal-block ${inkBoxClass(inkTone)} ${compact ? "signal-block-compact" : ""} ${className}`.trim()}
+      className={`signal-block ${inkBoxClass(boxTone)} ${compact ? "signal-block-compact" : ""} ${className}`.trim()}
       aria-label={conclusion}
     >
       <div className="signal-block-heading">
@@ -61,7 +63,7 @@ export function SignalBlock({
           <strong className="signal-block-conclusion">{conclusion}</strong>
         </div>
         {chipLabel ? (
-          <span className={inkChipClass(inkTone)}>{chipLabel}</span>
+          <span className={inkChipClass(chipTone)}>{chipLabel}</span>
         ) : null}
       </div>
 

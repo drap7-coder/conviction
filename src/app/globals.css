@@ -157,18 +157,18 @@ html, body {
 }
 
 .ink-box--up {
-  background: color-mix(in srgb, var(--on-ink-green) 16%, var(--ink-panel));
-  border-color: color-mix(in srgb, var(--on-ink-green) 38%, transparent);
+  background: color-mix(in srgb, var(--on-ink-green) 10%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-green) 28%, transparent);
 }
 
 .ink-box--down {
-  background: color-mix(in srgb, var(--on-ink-red) 16%, var(--ink-panel));
-  border-color: color-mix(in srgb, var(--on-ink-red) 38%, transparent);
+  background: color-mix(in srgb, var(--on-ink-red) 10%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-red) 28%, transparent);
 }
 
 .ink-box--amber {
-  background: color-mix(in srgb, var(--on-ink-amber) 14%, var(--ink-panel));
-  border-color: color-mix(in srgb, var(--on-ink-amber) 34%, transparent);
+  background: color-mix(in srgb, var(--on-ink-amber) 9%, var(--ink-panel));
+  border-color: color-mix(in srgb, var(--on-ink-amber) 26%, transparent);
 }
 
 .ink-box--quiet {
@@ -213,18 +213,18 @@ html, body {
 }
 
 .ink-chip--up {
-  background: color-mix(in srgb, var(--on-ink-green) 22%, transparent);
-  color: var(--on-ink-green);
+  background: color-mix(in srgb, var(--on-ink-green) 16%, transparent);
+  color: color-mix(in srgb, var(--on-ink-green) 88%, #ffffff);
 }
 
 .ink-chip--down {
-  background: color-mix(in srgb, var(--on-ink-red) 22%, transparent);
-  color: var(--on-ink-red);
+  background: color-mix(in srgb, var(--on-ink-red) 16%, transparent);
+  color: color-mix(in srgb, var(--on-ink-red) 88%, #ffffff);
 }
 
 .ink-chip--amber {
-  background: color-mix(in srgb, var(--on-ink-amber) 22%, transparent);
-  color: var(--on-ink-amber);
+  background: color-mix(in srgb, var(--on-ink-amber) 16%, transparent);
+  color: color-mix(in srgb, var(--on-ink-amber) 88%, #ffffff);
 }
 
 .ink-chip--quiet {
@@ -10380,6 +10380,8 @@ details > summary::before {
   box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
   color: var(--ink);
   font-family: var(--font-mono);
+  overflow: hidden;
+  min-width: 0;
 }
 
 .stock-heat-copy,
@@ -10656,20 +10658,25 @@ details > summary::before {
   border-top: 1px solid var(--border);
 }
 
-/* Driver / check carousels: fill the heatmap shell, peek the next card */
+/* Driver / check carousels stay inside the white shell — no negative-margin bleed */
 .stock-heat-footer .bcn-list,
-.market-heatmap-shell .stock-heat-footer .bcn-list {
-  gap: 10px;
-  margin-inline: -10px;
-  padding: 0 10px 2px;
-}
-
+.market-heatmap-shell .stock-heat-footer .bcn-list,
 .stock-heat-panel > .stock-heat-footer .bcn-list,
 .market-heatmap-shell > .stock-heat-footer .bcn-list {
-  /* Bleed to the white shell edges (shell padding is 18px / 12px). */
-  margin-inline: -18px;
-  padding-inline: 18px;
-  width: auto;
+  gap: 10px;
+  margin-inline: 0;
+  padding: 0 0 2px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.stock-heat-footer,
+.market-heatmap-shell .stock-heat-footer,
+.stock-heat-footer .bcn-module,
+.market-heatmap-shell .stock-heat-footer .bcn-module {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .stock-heat-footer .bcn-item,
@@ -10723,12 +10730,6 @@ details > summary::before {
 }
 
 @media (max-width: 399px) {
-  .stock-heat-panel > .stock-heat-footer .bcn-list,
-  .market-heatmap-shell > .stock-heat-footer .bcn-list {
-    margin-inline: -12px;
-    padding-inline: 12px;
-  }
-
   .stock-heat-footer .bcn-item,
   .market-heatmap-shell .stock-heat-footer .bcn-item {
     flex-basis: clamp(12rem, 82%, 15.5rem);
