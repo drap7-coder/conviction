@@ -1040,45 +1040,50 @@ details > summary::before {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 13px;
-  padding: 17px;
-  border: 1px solid var(--on-ink-border);
-  border-radius: calc(var(--radius) + 2px);
-  background: var(--ink-panel);
-  color: var(--on-ink);
-  box-shadow: var(--shadow-ink);
-  --ink: var(--on-ink);
-  --muted: var(--on-ink-muted);
-  --quiet: var(--on-ink-quiet);
-  --border: var(--on-ink-border);
-  --card: var(--ink-panel-elevated);
-  --accent: var(--on-ink-accent);
-  --positive: var(--on-ink-green);
-  --negative: var(--on-ink-red);
-  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+  gap: 0;
+  margin: 0;
+  padding: 0 0 14px;
+  border: 1px solid var(--border-active);
+  border-radius: 16px;
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
+  overflow: hidden;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .investor-idea-card:hover,
 .investor-idea-card:focus-visible {
-  border-color: color-mix(in srgb, #ffffff 28%, transparent);
+  border-color: var(--border-active);
   filter: none;
   transform: none;
   outline: none;
-  box-shadow:
-    var(--shadow-ink),
-    inset 0 0 0 999px color-mix(in srgb, #ffffff 4%, transparent);
+  box-shadow: 0 4px 14px rgba(17, 19, 24, 0.08);
 }
 
 .investor-idea-card .signal-block.ink-box {
-  /* Nested tone box sits inside the navy shell */
+  /* Nested tone box sits inside the white shell body */
   box-shadow: none;
 }
 
+/* Flush navy header — company wording on top, same language as Pulse / Conviction. */
 .investor-idea-card-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border-bottom: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  background: #0f172a;
+  color: #fff;
+}
+
+.investor-idea-body {
+  display: grid;
+  gap: 12px;
+  padding: 12px 14px 0;
+  min-width: 0;
 }
 
 .investor-idea-actions {
@@ -1093,6 +1098,8 @@ details > summary::before {
   min-width: 0;
   align-items: center;
   gap: 10px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .investor-idea-company div {
@@ -1105,15 +1112,16 @@ details > summary::before {
 }
 
 .investor-idea-company strong {
-  color: var(--ink);
+  color: rgba(255, 255, 255, 0.96);
   font-family: var(--font-mono);
-  font-size: 1rem;
+  font-size: 0.92rem;
+  letter-spacing: 0.02em;
 }
 
 .investor-idea-company span {
   overflow: hidden;
-  color: var(--quiet);
-  font-size: 0.71rem;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.68rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1121,10 +1129,10 @@ details > summary::before {
 .investor-idea-badge {
   flex: 0 0 auto;
   padding: 4px 7px;
-  border: 1px solid var(--green-dim);
+  border: 1px solid color-mix(in srgb, var(--on-ink-green) 40%, transparent);
   border-radius: 999px;
-  background: var(--green-dim);
-  color: var(--green);
+  background: color-mix(in srgb, var(--on-ink-green) 18%, transparent);
+  color: var(--on-ink-green);
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 700;
@@ -1133,9 +1141,9 @@ details > summary::before {
 }
 
 .investor-idea-badge.shared {
-  border-color: var(--accent-dim);
-  background: var(--accent-dim);
-  color: var(--accent);
+  border-color: color-mix(in srgb, var(--on-ink-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--on-ink-accent) 18%, transparent);
+  color: var(--on-ink-accent);
 }
 
 .investor-watchlist-add {
@@ -1144,10 +1152,10 @@ details > summary::before {
   height: 27px;
   flex: 0 0 27px;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--accent) 48%, var(--border));
+  border: 1px solid color-mix(in srgb, #ffffff 28%, transparent);
   border-radius: 999px;
-  background: var(--accent-dim);
-  color: var(--accent);
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+  color: rgba(255, 255, 255, 0.92);
   font-family: var(--font-mono);
   font-size: 1rem;
   font-weight: 700;
@@ -1157,16 +1165,16 @@ details > summary::before {
 
 .investor-watchlist-add:hover:not(:disabled),
 .investor-watchlist-add:focus-visible:not(:disabled) {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent-dim) 78%, var(--surface-elevated));
+  border-color: color-mix(in srgb, #ffffff 48%, transparent);
+  background: color-mix(in srgb, #ffffff 16%, transparent);
   outline: none;
   transform: scale(1.06);
 }
 
 .investor-watchlist-add.tracked {
-  border-color: color-mix(in srgb, var(--green) 42%, var(--border));
-  background: var(--green-dim);
-  color: var(--green);
+  border-color: color-mix(in srgb, var(--on-ink-green) 50%, transparent);
+  background: color-mix(in srgb, var(--on-ink-green) 18%, transparent);
+  color: var(--on-ink-green);
 }
 
 .investor-watchlist-add:disabled {
@@ -8694,11 +8702,15 @@ details > summary::before {
   }
 
   .investor-idea-card {
-    padding: 15px;
+    padding: 0 0 12px;
   }
 
   .investor-idea-card-top {
     align-items: center;
+  }
+
+  .investor-idea-body {
+    padding: 12px 12px 0;
   }
 
   .investor-manager-row {
@@ -9055,7 +9067,7 @@ details > summary::before {
 }
 
 .investor-idea-card .signal-block {
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .investor-idea-card .investor-manager-list {
