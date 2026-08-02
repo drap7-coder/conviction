@@ -5,9 +5,14 @@ import { useEffect, useMemo, useState } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { fetchConvictionScore } from "@/app/components/fetch-conviction-score";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
-import { deriveTodayCatalyst, type TodayCatalyst } from "@/lib/evidence/today-catalyst";
+import {
+  catalystFromGradeActions,
+  deriveTodayCatalyst,
+  type TodayCatalyst,
+} from "@/lib/evidence/today-catalyst";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
+import type { EarningsEvidence } from "@/lib/earnings/types";
 import type { StockQuote } from "@/lib/market/quotes";
 
 interface CompanyDetailHeaderProps {
@@ -71,35 +76,48 @@ export function CompanyDetailHeader({
     let cancelled = false;
     const controller = new AbortController();
 
-    async function loadNews() {
+    async function loadCatalyst() {
       try {
-        const res = await fetch(`/api/evidence/news?ticker=${encodeURIComponent(ticker)}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-        const data = (await res.json()) as {
-          events?: EvidenceEvent[];
-          driver?: NewsDriver | null;
-        };
+        const [newsRes, earningsRes] = await Promise.all([
+          fetch(`/api/evidence/news?ticker=${encodeURIComponent(ticker)}`, {
+            signal: controller.signal,
+          }),
+          fetch(`/api/evidence/earnings?ticker=${encodeURIComponent(ticker)}`, {
+            signal: controller.signal,
+          }),
+        ]);
+
+        const newsData = newsRes.ok
+          ? ((await newsRes.json()) as {
+              events?: EvidenceEvent[];
+              driver?: NewsDriver | null;
+            })
+          : null;
+        const earningsData = earningsRes.ok
+          ? ((await earningsRes.json()) as EarningsEvidence)
+          : null;
         if (cancelled) return;
-        const events = data.events ?? [];
-        setNewsCatalyst(
-          deriveTodayCatalyst(
-            events.slice(0, 8).map((event) => ({
-              headline: event.title,
-              date: event.date,
-              summary: event.summary,
-            })),
-            data.driver?.label,
-            { ticker, companyName },
-          ),
+
+        const events = newsData?.events ?? [];
+        const fromNews = deriveTodayCatalyst(
+          events.slice(0, 8).map((event) => ({
+            headline: event.title,
+            date: event.date,
+            summary: event.summary,
+          })),
+          newsData?.driver?.label,
+          { ticker, companyName },
         );
+        const fromGrades = catalystFromGradeActions(earningsData?.gradeActions ?? []);
+
+        // Prefer headline catalysts; fall back to structured Street grades.
+        setNewsCatalyst(fromNews ?? fromGrades);
       } catch {
         // ignore
       }
     }
 
-    void loadNews();
+    void loadCatalyst();
     return () => {
       cancelled = true;
       controller.abort();

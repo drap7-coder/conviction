@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { deriveTodayCatalyst, isCompanyRelevantHeadline, marketTodayIso } from "@/lib/evidence/today-catalyst";
+import {
+  catalystFromGradeActions,
+  deriveTodayCatalyst,
+  isCompanyRelevantHeadline,
+  marketTodayIso,
+} from "@/lib/evidence/today-catalyst";
 
 describe("deriveTodayCatalyst", () => {
   const now = new Date("2026-07-31T16:00:00-04:00");
@@ -114,5 +119,116 @@ describe("deriveTodayCatalyst", () => {
 
   it("formats market today in Eastern time", () => {
     expect(marketTodayIso(now)).toBe("2026-07-31");
+  });
+
+  it("labels analyst upgrades and ignores credit-rating false positives", () => {
+    expect(
+      deriveTodayCatalyst(
+        [
+          {
+            headline: "Morgan Stanley upgrades GOOG to Overweight, raises price target",
+            date: "2026-07-31",
+          },
+        ],
+        null,
+        { ticker: "GOOG", companyName: "Alphabet", now },
+      ),
+    ).toEqual({
+      label: "Analyst upgrade",
+      tone: "positive",
+      kind: "analyst",
+    });
+
+    expect(
+      deriveTodayCatalyst(
+        [
+          {
+            headline: "S&P Global Ratings upgrades Alphabet credit rating outlook",
+            date: "2026-07-31",
+          },
+        ],
+        null,
+        { ticker: "GOOG", companyName: "Alphabet", now },
+      ),
+    ).toBeNull();
+  });
+
+  it("labels analyst downgrades and price-target moves", () => {
+    expect(
+      deriveTodayCatalyst(
+        [
+          {
+            headline: "Analyst downgrades AMZN to Equal Weight and cuts price target",
+            date: "2026-07-31",
+          },
+        ],
+        null,
+        { ticker: "AMZN", companyName: "Amazon", now },
+      ),
+    ).toEqual({
+      label: "Analyst downgrade",
+      tone: "negative",
+      kind: "analyst",
+    });
+
+    expect(
+      deriveTodayCatalyst(
+        [
+          {
+            headline: "Bank of America lifts MSFT price target to $520",
+            date: "2026-07-31",
+          },
+        ],
+        null,
+        { ticker: "MSFT", companyName: "Microsoft", now },
+      ),
+    ).toEqual({
+      label: "Price target move",
+      tone: "contested",
+      kind: "analyst",
+    });
+  });
+
+  it("builds catalyst badges from structured grade actions", () => {
+    expect(
+      catalystFromGradeActions(
+        [
+          {
+            date: "2026-07-31",
+            direction: "upgrade",
+            firm: "Morgan Stanley",
+            previousGrade: "Equal-Weight",
+            newGrade: "Overweight",
+          },
+        ],
+        { now },
+      ),
+    ).toEqual({
+      label: "Analyst upgrade",
+      tone: "positive",
+      kind: "analyst",
+    });
+
+    expect(
+      catalystFromGradeActions(
+        [
+          {
+            date: "2026-07-31",
+            direction: "upgrade",
+            firm: "MS",
+          },
+          {
+            date: "2026-07-31",
+            direction: "downgrade",
+            firm: "JPM",
+          },
+        ],
+        { now },
+      ),
+    ).toEqual({
+      label: "Street mixed",
+      tone: "contested",
+      kind: "analyst",
+    });
   });
 });

@@ -104,7 +104,7 @@ export default async function CompanyPage({
         <DashboardCard className="dashboard-card-insider" title="Insider activity" summary="Recent open-market purchases and sales by company insiders.">
           <InsiderActivitySection ticker={upperTicker} />
         </DashboardCard>
-        <DashboardCard className="dashboard-card-earnings" title="Earnings details" summary="Reported results and changes to analyst estimates.">
+        <DashboardCard className="dashboard-card-earnings" title="Earnings" summary="Reported results and recent Street rating actions.">
           <EarningsMomentumSection ticker={upperTicker} />
         </DashboardCard>
         <DashboardCard className="dashboard-card-political" title="Political disclosures" summary="Reported purchases and sales involving public officials.">

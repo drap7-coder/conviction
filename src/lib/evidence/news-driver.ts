@@ -21,6 +21,12 @@ const THEME_RULES: ThemeRule[] = [
     explanation: "Deal interest and strategic alternatives are reshaping expectations.",
   },
   {
+    label: "Street actions",
+    pattern:
+      /(?:analysts?|brokerages?).{0,40}(?:upgrad|downgrad)|(?:upgrad|downgrad).{0,40}(?:rating|overweight|underweight|outperform|underperform|price target)|price target|initiates?(?:\s+\w+){0,3}\s+coverage|pt (?:raised|cut|to)/i,
+    explanation: "Analyst rating and price-target changes are shaping near-term expectations.",
+  },
+  {
     label: "Oil sensitivity",
     pattern: /brent|crude|oil price|oil prices|middle east|iran|houthi|hormuz|geopolit|supply disruption/i,
     explanation: "Commodity prices and global supply risk remain central to the story.",

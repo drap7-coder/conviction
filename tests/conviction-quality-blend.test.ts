@@ -349,6 +349,7 @@ describe("buildQualityFactors", () => {
         },
       ],
       forecasts: [],
+      gradeActions: [],
       historyScore: 50,
       revisionScore: null,
       score: 50,

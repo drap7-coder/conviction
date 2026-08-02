@@ -13,10 +13,29 @@ export interface EarningsForecast {
   revisionsDown: number;
 }
 
+export type AnalystGradeDirection =
+  | "upgrade"
+  | "downgrade"
+  | "maintain"
+  | "initiate"
+  | "other";
+
+/** Recent Street rating action from FMP `/grades` (explanatory, not scored). */
+export interface AnalystGradeAction {
+  date: string;
+  firm: string | null;
+  action: string;
+  previousGrade: string | null;
+  newGrade: string | null;
+  direction: AnalystGradeDirection;
+}
+
 export interface EarningsEvidence {
   ticker: string;
   history: EarningsQuarter[];
   forecasts: EarningsForecast[];
+  /** Structured analyst grade actions when FMP grades are available. */
+  gradeActions: AnalystGradeAction[];
   historyScore: number | null;
   revisionScore: number | null;
   score: number | null;

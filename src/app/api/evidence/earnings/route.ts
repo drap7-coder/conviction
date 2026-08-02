@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
       ticker,
       history: [],
       forecasts: [],
+      gradeActions: [],
       historyScore: null,
       revisionScore: null,
       score: null,
