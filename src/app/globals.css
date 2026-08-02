@@ -10917,67 +10917,16 @@ details > summary::before {
   text-align: left;
   text-decoration: none;
   cursor: default;
-  overflow: visible;
-  transition: border-color 0.15s, transform 0.15s;
+  overflow: hidden;
 }
 
 a.heat-tile {
   cursor: pointer;
 }
 
-.heat-tile:hover,
 .heat-tile:focus-visible {
-  filter: none;
-  outline: none;
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, #ffffff 34%, transparent);
-  z-index: 3;
-}
-
-.heat-tile-tooltip {
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  top: calc(100% + 8px);
-  z-index: 5;
-  display: grid;
-  gap: 3px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, #ffffff 14%, transparent);
-  border-radius: 10px;
-  background: #0f172a;
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.28);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-4px);
-  transition: opacity 0.14s ease, transform 0.14s ease;
-}
-
-.heat-tile-tooltip-label {
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.62);
-}
-
-.heat-tile-tooltip-text {
-  font-size: 0.72rem;
-  line-height: 1.35;
-  color: rgba(255, 255, 255, 0.94);
-}
-
-.heat-tile-has-driver:hover .heat-tile-tooltip,
-.heat-tile-has-driver:focus-visible .heat-tile-tooltip {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-@media (hover: none) {
-  .heat-tile-tooltip {
-    display: none;
-  }
+  outline: 2px solid color-mix(in srgb, #ffffff 50%, transparent);
+  outline-offset: 2px;
 }
 
 .heat-tile-ticker {

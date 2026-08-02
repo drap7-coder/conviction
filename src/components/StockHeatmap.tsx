@@ -22,8 +22,6 @@ export interface StockHeatmapItem {
   marketCap: number | null;
   sizeValue?: number | null;
   sizeLabel?: string;
-  /** What’s driving the move — shown on tile hover. */
-  driverText?: string | null;
 }
 
 interface StockHeatmapProps {
@@ -130,7 +128,6 @@ export function StockHeatmap({
               label={item.ticker}
               changePercent={item.changePercent}
               href={`/companies/${encodeURIComponent(item.ticker)}`}
-              driverText={item.driverText}
               ariaLabel={`${item.name}, ${item.ticker}, ${item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(1)}%`}`}
               style={{ gridColumn: `span ${span} / span ${span}` }}
             />
