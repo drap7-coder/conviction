@@ -91,8 +91,9 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            <ConvictionSignalsCard ticker={upperTicker} />
+            {/* Move card first when it has a fresh catalyst; renders null otherwise. */}
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
+            <ConvictionSignalsCard ticker={upperTicker} />
             <CompanySignalGauges ticker={upperTicker} />
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
           </>

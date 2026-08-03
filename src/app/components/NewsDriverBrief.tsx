@@ -1,26 +1,11 @@
 import type { NewsDriver } from "@/lib/evidence/news-driver";
-import { deriveTodayCatalyst } from "@/lib/evidence/today-catalyst";
+import {
+  buildMoveDriverView,
+  type MoveDriverHeadline,
+} from "@/lib/evidence/move-driver-brief";
 import { SignalBlock } from "@/components/display/SignalBlock";
 
-export interface NewsBriefHeadline {
-  headline: string;
-  url: string | null;
-  date: string;
-}
-
-function newestDate(headlines: NewsBriefHeadline[]): string | null {
-  if (headlines.length === 0) return null;
-  const sorted = [...headlines].sort((a, b) => b.date.localeCompare(a.date));
-  const raw = sorted[0]?.date;
-  if (!raw) return null;
-  const d = new Date(`${raw}T12:00:00`);
-  if (!Number.isFinite(d.getTime())) return raw;
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
-
-function sameHeadline(a: string, b: string): boolean {
-  return a.trim().toLowerCase() === b.trim().toLowerCase();
-}
+export type NewsBriefHeadline = MoveDriverHeadline;
 
 export function NewsDriverBrief({
   ticker,
@@ -30,10 +15,12 @@ export function NewsDriverBrief({
   compact = false,
   /** Hide catalyst chip when the page header already shows it. */
   showBadge = true,
-  /** Extra “why it matters” line — usually off on the company dashboard. */
-  showWhy = true,
+  /** Kept for callers; company dashboard always omits this fluff. */
+  showWhy = false,
   /** Override eyebrow; pass null to omit (section title lives outside). */
-  eyebrow = "What’s driving the move",
+  eyebrow = null,
+  absChangePercent = null,
+  now,
 }: {
   ticker: string;
   companyName?: string;
@@ -43,56 +30,50 @@ export function NewsDriverBrief({
   showBadge?: boolean;
   showWhy?: boolean;
   eyebrow?: string | null;
+  absChangePercent?: number | null;
+  now?: Date;
 }) {
-  if (!driver && headlines.length === 0) {
+  void showWhy;
+
+  const view = buildMoveDriverView({
+    ticker,
+    companyName,
+    driver,
+    headlines,
+    absChangePercent,
+    showBadge,
+    now,
+  });
+
+  if (view.mode === "hidden") {
+    return null;
+  }
+
+  if (view.mode === "no_catalyst") {
     return (
       <SignalBlock
         compact={compact}
         eyebrow={eyebrow}
-        conclusion="No clear news catalyst found"
-        evidence="Ownership filings and company disclosures still show the fuller picture."
-        dateLabel="—"
-        source="material_news"
+        conclusion={view.conclusion}
+        hideMeta
       />
     );
   }
-
-  const topHeadlines = headlines.slice(0, 3);
-  const catalyst = deriveTodayCatalyst(
-    topHeadlines.map((h) => ({ headline: h.headline, date: h.date })),
-    driver?.label,
-    { ticker, companyName },
-  );
-
-  const conclusion = driver?.label ?? topHeadlines[0]?.headline ?? "Still gathering the story";
-  // Prefer driver explanation; avoid repeating the same headlines we list below.
-  const evidence = driver?.explanation
-    ?? (compact && topHeadlines[1]
-      ? topHeadlines.slice(0, 2).map((h) => h.headline).join(" · ")
-      : null);
-  const whyItMatters = !showWhy || compact
-    ? null
-    : driver
-      ? "News helps explain the move — check ownership filings before deciding."
-      : "Headlines are clues. Confirm with ownership and company filings before deciding.";
-
-  // Don't re-list the conclusion as headline #1.
-  const listHeadlines = topHeadlines.filter((item) => !sameHeadline(item.headline, conclusion));
 
   return (
     <SignalBlock
       compact={compact}
       eyebrow={eyebrow}
-      conclusion={conclusion}
-      evidence={evidence}
-      whyItMatters={whyItMatters}
-      dateLabel={newestDate(topHeadlines) ?? "Recent"}
+      conclusion={view.conclusion}
+      evidence={view.evidence}
+      dateLabel={view.dateLabel}
       source="material_news"
-      badge={showBadge && catalyst ? { label: catalyst.label, tone: catalyst.tone } : null}
+      badge={view.badge}
+      hideMeta={compact}
     >
-      {!compact && listHeadlines.length > 0 ? (
-        <ol className="signal-block-list" aria-label={`${ticker} latest headlines`}>
-          {listHeadlines.map((item) => (
+      {!compact && view.headlines.length > 0 ? (
+        <ol className="signal-block-list" aria-label={`${ticker} related headlines`}>
+          {view.headlines.map((item) => (
             <li key={`${item.date}-${item.headline}`}>
               {item.url ? (
                 <a href={item.url} target="_blank" rel="noopener noreferrer">
