@@ -8900,6 +8900,20 @@ details > summary::before {
   font-weight: 650;
 }
 
+a.signal-block-conclusion-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.signal-block-conclusion-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
+.ink-box a.signal-block-conclusion-link {
+  color: var(--on-ink);
+}
+
 .signal-block-compact .signal-block-conclusion {
   font-size: 0.92rem;
   line-height: 1.3;

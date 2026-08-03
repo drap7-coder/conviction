@@ -53,6 +53,16 @@
   letter-spacing: -0.02em;
 }
 
+.company-briefing .company-driver-module .signal-block-list a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.company-briefing .company-driver-module .signal-block-list a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
 .company-briefing .company-driver-module .signal-block-evidence {
   font-size: 0.84rem;
   line-height: 1.45;

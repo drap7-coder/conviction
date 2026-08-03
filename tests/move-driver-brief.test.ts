@@ -21,7 +21,7 @@ describe("move driver brief", () => {
     expect(isRecentHeadlineDate("2026-07-30", now)).toBe(false);
   });
 
-  it("leads with the headline and demotes theme to a chip when badge is allowed", () => {
+  it("leads with a linked headline and keeps up to two siblings", () => {
     const view = buildMoveDriverView({
       ticker: "GOOG",
       companyName: "Alphabet",
@@ -41,6 +41,11 @@ describe("move driver brief", () => {
           url: "https://example.com/b",
           date: "2026-08-02",
         },
+        {
+          headline: "Alphabet cloud backlog draws bulls",
+          url: "https://example.com/c",
+          date: "2026-08-01",
+        },
       ],
       showBadge: true,
       now,
@@ -48,8 +53,48 @@ describe("move driver brief", () => {
 
     expect(view.mode).toBe("catalyst");
     expect(view.conclusion).toBe("Alphabet jumps after strong cloud growth");
-    expect(view.evidence).toBe("Analysts lift GOOG targets on AI spend");
+    expect(view.conclusionUrl).toBe("https://example.com/a");
+    expect(view.headlines).toHaveLength(2);
+    expect(view.headlines[0]?.url).toBe("https://example.com/b");
     expect(view.conclusion).not.toMatch(/AI positioning|Execution/i);
+  });
+
+  it("fills to three headlines with slightly older siblings when the lead is fresh", () => {
+    const view = buildMoveDriverView({
+      ticker: "PFE",
+      companyName: "Pfizer",
+      driver: {
+        label: "Execution + margins",
+        explanation: "Guidance is resetting expectations.",
+        confidence: "likely",
+      },
+      headlines: [
+        {
+          headline: "Pfizer (PFE) Stock Looks Reasonable Based On Today’s Broader Checks",
+          url: "https://example.com/pfe-1",
+          date: "2026-08-01",
+        },
+        {
+          headline: "Pfizer Yields 6.8% and Has a Promising Late-Stage Weight Loss Drug",
+          url: "https://example.com/pfe-2",
+          date: "2026-07-31",
+        },
+        {
+          headline: "Here is What to Know Beyond Why Pfizer Inc. (PFE) is a Trending Stock",
+          url: "https://example.com/pfe-3",
+          date: "2026-07-31",
+        },
+      ],
+      showBadge: false,
+      now,
+    });
+
+    expect(view.mode).toBe("catalyst");
+    expect(view.conclusionUrl).toBe("https://example.com/pfe-1");
+    expect(view.headlines.map((item) => item.url)).toEqual([
+      "https://example.com/pfe-2",
+      "https://example.com/pfe-3",
+    ]);
   });
 
   it("hides the card when coverage is stale and the session is quiet", () => {

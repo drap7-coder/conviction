@@ -16,6 +16,8 @@ import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/in
 
 export interface SignalBlockProps {
   conclusion: string;
+  /** When set, the conclusion renders as an external link. */
+  conclusionHref?: string | null;
   evidence?: string | null;
   whyItMatters?: string | null;
   dateLabel?: string | null;
@@ -33,6 +35,7 @@ export interface SignalBlockProps {
 
 export function SignalBlock({
   conclusion,
+  conclusionHref = null,
   evidence,
   whyItMatters,
   dateLabel,
@@ -60,7 +63,18 @@ export function SignalBlock({
       <div className="signal-block-heading">
         <div className="signal-block-heading-text">
           {eyebrow ? <span className="signal-block-eyebrow">{eyebrow}</span> : null}
-          <strong className="signal-block-conclusion">{conclusion}</strong>
+          {conclusionHref ? (
+            <a
+              className="signal-block-conclusion signal-block-conclusion-link"
+              href={conclusionHref}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {conclusion}
+            </a>
+          ) : (
+            <strong className="signal-block-conclusion">{conclusion}</strong>
+          )}
         </div>
         {chipLabel ? (
           <span className={inkChipClass(chipTone)}>{chipLabel}</span>
