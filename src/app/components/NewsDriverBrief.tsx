@@ -65,7 +65,7 @@ export function NewsDriverBrief({
       compact={compact}
       eyebrow={eyebrow}
       conclusion={view.conclusion}
-      evidence={view.evidence}
+      conclusionHref={view.conclusionUrl}
       dateLabel={view.dateLabel}
       source="material_news"
       badge={view.badge}

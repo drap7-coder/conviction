@@ -24,17 +24,23 @@ export interface MoveDriverView {
   title: string;
   /** Lead line — a real headline, never a theme label */
   conclusion: string;
-  /** One supporting line (second headline), if any */
-  evidence: string | null;
+  /** Link for the lead headline when available */
+  conclusionUrl: string | null;
   /** Optional catalyst/theme chip */
   badge: { label: string; tone: string } | null;
-  /** Extra headlines under the lead (deduped) */
+  /** Up to 2 more headlines under the lead (deduped, linked in UI) */
   headlines: MoveDriverHeadline[];
   dateLabel: string | null;
 }
 
 /** Session move size that justifies showing an empty-catalyst card. */
 export const MOVE_DRIVER_ABS_CHANGE_PCT = 1;
+
+/** Card only opens when something is this fresh. */
+export const MOVE_DRIVER_FRESH_DAYS = 1;
+
+/** Sibling headlines may be this old when filling out a 3-item list. */
+export const MOVE_DRIVER_SIBLING_DAYS = 3;
 
 export function normalizeHeadlineDate(raw: string): string | null {
   const trimmed = raw.trim();
@@ -44,15 +50,23 @@ export function normalizeHeadlineDate(raw: string): string | null {
   return parsed.toISOString().slice(0, 10);
 }
 
-export function isRecentHeadlineDate(dateRaw: string, now = new Date()): boolean {
+function ageInMarketDays(dateRaw: string, now = new Date()): number | null {
   const iso = normalizeHeadlineDate(dateRaw);
-  if (!iso) return false;
+  if (!iso) return null;
   const todayIso = marketTodayIso(now);
-  if (iso === todayIso) return true;
   const today = new Date(`${todayIso}T12:00:00Z`);
   const d = new Date(`${iso}T12:00:00Z`);
-  if (!Number.isFinite(today.getTime()) || !Number.isFinite(d.getTime())) return false;
-  return Math.round((today.getTime() - d.getTime()) / 86_400_000) === 1;
+  if (!Number.isFinite(today.getTime()) || !Number.isFinite(d.getTime())) return null;
+  return Math.round((today.getTime() - d.getTime()) / 86_400_000);
+}
+
+export function isRecentHeadlineDate(
+  dateRaw: string,
+  now = new Date(),
+  maxAgeDays = MOVE_DRIVER_FRESH_DAYS,
+): boolean {
+  const age = ageInMarketDays(dateRaw, now);
+  return age !== null && age >= 0 && age <= maxAgeDays;
 }
 
 /** Theme driver usable as a chip — not as the card title. */
@@ -80,6 +94,15 @@ function sameHeadline(a: string, b: string): boolean {
   return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
+function dedupeHeadlines(items: MoveDriverHeadline[]): MoveDriverHeadline[] {
+  const out: MoveDriverHeadline[] = [];
+  for (const item of items) {
+    if (out.some((existing) => sameHeadline(existing.headline, item.headline))) continue;
+    out.push(item);
+  }
+  return out;
+}
+
 export interface BuildMoveDriverViewInput {
   ticker: string;
   companyName?: string;
@@ -99,17 +122,19 @@ export interface BuildMoveDriverViewInput {
 export function buildMoveDriverView(input: BuildMoveDriverViewInput): MoveDriverView {
   const now = input.now ?? new Date();
   const showBadge = input.showBadge !== false;
-  const recent = input.headlines.filter((item) => isRecentHeadlineDate(item.date, now));
+  const fresh = input.headlines.filter((item) =>
+    isRecentHeadlineDate(item.date, now, MOVE_DRIVER_FRESH_DAYS),
+  );
   const driver = usableNewsDriver(input.driver);
-  const catalyst: TodayCatalyst | null = recent.length > 0
+  const catalyst: TodayCatalyst | null = fresh.length > 0
     ? deriveTodayCatalyst(
-      recent.map((item) => ({ headline: item.headline, date: item.date })),
+      fresh.map((item) => ({ headline: item.headline, date: item.date })),
       driver?.label,
       { ticker: input.ticker, companyName: input.companyName, now },
     )
     : null;
 
-  const hasFreshStory = recent.length > 0;
+  const hasFreshStory = fresh.length > 0;
   const meaningfulMove =
     typeof input.absChangePercent === "number"
     && Number.isFinite(input.absChangePercent)
@@ -120,7 +145,7 @@ export function buildMoveDriverView(input: BuildMoveDriverViewInput): MoveDriver
       mode: "hidden",
       title: "What’s driving the move",
       conclusion: "",
-      evidence: null,
+      conclusionUrl: null,
       badge: null,
       headlines: [],
       dateLabel: null,
@@ -132,21 +157,20 @@ export function buildMoveDriverView(input: BuildMoveDriverViewInput): MoveDriver
       mode: "no_catalyst",
       title: "What’s driving the move",
       conclusion: "No clear news catalyst for today’s move",
-      evidence: null,
+      conclusionUrl: null,
       badge: null,
       headlines: [],
       dateLabel: null,
     };
   }
 
-  const lead = recent[0]!;
-  const support = recent.find((item) => !sameHeadline(item.headline, lead.headline)) ?? null;
-  const extras = recent
-    .filter((item) =>
-      !sameHeadline(item.headline, lead.headline)
-      && (!support || !sameHeadline(item.headline, support.headline)),
-    )
-    .slice(0, 2);
+  // Lead must be fresh. Fill out to 3 with slightly older siblings when needed.
+  const siblings = input.headlines.filter((item) =>
+    isRecentHeadlineDate(item.date, now, MOVE_DRIVER_SIBLING_DAYS),
+  );
+  const stacked = dedupeHeadlines([...fresh, ...siblings]).slice(0, 3);
+  const lead = stacked[0]!;
+  const more = stacked.slice(1);
 
   const themeLabel = primaryDriverLabel(driver);
   const badge = showBadge
@@ -163,9 +187,9 @@ export function buildMoveDriverView(input: BuildMoveDriverViewInput): MoveDriver
     mode: "catalyst",
     title: "What’s driving the move",
     conclusion: lead.headline,
-    evidence: support?.headline ?? null,
+    conclusionUrl: lead.url,
     badge,
-    headlines: extras,
+    headlines: more,
     dateLabel: formatDateLabel(lead.date),
   };
 }
