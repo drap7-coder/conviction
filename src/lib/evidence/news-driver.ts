@@ -107,16 +107,14 @@ export function buildNewsDriver(
     .map(({ rule }) => rule);
 
   if (themes.length > 0) {
+    // One theme max — dual joins read like mush in the UI.
+    const top = themes[0]!;
     return {
-      label: themes.map((theme) => theme.label).join(" · "),
-      explanation: themes.map((theme) => theme.explanation).join(" "),
+      label: top.label,
+      explanation: top.explanation,
       confidence: "likely",
     };
   }
 
-  return {
-    label: "Story still forming",
-    explanation: "",
-    confidence: "likely",
-  };
+  return null;
 }

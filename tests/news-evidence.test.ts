@@ -108,6 +108,6 @@ describe("news evidence", () => {
     ], "TDOC", "Teladoc Health");
 
     // No company-relevant theme — must not invent Demand/AI/etc from roundups
-    expect(driver?.label).toBe("Story still forming");
+    expect(driver).toBeNull();
   });
 });

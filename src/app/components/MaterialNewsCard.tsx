@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
+import type { StockQuote } from "@/lib/market/quotes";
+import { buildMoveDriverView } from "@/lib/evidence/move-driver-brief";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { NewsDriverBrief } from "./NewsDriverBrief";
-import { SignalBlock } from "@/components/display/SignalBlock";
 
 interface NewsEvidenceResponse {
   events: EvidenceEvent[];
@@ -20,11 +21,17 @@ interface MaterialNewsCardProps {
   companyName?: string;
 }
 
-function DriverShell({ children }: { children: ReactNode }) {
+function DriverShell({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
   return (
-    <section className="company-driver-module" aria-label="What’s driving the move">
+    <section className="company-driver-module" aria-label={title}>
       <div className="company-driver-header">
-        <h2 className="company-driver-title">What’s driving the move</h2>
+        <h2 className="company-driver-title">{title}</h2>
       </div>
       {children}
     </section>
@@ -34,6 +41,7 @@ function DriverShell({ children }: { children: ReactNode }) {
 export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps) {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
   const [driver, setDriver] = useState<NewsDriver | null>(null);
+  const [absChangePercent, setAbsChangePercent] = useState<number | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
 
   useEffect(() => {
@@ -43,25 +51,37 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
     async function load() {
       setStatus("loading");
       try {
-        const data = await fetchJsonWithTimeout<NewsEvidenceResponse>(
-          `/api/evidence/news?ticker=${ticker}`,
-          8_000,
-          controller.signal,
+        const [news, quotes] = await Promise.all([
+          fetchJsonWithTimeout<NewsEvidenceResponse>(
+            `/api/evidence/news?ticker=${encodeURIComponent(ticker)}`,
+            8_000,
+            controller.signal,
+          ),
+          fetch(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`, {
+            signal: controller.signal,
+          })
+            .then((res) => (res.ok ? res.json() as Promise<{ quotes?: StockQuote[] }> : null))
+            .catch(() => null),
+        ]);
+        if (cancelled) return;
+
+        setEvents(news.events ?? []);
+        setDriver(news.driver ?? null);
+        const change = quotes?.quotes?.[0]?.changePercent;
+        setAbsChangePercent(
+          typeof change === "number" && Number.isFinite(change) ? Math.abs(change) : null,
         );
-        if (!cancelled) {
-          setEvents(data.events ?? []);
-          setDriver(data.driver ?? null);
-          setStatus(
-            data.status === "timeout" || data.status === "error" || data.status === "unsupported"
-              ? data.status
-              : (data.events ?? []).length > 0
-                ? "success"
-                : "empty",
-          );
-        }
+        setStatus(
+          news.status === "timeout" || news.status === "error" || news.status === "unsupported"
+            ? news.status
+            : (news.events ?? []).length > 0
+              ? "success"
+              : "empty",
+        );
       } catch (caught) {
         if (!cancelled) {
-          setStatus(classifyClientError(caught) === "idle" ? "error" : classifyClientError(caught));
+          const next = classifyClientError(caught);
+          setStatus(next === "idle" ? "error" : next);
         }
       }
     }
@@ -73,61 +93,69 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
     };
   }, [ticker]);
 
-  const headlines = events.slice(0, 3).map((event) => ({
-    headline: event.title,
-    url: event.sourceUrl ?? null,
-    date: event.date,
-  }));
+  const headlines = useMemo(
+    () =>
+      events.slice(0, 6).map((event) => ({
+        headline: event.title,
+        url: event.sourceUrl ?? null,
+        date: event.date,
+      })),
+    [events],
+  );
 
+  const view = useMemo(
+    () =>
+      buildMoveDriverView({
+        ticker,
+        companyName,
+        driver,
+        headlines,
+        absChangePercent,
+        // Header already owns the catalyst chip.
+        showBadge: false,
+      }),
+    [ticker, companyName, driver, headlines, absChangePercent],
+  );
+
+  // Stay out of the way until we know whether this card should lead.
   if (status === "loading" || status === "idle") {
-    return (
-      <DriverShell>
-        <SignalBlock
-          eyebrow={ticker}
-          conclusion="Reading the latest coverage…"
-          evidence="Checking headlines for a clear catalyst."
-          hideMeta
-        />
-      </DriverShell>
-    );
+    return null;
   }
 
+  // Hard failures: only surface if the session move is meaningful.
   if (status === "timeout" || status === "error") {
+    if (absChangePercent == null || absChangePercent < 1) return null;
     return (
-      <DriverShell>
-        <SignalBlock
-          eyebrow={ticker}
-          conclusion="News context is temporarily unavailable"
-          evidence="Ownership filings and company disclosures still show the fuller picture."
-          hideMeta
+      <DriverShell title="What’s driving the move">
+        <NewsDriverBrief
+          ticker={ticker}
+          companyName={companyName}
+          driver={null}
+          headlines={[]}
+          absChangePercent={absChangePercent}
+          showBadge={false}
+          showWhy={false}
+          eyebrow={null}
         />
       </DriverShell>
     );
   }
 
-  if (!driver && headlines.length === 0) {
-    return (
-      <DriverShell>
-        <SignalBlock
-          eyebrow={ticker}
-          conclusion="No clear news catalyst found"
-          evidence="Ownership filings and company disclosures still show the fuller picture."
-          hideMeta
-        />
-      </DriverShell>
-    );
+  if (view.mode === "hidden") {
+    return null;
   }
 
   return (
-    <DriverShell>
+    <DriverShell title={view.title}>
       <NewsDriverBrief
         ticker={ticker}
         companyName={companyName}
         driver={driver}
         headlines={headlines}
-        eyebrow={ticker}
-        showBadge
+        absChangePercent={absChangePercent}
+        showBadge={false}
         showWhy={false}
+        eyebrow={null}
       />
     </DriverShell>
   );
