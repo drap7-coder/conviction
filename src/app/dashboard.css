@@ -173,7 +173,7 @@
 .earnings-grades li strong {
   display: block;
   color: var(--ink);
-  font: .72rem/1.35 var(--font-mono);
+  font: .72rem/1.35 var(--font-sans);
   font-weight: 650;
 }
 
@@ -476,6 +476,7 @@ body {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  font-family: var(--font-mono);
   color: var(--muted);
 }
 
