@@ -7771,6 +7771,29 @@ details > summary::before {
   margin-top: 8px;
 }
 
+.cdh-body-identity-only {
+  justify-content: flex-start;
+}
+
+.cdh-price-module {
+  margin: 0;
+  padding: 4px 2px 2px;
+  min-width: 0;
+}
+
+.cdh-prices-standalone {
+  max-width: none;
+  text-align: left;
+}
+
+.cdh-prices-standalone .cdh-live-price {
+  justify-content: flex-start;
+}
+
+.cdh-prices-standalone .cdh-session-row {
+  justify-content: flex-start;
+}
+
 .cdh-identity {
   display: flex;
   align-items: center;
@@ -10026,16 +10049,47 @@ a.signal-block-conclusion-link:hover {
 }
 
 .conviction-signal-row {
-  display: grid;
-  grid-template-columns: 7.5rem 5.5rem minmax(0, 1fr);
-  gap: 10px;
-  align-items: baseline;
-  padding: 10px 0;
+  margin: 0;
+  padding: 0;
   border-bottom: 1px solid var(--border);
   min-width: 0;
 }
 
+.conviction-signal-row.is-loading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "name state chevron"
+    "fact fact fact";
+  gap: 4px 10px;
+  align-items: baseline;
+  padding: 10px 0;
+}
+
+.conviction-signal-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "name state chevron"
+    "fact fact fact";
+  gap: 4px 10px;
+  align-items: baseline;
+  padding: 10px 0;
+  cursor: pointer;
+  list-style: none;
+  min-width: 0;
+}
+
+.conviction-signal-summary::-webkit-details-marker {
+  display: none;
+}
+
+.conviction-signal-summary::marker {
+  content: "";
+}
+
 .conviction-signal-name {
+  grid-area: name;
   color: var(--ink);
   font-size: 0.74rem;
   font-weight: 650;
@@ -10043,6 +10097,7 @@ a.signal-block-conclusion-link:hover {
 }
 
 .conviction-signal-state {
+  grid-area: state;
   color: var(--quiet);
   font-size: 0.62rem;
   font-weight: 800;
@@ -10051,11 +10106,59 @@ a.signal-block-conclusion-link:hover {
   line-height: 1.3;
 }
 
+.conviction-signal-chevron {
+  grid-area: chevron;
+  color: var(--accent);
+  font-size: 1rem;
+  line-height: 1;
+  transition: transform 0.15s ease;
+}
+
+.conviction-signal-row[open] .conviction-signal-chevron {
+  transform: rotate(90deg);
+}
+
 .conviction-signal-fact {
+  grid-area: fact;
   color: var(--muted);
   font-size: 0.74rem;
   line-height: 1.35;
   min-width: 0;
+}
+
+.conviction-signal-panel {
+  padding: 0 0 14px;
+  min-width: 0;
+}
+
+.conviction-signal-panel .section-header.mt-16 {
+  margin-top: 0;
+}
+
+.conviction-signal-detail-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.conviction-signals-more {
+  display: grid;
+  gap: 4px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.conviction-more-evidence {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.conviction-more-evidence > summary {
+  padding: 8px 0;
 }
 
 .conviction-signal-row.tone-positive .conviction-signal-state { color: var(--green); }
@@ -10076,6 +10179,11 @@ a.signal-block-conclusion-link:hover {
   animation: rising-shimmer 1.4s ease-in-out infinite;
 }
 
+.conviction-signal-row.is-loading .conviction-signal-name { grid-area: name; }
+.conviction-signal-row.is-loading .conviction-signal-state { grid-area: state; }
+.conviction-signal-row.is-loading .conviction-signal-chevron { grid-area: chevron; }
+.conviction-signal-row.is-loading .conviction-signal-fact { grid-area: fact; }
+
 .conviction-signal-disagreement {
   margin: 10px 0 0;
   color: var(--amber);
@@ -10091,19 +10199,10 @@ a.signal-block-conclusion-link:hover {
   line-height: 1.4;
 }
 
-@media (max-width: 560px) {
-  .conviction-signal-row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "name state"
-      "fact fact";
-    gap: 4px 10px;
-    padding: 11px 0;
+@media (max-width: 640px) {
+  .cdh-prices-standalone {
+    width: 100%;
   }
-
-  .conviction-signal-name { grid-area: name; }
-  .conviction-signal-state { grid-area: state; justify-self: end; }
-  .conviction-signal-fact { grid-area: fact; }
 }
 
 .quote-dot {

@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
+import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
+import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
+import { TechnicalsDetailSection } from "@/app/components/TechnicalsDetailSection";
+import { ShortInterestDetailSection } from "@/app/components/ShortInterestDetailSection";
 import {
   isInsiderQuietMessage,
   qualityHighlightsFromFactors,
@@ -25,7 +29,7 @@ const SIGNAL_LABELS: Record<ConvictionSignalCategory, string> = {
 
 const SIGNAL_ORDER = Object.keys(SIGNAL_LABELS) as ConvictionSignalCategory[];
 
-/** Keep row copy short — full evidence lives in sections below. */
+/** Keep row copy short — full evidence expands inline. */
 function compactHeadline(category: ConvictionSignalCategory, headline: string): string {
   const text = headline.replace(/\s+/g, " ").trim();
 
@@ -125,10 +129,33 @@ function toneClass(tone: ConvictionSignalTone, status: ConvictionSignalDisplay["
   return tone;
 }
 
-export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
+function signalDetail(category: ConvictionSignalCategory, ticker: string): ReactNode {
+  switch (category) {
+    case "institutional":
+      return <InstitutionalConvictionSection ticker={ticker} priority="primary" hideHeader />;
+    case "insider":
+      return <InsiderActivitySection ticker={ticker} hideHeader />;
+    case "technicals":
+      return <TechnicalsDetailSection ticker={ticker} />;
+    case "short_interest":
+      return <ShortInterestDetailSection ticker={ticker} />;
+    default:
+      return null;
+  }
+}
+
+export function ConvictionSignalsCard({
+  ticker,
+  moreEvidence,
+}: {
+  ticker: string;
+  /** Optional stacked evidence that used to live in the deleted Evidence row. */
+  moreEvidence?: ReactNode;
+}) {
   const [signals, setSignals] = useState<ConvictionSignalDisplay[]>(initialSignals);
   const [qualityHighlights, setQualityHighlights] = useState<ConvictionQualityHighlight[]>([]);
   const [loading, setLoading] = useState(true);
+  const [openCategory, setOpenCategory] = useState<ConvictionSignalCategory | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,6 +164,7 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
     setSignals(initialSignals());
     setQualityHighlights([]);
     setLoading(true);
+    setOpenCategory(null);
 
     async function load() {
       try {
@@ -197,6 +225,7 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
                 <li className="conviction-signal-row is-loading" key={category}>
                   <span className="conviction-signal-name">{SIGNAL_LABELS[category]}</span>
                   <span className="conviction-signal-state">…</span>
+                  <span className="conviction-signal-chevron" aria-hidden="true">›</span>
                   <span className="conviction-signal-fact" />
                 </li>
               ))}
@@ -206,18 +235,36 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
           <>
             <p className="conviction-signals-synthesis">{synthesis}</p>
 
-            <ul className="conviction-signal-list">
-              {signals.map((signal) => (
-                <li
-                  className={`conviction-signal-row tone-${toneClass(signal.tone, signal.status)}`}
-                  key={signal.category}
-                >
-                  <span className="conviction-signal-name">{signal.label}</span>
-                  <span className="conviction-signal-state">{signalStateLabel(signal)}</span>
-                  <span className="conviction-signal-fact">{signal.headline}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="conviction-signal-list">
+              {signals.map((signal) => {
+                const isOpen = openCategory === signal.category;
+                return (
+                  <details
+                    className={`conviction-signal-row tone-${toneClass(signal.tone, signal.status)}`}
+                    key={signal.category}
+                    open={isOpen}
+                  >
+                    <summary
+                      className="conviction-signal-summary"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        setOpenCategory((current) =>
+                          current === signal.category ? null : signal.category,
+                        );
+                      }}
+                    >
+                      <span className="conviction-signal-name">{signal.label}</span>
+                      <span className="conviction-signal-state">{signalStateLabel(signal)}</span>
+                      <span className="conviction-signal-chevron" aria-hidden="true">›</span>
+                      <span className="conviction-signal-fact">{signal.headline}</span>
+                    </summary>
+                    <div className="conviction-signal-panel">
+                      {signalDetail(signal.category, ticker)}
+                    </div>
+                  </details>
+                );
+              })}
+            </div>
 
             {disagreement ? (
               <p className="conviction-signal-disagreement" role="note">
@@ -227,6 +274,12 @@ export function ConvictionSignalsCard({ ticker }: { ticker: string }) {
 
             {qualityLine ? (
               <p className="conviction-signal-quality-line">{qualityLine}</p>
+            ) : null}
+
+            {moreEvidence ? (
+              <div className="conviction-signals-more">
+                {moreEvidence}
+              </div>
             ) : null}
           </>
         )}

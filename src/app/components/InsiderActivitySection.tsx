@@ -7,6 +7,8 @@ import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/in
 
 interface InsiderActivitySectionProps {
   ticker: string;
+  /** Hide the section h2 when nested inside Conviction Signals. */
+  hideHeader?: boolean;
 }
 
 const TX_TYPE_LABELS: Record<string, string> = {
@@ -87,7 +89,7 @@ function groupEvents(events: EvidenceEvent[]): {
   return { grouped, netScore, netShares, label };
 }
 
-export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) {
+export function InsiderActivitySection({ ticker, hideHeader = false }: InsiderActivitySectionProps) {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -167,38 +169,54 @@ export function InsiderActivitySection({ ticker }: InsiderActivitySectionProps) 
 
   return (
     <div>
-      <div className="section-header mt-16">
-        <h2 className="section-title">Insider activity (SEC Form 4)</h2>
-        <div className="flex items-center gap-8">
+      {hideHeader ? (
+        <div className="conviction-signal-detail-toolbar">
           <button
             onClick={handleRefresh}
             disabled={fetching}
-            style={{
+            type="button"
+            className="retry-button"
+          >
+            {fetching ? "Fetching…" : "Refresh from SEC"}
+          </button>
+          {fetchMessage ? <span className="section-count">{fetchMessage}</span> : null}
+        </div>
+      ) : (
+        <>
+          <div className="section-header mt-16">
+            <h2 className="section-title">Insider activity (SEC Form 4)</h2>
+            <div className="flex items-center gap-8">
+              <button
+                onClick={handleRefresh}
+                disabled={fetching}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "0.55rem",
+                  color: "var(--accent)",
+                  background: "var(--accent-dim)",
+                  padding: "2px 8px",
+                  borderRadius: "var(--radius)",
+                  border: "none",
+                  cursor: fetching ? "wait" : "pointer",
+                }}
+              >
+                {fetching ? "Fetching..." : "Refresh from SEC"}
+              </button>
+            </div>
+          </div>
+
+          {fetchMessage ? (
+            <p style={{
               fontFamily: "var(--font-mono)",
               fontSize: "0.55rem",
-              color: "var(--accent)",
-              background: "var(--accent-dim)",
-              padding: "2px 8px",
-              borderRadius: "var(--radius)",
-              border: "none",
-              cursor: fetching ? "wait" : "pointer",
-            }}
-          >
-            {fetching ? "Fetching..." : "Refresh from SEC"}
-          </button>
-        </div>
-      </div>
-
-      {fetchMessage ? (
-        <p style={{
-          fontFamily: "var(--font-mono)",
-          fontSize: "0.55rem",
-          color: "var(--muted)",
-          marginBottom: 8,
-        }}>
-          {fetchMessage}
-        </p>
-      ) : null}
+              color: "var(--muted)",
+              marginBottom: 8,
+            }}>
+              {fetchMessage}
+            </p>
+          ) : null}
+        </>
+      )}
 
       {status === "loading" || status === "idle" ? (
         <div className={`evidence-panel ${inkBoxClass("quiet")}`}>

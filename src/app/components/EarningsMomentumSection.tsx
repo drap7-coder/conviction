@@ -27,7 +27,13 @@ function gradeHeadline(action: AnalystGradeAction): string {
   return `${firm}: ${action.action}`;
 }
 
-export function EarningsMomentumSection({ ticker }: { ticker: string }) {
+export function EarningsMomentumSection({
+  ticker,
+  hideHeader = false,
+}: {
+  ticker: string;
+  hideHeader?: boolean;
+}) {
   const [data, setData] = useState<EarningsEvidence | null>(null);
   useEffect(() => {
     const controller = new AbortController();
@@ -44,12 +50,14 @@ export function EarningsMomentumSection({ ticker }: { ticker: string }) {
 
   return (
     <section className="earnings-evidence">
-      <div className="section-header">
-        <h2 className="section-title">Earnings</h2>
-        {data && data.status !== "unavailable" ? (
-          <span className="section-count">{data.momentum}</span>
-        ) : null}
-      </div>
+      {hideHeader ? null : (
+        <div className="section-header">
+          <h2 className="section-title">Earnings</h2>
+          {data && data.status !== "unavailable" ? (
+            <span className="section-count">{data.momentum}</span>
+          ) : null}
+        </div>
+      )}
       {!data ? (
         <p className="evidence-empty">Checking results and Street actions…</p>
       ) : data.status === "unavailable" ? (
