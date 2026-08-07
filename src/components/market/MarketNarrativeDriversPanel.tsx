@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { SignalBlock } from "@/components/display/SignalBlock";
 import type { MarketNarrativeTheme, NarrativeHeat } from "@/lib/market/market-narratives";
+import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { isFiniteNumber } from "@/lib/display/format";
 
 function heatLabel(heat: NarrativeHeat): string {
@@ -56,8 +57,9 @@ export function MarketNarrativeDriversPanel({
   const conclusion = theme.summary;
   const evidence = theme.headline?.title
     ?? (linked || "Linked markets are mixed.");
+  // External catalyst URL wins; otherwise only link lead assets that have a company page.
   const href = theme.headline?.url
-    ?? (lead ? `/companies/${encodeURIComponent(lead.ticker)}` : null);
+    ?? (lead ? companyDetailHref(lead.ticker) : null);
 
   const card = (
     <SignalBlock
