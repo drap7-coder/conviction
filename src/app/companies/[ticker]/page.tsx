@@ -108,35 +108,33 @@ export default async function CompanyPage({
             <CompanyDetailPrice ticker={upperTicker} />
             {/* 3. Chart */}
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
+            {/* 4. Trend gauges — available for equities and crypto */}
+            <CompanySignalGauges ticker={upperTicker} />
             {supportsSignals ? (
-              <>
-                {/* 4. Market gauges */}
-                <CompanySignalGauges ticker={upperTicker} />
-                {/* 5. Conviction Signals — Evidence cards merged into expandable rows */}
-                <ConvictionSignalsCard
-                  ticker={upperTicker}
-                  moreEvidence={
-                    <>
-                      <details className="other-events conviction-more-evidence">
-                        <summary>Earnings</summary>
-                        <EarningsMomentumSection ticker={upperTicker} hideHeader />
+              /* 5. Ownership conviction + SEC evidence — equities only */
+              <ConvictionSignalsCard
+                ticker={upperTicker}
+                moreEvidence={
+                  <>
+                    <details className="other-events conviction-more-evidence">
+                      <summary>Earnings</summary>
+                      <EarningsMomentumSection ticker={upperTicker} hideHeader />
+                    </details>
+                    <details className="other-events conviction-more-evidence">
+                      <summary>Political disclosures</summary>
+                      <PoliticalTradesSection ticker={upperTicker} hideHeader />
+                    </details>
+                    <details className="other-events conviction-more-evidence">
+                      <summary>Filings &amp; market context</summary>
+                      <MoveExplanationSection ticker={upperTicker} />
+                      <details className="other-events">
+                        <summary>Other filings &amp; events</summary>
+                        <CorporateDisclosuresSection ticker={upperTicker} />
                       </details>
-                      <details className="other-events conviction-more-evidence">
-                        <summary>Political disclosures</summary>
-                        <PoliticalTradesSection ticker={upperTicker} hideHeader />
-                      </details>
-                      <details className="other-events conviction-more-evidence">
-                        <summary>Filings &amp; market context</summary>
-                        <MoveExplanationSection ticker={upperTicker} />
-                        <details className="other-events">
-                          <summary>Other filings &amp; events</summary>
-                          <CorporateDisclosuresSection ticker={upperTicker} />
-                        </details>
-                      </details>
-                    </>
-                  }
-                />
-              </>
+                    </details>
+                  </>
+                }
+              />
             ) : null}
           </>
         }
