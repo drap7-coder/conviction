@@ -74,4 +74,37 @@ describe("getLivePrice", () => {
     expect(live.session).toBe("regular");
     expect(live.price).toBe(101);
   });
+
+  it("keeps the after-hours print overnight after Yahoo flips to CLOSED", () => {
+    // 10:30 p.m. ET — past the 8 p.m. AH window, marketState CLOSED.
+    const live = getLivePrice(quote({
+      marketState: "CLOSED",
+      price: 189.88,
+      change: -29.11,
+      changePercent: -13.29,
+      postMarketPrice: 195,
+      postMarketChange: 5.12,
+      postMarketChangePercent: 2.7,
+    }), new Date("2026-08-07T02:30:00Z"));
+
+    expect(live.label).toBe("After Hours");
+    expect(live.session).toBe("after_hours");
+    expect(live.price).toBe(195);
+    expect(live.change).toBeCloseTo(5.12);
+  });
+
+  it("labels the regular close when markets are closed with no post print", () => {
+    const live = getLivePrice(quote({
+      marketState: "CLOSED",
+      price: 100,
+      change: -4,
+      changePercent: -3.85,
+      postMarketPrice: null,
+    }), new Date("2026-08-07T02:30:00Z"));
+
+    expect(live.label).toBe("At close");
+    expect(live.session).toBe("closed");
+    expect(live.price).toBe(100);
+    expect(live.change).toBeCloseTo(-4);
+  });
 });
