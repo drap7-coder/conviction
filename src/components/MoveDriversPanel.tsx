@@ -40,7 +40,7 @@ export function MoveDriversPanel({
   holdings,
   newsByTicker: preloadedNews,
   title = "What’s driving the move",
-  lede = "Why these names are moving today.",
+  lede = "",
   eyebrow = "Now",
   limit = 8,
   nested = false,
