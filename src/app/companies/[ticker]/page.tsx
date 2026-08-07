@@ -5,7 +5,7 @@ import { CompanyDetailPrice } from "@/app/components/CompanyDetailPrice";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
-import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
+import { MajorOwnershipSection } from "@/app/components/MajorOwnershipSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { CompanySignalGauges } from "@/app/components/CompanySignalGauges";
@@ -125,12 +125,12 @@ export default async function CompanyPage({
                       <PoliticalTradesSection ticker={upperTicker} hideHeader />
                     </details>
                     <details className="other-events conviction-more-evidence">
-                      <summary>Filings &amp; market context</summary>
-                      <MoveExplanationSection ticker={upperTicker} />
-                      <details className="other-events">
-                        <summary>Other filings &amp; events</summary>
-                        <CorporateDisclosuresSection ticker={upperTicker} />
-                      </details>
+                      <summary>Ownership filings (13D / 13G)</summary>
+                      <MajorOwnershipSection ticker={upperTicker} />
+                    </details>
+                    <details className="other-events conviction-more-evidence">
+                      <summary>Other filings &amp; events</summary>
+                      <CorporateDisclosuresSection ticker={upperTicker} />
                     </details>
                   </>
                 }
