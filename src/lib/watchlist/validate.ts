@@ -14,6 +14,7 @@
 
 import { CIK_MAP } from "@/lib/sec/cik";
 import { resolveCompanyByTicker, resolveCompanyByName, getCompanyTickerDataset } from "@/lib/sec/company-tickers";
+import { getMarketInstrument } from "@/lib/market/market-instruments";
 
 // ---------------------------------------------------------------------------
 // Alias map — only for common names that the SEC dataset cannot resolve.
@@ -295,7 +296,11 @@ export interface TickerValidationResult {
   cik?: string;
   isForeignIssuer?: boolean;
   error?: string;
-  source?: "hardcoded" | "dataset" | "name_match" | "alias" | "fallback" | "not_found";
+  source?: "hardcoded" | "dataset" | "name_match" | "alias" | "fallback" | "market_instrument" | "not_found";
+  /** Present for crypto (and similar) Pulse instruments without an SEC issuer. */
+  instrumentKind?: "crypto";
+  /** False for market instruments — no ownership / insider conviction stack. */
+  supportsConvictionSignals?: boolean;
 }
 
 /**
@@ -318,14 +323,26 @@ export async function validateTicker(input: string): Promise<TickerValidationRes
   }
 
   const upperName = cleaned.toUpperCase();
+  const upperTicker = cleaned.toUpperCase();
+
+  // 0. Known market instruments (crypto pairs) — price/chart/news, no SEC signals
+  const marketInstrument = getMarketInstrument(upperTicker);
+  if (marketInstrument) {
+    return {
+      valid: true,
+      ticker: marketInstrument.ticker,
+      companyName: marketInstrument.name,
+      source: "market_instrument",
+      instrumentKind: marketInstrument.kind,
+      supportsConvictionSignals: false,
+    };
+  }
 
   // 1. Try alias map first (fast path for common aliases)
   const aliasMatch = ALIAS_MAP[upperName];
   if (aliasMatch) {
     return resolveTickerFromCikMap(aliasMatch);
   }
-
-  const upperTicker = cleaned.toUpperCase();
 
   // 2. Validate ticker format (allow share classes like BRK.B)
   if (!TICKER_REGEX.test(upperTicker) && !SHARE_CLASS_REGEX.test(upperTicker)) {
@@ -376,6 +393,7 @@ async function resolveTickerFromCikMap(ticker: string): Promise<TickerValidation
     companyName: name,
     isForeignIssuer,
     source: "hardcoded",
+    supportsConvictionSignals: true,
   };
 }
 
