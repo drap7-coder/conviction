@@ -19,10 +19,8 @@ import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PortfolioCheckPanel } from "@/components/PortfolioCheckPanel";
-import { PortfolioDriversPanel } from "@/components/PortfolioDriversPanel";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
-import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
 import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -319,21 +317,6 @@ export default function Portfolio({
     return null;
   }, [quotes]);
 
-  const portfolioMacroSeries = useMemo(() => {
-    const ranked = sortedPositions.map(({ pos, metrics }) => {
-      const quote = quotes.find((item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase());
-      return {
-        ticker: pos.companyId.toUpperCase(),
-        label: pos.companyId.toUpperCase(),
-        weight: metrics.weight ?? 0,
-        values: (quote?.sparkline ?? []).map((point) => point.close),
-      };
-    })
-      .filter((item) => item.values.length >= 2)
-      .sort((a, b) => b.weight - a.weight);
-    return buildMacroSeriesFromQuotes(ranked, 5);
-  }, [quotes, sortedPositions]);
-
   // ── Data-quality states ──
 
   const hasQuotes = quotes.length > 0;
@@ -573,42 +556,16 @@ export default function Portfolio({
             </div>
           )}
 
-          {/* ── Portfolio heatmap + drivers / check in the white shell footer ── */}
+          {/* ── Portfolio heatmap + risk check in the white shell footer ── */}
           {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
             <StockHeatmap
               title="Portfolio"
               subtitle=""
               items={portfolioHeatmapItems}
               sessionLabel={portfolioHeatmapSession}
-              footer={(
-                <>
-                  <PortfolioDriversPanel
-                    holdings={sortedPositions.map(({ pos, metrics, dailyPct }) => {
-                      const quote = quotes.find(
-                        (item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase(),
-                      );
-                      const live = quote ? getLivePrice(quote) : null;
-                      return {
-                        ticker: pos.companyId.toUpperCase(),
-                        companyName: quote?.name ?? pos.companyId.toUpperCase(),
-                        changePercent: live?.changePercent ?? dailyPct,
-                        dailyChange: metrics.dailyChange,
-                      };
-                    })}
-                  />
-                  <PortfolioCheckPanel riskFlags={riskFlags} />
-                </>
-              )}
+              footer={<PortfolioCheckPanel riskFlags={riskFlags} />}
             />
           )}
-
-          {!calcFailed && portfolioMacroSeries.length > 0 ? (
-            <MacroChainChart
-              series={portfolioMacroSeries}
-              title="Portfolio Chain"
-              subtitle=""
-            />
-          ) : null}
 
           {/* ── Portfolio exposure ── */}
           {sectorDonutData.length > 0 && (
