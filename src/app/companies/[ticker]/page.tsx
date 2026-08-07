@@ -1,16 +1,15 @@
 import { notFound } from "next/navigation";
 import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
+import { CompanyDetailPrice } from "@/app/components/CompanyDetailPrice";
 import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
-import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
-import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { MoveExplanationSection } from "@/app/components/MoveExplanationSection";
 import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { CompanySignalGauges } from "@/app/components/CompanySignalGauges";
-import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashboard";
+import { CompanyDashboard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
 import { getSectorForCompany } from "@/lib/market/industries";
@@ -91,34 +90,41 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            {/* Move card first when it has a fresh catalyst; renders null otherwise. */}
+            {/* 1. What’s driving the move */}
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
-            <ConvictionSignalsCard ticker={upperTicker} />
-            <CompanySignalGauges ticker={upperTicker} />
+            {/* 2. Price */}
+            <CompanyDetailPrice ticker={upperTicker} />
+            {/* 3. Chart */}
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
+            {/* 4. Market gauges */}
+            <CompanySignalGauges ticker={upperTicker} />
+            {/* 5. Conviction Signals — Evidence cards merged into expandable rows */}
+            <ConvictionSignalsCard
+              ticker={upperTicker}
+              moreEvidence={
+                <>
+                  <details className="other-events conviction-more-evidence">
+                    <summary>Earnings</summary>
+                    <EarningsMomentumSection ticker={upperTicker} hideHeader />
+                  </details>
+                  <details className="other-events conviction-more-evidence">
+                    <summary>Political disclosures</summary>
+                    <PoliticalTradesSection ticker={upperTicker} hideHeader />
+                  </details>
+                  <details className="other-events conviction-more-evidence">
+                    <summary>Filings &amp; market context</summary>
+                    <MoveExplanationSection ticker={upperTicker} />
+                    <details className="other-events">
+                      <summary>Other filings &amp; events</summary>
+                      <CorporateDisclosuresSection ticker={upperTicker} />
+                    </details>
+                  </details>
+                </>
+              }
+            />
           </>
         }
-      >
-        <DashboardCard className="dashboard-card-institutional" title="Institutional activity" summary="Recent position changes reported by tracked managers.">
-          <InstitutionalConvictionSection ticker={upperTicker} priority="primary" />
-        </DashboardCard>
-        <DashboardCard className="dashboard-card-insider" title="Insider activity" summary="Recent open-market purchases and sales by company insiders.">
-          <InsiderActivitySection ticker={upperTicker} />
-        </DashboardCard>
-        <DashboardCard className="dashboard-card-earnings" title="Earnings" summary="Reported results and recent Street rating actions.">
-          <EarningsMomentumSection ticker={upperTicker} />
-        </DashboardCard>
-        <DashboardCard className="dashboard-card-political" title="Political disclosures" summary="Reported purchases and sales involving public officials.">
-          <PoliticalTradesSection ticker={upperTicker} />
-        </DashboardCard>
-        <DashboardCard className="dashboard-card-conviction" title="Filings & market context" summary="Short interest, ownership filings, and corporate disclosures.">
-          <MoveExplanationSection ticker={upperTicker} />
-          <details className="other-events">
-            <summary>Other filings &amp; events</summary>
-            <CorporateDisclosuresSection ticker={upperTicker} />
-          </details>
-        </DashboardCard>
-      </CompanyDashboard>
+      />
     </div>
   );
 }

@@ -87,6 +87,20 @@
   margin-top: 0;
 }
 
+.company-briefing .cdh-price-module {
+  padding: 6px 2px 4px;
+}
+
+.company-briefing .conviction-signal-panel .institutional-section,
+.company-briefing .conviction-signal-panel .political-section,
+.company-briefing .conviction-signal-panel .earnings-evidence {
+  margin: 0;
+}
+
+.company-briefing .conviction-signal-panel .move-section {
+  margin-top: 0;
+}
+
 .dashboard-signal-gauges {
   padding: 16px 18px 18px;
 }

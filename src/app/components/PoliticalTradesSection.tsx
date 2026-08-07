@@ -6,6 +6,7 @@ import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "
 
 interface PoliticalTradesSectionProps {
   ticker: string;
+  hideHeader?: boolean;
 }
 
 function formatAmount(value: number | null) {
@@ -30,7 +31,7 @@ function tradeVerb(trade: PoliticalTrade) {
   return "reported";
 }
 
-export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) {
+export function PoliticalTradesSection({ ticker, hideHeader = false }: PoliticalTradesSectionProps) {
   const [summary, setSummary] = useState<PoliticalTradeSummary | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -80,10 +81,12 @@ export function PoliticalTradesSection({ ticker }: PoliticalTradesSectionProps) 
 
   return (
     <section className="political-section">
-      <div className="section-header mt-16">
-        <h2 className="section-title">Political trading</h2>
-        <span className="section-count">STOCK Act</span>
-      </div>
+      {hideHeader ? null : (
+        <div className="section-header mt-16">
+          <h2 className="section-title">Political trading</h2>
+          <span className="section-count">STOCK Act</span>
+        </div>
+      )}
 
       {status === "loading" || status === "idle" ? (
         <div className="political-card ink-box ink-box--quiet loading">

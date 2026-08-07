@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Children } from "react";
 
 /* ── CompanyDashboard ── */
 
@@ -7,19 +8,26 @@ export function CompanyDashboard({
   children,
 }: {
   briefing: ReactNode;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
+  const evidenceItems = Children.toArray(children).filter(Boolean);
+  const hasEvidence = evidenceItems.length > 0;
+
   return (
     <div className="company-dashboard">
       <div className="company-briefing" aria-label="Company briefing">
         {briefing}
       </div>
-        <div className="section-header detail-pages-header">
-          <h2 className="section-title">Evidence</h2>
-        </div>
-      <div className="dashboard-evidence-row" aria-label="Evidence cards">
-        {children}
-      </div>
+      {hasEvidence ? (
+        <>
+          <div className="section-header detail-pages-header">
+            <h2 className="section-title">Evidence</h2>
+          </div>
+          <div className="dashboard-evidence-row" aria-label="Evidence cards">
+            {evidenceItems}
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }

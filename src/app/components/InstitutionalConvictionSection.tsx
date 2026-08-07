@@ -7,6 +7,8 @@ import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "
 interface InstitutionalConvictionSectionProps {
   ticker: string;
   priority?: "primary" | "compact";
+  /** Hide the section h2 when nested inside Conviction Signals. */
+  hideHeader?: boolean;
 }
 
 interface InstitutionalResponse {
@@ -44,6 +46,7 @@ function describeStatus(row: InstitutionalAccumulation) {
 export function InstitutionalConvictionSection({
   ticker,
   priority = "compact",
+  hideHeader = false,
 }: InstitutionalConvictionSectionProps) {
   const [rows, setRows] = useState<InstitutionalAccumulation[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
@@ -110,10 +113,12 @@ export function InstitutionalConvictionSection({
 
   return (
     <section className={sectionClass}>
-      <div className="section-header mt-16">
-        <h2 className="section-title">Institutional activity</h2>
-        <span className="section-count">{status === "loading" || status === "idle" ? "..." : `${activeCount} changes`}</span>
-      </div>
+      {hideHeader ? null : (
+        <div className="section-header mt-16">
+          <h2 className="section-title">Institutional activity</h2>
+          <span className="section-count">{status === "loading" || status === "idle" ? "..." : `${activeCount} changes`}</span>
+        </div>
+      )}
 
       {status === "loading" || status === "idle" ? (
         <div className="institutional-hero ink-panel loading">
