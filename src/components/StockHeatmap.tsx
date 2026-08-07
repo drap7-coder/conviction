@@ -13,6 +13,7 @@ import {
   HEAT_RED_STRONG,
   HEAT_NEUTRAL,
 } from "@/lib/display/heat-color";
+import { companyDetailHref } from "@/lib/market/company-detail-href";
 
 export interface StockHeatmapItem {
   ticker: string;
@@ -127,7 +128,7 @@ export function StockHeatmap({
               key={item.ticker}
               label={item.ticker}
               changePercent={item.changePercent}
-              href={`/companies/${encodeURIComponent(item.ticker)}`}
+              href={companyDetailHref(item.ticker)}
               ariaLabel={`${item.name}, ${item.ticker}, ${item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(1)}%`}`}
               style={{ gridColumn: `span ${span} / span ${span}` }}
             />

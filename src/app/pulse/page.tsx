@@ -14,6 +14,7 @@ import {
   type NarrativeHeatmapGroup,
 } from "@/lib/market/market-narratives";
 import type { InkTone } from "@/lib/display/ink-tone";
+import { companyDetailHref } from "@/lib/market/company-detail-href";
 
 const COLORS = {
   green: "#0D9488",
@@ -178,10 +179,6 @@ function tileSpan(weight: number): number {
   return 1;
 }
 
-function companyDashboardHref(ticker: string): string {
-  return `/companies/${encodeURIComponent(ticker)}`;
-}
-
 /** Day-status square beside the asset-class title (up / down / mixed). */
 function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
   const values = markets
@@ -258,7 +255,7 @@ function GlobalMarketsHeatmap({
               key={market.ticker}
               label={market.ticker}
               changePercent={market.changePercent}
-              href={companyDashboardHref(market.ticker)}
+              href={companyDetailHref(market.ticker)}
               ariaLabel={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
               style={{ gridColumn: `span ${span} / span ${span}` }}
             />
