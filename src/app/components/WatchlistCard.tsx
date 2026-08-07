@@ -2,23 +2,10 @@
 
 import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
-import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { isFiniteNumber } from "@/lib/display/format";
 import { changeToneClass } from "@/lib/display/heat-color";
 import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
-
-export interface WatchlistCardEvidencePill {
-  type: string;
-  text?: string;
-  direction: "positive" | "negative" | "neutral" | "contested";
-}
-
-export interface WatchlistCardActivityLine {
-  timestamp: string;
-  text: string;
-  source?: string;
-}
 
 export interface WatchlistCardHeadline {
   headline: string;
@@ -45,10 +32,6 @@ export interface WatchlistCardProps {
   convictionStrength: number | null;
   /** True while the shared score request is still in flight. */
   scoreLoading?: boolean;
-  evidencePills: WatchlistCardEvidencePill[];
-  activityLine: WatchlistCardActivityLine | null;
-  headlines: WatchlistCardHeadline[];
-  newsDriver: NewsDriver | null;
   sparklinePath: string;
   sparklineDirection: "positive" | "negative" | "neutral";
   onRemove: (ticker: string) => void;
@@ -90,17 +73,6 @@ function ringFromComposite(input: {
   return { tone: "neutral", label: input.label ?? "Awaiting" };
 }
 
-function driverLine(
-  newsDriver: NewsDriver | null,
-  headlines: WatchlistCardHeadline[],
-  activityLine: WatchlistCardActivityLine | null,
-): string | null {
-  if (newsDriver?.label) return newsDriver.label;
-  if (headlines[0]?.headline) return headlines[0].headline;
-  if (activityLine?.text) return activityLine.text;
-  return null;
-}
-
 export function WatchlistCard({
   ticker,
   companyName,
@@ -114,9 +86,6 @@ export function WatchlistCard({
   convictionTone,
   convictionStrength,
   scoreLoading = false,
-  activityLine,
-  headlines,
-  newsDriver,
   onRemove,
   isRemoving,
   isFocused,
@@ -137,7 +106,6 @@ export function WatchlistCard({
     label: convictionState,
     strength: convictionStrength,
   });
-  const driver = driverLine(newsDriver, headlines, activityLine);
 
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
@@ -350,13 +318,6 @@ export function WatchlistCard({
               ) : null}
             </div>
           </div>
-
-          {driver ? (
-            <p className="wl-ring-driver">
-              <span className="wl-ring-driver-label">What’s driving the move</span>
-              <span className="wl-ring-driver-text">{driver}</span>
-            </p>
-          ) : null}
         </Link>
       </div>
     </div>
