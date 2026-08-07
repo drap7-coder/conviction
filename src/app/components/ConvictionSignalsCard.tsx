@@ -259,7 +259,8 @@ export function ConvictionSignalsCard({
                       <span className="conviction-signal-fact">{signal.headline}</span>
                     </summary>
                     <div className="conviction-signal-panel">
-                      {signalDetail(signal.category, ticker)}
+                      {/* Mount detail only while open so a panel fault can't blank the card. */}
+                      {isOpen ? signalDetail(signal.category, ticker) : null}
                     </div>
                   </details>
                 );
