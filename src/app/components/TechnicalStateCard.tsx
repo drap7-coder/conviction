@@ -55,9 +55,10 @@ function stateClass(state: TechnicalState): string {
 
 export function TechnicalStateCard({ history, status, currentPrice }: TechnicalStateCardProps) {
   const technicalState = useMemo(() => {
-    if (!history || history.points.length === 0) return null;
+    const points = history?.points;
+    if (!history || !Array.isArray(points) || points.length === 0) return null;
     return deriveTechnicalState(
-      history.points,
+      points,
       currentPrice ?? history.endPrice,
       history.fiftyTwoWeekHigh,
       history.fiftyTwoWeekLow,

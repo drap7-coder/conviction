@@ -45,9 +45,10 @@ export function TechnicalsDetailSection({ ticker }: { ticker: string }) {
           ),
         ]);
         if (cancelled) return;
-        setHistory(historyData);
-        setCurrentPrice(quoteData.quotes?.[0]?.price ?? historyData.endPrice);
-        setStatus(historyData.points?.length ? "success" : "empty");
+        const points = Array.isArray(historyData?.points) ? historyData.points : [];
+        setHistory(points.length > 0 ? { ...historyData, points } : null);
+        setCurrentPrice(quoteData.quotes?.[0]?.price ?? historyData?.endPrice ?? null);
+        setStatus(points.length > 0 ? "success" : "empty");
       } catch (caught) {
         if (!cancelled) {
           const next = classifyClientError(caught);
