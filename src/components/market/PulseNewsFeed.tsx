@@ -75,6 +75,13 @@ function buildFeed(themes: MarketNarrativeTheme[]): FeedItem[] {
   });
 }
 
+function driverDirectionClass(direction: MacroRegime["drivers"][number]["direction"]): string {
+  if (direction === "rising") return "is-up";
+  if (direction === "falling") return "is-down";
+  if (direction === "mixed") return "is-mixed";
+  return "is-flat";
+}
+
 function RegimeNewsHeader({ regime }: { regime: MacroRegime }) {
   return (
     <header className="pulse-news-heading">
@@ -82,30 +89,18 @@ function RegimeNewsHeader({ regime }: { regime: MacroRegime }) {
       <h2 className="pulse-news-title">{regime.label}</h2>
       <p className="pulse-news-lede">{regime.summary}</p>
       {regime.drivers.length > 0 ? (
-        <div className="market-regime-drivers" aria-label="What is driving this regime">
+        <ul className="pulse-news-drivers" aria-label="What is driving this regime">
           {regime.drivers.map((driver) => (
-            <span
+            <li
               key={driver.id}
-              className={`market-regime-driver market-regime-driver-${driver.direction}`}
+              className={`pulse-news-driver ${driverDirectionClass(driver.direction)}`}
               title={driver.explanation}
             >
-              <strong>{driver.label}</strong>
-              <em
-                className={`ink-chip ink-chip--${
-                  driver.direction === "rising"
-                    ? "up"
-                    : driver.direction === "falling"
-                      ? "down"
-                      : driver.direction === "mixed"
-                        ? "amber"
-                        : "quiet"
-                }`}
-              >
-                {driver.direction}
-              </em>
-            </span>
+              <span className="pulse-news-driver-label">{driver.label}</span>
+              <span className="pulse-news-driver-dir">{driver.direction}</span>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : null}
     </header>
   );
