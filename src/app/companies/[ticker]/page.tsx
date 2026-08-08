@@ -100,7 +100,7 @@ export default async function CompanyPage({
             {/* 1. Catalyst — only mounts when there’s a story or meaningful move */}
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
             {supportsSignals ? (
-              /* 2. Product read — elevated above chart/technicals */
+              /* 2. Evidence — composite read + themed lanes */
               <ConvictionSignalsCard ticker={upperTicker} />
             ) : null}
             {/* 3. Supporting visual */}
