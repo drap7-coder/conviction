@@ -442,12 +442,8 @@ export default function Portfolio({
     return sort.dir === "desc" ? " ↓" : " ↑";
   }
 
-  // Open once for empty books so the first add is obvious; stay collapsed when holdings exist.
-  useEffect(() => {
-    if (loading) return;
-    if (!hasData) setShowAddForm(true);
-  }, [loading, hasData]);
-
+  // Keep Add collapsed when empty so sample books stay above the fold.
+  // Open only when editing an existing position.
   const composeExpanded = Boolean(editingTicker) || showAddForm;
 
   function toggleCompose() {
@@ -501,23 +497,18 @@ export default function Portfolio({
     <div className="pf">
       {loading ? <PageLoadingMotion label="Loading portfolio prices" compact /> : null}
 
-      {composeFirst ? composeBar : null}
-
-      {/* ── Empty state ── */}
-      {!hasData && !loading && !composeFirst && (
-        <div className="pf-empty">
-          <p className="pf-empty-text">No positions yet.</p>
-          {composeBar}
+      {/* Empty: samples first (above the fold), then optional Add compose. */}
+      {!hasData && !loading ? (
+        <div className={composeFirst ? "pf-sample-books" : "pf-empty"}>
           <SampleBooksPicker onSelect={handleLoadSample} />
-        </div>
-      )}
-
-      {!hasData && !loading && composeFirst ? (
-        <div className="pf-sample-books list-compose-empty-note">
-          <p className="pf-empty-text">No positions yet — add one above, or try a theme book.</p>
-          <SampleBooksPicker onSelect={handleLoadSample} />
+          <p className="pf-empty-text list-compose-empty-note">
+            Or add a position yourself{composeFirst ? " below" : ""}.
+          </p>
+          {composeFirst ? null : composeBar}
         </div>
       ) : null}
+
+      {composeFirst ? composeBar : null}
 
       {hasData && (
         <>
