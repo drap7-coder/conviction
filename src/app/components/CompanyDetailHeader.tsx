@@ -10,6 +10,8 @@ interface CompanyDetailHeaderProps {
   companyName: string;
   sectorName: string | null;
   logoUrl: string | null;
+  /** Back link. Keep false when the page renders nav above the catalyst card. */
+  showNav?: boolean;
 }
 
 function formatPrice(value: number | null): string {
@@ -38,6 +40,7 @@ export function CompanyDetailHeader({
   companyName,
   sectorName,
   logoUrl,
+  showNav = true,
 }: CompanyDetailHeaderProps) {
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [loading, setLoading] = useState(true);
@@ -90,12 +93,14 @@ export function CompanyDetailHeader({
     : "";
 
   return (
-    <header className="detail-header">
-      <div className="detail-nav">
-        <Link href="/" className="detail-back">
-          ← Watchlist
-        </Link>
-      </div>
+    <header className={`detail-header${showNav ? "" : " detail-header--embedded"}`}>
+      {showNav ? (
+        <div className="detail-nav">
+          <Link href="/" className="detail-back">
+            ← Watchlist
+          </Link>
+        </div>
+      ) : null}
 
       <div className="cdh-body">
         <div className="cdh-identity">

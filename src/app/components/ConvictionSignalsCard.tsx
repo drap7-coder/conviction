@@ -475,9 +475,9 @@ export function ConvictionSignalsCard({
   const anyLoading = coreLoading || filingLanes.some((lane) => lane.status === "loading");
 
   return (
-    <section className="company-driver-module evidence-lanes" aria-label="Evidence">
+    <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
       <div className="company-driver-header">
-        <h2 className="company-driver-title evidence-lanes-title">Evidence</h2>
+        <h2 className="company-driver-title evidence-lanes-title">Conviction Signals</h2>
       </div>
 
       <CompositeReadCard lanes={allLanes} loading={anyLoading} />

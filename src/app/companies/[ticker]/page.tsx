@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
@@ -87,24 +88,32 @@ export default async function CompanyPage({
         // Safe: server-side JSON literal for structured data.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CompanyDetailHeader
-        ticker={upperTicker}
-        companyName={companyName}
-        sectorName={sectorName}
-        logoUrl={getLogoUrl(upperTicker) ?? null}
-      />
+
+      <div className="detail-nav">
+        <Link href="/" className="detail-back">
+          ← Watchlist
+        </Link>
+      </div>
 
       <CompanyDashboard
         briefing={
           <>
-            {/* 1. Catalyst — only mounts when there’s a story or meaningful move */}
+            {/* 1. Catalyst card — no section headline */}
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
+            {/* 2. Identity + quote */}
+            <CompanyDetailHeader
+              ticker={upperTicker}
+              companyName={companyName}
+              sectorName={sectorName}
+              logoUrl={getLogoUrl(upperTicker) ?? null}
+              showNav={false}
+            />
+            {/* 3. Chart */}
+            <PriceTrendCard ticker={upperTicker} showQuote={false} />
             {supportsSignals ? (
-              /* 2. Evidence — composite read + themed lanes */
+              /* 4. Conviction Signals / Evidence */
               <ConvictionSignalsCard ticker={upperTicker} />
             ) : null}
-            {/* 3. Supporting visual */}
-            <PriceTrendCard ticker={upperTicker} showQuote={false} />
           </>
         }
       />

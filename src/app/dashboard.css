@@ -13,11 +13,15 @@
   min-width: 0;
 }
 
-/* What’s driving the move — title outside the ink block */
+/* Catalyst / Evidence modules */
 .company-driver-module {
   display: grid;
   gap: 8px;
   min-width: 0;
+}
+
+.company-driver-module--flush {
+  gap: 0;
 }
 
 .company-driver-header {

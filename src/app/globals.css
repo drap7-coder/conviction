@@ -5502,11 +5502,15 @@ details > summary::before {
   margin-bottom: 16px;
 }
 
+.detail-header--embedded {
+  margin-bottom: 0;
+}
+
 .detail-nav {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .detail-back {
