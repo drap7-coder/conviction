@@ -1,12 +1,8 @@
 import { notFound } from "next/navigation";
-import { CorporateDisclosuresSection } from "@/app/components/CorporateDisclosuresSection";
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
 import { CompanyDetailPrice } from "@/app/components/CompanyDetailPrice";
-import { EarningsMomentumSection } from "@/app/components/EarningsMomentumSection";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
-import { MajorOwnershipSection } from "@/app/components/MajorOwnershipSection";
-import { PoliticalTradesSection } from "@/app/components/PoliticalTradesSection";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { CompanySignalGauges } from "@/app/components/CompanySignalGauges";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
@@ -111,30 +107,8 @@ export default async function CompanyPage({
             {/* 4. Trend gauges — available for equities and crypto */}
             <CompanySignalGauges ticker={upperTicker} />
             {supportsSignals ? (
-              /* 5. Ownership conviction + SEC evidence — equities only */
-              <ConvictionSignalsCard
-                ticker={upperTicker}
-                moreEvidence={
-                  <>
-                    <details className="other-events conviction-more-evidence">
-                      <summary>Earnings</summary>
-                      <EarningsMomentumSection ticker={upperTicker} hideHeader />
-                    </details>
-                    <details className="other-events conviction-more-evidence">
-                      <summary>Political disclosures</summary>
-                      <PoliticalTradesSection ticker={upperTicker} hideHeader />
-                    </details>
-                    <details className="other-events conviction-more-evidence">
-                      <summary>Ownership filings (13D / 13G)</summary>
-                      <MajorOwnershipSection ticker={upperTicker} />
-                    </details>
-                    <details className="other-events conviction-more-evidence">
-                      <summary>Other filings &amp; events</summary>
-                      <CorporateDisclosuresSection ticker={upperTicker} />
-                    </details>
-                  </>
-                }
-              />
+              /* 5. Unified evidence lanes — equities only */
+              <ConvictionSignalsCard ticker={upperTicker} />
             ) : null}
           </>
         }
