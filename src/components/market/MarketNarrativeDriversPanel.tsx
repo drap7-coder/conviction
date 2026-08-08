@@ -58,11 +58,11 @@ export function MarketNarrativeDriversPanel({
   const href = theme.headline?.url
     ?? (lead ? companyDetailHref(lead.ticker) : null);
 
+  // Skip theme.label eyebrow — it usually repeats the headline/summary (e.g. "AI + Compute").
   const card = (
     <SignalBlock
       compact
       hideMeta
-      eyebrow={theme.label}
       conclusion={conclusion}
       evidence={evidence}
       badge={{ label: heatLabel(theme.heat), tone: heatTone(theme.heat) }}

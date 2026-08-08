@@ -11171,9 +11171,8 @@ a.signal-block-conclusion-link:hover {
   color: var(--ink);
 }
 
-/* Narrative sits flush under the section title, above the ticker grid. */
-.stock-heat-footer,
-.market-heatmap-shell .stock-heat-footer {
+/* Watchlist heatmaps: narrative/context keeps inset spacing. */
+.stock-heat-footer {
   display: grid;
   gap: 10px;
   margin: 0 12px 10px;
@@ -11183,6 +11182,19 @@ a.signal-block-conclusion-link:hover {
 
 .stock-heat-panel > .stock-heat-footer {
   margin: 0 0 10px;
+}
+
+/* Pulse shells: narrative is flush under the navy title bar and full-bleed. */
+.market-heatmap-shell .stock-heat-footer {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: none;
+}
+
+.market-heatmap-shell .market-heatmap-copy {
+  border-bottom: none;
 }
 
 /* Pulse: one narrative card per asset-class shell (no carousel / divider). */
@@ -11197,6 +11209,17 @@ a.signal-block-conclusion-link:hover {
   min-width: 0;
   color: inherit;
   text-decoration: none;
+}
+
+.market-heatmap-shell .pulse-why-card .signal-block,
+.market-heatmap-shell .pulse-why-empty {
+  min-height: 0;
+  margin: 0;
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  box-shadow: none;
 }
 
 .pulse-why-card .signal-block {
@@ -11406,9 +11429,12 @@ a.signal-block-conclusion-link:hover {
     margin-inline: 10px;
   }
 
-  .stock-heat-footer,
-  .market-heatmap-shell .stock-heat-footer {
+  .stock-heat-footer {
     margin-inline: 10px;
+  }
+
+  .market-heatmap-shell .stock-heat-footer {
+    margin-inline: 0;
   }
 
   .stock-heat-loading-tile {
