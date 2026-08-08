@@ -32,7 +32,7 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   "SOL-USD": crypto("SOL-USD", "Solana"),
 
   // Major index proxies
-  DIA: etf("DIA", "Dow 30", "Index"),
+  DIA: etf("DIA", "Dow Jones Industrial Average", "Index"),
   SPY: etf("SPY", "S&P 500", "Index"),
   QQQ: etf("QQQ", "Nasdaq 100", "Index"),
 
@@ -46,7 +46,7 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   UUP: etf("UUP", "U.S. Dollar", "ETF"),
 
   // Commodities
-  USO: etf("USO", "Oil", "Commodity"),
+  USO: etf("USO", "Crude Oil", "Commodity"),
   GLD: etf("GLD", "Gold", "Commodity"),
   SLV: etf("SLV", "Silver", "Commodity"),
 

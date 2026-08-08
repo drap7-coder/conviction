@@ -25,7 +25,7 @@ function formatMove(value: number | null): string {
 }
 
 /**
- * Why it’s moving — one narrative card per Pulse asset-class shell
+ * Narrative insight card for a Pulse asset-class shell
  * (no shared carousel across groups).
  */
 export function MarketNarrativeDriversPanel({
@@ -39,10 +39,7 @@ export function MarketNarrativeDriversPanel({
 
   if (!theme) {
     return (
-      <section className="pulse-why-block" aria-label="Why it’s moving">
-        <div className="pulse-why-divider">
-          <span>Why it’s moving</span>
-        </div>
+      <section className="pulse-why-block" aria-label={`${groupLabel} narrative`}>
         <p className="pulse-why-empty">No clear driver for {groupLabel} yet.</p>
       </section>
     );
@@ -73,10 +70,7 @@ export function MarketNarrativeDriversPanel({
   );
 
   return (
-    <section className="pulse-why-block" aria-label="Why it’s moving">
-      <div className="pulse-why-divider">
-        <span>Why it’s moving</span>
-      </div>
+    <section className="pulse-why-block" aria-label={`${groupLabel} narrative`}>
       {theme.headline?.url ? (
         <a
           href={theme.headline.url}

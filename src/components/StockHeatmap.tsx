@@ -98,10 +98,10 @@ export function StockHeatmap({
     return (
       <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
         <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
+        {footerSlot}
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
         </div>
-        {footerSlot}
       </section>
     );
   }
@@ -120,13 +120,15 @@ export function StockHeatmap({
   return (
     <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
       <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
+      {footerSlot}
       <div className="stock-heat-grid">
         {items.map((item) => {
           const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
           return (
             <HeatTile
               key={item.ticker}
-              label={item.ticker}
+              label={item.name}
+              subtitle={item.ticker}
               changePercent={item.changePercent}
               href={companyDetailHref(item.ticker)}
               ariaLabel={`${item.name}, ${item.ticker}, ${item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(1)}%`}`}
@@ -135,7 +137,6 @@ export function StockHeatmap({
           );
         })}
       </div>
-      {footerSlot}
     </section>
   );
 }

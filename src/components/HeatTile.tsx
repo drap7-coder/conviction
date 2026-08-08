@@ -10,8 +10,10 @@ import {
 } from "@/lib/display/heat-color";
 
 export interface HeatTileProps {
-  /** Primary label shown in the ticker pill (ticker symbol or short name). */
+  /** Primary large label — instrument/company name. */
   label: string;
+  /** Small subtitle under the name — usually the ticker symbol. */
+  subtitle?: string | null;
   changePercent: number | null | undefined;
   /** Accessible name — usually company/market name + move. */
   ariaLabel: string;
@@ -26,9 +28,10 @@ function fmtPct(value: number | null | undefined): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
-/** Shared magnitude-scaled heat tile — dark fill + ticker pill + % chip. */
+/** Shared magnitude-scaled heat tile — dark fill + name + ticker + % chip. */
 export function HeatTile({
   label,
+  subtitle = null,
   changePercent,
   ariaLabel,
   href = null,
@@ -49,7 +52,10 @@ export function HeatTile({
 
   const body = (
     <>
-      <span className="heat-tile-ticker">{label}</span>
+      <span className="heat-tile-copy">
+        <span className="heat-tile-name">{label}</span>
+        {subtitle ? <span className="heat-tile-symbol">{subtitle}</span> : null}
+      </span>
       <strong
         className="heat-tile-pct"
         style={{ background: chip.background, color: chip.color }}
