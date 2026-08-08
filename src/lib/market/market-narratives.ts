@@ -115,6 +115,12 @@ export interface NarrativeAssetMove {
   changePercent: number | null;
 }
 
+export interface MarketNarrativeHeadline {
+  title: string;
+  url: string | null;
+  date: string;
+}
+
 export interface MarketNarrativeTheme {
   id: string;
   label: string;
@@ -126,7 +132,11 @@ export interface MarketNarrativeTheme {
   mentionsLastHour: number;
   uniqueAuthorsLastHour: number;
   summary: string;
-  headline: { title: string; url: string | null; date: string } | null;
+  /** Primary matched headline (drivers panel). */
+  headline: MarketNarrativeHeadline | null;
+  /** Broader RSS stack for the Pulse News feed. */
+  headlines: MarketNarrativeHeadline[];
+  newsTicker: string;
   assets: NarrativeAssetMove[];
 }
 
@@ -312,25 +322,43 @@ function windowStats(sample: ThemeChatterSample, now: Date) {
   };
 }
 
+function toNarrativeHeadline(item: {
+  title: string;
+  sourceUrl?: string | null;
+  date: string;
+}): MarketNarrativeHeadline {
+  return {
+    title: item.title,
+    url: item.sourceUrl ?? null,
+    date: item.date,
+  };
+}
+
 async function fetchTheme(
   config: NarrativeThemeConfig,
   assets: NarrativeAssetMove[],
   now: Date,
 ): Promise<MarketNarrativeTheme> {
-  const [chatter, yahooHeadlines] = await Promise.all([
+  const [chatter, yahooHeadlines, googleHeadlines] = await Promise.all([
     fetchThemeChatter(config.query, now),
-    fetchRssNews(config.newsTicker, 6),
+    fetchRssNews(config.newsTicker, 8),
+    fetchGoogleNewsRss(config.newsTicker, 8).catch(() => []),
   ]);
   const stats = windowStats(chatter, now);
   const scored = scoreNarrative({ ...stats, assetMoves: assets.map((asset) => asset.changePercent) });
 
-  let matchedHeadline = yahooHeadlines.find((headline) => config.headlinePattern.test(headline.title));
-  if (!matchedHeadline) {
-    const googleHeadlines = await fetchGoogleNewsRss(config.newsTicker, 8);
-    matchedHeadline = googleHeadlines.find((headline) => config.headlinePattern.test(headline.title))
-      ?? googleHeadlines[0]
-      ?? null;
-  }
+  const pool = [...yahooHeadlines, ...googleHeadlines];
+  const matched = pool.find((headline) => config.headlinePattern.test(headline.title)) ?? pool[0] ?? null;
+  const seen = new Set<string>();
+  const headlines = pool
+    .map(toNarrativeHeadline)
+    .filter((headline) => {
+      const key = headline.title.trim().toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 6);
 
   return {
     id: config.id,
@@ -340,11 +368,9 @@ async function fetchTheme(
     mentionsLastHour: stats.mentionsLastHour,
     uniqueAuthorsLastHour: stats.uniqueAuthorsLastHour,
     summary: narrativeSummary(config.label, scored, assets),
-    headline: matchedHeadline ? {
-      title: matchedHeadline.title,
-      url: matchedHeadline.sourceUrl ?? null,
-      date: matchedHeadline.date,
-    } : null,
+    headline: matched ? toNarrativeHeadline(matched) : headlines[0] ?? null,
+    headlines,
+    newsTicker: config.newsTicker,
     assets,
   };
 }
