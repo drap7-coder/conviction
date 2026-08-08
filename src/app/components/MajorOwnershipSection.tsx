@@ -29,10 +29,7 @@ function formatDate(value: string) {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
-/**
- * Thin 13D/13G appendix for Conviction Signals — the unique residue from
- * the old Market Context card after institutional/insider/SI moved into rows.
- */
+/** 13D / 13G proof list mounted inside an Evidence lane. */
 export function MajorOwnershipSection({ ticker }: { ticker: string }) {
   const [filings, setFilings] = useState<MajorOwnershipFiling[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");

@@ -91,13 +91,24 @@
   padding: 6px 2px 4px;
 }
 
-.company-briefing .conviction-signal-panel .institutional-section,
-.company-briefing .conviction-signal-panel .political-section,
-.company-briefing .conviction-signal-panel .earnings-evidence {
+.company-briefing .evidence-lane-panel .institutional-section,
+.company-briefing .evidence-lane-panel .political-section,
+.company-briefing .evidence-lane-panel .earnings-evidence,
+.company-briefing .evidence-lane-panel .corporate-disclosures-section {
   margin: 0;
 }
 
-.company-briefing .conviction-signal-panel .move-section {
+.company-briefing .evidence-lane-panel .move-section {
+  margin-top: 0;
+}
+
+/* Nested ink proof sits tight inside an open lane. */
+.company-briefing .evidence-lane-panel .institutional-hero,
+.company-briefing .evidence-lane-panel .political-card {
+  margin: 2px 0 0;
+}
+
+.company-briefing .evidence-lane-panel .disclosure-evidence-card {
   margin-top: 0;
 }
 

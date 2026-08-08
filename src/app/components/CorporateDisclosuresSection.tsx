@@ -30,7 +30,13 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T12:00:00`));
 }
 
-export function CorporateDisclosuresSection({ ticker }: { ticker: string }) {
+export function CorporateDisclosuresSection({
+  ticker,
+  hideHeader = false,
+}: {
+  ticker: string;
+  hideHeader?: boolean;
+}) {
   const [data, setData] = useState<DisclosureData | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
 
@@ -64,10 +70,12 @@ export function CorporateDisclosuresSection({ ticker }: { ticker: string }) {
 
   return (
     <div className="corporate-disclosures-section">
-      <div className="section-header">
-        <h2 className="section-title">Corporate disclosures</h2>
-        <span className="section-count">SEC</span>
-      </div>
+      {hideHeader ? null : (
+        <div className="section-header">
+          <h2 className="section-title">Corporate disclosures</h2>
+          <span className="section-count">SEC</span>
+        </div>
+      )}
 
       {status === "loading" || status === "idle" ? (
         <p className="move-answer">Checking SEC filings...</p>
