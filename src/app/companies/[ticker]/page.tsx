@@ -112,7 +112,10 @@ export default async function CompanyPage({
             <PriceTrendCard ticker={upperTicker} showQuote={false} />
             {supportsSignals ? (
               /* 4. Conviction Signals / Evidence */
-              <ConvictionSignalsCard ticker={upperTicker} />
+              <ConvictionSignalsCard
+                ticker={upperTicker}
+                logoUrl={getLogoUrl(upperTicker) ?? null}
+              />
             ) : null}
           </>
         }
