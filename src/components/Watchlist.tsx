@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -10,8 +10,6 @@ import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
-
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
 
@@ -393,22 +391,6 @@ export default function Watchlist({
     if (e.key === "Enter") handleAdd();
   };
 
-  const watchlistMacroSeries = useMemo(() => {
-    const ranked = [...entries]
-      .map((entry) => {
-        const quote = quotes[entry.ticker];
-        return {
-          ticker: entry.ticker,
-          label: entry.ticker,
-          marketCap: quote?.marketCap ?? 0,
-          values: (quote?.sparkline ?? []).map((point) => point.close),
-        };
-      })
-      .filter((item) => item.values.length >= 2)
-      .sort((a, b) => b.marketCap - a.marketCap);
-    return buildMacroSeriesFromQuotes(ranked, 5);
-  }, [entries, quotes]);
-
   // Shortcut: press K to focus Track compose.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -577,14 +559,6 @@ export default function Watchlist({
             ))}
           </div>
         </div>
-      ) : null}
-
-      {!loading && watchlistMacroSeries.length > 0 ? (
-        <MacroChainChart
-          series={watchlistMacroSeries}
-          title="Watchlist Chain"
-          subtitle=""
-        />
       ) : null}
     </div>
   );
