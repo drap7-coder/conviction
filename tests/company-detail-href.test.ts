@@ -17,9 +17,10 @@ describe("companyDetailHref", () => {
 });
 
 describe("supportsConvictionSignals", () => {
-  it("is false for crypto pairs and true for equities", () => {
+  it("is false for crypto / Pulse ETFs and true for equities", () => {
     expect(supportsConvictionSignals("ETH-USD")).toBe(false);
     expect(supportsConvictionSignals("BTC-USD")).toBe(false);
+    expect(supportsConvictionSignals("RSP")).toBe(false);
     expect(supportsConvictionSignals("NBIS")).toBe(true);
   });
 });

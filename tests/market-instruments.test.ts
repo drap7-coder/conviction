@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { validateTicker } from "@/lib/watchlist/validate";
+import {
+  getMarketInstrument,
+  supportsConvictionSignals,
+} from "@/lib/market/market-instruments";
 
 describe("validateTicker market instruments", () => {
   it("accepts crypto pairs without SEC CIK", async () => {
@@ -10,5 +14,32 @@ describe("validateTicker market instruments", () => {
     expect(eth.instrumentKind).toBe("crypto");
     expect(eth.supportsConvictionSignals).toBe(false);
     expect(eth.cik).toBeUndefined();
+  });
+
+  it("accepts Pulse index ETFs like RSP without SEC membership", async () => {
+    const rsp = await validateTicker("RSP");
+    expect(rsp.valid).toBe(true);
+    expect(rsp.ticker).toBe("RSP");
+    expect(rsp.companyName).toBe("S&P 500 Equal Weight");
+    expect(rsp.instrumentKind).toBe("etf");
+    expect(rsp.supportsConvictionSignals).toBe(false);
+    expect(rsp.cik).toBeUndefined();
+  });
+
+  it("accepts sector SPDRs as light market instruments", async () => {
+    const xlk = await validateTicker("XLK");
+    expect(xlk.valid).toBe(true);
+    expect(xlk.instrumentKind).toBe("etf");
+    expect(xlk.supportsConvictionSignals).toBe(false);
+    expect(getMarketInstrument("XLK")?.tag).toBe("Sector");
+  });
+});
+
+describe("supportsConvictionSignals", () => {
+  it("is false for crypto and Pulse ETFs", () => {
+    expect(supportsConvictionSignals("ETH-USD")).toBe(false);
+    expect(supportsConvictionSignals("RSP")).toBe(false);
+    expect(supportsConvictionSignals("SPY")).toBe(false);
+    expect(supportsConvictionSignals("NBIS")).toBe(true);
   });
 });
