@@ -10,7 +10,7 @@ export type NarrativeMarketTone = "positive" | "negative" | "mixed";
 /** Pulse heatmap groups these narratives attach to (one primary group each). */
 export type NarrativeHeatmapGroup =
   | "Major Index"
-  | "U.S. Markets"
+  | "Themes"
   | "Commodity"
   | "Crypto"
   | "International"
@@ -43,16 +43,16 @@ export const MARKET_NARRATIVE_THEMES: NarrativeThemeConfig[] = [
   },
   {
     id: "rates-fed",
-    label: "Rates + Breadth",
+    label: "Rates + Style",
     query: "Federal Reserve",
     newsTicker: "TLT",
-    heatmapGroup: "U.S. Markets",
+    heatmapGroup: "Themes",
     assets: [
-      { ticker: "IWM", label: "Russell 2000" },
-      { ticker: "UUP", label: "U.S. Dollar" },
-      { ticker: "XLU", label: "Utilities" },
+      { ticker: "SCHD", label: "Dividends" },
+      { ticker: "VNQ", label: "Real Estate" },
+      { ticker: "IYT", label: "Transports" },
     ],
-    headlinePattern: /fed|rate|yield|treasury|inflation|dollar|breadth|small cap/i,
+    headlinePattern: /fed|rate|yield|treasury|inflation|dividend|reit|real estate|transport/i,
   },
   {
     id: "energy-oil",
@@ -64,8 +64,9 @@ export const MARKET_NARRATIVE_THEMES: NarrativeThemeConfig[] = [
       { ticker: "USO", label: "Oil" },
       { ticker: "GLD", label: "Gold" },
       { ticker: "SLV", label: "Silver" },
+      { ticker: "UUP", label: "U.S. Dollar" },
     ],
-    headlinePattern: /oil|crude|opec|energy|gas|gold|silver|commodity/i,
+    headlinePattern: /oil|crude|opec|energy|gas|gold|silver|commodity|dollar|fx/i,
   },
   {
     id: "crypto-liquidity",
