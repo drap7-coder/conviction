@@ -170,7 +170,7 @@ export function PriceTrendCard({
               </span>
             ) : null}
           </div>
-        ) : <span className="price-trend-label">Price history</span>}
+        ) : <span className="price-trend-label">Chart</span>}
         <div className="price-range-tabs" aria-label="Price range">
           {RANGES.map((option) => (
             <button

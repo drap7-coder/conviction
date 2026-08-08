@@ -1,16 +1,14 @@
 import { notFound } from "next/navigation";
 import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
-import { CompanyDetailPrice } from "@/app/components/CompanyDetailPrice";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
-import { CompanySignalGauges } from "@/app/components/CompanySignalGauges";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
 import { getMarketInstrument, listMarketInstruments } from "@/lib/market/market-instruments";
 import { getSectorByTicker, getSectorForCompany } from "@/lib/market/industries";
-import { getLogoUrl, getSectorColors } from "@/lib/market/logos";
+import { getLogoUrl } from "@/lib/market/logos";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
 import "@/app/dashboard.css";
@@ -67,9 +65,6 @@ export default async function CompanyPage({
   const sector = supportsSignals
     ? getSectorForCompany(upperTicker)
     : getSectorByTicker(upperTicker);
-  const sectorColors = sector
-    ? getSectorColors(sector.ticker)
-    : getSectorColors(upperTicker);
   const sectorName = supportsSignals
     ? (sector?.name ?? null)
     : (marketInstrument?.tag ?? "Market");
@@ -96,25 +91,20 @@ export default async function CompanyPage({
         ticker={upperTicker}
         companyName={companyName}
         sectorName={sectorName}
-        sectorColors={sectorColors}
         logoUrl={getLogoUrl(upperTicker) ?? null}
       />
 
       <CompanyDashboard
         briefing={
           <>
-            {/* 1. What’s driving the move */}
+            {/* 1. Catalyst — only mounts when there’s a story or meaningful move */}
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
-            {/* 2. Price */}
-            <CompanyDetailPrice ticker={upperTicker} />
-            {/* 3. Chart */}
-            <PriceTrendCard ticker={upperTicker} showQuote={false} />
-            {/* 4. Trend gauges — available for equities and crypto */}
-            <CompanySignalGauges ticker={upperTicker} />
             {supportsSignals ? (
-              /* 5. Conviction Signals — equities only */
+              /* 2. Product read — elevated above chart/technicals */
               <ConvictionSignalsCard ticker={upperTicker} />
             ) : null}
+            {/* 3. Supporting visual */}
+            <PriceTrendCard ticker={upperTicker} showQuote={false} />
           </>
         }
       />
