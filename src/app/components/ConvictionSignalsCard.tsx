@@ -478,10 +478,6 @@ export function ConvictionSignalsCard({
     <section className="company-driver-module evidence-lanes" aria-label="Evidence">
       <div className="company-driver-header">
         <h2 className="company-driver-title evidence-lanes-title">Evidence</h2>
-        <span className={`evidence-live-pill${anyLoading ? " is-updating" : ""}`}>
-          <i aria-hidden="true" />
-          {anyLoading ? "Updating" : "Live"}
-        </span>
       </div>
 
       <CompositeReadCard lanes={allLanes} loading={anyLoading} />

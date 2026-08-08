@@ -119,6 +119,12 @@ export function CompanyDetailHeader({
         </div>
 
         <div className="cdh-prices" aria-label={`${ticker} price`}>
+          <div className="cdh-price-top">
+            <span className={`evidence-live-pill${loading ? " is-updating" : ""}`}>
+              <i aria-hidden="true" />
+              {loading ? "Updating" : "Live"}
+            </span>
+          </div>
           <div className="cdh-live-price">
             {loading ? (
               <span className="cdh-price-loading">—</span>
