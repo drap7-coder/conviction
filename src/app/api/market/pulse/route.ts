@@ -56,19 +56,13 @@ const GLOBAL_MARKETS = [
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
   { ticker: "ETH-USD", name: "Ethereum", weight: 10, category: "Crypto" },
   { ticker: "SOL-USD", name: "Solana", weight: 8, category: "Crypto" },
-  { ticker: "EWJ", name: "Japan", weight: 14.5, category: "International" },
-  { ticker: "MCHI", name: "China", weight: 10.5, category: "International" },
-  { ticker: "EWU", name: "United Kingdom", weight: 9.5, category: "International" },
-  { ticker: "EWC", name: "Canada", weight: 8.0, category: "International" },
-  { ticker: "EWG", name: "Germany", weight: 6.5, category: "International" },
-  { ticker: "EWQ", name: "France", weight: 5.5, category: "International" },
-  { ticker: "INDA", name: "India", weight: 5.0, category: "International" },
-  { ticker: "EWT", name: "Taiwan", weight: 4.8, category: "International" },
-  { ticker: "EWA", name: "Australia", weight: 4.5, category: "International" },
-  { ticker: "EWY", name: "South Korea", weight: 3.5, category: "International" },
-  { ticker: "EWH", name: "Hong Kong", weight: 3.0, category: "International" },
-  { ticker: "EWZ", name: "Brazil", weight: 2.5, category: "International" },
-  { ticker: "EWW", name: "Mexico", weight: 1.0, category: "International" },
+  // Keep International to six countries so the heatmap stays scannable.
+  { ticker: "EWJ", name: "Japan", weight: 16, category: "International" },
+  { ticker: "MCHI", name: "China", weight: 14, category: "International" },
+  { ticker: "EWU", name: "United Kingdom", weight: 12, category: "International" },
+  { ticker: "INDA", name: "India", weight: 11, category: "International" },
+  { ticker: "EWT", name: "Taiwan", weight: 10, category: "International" },
+  { ticker: "EWG", name: "Germany", weight: 9, category: "International" },
 ] as const;
 
 export interface PulseIndicator {
