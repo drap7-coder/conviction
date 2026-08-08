@@ -327,9 +327,13 @@ function laneDetail(id: EvidenceLaneId, ticker: string): ReactNode {
 function CompositeReadCard({
   lanes,
   loading,
+  ticker,
+  logoUrl,
 }: {
   lanes: EvidenceLane[];
   loading: boolean;
+  ticker: string;
+  logoUrl: string | null;
 }) {
   const counts = useMemo(
     () => countEvidenceSemantics(lanes.map((lane) => lane.semantic)),
@@ -345,56 +349,52 @@ function CompositeReadCard({
 
   return (
     <div className={`evidence-composite ink-box ink-box--quiet tone-${overall}`}>
-      <div className="evidence-composite-top">
-        <span className="evidence-composite-eyebrow">Composite read</span>
-        <span className={`evidence-status-pill tone-${overall}`}>
-          {evidenceStatusLabel(overall)}
-        </span>
-      </div>
+      <div className="evidence-composite-body">
+        <div className="evidence-composite-lead">
+          {logoUrl ? (
+            <img src={logoUrl} alt="" className="evidence-composite-logo" />
+          ) : (
+            <div className="evidence-composite-logo-fallback" aria-hidden="true">
+              {ticker.charAt(0)}
+            </div>
+          )}
+          <p className="evidence-composite-synthesis">{synthesis}</p>
+        </div>
 
-      <div
-        className="evidence-composite-bar"
-        role="img"
-        aria-label={`${counts.support} support, ${counts.mixed} mixed, ${counts.against} against, ${counts.quiet} quiet`}
-      >
-        {counts.support > 0 ? (
-          <i className="seg-support" style={{ flex: `${counts.support} 1 0` }} />
-        ) : null}
-        {counts.mixed > 0 ? (
-          <i className="seg-mixed" style={{ flex: `${counts.mixed} 1 0` }} />
-        ) : null}
-        {counts.against > 0 ? (
-          <i className="seg-against" style={{ flex: `${counts.against} 1 0` }} />
-        ) : null}
-        {counts.quiet > 0 ? (
-          <i className="seg-quiet" style={{ flex: `${counts.quiet} 1 0` }} />
-        ) : null}
+        <div className="evidence-composite-fill">
+          <span className={`evidence-status-pill tone-${overall}`}>
+            {evidenceStatusLabel(overall)}
+          </span>
+          <div
+            className="evidence-composite-bar"
+            role="img"
+            aria-label={`${counts.support} support, ${counts.mixed} mixed, ${counts.against} against, ${counts.quiet} quiet`}
+          >
+            {counts.support > 0 ? (
+              <i className="seg-support" style={{ flex: `${counts.support} 1 0` }} />
+            ) : null}
+            {counts.mixed > 0 ? (
+              <i className="seg-mixed" style={{ flex: `${counts.mixed} 1 0` }} />
+            ) : null}
+            {counts.against > 0 ? (
+              <i className="seg-against" style={{ flex: `${counts.against} 1 0` }} />
+            ) : null}
+            {counts.quiet > 0 ? (
+              <i className="seg-quiet" style={{ flex: `${counts.quiet} 1 0` }} />
+            ) : null}
+          </div>
+        </div>
       </div>
-
-      <div className="evidence-composite-legend">
-        {counts.support > 0 ? (
-          <span><i className="dot-support" />{counts.support} support</span>
-        ) : null}
-        {counts.mixed > 0 ? (
-          <span><i className="dot-mixed" />{counts.mixed} mixed</span>
-        ) : null}
-        {counts.against > 0 ? (
-          <span><i className="dot-against" />{counts.against} against</span>
-        ) : null}
-        {counts.quiet > 0 ? (
-          <span><i className="dot-quiet" />{counts.quiet} quiet</span>
-        ) : null}
-      </div>
-
-      <p className="evidence-composite-synthesis">{synthesis}</p>
     </div>
   );
 }
 
 export function ConvictionSignalsCard({
   ticker,
+  logoUrl = null,
 }: {
   ticker: string;
+  logoUrl?: string | null;
 }) {
   const [core, setCore] = useState<ConvictionSignalDisplay[]>(initialCoreSignals);
   const [filingLanes, setFilingLanes] = useState<EvidenceLane[]>(initialFilingLanes);
@@ -476,11 +476,16 @@ export function ConvictionSignalsCard({
 
   return (
     <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
-      <div className="company-driver-header">
+      <header className="evidence-lanes-heading">
         <h2 className="company-driver-title evidence-lanes-title">Conviction Signals</h2>
-      </div>
+      </header>
 
-      <CompositeReadCard lanes={allLanes} loading={anyLoading} />
+      <CompositeReadCard
+        lanes={allLanes}
+        loading={anyLoading}
+        ticker={ticker}
+        logoUrl={logoUrl}
+      />
 
       <div className="evidence-groups">
         {EVIDENCE_GROUPS.map((group) => {
@@ -513,26 +518,28 @@ export function ConvictionSignalsCard({
                             setOpenLane((current) => (current === lane.id ? null : lane.id));
                           }}
                         >
-                          <span className="evidence-lane-icon" aria-hidden="true">{lane.icon}</span>
-                          <span className="evidence-lane-main">
-                            <span className="evidence-lane-title-row">
-                              <span className="evidence-lane-name">{lane.label}</span>
+                          <span className="evidence-lane-name">{lane.label}</span>
+                          <span className="evidence-lane-row">
+                            <span className="evidence-lane-icon" aria-hidden="true">{lane.icon}</span>
+                            <span className="evidence-lane-main">
+                              {isLoadingRow ? (
+                                <span className="evidence-lane-fact evidence-lane-fact-skeleton" />
+                              ) : (
+                                <span className="evidence-lane-copy">
+                                  <span className="evidence-lane-fact">{lane.primary}</span>
+                                  {lane.secondary ? (
+                                    <span className="evidence-lane-secondary">{lane.secondary}</span>
+                                  ) : null}
+                                </span>
+                              )}
+                            </span>
+                            <span className="evidence-lane-fill">
                               <span className={`evidence-status-pill tone-${tone}`}>
                                 {evidenceStatusLabel(lane.semantic)}
                               </span>
+                              <span className="evidence-lane-chevron" aria-hidden="true">›</span>
                             </span>
-                            {isLoadingRow ? (
-                              <span className="evidence-lane-fact evidence-lane-fact-skeleton" />
-                            ) : (
-                              <span className="evidence-lane-copy">
-                                <span className="evidence-lane-fact">{lane.primary}</span>
-                                {lane.secondary ? (
-                                  <span className="evidence-lane-secondary">{lane.secondary}</span>
-                                ) : null}
-                              </span>
-                            )}
                           </span>
-                          <span className="evidence-lane-chevron" aria-hidden="true">›</span>
                         </summary>
                         <div className="evidence-lane-panel">
                           {isOpen ? laneDetail(lane.id, ticker) : null}
