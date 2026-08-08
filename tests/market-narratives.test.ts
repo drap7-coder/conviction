@@ -10,7 +10,7 @@ describe("MARKET_NARRATIVE_THEMES heatmap mapping", () => {
   it("assigns each theme to a Pulse heatmap group", () => {
     const groups = new Set(MARKET_NARRATIVE_THEMES.map((theme) => theme.heatmapGroup));
     expect(groups.has("Major Index")).toBe(true);
-    expect(groups.has("U.S. Markets")).toBe(true);
+    expect(groups.has("Themes")).toBe(true);
     expect(groups.has("Commodity")).toBe(true);
     expect(groups.has("Crypto")).toBe(true);
     expect(groups.has("International")).toBe(true);

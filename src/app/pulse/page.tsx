@@ -319,7 +319,7 @@ export default function MarketPulsePage() {
   const marketsByCategory = (category: string) =>
     data.globalMarkets.filter((market) => market.category === category);
   const majorIndexes = marketsByCategory("Major Index");
-  const usMarkets = marketsByCategory("U.S. Markets");
+  const themeMarkets = marketsByCategory("Themes");
   const commodities = marketsByCategory("Commodity");
   const cryptoMarkets = marketsByCategory("Crypto");
   const internationalMarkets = marketsByCategory("International");
@@ -410,6 +410,16 @@ export default function MarketPulsePage() {
               uniformTiles
               sessionLabel={data.sessionLabel ?? null}
             />
+            {themeMarkets.length > 0 ? (
+              <GlobalMarketsHeatmap
+                markets={themeMarkets}
+                title="Themes"
+                subtitle=""
+                narrativeGroup="Themes"
+                narratives={data.marketNarratives.themes}
+                uniformTiles
+              />
+            ) : null}
             <GlobalMarketsHeatmap
               markets={commodities}
               title="Commodities"
@@ -426,16 +436,6 @@ export default function MarketPulsePage() {
               narratives={data.marketNarratives.themes}
               uniformTiles
             />
-            {usMarkets.length > 0 ? (
-              <GlobalMarketsHeatmap
-                markets={usMarkets}
-                title="U.S. Markets"
-                subtitle=""
-                narrativeGroup="U.S. Markets"
-                narratives={data.marketNarratives.themes}
-                uniformTiles
-              />
-            ) : null}
             <GlobalMarketsHeatmap
               markets={internationalMarkets}
               title="International"

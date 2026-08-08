@@ -38,20 +38,21 @@ const INDICATORS: Array<{
 ];
 
 const GLOBAL_MARKETS = [
+  // Broad market / size proxies — sector ETFs stay on the Sectors tab.
   { ticker: "DIA", name: "Dow Jones Industrial Average", weight: 14, category: "Major Index" },
   { ticker: "SPY", name: "S&P 500", weight: 30, category: "Major Index" },
   { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "Major Index" },
-  { ticker: "IWM", name: "Russell 2000", weight: 9, category: "U.S. Markets" },
-  { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "U.S. Markets" },
-  { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "U.S. Markets" },
-  { ticker: "SCHD", name: "U.S. Dividend 100", weight: 7, category: "U.S. Markets" },
-  { ticker: "VNQ", name: "U.S. Real Estate", weight: 5.5, category: "U.S. Markets" },
-  { ticker: "XLU", name: "Utilities", weight: 5, category: "U.S. Markets" },
-  { ticker: "IYT", name: "Transportation", weight: 4.5, category: "U.S. Markets" },
-  { ticker: "UUP", name: "U.S. Dollar", weight: 4, category: "U.S. Markets" },
+  { ticker: "IWM", name: "Russell 2000", weight: 9, category: "Major Index" },
+  { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "Major Index" },
+  { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "Major Index" },
+  // Style / factor sleeves (dividend, real estate, transports).
+  { ticker: "SCHD", name: "U.S. Dividend 100", weight: 10, category: "Themes" },
+  { ticker: "VNQ", name: "U.S. Real Estate", weight: 8, category: "Themes" },
+  { ticker: "IYT", name: "Transportation", weight: 7, category: "Themes" },
   { ticker: "USO", name: "Crude Oil", weight: 8, category: "Commodity" },
   { ticker: "GLD", name: "Gold", weight: 7, category: "Commodity" },
   { ticker: "SLV", name: "Silver", weight: 5, category: "Commodity" },
+  { ticker: "UUP", name: "U.S. Dollar", weight: 6, category: "Commodity" },
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
   { ticker: "ETH-USD", name: "Ethereum", weight: 10, category: "Crypto" },
   { ticker: "SOL-USD", name: "Solana", weight: 8, category: "Crypto" },
