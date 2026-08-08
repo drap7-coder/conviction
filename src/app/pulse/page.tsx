@@ -247,13 +247,17 @@ function GlobalMarketsHeatmap({
         </div>
         {subtitle.trim() ? <p className="market-heatmap-subtitle">{subtitle}</p> : null}
       </div>
+      <div className="stock-heat-footer">
+        <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
+      </div>
       <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
         {markets.map((market) => {
           const span = uniformTiles ? 1 : tileSpan(market.weight);
           return (
             <HeatTile
               key={market.ticker}
-              label={market.ticker}
+              label={market.name}
+              subtitle={market.ticker}
               changePercent={market.changePercent}
               href={companyDetailHref(market.ticker)}
               ariaLabel={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
@@ -261,9 +265,6 @@ function GlobalMarketsHeatmap({
             />
           );
         })}
-      </div>
-      <div className="stock-heat-footer">
-        <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
       </div>
     </section>
   );

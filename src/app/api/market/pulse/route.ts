@@ -38,7 +38,7 @@ const INDICATORS: Array<{
 ];
 
 const GLOBAL_MARKETS = [
-  { ticker: "DIA", name: "Dow 30", weight: 14, category: "Major Index" },
+  { ticker: "DIA", name: "Dow Jones Industrial Average", weight: 14, category: "Major Index" },
   { ticker: "SPY", name: "S&P 500", weight: 30, category: "Major Index" },
   { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "Major Index" },
   { ticker: "IWM", name: "Russell 2000", weight: 9, category: "U.S. Markets" },
@@ -49,7 +49,7 @@ const GLOBAL_MARKETS = [
   { ticker: "XLU", name: "Utilities", weight: 5, category: "U.S. Markets" },
   { ticker: "IYT", name: "Transportation", weight: 4.5, category: "U.S. Markets" },
   { ticker: "UUP", name: "U.S. Dollar", weight: 4, category: "U.S. Markets" },
-  { ticker: "USO", name: "Oil", weight: 8, category: "Commodity" },
+  { ticker: "USO", name: "Crude Oil", weight: 8, category: "Commodity" },
   { ticker: "GLD", name: "Gold", weight: 7, category: "Commodity" },
   { ticker: "SLV", name: "Silver", weight: 5, category: "Commodity" },
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
