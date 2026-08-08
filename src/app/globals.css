@@ -6561,6 +6561,200 @@ details > summary::before {
   margin-bottom: 18px;
 }
 
+.pf-holding-card {
+  cursor: default;
+}
+
+.pf-holding-card:hover,
+.pf-holding-card:focus-visible {
+  transform: none;
+}
+
+.pf-holding-card .wl-ring-row-main {
+  grid-template-columns: minmax(0, 1fr) minmax(108px, auto) 56px minmax(112px, auto);
+}
+
+.pf-holding-company-link {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+.pf-holding-company-link:hover .wl-ring-ticker,
+.pf-holding-company-link:focus-visible .wl-ring-ticker {
+  color: var(--accent);
+  outline: none;
+}
+
+.pf-holding-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.pf-holding-action {
+  margin: 0;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, #ffffff 16%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #ffffff 6%, transparent);
+  color: var(--on-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.pf-holding-action:hover,
+.pf-holding-action:focus-visible {
+  color: var(--on-ink);
+  border-color: color-mix(in srgb, #ffffff 28%, transparent);
+  outline: none;
+}
+
+.pf-holding-action:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pf-holding-action-danger {
+  color: color-mix(in srgb, var(--on-ink-red) 88%, #ffffff);
+  border-color: color-mix(in srgb, var(--on-ink-red) 34%, transparent);
+  background: color-mix(in srgb, var(--on-ink-red) 12%, transparent);
+}
+
+.pf-holding-action-danger:hover,
+.pf-holding-action-danger:focus-visible {
+  color: #ffffff;
+  border-color: color-mix(in srgb, var(--on-ink-red) 55%, transparent);
+}
+
+.pf-holding-confirm-label {
+  color: var(--on-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pf-holding-edit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 12px 0 0;
+  padding: 12px;
+  border: 1px solid var(--on-ink-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, #ffffff 6%, transparent);
+}
+
+.pf-holding-edit-field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  color: var(--on-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pf-holding-edit-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--on-ink-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, #000000 22%, transparent);
+  color: var(--on-ink);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 650;
+}
+
+.pf-holding-edit-field input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--on-ink-accent) 55%, transparent);
+}
+
+.pf-holding-edit-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pf-holding-save {
+  margin: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--on-ink-accent);
+  color: #042f2e;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.pf-holding-edit-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--on-ink-red);
+  font-size: 0.72rem;
+}
+
+.pf-manage-row {
+  margin-top: -4px;
+}
+
+.pf-manage-chip-edit {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pf-manage-chip-edit:hover,
+.pf-manage-chip-edit:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .pf-holding-card .wl-ring-row-main {
+    grid-template-columns: minmax(0, 1fr) minmax(88px, auto);
+    row-gap: 10px;
+  }
+
+  .pf-holding-card .wl-ring-gauge {
+    display: none;
+  }
+
+  .pf-holding-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .pf-holding-edit {
+    grid-template-columns: 1fr;
+  }
+}
+
 .pf-ring-holding {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
