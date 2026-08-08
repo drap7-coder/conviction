@@ -21,18 +21,9 @@ interface MaterialNewsCardProps {
   companyName?: string;
 }
 
-function DriverShell({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
+function DriverShell({ children }: { children: ReactNode }) {
   return (
-    <section className="company-driver-module" aria-label={title}>
-      <div className="company-driver-header">
-        <h2 className="company-driver-title">{title}</h2>
-      </div>
+    <section className="company-driver-module company-driver-module--flush" aria-label="Market catalyst">
       {children}
     </section>
   );
@@ -111,7 +102,6 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
         driver,
         headlines,
         absChangePercent,
-        // Header already owns the catalyst chip.
         showBadge: false,
       }),
     [ticker, companyName, driver, headlines, absChangePercent],
@@ -126,7 +116,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
   if (status === "timeout" || status === "error") {
     if (absChangePercent == null || absChangePercent < 1) return null;
     return (
-      <DriverShell title="What’s driving the move">
+      <DriverShell>
         <NewsDriverBrief
           ticker={ticker}
           companyName={companyName}
@@ -146,7 +136,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
   }
 
   return (
-    <DriverShell title={view.title}>
+    <DriverShell>
       <NewsDriverBrief
         ticker={ticker}
         companyName={companyName}
