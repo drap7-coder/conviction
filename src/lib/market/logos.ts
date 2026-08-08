@@ -41,6 +41,8 @@ const DOMAIN_MAP: Record<string, string> = {
   SLV: "ishares.com",
   USO: "uscfinvestments.com",
   UUP: "invesco.com",
+  TLT: "ishares.com",
+  MCHI: "ishares.com",
   "BTC-USD": "bitcoin.org",
   "ETH-USD": "ethereum.org",
   "SOL-USD": "solana.com",

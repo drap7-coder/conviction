@@ -10595,6 +10595,10 @@ a.signal-block-conclusion-link:hover {
 }
 
 .pulse-news-ticker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   font-family: var(--font-mono);
   font-size: 0.84rem;
   font-weight: 750;
