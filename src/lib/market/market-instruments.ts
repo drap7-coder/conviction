@@ -50,20 +50,13 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   GLD: etf("GLD", "Gold", "Commodity"),
   SLV: etf("SLV", "Silver", "Commodity"),
 
-  // International country ETFs
+  // International country ETFs (six-country Pulse set)
   EWJ: etf("EWJ", "Japan", "International"),
   MCHI: etf("MCHI", "China", "International"),
   EWU: etf("EWU", "United Kingdom", "International"),
-  EWC: etf("EWC", "Canada", "International"),
-  EWG: etf("EWG", "Germany", "International"),
-  EWQ: etf("EWQ", "France", "International"),
   INDA: etf("INDA", "India", "International"),
   EWT: etf("EWT", "Taiwan", "International"),
-  EWA: etf("EWA", "Australia", "International"),
-  EWY: etf("EWY", "South Korea", "International"),
-  EWH: etf("EWH", "Hong Kong", "International"),
-  EWZ: etf("EWZ", "Brazil", "International"),
-  EWW: etf("EWW", "Mexico", "International"),
+  EWG: etf("EWG", "Germany", "International"),
 
   // S&P sector SPDRs (Pulse sectors heatmap)
   XLK: etf("XLK", "Technology", "Sector"),
