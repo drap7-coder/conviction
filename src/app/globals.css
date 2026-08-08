@@ -6119,6 +6119,35 @@ details > summary::before {
   border-bottom: 1px solid var(--border);
 }
 
+.pf-exposure-rule {
+  height: 1px;
+  margin: 20px 0 14px;
+  background: color-mix(in srgb, var(--on-ink-border) 85%, #ffffff);
+}
+
+.pf-exposure-card .bcn-module-embedded {
+  margin: 0;
+  gap: 8px;
+}
+
+.pf-exposure-card .bcn-module-embedded .bcn-header {
+  max-width: none;
+  gap: 2px;
+  padding: 0;
+}
+
+.pf-exposure-card .bcn-module-embedded .bcn-title {
+  font-size: 0.98rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--on-ink);
+}
+
+.pf-exposure-card .bcn-module-embedded .bcn-list {
+  margin: 0;
+}
+
 /* ── Daily Contributors ── */
 
 .pf-contrib-list {
@@ -11213,8 +11242,9 @@ a.signal-block-conclusion-link:hover {
   padding-top: 0;
 }
 
-/* Nested under heatmap shells: quieter titles, full-width header */
-.bcn-module-nested {
+/* Nested under heatmap shells / exposure card: quieter titles, full-width header */
+.bcn-module-nested,
+.bcn-module-embedded {
   gap: 8px;
 }
 

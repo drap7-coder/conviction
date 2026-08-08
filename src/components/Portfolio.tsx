@@ -556,18 +556,17 @@ export default function Portfolio({
             </div>
           )}
 
-          {/* ── Portfolio heatmap + risk check in the white shell footer ── */}
+          {/* ── Portfolio heatmap ── */}
           {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
             <StockHeatmap
               title="Portfolio"
               subtitle=""
               items={portfolioHeatmapItems}
               sessionLabel={portfolioHeatmapSession}
-              footer={<PortfolioCheckPanel riskFlags={riskFlags} />}
             />
           )}
 
-          {/* ── Portfolio exposure ── */}
+          {/* ── Portfolio exposure + concentration check ── */}
           {sectorDonutData.length > 0 && (
             <section className="pf-section pf-exposure-card">
               <div className="pf-exposure-heading">
@@ -578,8 +577,15 @@ export default function Portfolio({
                 <p>Position values grouped by economic sector.</p>
               </div>
               <SectorDonut sectors={sectorDonutData} />
+              <div className="pf-exposure-rule" aria-hidden="true" />
+              <PortfolioCheckPanel riskFlags={riskFlags} embedded />
             </section>
           )}
+
+          {/* Fallback when mix is unavailable but the book still needs a check. */}
+          {sectorDonutData.length === 0 && !calcFailed && hasData ? (
+            <PortfolioCheckPanel riskFlags={riskFlags} />
+          ) : null}
 
           {/* ── Positions header ── */}
           <div className="pf-positions-header">
