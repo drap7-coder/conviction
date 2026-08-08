@@ -112,7 +112,7 @@ export default async function CompanyPage({
             {/* 4. Trend gauges — available for equities and crypto */}
             <CompanySignalGauges ticker={upperTicker} />
             {supportsSignals ? (
-              /* 5. Unified evidence lanes — equities only */
+              /* 5. Conviction Signals — equities only */
               <ConvictionSignalsCard ticker={upperTicker} />
             ) : null}
           </>
