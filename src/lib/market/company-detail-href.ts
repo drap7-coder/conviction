@@ -1,8 +1,9 @@
-import { getMarketInstrument } from "@/lib/market/market-instruments";
-
 /**
- * Detail pages exist for equities/ETFs and known market instruments (crypto).
+ * Detail pages exist for equities and known market instruments (crypto / Pulse ETFs).
  * Index symbols like ^VIX stay unlinkable — no detail route for caret tickers.
+ *
+ * Pulse ETF tiles (RSP, SPY, XLK, …) must be registered in market-instruments so
+ * `/companies/[ticker]` validates without depending on SEC company_tickers.
  */
 
 function isIndexSymbol(ticker: string): boolean {
@@ -14,9 +15,7 @@ export function hasCompanyDetailPage(ticker: string): boolean {
   const cleaned = ticker.trim().toUpperCase();
   if (!cleaned) return false;
   if (isIndexSymbol(cleaned)) return false;
-  // Known crypto pairs always have a light detail page.
-  if (getMarketInstrument(cleaned)) return true;
-  // Equities / ETFs — linked; page validates via SEC resolve.
+  // Equities + registered market instruments — page validates via validateTicker.
   return true;
 }
 

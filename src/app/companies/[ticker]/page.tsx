@@ -8,8 +8,8 @@ import { CompanySignalGauges } from "@/app/components/CompanySignalGauges";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
-import { listMarketInstruments } from "@/lib/market/market-instruments";
-import { getSectorForCompany } from "@/lib/market/industries";
+import { getMarketInstrument, listMarketInstruments } from "@/lib/market/market-instruments";
+import { getSectorByTicker, getSectorForCompany } from "@/lib/market/industries";
 import { getLogoUrl, getSectorColors } from "@/lib/market/logos";
 import type { Metadata } from "next";
 import { SITE_URL } from "@/lib/site";
@@ -63,11 +63,16 @@ export default async function CompanyPage({
   if (!resolvedCompany.valid) notFound();
   const companyName = resolvedCompany.companyName ?? upperTicker;
   const supportsSignals = resolvedCompany.supportsConvictionSignals !== false;
-  const sector = supportsSignals ? getSectorForCompany(upperTicker) : null;
-  const sectorColors = sector ? getSectorColors(sector.ticker) : undefined;
+  const marketInstrument = getMarketInstrument(upperTicker);
+  const sector = supportsSignals
+    ? getSectorForCompany(upperTicker)
+    : getSectorByTicker(upperTicker);
+  const sectorColors = sector
+    ? getSectorColors(sector.ticker)
+    : getSectorColors(upperTicker);
   const sectorName = supportsSignals
     ? (sector?.name ?? null)
-    : (resolvedCompany.instrumentKind === "crypto" ? "Crypto" : null);
+    : (marketInstrument?.tag ?? "Market");
 
   const jsonLd = {
     "@context": "https://schema.org",

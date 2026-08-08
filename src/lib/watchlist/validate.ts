@@ -297,8 +297,8 @@ export interface TickerValidationResult {
   isForeignIssuer?: boolean;
   error?: string;
   source?: "hardcoded" | "dataset" | "name_match" | "alias" | "fallback" | "market_instrument" | "not_found";
-  /** Present for crypto (and similar) Pulse instruments without an SEC issuer. */
-  instrumentKind?: "crypto";
+  /** Present for crypto / ETF Pulse instruments without an equity SEC stack. */
+  instrumentKind?: "crypto" | "etf";
   /** False for market instruments — no ownership / insider conviction stack. */
   supportsConvictionSignals?: boolean;
 }
@@ -325,7 +325,7 @@ export async function validateTicker(input: string): Promise<TickerValidationRes
   const upperName = cleaned.toUpperCase();
   const upperTicker = cleaned.toUpperCase();
 
-  // 0. Known market instruments (crypto pairs) — price/chart/news, no SEC signals
+  // 0. Known market instruments (crypto / Pulse ETFs) — price/chart/news, no SEC signals
   const marketInstrument = getMarketInstrument(upperTicker);
   if (marketInstrument) {
     return {
