@@ -153,6 +153,7 @@ export default function Portfolio({
   const [formCost, setFormCost] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
+  const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
   const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
 
@@ -350,26 +351,30 @@ export default function Portfolio({
 
   // ── Handlers ──
 
-  function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
+  function savePositionFromForm() {
     setFormError(null);
 
-    const ticker = formTicker.trim().toUpperCase();
-    if (!ticker || !/^[A-Z]{1,5}$/.test(ticker)) {
+    const ticker = (editingTicker ?? formTicker).trim().toUpperCase();
+    if (!ticker) {
+      setFormError("Enter a valid ticker symbol");
+      return false;
+    }
+    // New adds stay simple tickers; edits keep whatever is already in the book (e.g. BTC-USD).
+    if (!editingTicker && !/^[A-Z]{1,5}$/.test(ticker)) {
       setFormError("Enter a valid ticker symbol (1–5 letters)");
-      return;
+      return false;
     }
 
     const shares = parseFloat(formShares);
     if (isNaN(shares) || shares <= 0) {
       setFormError("Enter a valid number of shares");
-      return;
+      return false;
     }
 
     const cost = formCost.trim() ? parseFloat(formCost) : undefined;
     if (cost !== undefined && (isNaN(cost) || cost <= 0)) {
       setFormError("Enter a valid average cost");
-      return;
+      return false;
     }
 
     const updated = upsertPosition({ ticker, shares, averageCost: cost });
@@ -379,12 +384,27 @@ export default function Portfolio({
     setFormShares("");
     setFormCost("");
     setEditingTicker(null);
+    setRemovingTicker(null);
     setShowAddForm(false);
+    return true;
+  }
+
+  function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    savePositionFromForm();
   }
 
   function handleRemove(ticker: string) {
     const updated = removePosition(ticker);
     setPositions(updated);
+    setRemovingTicker(null);
+    if (editingTicker?.toUpperCase() === ticker.toUpperCase()) {
+      setEditingTicker(null);
+      setFormTicker("");
+      setFormShares("");
+      setFormCost("");
+      setFormError(null);
+    }
     notifyPortfolioChanged();
   }
 
@@ -417,8 +437,10 @@ export default function Portfolio({
     setFormShares(String(pos.shares));
     setFormCost(pos.averageCost != null ? String(pos.averageCost) : "");
     setEditingTicker(ticker);
+    setRemovingTicker(null);
     setFormError(null);
-    setShowAddForm(true);
+    // Keep Add compose closed — edit happens inline on the holding card.
+    setShowAddForm(false);
   }
 
   function handleCancelEdit() {
@@ -444,10 +466,11 @@ export default function Portfolio({
 
   // Keep Add collapsed when empty so sample books stay above the fold.
   // Open only when editing an existing position.
-  const composeExpanded = Boolean(editingTicker) || showAddForm;
+  // Edit is inline on the holding card; compose is only for adding.
+  const composeExpanded = !editingTicker && showAddForm;
 
   function toggleCompose() {
-    if (editingTicker) return;
+    if (editingTicker) handleCancelEdit();
     setShowAddForm((open) => !open);
   }
 
@@ -464,9 +487,7 @@ export default function Portfolio({
         onClick={toggleCompose}
       >
         <div className="list-compose-copy">
-          <strong className="list-compose-title">
-            {editingTicker ? `Edit ${editingTicker}` : "Add a position"}
-          </strong>
+          <strong className="list-compose-title">Add a position</strong>
         </div>
         <span className="list-compose-chevron" aria-hidden="true" />
       </button>
@@ -474,7 +495,7 @@ export default function Portfolio({
         <>
           <div id="portfolio-add-form" className="pf-add-form-wrap list-compose-fields">
             <AddForm
-              editingTicker={editingTicker}
+              editingTicker={null}
               formTicker={formTicker}
               formShares={formShares}
               formCost={formCost}
@@ -483,7 +504,13 @@ export default function Portfolio({
               onSharesChange={setFormShares}
               onCostChange={setFormCost}
               onSubmit={handleAdd}
-              onCancel={handleCancelEdit}
+              onCancel={() => {
+                setShowAddForm(false);
+                setFormTicker("");
+                setFormShares("");
+                setFormCost("");
+                setFormError(null);
+              }}
             />
           </div>
         </>
@@ -653,6 +680,34 @@ export default function Portfolio({
             ))}
           </div>
 
+          {/* Quick remove strip — same pattern as Watchlist manage chips. */}
+          <div className="wl-manage-row pf-manage-row" aria-label="Manage portfolio positions">
+            <span className="wl-manage-label">
+              {positions.length} position{positions.length === 1 ? "" : "s"}
+            </span>
+            <div className="wl-manage-chips">
+              {positions.map((position) => (
+                <span key={position.ticker} className="wl-manage-chip">
+                  <button
+                    type="button"
+                    className="pf-manage-chip-edit"
+                    onClick={() => handleStartEdit(position.ticker)}
+                  >
+                    {position.ticker}
+                  </button>
+                  <button
+                    type="button"
+                    className="wl-manage-remove"
+                    onClick={() => handleRemove(position.ticker)}
+                    aria-label={`Remove ${position.ticker} from portfolio`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          </div>
+
           {/* ── Holdings ring list ── */}
           <div className="watchlist-list pf-ring-list">
             {sortedPositions.map(({ pos, metrics, dailyPct }) => {
@@ -660,6 +715,7 @@ export default function Portfolio({
               const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
               const live = quote ? getLivePrice(quote) : null;
               const composite = convictionScores[ticker];
+              const isEditing = editingTicker?.toUpperCase() === ticker;
 
               return (
                 <PortfolioHoldingCard
@@ -676,8 +732,24 @@ export default function Portfolio({
                   scoreLoading={Boolean(pendingScores[ticker])}
                   shares={pos.shares}
                   metrics={metrics}
+                  isEditing={isEditing}
+                  formShares={isEditing ? formShares : ""}
+                  formCost={isEditing ? formCost : ""}
+                  formError={isEditing ? formError : null}
+                  confirmRemove={removingTicker?.toUpperCase() === ticker}
                   onEdit={handleStartEdit}
-                  onRemove={handleRemove}
+                  onCancelEdit={handleCancelEdit}
+                  onSharesChange={setFormShares}
+                  onCostChange={setFormCost}
+                  onSaveEdit={() => {
+                    savePositionFromForm();
+                  }}
+                  onAskRemove={(symbol) => {
+                    setRemovingTicker(symbol);
+                    if (editingTicker) handleCancelEdit();
+                  }}
+                  onCancelRemove={() => setRemovingTicker(null)}
+                  onConfirmRemove={handleRemove}
                 />
               );
             })}
