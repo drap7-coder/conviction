@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CompanyDetailHeader } from "@/app/components/CompanyDetailHeader";
+import { CompanyQuoteCard } from "@/app/components/CompanyQuoteCard";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
-import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
@@ -100,18 +99,15 @@ export default async function CompanyPage({
           <>
             {/* 1. Catalyst card — no section headline */}
             <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
-            {/* 2. Identity + quote */}
-            <CompanyDetailHeader
+            {/* 2. Quote + chart as one object */}
+            <CompanyQuoteCard
               ticker={upperTicker}
               companyName={companyName}
               sectorName={sectorName}
               logoUrl={getLogoUrl(upperTicker) ?? null}
-              showNav={false}
             />
-            {/* 3. Chart */}
-            <PriceTrendCard ticker={upperTicker} showQuote={false} />
             {supportsSignals ? (
-              /* 4. Conviction Signals / Evidence */
+              /* 3. Conviction Signals */
               <ConvictionSignalsCard
                 ticker={upperTicker}
                 logoUrl={getLogoUrl(upperTicker) ?? null}
