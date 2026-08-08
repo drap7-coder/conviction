@@ -9884,13 +9884,21 @@ a.signal-block-conclusion-link:hover {
   margin-bottom: 4px;
 }
 
-/* Evidence — composite read + themed lane groups. */
+/* Conviction Signals — composite read + themed lane groups. */
 .evidence-lanes {
-  gap: 12px;
+  gap: 14px;
 }
 
 .evidence-lanes .company-driver-header {
   align-items: center;
+  padding: 0;
+}
+
+.evidence-lanes-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
 .evidence-live-pill {
@@ -9898,14 +9906,14 @@ a.signal-block-conclusion-link:hover {
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  padding: 4px 9px;
+  padding: 5px 10px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--green) 14%, transparent);
   color: var(--green);
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 750;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -9928,10 +9936,10 @@ a.signal-block-conclusion-link:hover {
 
 .evidence-composite {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   margin: 0;
-  padding: 14px 16px 16px;
-  border-radius: 16px;
+  padding: 16px 18px 18px;
+  border-radius: 18px;
   min-width: 0;
 }
 
@@ -9947,13 +9955,13 @@ a.signal-block-conclusion-link:hover {
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 750;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .evidence-composite-bar {
   display: flex;
-  height: 10px;
+  height: 11px;
   overflow: hidden;
   border-radius: 999px;
   background: color-mix(in srgb, #ffffff 10%, transparent);
@@ -9973,16 +9981,16 @@ a.signal-block-conclusion-link:hover {
 .evidence-composite-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 14px;
+  gap: 8px 16px;
   color: var(--on-ink-muted);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   line-height: 1.3;
 }
 
 .evidence-composite-legend span {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 }
 
 .evidence-composite-legend i {
@@ -9997,11 +10005,11 @@ a.signal-block-conclusion-link:hover {
 .evidence-composite-legend .dot-quiet { background: color-mix(in srgb, #ffffff 28%, transparent); }
 
 .evidence-composite-synthesis {
-  margin: 2px 0 0;
+  margin: 0;
   color: var(--on-ink);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
   font-weight: 500;
-  line-height: 1.4;
+  line-height: 1.45;
   letter-spacing: -0.015em;
 }
 
@@ -10009,14 +10017,15 @@ a.signal-block-conclusion-link:hover {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
-  padding: 3px 8px;
+  padding: 4px 9px;
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 750;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .evidence-status-pill.tone-support {
@@ -10025,8 +10034,8 @@ a.signal-block-conclusion-link:hover {
 }
 
 .evidence-status-pill.tone-mixed {
-  background: color-mix(in srgb, var(--amber) 18%, transparent);
-  color: var(--amber);
+  background: color-mix(in srgb, var(--amber) 20%, transparent);
+  color: #b45309;
 }
 
 .evidence-status-pill.tone-against {
@@ -10035,7 +10044,7 @@ a.signal-block-conclusion-link:hover {
 }
 
 .evidence-status-pill.tone-quiet {
-  background: color-mix(in srgb, var(--quiet) 14%, transparent);
+  background: color-mix(in srgb, var(--quiet) 12%, #f3f4f6);
   color: var(--muted);
 }
 
@@ -10061,7 +10070,7 @@ a.signal-block-conclusion-link:hover {
 
 .evidence-groups {
   display: grid;
-  gap: 16px;
+  gap: 18px;
   min-width: 0;
 }
 
@@ -10077,7 +10086,7 @@ a.signal-block-conclusion-link:hover {
   color: var(--quiet);
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   line-height: 1.2;
 }
@@ -10180,25 +10189,50 @@ a.signal-block-conclusion-link:hover {
 
 .evidence-lane {
   margin: 0;
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--ink));
+  border-radius: 16px;
   background: #ffffff;
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent);
   overflow: hidden;
   min-width: 0;
+}
+
+/* Full-height status rail on the card, not just the summary row. */
+.evidence-lane.tone-support {
+  box-shadow:
+    inset 4px 0 0 var(--green),
+    0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.evidence-lane.tone-mixed {
+  box-shadow:
+    inset 4px 0 0 var(--amber),
+    0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.evidence-lane.tone-against {
+  box-shadow:
+    inset 4px 0 0 var(--red),
+    0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.evidence-lane.tone-quiet,
+.evidence-lane.is-loading {
+  box-shadow:
+    inset 4px 0 0 color-mix(in srgb, var(--quiet) 40%, var(--border)),
+    0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
 .evidence-lane-summary {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: start;
-  padding: 12px 12px 12px 14px;
-  border-left: 4px solid transparent;
+  align-items: center;
+  padding: 14px 14px 14px 16px;
   cursor: pointer;
   list-style: none;
   min-width: 0;
-  transition: background-color 0.18s ease, border-left-color 0.18s ease;
+  transition: background-color 0.18s ease;
 }
 
 .evidence-lane-summary::-webkit-details-marker {
@@ -10217,32 +10251,15 @@ a.signal-block-conclusion-link:hover {
   background: color-mix(in srgb, var(--accent) 5%, #ffffff);
 }
 
-.evidence-lane.tone-support .evidence-lane-summary {
-  border-left-color: var(--green);
-}
-
-.evidence-lane.tone-mixed .evidence-lane-summary {
-  border-left-color: var(--amber);
-}
-
-.evidence-lane.tone-against .evidence-lane-summary {
-  border-left-color: var(--red);
-}
-
-.evidence-lane.tone-quiet .evidence-lane-summary,
-.evidence-lane.is-loading .evidence-lane-summary {
-  border-left-color: color-mix(in srgb, var(--quiet) 45%, var(--border));
-}
-
 .evidence-lane-icon {
   display: grid;
   place-items: center;
-  width: 2.1rem;
-  height: 2.1rem;
-  border-radius: 10px;
-  font-size: 1rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 12px;
+  font-size: 1.05rem;
   line-height: 1;
-  background: color-mix(in srgb, var(--quiet) 12%, transparent);
+  background: color-mix(in srgb, var(--quiet) 10%, #f3f4f6);
 }
 
 .evidence-lane.tone-support .evidence-lane-icon {
@@ -10250,7 +10267,7 @@ a.signal-block-conclusion-link:hover {
 }
 
 .evidence-lane.tone-mixed .evidence-lane-icon {
-  background: color-mix(in srgb, var(--amber) 18%, transparent);
+  background: color-mix(in srgb, var(--amber) 20%, transparent);
 }
 
 .evidence-lane.tone-against .evidence-lane-icon {
@@ -10259,12 +10276,12 @@ a.signal-block-conclusion-link:hover {
 
 .evidence-lane.tone-quiet .evidence-lane-icon,
 .evidence-lane.is-loading .evidence-lane-icon {
-  background: color-mix(in srgb, var(--quiet) 12%, transparent);
+  background: color-mix(in srgb, var(--quiet) 10%, #f3f4f6);
 }
 
 .evidence-lane-main {
   display: grid;
-  gap: 4px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -10277,19 +10294,20 @@ a.signal-block-conclusion-link:hover {
 }
 
 .evidence-lane-name {
+  min-width: 0;
   color: var(--ink);
-  font-size: 0.9rem;
-  font-weight: 650;
+  font-size: 0.95rem;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .evidence-lane-chevron {
-  color: var(--quiet);
-  font-size: 1.1rem;
+  color: color-mix(in srgb, var(--quiet) 80%, var(--ink));
+  font-size: 1.2rem;
+  font-weight: 500;
   line-height: 1;
-  margin-top: 2px;
-  transition: transform 0.18s ease;
+  transition: transform 0.18s ease, color 0.18s ease;
 }
 
 .evidence-lane[open] .evidence-lane-chevron {
@@ -10297,9 +10315,15 @@ a.signal-block-conclusion-link:hover {
   color: var(--accent);
 }
 
+.evidence-lane-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
 .evidence-lane-fact {
-  color: var(--ink);
-  font-size: 0.78rem;
+  color: var(--muted);
+  font-size: 0.8rem;
   line-height: 1.4;
   letter-spacing: -0.01em;
   min-width: 0;
@@ -10307,7 +10331,7 @@ a.signal-block-conclusion-link:hover {
 
 .evidence-lane-secondary {
   color: var(--quiet);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   line-height: 1.35;
 }
 
@@ -10322,9 +10346,29 @@ a.signal-block-conclusion-link:hover {
 }
 
 .evidence-lane-panel {
-  padding: 0 14px 14px 16px;
+  padding: 0 14px 16px 16px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   min-width: 0;
   animation: evidence-lane-open 0.2s ease;
+}
+
+@media (max-width: 520px) {
+  .evidence-lanes-title {
+    font-size: 1.2rem;
+  }
+
+  .evidence-lane-summary {
+    gap: 10px;
+    padding: 12px 12px 12px 14px;
+  }
+
+  .evidence-lane-name {
+    font-size: 0.9rem;
+  }
+
+  .evidence-lane-fact {
+    font-size: 0.76rem;
+  }
 }
 
 @keyframes evidence-lane-open {
