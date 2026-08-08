@@ -43,19 +43,6 @@ export const EVIDENCE_LANE_META: Record<EvidenceLaneId, { label: string }> = {
   disclosures: { label: "Filings" },
 };
 
-/** @deprecated Keep for any leftover imports; prefer EVIDENCE_LANE_ORDER. */
-export const EVIDENCE_GROUPS: Array<{
-  id: string;
-  label: string;
-  laneIds: EvidenceLaneId[];
-}> = [
-  {
-    id: "all",
-    label: "Signals",
-    laneIds: EVIDENCE_LANE_ORDER,
-  },
-];
-
 export function evidenceSemantic(input: {
   tone: "positive" | "negative" | "neutral" | "unavailable";
   status: "loading" | "available" | "stale" | "unavailable" | "quiet";
