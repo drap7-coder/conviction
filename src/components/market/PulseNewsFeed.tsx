@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import type { MarketNarrativeTheme } from "@/lib/market/market-narratives";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 
@@ -115,10 +116,14 @@ export function PulseNewsFeed({
               <div className="pulse-news-card-top">
                 {companyHref ? (
                   <a className="pulse-news-ticker" href={companyHref}>
+                    <LogoDisplay ticker={item.ticker} size="badge" />
                     {item.ticker}
                   </a>
                 ) : (
-                  <span className="pulse-news-ticker">{item.ticker}</span>
+                  <span className="pulse-news-ticker">
+                    <LogoDisplay ticker={item.ticker} size="badge" />
+                    {item.ticker}
+                  </span>
                 )}
                 <span className="pulse-news-theme">{item.themeLabel}</span>
                 <span className={`pulse-news-heat heat-${item.heat}`}>
