@@ -32,8 +32,8 @@ export function TechnicalsDetailSection({ ticker }: { ticker: string }) {
     async function load() {
       setStatus("loading");
       try {
-        const [historyData, quoteData] = await Promise.all([
-          fetchJsonWithTimeout<StockHistory>(
+        const [historyRes, quoteData] = await Promise.all([
+          fetchJsonWithTimeout<{ history?: StockHistory | null }>(
             `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
             14_000,
             controller.signal,
@@ -45,8 +45,10 @@ export function TechnicalsDetailSection({ ticker }: { ticker: string }) {
           ),
         ]);
         if (cancelled) return;
+        // /api/market/history wraps the series as { history, fetchedAt }.
+        const historyData = historyRes?.history ?? null;
         const points = Array.isArray(historyData?.points) ? historyData.points : [];
-        setHistory(points.length > 0 ? { ...historyData, points } : null);
+        setHistory(points.length > 0 && historyData ? { ...historyData, points } : null);
         setCurrentPrice(quoteData.quotes?.[0]?.price ?? historyData?.endPrice ?? null);
         setStatus(points.length > 0 ? "success" : "empty");
       } catch (caught) {
