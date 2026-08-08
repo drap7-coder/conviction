@@ -16,6 +16,7 @@ import {
 } from "@/lib/market/market-narratives";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
+import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const COLORS = {
   green: "#0D9488",
@@ -88,17 +89,20 @@ const PULSE_TABS = [
   {
     id: "indexes",
     label: "Indexes",
-    description: "Market temperature and sectors",
+    tabId: "pulse-tab-indexes",
+    panelId: "pulse-panel-indexes",
   },
   {
     id: "news",
     label: "News",
-    description: "Live market headline feed",
+    tabId: "pulse-tab-news",
+    panelId: "pulse-panel-news",
   },
   {
     id: "trending",
     label: "Trending",
-    description: "Stock conviction moves",
+    tabId: "pulse-tab-trending",
+    panelId: "pulse-panel-trending",
   },
 ] as const;
 
@@ -336,21 +340,27 @@ export default function MarketPulsePage() {
 
   return (
     <main className="markets-page">
-      <section className="view-switch-shell" aria-label="Pulse">
-        <div className="view-switch-lede market-regime-lede ink-panel">
-          <span className="market-regime-eyebrow">Pulse</span>
-          <strong className="market-regime-label">{data.macroRegime.label}</strong>
-          <p className="market-regime-summary">{data.macroRegime.summary}</p>
-          {data.macroRegime.drivers.length > 0 ? (
-            <div className="market-regime-drivers" aria-label="What is driving this regime">
-              {data.macroRegime.drivers.map((driver) => (
-                <span
-                  key={driver.id}
-                  className={`market-regime-driver market-regime-driver-${driver.direction}`}
-                  title={driver.explanation}
-                >
-                  <strong>{driver.label}</strong>
-                  <em className={`ink-chip ink-chip--${
+      <ViewSwitcher
+        label="Choose a Pulse view"
+        options={[...PULSE_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as PulseTab)}
+      >
+        <p className="view-switch-context-line">
+          <strong>{data.macroRegime.label}</strong>
+          <span>{data.macroRegime.summary}</span>
+        </p>
+        {data.macroRegime.drivers.length > 0 ? (
+          <div className="market-regime-drivers" aria-label="What is driving this regime">
+            {data.macroRegime.drivers.map((driver) => (
+              <span
+                key={driver.id}
+                className={`market-regime-driver market-regime-driver-${driver.direction}`}
+                title={driver.explanation}
+              >
+                <strong>{driver.label}</strong>
+                <em
+                  className={`ink-chip ink-chip--${
                     driver.direction === "rising"
                       ? "up"
                       : driver.direction === "falling"
@@ -358,37 +368,15 @@ export default function MarketPulsePage() {
                         : driver.direction === "mixed"
                           ? "amber"
                           : "quiet"
-                  }`}>{driver.direction}</em>
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="view-switch-picker pulse-view-picker">
-          <div
-            className="pulse-view-tabs"
-            role="tablist"
-            aria-label="Choose a Pulse view"
-          >
-            {PULSE_TABS.map((option) => (
-              <button
-                key={option.id}
-                id={`pulse-tab-${option.id}`}
-                type="button"
-                role="tab"
-                aria-label={`${option.label}: ${option.description}`}
-                aria-selected={activeTab === option.id}
-                aria-controls={`pulse-panel-${option.id}`}
-                className={activeTab === option.id ? "active" : ""}
-                onClick={() => setActiveTab(option.id)}
-              >
-                <strong>{option.label}</strong>
-              </button>
+                  }`}
+                >
+                  {driver.direction}
+                </em>
+              </span>
             ))}
           </div>
-        </div>
-      </section>
+        ) : null}
+      </ViewSwitcher>
 
       <div
         id="pulse-panel-indexes"
