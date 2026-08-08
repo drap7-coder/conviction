@@ -84,7 +84,7 @@ function driverDirectionClass(direction: MacroRegime["drivers"][number]["directi
 
 function RegimeNewsHeader({ regime }: { regime: MacroRegime }) {
   return (
-    <header className="pulse-news-heading">
+    <header className="pulse-news-heading ink-panel">
       <p className="pulse-news-eyebrow">What&apos;s driving the market</p>
       <h2 className="pulse-news-title">{regime.label}</h2>
       <p className="pulse-news-lede">{regime.summary}</p>
