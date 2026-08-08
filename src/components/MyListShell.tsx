@@ -5,17 +5,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Watchlist from "@/components/Watchlist";
 import Portfolio from "@/components/Portfolio";
 import { PortfolioDataProvider, PortfolioHero, usePortfolioData } from "@/components/PortfolioData";
+import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const MY_LIST_VIEWS = [
   {
     id: "watchlist",
     label: "Watchlist",
-    description: "Companies you follow",
+    tabId: "my-list-tab-watchlist",
+    panelId: "my-list-panel-watchlist",
   },
   {
     id: "portfolio",
     label: "Portfolio",
-    description: "Holdings you own",
+    tabId: "my-list-tab-portfolio",
+    panelId: "my-list-panel-portfolio",
   },
 ] as const;
 
@@ -45,36 +48,12 @@ function MyListShellInner({ publicFeed }: { publicFeed?: ReactNode }) {
 
   return (
     <div className="my-list-shell">
-      <section className="view-switch-shell" aria-label="My list">
-        <div className="view-switch-lede market-regime-lede ink-panel">
-          <span className="market-regime-eyebrow">My list</span>
-          <strong className="market-regime-label">Your companies and holdings</strong>
-        </div>
-
-        <div className="view-switch-picker pulse-view-picker my-list-view-picker">
-          <div
-            className="pulse-view-tabs"
-            role="tablist"
-            aria-label="Choose a list view"
-          >
-            {MY_LIST_VIEWS.map((view) => (
-              <button
-                key={view.id}
-                id={`my-list-tab-${view.id}`}
-                type="button"
-                role="tab"
-                aria-label={`${view.label}: ${view.description}`}
-                aria-selected={activeView === view.id}
-                aria-controls={`my-list-panel-${view.id}`}
-                className={activeView === view.id ? "active" : ""}
-                onClick={() => setActiveView(view.id)}
-              >
-                <strong>{view.label}</strong>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ViewSwitcher
+        label="Choose a list view"
+        options={[...MY_LIST_VIEWS]}
+        activeId={activeView}
+        onChange={(id) => setActiveView(id as MyListView)}
+      />
 
       {showPortfolioHero ? <PortfolioHero /> : null}
 
@@ -106,22 +85,12 @@ export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) 
     <Suspense
       fallback={
         <div aria-hidden="true">
-          <section className="view-switch-shell">
-            <div className="view-switch-lede market-regime-lede ink-panel">
-              <span className="market-regime-eyebrow">My list</span>
-              <strong className="market-regime-label">Loading…</strong>
-            </div>
-            <div className="view-switch-picker pulse-view-picker my-list-view-picker">
-              <div className="pulse-view-tabs">
-                <button type="button" className="active" disabled>
-                  <strong>Watchlist</strong>
-                </button>
-                <button type="button" disabled>
-                  <strong>Portfolio</strong>
-                </button>
-              </div>
-            </div>
-          </section>
+          <ViewSwitcher
+            label="Choose a list view"
+            options={[...MY_LIST_VIEWS]}
+            activeId="watchlist"
+            onChange={() => {}}
+          />
         </div>
       }
     >

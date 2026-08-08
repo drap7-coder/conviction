@@ -4,17 +4,20 @@ import { useEffect, useState } from "react";
 import { InvestorMovesPanel } from "@/app/components/InvestorMovesPanel";
 import { PoliticiansMovesPanel } from "@/app/components/PoliticiansMovesPanel";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
+import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const SMART_MONEY_VIEWS = [
   {
     id: "institutions",
     label: "Institutions",
-    description: "13F ownership moves",
+    tabId: "smart-money-tab-institutions",
+    panelId: "smart-money-panel-institutions",
   },
   {
     id: "politicians",
     label: "Politicians",
-    description: "STOCK Act disclosures",
+    tabId: "smart-money-tab-politicians",
+    panelId: "smart-money-panel-politicians",
   },
 ] as const;
 
@@ -119,36 +122,12 @@ export default function SmartMoneyPage() {
 
   return (
     <div className="smart-money-page">
-      <section className="view-switch-shell" aria-label="Smart Money">
-        <div className="view-switch-lede market-regime-lede ink-panel">
-          <span className="market-regime-eyebrow">Smart Money</span>
-          <strong className="market-regime-label">Where capital is being put to work</strong>
-        </div>
-
-        <div className="view-switch-picker pulse-view-picker">
-          <div
-            className="pulse-view-tabs"
-            role="tablist"
-            aria-label="Choose a Smart Money view"
-          >
-            {SMART_MONEY_VIEWS.map((view) => (
-              <button
-                key={view.id}
-                id={`smart-money-tab-${view.id}`}
-                type="button"
-                role="tab"
-                aria-label={`${view.label}: ${view.description}`}
-                aria-selected={activeView === view.id}
-                aria-controls={`smart-money-panel-${view.id}`}
-                className={activeView === view.id ? "active" : ""}
-                onClick={() => setActiveView(view.id)}
-              >
-                <strong>{view.label}</strong>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ViewSwitcher
+        label="Choose a Smart Money view"
+        options={[...SMART_MONEY_VIEWS]}
+        activeId={activeView}
+        onChange={(id) => setActiveView(id as SmartMoneyView)}
+      />
 
       <div
         id="smart-money-panel-institutions"

@@ -902,14 +902,6 @@ details > summary::before {
 
 /* ── Smart Money / Investor Moves panels ── */
 
-.smart-money-page .view-switch-shell .pulse-view-tabs {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.markets-page .view-switch-shell .pulse-view-tabs {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .investor-moves-panel,
 .smart-money-panel {
   margin-bottom: 24px;
@@ -1745,7 +1737,7 @@ details > summary::before {
   color: var(--on-ink-red);
 }
 
-.my-list-shell .view-switch-shell {
+.my-list-shell .view-switch {
   margin-bottom: 14px;
 }
 
@@ -10785,26 +10777,95 @@ a.pulse-news-headline:hover {
   --market-red: var(--on-ink-red);
 }
 
-/* Lede + view options as one white shell (Watchlist / Pulse / Smart Money). */
-.view-switch-shell {
+/* Shared view switcher — text labels, selected = ink + underline. */
+.view-switch {
   margin: 0 0 18px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow-md);
-  overflow: hidden;
 }
 
-.view-switch-shell .view-switch-lede.market-regime-lede,
-.view-switch-shell .market-regime-lede {
+.view-switch-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0;
   margin: 0;
-  border-radius: 0;
-  box-shadow: none;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.view-switch-picker {
-  padding: 10px 10px 12px;
-  background: var(--surface-elevated);
+.view-switch-tab {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  padding: 12px 10px 14px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.16s ease;
+}
+
+.view-switch-tab::after {
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -1px;
+  height: 2px;
+  background: transparent;
+  transition: background-color 0.16s ease;
+}
+
+.view-switch-tab:hover,
+.view-switch-tab:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+
+.view-switch-tab.is-active {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.view-switch-tab.is-active::after {
+  background: var(--ink);
+}
+
+.view-switch-context {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.view-switch-context-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35em 0.65em;
+  margin: 0;
+  max-width: 46rem;
+}
+
+.view-switch-context-line strong {
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.view-switch-context-line span {
+  color: var(--muted);
+}
+
+.view-switch-context .market-regime-drivers {
+  margin-top: 8px;
 }
 
 .view-switch-hint {
@@ -10815,158 +10876,6 @@ a.pulse-news-headline:hover {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 10px;
-}
-
-.view-switch-shell .pulse-view-tabs button {
-  justify-content: center;
-  align-items: center;
-  min-height: 48px;
-  gap: 0;
-}
-
-.view-switch-shell .pulse-view-tabs strong {
-  align-self: center;
-}
-
-/* Shared view toggles — dark option tiles, heatmap-style label chips. */
-.pulse-view-picker {
-  margin: 0 0 18px;
-}
-
-.view-switch-shell .pulse-view-picker {
-  margin: 0;
-}
-
-.pulse-view-tabs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 6px;
-  padding: 6px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface-elevated);
-  box-shadow: var(--shadow-md);
-  color: #fff;
-}
-
-.view-switch-shell .pulse-view-tabs {
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.pulse-view-tabs button {
-  position: relative;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
-  border-radius: 12px;
-  color: #fff;
-  background: #1e293b;
-  font: inherit;
-  font-family: var(--font-mono);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background-color 0.16s ease, filter 0.16s ease, opacity 0.16s ease;
-}
-
-.view-switch-shell .pulse-view-tabs button {
-  padding-right: 34px;
-}
-
-.view-switch-shell .pulse-view-tabs button:not(.active) {
-  opacity: 0.78;
-}
-
-.view-switch-shell .pulse-view-tabs button.active {
-  opacity: 1;
-}
-
-/* Radio-style marker so tiles read as mutually exclusive options. */
-.view-switch-shell .pulse-view-tabs button::before {
-  content: "";
-  position: absolute;
-  top: 14px;
-  right: 12px;
-  width: 12px;
-  height: 12px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-radius: 50%;
-  background: transparent;
-}
-
-.view-switch-shell .pulse-view-tabs button.active::before {
-  border-color: var(--on-ink-accent);
-  background: var(--on-ink-accent);
-  box-shadow: inset 0 0 0 2px #134e4a;
-}
-
-/* Two distinct dark option colors so adjacent choices read apart. */
-.pulse-view-tabs button:nth-child(odd) {
-  background: #0f172a;
-}
-
-.pulse-view-tabs button:nth-child(even) {
-  background: #1e293b;
-}
-
-.pulse-view-tabs button:hover,
-.pulse-view-tabs button:focus-visible {
-  border-color: color-mix(in srgb, #ffffff 22%, transparent);
-  outline: none;
-}
-
-.pulse-view-tabs button.active {
-  background: #134e4a;
-  border-color: color-mix(in srgb, var(--on-ink-accent) 45%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--on-ink-accent) 28%, transparent);
-  filter: none;
-}
-
-.pulse-view-tabs strong,
-.pulse-view-tabs span {
-  display: inline-flex;
-  align-self: flex-start;
-  max-width: 100%;
-}
-
-/* Heatmap-style little label containers */
-.pulse-view-tabs strong {
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.3);
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-}
-
-.pulse-view-tabs span {
-  padding: 5px 9px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.22);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  line-height: 1.3;
-}
-
-.pulse-view-tabs button.active strong {
-  background: rgba(0, 0, 0, 0.38);
-  color: #fff;
-}
-
-.pulse-view-tabs button.active span {
-  background: rgba(0, 0, 0, 0.28);
-  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Legacy aliases kept for any residual markup */
@@ -11933,53 +11842,22 @@ a.heat-tile {
 }
 
 @media (max-width: 640px) {
-  .view-switch-picker {
-    padding: 8px;
+  .view-switch-tab {
+    padding: 10px 6px 12px;
+    font-size: 0.95rem;
   }
 
-  .view-switch-shell .pulse-view-tabs {
-    gap: 5px;
+  .view-switch-tab::after {
+    left: 8%;
+    right: 8%;
   }
 
-  .markets-page .view-switch-shell .pulse-view-tabs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .view-switch-context {
+    margin-top: 10px;
   }
 
-  /* Keep label chip + radio marker balanced in the 3 tight mobile columns. */
-  .view-switch-shell .pulse-view-tabs button {
-    min-height: 44px;
-    padding: 10px 26px 10px 8px;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .view-switch-shell .pulse-view-tabs button::before {
-    top: 50%;
-    right: 8px;
-    width: 10px;
-    height: 10px;
-    transform: translateY(-50%);
-  }
-
-  .view-switch-shell .pulse-view-tabs button.active::before {
-    box-shadow: inset 0 0 0 2px #134e4a;
-  }
-
-  .pulse-view-tabs strong {
-    font-size: 0.68rem;
-    padding: 3px 6px;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .view-switch-shell .market-regime-lede {
-    padding: 14px;
-  }
-
-  .view-switch-shell .market-regime-drivers {
-    margin-top: 8px;
+  .view-switch-context .market-regime-drivers {
+    margin-top: 6px;
     gap: 5px;
   }
 
