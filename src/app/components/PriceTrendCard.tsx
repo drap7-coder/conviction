@@ -37,6 +37,8 @@ interface PriceTrendCardProps {
   onRangeChange?: (range: TrendRange) => void;
   activeRange?: TrendRange;
   showQuote?: boolean;
+  /** Render chart chrome only — used inside CompanyQuoteCard. */
+  embedded?: boolean;
 }
 
 const RANGES: Array<{ label: string; value: TrendRange }> = [
@@ -87,6 +89,7 @@ export function PriceTrendCard({
   onRangeChange,
   activeRange,
   showQuote = true,
+  embedded = false,
 }: PriceTrendCardProps) {
   const [internalRange, setInternalRange] = useState<TrendRange>("1m");
   const [internalHistory, setInternalHistory] = useState<StockHistory | null>(null);
@@ -156,8 +159,12 @@ export function PriceTrendCard({
     ? (isPositive ? "up" : "down")
     : "quiet";
 
+  const shellClass = embedded
+    ? "price-trend-card price-trend-card--embedded"
+    : `price-trend-card ${inkBoxClass("quiet")}`;
+
   return (
-    <section className={`price-trend-card ${inkBoxClass("quiet")}`} aria-label={`${ticker} price trend`}>
+    <section className={shellClass} aria-label={`${ticker} price trend`}>
       <div className="price-trend-top">
         {showQuote ? (
           <div className="price-trend-quote">
@@ -170,8 +177,10 @@ export function PriceTrendCard({
               </span>
             ) : null}
           </div>
-        ) : <span className="price-trend-label">Chart</span>}
-        <div className="price-range-tabs" aria-label="Price range">
+        ) : embedded ? null : (
+          <span className="price-trend-label">Chart</span>
+        )}
+        <div className={`price-range-tabs${embedded ? " price-range-tabs--end" : ""}`} aria-label="Price range">
           {RANGES.map((option) => (
             <button
               aria-pressed={range === option.value}

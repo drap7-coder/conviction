@@ -4791,6 +4791,175 @@ details > summary::before {
   padding: 16px;
 }
 
+.price-trend-card--embedded {
+  margin-top: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.price-range-tabs--end {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+/* One object: identity + quote above a pencil rule, chart below. */
+.company-quote-card {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 16px 16px 14px;
+  background: #ffffff;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--ink));
+  border-radius: 18px;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent);
+  min-width: 0;
+}
+
+.company-quote-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+}
+
+.company-quote-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.company-quote-logo {
+  display: block;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.company-quote-copy {
+  min-width: 0;
+}
+
+.company-quote-ticker {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.company-quote-name {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.company-quote-sep {
+  margin: 0 0.35em;
+  color: var(--quiet);
+}
+
+.company-quote-sector {
+  color: var(--quiet);
+}
+
+.company-quote-price {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 0;
+}
+
+.company-quote-price-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.company-quote-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.company-quote-arrow.up { color: var(--green); }
+.company-quote-arrow.down { color: var(--red); }
+
+.company-quote-price-big {
+  font-family: var(--font-mono);
+  font-size: 1.7rem;
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.company-quote-change {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 550;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.company-quote-change.up { color: var(--green); }
+.company-quote-change.down { color: var(--red); }
+
+.company-quote-session,
+.company-quote-close {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.company-quote-price-loading {
+  font-family: var(--font-mono);
+  font-size: 1.7rem;
+  font-weight: 650;
+  color: var(--quiet);
+}
+
+.company-quote-price-na {
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  color: var(--quiet);
+}
+
+.company-quote-rule {
+  height: 1px;
+  margin: 0;
+  background: color-mix(in srgb, var(--border) 85%, var(--ink));
+}
+
+@media (max-width: 640px) {
+  .company-quote-top {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .company-quote-price {
+    width: 100%;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .company-quote-price-big {
+    font-size: clamp(1.55rem, 9vw, 1.9rem);
+  }
+}
+
 .price-trend-top {
   display: flex;
   justify-content: space-between;
