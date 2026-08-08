@@ -1690,13 +1690,14 @@ details > summary::before {
   font-size: 0.86rem;
 }
 
-.pf-sample-books.list-compose-empty-note {
+.pf-sample-books {
   display: grid;
-  gap: 12px;
-  margin: 0 0 18px;
+  gap: 10px;
+  margin: 0 0 14px;
 }
 
-.pf-sample-books .pf-empty-text {
+.pf-sample-books .pf-empty-text,
+.pf-sample-books .list-compose-empty-note {
   margin: 0;
 }
 
