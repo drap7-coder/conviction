@@ -1,6 +1,6 @@
 /**
- * Display helpers for the company-detail Evidence module:
- * status semantics, plain-language copy, composite synthesis.
+ * Display helpers for Conviction Signals on company detail:
+ * status semantics, plain-language copy, one-line synthesis.
  */
 
 export type EvidenceSemantic = "support" | "mixed" | "against" | "quiet";
@@ -20,42 +20,27 @@ export type EvidenceLaneCopy = {
   secondary?: string | null;
 };
 
-export type EvidenceGroupId = "ownership_flow" | "fundamentals" | "market_signals";
-
-export const EVIDENCE_GROUPS: Array<{
-  id: EvidenceGroupId;
-  label: string;
-  laneIds: EvidenceLaneId[];
-}> = [
-  {
-    id: "ownership_flow",
-    label: "Ownership & Flow",
-    laneIds: ["institutional", "insider", "political", "ownership"],
-  },
-  {
-    id: "fundamentals",
-    label: "Fundamentals",
-    laneIds: ["earnings", "disclosures"],
-  },
-  {
-    id: "market_signals",
-    label: "Market Signals",
-    laneIds: ["technicals", "short_interest"],
-  },
+/** Stable scan order for the flat list (active lanes keep this order). */
+export const EVIDENCE_LANE_ORDER: EvidenceLaneId[] = [
+  "earnings",
+  "institutional",
+  "insider",
+  "technicals",
+  "short_interest",
+  "ownership",
+  "political",
+  "disclosures",
 ];
 
-export const EVIDENCE_LANE_META: Record<
-  EvidenceLaneId,
-  { label: string; icon: string }
-> = {
-  institutional: { label: "Institutional", icon: "🏦" },
-  insider: { label: "Insider", icon: "👤" },
-  political: { label: "Political", icon: "🏛" },
-  ownership: { label: "Ownership", icon: "📄" },
-  earnings: { label: "Earnings", icon: "📈" },
-  disclosures: { label: "Filings", icon: "🗂" },
-  technicals: { label: "Technicals", icon: "📊" },
-  short_interest: { label: "Short interest", icon: "🩳" },
+export const EVIDENCE_LANE_META: Record<EvidenceLaneId, { label: string }> = {
+  earnings: { label: "Earnings" },
+  institutional: { label: "Funds" },
+  insider: { label: "Insiders" },
+  technicals: { label: "Trend" },
+  short_interest: { label: "Shorts" },
+  ownership: { label: "Major holders" },
+  political: { label: "Congress" },
+  disclosures: { label: "Filings" },
 };
 
 export function evidenceSemantic(input: {
@@ -73,7 +58,7 @@ export function evidenceSemantic(input: {
 
 export function evidenceStatusLabel(semantic: EvidenceSemantic | "loading" | "unavailable"): string {
   if (semantic === "loading") return "…";
-  if (semantic === "unavailable") return "—";
+  if (semantic === "unavailable") return "Unavailable";
   if (semantic === "support") return "Support";
   if (semantic === "against") return "Against";
   if (semantic === "quiet") return "Quiet";
@@ -89,26 +74,27 @@ function joinNames(names: string[]): string {
 
 export function countEvidenceSemantics(
   semantics: Array<EvidenceSemantic | "loading" | "unavailable">,
-): Record<EvidenceSemantic, number> {
-  const counts: Record<EvidenceSemantic, number> = {
+): Record<EvidenceSemantic, number> & { unavailable: number } {
+  const counts = {
     support: 0,
     mixed: 0,
     against: 0,
     quiet: 0,
+    unavailable: 0,
   };
   for (const semantic of semantics) {
     if (semantic === "support" || semantic === "mixed" || semantic === "against" || semantic === "quiet") {
       counts[semantic] += 1;
     } else if (semantic === "unavailable") {
-      counts.quiet += 1;
+      counts.unavailable += 1;
     }
   }
   return counts;
 }
 
-/** Overall badge from majority of row-level statuses. */
+/** Overall badge from majority of directional / mixed rows. Unavailable is ignored. */
 export function compositeEvidenceLabel(
-  counts: Record<EvidenceSemantic, number>,
+  counts: Record<EvidenceSemantic, number> & { unavailable?: number },
 ): EvidenceSemantic {
   const { support, mixed, against, quiet } = counts;
   const directional = support + against;
@@ -123,7 +109,7 @@ export function compositeEvidenceLabel(
 
 /**
  * One-line synthesis from which categories support / against / mixed.
- * Example: "Earnings and technicals lean bullish; institutional and political flows are split."
+ * Example: "Earnings and trend lean bullish; funds and congress are split."
  */
 export function synthesizeEvidenceRead(
   lanes: Array<{ label: string; semantic: EvidenceSemantic | "loading" | "unavailable" }>,
@@ -132,6 +118,7 @@ export function synthesizeEvidenceRead(
   const against = lanes.filter((lane) => lane.semantic === "against").map((lane) => lane.label);
   const mixed = lanes.filter((lane) => lane.semantic === "mixed").map((lane) => lane.label);
   const quiet = lanes.filter((lane) => lane.semantic === "quiet").map((lane) => lane.label);
+  const unavailable = lanes.filter((lane) => lane.semantic === "unavailable").length;
 
   const clauses: string[] = [];
   if (support.length > 0) {
@@ -141,28 +128,37 @@ export function synthesizeEvidenceRead(
     clauses.push(`${joinNames(against)} lean bearish`);
   }
   if (mixed.length > 0) {
-    const flowish = mixed.every((name) =>
-      /institutional|insider|political|ownership/i.test(name),
-    );
-    clauses.push(
-      flowish
-        ? `${joinNames(mixed)} flows are split`
-        : `${joinNames(mixed)} are mixed`,
-    );
+    clauses.push(`${joinNames(mixed)} are mixed`);
   }
 
   if (clauses.length === 0) {
-    if (quiet.length > 0) {
-      return "Most categories are quiet — no strong directional read yet.";
+    if (quiet.length > 0 && unavailable === 0) {
+      return "Nothing strong yet — most signals are quiet.";
     }
-    return "Not enough live evidence yet to form a composite read.";
+    if (unavailable > 0 && quiet.length === 0) {
+      return "Not enough evidence loaded yet.";
+    }
+    return "Nothing strong yet.";
   }
 
   const lead = clauses.join("; ");
-  if (support.length + against.length + mixed.length >= 4) {
-    return `${lead.charAt(0).toUpperCase()}${lead.slice(1)}. No single category dominates the read.`;
-  }
   return `${lead.charAt(0).toUpperCase()}${lead.slice(1)}.`;
+}
+
+/** Directional / mixed first; quiet + unavailable tucked away. */
+export function partitionEvidenceLanes<T extends { semantic: EvidenceSemantic | "loading" | "unavailable" }>(
+  lanes: T[],
+): { active: T[]; quiet: T[] } {
+  const active: T[] = [];
+  const quiet: T[] = [];
+  for (const lane of lanes) {
+    if (lane.semantic === "support" || lane.semantic === "against" || lane.semantic === "mixed" || lane.semantic === "loading") {
+      active.push(lane);
+    } else {
+      quiet.push(lane);
+    }
+  }
+  return { active, quiet };
 }
 
 export function plainLanguageLaneCopy(
@@ -184,28 +180,28 @@ export function plainLanguageLaneCopy(
       const a = Number(adding[1]);
       const t = Number(trimming[1]);
       return {
-        primary: `${a} fund${a === 1 ? "" : "s"} adding or opening new positions, ${t} trimming or exiting`,
+        primary: `${a} fund${a === 1 ? "" : "s"} adding, ${t} trimming`,
       };
     }
     if (adding) {
       const a = Number(adding[1]);
-      return { primary: `${a} fund${a === 1 ? "" : "s"} adding or opening new positions` };
+      return { primary: `${a} fund${a === 1 ? "" : "s"} adding or opening` };
     }
     if (/holding/i.test(text)) {
-      return { primary: "Tracked funds are mostly holding their positions" };
+      return { primary: "Tracked funds mostly holding" };
     }
     return { primary: text.replace(/\.$/, "") };
   }
 
   if (id === "insider") {
     if (/no open-market/i.test(text) || /no executives/i.test(text)) {
-      return { primary: "No executives or directors have bought shares recently" };
+      return { primary: "No recent executive buying" };
     }
     const filings = text.match(/(\d+)\s+filings/i);
     const dollars = text.match(/\$[\d,]+/);
     if (filings && dollars) {
       return {
-        primary: `Executives and directors bought shares recently (${dollars[0]} across ${filings[1]} filings)`,
+        primary: `Bought ${dollars[0]} across ${filings[1]} filings`,
       };
     }
     return { primary: text.replace(/\.$/, "") };
@@ -218,17 +214,17 @@ export function plainLanguageLaneCopy(
     if (buys) {
       const n = Number(buys[1]);
       return {
-        primary: `${n} lawmaker${n === 1 ? "" : "s"} disclosed purchase${n === 1 ? "" : "s"}${date ? ` · ${date[1]}` : ""}`,
+        primary: `${n} purchase${n === 1 ? "" : "s"} disclosed${date ? ` · ${date[1]}` : ""}`,
       };
     }
     if (trades) {
       const n = Number(trades[1]);
       return {
-        primary: `${n} lawmaker${n === 1 ? "" : "s"} disclosed trade${n === 1 ? "" : "s"}${date ? ` · ${date[1]}` : ""}`,
+        primary: `${n} trade${n === 1 ? "" : "s"} disclosed${date ? ` · ${date[1]}` : ""}`,
       };
     }
     if (/no recent/i.test(text)) {
-      return { primary: "No recent congressional trade matches" };
+      return { primary: "No recent matches" };
     }
     return { primary: text };
   }
@@ -241,14 +237,14 @@ export function plainLanguageLaneCopy(
     const isActivist = /13d|activist/i.test(`${form} ${title}`);
     const amended = /\/A|amend/i.test(form) || /amend/i.test(title);
     const primary = isPassive
-      ? "A major passive fund (e.g. an index provider) updated its stake"
+      ? "Passive holder updated stake"
       : isActivist
-        ? "An activist or active holder updated its ownership stake"
-        : "A major holder updated its ownership stake";
+        ? "Activist holder updated stake"
+        : "Major holder updated stake";
     const secondary = filed
-      ? `Filed ${filed}${amended ? " as amended ownership disclosure" : " as ownership disclosure"}`
+      ? `${form || "13D/G"} · ${filed}${amended ? " · amended" : ""}`
       : amended
-        ? "Amended ownership disclosure"
+        ? "Amended filing"
         : options.secondaryHint ?? null;
     return { primary, secondary };
   }
@@ -266,7 +262,7 @@ export function plainLanguageLaneCopy(
           ? "rose"
           : "moved";
       return {
-        primary: `Bets against the stock ${verb} ${abs}%; would take ${dtc[1]} days of trading to cover them all`,
+        primary: `Short interest ${verb} ${abs}% · ${dtc[1]} days to cover`,
       };
     }
     return { primary: text.replace(/\.$/, "") };
@@ -275,14 +271,14 @@ export function plainLanguageLaneCopy(
   if (id === "technicals") {
     if (/below sma50, above sma200|fallen below the short-term/i.test(text) && /above the long-term|above sma200/i.test(text)) {
       return {
-        primary: "Price slipped below the short-term average but remains above the long-term trend",
+        primary: "Below the short-term average, still above the long-term trend",
       };
     }
     if (/above sma50 and sma200|above both/i.test(text)) {
-      return { primary: "Price is holding above both short- and long-term averages" };
+      return { primary: "Holding above short- and long-term averages" };
     }
     if (/below sma50 and sma200/i.test(text)) {
-      return { primary: "Price is below both short- and long-term averages" };
+      return { primary: "Below both short- and long-term averages" };
     }
     return { primary: text.replace(/\.$/, "") };
   }
@@ -291,16 +287,15 @@ export function plainLanguageLaneCopy(
     const beat = text.match(/(\S+)\s+beat\s+·\s*([+-]?\d+(?:\.\d+)%)/i);
     const miss = text.match(/(\S+)\s+miss\s+·\s*([+-]?\d+(?:\.\d+)%)/i);
     if (beat) {
-      return { primary: `${beat[1]} earnings beat estimates by ${beat[2]}` };
+      return { primary: `${beat[1]} beat by ${beat[2]}` };
     }
     if (miss) {
-      return { primary: `${miss[1]} earnings missed estimates by ${miss[2]}` };
+      return { primary: `${miss[1]} missed by ${miss[2]}` };
     }
     return { primary: text };
   }
 
   if (id === "disclosures") {
-    // Prefer plain title as primary; demote form/date codes.
     const filed = options.filingDate;
     const form = options.form;
     if (options.ownershipTitle || (!/·/.test(text) && text.length > 8)) {
@@ -308,7 +303,7 @@ export function plainLanguageLaneCopy(
       return {
         primary: title,
         secondary: form || filed
-          ? [form, filed ? `Filed ${filed}` : null].filter(Boolean).join(" · ")
+          ? [form, filed].filter(Boolean).join(" · ")
           : null,
       };
     }

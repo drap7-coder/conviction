@@ -18,12 +18,10 @@ import {
   type ConvictionSignalTone,
 } from "@/lib/conviction/signal-display";
 import {
-  compositeEvidenceLabel,
-  countEvidenceSemantics,
-  evidenceSemantic,
-  evidenceStatusLabel,
-  EVIDENCE_GROUPS,
   EVIDENCE_LANE_META,
+  EVIDENCE_LANE_ORDER,
+  evidenceSemantic,
+  partitionEvidenceLanes,
   plainLanguageLaneCopy,
   synthesizeEvidenceRead,
   type EvidenceLaneId,
@@ -35,7 +33,6 @@ import type { EarningsEvidence } from "@/lib/earnings/types";
 type EvidenceLane = {
   id: EvidenceLaneId;
   label: string;
-  icon: string;
   tone: ConvictionSignalTone;
   status: ConvictionSignalDisplay["status"];
   semantic: EvidenceSemantic | "loading" | "unavailable";
@@ -167,7 +164,6 @@ function toLane(
   return {
     id,
     label: meta.label,
-    icon: meta.icon,
     tone,
     status,
     semantic,
@@ -324,70 +320,57 @@ function laneDetail(id: EvidenceLaneId, ticker: string): ReactNode {
   }
 }
 
-function CompositeReadCard({
-  lanes,
-  loading,
+function toneClass(semantic: EvidenceLane["semantic"]): string {
+  if (semantic === "support" || semantic === "against" || semantic === "mixed") return semantic;
+  return "quiet";
+}
+
+function LaneRow({
+  lane,
+  ticker,
+  isOpen,
+  onToggle,
 }: {
-  lanes: EvidenceLane[];
-  loading: boolean;
+  lane: EvidenceLane;
+  ticker: string;
+  isOpen: boolean;
+  onToggle: () => void;
 }) {
-  const counts = useMemo(
-    () => countEvidenceSemantics(lanes.map((lane) => lane.semantic)),
-    [lanes],
-  );
-  const overall = compositeEvidenceLabel(counts);
-  const synthesis = useMemo(
-    () => (loading
-      ? "Reading ownership, filings, and market evidence…"
-      : synthesizeEvidenceRead(lanes)),
-    [lanes, loading],
-  );
+  const isLoadingRow = lane.status === "loading";
+  const tone = toneClass(lane.semantic);
 
   return (
-    <div className={`evidence-composite ink-box ink-box--quiet tone-${overall}`}>
-      <div className="evidence-composite-top">
-        <span className="evidence-composite-eyebrow">Composite read</span>
-        <span className={`evidence-status-pill tone-${overall}`}>
-          {evidenceStatusLabel(overall)}
-        </span>
-      </div>
-
-      <div
-        className="evidence-composite-bar"
-        role="img"
-        aria-label={`${counts.support} support, ${counts.mixed} mixed, ${counts.against} against, ${counts.quiet} quiet`}
+    <details
+      className={`evidence-lane tone-${tone}${isLoadingRow ? " is-loading" : ""}`}
+      open={isOpen}
+    >
+      <summary
+        className="evidence-lane-summary"
+        onClick={(event) => {
+          event.preventDefault();
+          if (isLoadingRow) return;
+          onToggle();
+        }}
       >
-        {counts.support > 0 ? (
-          <i className="seg-support" style={{ flex: `${counts.support} 1 0` }} />
-        ) : null}
-        {counts.mixed > 0 ? (
-          <i className="seg-mixed" style={{ flex: `${counts.mixed} 1 0` }} />
-        ) : null}
-        {counts.against > 0 ? (
-          <i className="seg-against" style={{ flex: `${counts.against} 1 0` }} />
-        ) : null}
-        {counts.quiet > 0 ? (
-          <i className="seg-quiet" style={{ flex: `${counts.quiet} 1 0` }} />
-        ) : null}
+        <span className="evidence-lane-main">
+          <span className="evidence-lane-name">{lane.label}</span>
+          {isLoadingRow ? (
+            <span className="evidence-lane-fact evidence-lane-fact-skeleton" />
+          ) : (
+            <span className="evidence-lane-copy">
+              <span className="evidence-lane-fact">{lane.primary}</span>
+              {lane.secondary ? (
+                <span className="evidence-lane-secondary">{lane.secondary}</span>
+              ) : null}
+            </span>
+          )}
+        </span>
+        <span className="evidence-lane-chevron" aria-hidden="true">›</span>
+      </summary>
+      <div className="evidence-lane-panel">
+        {isOpen ? laneDetail(lane.id, ticker) : null}
       </div>
-
-      <div className="evidence-composite-legend">
-        {counts.support > 0 ? (
-          <span><i className="dot-support" />{counts.support} support</span>
-        ) : null}
-        {counts.mixed > 0 ? (
-          <span><i className="dot-mixed" />{counts.mixed} mixed</span>
-        ) : null}
-        {counts.against > 0 ? (
-          <span><i className="dot-against" />{counts.against} against</span>
-        ) : null}
-        {counts.quiet > 0 ? (
-          <span><i className="dot-quiet" />{counts.quiet} quiet</span>
-        ) : null}
-      </div>
-
-      <p className="evidence-composite-synthesis">{synthesis}</p>
-    </div>
+    </details>
   );
 }
 
@@ -400,6 +383,7 @@ export function ConvictionSignalsCard({
   const [filingLanes, setFilingLanes] = useState<EvidenceLane[]>(initialFilingLanes);
   const [coreLoading, setCoreLoading] = useState(true);
   const [openLane, setOpenLane] = useState<EvidenceLaneId | null>(null);
+  const [quietOpen, setQuietOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -409,6 +393,7 @@ export function ConvictionSignalsCard({
     setFilingLanes(initialFilingLanes());
     setCoreLoading(true);
     setOpenLane(null);
+    setQuietOpen(false);
 
     async function loadCore() {
       try {
@@ -465,91 +450,81 @@ export function ConvictionSignalsCard({
     return map;
   }, [core, filingLanes]);
 
-  const allLanes = useMemo(
-    () => EVIDENCE_GROUPS.flatMap((group) =>
-      group.laneIds.map((id) => lanesById.get(id)).filter((lane): lane is EvidenceLane => Boolean(lane)),
-    ),
+  const orderedLanes = useMemo(
+    () => EVIDENCE_LANE_ORDER
+      .map((id) => lanesById.get(id))
+      .filter((lane): lane is EvidenceLane => Boolean(lane)),
     [lanesById],
   );
 
+  const resolvedLanes = useMemo(
+    () => orderedLanes.filter((lane) => lane.status !== "loading"),
+    [orderedLanes],
+  );
+
+  const { active, quiet } = useMemo(
+    () => partitionEvidenceLanes(resolvedLanes),
+    [resolvedLanes],
+  );
+
+  const stillBooting = resolvedLanes.length === 0;
   const anyLoading = coreLoading || filingLanes.some((lane) => lane.status === "loading");
+  const synthesis = stillBooting || anyLoading
+    ? "Reading the evidence…"
+    : synthesizeEvidenceRead(resolvedLanes);
+  const visibleActive = active.length > 0 ? active : resolvedLanes;
+
+  const toggleLane = (id: EvidenceLaneId) => {
+    setOpenLane((current) => (current === id ? null : id));
+  };
 
   return (
     <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
-      <div className="company-driver-header">
+      <header className="evidence-lanes-intro">
         <h2 className="company-driver-title evidence-lanes-title">Conviction Signals</h2>
-        <span className={`evidence-live-pill${anyLoading ? " is-updating" : ""}`}>
-          <i aria-hidden="true" />
-          {anyLoading ? "Updating" : "Live"}
-        </span>
-      </div>
+        <p className="evidence-lanes-read">{synthesis}</p>
+      </header>
 
-      <CompositeReadCard lanes={allLanes} loading={anyLoading} />
+      {!stillBooting ? (
+        <>
+          <ul className="evidence-lane-list">
+            {visibleActive.map((lane) => (
+              <li key={lane.id}>
+                <LaneRow
+                  lane={lane}
+                  ticker={ticker}
+                  isOpen={openLane === lane.id}
+                  onToggle={() => toggleLane(lane.id)}
+                />
+              </li>
+            ))}
+          </ul>
 
-      <div className="evidence-groups">
-        {EVIDENCE_GROUPS.map((group) => {
-          const groupLanes = group.laneIds
-            .map((id) => lanesById.get(id))
-            .filter((lane): lane is EvidenceLane => Boolean(lane));
-          if (groupLanes.length === 0) return null;
-
-          return (
-            <section className="evidence-group" key={group.id} aria-label={group.label}>
-              <h3 className="evidence-group-label">{group.label}</h3>
-              <ul className="evidence-lane-list">
-                {groupLanes.map((lane) => {
-                  const isOpen = openLane === lane.id;
-                  const isLoadingRow = lane.status === "loading";
-                  const tone = lane.semantic === "loading" || lane.semantic === "unavailable"
-                    ? "quiet"
-                    : lane.semantic;
-                  return (
-                    <li key={lane.id}>
-                      <details
-                        className={`evidence-lane tone-${tone}${isLoadingRow ? " is-loading" : ""}`}
-                        open={isOpen}
-                      >
-                        <summary
-                          className="evidence-lane-summary"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            if (isLoadingRow) return;
-                            setOpenLane((current) => (current === lane.id ? null : lane.id));
-                          }}
-                        >
-                          <span className="evidence-lane-icon" aria-hidden="true">{lane.icon}</span>
-                          <span className="evidence-lane-main">
-                            <span className="evidence-lane-title-row">
-                              <span className="evidence-lane-name">{lane.label}</span>
-                              <span className={`evidence-status-pill tone-${tone}`}>
-                                {evidenceStatusLabel(lane.semantic)}
-                              </span>
-                            </span>
-                            {isLoadingRow ? (
-                              <span className="evidence-lane-fact evidence-lane-fact-skeleton" />
-                            ) : (
-                              <span className="evidence-lane-copy">
-                                <span className="evidence-lane-fact">{lane.primary}</span>
-                                {lane.secondary ? (
-                                  <span className="evidence-lane-secondary">{lane.secondary}</span>
-                                ) : null}
-                              </span>
-                            )}
-                          </span>
-                          <span className="evidence-lane-chevron" aria-hidden="true">›</span>
-                        </summary>
-                        <div className="evidence-lane-panel">
-                          {isOpen ? laneDetail(lane.id, ticker) : null}
-                        </div>
-                      </details>
-                    </li>
-                  );
-                })}
+          {active.length > 0 && quiet.length > 0 ? (
+            <details
+              className="evidence-quiet-shell"
+              open={quietOpen}
+              onToggle={(event) => setQuietOpen((event.target as HTMLDetailsElement).open)}
+            >
+              <summary className="evidence-quiet-summary">
+                Quiet · {quiet.length} more
+              </summary>
+              <ul className="evidence-lane-list evidence-lane-list--quiet">
+                {quiet.map((lane) => (
+                  <li key={lane.id}>
+                    <LaneRow
+                      lane={lane}
+                      ticker={ticker}
+                      isOpen={openLane === lane.id}
+                      onToggle={() => toggleLane(lane.id)}
+                    />
+                  </li>
+                ))}
               </ul>
-            </section>
-          );
-        })}
-      </div>
+            </details>
+          ) : null}
+        </>
+      ) : null}
     </section>
   );
 }
