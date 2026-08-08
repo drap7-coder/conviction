@@ -95,13 +95,23 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
 }
 
 /**
- * Portfolio Check in the same carousel / SignalBlock format as What’s changing.
+ * Portfolio Check — concentration / data warnings for the book.
+ * Use `embedded` when nested under Where your money is.
  */
-export function PortfolioCheckPanel({ riskFlags }: { riskFlags: PortfolioRiskFlags }) {
+export function PortfolioCheckPanel({
+  riskFlags,
+  embedded = false,
+}: {
+  riskFlags: PortfolioRiskFlags;
+  embedded?: boolean;
+}) {
   const items = useMemo(() => buildCheckItems(riskFlags), [riskFlags]);
 
   return (
-    <section className="bcn-module bcn-module-nested" aria-label="Portfolio check">
+    <section
+      className={`bcn-module${embedded ? " bcn-module-embedded" : " bcn-module-nested"}`}
+      aria-label="Portfolio check"
+    >
       <div className="bcn-header">
         <h2 className="bcn-title">Portfolio check</h2>
       </div>
