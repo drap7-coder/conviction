@@ -10542,12 +10542,12 @@ a.signal-block-conclusion-link:hover {
   min-width: 0;
 }
 
-.pulse-news-heading {
+.pulse-news-heading.ink-panel {
   display: grid;
-  gap: 6px;
-  margin: 0 0 2px;
-  padding: 2px 2px 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 88%, var(--ink));
+  gap: 8px;
+  margin: 0;
+  padding: 16px 18px;
+  border-radius: 14px;
 }
 
 .pulse-news-eyebrow {
@@ -10581,8 +10581,9 @@ a.signal-block-conclusion-link:hover {
   flex-wrap: wrap;
   align-items: baseline;
   gap: 4px 0;
-  margin: 4px 0 0;
-  padding: 0;
+  margin: 2px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--divider);
   list-style: none;
   color: var(--muted);
   font-family: var(--font-mono);
