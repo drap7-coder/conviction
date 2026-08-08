@@ -5499,14 +5499,14 @@ details > summary::before {
 /* ── Company Detail Page ── */
 
 .detail-header {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .detail-nav {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .detail-back {
@@ -7761,43 +7761,24 @@ details > summary::before {
 
 
 
-/* ── Company Detail Header (after-hours aware) ── */
+/* ── Company Detail Header — identity + price as one composition ── */
 
 .cdh-body {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.cdh-body-identity-only {
-  justify-content: flex-start;
-}
-
-.cdh-price-module {
-  margin: 0;
-  padding: 4px 2px 2px;
-  min-width: 0;
-}
-
-.cdh-prices-standalone {
-  max-width: none;
-  text-align: left;
-}
-
-.cdh-prices-standalone .cdh-live-price {
-  justify-content: flex-start;
-}
-
-.cdh-prices-standalone .cdh-session-row {
-  justify-content: flex-start;
+  gap: 20px;
+  margin-top: 4px;
 }
 
 .cdh-identity {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
+}
+
+.cdh-identity-copy {
   min-width: 0;
 }
 
@@ -7809,60 +7790,30 @@ details > summary::before {
   object-fit: contain;
 }
 
-.cdh-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
 .cdh-ticker {
+  margin: 0;
   font-family: var(--font-mono);
   font-size: 1.62rem;
   font-weight: 800;
   color: var(--ink);
   line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .cdh-name {
-  font-size: 0.95rem;
+  margin: 4px 0 0;
+  font-size: 0.92rem;
   color: var(--muted);
-  margin-top: 2px;
+  line-height: 1.3;
 }
 
-/* ── Conviction badge (translucent) ── */
-
-.cdh-badge {
-  display: inline-block;
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 999px;
-  line-height: 1;
+.cdh-name-sep {
+  margin: 0 0.4em;
+  color: var(--quiet);
 }
 
-.cdh-badge-positive {
-  color: var(--green);
-  background: color-mix(in srgb, var(--green) 8%, transparent);
-}
-
-.cdh-badge-negative {
-  color: var(--red);
-  background: color-mix(in srgb, var(--red) 8%, transparent);
-}
-
-.cdh-badge-contested {
-  color: var(--amber);
-  background: color-mix(in srgb, var(--amber) 8%, transparent);
-}
-
-.cdh-badge-quiet {
-  color: var(--muted);
-  background: color-mix(in srgb, var(--muted) 8%, transparent);
+.cdh-sector {
+  color: var(--quiet);
 }
 
 /* ── Price block ── */
@@ -7871,7 +7822,7 @@ details > summary::before {
   flex-shrink: 0;
   text-align: right;
   min-width: 0;
-  max-width: 50%;
+  max-width: 52%;
 }
 
 .cdh-live-price {
@@ -7993,7 +7944,7 @@ details > summary::before {
   .cdh-body {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
+    gap: 12px;
   }
 
   .cdh-identity {
@@ -10138,12 +10089,6 @@ a.signal-block-conclusion-link:hover {
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
-}
-
-@media (max-width: 640px) {
-  .cdh-prices-standalone {
-    width: 100%;
-  }
 }
 
 .quote-dot {

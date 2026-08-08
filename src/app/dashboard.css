@@ -87,8 +87,8 @@
   margin-top: 0;
 }
 
-.company-briefing .cdh-price-module {
-  padding: 6px 2px 4px;
+.company-briefing .evidence-lanes {
+  margin-top: 2px;
 }
 
 .company-briefing .evidence-lane-panel .institutional-section,
@@ -110,38 +110,6 @@
 
 .company-briefing .evidence-lane-panel .disclosure-evidence-card {
   margin-top: 0;
-}
-
-.dashboard-signal-gauges {
-  padding: 16px 18px 18px;
-}
-
-.dashboard-signal-gauges .quote-signal-gauges {
-  margin-top: 4px;
-}
-
-.dashboard-technical-gauges {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--on-ink-border);
-}
-
-.quote-signal-gauges-pair {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-@media (max-width: 520px) {
-  .dashboard-signal-gauges .quote-signal-gauges {
-    gap: 4px;
-  }
-
-  .dashboard-signal-gauges .quote-gauge-detail {
-    font-size: 0.58rem;
-  }
-
-  .dashboard-signal-gauges .quote-gauge-caption {
-    font-size: 0.58rem;
-  }
 }
 
 .other-events > summary { cursor: pointer; color: var(--muted); font: .61rem/1.4 var(--font-mono); }
