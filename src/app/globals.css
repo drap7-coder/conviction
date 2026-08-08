@@ -1690,6 +1690,84 @@ details > summary::before {
   font-size: 0.86rem;
 }
 
+.pf-sample-books.list-compose-empty-note {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.pf-sample-books .pf-empty-text {
+  margin: 0;
+}
+
+.pf-sample-picker {
+  display: grid;
+  gap: 8px;
+}
+
+.pf-sample-picker-label {
+  margin: 0;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pf-sample-chips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 8px;
+}
+
+.pf-sample-chip {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 12px 11px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-elevated, var(--surface));
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.pf-sample-chip:hover,
+.pf-sample-chip:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 6%, var(--surface-elevated, var(--surface)));
+  outline: none;
+}
+
+.pf-sample-chip strong {
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.pf-sample-chip span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-empty .pf-sample-picker {
+  max-width: 42rem;
+  margin: 18px auto 0;
+  text-align: left;
+}
+
 .list-compose .pf-add-form-wrap {
   margin: 0;
 }

@@ -8,6 +8,7 @@ import {
   computeSectorAllocation,
   computeRiskFlags,
 } from "@/lib/portfolio/calculations";
+import { SAMPLE_PORTFOLIO_BOOKS, type SampleBook } from "@/lib/portfolio/sample-books";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
@@ -102,6 +103,28 @@ function enrichWithPrices(
       note: p.note,
     };
   });
+}
+
+function SampleBooksPicker({ onSelect }: { onSelect: (book: SampleBook) => void }) {
+  return (
+    <div className="pf-sample-picker" aria-label="Sample theme portfolios">
+      <p className="pf-sample-picker-label">Sample portfolios</p>
+      <div className="pf-sample-chips">
+        {SAMPLE_PORTFOLIO_BOOKS.map((book) => (
+          <button
+            key={book.id}
+            type="button"
+            className="pf-sample-chip"
+            title={book.description}
+            onClick={() => onSelect(book)}
+          >
+            <strong>{book.label}</strong>
+            <span>{book.positions.map((p) => p.ticker).join(" · ")}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ── Main Component ──────────────────────────────────────────────────────────
@@ -377,6 +400,16 @@ export default function Portfolio({
     notifyPortfolioChanged();
   }
 
+  function handleLoadSample(book: SampleBook) {
+    savePositions(book.positions);
+    setPositions(book.positions);
+    setShowAddForm(false);
+    setEditingTicker(null);
+    setFormError(null);
+    notifyPortfolioChanged();
+    void refreshSharedQuotes();
+  }
+
   function handleStartEdit(ticker: string) {
     const pos = positions.find((p) => p.ticker.toUpperCase() === ticker.toUpperCase());
     if (!pos) return;
@@ -475,11 +508,15 @@ export default function Portfolio({
         <div className="pf-empty">
           <p className="pf-empty-text">No positions yet.</p>
           {composeBar}
+          <SampleBooksPicker onSelect={handleLoadSample} />
         </div>
       )}
 
       {!hasData && !loading && composeFirst ? (
-        <p className="pf-empty-text list-compose-empty-note">No positions yet — add one above to build your book.</p>
+        <div className="pf-sample-books list-compose-empty-note">
+          <p className="pf-empty-text">No positions yet — add one above, or try a theme book.</p>
+          <SampleBooksPicker onSelect={handleLoadSample} />
+        </div>
       ) : null}
 
       {hasData && (
