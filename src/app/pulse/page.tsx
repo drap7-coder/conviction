@@ -8,6 +8,7 @@ import { HeatTile } from "@/components/HeatTile";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
+import { PulseNewsFeed } from "@/components/market/PulseNewsFeed";
 import {
   themesForHeatmapGroup,
   type MarketNarrativeTheme,
@@ -87,12 +88,12 @@ const PULSE_TABS = [
   {
     id: "indexes",
     label: "Indexes",
-    description: "Market temperature",
+    description: "Market temperature and sectors",
   },
   {
-    id: "sectors",
-    label: "Sectors",
-    description: "Industry leadership",
+    id: "news",
+    label: "News",
+    description: "Live market headline feed",
   },
   {
     id: "trending",
@@ -420,6 +421,19 @@ export default function MarketPulsePage() {
                 uniformTiles
               />
             ) : null}
+            <section className="market-gauge-grid" aria-label="Sector leadership gauges">
+              <Gauge label="Cyclical" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+              <Gauge label="Defensive" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+            </section>
+            <div id="industries">
+              <GlobalMarketsHeatmap
+                markets={industryMarkets}
+                title="Sectors"
+                subtitle=""
+                narrativeGroup="Industries"
+                narratives={data.marketNarratives.themes}
+              />
+            </div>
             <GlobalMarketsHeatmap
               markets={commodities}
               title="Commodities"
@@ -449,28 +463,16 @@ export default function MarketPulsePage() {
       </div>
 
       <div
-        id="pulse-panel-sectors"
+        id="pulse-panel-news"
         role="tabpanel"
-        aria-labelledby="pulse-tab-sectors"
-        hidden={activeTab !== "sectors"}
+        aria-labelledby="pulse-tab-news"
+        hidden={activeTab !== "news"}
       >
-        {activeTab === "sectors" ? (
-          <>
-            <section className="market-gauge-grid" aria-label="Sector leadership gauges">
-              <Gauge label="Cyclical" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
-              <Gauge label="Defensive" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
-            </section>
-            <div id="industries">
-              <GlobalMarketsHeatmap
-                markets={industryMarkets}
-                title="Sectors"
-                subtitle=""
-                narrativeGroup="Industries"
-                narratives={data.marketNarratives.themes}
-                sessionLabel={data.sessionLabel ?? null}
-              />
-            </div>
-          </>
+        {activeTab === "news" ? (
+          <PulseNewsFeed
+            themes={data.marketNarratives.themes}
+            status={data.marketNarratives.status}
+          />
         ) : null}
       </div>
 

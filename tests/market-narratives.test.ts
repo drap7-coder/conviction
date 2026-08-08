@@ -30,6 +30,8 @@ describe("MARKET_NARRATIVE_THEMES heatmap mapping", () => {
       uniqueAuthorsLastHour: 1,
       summary: "test",
       headline: null,
+      headlines: [],
+      newsTicker: config.newsTicker,
       assets: [],
     })) satisfies MarketNarrativeTheme[];
 
