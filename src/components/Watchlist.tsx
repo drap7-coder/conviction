@@ -4,14 +4,11 @@ import Link from "next/link";
 import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
-import type { WatchlistCardHeadline } from "@/app/components/WatchlistCard";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
-import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { StockHeatmap } from "@/components/StockHeatmap";
-import { MoveDriversPanel } from "@/components/MoveDriversPanel";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MacroChainChart, buildMacroSeriesFromQuotes } from "@/components/market/MacroChainChart";
 
@@ -81,8 +78,6 @@ export default function Watchlist({
 }) {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
-  const [headlines, setHeadlines] = useState<Record<string, WatchlistCardHeadline[]>>({});
-  const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
   const [accountLabel, setAccountLabel] = useState<string | null>(null);
@@ -202,50 +197,6 @@ export default function Watchlist({
       cancelled = true;
       window.clearInterval(refreshInterval);
       document.removeEventListener("visibilitychange", refreshVisibleDashboard);
-    };
-  }, [entries]);
-
-  useEffect(() => {
-    if (entries.length === 0) {
-      setHeadlines({});
-      return;
-    }
-    let cancelled = false;
-    const controller = new AbortController();
-
-    async function loadHeadlines() {
-      const batches = Array.from(
-        { length: Math.ceil(entries.length / 10) },
-        (_, index) => entries.slice(index * 10, index * 10 + 10),
-      );
-      const responses = await Promise.all(batches.map((batch) =>
-        fetchJsonWithTimeout<{
-          news?: Record<string, { headlines?: WatchlistCardHeadline[]; driver?: NewsDriver | null }>;
-        }>(
-          `/api/evidence/news-batch?tickers=${batch.map((entry) => entry.ticker).join(",")}`,
-          10_000,
-          controller.signal,
-        ).catch(() => ({ news: {} })),
-      ));
-      if (cancelled) return;
-
-      const nextHeadlines: Record<string, WatchlistCardHeadline[]> = {};
-      const nextDrivers: Record<string, NewsDriver | null> = {};
-      for (const response of responses) {
-        const news = response.news as Record<string, { headlines?: WatchlistCardHeadline[]; driver?: NewsDriver | null }> | undefined;
-        for (const [ticker, item] of Object.entries(news ?? {})) {
-          nextHeadlines[ticker] = item.headlines ?? [];
-          nextDrivers[ticker] = item.driver ?? null;
-        }
-      }
-      setHeadlines(nextHeadlines);
-      setNewsDrivers(nextDrivers);
-    }
-
-    void loadHeadlines();
-    return () => {
-      cancelled = true;
-      controller.abort();
     };
   }, [entries]);
 
@@ -598,34 +549,7 @@ export default function Watchlist({
               marketCap: quote?.marketCap ?? null,
             };
           })}
-          footer={(
-            <>
-              {entries.length > 0 ? (
-                <MoveDriversPanel
-                  holdings={entries.map((entry) => {
-                    const quote = quotes[entry.ticker];
-                    const live = quote ? getLivePrice(quote) : null;
-                    return {
-                      ticker: entry.ticker,
-                      companyName: entry.companyName,
-                      changePercent: live?.changePercent ?? quote?.changePercent ?? null,
-                    };
-                  })}
-                  newsByTicker={Object.fromEntries(
-                    entries.map((entry) => [
-                      entry.ticker.toUpperCase(),
-                      {
-                        driver: newsDrivers[entry.ticker] ?? null,
-                        headlines: headlines[entry.ticker] ?? [],
-                      },
-                    ]),
-                  )}
-                  nested
-                />
-              ) : null}
-              {children}
-            </>
-          )}
+          footer={children}
         />
       ) : null}
 

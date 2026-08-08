@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Pulse",
   description:
-    "Market heatmaps for indexes, sectors, and trending names — plus what’s driving the move and session breadth.",
+    "Market heatmaps for indexes, sectors, and trending names — plus session breadth.",
   alternates: {
     canonical: "/pulse",
   },

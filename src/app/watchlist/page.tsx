@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Watchlist",
   description:
-    "Ownership moves and what’s driving the stocks you follow — institutional filings, insider activity, and catalysts in one watchlist.",
+    "Track the stocks you follow — quotes, ownership moves, and a path into each company dashboard.",
   alternates: {
     canonical: "/watchlist",
   },

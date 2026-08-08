@@ -2,13 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
-import type { NewsDriver } from "@/lib/evidence/news-driver";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
-import type { WatchlistCardHeadline as TrendingHeadline } from "@/app/components/WatchlistCard";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { StockHeatmap } from "@/components/StockHeatmap";
-import { MoveDriversPanel } from "@/components/MoveDriversPanel";
 import { TrendingManageChips } from "@/components/TrendingManageChips";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
@@ -65,8 +62,6 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
 
 export function MarketMovesPanel() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
-  const [headlines, setHeadlines] = useState<Record<string, TrendingHeadline[]>>({});
-  const [newsDrivers, setNewsDrivers] = useState<Record<string, NewsDriver | null>>({});
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
   const [addingTicker, setAddingTicker] = useState<string | null>(null);
@@ -117,33 +112,6 @@ export function MarketMovesPanel() {
           const companies = data.companies ?? [];
           setTrending(companies);
           setTrendingStatus(companies.length > 0 ? "success" : "empty");
-
-          const batches = Array.from(
-            { length: Math.ceil(companies.length / 10) },
-            (_, index) => companies.slice(index * 10, index * 10 + 10),
-          );
-          const responses = await Promise.all(batches.map((batch) =>
-            fetchJsonWithTimeout<{
-              news?: Record<string, { headlines?: TrendingHeadline[]; driver?: NewsDriver | null }>;
-            }>(
-              `/api/evidence/news-batch?tickers=${batch.map((company) => company.ticker).join(",")}`,
-              10_000,
-              controller.signal,
-            ).catch(() => ({ news: {} })),
-          ));
-          if (!cancelled) {
-            const nextHeadlines: Record<string, TrendingHeadline[]> = {};
-            const nextDrivers: Record<string, NewsDriver | null> = {};
-            for (const response of responses) {
-              const news = response.news as Record<string, { headlines?: TrendingHeadline[]; driver?: NewsDriver | null }> | undefined;
-              for (const [ticker, item] of Object.entries(news ?? {})) {
-                nextHeadlines[ticker] = item.headlines ?? [];
-                nextDrivers[ticker] = item.driver ?? null;
-              }
-            }
-            setHeadlines(nextHeadlines);
-            setNewsDrivers(nextDrivers);
-          }
         }
       } catch (err) {
         console.warn("[market-moves] Failed to load trending companies:", err);
@@ -249,28 +217,6 @@ export function MarketMovesPanel() {
             sizeLabel: idea.activityLabel,
           };
         })}
-        footer={(
-          <MoveDriversPanel
-            holdings={trending.map((idea) => {
-              const live = getLivePrice(idea.quote);
-              return {
-                ticker: idea.ticker,
-                companyName: idea.companyName,
-                changePercent: live.changePercent,
-              };
-            })}
-            newsByTicker={Object.fromEntries(
-              trending.map((idea) => [
-                idea.ticker.toUpperCase(),
-                {
-                  driver: newsDrivers[idea.ticker] ?? null,
-                  headlines: headlines[idea.ticker] ?? [],
-                },
-              ]),
-            )}
-            nested
-          />
-        )}
       />
 
       <TrendingManageChips
