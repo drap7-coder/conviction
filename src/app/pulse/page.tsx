@@ -345,38 +345,7 @@ export default function MarketPulsePage() {
         options={[...PULSE_TABS]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as PulseTab)}
-      >
-        <p className="view-switch-context-line">
-          <strong>{data.macroRegime.label}</strong>
-          <span>{data.macroRegime.summary}</span>
-        </p>
-        {data.macroRegime.drivers.length > 0 ? (
-          <div className="market-regime-drivers" aria-label="What is driving this regime">
-            {data.macroRegime.drivers.map((driver) => (
-              <span
-                key={driver.id}
-                className={`market-regime-driver market-regime-driver-${driver.direction}`}
-                title={driver.explanation}
-              >
-                <strong>{driver.label}</strong>
-                <em
-                  className={`ink-chip ink-chip--${
-                    driver.direction === "rising"
-                      ? "up"
-                      : driver.direction === "falling"
-                        ? "down"
-                        : driver.direction === "mixed"
-                          ? "amber"
-                          : "quiet"
-                  }`}
-                >
-                  {driver.direction}
-                </em>
-              </span>
-            ))}
-          </div>
-        ) : null}
-      </ViewSwitcher>
+      />
 
       <div
         id="pulse-panel-indexes"
@@ -460,6 +429,7 @@ export default function MarketPulsePage() {
           <PulseNewsFeed
             themes={data.marketNarratives.themes}
             status={data.marketNarratives.status}
+            regime={data.macroRegime}
           />
         ) : null}
       </div>

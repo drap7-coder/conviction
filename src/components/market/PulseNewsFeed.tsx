@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
+import type { MacroRegime } from "@/lib/market/macro-regime";
 import type { MarketNarrativeTheme } from "@/lib/market/market-narratives";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 
@@ -74,87 +75,120 @@ function buildFeed(themes: MarketNarrativeTheme[]): FeedItem[] {
   });
 }
 
+function RegimeNewsHeader({ regime }: { regime: MacroRegime }) {
+  return (
+    <header className="pulse-news-heading">
+      <p className="pulse-news-eyebrow">What&apos;s driving the market</p>
+      <h2 className="pulse-news-title">{regime.label}</h2>
+      <p className="pulse-news-lede">{regime.summary}</p>
+      {regime.drivers.length > 0 ? (
+        <div className="market-regime-drivers" aria-label="What is driving this regime">
+          {regime.drivers.map((driver) => (
+            <span
+              key={driver.id}
+              className={`market-regime-driver market-regime-driver-${driver.direction}`}
+              title={driver.explanation}
+            >
+              <strong>{driver.label}</strong>
+              <em
+                className={`ink-chip ink-chip--${
+                  driver.direction === "rising"
+                    ? "up"
+                    : driver.direction === "falling"
+                      ? "down"
+                      : driver.direction === "mixed"
+                        ? "amber"
+                        : "quiet"
+                }`}
+              >
+                {driver.direction}
+              </em>
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </header>
+  );
+}
+
 export function PulseNewsFeed({
   themes,
   status,
+  regime,
 }: {
   themes: MarketNarrativeTheme[];
   status: "live" | "partial" | "unavailable";
+  regime: MacroRegime;
 }) {
   const items = useMemo(() => buildFeed(themes), [themes]);
 
+  const shell = (body: ReactNode) => (
+    <section className="pulse-news-feed" aria-label="Market news">
+      <RegimeNewsHeader regime={regime} />
+      {body}
+    </section>
+  );
+
   if (status === "unavailable" || items.length === 0) {
-    return (
-      <section className="pulse-news-feed" aria-label="Market news">
-        <div className="pulse-news-empty">
-          Market news is quiet right now. Check Indexes for price action.
-        </div>
-      </section>
+    return shell(
+      <div className="pulse-news-empty">
+        Market news is quiet right now. Check Indexes for price action.
+      </div>,
     );
   }
 
-  return (
-    <section className="pulse-news-feed" aria-label="Market news">
-      <header className="pulse-news-heading">
-        <h2 className="pulse-news-title">News</h2>
-        <p className="pulse-news-lede">
-          Live market chatter and headlines, newest first.
-          {status === "partial" ? " Some themes are still catching up." : ""}
-        </p>
-      </header>
-
-      <div className="pulse-news-stream" role="feed" aria-busy="false">
-        {items.map((item) => {
-          const companyHref = companyDetailHref(item.ticker);
-          const href = item.url || companyHref;
-          const external = Boolean(item.url);
-          return (
-            <article
-              key={item.id}
-              className={`pulse-news-card tone-${item.marketTone} heat-${item.heat}`}
-            >
-              <div className="pulse-news-card-top">
-                {companyHref ? (
-                  <a className="pulse-news-ticker" href={companyHref}>
-                    <LogoDisplay ticker={item.ticker} size="badge" />
-                    {item.ticker}
-                  </a>
-                ) : (
-                  <span className="pulse-news-ticker">
-                    <LogoDisplay ticker={item.ticker} size="badge" />
-                    {item.ticker}
-                  </span>
-                )}
-                <span className="pulse-news-theme">{item.themeLabel}</span>
-                <span className={`pulse-news-heat heat-${item.heat}`}>
-                  {heatLabel(item.heat)}
-                </span>
-                <time className="pulse-news-time" dateTime={item.date}>
-                  {formatTime(item.date)}
-                </time>
-              </div>
-
-              {href ? (
-                <a
-                  className="pulse-news-headline"
-                  href={href}
-                  {...(external
-                    ? { target: "_blank", rel: "noopener noreferrer" }
-                    : {})}
-                >
-                  {item.title}
+  return shell(
+    <div className="pulse-news-stream" role="feed" aria-busy="false">
+      {items.map((item) => {
+        const companyHref = companyDetailHref(item.ticker);
+        const href = item.url || companyHref;
+        const external = Boolean(item.url);
+        return (
+          <article
+            key={item.id}
+            className={`pulse-news-card tone-${item.marketTone} heat-${item.heat}`}
+          >
+            <div className="pulse-news-card-top">
+              {companyHref ? (
+                <a className="pulse-news-ticker" href={companyHref}>
+                  <LogoDisplay ticker={item.ticker} size="badge" />
+                  {item.ticker}
                 </a>
               ) : (
-                <p className="pulse-news-headline">{item.title}</p>
+                <span className="pulse-news-ticker">
+                  <LogoDisplay ticker={item.ticker} size="badge" />
+                  {item.ticker}
+                </span>
               )}
+              <span className="pulse-news-theme">{item.themeLabel}</span>
+              <span className={`pulse-news-heat heat-${item.heat}`}>
+                {heatLabel(item.heat)}
+              </span>
+              <time className="pulse-news-time" dateTime={item.date}>
+                {formatTime(item.date)}
+              </time>
+            </div>
 
-              {item.summary ? (
-                <p className="pulse-news-summary">{item.summary}</p>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
-    </section>
+            {href ? (
+              <a
+                className="pulse-news-headline"
+                href={href}
+                {...(external
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
+                {item.title}
+              </a>
+            ) : (
+              <p className="pulse-news-headline">{item.title}</p>
+            )}
+
+            {item.summary ? (
+              <p className="pulse-news-summary">{item.summary}</p>
+            ) : null}
+          </article>
+        );
+      })}
+    </div>,
   );
 }

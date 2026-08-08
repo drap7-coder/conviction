@@ -10545,7 +10545,16 @@ a.signal-block-conclusion-link:hover {
 .pulse-news-heading {
   display: grid;
   gap: 4px;
-  padding: 0 2px;
+  padding: 0 2px 4px;
+}
+
+.pulse-news-eyebrow {
+  margin: 0;
+  color: var(--quiet);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .pulse-news-title {
@@ -10555,6 +10564,10 @@ a.signal-block-conclusion-link:hover {
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--ink);
+}
+
+.pulse-news-heading .market-regime-drivers {
+  margin-top: 6px;
 }
 
 .pulse-news-lede {
