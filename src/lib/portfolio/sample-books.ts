@@ -7,72 +7,115 @@ export type SampleBook = {
   positions: PersistedPosition[];
 };
 
+function book(tickers: string[], shares = 10): PersistedPosition[] {
+  return tickers.map((ticker) => ({ ticker, shares }));
+}
+
 /**
  * Theme sample books aligned with Pulse narrative themes.
- * Clickable starters for an empty Portfolio (localStorage only).
+ * Each book is 10 single-name stocks (no ETFs) for an empty Portfolio.
  */
 export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "ai-compute",
     label: "AI + Compute",
-    description: "Mega-cap AI and semiconductor names",
-    positions: [
-      { ticker: "NVDA", shares: 10 },
-      { ticker: "AMD", shares: 20 },
-      { ticker: "AVGO", shares: 5 },
-      { ticker: "MSFT", shares: 8 },
-      { ticker: "GOOG", shares: 10 },
-    ],
+    description: "AI platforms, semis, and data-center names",
+    positions: book([
+      "NVDA",
+      "AMD",
+      "AVGO",
+      "MSFT",
+      "GOOG",
+      "META",
+      "AMZN",
+      "TSM",
+      "ORCL",
+      "PLTR",
+    ]),
   },
   {
     id: "rates-fed",
     label: "Dividend Income",
-    description: "Dividends, real estate, and transports",
-    positions: [
-      { ticker: "SCHD", shares: 40 },
-      { ticker: "VNQ", shares: 25 },
-      { ticker: "IYT", shares: 15 },
-    ],
+    description: "Cash-returning blue chips and staples",
+    positions: book([
+      "JNJ",
+      "PG",
+      "KO",
+      "PEP",
+      "ABBV",
+      "MRK",
+      "HD",
+      "MMM",
+      "IBM",
+      "VZ",
+    ]),
   },
   {
     id: "energy-oil",
     label: "Energy + Metals",
-    description: "Oil, producers, and precious metals",
-    positions: [
-      { ticker: "XLE", shares: 20 },
-      { ticker: "XOM", shares: 15 },
-      { ticker: "CVX", shares: 12 },
-      { ticker: "GLD", shares: 8 },
-    ],
+    description: "Oil producers, services, and miners",
+    positions: book([
+      "XOM",
+      "CVX",
+      "COP",
+      "SLB",
+      "OXY",
+      "EOG",
+      "FCX",
+      "NEM",
+      "AA",
+      "NUE",
+    ]),
   },
   {
     id: "crypto-liquidity",
     label: "Crypto",
-    description: "Bitcoin, Ethereum, and Solana",
-    positions: [
-      { ticker: "BTC-USD", shares: 0.25 },
-      { ticker: "ETH-USD", shares: 2 },
-      { ticker: "SOL-USD", shares: 20 },
-    ],
+    description: "Exchanges, miners, and crypto-linked equities",
+    positions: book([
+      "COIN",
+      "MSTR",
+      "HOOD",
+      "MARA",
+      "RIOT",
+      "CLSK",
+      "IREN",
+      "WULF",
+      "PYPL",
+      "SQ",
+    ]),
   },
   {
     id: "trade-supply",
     label: "Global",
-    description: "China, Japan, and Taiwan exposure",
-    positions: [
-      { ticker: "MCHI", shares: 30 },
-      { ticker: "EWJ", shares: 25 },
-      { ticker: "EWT", shares: 25 },
-    ],
+    description: "US-listed global leaders and ADRs",
+    positions: book([
+      "TSM",
+      "ASML",
+      "NVO",
+      "SAP",
+      "TM",
+      "SONY",
+      "BABA",
+      "PDD",
+      "MELI",
+      "UL",
+    ]),
   },
   {
     id: "consumer-demand",
     label: "Sector Leadership",
-    description: "Tech, discretionary, and financials",
-    positions: [
-      { ticker: "XLK", shares: 20 },
-      { ticker: "XLY", shares: 20 },
-      { ticker: "XLF", shares: 25 },
-    ],
+    description: "Tech, discretionary, and financial leaders",
+    positions: book([
+      "AAPL",
+      "MSFT",
+      "AMZN",
+      "TSLA",
+      "NFLX",
+      "JPM",
+      "V",
+      "MA",
+      "COST",
+      "WMT",
+    ]),
   },
 ];
