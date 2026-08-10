@@ -33,9 +33,25 @@
   color: var(--on-ink);
 }
 
+/* Match .app-shell mobile gutters (12px) so the navy bleed stays flush,
+   then keep inner content padding tighter than the rest of the app. */
+@media (max-width: 767px) {
+  .company-detail-page {
+    margin-inline: -12px;
+    padding: 0 8px 16px;
+    min-height: calc(100vh - 96px);
+  }
+}
+
 @supports (min-height: 100dvh) {
   .company-detail-page {
     min-height: calc(100dvh - 110px);
+  }
+
+  @media (max-width: 767px) {
+    .company-detail-page {
+      min-height: calc(100dvh - 96px);
+    }
   }
 }
 
@@ -464,6 +480,46 @@
 @media (max-width: 640px) {
   .company-dashboard {
     gap: 8px;
+  }
+
+  .company-briefing {
+    gap: 8px;
+  }
+
+  .company-briefing .company-driver-module .signal-block {
+    padding: 10px 11px;
+  }
+
+  .company-briefing .company-driver-module .signal-block-conclusion {
+    font-size: 0.94rem;
+    line-height: 1.28;
+  }
+
+  .company-briefing .company-driver-module .signal-block-list {
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+
+  .company-briefing .company-driver-module .signal-block-list li {
+    font-size: 0.74rem;
+  }
+
+  .company-briefing .evidence-carousel {
+    gap: 8px;
+  }
+
+  .company-briefing .evidence-carousel-track.bcn-list {
+    gap: 10px;
+    padding: 0 0 2px;
+  }
+
+  .company-briefing .evidence-carousel-card-inner {
+    padding: 12px;
+  }
+
+  .company-briefing .evidence-carousel-lane {
+    gap: 6px;
+    padding: 7px 8px;
   }
 
   .detail-pages-header {

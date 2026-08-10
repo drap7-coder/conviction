@@ -102,7 +102,8 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
         driver,
         headlines,
         absChangePercent,
-        showBadge: true,
+        // Badge lives on CompanyQuoteCard so the headline stays full-width.
+        showBadge: false,
       }),
     [ticker, companyName, driver, headlines, absChangePercent],
   );
@@ -143,7 +144,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
         driver={driver}
         headlines={headlines}
         absChangePercent={absChangePercent}
-        showBadge={true}
+        showBadge={false}
         showWhy={false}
         eyebrow={null}
       />
