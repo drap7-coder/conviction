@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Portfolio from "@/components/Portfolio";
-import { PortfolioDataProvider, PortfolioHero } from "@/components/PortfolioData";
+import { PortfolioDataProvider } from "@/components/PortfolioData";
 
 export const metadata: Metadata = {
   title: "Portfolio",
@@ -15,8 +15,7 @@ export default function PortfolioPage() {
   return (
     <div className="portfolio-page">
       <PortfolioDataProvider>
-        <PortfolioHero />
-        <Portfolio hideHero composeFirst />
+        <Portfolio composeFirst />
       </PortfolioDataProvider>
     </div>
   );
