@@ -90,7 +90,7 @@ export function CompanyQuoteCard({
     : "";
 
   return (
-    <section className="company-quote-card" aria-label={`${ticker} quote and chart`}>
+    <section className="company-quote-card ink-panel" aria-label={`${ticker} quote and chart`}>
       <header className="company-quote-top">
         <div className="company-quote-identity">
           {logoUrl ? (
@@ -115,8 +115,11 @@ export function CompanyQuoteCard({
         </div>
 
         <div className="company-quote-price" aria-label={`${ticker} price`}>
-          <span className={`evidence-live-pill${loading ? " is-updating" : ""}`}>
-            <i aria-hidden="true" />
+          <span className={`evidence-live-pill company-live-pill${loading ? " is-updating" : ""}`}>
+            <span className="company-live-dot" aria-hidden="true">
+              <i className="company-live-ping" />
+              <i className="company-live-core" />
+            </span>
             {loading ? "Updating" : "Live"}
           </span>
           {loading ? (

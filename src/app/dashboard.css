@@ -1,5 +1,53 @@
 /* ── Company Detail Dashboard ── */
 
+/* Full-page dark navy surface — matches ink-panel / Watchlist dark cards. */
+.company-detail-page {
+  --ink: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --quiet: var(--on-ink-quiet);
+  --border: var(--on-ink-border);
+  --border-active: color-mix(in srgb, #ffffff 20%, transparent);
+  --divider: color-mix(in srgb, #ffffff 10%, transparent);
+  --card: var(--ink-panel-elevated);
+  --card-soft: color-mix(in srgb, #ffffff 5%, var(--ink-panel));
+  --card-inset: color-mix(in srgb, #ffffff 7%, var(--ink-panel));
+  --card-accent: var(--card-inset);
+  --accent: var(--on-ink-accent);
+  --accent-dim: color-mix(in srgb, var(--on-ink-accent) 14%, transparent);
+  --green: var(--on-ink-green);
+  --green-dim: color-mix(in srgb, var(--on-ink-green) 14%, transparent);
+  --red: var(--on-ink-red);
+  --red-dim: color-mix(in srgb, var(--on-ink-red) 14%, transparent);
+  --amber: var(--on-ink-amber);
+  --amber-dim: color-mix(in srgb, var(--on-ink-amber) 14%, transparent);
+  --positive: var(--on-ink-green);
+  --negative: var(--on-ink-red);
+  --chart-surface: color-mix(in srgb, #ffffff 4%, transparent);
+  --chart-grid: color-mix(in srgb, #ffffff 10%, transparent);
+  --chart-border: var(--on-ink-border);
+
+  margin-inline: -26px;
+  padding: 4px 26px 28px;
+  min-height: calc(100vh - 110px);
+  background: var(--ink-panel);
+  color: var(--on-ink);
+}
+
+@supports (min-height: 100dvh) {
+  .company-detail-page {
+    min-height: calc(100dvh - 110px);
+  }
+}
+
+.company-detail-page .detail-back {
+  color: var(--on-ink-muted);
+}
+
+.company-detail-page .detail-back:hover,
+.company-detail-page .detail-back:focus-visible {
+  color: var(--on-ink);
+}
+
 .company-dashboard {
   display: grid;
   gap: 10px;
