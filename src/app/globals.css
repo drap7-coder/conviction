@@ -11936,8 +11936,9 @@ a.pulse-news-headline:hover {
   margin: 10px 12px 0;
   padding: 8px;
   border-radius: 12px;
-  background: #f4f5f7;
-  border: 1px solid var(--border);
+  /* Black well so dark heat tiles stand out (not a pale pad). */
+  background: #0a0a0b;
+  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
   overflow: visible;
 }
 
@@ -12241,15 +12242,15 @@ a.pulse-news-headline:hover {
   margin: 10px 12px 0;
   padding: 8px;
   border-radius: 12px;
-  background: #f4f5f7;
-  border: 1px solid var(--border);
+  background: #0a0a0b;
+  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
 }
 
 .stock-heat-loading-tile {
   height: 7rem;
-  border: 1px solid color-mix(in srgb, #111318 8%, transparent);
+  border: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
   border-radius: 12px;
-  background: linear-gradient(110deg, #e5e7eb 18%, #f3f4f6 42%, #e5e7eb 66%);
+  background: linear-gradient(110deg, #1a1a1c 18%, #262628 42%, #1a1a1c 66%);
   background-size: 220% 100%;
   animation: stock-heat-shimmer 1.35s linear infinite;
 }
