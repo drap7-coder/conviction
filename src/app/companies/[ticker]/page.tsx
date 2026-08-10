@@ -81,7 +81,7 @@ export default async function CompanyPage({
   };
 
   return (
-    <div>
+    <div className="company-detail-page">
       <script
         type="application/ld+json"
         suppressHydrationWarning
