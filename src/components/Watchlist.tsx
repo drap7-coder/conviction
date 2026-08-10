@@ -8,6 +8,7 @@ import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
@@ -512,6 +513,7 @@ export default function Watchlist({
           title="Watchlist"
           subtitle=""
           loading={loading}
+          liveCards
           sessionLabel={
             entries
               .map((entry) => {
@@ -523,12 +525,21 @@ export default function Watchlist({
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;
+            const price = live?.price ?? quote?.price ?? null;
+            const previousClose =
+              quote?.previousClose
+              ?? (price != null && quote?.change != null ? price - quote.change : null);
             return {
               ticker: entry.ticker,
               name: entry.companyName,
-              price: live?.price ?? quote?.price ?? null,
+              price,
               changePercent: live?.changePercent ?? quote?.changePercent ?? null,
               marketCap: quote?.marketCap ?? null,
+              sparkline: sparklineValuesFromQuote({
+                sparkline: quote?.sparkline,
+                price,
+                previousClose,
+              }),
             };
           })}
           footer={children}

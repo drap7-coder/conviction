@@ -86,10 +86,13 @@ export function WatchlistCard({
   convictionTone,
   convictionStrength,
   scoreLoading = false,
+  sparklinePath,
+  sparklineDirection,
   onRemove,
   isRemoving,
   isFocused,
 }: WatchlistCardProps) {
+  void change;
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
   const dayChangeClass = changeToneClass(changePercent);
   const closeChangeClass = changeToneClass(closeChangePercent);
@@ -100,6 +103,10 @@ export function WatchlistCard({
         ? "negative"
         : "quiet",
   );
+  const accent =
+    sparklineDirection === "positive" ? "up"
+      : sparklineDirection === "negative" ? "down"
+        : "flat";
 
   const ring = ringFromComposite({
     tone: convictionTone,
@@ -109,14 +116,33 @@ export function WatchlistCard({
 
   const [swipeOffset, setSwipeOffset] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
+  const [flashing, setFlashing] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
+  const prevChangeRef = useRef<number | null | undefined>(changePercent);
   const SWIPE_THRESHOLD = 80;
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const kebabRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const prev = prevChangeRef.current;
+    prevChangeRef.current = changePercent;
+    if (prev === undefined || prev === changePercent) return;
+    if (
+      (prev == null && changePercent == null)
+      || (typeof prev === "number"
+        && typeof changePercent === "number"
+        && Math.abs(prev - changePercent) < 0.0001)
+    ) {
+      return;
+    }
+    setFlashing(true);
+    const timer = window.setTimeout(() => setFlashing(false), 360);
+    return () => window.clearTimeout(timer);
+  }, [changePercent]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -198,9 +224,15 @@ export function WatchlistCard({
       <div className="terminal-card-inner" style={innerStyle}>
         <Link
           href={`/companies/${ticker}`}
-          className={`wl-ring-row ${inkBoxClass(moveTone)}${isFocused ? " focused-card" : ""}`}
+          className={`wl-ring-row wl-ring-row--live wl-ring-row--${accent} ${inkBoxClass(moveTone)}${isFocused ? " focused-card" : ""}${flashing ? " is-updating" : ""}`}
           title={`${companyName} — open dashboard`}
         >
+          <span className="wl-ring-glow" aria-hidden="true" />
+          <span className="wl-ring-live-dot" aria-hidden="true">
+            <i className="wl-ring-live-ping" />
+            <i className="wl-ring-live-core" />
+          </span>
+
           <div className="wl-ring-row-main">
             <div className="wl-ring-identity">
               <strong className="wl-ring-ticker">{ticker}</strong>
@@ -219,6 +251,13 @@ export function WatchlistCard({
               <span className={`${inkChipClass(moveTone)} wl-ring-day-change`}>
                 {formatPercent(changePercent)}
               </span>
+              {sparklinePath ? (
+                <div className={`wl-ring-sparkline tone-${sparklineDirection}`} aria-hidden="true">
+                  <svg viewBox="0 0 120 36" preserveAspectRatio="none">
+                    <path d={sparklinePath} fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              ) : null}
               {hasExtendedSession ? (
                 <span className={`wl-ring-at-close ${closeChangeClass}`}>
                   At close ${formatPrice(closePrice)}
