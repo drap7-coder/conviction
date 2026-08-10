@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import Link from "next/link";
 import {
   heatBand,
@@ -8,6 +8,12 @@ import {
   heatTileColor,
   type HeatBand,
 } from "@/lib/display/heat-color";
+import {
+  buildSparklineGeometry,
+  sparklineGlow,
+  sparklineStroke,
+  sparklineToneFromChange,
+} from "@/lib/display/sparkline";
 
 export interface HeatTileProps {
   /** Primary large label — instrument/company name. */
@@ -20,12 +26,26 @@ export interface HeatTileProps {
   href?: string | null;
   className?: string;
   style?: CSSProperties;
+  /**
+   * Live polish for watchlist-style cards: ambient glow, ping, hover lift,
+   * update flash, and optional sparkline. Off by default so Portfolio / Pulse
+   * grids stay unchanged unless they opt in.
+   */
+  live?: boolean;
+  /** Recent closes (≈15) for the sparkline — from quote poll, not a new API. */
+  sparkline?: number[] | null;
 }
 
 function fmtPct(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return "—";
   if (Math.abs(value) < 0.05) return "FLAT";
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
+}
+
+function accentFromBand(band: HeatBand): "up" | "down" | "flat" {
+  if (band.startsWith("up")) return "up";
+  if (band.startsWith("down")) return "down";
+  return "flat";
 }
 
 /** Shared magnitude-scaled heat tile — dark fill + name + ticker + % chip. */
@@ -37,25 +57,106 @@ export function HeatTile({
   href = null,
   className,
   style,
+  live = false,
+  sparkline = null,
 }: HeatTileProps) {
   const band: HeatBand = heatBand(changePercent);
+  const accent = accentFromBand(band);
   const chip = heatChipColors(changePercent);
+  const tone = sparklineToneFromChange(changePercent);
+  const [flashing, setFlashing] = useState(false);
+  const prevChangeRef = useRef<number | null | undefined>(changePercent);
+
+  useEffect(() => {
+    if (!live) return;
+    const prev = prevChangeRef.current;
+    prevChangeRef.current = changePercent;
+    if (prev === undefined) return;
+    if (prev === changePercent) return;
+    if (
+      (prev == null && changePercent == null)
+      || (typeof prev === "number"
+        && typeof changePercent === "number"
+        && Math.abs(prev - changePercent) < 0.0001)
+    ) {
+      return;
+    }
+    setFlashing(true);
+    const timer = window.setTimeout(() => setFlashing(false), 360);
+    return () => window.clearTimeout(timer);
+  }, [changePercent, live]);
+
+  const geometry = useMemo(
+    () => (live && sparkline && sparkline.length >= 2
+      ? buildSparklineGeometry(sparkline, 120, 36)
+      : null),
+    [live, sparkline],
+  );
+
   const classes = [
     "heat-tile",
     `heat-tile-${band}`,
+    live ? "heat-tile--live" : null,
+    live ? `heat-tile--${accent}` : null,
+    flashing ? "is-updating" : null,
     className,
   ].filter(Boolean).join(" ");
+
   const tileStyle: CSSProperties = {
     ...style,
     background: heatTileColor(changePercent),
+    ...(live
+      ? ({
+          "--heat-glow": sparklineGlow(tone),
+          "--heat-accent": sparklineStroke(tone),
+        } as CSSProperties)
+      : null),
   };
 
-  const body = (
+  const body: ReactNode = (
     <>
+      {live ? (
+        <>
+          <span className="heat-tile-glow" aria-hidden="true" />
+          <span className="heat-tile-live-dot" aria-hidden="true">
+            <i className="heat-tile-live-ping" />
+            <i className="heat-tile-live-core" />
+          </span>
+        </>
+      ) : null}
+
       <span className="heat-tile-copy">
         <span className="heat-tile-name">{label}</span>
         {subtitle ? <span className="heat-tile-symbol">{subtitle}</span> : null}
       </span>
+
+      {geometry ? (
+        <svg
+          className={`heat-tile-sparkline tone-${tone}`}
+          viewBox="0 0 120 36"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <path
+            className="heat-tile-sparkline-line"
+            d={geometry.path}
+            fill="none"
+            stroke={sparklineStroke(tone)}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          <circle
+            className="heat-tile-sparkline-dot"
+            cx={geometry.lastX}
+            cy={geometry.lastY}
+            r="2.4"
+            fill={sparklineStroke(tone)}
+          />
+        </svg>
+      ) : null}
+
       <strong
         className="heat-tile-pct"
         style={{ background: chip.background, color: chip.color }}

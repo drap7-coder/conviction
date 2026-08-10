@@ -23,6 +23,8 @@ export interface StockHeatmapItem {
   marketCap: number | null;
   sizeValue?: number | null;
   sizeLabel?: string;
+  /** Recent closes for live sparkline tiles (watchlist). */
+  sparkline?: number[] | null;
 }
 
 interface StockHeatmapProps {
@@ -34,6 +36,11 @@ interface StockHeatmapProps {
   sessionLabel?: string | null;
   /** Context feed nested under the tiles inside the white shell (e.g. What’s changing). */
   footer?: ReactNode;
+  /**
+   * Opt into live tile polish (glow, ping, sparkline, update flash).
+   * Watchlist uses this; Portfolio leaves it off.
+   */
+  liveCards?: boolean;
 }
 
 function tileSpan(marketCap: number | null, maxMarketCap: number): number {
@@ -89,6 +96,7 @@ export function StockHeatmap({
   loading = false,
   sessionLabel = null,
   footer = null,
+  liveCards = false,
 }: StockHeatmapProps) {
   const footerSlot = footer ? (
     <div className="stock-heat-footer">{footer}</div>
@@ -133,6 +141,8 @@ export function StockHeatmap({
               href={companyDetailHref(item.ticker)}
               ariaLabel={`${item.name}, ${item.ticker}, ${item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(1)}%`}`}
               style={{ gridColumn: `span ${span} / span ${span}` }}
+              live={liveCards}
+              sparkline={item.sparkline ?? null}
             />
           );
         })}
