@@ -33,11 +33,12 @@
   color: var(--on-ink);
 }
 
-/* Match .app-shell mobile gutters (12px) so the navy bleed stays flush. */
+/* Match .app-shell mobile gutters (12px) so the navy bleed stays flush,
+   then keep inner content padding tighter than the rest of the app. */
 @media (max-width: 767px) {
   .company-detail-page {
     margin-inline: -12px;
-    padding: 2px 12px 18px;
+    padding: 0 8px 16px;
     min-height: calc(100vh - 96px);
   }
 }
