@@ -37,7 +37,7 @@ describe("move driver brief", () => {
           date: "2026-08-02",
         },
         {
-          headline: "Analysts lift GOOG targets on AI spend",
+          headline: "Alphabet (GOOG) earnings beat estimates on AI spend",
           url: "https://example.com/b",
           date: "2026-08-02",
         },
@@ -57,6 +57,8 @@ describe("move driver brief", () => {
     expect(view.headlines).toHaveLength(2);
     expect(view.headlines[0]?.url).toBe("https://example.com/b");
     expect(view.conclusion).not.toMatch(/AI positioning|Execution/i);
+    // Catalyst kind only — never the vague theme driver label.
+    expect(view.badge).toEqual({ label: "Earnings today", tone: "contested" });
   });
 
   it("fills to three headlines with slightly older siblings when the lead is fresh", () => {

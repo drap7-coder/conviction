@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CompanyQuoteCard } from "@/app/components/CompanyQuoteCard";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
+import { RelatedCompanies } from "@/app/components/RelatedCompanies";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
@@ -113,6 +114,8 @@ export default async function CompanyPage({
                 logoUrl={getLogoUrl(upperTicker) ?? null}
               />
             ) : null}
+            {/* 4. Related companies — room under the signals carousel */}
+            <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
           </>
         }
       />

@@ -102,7 +102,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
         driver,
         headlines,
         absChangePercent,
-        showBadge: false,
+        showBadge: true,
       }),
     [ticker, companyName, driver, headlines, absChangePercent],
   );
@@ -143,7 +143,7 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
         driver={driver}
         headlines={headlines}
         absChangePercent={absChangePercent}
-        showBadge={false}
+        showBadge={true}
         showWhy={false}
         eyebrow={null}
       />
