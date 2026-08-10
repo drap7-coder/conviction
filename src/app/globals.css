@@ -391,7 +391,7 @@ details > summary::before {
   min-height: 100vh;
   max-width: 960px;
   margin: 0 auto;
-  padding: 22px 26px calc(
+  padding: 0 26px calc(
     var(--bottom-tab-height) + var(--mobile-page-gutter) + env(safe-area-inset-bottom)
   );
 }
@@ -436,13 +436,21 @@ details > summary::before {
 }
 
 .app-header {
+  /* Stick under the scrollport top — StockTwits-style chrome that stays put. */
+  position: sticky;
+  top: 0;
+  z-index: calc(var(--ticker-z) - 10);
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 16px;
+  margin-inline: -26px;
   margin-bottom: 14px;
+  padding: 18px 26px 14px;
   border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 @media (min-width: 641px) {
@@ -610,7 +618,7 @@ details > summary::before {
 
 .bottom-tab-bar {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   position: fixed;
   bottom: 0;
   left: 0;
@@ -619,7 +627,7 @@ details > summary::before {
   align-items: stretch;
   justify-items: stretch;
   min-height: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
-  padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
   backdrop-filter: blur(12px);
@@ -684,9 +692,9 @@ details > summary::before {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 6px 10px;
+  padding: 6px 8px;
   border-radius: 6px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--quiet);
   text-decoration: none;
@@ -7949,12 +7957,13 @@ details > summary::before {
 
 @media (max-width: 767px) {
   .app-shell {
-    padding: 12px 12px var(--mobile-page-gutter);
+    padding: 0 12px var(--mobile-page-gutter);
   }
 
   .app-header {
     display: block;
-    padding-bottom: 12px;
+    margin-inline: -12px;
+    padding: 10px 12px 10px;
   }
 
   .header-brand-row {
@@ -12976,20 +12985,20 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   }
 
   .bottom-tab-bar {
-    padding-inline: 6px;
+    padding-inline: 2px;
     gap: 0;
   }
 
   .bottom-tab-item {
-    gap: 3px;
-    padding: 4px 2px;
+    gap: 2px;
+    padding: 4px 1px;
     min-height: 44px;
     justify-content: center;
   }
 
   .bottom-tab-label {
-    font-size: 0.58rem;
-    letter-spacing: 0.01em;
+    font-size: 0.52rem;
+    letter-spacing: 0;
   }
 }
 
