@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
@@ -400,6 +400,25 @@ export function ConvictionSignalsCard({
   const [filingLanes, setFilingLanes] = useState<EvidenceLane[]>(initialFilingLanes);
   const [coreLoading, setCoreLoading] = useState(true);
   const [openLane, setOpenLane] = useState<EvidenceLaneId | null>(null);
+  const [activeGroup, setActiveGroup] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const cardRefs = useRef<Array<HTMLElement | null>>([]);
+  const activeGroupRef = useRef(0);
+
+  const selectGroup = (index: number, opts?: { scroll?: boolean }) => {
+    if (activeGroupRef.current !== index) {
+      activeGroupRef.current = index;
+      setActiveGroup(index);
+      setOpenLane(null);
+    }
+    if (opts?.scroll) {
+      cardRefs.current[index]?.scrollIntoView({
+        behavior: "smooth",
+        inline: "start",
+        block: "nearest",
+      });
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -409,6 +428,8 @@ export function ConvictionSignalsCard({
     setFilingLanes(initialFilingLanes());
     setCoreLoading(true);
     setOpenLane(null);
+    activeGroupRef.current = 0;
+    setActiveGroup(0);
 
     async function loadCore() {
       try {
@@ -451,6 +472,37 @@ export function ConvictionSignalsCard({
     };
   }, [ticker]);
 
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const cards = cardRefs.current.filter(Boolean) as HTMLElement[];
+    if (cards.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        let best: { index: number; ratio: number } | null = null;
+        for (const entry of entries) {
+          const index = cards.indexOf(entry.target as HTMLElement);
+          if (index < 0) continue;
+          if (!best || entry.intersectionRatio > best.ratio) {
+            best = { index, ratio: entry.intersectionRatio };
+          }
+        }
+        if (best && best.ratio > 0.45) {
+          selectGroup(best.index);
+        }
+      },
+      {
+        root: track,
+        threshold: [0.35, 0.5, 0.65, 0.8],
+      },
+    );
+
+    for (const card of cards) observer.observe(card);
+    return () => observer.disconnect();
+  }, [ticker, filingLanes, core]);
+
   const lanesById = useMemo(() => {
     const map = new Map<EvidenceLaneId, EvidenceLane>();
     for (const signal of core) {
@@ -473,6 +525,7 @@ export function ConvictionSignalsCard({
   );
 
   const anyLoading = coreLoading || filingLanes.some((lane) => lane.status === "loading");
+  const openDetail = openLane ? lanesById.get(openLane) : null;
 
   return (
     <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
@@ -487,72 +540,109 @@ export function ConvictionSignalsCard({
         logoUrl={logoUrl}
       />
 
-      <div className="evidence-groups">
-        {EVIDENCE_GROUPS.map((group) => {
-          const groupLanes = group.laneIds
-            .map((id) => lanesById.get(id))
-            .filter((lane): lane is EvidenceLane => Boolean(lane));
-          if (groupLanes.length === 0) return null;
+      <div
+        className="evidence-carousel"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Signal categories"
+      >
+        <div className="evidence-carousel-track bcn-list" ref={trackRef}>
+          {EVIDENCE_GROUPS.map((group, groupIndex) => {
+            const groupLanes = group.laneIds
+              .map((id) => lanesById.get(id))
+              .filter((lane): lane is EvidenceLane => Boolean(lane));
+            if (groupLanes.length === 0) return null;
 
-          return (
-            <section className="evidence-group" key={group.id} aria-label={group.label}>
-              <h3 className="evidence-group-label">{group.label}</h3>
-              <ul className="evidence-lane-list">
-                {groupLanes.map((lane) => {
-                  const isOpen = openLane === lane.id;
-                  const isLoadingRow = lane.status === "loading";
-                  const tone = lane.semantic === "loading" || lane.semantic === "unavailable"
-                    ? "quiet"
-                    : lane.semantic;
-                  return (
-                    <li key={lane.id}>
-                      <details
-                        className={`evidence-lane tone-${tone}${isLoadingRow ? " is-loading" : ""}`}
-                        open={isOpen}
-                      >
-                        <summary
-                          className="evidence-lane-summary"
-                          onClick={(event) => {
-                            event.preventDefault();
-                            if (isLoadingRow) return;
-                            setOpenLane((current) => (current === lane.id ? null : lane.id));
-                          }}
-                        >
-                          <span className="evidence-lane-name">{lane.label}</span>
-                          <span className="evidence-lane-row">
-                            <span className="evidence-lane-icon" aria-hidden="true">{lane.icon}</span>
-                            <span className="evidence-lane-main">
-                              {isLoadingRow ? (
-                                <span className="evidence-lane-fact evidence-lane-fact-skeleton" />
-                              ) : (
-                                <span className="evidence-lane-copy">
-                                  <span className="evidence-lane-fact">{lane.primary}</span>
-                                  {lane.secondary ? (
-                                    <span className="evidence-lane-secondary">{lane.secondary}</span>
-                                  ) : null}
-                                </span>
-                              )}
+            const counts = countEvidenceSemantics(groupLanes.map((lane) => lane.semantic));
+            const overall = compositeEvidenceLabel(counts);
+
+            return (
+              <article
+                key={group.id}
+                ref={(el) => {
+                  cardRefs.current[groupIndex] = el;
+                }}
+                className={`evidence-carousel-card bcn-item${activeGroup === groupIndex ? " is-active" : ""}`}
+                aria-label={group.label}
+                aria-current={activeGroup === groupIndex ? "true" : undefined}
+                onFocusCapture={() => selectGroup(groupIndex)}
+              >
+                <div className="evidence-carousel-card-inner ink-box ink-box--quiet">
+                  <header className="evidence-carousel-card-header">
+                    <h3 className="evidence-carousel-card-title">{group.label}</h3>
+                    <span className={`evidence-status-pill tone-${overall}`}>
+                      {evidenceStatusLabel(overall)}
+                    </span>
+                  </header>
+                  <ul className="evidence-carousel-lanes">
+                    {groupLanes.map((lane) => {
+                      const isOpen = openLane === lane.id;
+                      const isLoadingRow = lane.status === "loading";
+                      const tone = lane.semantic === "loading" || lane.semantic === "unavailable"
+                        ? "quiet"
+                        : lane.semantic;
+                      return (
+                        <li key={lane.id}>
+                          <button
+                            type="button"
+                            className={`evidence-carousel-lane tone-${tone}${isOpen ? " is-open" : ""}${isLoadingRow ? " is-loading" : ""}`}
+                            disabled={isLoadingRow}
+                            aria-expanded={isOpen}
+                            onClick={() => {
+                              selectGroup(groupIndex);
+                              setOpenLane((current) => (current === lane.id ? null : lane.id));
+                            }}
+                          >
+                            <span className="evidence-carousel-lane-label">{lane.label}</span>
+                            <span className="evidence-carousel-lane-fact">
+                              {isLoadingRow ? "Checking…" : lane.primary}
                             </span>
-                            <span className="evidence-lane-fill">
-                              <span className={`evidence-status-pill tone-${tone}`}>
-                                {evidenceStatusLabel(lane.semantic)}
-                              </span>
-                              <span className="evidence-lane-chevron" aria-hidden="true">›</span>
+                            <span className={`evidence-status-pill tone-${tone}`}>
+                              {evidenceStatusLabel(lane.semantic)}
                             </span>
-                          </span>
-                        </summary>
-                        <div className="evidence-lane-panel">
-                          {isOpen ? laneDetail(lane.id, ticker) : null}
-                        </div>
-                      </details>
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-          );
-        })}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="evidence-carousel-dots" role="tablist" aria-label="Signal categories">
+          {EVIDENCE_GROUPS.map((group, index) => (
+            <button
+              key={group.id}
+              type="button"
+              role="tab"
+              aria-label={group.label}
+              aria-selected={activeGroup === index}
+              className={`evidence-carousel-dot${activeGroup === index ? " is-active" : ""}`}
+              onClick={() => selectGroup(index, { scroll: true })}
+            />
+          ))}
+        </div>
       </div>
+
+      {openDetail && openLane ? (
+        <div className="evidence-carousel-detail" aria-label={`${openDetail.label} detail`}>
+          <div className="evidence-carousel-detail-bar">
+            <strong>{openDetail.label}</strong>
+            <button
+              type="button"
+              className="evidence-carousel-detail-close"
+              onClick={() => setOpenLane(null)}
+            >
+              Close
+            </button>
+          </div>
+          <div className="evidence-lane-panel evidence-carousel-detail-body">
+            {laneDetail(openLane, ticker)}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

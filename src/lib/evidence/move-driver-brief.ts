@@ -172,16 +172,11 @@ export function buildMoveDriverView(input: BuildMoveDriverViewInput): MoveDriver
   const lead = stacked[0]!;
   const more = stacked.slice(1);
 
-  const themeLabel = primaryDriverLabel(driver);
-  const badge = showBadge
-    ? (catalyst
-      ? { label: catalyst.label, tone: catalyst.tone }
-      : themeLabel
-        ? { label: themeLabel, tone: "contested" }
-        : null)
-    : (themeLabel && !catalyst
-      ? { label: themeLabel, tone: "contested" }
-      : null);
+  // One intentional pill: catalyst kind only (Earnings, Analyst upgrade, …).
+  // Never promote vague theme labels into the badge.
+  const badge = showBadge && catalyst
+    ? { label: catalyst.label, tone: catalyst.tone }
+    : null;
 
   return {
     mode: "catalyst",
