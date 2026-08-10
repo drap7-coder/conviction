@@ -12,6 +12,7 @@ describe("industry mapping", () => {
   it("resolves a company through the shared sector definitions", () => {
     expect(getSectorForCompany("INTC")?.ticker).toBe("XLK");
     expect(getSectorForCompany("oxy")?.ticker).toBe("XLE");
+    expect(getSectorForCompany("JNJ")?.name).toBe("Health Care");
   });
 
   it("returns undefined for an unmapped company", () => {
