@@ -1701,6 +1701,78 @@ details > summary::before {
   margin: 0;
 }
 
+/* Always-on portfolio book switcher — quiet segmented control. */
+.pf-book-switch {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+
+.pf-book-switch-header {
+  display: grid;
+  gap: 2px;
+}
+
+.pf-book-switch-label {
+  margin: 0;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pf-book-switch-lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.pf-book-switch-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.pf-book-switch-tab {
+  margin: 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.pf-book-switch-tab:hover,
+.pf-book-switch-tab:focus-visible {
+  border-color: color-mix(in srgb, var(--ink) 28%, var(--border));
+  color: var(--ink);
+  outline: none;
+}
+
+.pf-book-switch-tab.is-active {
+  border-color: color-mix(in srgb, var(--ink) 55%, var(--border));
+  background: var(--ink);
+  color: var(--on-ink, #fff);
+}
+
+.pf-book-switch-tab:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* Legacy empty-state sample chips (kept for any residual empty layouts). */
 .pf-sample-picker {
   display: grid;
   gap: 8px;
@@ -1763,9 +1835,10 @@ details > summary::before {
   white-space: nowrap;
 }
 
-.pf-empty .pf-sample-picker {
+.pf-empty .pf-sample-picker,
+.pf-empty .pf-book-switch {
   max-width: 42rem;
-  margin: 18px auto 0;
+  margin: 0 auto 12px;
   text-align: left;
 }
 
@@ -6174,6 +6247,69 @@ details > summary::before {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 28px;
+}
+
+.pf-exposure-card .pf-sector-mix {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.pf-sector-mix {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pf-sector-mix-row {
+  display: grid;
+  gap: 5px;
+}
+
+.pf-sector-mix-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pf-sector-mix-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+.pf-sector-mix-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.pf-sector-mix-pct {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.pf-sector-mix-track {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  overflow: hidden;
+}
+
+.pf-sector-mix-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.35s ease;
 }
 
 .pf-exposure-card .pf-donut-legend {

@@ -1,5 +1,9 @@
 import { fetchWithTimeout } from "@/lib/request-timeout";
-import { getSectorByTicker, getSectorForCompany } from "@/lib/market/industries";
+import {
+  getSectorByTicker,
+  getSectorForCompany,
+  normalizeSectorName,
+} from "@/lib/market/industries";
 
 const YAHOO_BASE = "https://query1.finance.yahoo.com";
 
@@ -43,7 +47,9 @@ function toFiniteNumber(value: unknown): number | null {
  */
 export async function fetchSectorProfile(ticker: string): Promise<SectorProfile | null> {
   const upper = ticker.trim().toUpperCase();
-  const fallbackSector = getSectorForCompany(upper)?.name ?? getSectorByTicker(upper)?.name ?? null;
+  const fallbackSector = normalizeSectorName(
+    getSectorForCompany(upper)?.name ?? getSectorByTicker(upper)?.name ?? null,
+  );
   const url = `${YAHOO_BASE}/v10/finance/quoteSummary/${encodeURIComponent(upper)}?modules=assetProfile%2Cprice`;
 
   try {
@@ -63,7 +69,7 @@ export async function fetchSectorProfile(ticker: string): Promise<SectorProfile 
 
     return {
       ticker: upper,
-      sector: profile?.sector ?? fallbackSector,
+      sector: normalizeSectorName(profile?.sector) ?? fallbackSector,
       industry: profile?.industry ?? null,
       longName: price?.longName ?? null,
       marketCap: toFiniteNumber(price?.marketCap?.raw),

@@ -8,13 +8,21 @@ import {
   computeSectorAllocation,
   computeRiskFlags,
 } from "@/lib/portfolio/calculations";
-import { SAMPLE_PORTFOLIO_BOOKS, type SampleBook } from "@/lib/portfolio/sample-books";
+import {
+  SAMPLE_PORTFOLIO_BOOKS,
+  SAMPLE_BOOK_TARGET_VALUE,
+  equalWeightPositions,
+  loadActiveSampleBookId,
+  saveActiveSampleBookId,
+  type SampleBook,
+} from "@/lib/portfolio/sample-books";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
-import SectorDonut from "@/components/SectorDonut";
+import SectorMixBars from "@/components/SectorMixBars";
+import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
 import { isFiniteNumber } from "@/lib/display/format";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -105,25 +113,47 @@ function enrichWithPrices(
   });
 }
 
-function SampleBooksPicker({ onSelect }: { onSelect: (book: SampleBook) => void }) {
+function SampleBooksSwitcher({
+  activeId,
+  onSelect,
+  disabled = false,
+}: {
+  activeId: string | null;
+  onSelect: (book: SampleBook) => void;
+  disabled?: boolean;
+}) {
+  const active = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeId) ?? null;
+
   return (
-    <div className="pf-sample-picker" aria-label="Sample theme portfolios">
-      <p className="pf-sample-picker-label">Sample portfolios</p>
-      <div className="pf-sample-chips">
-        {SAMPLE_PORTFOLIO_BOOKS.map((book) => (
-          <button
-            key={book.id}
-            type="button"
-            className="pf-sample-chip"
-            title={book.description}
-            onClick={() => onSelect(book)}
-          >
-            <strong>{book.label}</strong>
-            <span>{book.positions.map((p) => p.ticker).join(" · ")}</span>
-          </button>
-        ))}
+    <section className="pf-book-switch" aria-label="Sample portfolios">
+      <header className="pf-book-switch-header">
+        <p className="pf-book-switch-label">Portfolios</p>
+        <p className="pf-book-switch-lede">
+          {active
+            ? `${active.label} · $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k equal weight`
+            : `Six $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k themes — pick one to begin`}
+        </p>
+      </header>
+      <div className="pf-book-switch-tabs" role="tablist" aria-label="Choose a sample portfolio">
+        {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
+          const selected = activeId === book.id;
+          return (
+            <button
+              key={book.id}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              title={book.description}
+              disabled={disabled}
+              className={`pf-book-switch-tab${selected ? " is-active" : ""}`}
+              onClick={() => onSelect(book)}
+            >
+              {book.label}
+            </button>
+          );
+        })}
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -139,6 +169,8 @@ export default function Portfolio({
 }) {
   const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
+  const [activeBookId, setActiveBookId] = useState<string | null>(null);
+  const [loadingBook, setLoadingBook] = useState(false);
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -157,10 +189,16 @@ export default function Portfolio({
   const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
   const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
 
-  // Load positions from localStorage on mount
+  // Load positions + active book from localStorage on mount
   useEffect(() => {
     setPositions(loadPositions());
+    setActiveBookId(loadActiveSampleBookId());
   }, []);
+
+  function clearActiveBook() {
+    setActiveBookId(null);
+    saveActiveSampleBookId(null);
+  }
 
   const convictionTickerKey = positions.map((position) => position.ticker).join(",");
 
@@ -247,18 +285,22 @@ export default function Portfolio({
       const ticker = p.companyId.toUpperCase();
       if (cmap.has(ticker)) continue;
       const profile = sectorProfiles[ticker];
+      const sector =
+        normalizeSectorName(profile?.sector)
+        ?? normalizeSectorName(getSectorForCompany(ticker)?.name)
+        ?? undefined;
       cmap.set(ticker, {
         id: ticker,
         ticker,
         name: ticker,
         assetType: "stock",
-        sector: profile?.sector ?? undefined,
+        sector,
         industry: undefined,
       });
     }
     return computeSectorAllocation(enriched, cmap);
   }, [enriched, sectorProfiles]);
-  const sectorDonutData = useMemo(() => {
+  const sectorMixData = useMemo(() => {
     if (sectorAllocation.unclassifiedWeight <= 0) {
       return sectorAllocation.sectors;
     }
@@ -266,7 +308,7 @@ export default function Portfolio({
     return [
       ...sectorAllocation.sectors,
       {
-        sector: "Other",
+        sector: "Unclassified",
         weight: sectorAllocation.unclassifiedWeight,
         marketValue: sectorAllocation.unclassifiedMarketValue,
         positionCount: sectorAllocation.unclassifiedPositionCount,
@@ -379,6 +421,7 @@ export default function Portfolio({
 
     const updated = upsertPosition({ ticker, shares, averageCost: cost });
     setPositions(updated);
+    clearActiveBook();
     notifyPortfolioChanged();
     setFormTicker("");
     setFormShares("");
@@ -397,6 +440,7 @@ export default function Portfolio({
   function handleRemove(ticker: string) {
     const updated = removePosition(ticker);
     setPositions(updated);
+    clearActiveBook();
     setRemovingTicker(null);
     if (editingTicker?.toUpperCase() === ticker.toUpperCase()) {
       setEditingTicker(null);
@@ -417,17 +461,39 @@ export default function Portfolio({
   function handleClearAll() {
     savePositions([]);
     setPositions([]);
+    clearActiveBook();
     notifyPortfolioChanged();
   }
 
-  function handleLoadSample(book: SampleBook) {
-    savePositions(book.positions);
-    setPositions(book.positions);
+  async function handleLoadSample(book: SampleBook) {
+    setLoadingBook(true);
+    setError(null);
     setShowAddForm(false);
     setEditingTicker(null);
     setFormError(null);
+    setActiveBookId(book.id);
+    saveActiveSampleBookId(book.id);
+
+    const priceMap: Record<string, number | null> = {};
+    try {
+      const res = await fetch(`/api/market/quotes?tickers=${book.tickers.join(",")}`);
+      if (res.ok) {
+        const data = (await res.json()) as { quotes?: StockQuote[] };
+        for (const quote of data.quotes ?? []) {
+          const live = getLivePrice(quote);
+          priceMap[quote.ticker.toUpperCase()] = live.price ?? quote.price ?? null;
+        }
+      }
+    } catch {
+      // Fall through to placeholder sizing; quotes provider will catch up.
+    }
+
+    const sized = equalWeightPositions(book.tickers, priceMap, SAMPLE_BOOK_TARGET_VALUE);
+    savePositions(sized);
+    setPositions(sized);
     notifyPortfolioChanged();
     void refreshSharedQuotes();
+    setLoadingBook(false);
   }
 
   function handleStartEdit(ticker: string) {
@@ -522,12 +588,18 @@ export default function Portfolio({
 
   return (
     <div className="pf">
-      {loading ? <PageLoadingMotion label="Loading portfolio prices" compact /> : null}
+      {loading || loadingBook ? <PageLoadingMotion label={loadingBook ? "Sizing portfolio" : "Loading portfolio prices"} compact /> : null}
 
-      {/* Empty: samples first (above the fold), then optional Add compose. */}
-      {!hasData && !loading ? (
+      {/* Always-on book switcher — Jobs: choose once, switch anytime. */}
+      <SampleBooksSwitcher
+        activeId={activeBookId}
+        onSelect={(book) => { void handleLoadSample(book); }}
+        disabled={loadingBook}
+      />
+
+      {/* Empty: invite to pick a book or add manually. */}
+      {!hasData && !loading && !loadingBook ? (
         <div className={composeFirst ? "pf-sample-books" : "pf-empty"}>
-          <SampleBooksPicker onSelect={handleLoadSample} />
           <p className="pf-empty-text list-compose-empty-note">
             Or add a position yourself{composeFirst ? " below" : ""}.
           </p>
@@ -622,23 +694,23 @@ export default function Portfolio({
           )}
 
           {/* ── Portfolio exposure + concentration check ── */}
-          {sectorDonutData.length > 0 && (
+          {sectorMixData.length > 0 && (
             <section className="pf-section pf-exposure-card">
               <div className="pf-exposure-heading">
                 <div>
                   <span className="pf-section-eyebrow">Portfolio mix</span>
                   <h2>Where your money is</h2>
                 </div>
-                <p>Position values grouped by economic sector.</p>
+                <p>Position values by economic sector — ranked, not pie-sliced.</p>
               </div>
-              <SectorDonut sectors={sectorDonutData} />
+              <SectorMixBars sectors={sectorMixData} />
               <div className="pf-exposure-rule" aria-hidden="true" />
               <PortfolioCheckPanel riskFlags={riskFlags} embedded />
             </section>
           )}
 
           {/* Fallback when mix is unavailable but the book still needs a check. */}
-          {sectorDonutData.length === 0 && !calcFailed && hasData ? (
+          {sectorMixData.length === 0 && !calcFailed && hasData ? (
             <PortfolioCheckPanel riskFlags={riskFlags} />
           ) : null}
 
