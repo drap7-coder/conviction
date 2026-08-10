@@ -1,7 +1,5 @@
 import { fetchGoogleNewsRss, fetchRssNews } from "@/lib/evidence/news-rss";
-import { fetchWithTimeout } from "@/lib/request-timeout";
 
-const BLUESKY_SEARCH_URL = "https://api.bsky.app/xrpc/app.bsky.feed.searchPosts";
 const CACHE_SECONDS = 5 * 60;
 
 export type NarrativeHeat = "surging" | "building" | "steady" | "quiet";
@@ -128,9 +126,8 @@ export interface MarketNarrativeTheme {
   heat: NarrativeHeat;
   marketTone: NarrativeMarketTone;
   score: number;
+  /** News intensity proxy (fresh matched coverage relative to baseline). */
   velocity: number;
-  mentionsLastHour: number;
-  uniqueAuthorsLastHour: number;
   summary: string;
   /** Primary matched headline (drivers panel). */
   headline: MarketNarrativeHeadline | null;
@@ -157,10 +154,9 @@ export interface MarketNarrativePulse {
 }
 
 export interface NarrativeScoreInput {
-  mentionsLastHour: number;
-  mentionsPreviousHour: number;
-  mentionsLast24Hours: number;
-  uniqueAuthorsLastHour: number;
+  matchedHeadlines: number;
+  totalHeadlines: number;
+  freshHeadlines: number;
   assetMoves: Array<number | null>;
 }
 
@@ -169,22 +165,6 @@ export interface NarrativeScore {
   marketTone: NarrativeMarketTone;
   score: number;
   velocity: number;
-}
-
-interface BlueskyPost {
-  indexedAt?: string;
-  author?: { did?: string };
-}
-
-interface BlueskySearchResponse {
-  hitsTotal?: number;
-  posts?: BlueskyPost[];
-}
-
-interface ThemeChatterSample {
-  posts: BlueskyPost[];
-  mentionsLastHour: number;
-  mentionsLast24Hours: number;
 }
 
 function round(value: number, digits = 1): number {
@@ -196,12 +176,20 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function headlineAgeDays(isoDate: string, now: Date): number | null {
+  const parsed = new Date(isoDate);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return (now.getTime() - parsed.getTime()) / (24 * 60 * 60 * 1_000);
+}
+
+/** Rank themes from news coverage + linked-asset price reaction (no social feeds). */
 export function scoreNarrative(input: NarrativeScoreInput): NarrativeScore {
-  const current = Math.max(0, input.mentionsLastHour);
-  const day = Math.max(current, input.mentionsLast24Hours);
-  const baselineHourly = Math.max((day - current) / 23, 0.5);
-  const velocity = current === 0 ? 0 : round(clamp(current / baselineHourly, 0, 25));
-  const validMoves = input.assetMoves.filter((move): move is number => move !== null && Number.isFinite(move));
+  const matched = Math.max(0, input.matchedHeadlines);
+  const total = Math.max(0, input.totalHeadlines);
+  const fresh = Math.max(0, input.freshHeadlines);
+  const validMoves = input.assetMoves.filter(
+    (move): move is number => move !== null && Number.isFinite(move),
+  );
   const averageMove = validMoves.length
     ? validMoves.reduce((sum, move) => sum + move, 0) / validMoves.length
     : 0;
@@ -209,23 +197,32 @@ export function scoreNarrative(input: NarrativeScoreInput): NarrativeScore {
     ? validMoves.reduce((sum, move) => sum + Math.abs(move), 0) / validMoves.length
     : 0;
 
+  const velocity = total === 0
+    ? 0
+    : round(clamp((matched * 1.4 + fresh) / Math.max(total * 0.35, 1), 0, 25));
+
   let heat: NarrativeHeat = "steady";
-  if (current === 0) heat = "quiet";
-  else if (current >= 6 && input.uniqueAuthorsLastHour >= 5 && velocity >= 2.5) heat = "surging";
-  else if (current >= 3 && input.uniqueAuthorsLastHour >= 2 && velocity >= 1.4) heat = "building";
+  if (total === 0) heat = "quiet";
+  else if (matched >= 3 && fresh >= 2 && (velocity >= 2.2 || averageAbsoluteMove >= 0.9)) {
+    heat = "surging";
+  } else if (matched >= 1 && fresh >= 1) heat = "building";
+  else if (matched === 0 && fresh === 0) heat = "quiet";
 
   const marketTone: NarrativeMarketTone = averageMove > 0.45
     ? "positive"
-    : averageMove < -0.45 ? "negative" : "mixed";
-  const chatterPoints = Math.min(55, velocity * 10 + Math.log2(current + 1) * 5);
-  const breadthPoints = Math.min(20, input.uniqueAuthorsLastHour * 2);
-  const marketPoints = Math.min(25, averageAbsoluteMove * 7);
-  const score = Math.round(clamp(chatterPoints + breadthPoints + marketPoints, 0, 100));
+    : averageMove < -0.45
+      ? "negative"
+      : "mixed";
+
+  const coveragePoints = Math.min(55, matched * 9 + fresh * 6 + Math.log2(total + 1) * 4);
+  const marketPoints = Math.min(30, averageAbsoluteMove * 8);
+  const freshnessBoost = Math.min(15, fresh * 3);
+  const score = Math.round(clamp(coveragePoints + marketPoints + freshnessBoost, 0, 100));
 
   return { heat, marketTone, score, velocity };
 }
 
-function narrativeSummary(
+export function narrativeSummary(
   label: string,
   score: NarrativeScore,
   assets: NarrativeAssetMove[],
@@ -239,87 +236,15 @@ function narrativeSummary(
     : "linked markets are mixed";
 
   if (score.heat === "surging") {
-    return `${label} chatter is ${score.velocity.toFixed(1)}× normal; ${leadText}.`;
+    return `${label} leads the tape; ${leadText}.`;
   }
   if (score.heat === "building") {
-    return `${label} is gaining attention as ${leadText}.`;
+    return `${label} is in focus as ${leadText}.`;
   }
   if (score.heat === "quiet") {
-    return `Open-market chatter is quiet; ${leadText}.`;
+    return `Little fresh coverage; ${leadText}.`;
   }
-  return `${label} conversation is near baseline; ${leadText}.`;
-}
-
-function isoOffset(now: Date, milliseconds: number): string {
-  return new Date(now.getTime() - milliseconds).toISOString();
-}
-
-async function searchThemeChatter(
-  query: string,
-  since: string,
-  until: string,
-  limit: number,
-): Promise<BlueskySearchResponse> {
-  const url = new URL(BLUESKY_SEARCH_URL);
-  url.searchParams.set("q", query);
-  url.searchParams.set("sort", "latest");
-  url.searchParams.set("since", since);
-  url.searchParams.set("until", until);
-  url.searchParams.set("limit", String(limit));
-
-  const response = await fetchWithTimeout(url, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": "Conviction/1.0 (open market-narrative research)",
-    },
-    next: { revalidate: CACHE_SECONDS },
-  }, 5_000);
-  if (!response.ok) throw new Error(`Bluesky search failed with ${response.status}`);
-  return response.json() as Promise<BlueskySearchResponse>;
-}
-
-async function fetchThemeChatter(query: string, now: Date): Promise<ThemeChatterSample> {
-  const oneHourAgo = isoOffset(now, 60 * 60 * 1_000);
-  const day = await searchThemeChatter(
-    query,
-    isoOffset(now, 24 * 60 * 60 * 1_000),
-    now.toISOString(),
-    100,
-  );
-  const posts = day.posts ?? [];
-  const mentionsLastHour = posts.filter((post) => {
-    const timestamp = post.indexedAt ?? "";
-    return timestamp >= oneHourAgo && timestamp < now.toISOString();
-  }).length;
-  return {
-    posts,
-    // The latest sample caps at 100, so this is deliberately conservative for
-    // very active themes and cannot inflate a velocity spike.
-    mentionsLastHour,
-    mentionsLast24Hours: day.hitsTotal ?? posts.length,
-  };
-}
-
-function windowStats(sample: ThemeChatterSample, now: Date) {
-  const posts = sample.posts;
-  const oneHourAgo = isoOffset(now, 60 * 60 * 1_000);
-  const twoHoursAgo = isoOffset(now, 2 * 60 * 60 * 1_000);
-  const nowIso = now.toISOString();
-  const current = posts.filter((post) => {
-    const timestamp = post.indexedAt ?? "";
-    return timestamp >= oneHourAgo && timestamp < nowIso;
-  });
-  const previous = posts.filter((post) => {
-    const timestamp = post.indexedAt ?? "";
-    return timestamp >= twoHoursAgo && timestamp < oneHourAgo;
-  });
-  const authors = new Set(current.map((post) => post.author?.did).filter(Boolean));
-  return {
-    mentionsLastHour: sample.mentionsLastHour,
-    mentionsPreviousHour: previous.length,
-    mentionsLast24Hours: sample.mentionsLast24Hours,
-    uniqueAuthorsLastHour: authors.size,
-  };
+  return `${label} holds; ${leadText}.`;
 }
 
 function toNarrativeHeadline(item: {
@@ -334,41 +259,78 @@ function toNarrativeHeadline(item: {
   };
 }
 
+function rankHeadlines(
+  headlines: MarketNarrativeHeadline[],
+  pattern: RegExp,
+  now: Date,
+): MarketNarrativeHeadline[] {
+  return [...headlines].sort((a, b) => {
+    const aMatch = pattern.test(a.title) ? 1 : 0;
+    const bMatch = pattern.test(b.title) ? 1 : 0;
+    if (bMatch !== aMatch) return bMatch - aMatch;
+
+    const aAge = headlineAgeDays(a.date, now);
+    const bAge = headlineAgeDays(b.date, now);
+    const aScore = aAge === null ? Number.POSITIVE_INFINITY : aAge;
+    const bScore = bAge === null ? Number.POSITIVE_INFINITY : bAge;
+    if (aScore !== bScore) return aScore - bScore;
+    return a.title.localeCompare(b.title);
+  });
+}
+
 async function fetchTheme(
   config: NarrativeThemeConfig,
   assets: NarrativeAssetMove[],
   now: Date,
 ): Promise<MarketNarrativeTheme> {
-  const [chatter, yahooHeadlines, googleHeadlines] = await Promise.all([
-    fetchThemeChatter(config.query, now),
-    fetchRssNews(config.newsTicker, 8),
-    fetchGoogleNewsRss(config.newsTicker, 8).catch(() => []),
+  // Yahoo by ticker + Google by ticker/theme query for broader, more relevant coverage.
+  const [yahooHeadlines, googleTickerHeadlines, googleThemeHeadlines] = await Promise.all([
+    fetchRssNews(config.newsTicker, 10).catch(() => []),
+    fetchGoogleNewsRss(config.newsTicker, 10, config.query).catch(() => []),
+    fetchGoogleNewsRss(config.newsTicker, 8, config.label).catch(() => []),
   ]);
-  const stats = windowStats(chatter, now);
-  const scored = scoreNarrative({ ...stats, assetMoves: assets.map((asset) => asset.changePercent) });
 
-  const pool = [...yahooHeadlines, ...googleHeadlines];
-  const matched = pool.find((headline) => config.headlinePattern.test(headline.title)) ?? pool[0] ?? null;
+  const pool = [...yahooHeadlines, ...googleTickerHeadlines, ...googleThemeHeadlines];
   const seen = new Set<string>();
-  const headlines = pool
-    .map(toNarrativeHeadline)
-    .filter((headline) => {
-      const key = headline.title.trim().toLowerCase();
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .slice(0, 6);
+  const headlines = rankHeadlines(
+    pool
+      .map(toNarrativeHeadline)
+      .filter((headline) => {
+        const key = headline.title.trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }),
+    config.headlinePattern,
+    now,
+  ).slice(0, 10);
+
+  const matchedHeadlines = headlines.filter((headline) =>
+    config.headlinePattern.test(headline.title),
+  ).length;
+  const freshHeadlines = headlines.filter((headline) => {
+    const age = headlineAgeDays(headline.date, now);
+    return age !== null && age <= 2;
+  }).length;
+
+  const scored = scoreNarrative({
+    matchedHeadlines,
+    totalHeadlines: headlines.length,
+    freshHeadlines,
+    assetMoves: assets.map((asset) => asset.changePercent),
+  });
+
+  const primary = headlines.find((headline) => config.headlinePattern.test(headline.title))
+    ?? headlines[0]
+    ?? null;
 
   return {
     id: config.id,
     label: config.label,
     heatmapGroup: config.heatmapGroup,
     ...scored,
-    mentionsLastHour: stats.mentionsLastHour,
-    uniqueAuthorsLastHour: stats.uniqueAuthorsLastHour,
     summary: narrativeSummary(config.label, scored, assets),
-    headline: matched ? toNarrativeHeadline(matched) : headlines[0] ?? null,
+    headline: primary,
     headlines,
     newsTicker: config.newsTicker,
     assets,
@@ -398,6 +360,7 @@ export async function fetchMarketNarrativePulse(
     status: themes.length === 0 ? "unavailable" : failures > 0 ? "partial" : "live",
     themes,
     fetchedAt: bucketedNow.toISOString(),
-    methodology: "Ranks broad market narratives by open chatter velocity, source breadth, and linked-asset price reaction.",
+    methodology:
+      "Ranks broad market narratives by news coverage (Yahoo + Google RSS), headline relevance, and linked-asset price reaction.",
   };
 }

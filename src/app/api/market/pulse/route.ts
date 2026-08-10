@@ -205,7 +205,7 @@ export async function GET() {
   // Keep definition order within each category section on Pulse.
   // Do not resort the full list by session move.
 
-  // ── Broad market narratives (free headlines + open chatter) ──
+  // ── Broad market narratives (Yahoo + Google News RSS) ──
   const marketNarratives = await fetchMarketNarrativePulse(
     new Map(narrativeTickers.map((ticker) => [
       ticker,
