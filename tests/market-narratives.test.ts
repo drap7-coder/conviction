@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   MARKET_NARRATIVE_THEMES,
+  narrativeSummary,
   scoreNarrative,
   themesForHeatmapGroup,
   type MarketNarrativeTheme,
+  type NarrativeScore,
 } from "@/lib/market/market-narratives";
 
 describe("MARKET_NARRATIVE_THEMES heatmap mapping", () => {
@@ -26,8 +28,6 @@ describe("MARKET_NARRATIVE_THEMES heatmap mapping", () => {
       marketTone: "mixed" as const,
       score: index + 1,
       velocity: 1,
-      mentionsLastHour: 1,
-      uniqueAuthorsLastHour: 1,
       summary: "test",
       headline: null,
       headlines: [],
@@ -42,26 +42,24 @@ describe("MARKET_NARRATIVE_THEMES heatmap mapping", () => {
 });
 
 describe("scoreNarrative", () => {
-  it("marks broad, accelerating chatter as surging", () => {
+  it("marks broad fresh matched coverage with a big move as surging", () => {
     const result = scoreNarrative({
-      mentionsLastHour: 15,
-      mentionsPreviousHour: 3,
-      mentionsLast24Hours: 60,
-      uniqueAuthorsLastHour: 12,
+      matchedHeadlines: 4,
+      totalHeadlines: 8,
+      freshHeadlines: 4,
       assetMoves: [2, 1, 0.5],
     });
 
     expect(result.heat).toBe("surging");
     expect(result.marketTone).toBe("positive");
-    expect(result.velocity).toBeGreaterThan(2.5);
+    expect(result.velocity).toBeGreaterThan(2);
   });
 
-  it("marks a smaller multi-author acceleration as building", () => {
+  it("marks some fresh matched coverage as building", () => {
     const result = scoreNarrative({
-      mentionsLastHour: 4,
-      mentionsPreviousHour: 1,
-      mentionsLast24Hours: 45,
-      uniqueAuthorsLastHour: 3,
+      matchedHeadlines: 2,
+      totalHeadlines: 5,
+      freshHeadlines: 2,
       assetMoves: [-1, -0.7, null],
     });
 
@@ -69,12 +67,11 @@ describe("scoreNarrative", () => {
     expect(result.marketTone).toBe("negative");
   });
 
-  it("keeps a theme quiet when there is no current chatter", () => {
+  it("keeps a theme quiet when there are no headlines", () => {
     const result = scoreNarrative({
-      mentionsLastHour: 0,
-      mentionsPreviousHour: 2,
-      mentionsLast24Hours: 20,
-      uniqueAuthorsLastHour: 0,
+      matchedHeadlines: 0,
+      totalHeadlines: 0,
+      freshHeadlines: 0,
       assetMoves: [1, -1, 0],
     });
 
@@ -85,14 +82,32 @@ describe("scoreNarrative", () => {
 
   it("returns finite scores when market data is missing", () => {
     const result = scoreNarrative({
-      mentionsLastHour: 2,
-      mentionsPreviousHour: 2,
-      mentionsLast24Hours: 30,
-      uniqueAuthorsLastHour: 2,
+      matchedHeadlines: 1,
+      totalHeadlines: 3,
+      freshHeadlines: 1,
       assetMoves: [null, null],
     });
 
     expect(result.marketTone).toBe("mixed");
     expect(Number.isFinite(result.score)).toBe(true);
+  });
+});
+
+describe("narrativeSummary", () => {
+  const assets = [{ ticker: "QQQ", label: "Nasdaq 100", changePercent: 1.2 }];
+
+  it("avoids social conversation/chatter wording", () => {
+    const scores: NarrativeScore[] = [
+      { heat: "surging", marketTone: "positive", score: 80, velocity: 3 },
+      { heat: "building", marketTone: "positive", score: 55, velocity: 1.5 },
+      { heat: "steady", marketTone: "mixed", score: 40, velocity: 1 },
+      { heat: "quiet", marketTone: "mixed", score: 10, velocity: 0 },
+    ];
+
+    for (const score of scores) {
+      const summary = narrativeSummary("AI + Compute", score, assets);
+      expect(summary.toLowerCase()).not.toMatch(/conversation|chatter|bluesky|twitter|stocktwits/);
+      expect(summary).toContain("QQQ");
+    }
   });
 });
