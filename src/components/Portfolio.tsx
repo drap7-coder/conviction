@@ -32,6 +32,24 @@ import { PortfolioCheckPanel } from "@/components/PortfolioCheckPanel";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
+import { ViewSwitcher } from "@/components/ViewSwitcher";
+
+const PORTFOLIO_TABS = [
+  {
+    id: "value",
+    label: "Value",
+    tabId: "portfolio-tab-value",
+    panelId: "portfolio-panel-value",
+  },
+  {
+    id: "insights",
+    label: "Insights",
+    tabId: "portfolio-tab-insights",
+    panelId: "portfolio-panel-insights",
+  },
+] as const;
+
+type PortfolioTab = (typeof PORTFOLIO_TABS)[number]["id"];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -189,6 +207,7 @@ export default function Portfolio({
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
   const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
+  const [activeTab, setActiveTab] = useState<PortfolioTab>("value");
 
   // Load positions + active book from localStorage on mount
   useEffect(() => {
@@ -591,257 +610,293 @@ export default function Portfolio({
     </section>
   );
 
+  const insightsBody = hasData ? (
+    <>
+      {sectorMixData.length > 0 ? (
+        <section className="pf-section pf-exposure-card">
+          <div className="pf-exposure-heading">
+            <div>
+              <span className="pf-section-eyebrow">Portfolio mix</span>
+              <h2>Where your money is</h2>
+            </div>
+            <p>Position values by economic sector — ranked, not pie-sliced.</p>
+          </div>
+          <SectorMixBars sectors={sectorMixData} />
+          <div className="pf-exposure-rule" aria-hidden="true" />
+          <PortfolioCheckPanel riskFlags={riskFlags} embedded />
+        </section>
+      ) : null}
+
+      {sectorMixData.length === 0 && !calcFailed ? (
+        <PortfolioCheckPanel riskFlags={riskFlags} />
+      ) : null}
+
+      {calcFailed ? (
+        <div className="pf-state-card pf-state-warn">
+          Insights need live prices. Retry from the Value tab once quotes load.
+        </div>
+      ) : null}
+    </>
+  ) : (
+    <div className="pf-empty">
+      <p className="pf-empty-text">
+        Pick a portfolio on Value — or add a position — to see mix and concentration.
+      </p>
+    </div>
+  );
+
   // ── Render ──
 
   return (
     <div className="pf">
-      {loading || loadingBook ? <PageLoadingMotion label={loadingBook ? "Sizing portfolio" : "Loading portfolio prices"} compact /> : null}
-
-      {/* Always-on book switcher — Jobs: choose once, switch anytime. */}
-      <SampleBooksSwitcher
-        activeId={activeBookId}
-        onSelect={(book) => { void handleLoadSample(book); }}
-        disabled={loadingBook}
+      <ViewSwitcher
+        label="Choose a portfolio view"
+        options={[...PORTFOLIO_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as PortfolioTab)}
       />
 
-      {/* Empty: invite to pick a book or add manually. */}
-      {!hasData && !loading && !loadingBook ? (
-        <div className={composeFirst ? "pf-sample-books" : "pf-empty"}>
-          <p className="pf-empty-text list-compose-empty-note">
-            Or add a position yourself{composeFirst ? " below" : ""}.
-          </p>
-          {composeFirst ? null : composeBar}
-        </div>
-      ) : null}
+      <div
+        id="portfolio-panel-value"
+        role="tabpanel"
+        aria-labelledby="portfolio-tab-value"
+        hidden={activeTab !== "value"}
+      >
+        {activeTab === "value" ? (
+          <>
+            {loading || loadingBook ? (
+              <PageLoadingMotion
+                label={loadingBook ? "Sizing portfolio" : "Loading portfolio prices"}
+                compact
+              />
+            ) : null}
 
-      {composeFirst ? composeBar : null}
-
-      {hasData && (
-        <>
-          {/* ── Hero (split-flap value; usually rendered by MyListShell PortfolioHero) ── */}
-          {!hideHero && (
-            <section className="pf-hero ink-panel" aria-label="Portfolio value">
-              <div className="pf-hero-flap">
-                <SplitFlapMetric
-                  variant="hero"
-                  label="Portfolio value"
-                  value={currency(portfolioMetrics.totalMarketValue)}
-                  change={
-                    portfolioMetrics.dailyChange !== null
-                      ? `${signedCurrency(portfolioMetrics.dailyChange)} ${percent(portfolioMetrics.dailyChangePercent)}`
-                      : undefined
-                  }
-                  isPositive={
-                    portfolioMetrics.dailyChange === null
-                      ? undefined
-                      : (portfolioMetrics.dailyChange ?? 0) >= 0
-                  }
-                />
-                {portfolioHeatmapSession ? (
-                  <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span>
-                ) : null}
-              </div>
-              {portfolioMetrics.totalUnrealizedGL !== null && (
-                <div className={`pf-hero-secondary ${(portfolioMetrics.totalUnrealizedGL ?? 0) >= 0 ? "up" : "down"}`}>
-                  Unrealized {signedCurrency(portfolioMetrics.totalUnrealizedGL)}
-                  {portfolioMetrics.totalUnrealizedGLPercent !== null && (
-                    <> ({percent(portfolioMetrics.totalUnrealizedGLPercent)})</>
-                  )}
-                  {missingCost && (
-                    <span className="pf-hero-note"> · partial (cost basis missing for {portfolioMetrics.positionsMissingCost})</span>
-                  )}
-                </div>
-              )}
-            </section>
-          )}
-
-          {!composeFirst ? composeBar : null}
-
-          {/* ── Loading / Error / Refresh ── */}
-          <div className="pf-toolbar">
-            {loading && <span className="pf-loading">Loading portfolio prices</span>}
-            {error && <span className="pf-error">{error}</span>}
-            <button className="pf-refresh-btn" onClick={handleRefresh} disabled={loading}>
-              {loading ? "Loading…" : "Refresh"}
-            </button>
-          </div>
-
-          {/* ── Calculation failure state ── */}
-          {calcFailed && (
-            <div className="pf-state-card pf-state-warn">
-              Portfolio value could not be calculated. Prices may be unavailable.
-              <button className="pf-refresh-btn" onClick={handleRefresh} style={{ marginLeft: 10 }}>
-                Retry
-              </button>
-            </div>
-          )}
-
-          {/* ── Partial quote warning ── */}
-          {partialQuotes && !calcFailed && (
-            <div className="pf-state-card pf-state-warn">
-              Prices are unavailable for {portfolioMetrics.positionsMissingPrice} position{portfolioMetrics.positionsMissingPrice > 1 ? "s" : ""}. Displayed totals and changes reflect only positions with current prices.
-            </div>
-          )}
-
-          {/* ── Missing cost basis note ── */}
-          {missingCost && portfolioMetrics.totalUnrealizedGL !== null && !calcFailed && (
-            <div className="pf-state-card pf-state-info">
-              Return calculations cover {portfolioMetrics.positionsWithCost} of {portfolioMetrics.positionCount} positions. Add an average cost to {portfolioMetrics.positionsMissingCost} position{portfolioMetrics.positionsMissingCost > 1 ? "s" : ""} for full coverage.
-            </div>
-          )}
-
-          {/* ── Portfolio heatmap ── */}
-          {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
-            <StockHeatmap
-              title="Portfolio"
-              subtitle=""
-              items={portfolioHeatmapItems}
-              sessionLabel={portfolioHeatmapSession}
+            {/* Always-on book switcher — Jobs: choose once, switch anytime. */}
+            <SampleBooksSwitcher
+              activeId={activeBookId}
+              onSelect={(book) => { void handleLoadSample(book); }}
+              disabled={loadingBook}
             />
-          )}
 
-          {/* ── Portfolio exposure + concentration check ── */}
-          {sectorMixData.length > 0 && (
-            <section className="pf-section pf-exposure-card">
-              <div className="pf-exposure-heading">
-                <div>
-                  <span className="pf-section-eyebrow">Portfolio mix</span>
-                  <h2>Where your money is</h2>
+            {/* Empty: invite to pick a book or add manually. */}
+            {!hasData && !loading && !loadingBook ? (
+              <div className={composeFirst ? "pf-sample-books" : "pf-empty"}>
+                <p className="pf-empty-text list-compose-empty-note">
+                  Or add a position yourself{composeFirst ? " below" : ""}.
+                </p>
+                {composeFirst ? null : composeBar}
+              </div>
+            ) : null}
+
+            {composeFirst ? composeBar : null}
+
+            {hasData ? (
+              <>
+                {!hideHero ? (
+                  <section className="pf-hero ink-panel" aria-label="Portfolio value">
+                    <div className="pf-hero-flap">
+                      <SplitFlapMetric
+                        variant="hero"
+                        label="Portfolio value"
+                        value={currency(portfolioMetrics.totalMarketValue)}
+                        change={
+                          portfolioMetrics.dailyChange !== null
+                            ? `${signedCurrency(portfolioMetrics.dailyChange)} ${percent(portfolioMetrics.dailyChangePercent)}`
+                            : undefined
+                        }
+                        isPositive={
+                          portfolioMetrics.dailyChange === null
+                            ? undefined
+                            : (portfolioMetrics.dailyChange ?? 0) >= 0
+                        }
+                      />
+                      {portfolioHeatmapSession ? (
+                        <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span>
+                      ) : null}
+                    </div>
+                    {portfolioMetrics.totalUnrealizedGL !== null && (
+                      <div className={`pf-hero-secondary ${(portfolioMetrics.totalUnrealizedGL ?? 0) >= 0 ? "up" : "down"}`}>
+                        Unrealized {signedCurrency(portfolioMetrics.totalUnrealizedGL)}
+                        {portfolioMetrics.totalUnrealizedGLPercent !== null && (
+                          <> ({percent(portfolioMetrics.totalUnrealizedGLPercent)})</>
+                        )}
+                        {missingCost && (
+                          <span className="pf-hero-note"> · partial (cost basis missing for {portfolioMetrics.positionsMissingCost})</span>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                ) : null}
+
+                {!composeFirst ? composeBar : null}
+
+                <div className="pf-toolbar">
+                  {loading && <span className="pf-loading">Loading portfolio prices</span>}
+                  {error && <span className="pf-error">{error}</span>}
+                  <button className="pf-refresh-btn" onClick={handleRefresh} disabled={loading}>
+                    {loading ? "Loading…" : "Refresh"}
+                  </button>
                 </div>
-                <p>Position values by economic sector — ranked, not pie-sliced.</p>
-              </div>
-              <SectorMixBars sectors={sectorMixData} />
-              <div className="pf-exposure-rule" aria-hidden="true" />
-              <PortfolioCheckPanel riskFlags={riskFlags} embedded />
-            </section>
-          )}
 
-          {/* Fallback when mix is unavailable but the book still needs a check. */}
-          {sectorMixData.length === 0 && !calcFailed && hasData ? (
-            <PortfolioCheckPanel riskFlags={riskFlags} />
-          ) : null}
+                {calcFailed && (
+                  <div className="pf-state-card pf-state-warn">
+                    Portfolio value could not be calculated. Prices may be unavailable.
+                    <button className="pf-refresh-btn" onClick={handleRefresh} style={{ marginLeft: 10 }}>
+                      Retry
+                    </button>
+                  </div>
+                )}
 
-          {/* ── Positions header ── */}
-          <div className="pf-positions-header">
-            <div className="wl-list-header pf-ring-list-header">
-              <div className="wl-list-title-row">
-                <h2 className="wl-list-title pf-section-title">Positions</h2>
-                <span className="wl-list-count">
-                  {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
-                </span>
-              </div>
-              <div className="wl-conviction-legend" aria-label="Conviction ring legend">
-                <span><i className="quote-dot red" /> Distribution</span>
-                <span><i className="quote-dot amber" /> Holding</span>
-                <span><i className="quote-dot green" /> Accumulating</span>
-              </div>
-            </div>
-          </div>
+                {partialQuotes && !calcFailed && (
+                  <div className="pf-state-card pf-state-warn">
+                    Prices are unavailable for {portfolioMetrics.positionsMissingPrice} position{portfolioMetrics.positionsMissingPrice > 1 ? "s" : ""}. Displayed totals and changes reflect only positions with current prices.
+                  </div>
+                )}
 
-          <div className="pf-sort-row" role="group" aria-label="Sort positions">
-            {(
-              [
-                ["ticker", "Ticker"],
-                ["value", "Value"],
-                ["weight", "Alloc"],
-                ["dayGl", "Day"],
-                ["totalGl", "Gain/Loss"],
-              ] as const
-            ).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                className={`pf-sort-chip${sort.key === key ? " is-active" : ""}`}
-                onClick={() => toggleSort(key)}
-              >
-                {label}{sortArrow(key)}
-              </button>
-            ))}
-          </div>
+                {missingCost && portfolioMetrics.totalUnrealizedGL !== null && !calcFailed && (
+                  <div className="pf-state-card pf-state-info">
+                    Return calculations cover {portfolioMetrics.positionsWithCost} of {portfolioMetrics.positionCount} positions. Add an average cost to {portfolioMetrics.positionsMissingCost} position{portfolioMetrics.positionsMissingCost > 1 ? "s" : ""} for full coverage.
+                  </div>
+                )}
 
-          {/* Quick remove strip — same pattern as Watchlist manage chips. */}
-          <div className="wl-manage-row pf-manage-row" aria-label="Manage portfolio positions">
-            <span className="wl-manage-label">
-              {positions.length} position{positions.length === 1 ? "" : "s"}
-            </span>
-            <div className="wl-manage-chips">
-              {positions.map((position) => (
-                <span key={position.ticker} className="wl-manage-chip">
-                  <button
-                    type="button"
-                    className="pf-manage-chip-edit"
-                    onClick={() => handleStartEdit(position.ticker)}
-                  >
-                    {position.ticker}
-                  </button>
-                  <button
-                    type="button"
-                    className="wl-manage-remove"
-                    onClick={() => handleRemove(position.ticker)}
-                    aria-label={`Remove ${position.ticker} from portfolio`}
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
+                {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
+                  <StockHeatmap
+                    title="Portfolio"
+                    subtitle=""
+                    items={portfolioHeatmapItems}
+                    sessionLabel={portfolioHeatmapSession}
+                  />
+                )}
 
-          {/* ── Holdings ring list ── */}
-          <div className="watchlist-list pf-ring-list">
-            {sortedPositions.map(({ pos, metrics, dailyPct }) => {
-              const ticker = pos.companyId.toUpperCase();
-              const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
-              const live = quote ? getLivePrice(quote) : null;
-              const composite = convictionScores[ticker];
-              const isEditing = editingTicker?.toUpperCase() === ticker;
+                <div className="pf-positions-header">
+                  <div className="wl-list-header pf-ring-list-header">
+                    <div className="wl-list-title-row">
+                      <h2 className="wl-list-title pf-section-title">Positions</h2>
+                      <span className="wl-list-count">
+                        {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    <div className="wl-conviction-legend" aria-label="Conviction ring legend">
+                      <span><i className="quote-dot red" /> Distribution</span>
+                      <span><i className="quote-dot amber" /> Holding</span>
+                      <span><i className="quote-dot green" /> Accumulating</span>
+                    </div>
+                  </div>
+                </div>
 
-              return (
-                <PortfolioHoldingCard
-                  key={ticker}
-                  ticker={ticker}
-                  companyName={quote?.name ?? ticker}
-                  price={live?.price ?? quote?.price ?? pos.currentPrice ?? null}
-                  changePercent={live?.changePercent ?? quote?.changePercent ?? dailyPct}
-                  sessionLabel={live?.label ?? null}
-                  closePrice={live?.label ? quote?.price ?? null : null}
-                  closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                  convictionTone={composite?.tone ?? "neutral"}
-                  convictionStrength={composite?.displayScore ?? null}
-                  scoreLoading={Boolean(pendingScores[ticker])}
-                  shares={pos.shares}
-                  metrics={metrics}
-                  isEditing={isEditing}
-                  formShares={isEditing ? formShares : ""}
-                  formCost={isEditing ? formCost : ""}
-                  formError={isEditing ? formError : null}
-                  confirmRemove={removingTicker?.toUpperCase() === ticker}
-                  onEdit={handleStartEdit}
-                  onCancelEdit={handleCancelEdit}
-                  onSharesChange={setFormShares}
-                  onCostChange={setFormCost}
-                  onSaveEdit={() => {
-                    savePositionFromForm();
-                  }}
-                  onAskRemove={(symbol) => {
-                    setRemovingTicker(symbol);
-                    if (editingTicker) handleCancelEdit();
-                  }}
-                  onCancelRemove={() => setRemovingTicker(null)}
-                  onConfirmRemove={handleRemove}
-                />
-              );
-            })}
-          </div>
+                <div className="pf-sort-row" role="group" aria-label="Sort positions">
+                  {(
+                    [
+                      ["ticker", "Ticker"],
+                      ["value", "Value"],
+                      ["weight", "Alloc"],
+                      ["dayGl", "Day"],
+                      ["totalGl", "Gain/Loss"],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`pf-sort-chip${sort.key === key ? " is-active" : ""}`}
+                      onClick={() => toggleSort(key)}
+                    >
+                      {label}{sortArrow(key)}
+                    </button>
+                  ))}
+                </div>
 
-          {/* ── Clear all ── */}
-          {positions.length > 0 && (
-            <div className="pf-clear-wrap">
-              <button className="pf-clear-btn" onClick={handleClearAll}>Clear All</button>
-            </div>
-          )}
-        </>
-      )}
+                <div className="wl-manage-row pf-manage-row" aria-label="Manage portfolio positions">
+                  <span className="wl-manage-label">
+                    {positions.length} position{positions.length === 1 ? "" : "s"}
+                  </span>
+                  <div className="wl-manage-chips">
+                    {positions.map((position) => (
+                      <span key={position.ticker} className="wl-manage-chip">
+                        <button
+                          type="button"
+                          className="pf-manage-chip-edit"
+                          onClick={() => handleStartEdit(position.ticker)}
+                        >
+                          {position.ticker}
+                        </button>
+                        <button
+                          type="button"
+                          className="wl-manage-remove"
+                          onClick={() => handleRemove(position.ticker)}
+                          aria-label={`Remove ${position.ticker} from portfolio`}
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="watchlist-list pf-ring-list">
+                  {sortedPositions.map(({ pos, metrics, dailyPct }) => {
+                    const ticker = pos.companyId.toUpperCase();
+                    const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
+                    const live = quote ? getLivePrice(quote) : null;
+                    const composite = convictionScores[ticker];
+                    const isEditing = editingTicker?.toUpperCase() === ticker;
+
+                    return (
+                      <PortfolioHoldingCard
+                        key={ticker}
+                        ticker={ticker}
+                        companyName={quote?.name ?? ticker}
+                        price={live?.price ?? quote?.price ?? pos.currentPrice ?? null}
+                        changePercent={live?.changePercent ?? quote?.changePercent ?? dailyPct}
+                        sessionLabel={live?.label ?? null}
+                        closePrice={live?.label ? quote?.price ?? null : null}
+                        closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
+                        convictionTone={composite?.tone ?? "neutral"}
+                        convictionStrength={composite?.displayScore ?? null}
+                        scoreLoading={Boolean(pendingScores[ticker])}
+                        shares={pos.shares}
+                        metrics={metrics}
+                        isEditing={isEditing}
+                        formShares={isEditing ? formShares : ""}
+                        formCost={isEditing ? formCost : ""}
+                        formError={isEditing ? formError : null}
+                        confirmRemove={removingTicker?.toUpperCase() === ticker}
+                        onEdit={handleStartEdit}
+                        onCancelEdit={handleCancelEdit}
+                        onSharesChange={setFormShares}
+                        onCostChange={setFormCost}
+                        onSaveEdit={() => {
+                          savePositionFromForm();
+                        }}
+                        onAskRemove={(symbol) => {
+                          setRemovingTicker(symbol);
+                          if (editingTicker) handleCancelEdit();
+                        }}
+                        onCancelRemove={() => setRemovingTicker(null)}
+                        onConfirmRemove={handleRemove}
+                      />
+                    );
+                  })}
+                </div>
+
+                {positions.length > 0 && (
+                  <div className="pf-clear-wrap">
+                    <button className="pf-clear-btn" onClick={handleClearAll}>Clear All</button>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+
+      <div
+        id="portfolio-panel-insights"
+        role="tabpanel"
+        aria-labelledby="portfolio-tab-insights"
+        hidden={activeTab !== "insights"}
+      >
+        {activeTab === "insights" ? insightsBody : null}
+      </div>
     </div>
   );
 }

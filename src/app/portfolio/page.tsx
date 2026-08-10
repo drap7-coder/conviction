@@ -1,5 +1,22 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import Portfolio from "@/components/Portfolio";
+import { PortfolioDataProvider } from "@/components/PortfolioData";
+
+export const metadata: Metadata = {
+  title: "Portfolio",
+  description:
+    "Your book — live value, exposure mix, and holdings with ownership context.",
+  alternates: {
+    canonical: "/portfolio",
+  },
+};
 
 export default function PortfolioPage() {
-  redirect("/watchlist?view=portfolio");
+  return (
+    <div className="portfolio-page">
+      <PortfolioDataProvider>
+        <Portfolio composeFirst />
+      </PortfolioDataProvider>
+    </div>
+  );
 }
