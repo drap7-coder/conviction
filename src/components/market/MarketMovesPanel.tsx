@@ -5,6 +5,7 @@ import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { TrendingManageChips } from "@/components/TrendingManageChips";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -215,6 +216,11 @@ export function MarketMovesPanel() {
             marketCap: idea.quote.marketCap,
             sizeValue: idea.quote.dollarVolume,
             sizeLabel: idea.activityLabel,
+            sparkline: sparklineValuesFromQuote({
+              sparkline: idea.sparkline ?? idea.quote.sparkline,
+              price: live.price ?? idea.quote.price,
+              previousClose: idea.quote.previousClose,
+            }),
           };
         })}
       />

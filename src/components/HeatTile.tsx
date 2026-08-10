@@ -27,9 +27,8 @@ export interface HeatTileProps {
   className?: string;
   style?: CSSProperties;
   /**
-   * Live polish for watchlist-style cards: ambient glow, ping, hover lift,
-   * update flash, and optional sparkline. Off by default so Portfolio / Pulse
-   * grids stay unchanged unless they opt in.
+   * Live polish: ambient glow, ping, hover lift, update flash, sparkline.
+   * On by default for heatmap surfaces.
    */
   live?: boolean;
   /** Recent closes (≈15) for the sparkline — from quote poll, not a new API. */
@@ -57,7 +56,7 @@ export function HeatTile({
   href = null,
   className,
   style,
-  live = false,
+  live = true,
   sparkline = null,
 }: HeatTileProps) {
   const band: HeatBand = heatBand(changePercent);

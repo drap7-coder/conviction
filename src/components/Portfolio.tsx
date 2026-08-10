@@ -19,6 +19,7 @@ import {
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import SectorMixBars from "@/components/SectorMixBars";
@@ -364,14 +365,20 @@ export default function Portfolio({
   const portfolioHeatmapItems = useMemo(() => sortedPositions.map(({ pos, metrics, dailyPct }) => {
     const quote = quotes.find((item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase());
     const live = quote ? getLivePrice(quote) : null;
+    const price = live?.price ?? pos.currentPrice ?? null;
     return {
       ticker: pos.companyId.toUpperCase(),
       name: quote?.name ?? pos.companyId.toUpperCase(),
-      price: live?.price ?? pos.currentPrice ?? null,
+      price,
       changePercent: live?.changePercent ?? dailyPct,
       marketCap: quote?.marketCap ?? null,
       sizeValue: metrics.marketValue,
       sizeLabel: `${metrics.marketValue !== null ? compactCurrency(metrics.marketValue) : "—"} position · ${metrics.weight !== null ? weightPct(metrics.weight) : "—"} of portfolio`,
+      sparkline: sparklineValuesFromQuote({
+        sparkline: quote?.sparkline,
+        price,
+        previousClose: quote?.previousClose ?? pos.previousClose ?? null,
+      }),
     };
   }), [quotes, sortedPositions]);
 

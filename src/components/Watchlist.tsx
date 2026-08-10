@@ -513,7 +513,6 @@ export default function Watchlist({
           title="Watchlist"
           subtitle=""
           loading={loading}
-          liveCards
           sessionLabel={
             entries
               .map((entry) => {

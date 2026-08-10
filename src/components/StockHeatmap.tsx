@@ -37,8 +37,8 @@ interface StockHeatmapProps {
   /** Context feed nested under the tiles inside the white shell (e.g. What’s changing). */
   footer?: ReactNode;
   /**
-   * Opt into live tile polish (glow, ping, sparkline, update flash).
-   * Watchlist uses this; Portfolio leaves it off.
+   * Live tile polish (glow, ping, sparkline, update flash).
+   * On by default for every heatmap; pass false only to opt out.
    */
   liveCards?: boolean;
 }
@@ -96,7 +96,7 @@ export function StockHeatmap({
   loading = false,
   sessionLabel = null,
   footer = null,
-  liveCards = false,
+  liveCards = true,
 }: StockHeatmapProps) {
   const footerSlot = footer ? (
     <div className="stock-heat-footer">{footer}</div>
