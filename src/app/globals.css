@@ -5082,7 +5082,10 @@ details > summary::before {
 }
 
 .company-quote-copy {
+  display: grid;
+  gap: 4px;
   min-width: 0;
+  justify-items: start;
 }
 
 .company-quote-ticker {
@@ -5096,10 +5099,14 @@ details > summary::before {
 }
 
 .company-quote-name {
-  margin: 4px 0 0;
+  margin: 0;
   font-size: 0.88rem;
   line-height: 1.3;
   color: var(--on-ink-muted);
+}
+
+.company-quote-catalyst {
+  margin-top: 2px;
 }
 
 .company-quote-sep {
@@ -5280,19 +5287,76 @@ details > summary::before {
 }
 
 @media (max-width: 640px) {
+  .company-quote-card,
+  .company-quote-card.ink-panel {
+    gap: 10px;
+    padding: 12px 12px 10px;
+    border-radius: 14px;
+  }
+
   .company-quote-top {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+  }
+
+  .company-quote-identity {
+    gap: 10px;
+  }
+
+  .company-quote-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .company-quote-ticker {
+    font-size: 1.28rem;
+  }
+
+  .company-quote-name {
+    font-size: 0.82rem;
   }
 
   .company-quote-price {
     width: 100%;
     justify-items: start;
     text-align: left;
+    gap: 3px;
   }
 
-  .company-quote-price-big {
-    font-size: clamp(1.55rem, 9vw, 1.9rem);
+  .company-quote-price-big,
+  .company-quote-price-loading {
+    font-size: clamp(1.45rem, 8.5vw, 1.75rem);
+  }
+
+  .company-quote-change {
+    font-size: 0.8rem;
+  }
+
+  .detail-nav {
+    margin-bottom: 8px;
+  }
+
+  .related-companies {
+    gap: 8px;
+    margin: 4px 0 0;
+  }
+
+  .related-companies-title {
+    font-size: 1.05rem;
+  }
+
+  .related-companies-lede {
+    font-size: 0.74rem;
+  }
+
+  .related-companies-list {
+    gap: 6px;
+  }
+
+  .related-companies-link {
+    gap: 6px;
+    padding: 6px 9px 6px 6px;
+    font-size: 0.72rem;
   }
 }
 

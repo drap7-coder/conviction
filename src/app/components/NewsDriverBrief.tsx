@@ -13,7 +13,7 @@ export function NewsDriverBrief({
   driver,
   headlines,
   compact = false,
-  /** Hide catalyst chip when the page header already shows it. */
+  /** Hide catalyst chip when CompanyQuoteCard already shows it. */
   showBadge = true,
   /** Kept for callers; company dashboard always omits this fluff. */
   showWhy = false,
