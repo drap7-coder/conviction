@@ -267,6 +267,8 @@ function GlobalMarketsHeatmap({
               href={companyDetailHref(market.ticker)}
               ariaLabel={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
               style={{ gridColumn: `span ${span} / span ${span}` }}
+              live
+              sparkline={(market.history ?? []).map((point) => point.close)}
             />
           );
         })}
@@ -283,6 +285,7 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
     price: null,
     weight: sector.weight,
     category: "Sector",
+    history: sector.history ?? [],
   }));
 }
 

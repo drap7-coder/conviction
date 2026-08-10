@@ -81,6 +81,7 @@ export interface PulseSector {
   name: string;
   changePercent: number | null;
   weight: number;
+  history: Array<{ date: string; close: number }>;
 }
 
 export interface PulseGlobalMarket {
@@ -90,6 +91,7 @@ export interface PulseGlobalMarket {
   price: number | null;
   weight: number;
   category: string;
+  history: Array<{ date: string; close: number }>;
 }
 
 const SECTOR_WEIGHTS: Record<string, number> = {
@@ -188,6 +190,7 @@ export async function GET() {
       name: sector.name,
       changePercent: live?.changePercent ?? q?.changePercent ?? null,
       weight: SECTOR_WEIGHTS[sector.ticker] ?? 0,
+      history: q?.sparkline.slice(-15) ?? [],
     };
   });
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
@@ -200,6 +203,7 @@ export async function GET() {
       ...market,
       price: live?.price ?? quote?.price ?? null,
       changePercent: live?.changePercent ?? quote?.changePercent ?? null,
+      history: quote?.sparkline.slice(-15) ?? [],
     };
   });
   // Keep definition order within each category section on Pulse.
