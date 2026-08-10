@@ -10118,7 +10118,8 @@ a.signal-block-conclusion-link:hover {
 }
 
 .evidence-carousel-card.bcn-item {
-  flex: 0 0 min(100%, 18.5rem);
+  /* One category leads; next peeks. Never pack all three on screen. */
+  flex: 0 0 calc((100% - 12px) / 1.18);
   align-items: stretch;
 }
 
@@ -10340,7 +10341,7 @@ a.signal-block-conclusion-link:hover {
 
 @media (min-width: 768px) {
   .evidence-carousel-card.bcn-item {
-    flex-basis: min(42%, 20rem);
+    flex-basis: calc((100% - 14px) / 1.22);
   }
 }
 
