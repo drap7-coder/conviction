@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ArrowUpRight, CircleHelp, Radio, ShieldAlert } from "lucide-react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
@@ -30,6 +31,7 @@ import {
   type EvidenceSemantic,
 } from "@/lib/conviction/evidence-display";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
+import { buildEvidenceDecisionView } from "@/lib/conviction/evidence-decision";
 import type { EarningsEvidence } from "@/lib/earnings/types";
 
 type EvidenceLane = {
@@ -340,16 +342,21 @@ function CompositeReadCard({
     [lanes],
   );
   const overall = compositeEvidenceLabel(counts);
-  const synthesis = useMemo(
-    () => (loading
-      ? "Reading ownership, filings, and market evidence…"
-      : synthesizeEvidenceRead(lanes)),
-    [lanes, loading],
-  );
+  const decision = useMemo(() => buildEvidenceDecisionView(lanes), [lanes]);
+  const synthesis = useMemo(() => (
+    loading
+      ? "Reading ownership, filings, fundamentals, and market evidence…"
+      : synthesizeEvidenceRead(lanes)
+  ), [lanes, loading]);
+  const unresolvedCopy = decision.unresolved
+    ? `${decision.unresolved.label} — ${decision.unresolved.primary}`
+    : decision.gapLabels.length > 0
+      ? `Waiting on ${decision.gapLabels.join(", ")}`
+      : "No major unresolved lane in the current stack.";
 
   return (
-    <div className={`evidence-composite ink-box ink-box--quiet tone-${overall}`}>
-      <div className="evidence-composite-body">
+    <div className={`evidence-composite evidence-decision-board ink-box ink-box--quiet tone-${decision.stance}`}>
+      <div className="evidence-decision-hero">
         <div className="evidence-composite-lead">
           {logoUrl ? (
             <img src={logoUrl} alt="" className="evidence-composite-logo" />
@@ -358,33 +365,81 @@ function CompositeReadCard({
               {ticker.charAt(0)}
             </div>
           )}
-          <p className="evidence-composite-synthesis">{synthesis}</p>
-        </div>
-
-        <div className="evidence-composite-fill">
-          <span className={`evidence-status-pill tone-${overall}`}>
-            {evidenceStatusLabel(overall)}
-          </span>
-          <div
-            className="evidence-composite-bar"
-            role="img"
-            aria-label={`${counts.support} support, ${counts.mixed} mixed, ${counts.against} against, ${counts.quiet} quiet`}
-          >
-            {counts.support > 0 ? (
-              <i className="seg-support" style={{ flex: `${counts.support} 1 0` }} />
-            ) : null}
-            {counts.mixed > 0 ? (
-              <i className="seg-mixed" style={{ flex: `${counts.mixed} 1 0` }} />
-            ) : null}
-            {counts.against > 0 ? (
-              <i className="seg-against" style={{ flex: `${counts.against} 1 0` }} />
-            ) : null}
-            {counts.quiet > 0 ? (
-              <i className="seg-quiet" style={{ flex: `${counts.quiet} 1 0` }} />
-            ) : null}
+          <div className="evidence-decision-copy">
+            <span>Signal verdict</span>
+            <h3>{loading ? "Building the evidence map…" : decision.headline}</h3>
+            <p>{loading ? synthesis : decision.explanation}</p>
           </div>
         </div>
+        <span className={`evidence-status-pill tone-${loading ? overall : decision.stance}`}>
+          {loading ? "Checking" : evidenceStatusLabel(decision.stance)}
+        </span>
       </div>
+
+      <div className="evidence-decision-metrics" aria-label="Evidence balance">
+        <article className="support">
+          <span>Supports</span>
+          <strong>{loading ? "—" : decision.supportCount}</strong>
+          <small>directional lanes</small>
+        </article>
+        <article className="against">
+          <span>Pushes back</span>
+          <strong>{loading ? "—" : decision.againstCount}</strong>
+          <small>live contradictions</small>
+        </article>
+        <article className="coverage">
+          <span>Live coverage</span>
+          <strong>{loading ? "—" : `${decision.coveragePercent}%`}</strong>
+          <small>{loading ? "Checking sources" : `${decision.coveredCount} of ${decision.totalCount} lanes`}</small>
+          <div className="evidence-coverage-track" aria-hidden="true">
+            <i style={{ width: loading ? "14%" : `${decision.coveragePercent}%` }} />
+          </div>
+        </article>
+      </div>
+
+      <div
+        className="evidence-composite-bar"
+        role="img"
+        aria-label={`${counts.support} support, ${counts.mixed} mixed, ${counts.against} against, ${counts.quiet} quiet`}
+      >
+        {counts.support > 0 ? <i className="seg-support" style={{ flex: `${counts.support} 1 0` }} /> : null}
+        {counts.mixed > 0 ? <i className="seg-mixed" style={{ flex: `${counts.mixed} 1 0` }} /> : null}
+        {counts.against > 0 ? <i className="seg-against" style={{ flex: `${counts.against} 1 0` }} /> : null}
+        {counts.quiet > 0 ? <i className="seg-quiet" style={{ flex: `${counts.quiet} 1 0` }} /> : null}
+      </div>
+
+      <div className="evidence-decision-proof-grid">
+        <article className="support">
+          <ArrowUpRight aria-hidden="true" />
+          <div>
+            <span>Leading support</span>
+            <p>{loading ? "Finding the strongest confirmation…" : decision.leadingSupport
+              ? `${decision.leadingSupport.label} — ${decision.leadingSupport.primary}`
+              : "No live directional support has cleared the bar yet."}</p>
+          </div>
+        </article>
+        <article className="risk">
+          <ShieldAlert aria-hidden="true" />
+          <div>
+            <span>Main contradiction</span>
+            <p>{loading ? "Testing the strongest counter-signal…" : decision.leadingRisk
+              ? `${decision.leadingRisk.label} — ${decision.leadingRisk.primary}`
+              : "No live directional contradiction is visible in the current stack."}</p>
+          </div>
+        </article>
+        <article className="unresolved">
+          <CircleHelp aria-hidden="true" />
+          <div>
+            <span>Still unresolved</span>
+            <p>{loading ? "Finding the biggest evidence gap…" : unresolvedCopy}</p>
+          </div>
+        </article>
+      </div>
+
+      <footer className="evidence-decision-footnote">
+        <Radio aria-hidden="true" />
+        <span>{loading ? "Refreshing source-backed signals" : `${synthesis} Price action is context, not proof.`}</span>
+      </footer>
     </div>
   );
 }
@@ -531,10 +586,10 @@ export function ConvictionSignalsCard({
     <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
       <header className="evidence-lanes-heading">
         <div>
-          <span className="company-section-kicker">How the evidence stacks up</span>
+          <span className="company-section-kicker">Company thesis · stock setup · evidence gaps</span>
           <h2 className="company-driver-title evidence-lanes-title">Conviction signals</h2>
         </div>
-        <p>Scan all three lenses, then open any line to inspect the underlying filings or market data.</p>
+        <p>Start with the verdict, then inspect the evidence that confirms, contradicts, or leaves the case unresolved.</p>
       </header>
 
       <CompositeReadCard
@@ -573,10 +628,11 @@ export function ConvictionSignalsCard({
               >
                 <div className="evidence-carousel-card-inner ink-box ink-box--quiet">
                   <header className="evidence-carousel-card-header">
-                    <h3 className="evidence-carousel-card-title">{group.label}</h3>
-                    <span className={`evidence-status-pill tone-${overall}`}>
-                      {evidenceStatusLabel(overall)}
-                    </span>
+                    <div>
+                      <h3 className="evidence-carousel-card-title">{group.label}</h3>
+                      <small>{counts.support} support · {counts.against} against</small>
+                    </div>
+                    <span className={`evidence-status-pill tone-${overall}`}>{evidenceStatusLabel(overall)}</span>
                   </header>
                   <ul className="evidence-carousel-lanes">
                     {groupLanes.map((lane) => {
@@ -600,6 +656,7 @@ export function ConvictionSignalsCard({
                             <span className="evidence-carousel-lane-label">{lane.label}</span>
                             <span className="evidence-carousel-lane-fact">
                               {isLoadingRow ? "Checking…" : lane.primary}
+                              {!isLoadingRow && lane.secondary ? <small>{lane.secondary}</small> : null}
                             </span>
                             <span className={`evidence-status-pill tone-${tone}`}>
                               {evidenceStatusLabel(lane.semantic)}

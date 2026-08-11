@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
-import { computeSma, buildSmaPath } from "@/lib/market/technical-state";
+import { computeSma } from "@/lib/market/technical-state";
 import { inkBoxClass, inkChipClass } from "@/lib/display/ink-tone";
 
 type TrendRange = "1d" | "1w" | "1m" | "6m" | "1y";
@@ -66,20 +66,69 @@ function formatChange(value: number | null | undefined) {
   return `${sign}${value.toFixed(2)}`;
 }
 
-function buildPath(points: StockHistoryPoint[]) {
-  if (points.length < 2) return "";
-  const width = 320;
-  const height = 96;
-  const padding = 6;
+const CHART_WIDTH = 360;
+const CHART_HEIGHT = 126;
+const PLOT_LEFT = 8;
+const PLOT_RIGHT = 300;
+const PLOT_TOP = 9;
+const PLOT_BOTTOM = 101;
+
+function formatChartDate(value: string, range: TrendRange): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  if (range === "1d") {
+    return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function buildSeriesPath(
+  values: Array<number | null>,
+  domainMin: number,
+  domainMax: number,
+): string {
+  const spread = domainMax - domainMin || 1;
+  const lastIndex = Math.max(1, values.length - 1);
+  let started = false;
+
+  return values.map((value, index) => {
+    if (value === null) return "";
+    const x = PLOT_LEFT + (index / lastIndex) * (PLOT_RIGHT - PLOT_LEFT);
+    const y = PLOT_TOP + ((domainMax - value) / spread) * (PLOT_BOTTOM - PLOT_TOP);
+    const command = started ? "L" : "M";
+    started = true;
+    return `${command} ${x.toFixed(2)} ${y.toFixed(2)}`;
+  }).filter(Boolean).join(" ");
+}
+
+function chartGeometry(points: StockHistoryPoint[], range: TrendRange) {
+  if (points.length < 2) return null;
   const closes = points.map((point) => point.close);
-  const min = Math.min(...closes);
-  const max = Math.max(...closes);
-  const spread = max - min || 1;
-  return points.map((point, index) => {
-    const x = padding + (index / (points.length - 1)) * (width - padding * 2);
-    const y = padding + ((max - point.close) / spread) * (height - padding * 2);
-    return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-  }).join(" ");
+  const rawMin = Math.min(...closes);
+  const rawMax = Math.max(...closes);
+  const rawSpread = rawMax - rawMin || Math.max(rawMax * 0.02, 1);
+  const domainMin = rawMin - rawSpread * 0.08;
+  const domainMax = rawMax + rawSpread * 0.08;
+  const spread = domainMax - domainMin;
+  const endPrice = closes.at(-1)!;
+  const endY = PLOT_TOP + ((domainMax - endPrice) / spread) * (PLOT_BOTTOM - PLOT_TOP);
+  const labelY = Math.max(PLOT_TOP + 8, Math.min(PLOT_BOTTOM - 8, endY));
+
+  return {
+    closes,
+    path: buildSeriesPath(closes, domainMin, domainMax),
+    domainMin,
+    domainMax,
+    endPrice,
+    endY,
+    labelY,
+    startLabel: formatChartDate(points[0]!.date, range),
+    endLabel: formatChartDate(points.at(-1)!.date, range),
+    ticks: [rawMax, (rawMax + rawMin) / 2, rawMin].map((value) => ({
+      value,
+      y: PLOT_TOP + ((domainMax - value) / spread) * (PLOT_BOTTOM - PLOT_TOP),
+    })),
+  };
 }
 
 export function PriceTrendCard({
@@ -135,25 +184,25 @@ export function PriceTrendCard({
     return () => controller.abort();
   }, [ticker, range, externalHistory, responsiveRangeReady]);
 
-  const path = useMemo(() => buildPath(history?.points ?? []), [history]);
+  const geometry = useMemo(
+    () => chartGeometry(history?.points ?? [], range),
+    [history, range],
+  );
   const isPositive = (history?.change ?? 0) >= 0;
 
   // Compute SMA overlays
   const smaPaths = useMemo(() => {
-    if (!history || history.points.length < 2) return { sma50: "", sma200: "" };
-    const closes = history.points.map((p) => p.close);
-    const width = 320;
-    const height = 96;
-    const padding = 6;
+    if (!history || !geometry) return { sma50: "", sma200: "" };
+    const closes = geometry.closes;
 
     const sma50Values = computeSma(closes, 50);
     const sma200Values = computeSma(closes, 200);
 
     return {
-      sma50: buildSmaPath(closes, sma50Values, width, height, padding),
-      sma200: buildSmaPath(closes, sma200Values, width, height, padding),
+      sma50: buildSeriesPath(sma50Values, geometry.domainMin, geometry.domainMax),
+      sma200: buildSeriesPath(sma200Values, geometry.domainMin, geometry.domainMax),
     };
-  }, [history]);
+  }, [history, geometry]);
 
   const moveTone = status === "success"
     ? (isPositive ? "up" : "down")
@@ -203,17 +252,39 @@ export function PriceTrendCard({
             <span />
             <span />
           </div>
-        ) : path ? (
-          <svg aria-hidden="true" preserveAspectRatio="none" viewBox="0 0 320 96">
-            {smaPaths.sma200 ? (
-              <path className="price-chart-sma200" d={smaPaths.sma200} />
-            ) : null}
-            {smaPaths.sma50 ? (
-              <path className="price-chart-sma50" d={smaPaths.sma50} />
-            ) : null}
-            <path className="price-chart-glow" d={path} />
-            <path className="price-chart-line" d={path} />
-          </svg>
+        ) : geometry ? (
+          <>
+            <svg role="img" aria-label={`${ticker} price chart with price levels`} preserveAspectRatio="none" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}>
+              <title>{`${ticker} price from ${geometry.startLabel} to ${geometry.endLabel}, ending at ${formatPrice(geometry.endPrice)}`}</title>
+              {geometry.ticks.map((tick, index) => (
+                <line className="price-chart-level" key={`${tick.value}-${index}`} x1={PLOT_LEFT} x2={PLOT_RIGHT} y1={tick.y} y2={tick.y} />
+              ))}
+              {smaPaths.sma200 ? <path className="price-chart-sma200" d={smaPaths.sma200} /> : null}
+              {smaPaths.sma50 ? <path className="price-chart-sma50" d={smaPaths.sma50} /> : null}
+              <path className="price-chart-glow" d={geometry.path} />
+              <path className="price-chart-line" d={geometry.path} />
+              <line className="price-chart-current-guide" x1={PLOT_RIGHT} x2={CHART_WIDTH - 7} y1={geometry.endY} y2={geometry.endY} />
+              <circle className="price-chart-current-dot" cx={PLOT_RIGHT} cy={geometry.endY} r="3.4" />
+            </svg>
+            <div className="price-chart-scale" aria-hidden="true">
+              {geometry.ticks.map((tick, index) => (
+                <span key={`${tick.value}-${index}`} style={{ top: `${(tick.y / CHART_HEIGHT) * 100}%` }}>
+                  {formatPrice(tick.value)}
+                </span>
+              ))}
+            </div>
+            <span
+              className="price-chart-current-label"
+              style={{ top: `${(geometry.labelY / CHART_HEIGHT) * 100}%` }}
+              aria-hidden="true"
+            >
+              {formatPrice(geometry.endPrice)}
+            </span>
+            <div className="price-chart-dates" aria-hidden="true">
+              <span>{geometry.startLabel}</span>
+              <span>{geometry.endLabel}</span>
+            </div>
+          </>
         ) : (
           <span className="price-chart-empty">Market chart unavailable right now.</span>
         )}
