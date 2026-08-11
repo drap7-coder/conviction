@@ -64,6 +64,22 @@
   color: var(--on-ink);
 }
 
+.company-detail-page .detail-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detail-context {
+  color: var(--on-ink-quiet);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .company-dashboard {
   display: grid;
   gap: 10px;

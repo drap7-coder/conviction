@@ -343,6 +343,30 @@ export default function MarketPulsePage() {
 
   return (
     <main className="markets-page">
+      <section className="product-stage product-stage--pulse" aria-label="Market regime">
+        <div className="product-stage-copy">
+          <span className="product-stage-eyebrow">
+            <i aria-hidden="true" /> Pulse · {data.sessionLabel ?? "Live market"}
+          </span>
+          <h1>{data.macroRegime.label}</h1>
+          <p>{data.macroRegime.summary}</p>
+        </div>
+        <div className="product-stage-metrics" aria-label="Key market readings">
+          <div className={spyChange !== null && spyChange < 0 ? "is-negative" : ""}>
+            <strong>{fmtPct(spyChange)}</strong>
+            <span>S&amp;P 500</span>
+          </div>
+          <div className={vix !== null && vix >= 25 ? "is-alert" : ""}>
+            <strong>{vix !== null ? vix.toFixed(1) : "—"}</strong>
+            <span>VIX</span>
+          </div>
+          <div>
+            <strong>{tenYear !== null ? `${tenYear.toFixed(2)}%` : "—"}</strong>
+            <span>10Y yield</span>
+          </div>
+        </div>
+      </section>
+
       <ViewSwitcher
         label="Choose a Pulse view"
         options={[...PULSE_TABS]}

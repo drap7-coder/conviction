@@ -214,12 +214,25 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves">
-      <div className="investor-moves-toolbar">
-        <div className="investor-moves-stamp">
-          <strong>{response?.managerCount ?? 0}</strong>
-          <span>managers read</span>
+      {visibleIdeas[0] ? (
+        <div className="smart-money-answer" aria-label="Most notable institutional filing">
+          <div className="smart-money-answer-copy">
+            <span className="smart-money-answer-eyebrow">Most notable filing</span>
+            <h2>{ideaConclusion(visibleIdeas[0])}</h2>
+            <p>{ideaEvidence(visibleIdeas[0])}</p>
+          </div>
+          <div className="smart-money-answer-metrics">
+            <div>
+              <strong>{response?.managerCount ?? 0}</strong>
+              <span>Managers read</span>
+            </div>
+            <div>
+              <strong>{visibleIdeas.length}</strong>
+              <span>{filter === "all" ? "Ideas surfaced" : "Filter matches"}</span>
+            </div>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="investor-filter-row" role="group" aria-label="Filter by investor">
         <span className="investor-filter-label">Filter</span>

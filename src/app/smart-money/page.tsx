@@ -122,6 +122,32 @@ export default function SmartMoneyPage() {
 
   return (
     <div className="smart-money-page">
+      <section className="product-stage product-stage--smart-money" aria-label="Smart Money overview">
+        <div className="product-stage-copy">
+          <span className="product-stage-eyebrow">
+            <i aria-hidden="true" /> Smart Money · Filed evidence
+          </span>
+          <h1>Watch what power does.</h1>
+          <p>
+            Follow institutional ownership and congressional disclosures—the actions behind the opinions.
+          </p>
+        </div>
+        <div className="product-stage-metrics product-stage-metrics--text" aria-label="Available evidence">
+          <div>
+            <strong>13F</strong>
+            <span>Institutions</span>
+          </div>
+          <div>
+            <strong>STOCK</strong>
+            <span>Politicians</span>
+          </div>
+          <div>
+            <strong>Filed</strong>
+            <span>Not forecast</span>
+          </div>
+        </div>
+      </section>
+
       <ViewSwitcher
         label="Choose a Smart Money view"
         options={[...SMART_MONEY_VIEWS]}

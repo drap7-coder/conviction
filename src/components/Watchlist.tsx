@@ -477,6 +477,21 @@ export default function Watchlist({
     </section>
   );
 
+  const quotedEntries = entries
+    .map((entry) => quotes[entry.ticker])
+    .filter((quote): quote is StockQuote => Boolean(quote));
+  const advancingCount = quotedEntries.filter((quote) => {
+    const change = getLivePrice(quote).changePercent ?? quote.changePercent;
+    return change !== null && change > 0;
+  }).length;
+  const attentionCount = quotedEntries.filter((quote) => {
+    const change = getLivePrice(quote).changePercent ?? quote.changePercent;
+    return change !== null && Math.abs(change) >= 2;
+  }).length;
+  const sessionLabel = quotedEntries
+    .map((quote) => getLivePrice(quote).label)
+    .find((label): label is string => Boolean(label)) ?? "Market session";
+
   return (
     <div>
       {!hidePurpose ? (
@@ -485,6 +500,32 @@ export default function Watchlist({
           <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
         </div>
       ) : null}
+
+      <section className="product-stage product-stage--watchlist" aria-label="Watchlist overview">
+        <div className="product-stage-copy">
+          <span className="product-stage-eyebrow">
+            <i aria-hidden="true" /> Watchlist · {sessionLabel}
+          </span>
+          <h1>See what changed. Ignore what didn’t.</h1>
+          <p>
+            Your companies in one field of view—sized by importance and colored by the move.
+          </p>
+        </div>
+        <div className="product-stage-metrics" aria-label="Watchlist summary">
+          <div>
+            <strong>{loading ? "—" : entries.length}</strong>
+            <span>Tracked</span>
+          </div>
+          <div>
+            <strong>{loading ? "—" : advancingCount}</strong>
+            <span>Advancing</span>
+          </div>
+          <div className={attentionCount > 0 ? "is-alert" : ""}>
+            <strong>{loading ? "—" : attentionCount}</strong>
+            <span>Moving 2%+</span>
+          </div>
+        </div>
+      </section>
 
       {composeFirst ? composeBar : null}
 

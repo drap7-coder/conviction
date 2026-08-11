@@ -112,10 +112,30 @@ export function PoliticiansMovesPanel() {
 
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
-      <div className="investor-moves-toolbar">
-        <div className="investor-moves-stamp">
-          <strong>{summary.filerCount}</strong>
-          <span>officials filing</span>
+      <div className="smart-money-answer smart-money-answer--political" aria-label="Congressional disclosure summary">
+        <div className="smart-money-answer-copy">
+          <span className="smart-money-answer-eyebrow">Disclosure balance</span>
+          <h2>
+            {summary.purchases === summary.sales
+              ? "Purchases and sales are evenly split"
+              : summary.purchases > summary.sales
+                ? "Purchases lead the latest filings"
+                : "Sales lead the latest filings"}
+          </h2>
+          <p>
+            {summary.purchases} purchase{summary.purchases === 1 ? "" : "s"} and {" "}
+            {summary.sales} sale{summary.sales === 1 ? "" : "s"} across {summary.filerCount} filing {summary.filerCount === 1 ? "official" : "officials"}.
+          </p>
+        </div>
+        <div className="smart-money-answer-metrics">
+          <div>
+            <strong>{summary.disclosures}</strong>
+            <span>Disclosures</span>
+          </div>
+          <div className={summary.late > 0 ? "is-alert" : ""}>
+            <strong>{summary.late}</strong>
+            <span>Filed late</span>
+          </div>
         </div>
       </div>
 

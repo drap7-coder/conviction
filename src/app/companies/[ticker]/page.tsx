@@ -93,6 +93,7 @@ export default async function CompanyPage({
         <Link href="/" className="detail-back">
           ← Watchlist
         </Link>
+        <span className="detail-context">Live decision brief</span>
       </div>
 
       <CompanyDashboard
