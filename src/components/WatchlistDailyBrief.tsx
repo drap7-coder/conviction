@@ -38,6 +38,10 @@ export interface WatchlistBriefItem {
   companyName: string;
   kind: "Conviction change" | "Large move" | "Fresh evidence";
   tone: "up" | "down" | "watch";
+  scope: "Portfolio" | "Watchlist" | "Both";
+  proofStatus: "Evidence-backed" | "Price only";
+  convictionEffect: "Strengthened" | "Weakened" | "Unconfirmed";
+  sourceLabel: string;
   headline: string;
   why: string;
   watchNext: string;
@@ -109,19 +113,31 @@ function transitionKind(type: WatchlistTransition["type"]): WatchlistBriefItem["
   return "watch";
 }
 
+function transitionEffect(type: WatchlistTransition["type"]): WatchlistBriefItem["convictionEffect"] {
+  return type === "status_downgrade" || type === "signal_expired" ? "Weakened" : "Strengthened";
+}
+
 export function buildWatchlistBriefItems({
   entries,
   quotes,
   newsByTicker,
   transitions,
+  portfolioTickers = [],
+  watchlistTickers,
   now = new Date(),
 }: {
   entries: WatchlistEntry[];
   quotes: Record<string, StockQuote>;
   newsByTicker: Record<string, WatchlistNewsSummary>;
   transitions: WatchlistTransition[];
+  portfolioTickers?: string[];
+  watchlistTickers?: string[];
   now?: Date;
 }): WatchlistBriefItem[] {
+  const portfolioSet = new Set(portfolioTickers.map((ticker) => ticker.toUpperCase()));
+  const watchlistSet = new Set(
+    (watchlistTickers ?? entries.map((entry) => entry.ticker)).map((ticker) => ticker.toUpperCase()),
+  );
   const latestTransition = new Map<string, WatchlistTransition>();
   for (const transition of transitions) {
     const ticker = transition.ticker.toUpperCase();
@@ -132,6 +148,9 @@ export function buildWatchlistBriefItems({
     .map((entry): WatchlistBriefItem | null => {
       const ticker = entry.ticker.toUpperCase();
       const quote = quotes[ticker];
+      const companyName = entry.companyName === ticker
+        ? (quote?.name ?? entry.companyName)
+        : entry.companyName;
       const changePercent = quote
         ? (getLivePrice(quote).changePercent ?? quote.changePercent ?? null)
         : null;
@@ -145,19 +164,31 @@ export function buildWatchlistBriefItems({
         ? transition
         : null;
       const freshNews = headline && newsAge !== null && newsAge <= 48 ? headline : null;
+      const inPortfolio = portfolioSet.has(ticker);
+      const inWatchlist = watchlistSet.has(ticker);
+      const scope: WatchlistBriefItem["scope"] = inPortfolio && inWatchlist
+        ? "Both"
+        : inPortfolio
+          ? "Portfolio"
+          : "Watchlist";
+      const priorityBonus = inPortfolio ? 12 : 0;
 
       if (freshTransition) {
         return {
           ticker,
-          companyName: entry.companyName,
+          companyName,
           kind: "Conviction change",
           tone: transitionKind(freshTransition.type),
+          scope,
+          proofStatus: "Evidence-backed",
+          convictionEffect: transitionEffect(freshTransition.type),
+          sourceLabel: "CONVICTION signal history",
           headline: freshTransition.reason,
           why: news?.driver?.explanation ?? "The evidence mix changed enough to alter the company’s conviction state.",
           watchNext: news?.driver ? WATCH_NEXT[news.driver.label] ?? "Confirming or contradicting evidence" : "Confirming or contradicting evidence",
           changePercent,
           occurredAt: freshTransition.createdAt,
-          score: freshTransition.type === "status_downgrade" || freshTransition.type === "signal_expired" ? 100 : 88,
+          score: (freshTransition.type === "status_downgrade" || freshTransition.type === "signal_expired" ? 100 : 88) + priorityBonus,
         };
       }
 
@@ -165,31 +196,43 @@ export function buildWatchlistBriefItems({
         const direction = (changePercent ?? 0) < 0 ? "down" : "up";
         return {
           ticker,
-          companyName: entry.companyName,
+          companyName,
           kind: "Large move",
           tone: direction,
-          headline: freshNews?.headline ?? `${entry.companyName} is ${direction} ${absoluteMove.toFixed(1)}% today.`,
+          scope,
+          proofStatus: news?.driver && freshNews ? "Evidence-backed" : "Price only",
+          convictionEffect: "Unconfirmed",
+          sourceLabel: news?.driver && freshNews
+            ? (freshNews.publisher ?? news.publisher ?? "Company news + live price")
+            : "Live market price",
+          headline: freshNews?.headline ?? `${companyName} is ${direction} ${absoluteMove.toFixed(1)}% today.`,
           why: news?.driver?.explanation
-            ?? `${ticker} is moving enough to warrant checking whether the underlying thesis changed.`,
-          watchNext: news?.driver ? WATCH_NEXT[news.driver.label] ?? "Whether the move holds" : "Whether the move holds—and why",
+            ?? "The move is large enough to investigate, but price alone does not prove the thesis changed.",
+          watchNext: news?.driver
+            ? WATCH_NEXT[news.driver.label] ?? "Confirming or contradicting evidence"
+            : "A company-specific catalyst, estimate revision, or filing that explains the move",
           changePercent,
           occurredAt: freshNews?.date ?? null,
-          score: absoluteMove >= 5 ? 82 + Math.min(12, absoluteMove) : 60 + Math.min(12, absoluteMove),
+          score: (absoluteMove >= 5 ? 82 + Math.min(12, absoluteMove) : 60 + Math.min(12, absoluteMove)) + priorityBonus,
         };
       }
 
       if (freshNews && news?.driver) {
         return {
           ticker,
-          companyName: entry.companyName,
+          companyName,
           kind: "Fresh evidence",
           tone: "watch",
+          scope,
+          proofStatus: "Evidence-backed",
+          convictionEffect: "Unconfirmed",
+          sourceLabel: freshNews.publisher ?? news.publisher ?? "Company news",
           headline: freshNews.headline,
           why: news.driver.explanation,
           watchNext: WATCH_NEXT[news.driver.label] ?? "Follow-through in the evidence",
           changePercent,
           occurredAt: freshNews.date,
-          score: 46 - Math.min(12, newsAge ?? 0) / 4,
+          score: 46 - Math.min(12, newsAge ?? 0) / 4 + priorityBonus,
         };
       }
 
@@ -197,7 +240,7 @@ export function buildWatchlistBriefItems({
     })
     .filter((item): item is WatchlistBriefItem => Boolean(item))
     .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+    .slice(0, 5);
 }
 
 export function WatchlistDailyBrief({
@@ -207,6 +250,8 @@ export function WatchlistDailyBrief({
   transitions,
   loading,
   sessionLabel,
+  portfolioTickers = [],
+  watchlistTickers,
 }: {
   entries: WatchlistEntry[];
   quotes: Record<string, StockQuote>;
@@ -214,103 +259,122 @@ export function WatchlistDailyBrief({
   transitions: WatchlistTransition[];
   loading: boolean;
   sessionLabel: string;
+  portfolioTickers?: string[];
+  watchlistTickers?: string[];
 }) {
-  const items = buildWatchlistBriefItems({ entries, quotes, newsByTicker, transitions });
-  const movingCount = Object.values(quotes).filter((quote) => {
-    const move = getLivePrice(quote).changePercent ?? quote.changePercent;
-    return typeof move === "number" && Math.abs(move) >= 2;
-  }).length;
-  const freshEvidenceCount = Object.values(newsByTicker).filter((news) => {
-    const age = hoursSince(news.date, new Date());
-    return age !== null && age <= 48;
-  }).length + transitions.filter((transition) => {
-    const age = hoursSince(transition.createdAt, new Date());
-    return age !== null && age <= 7 * 24;
-  }).length;
+  const items = buildWatchlistBriefItems({
+    entries,
+    quotes,
+    newsByTicker,
+    transitions,
+    portfolioTickers,
+    watchlistTickers,
+  });
+  const watchlistCount = new Set((watchlistTickers ?? entries.map((entry) => entry.ticker)).map((ticker) => ticker.toUpperCase())).size;
+  const portfolioCount = new Set(portfolioTickers.map((ticker) => ticker.toUpperCase())).size;
 
   const headline = loading
-    ? "Reading your companies."
-    : items.length === 0
-      ? "Nothing urgent. Stay selective."
-      : `${items.length} ${items.length === 1 ? "thing deserves" : "things deserve"} a look.`;
+    ? "Building your brief."
+    : entries.length === 0
+      ? "Your brief starts with one company."
+      : items.length === 0
+        ? "Nothing material changed. Stay selective."
+        : `${items.length} ${items.length === 1 ? "thing changed" : "things changed"} for you.`;
 
   return (
     <>
-      <section className="product-stage product-stage--watchlist" aria-label="Daily brief overview">
+      <section className="product-stage product-stage--watchlist" aria-label="What changed for you overview">
         <div className="product-stage-copy">
           <span className="product-stage-eyebrow">
-            <i aria-hidden="true" /> Daily brief · {sessionLabel}
+            <i aria-hidden="true" /> For you · {sessionLabel}
           </span>
           <h1>{headline}</h1>
           <p>
-            Ranked from conviction shifts, meaningful price moves, and fresh company evidence—not headline volume.
+            Ranked across your portfolio and watchlist by conviction changes, material moves, and fresh evidence—not headline volume.
           </p>
         </div>
         <div className="product-stage-metrics" aria-label="Daily brief summary">
           <div>
-            <strong>{loading ? "—" : entries.length}</strong>
-            <span>Reviewed</span>
-          </div>
-          <div className={movingCount > 0 ? "is-alert" : ""}>
-            <strong>{loading ? "—" : movingCount}</strong>
-            <span>Moving 2%+</span>
+            <strong>{loading ? "—" : portfolioCount}</strong>
+            <span>Portfolio</span>
           </div>
           <div>
-            <strong>{loading ? "—" : freshEvidenceCount}</strong>
-            <span>Fresh evidence</span>
+            <strong>{loading ? "—" : watchlistCount}</strong>
+            <span>Watchlist</span>
+          </div>
+          <div className={items.length > 0 ? "is-alert" : ""}>
+            <strong>{loading ? "—" : items.length}</strong>
+            <span>Need a look</span>
           </div>
         </div>
       </section>
 
       {entries.length > 0 ? (
-        <section className={`daily-brief${items.length === 0 && !loading ? " is-clear" : ""}`} aria-label="Today’s watchlist brief">
-          <header className="daily-brief-header">
+        <section className={`for-you-feed${items.length === 0 && !loading ? " is-clear" : ""}`} aria-label="What changed for you">
+          <header className="for-you-feed-header">
             <div>
-              <span>Today’s brief</span>
-              <h2>{loading ? "Finding what changed" : items.length > 0 ? "What deserves attention" : "Your list is quiet"}</h2>
+              <span>What changed for you</span>
+              <h2>{loading ? "Ranking the signal" : items.length > 0 ? "The few things worth your attention" : "No thesis needs attention"}</h2>
             </div>
-            <p>{entries.length} {entries.length === 1 ? "company" : "companies"} checked</p>
+            <p>{entries.length} {entries.length === 1 ? "company" : "companies"} checked · maximum 5</p>
           </header>
 
           {loading ? (
-            <div className="daily-brief-loading" aria-live="polite">Reading prices, evidence, and conviction changes…</div>
+            <div className="for-you-feed-loading" aria-live="polite">Reading prices, evidence, and conviction changes…</div>
           ) : items.length > 0 ? (
-            <div className={`daily-brief-grid item-count-${items.length}`}>
+            <div className={`for-you-feed-grid item-count-${items.length}`}>
               {items.map((item, index) => (
                 <Link
                   href={`/companies/${encodeURIComponent(item.ticker)}`}
                   key={`${item.ticker}-${item.kind}`}
-                  className={`daily-brief-card tone-${item.tone}${index === 0 ? " is-lead" : ""}`}
+                  className={`for-you-feed-card tone-${item.tone}${index === 0 ? " is-lead" : ""}`}
+                  aria-label={`Open ${item.ticker} company brief`}
                 >
-                  <div className="daily-brief-card-top">
-                    <span className="daily-brief-kind">{item.kind}</span>
-                    <span className={`daily-brief-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
+                  <div className="for-you-feed-card-top">
+                    <div className="for-you-feed-tags">
+                      <span className="for-you-feed-rank">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="for-you-feed-scope">{item.scope}</span>
+                      <span className="for-you-feed-kind">{item.kind}</span>
+                    </div>
+                    <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
                       {formatMove(item.changePercent)}
                     </span>
                   </div>
-                  <div className="daily-brief-company">
+                  <div className="for-you-feed-company">
                     <strong>{item.ticker}</strong>
                     <span>{item.companyName}</span>
                   </div>
                   <h3>{item.headline}</h3>
-                  <p>{item.why}</p>
+                  <div className="for-you-feed-reason">
+                    <span>Why it matters</span>
+                    <p>{item.why}</p>
+                  </div>
+                  <div className="for-you-feed-next">
+                    <span>Next proof point</span>
+                    <p>{item.watchNext}</p>
+                  </div>
                   <footer>
-                    <span>
-                      <b>Watch next</b>
-                      {item.watchNext}
-                    </span>
-                    <time>{formatAge(item.occurredAt)}</time>
-                    <em>Open brief →</em>
+                    <div>
+                      <span className={`for-you-feed-proof${item.proofStatus === "Price only" ? " is-price-only" : ""}`}>
+                        {item.proofStatus}
+                      </span>
+                      <span>{item.sourceLabel}</span>
+                    </div>
+                    <div>
+                      <span>Conviction {item.convictionEffect.toLowerCase()}</span>
+                      <time>{formatAge(item.occurredAt)}</time>
+                    </div>
+                    <em>Open company brief <span aria-hidden="true">→</span></em>
                   </footer>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="daily-brief-clear">
+            <div className="for-you-feed-clear">
               <span aria-hidden="true">✓</span>
               <div>
-                <strong>No material changes found.</strong>
-                <p>Prices are within normal ranges and no fresh evidence requires a thesis review.</p>
+                <strong>No material changes require a thesis review.</strong>
+                <p>That is useful information too. Your portfolio and watchlist are quiet, so there is nothing to chase.</p>
               </div>
             </div>
           )}

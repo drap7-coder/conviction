@@ -97,4 +97,39 @@ describe("watchlist daily brief", () => {
 
     expect(items).toEqual([]);
   });
+
+  it("prioritizes a held company when otherwise-equivalent signals compete", () => {
+    const items = buildWatchlistBriefItems({
+      entries: [entry("HELD", "Held Company"), entry("WATCH", "Watched Company")],
+      quotes: { HELD: quote("HELD", 3), WATCH: quote("WATCH", 3) },
+      newsByTicker: {},
+      transitions: [],
+      portfolioTickers: ["HELD"],
+      watchlistTickers: ["WATCH"],
+      now,
+    });
+
+    expect(items[0]).toMatchObject({ ticker: "HELD", scope: "Portfolio" });
+    expect(items[1]).toMatchObject({ ticker: "WATCH", scope: "Watchlist" });
+  });
+
+  it("labels an unexplained move as price only and leaves conviction unconfirmed", () => {
+    const items = buildWatchlistBriefItems({
+      entries: [entry("MOVE", "Moving Company")],
+      quotes: { MOVE: quote("MOVE", -4.5) },
+      newsByTicker: {},
+      transitions: [],
+      portfolioTickers: ["MOVE"],
+      watchlistTickers: ["MOVE"],
+      now,
+    });
+
+    expect(items[0]).toMatchObject({
+      ticker: "MOVE",
+      scope: "Both",
+      proofStatus: "Price only",
+      convictionEffect: "Unconfirmed",
+    });
+    expect(items[0]?.why).toContain("price alone does not prove");
+  });
 });

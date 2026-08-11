@@ -1,5 +1,6 @@
 export interface StockQuote {
   ticker: string;
+  name?: string | null;
   price: number | null;
   previousClose?: number | null;
   change: number | null;

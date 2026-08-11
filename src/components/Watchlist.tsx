@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -9,6 +9,7 @@ import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
+import { loadPositions } from "@/lib/portfolio/persist";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import {
@@ -91,6 +92,7 @@ export default function Watchlist({
   const [briefLoading, setBriefLoading] = useState(false);
   const [newsByTicker, setNewsByTicker] = useState<Record<string, WatchlistNewsSummary>>({});
   const [transitions, setTransitions] = useState<WatchlistTransition[]>([]);
+  const [portfolioTickers, setPortfolioTickers] = useState<string[]>([]);
 
   // Add company state
   const [addInput, setAddInput] = useState("");
@@ -167,12 +169,38 @@ export default function Watchlist({
   }, []);
 
   useEffect(() => {
-    if (entries.length === 0) return;
+    const readPortfolioTickers = () => {
+      setPortfolioTickers(Array.from(new Set(
+        loadPositions()
+          .map((position) => position.ticker.trim().toUpperCase())
+          .filter(Boolean),
+      )));
+    };
+    readPortfolioTickers();
+    window.addEventListener("storage", readPortfolioTickers);
+    return () => window.removeEventListener("storage", readPortfolioTickers);
+  }, []);
+
+  const briefingEntries = useMemo(() => {
+    const next = [...entries];
+    const existing = new Set(entries.map((entry) => entry.ticker.toUpperCase()));
+    for (const ticker of portfolioTickers) {
+      if (existing.has(ticker)) continue;
+      next.push({ ticker, companyName: ticker, addedAt: "", status: "active" });
+    }
+    return next;
+  }, [entries, portfolioTickers]);
+
+  useEffect(() => {
+    if (briefingEntries.length === 0) {
+      setQuotes({});
+      return;
+    }
     let cancelled = false;
 
     async function loadQuotes() {
       try {
-        const tickers = entries.map((entry) => entry.ticker).join(",");
+        const tickers = briefingEntries.map((entry) => entry.ticker).join(",");
         const response = await fetch(
           `/api/market/quotes?tickers=${encodeURIComponent(tickers)}`,
           { cache: "no-store" },
@@ -205,10 +233,10 @@ export default function Watchlist({
       window.clearInterval(refreshInterval);
       document.removeEventListener("visibilitychange", refreshVisibleDashboard);
     };
-  }, [entries]);
+  }, [briefingEntries]);
 
   useEffect(() => {
-    if (entries.length === 0) {
+    if (briefingEntries.length === 0) {
       setNewsByTicker({});
       setTransitions([]);
       setBriefLoading(false);
@@ -217,7 +245,7 @@ export default function Watchlist({
 
     let cancelled = false;
     const controller = new AbortController();
-    const tickers = entries.map((entry) => entry.ticker.toUpperCase());
+    const tickers = briefingEntries.map((entry) => entry.ticker.toUpperCase());
     const chunks: string[][] = [];
     for (let index = 0; index < tickers.length; index += 10) {
       chunks.push(tickers.slice(index, index + 10));
@@ -253,7 +281,7 @@ export default function Watchlist({
       cancelled = true;
       controller.abort();
     };
-  }, [entries]);
+  }, [briefingEntries]);
 
   const handleAddValue = async (value?: string) => {
     const input = (value ?? addInput).trim();
@@ -533,7 +561,7 @@ export default function Watchlist({
     </section>
   );
 
-  const quotedEntries = entries
+  const quotedEntries = briefingEntries
     .map((entry) => quotes[entry.ticker])
     .filter((quote): quote is StockQuote => Boolean(quote));
   const sessionLabel = quotedEntries
@@ -550,12 +578,14 @@ export default function Watchlist({
       ) : null}
 
       <WatchlistDailyBrief
-        entries={entries}
+        entries={briefingEntries}
         quotes={quotes}
         newsByTicker={newsByTicker}
         transitions={transitions}
         loading={loading || briefLoading}
         sessionLabel={sessionLabel}
+        portfolioTickers={portfolioTickers}
+        watchlistTickers={entries.map((entry) => entry.ticker)}
       />
 
       {composeFirst ? composeBar : null}
