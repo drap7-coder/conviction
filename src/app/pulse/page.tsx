@@ -9,7 +9,6 @@ import { MacroChainChart, type MacroChainSeries } from "@/components/market/Macr
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
 import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
-import { PulseNewsFeed } from "@/components/market/PulseNewsFeed";
 import {
   themesForHeatmapGroup,
   type MarketNarrativeTheme,
@@ -93,12 +92,6 @@ const PULSE_TABS = [
     label: "Indexes",
     tabId: "pulse-tab-indexes",
     panelId: "pulse-panel-indexes",
-  },
-  {
-    id: "news",
-    label: "News",
-    tabId: "pulse-tab-news",
-    panelId: "pulse-panel-news",
   },
   {
     id: "trending",
@@ -448,20 +441,6 @@ export default function MarketPulsePage() {
             />
             <MacroChainChart series={macroSeries} />
           </>
-        ) : null}
-      </div>
-
-      <div
-        id="pulse-panel-news"
-        role="tabpanel"
-        aria-labelledby="pulse-tab-news"
-        hidden={activeTab !== "news"}
-      >
-        {activeTab === "news" ? (
-          <PulseNewsFeed
-            themes={data.marketNarratives.themes}
-            status={data.marketNarratives.status}
-          />
         ) : null}
       </div>
 

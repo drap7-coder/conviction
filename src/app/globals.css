@@ -618,7 +618,7 @@ details > summary::before {
 
 .bottom-tab-bar {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   position: fixed;
   bottom: 0;
   left: 0;
@@ -10676,6 +10676,11 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: rgba(248, 212, 119, 0.14);
 }
 
+.product-stage--news {
+  --stage-accent: #fb8ca0;
+  --stage-glow: rgba(251, 113, 133, 0.16);
+}
+
 .product-stage--smart-money {
   --stage-accent: #9fb8ff;
   --stage-glow: rgba(114, 145, 255, 0.17);
@@ -13162,6 +13167,10 @@ a.signal-block-conclusion-link:hover {
   display: grid;
   gap: 22px;
   min-width: 0;
+}
+
+.news-page .pulse-news-feed {
+  margin-top: 4px;
 }
 
 .pulse-news-brief-header,

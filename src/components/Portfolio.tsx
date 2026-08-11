@@ -689,6 +689,8 @@ export default function Portfolio({
         />
       ) : null}
 
+      {!calcFailed ? <PortfolioAllocationLadder items={allocationItems} /> : null}
+
       {sectorMixData.length > 0 ? (
         <section className="pf-section pf-exposure-card">
           <div className="pf-exposure-heading">
@@ -835,8 +837,6 @@ export default function Portfolio({
                     Return calculations cover {portfolioMetrics.positionsWithCost} of {portfolioMetrics.positionCount} positions. Add an average cost to {portfolioMetrics.positionsMissingCost} position{portfolioMetrics.positionsMissingCost > 1 ? "s" : ""} for full coverage.
                   </div>
                 )}
-
-                {!calcFailed ? <PortfolioAllocationLadder items={allocationItems} /> : null}
 
                 {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
                   <StockHeatmap

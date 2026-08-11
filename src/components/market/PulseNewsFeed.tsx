@@ -262,7 +262,7 @@ export function PulseNewsFeed({
     return (
       <section className="pulse-news-feed" aria-label="Market news">
         <div className="pulse-news-empty">
-          Market news is quiet right now. Check Indexes for price action.
+          Market news is quiet right now. Check Pulse for price action.
         </div>
       </section>
     );
