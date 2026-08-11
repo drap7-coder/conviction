@@ -176,7 +176,13 @@ export default function SmartMoneyPage() {
         aria-labelledby="smart-money-tab-politicians"
         hidden={activeView !== "politicians"}
       >
-        {activeView === "politicians" ? <PoliticiansMovesPanel /> : null}
+        {activeView === "politicians" ? (
+          <PoliticiansMovesPanel
+            trackedTickers={trackedTickers}
+            addingTicker={addingTicker}
+            onAdd={handleAdd}
+          />
+        ) : null}
       </div>
     </div>
   );

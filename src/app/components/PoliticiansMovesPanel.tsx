@@ -6,6 +6,14 @@ import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type { PoliticalTrade } from "@/lib/political-trades";
+import { SmartMoneyDecisionCard } from "@/components/market/SmartMoneyDecisionCard";
+import { SmartMoneyRadar } from "@/components/market/SmartMoneyRadar";
+import {
+  buildPoliticalBrief,
+  formatCompactMoney,
+  groupPoliticalTrades,
+  type SmartMoneyTone,
+} from "@/lib/market/smart-money-brief";
 
 type DirectionFilter = "all" | "purchase" | "sale";
 
@@ -26,7 +34,19 @@ function directionTone(direction: PoliticalTrade["direction"]): "up" | "down" | 
   return "quiet";
 }
 
-export function PoliticiansMovesPanel() {
+function signalTone(tone: SmartMoneyTone): "up" | "down" | "quiet" {
+  if (tone === "positive") return "up";
+  if (tone === "negative") return "down";
+  return "quiet";
+}
+
+interface PoliticiansMovesPanelProps {
+  trackedTickers: Set<string>;
+  addingTicker: string | null;
+  onAdd: (idea: { ticker: string; companyName: string }) => void;
+}
+
+export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: PoliticiansMovesPanelProps) {
   const [trades, setTrades] = useState<PoliticalTrade[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [filter, setFilter] = useState<DirectionFilter>("all");
@@ -60,30 +80,13 @@ export function PoliticiansMovesPanel() {
     };
   }, [requestKey]);
 
-  const summary = useMemo(() => {
-    const filers = new Set<string>();
-    let purchases = 0;
-    let sales = 0;
-    let late = 0;
-    for (const trade of trades) {
-      if (trade.filerName) filers.add(trade.filerName);
-      if (trade.direction === "purchase") purchases += 1;
-      if (trade.direction === "sale") sales += 1;
-      if (trade.isLate) late += 1;
-    }
-    return {
-      filerCount: filers.size,
-      purchases,
-      sales,
-      late,
-      disclosures: trades.length,
-    };
-  }, [trades]);
-
   const visibleTrades = useMemo(() => {
     if (filter === "all") return trades;
     return trades.filter((trade) => trade.direction === filter);
   }, [filter, trades]);
+
+  const politicalBrief = useMemo(() => buildPoliticalBrief(trades), [trades]);
+  const visibleGroups = useMemo(() => groupPoliticalTrades(visibleTrades), [visibleTrades]);
 
   if (status === "loading" || status === "idle") {
     return (
@@ -112,32 +115,20 @@ export function PoliticiansMovesPanel() {
 
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
-      <div className="smart-money-answer smart-money-answer--political" aria-label="Congressional disclosure summary">
-        <div className="smart-money-answer-copy">
-          <span className="smart-money-answer-eyebrow">Disclosure balance</span>
-          <h2>
-            {summary.purchases === summary.sales
-              ? "Purchases and sales are evenly split"
-              : summary.purchases > summary.sales
-                ? "Purchases lead the latest filings"
-                : "Sales lead the latest filings"}
-          </h2>
-          <p>
-            {summary.purchases} purchase{summary.purchases === 1 ? "" : "s"} and {" "}
-            {summary.sales} sale{summary.sales === 1 ? "" : "s"} across {summary.filerCount} filing {summary.filerCount === 1 ? "official" : "officials"}.
-          </p>
-        </div>
-        <div className="smart-money-answer-metrics">
-          <div>
-            <strong>{summary.disclosures}</strong>
-            <span>Disclosures</span>
-          </div>
-          <div className={summary.late > 0 ? "is-alert" : ""}>
-            <strong>{summary.late}</strong>
-            <span>Filed late</span>
-          </div>
-        </div>
-      </div>
+      <SmartMoneyDecisionCard brief={politicalBrief} political />
+
+      <SmartMoneyRadar
+        title={filter === "all" ? "Largest disclosed clusters" : `Largest disclosed ${filter}s`}
+        subtitle="Grouped by ticker and ranked by reported-range midpoint. Filing lag stays visible."
+        items={visibleGroups.slice(0, 3).map((group) => ({
+          ticker: group.ticker,
+          label: group.directionLabel,
+          detail: `${formatCompactMoney(group.estimatedTotal)} midpoint · ${group.trades.length} ${group.trades.length === 1 ? "filing" : "filings"}`,
+          meta: `${group.filerCount} ${group.filerCount === 1 ? "official" : "officials"} · ${group.medianLag === null ? "Unknown" : `${group.medianLag}d`} median lag${group.lateCount > 0 ? ` · ${group.lateCount} late` : ""}`,
+          href: `/companies/${group.ticker}`,
+          tone: group.lateCount > 0 ? "alert" : group.tone,
+        }))}
+      />
 
       <div className="investor-filter-row" role="group" aria-label="Filter by trade direction">
         <span className="investor-filter-label">Filter</span>
@@ -167,46 +158,97 @@ export function PoliticiansMovesPanel() {
         </button>
       </div>
 
-      {visibleTrades.length === 0 ? (
+      {visibleGroups.length === 0 ? (
         <div className="investor-moves-filter-empty">
           No disclosures match this filter right now.
         </div>
       ) : (
-        <div className="politician-trade-list">
-          {visibleTrades.map((trade) => {
-            const tone = directionTone(trade.direction);
+        <>
+          <div className="smart-money-section-label">
+            <div>
+              <span>Evidence detail</span>
+              <h3>Disclosures grouped by company</h3>
+            </div>
+            <p>Repeated trades are consolidated so concentration and filing quality are easier to judge.</p>
+          </div>
+          <div className="politician-trade-list">
+          {visibleGroups.map((group) => {
+            const isTracked = trackedTickers.has(group.ticker);
+            const isAdding = addingTicker === group.ticker;
             return (
-              <article key={trade.id} className="politician-trade-card">
+              <article key={group.ticker} className={`politician-trade-card tone-${group.tone}`}>
                 <div className="politician-trade-card-top">
-                  <Link href={`/companies/${trade.ticker}`} className="politician-trade-company">
-                    <LogoDisplay ticker={trade.ticker} size="card" />
+                  <Link href={`/companies/${group.ticker}`} className="politician-trade-company">
+                    <LogoDisplay ticker={group.ticker} size="card" />
                     <div>
-                      <strong>{trade.ticker}</strong>
-                      <span>{trade.assetName}</span>
+                      <strong>{group.ticker}</strong>
+                      <span>{group.assetName}</span>
                     </div>
                   </Link>
-                  <span className={`ink-chip ink-chip--${tone}`}>
-                    {trade.transactionType}
-                  </span>
+                  <div className="investor-idea-actions">
+                    <span className={`ink-chip ink-chip--${signalTone(group.tone)}`}>
+                      {group.directionLabel}
+                    </span>
+                    <button
+                      type="button"
+                      className={`investor-watchlist-add${isTracked ? " tracked" : ""}`}
+                      aria-label={isTracked ? `${group.ticker} is already on your watchlist` : `Add ${group.ticker} to watchlist`}
+                      title={isTracked ? "Already on watchlist" : "Add to watchlist"}
+                      disabled={isTracked || isAdding}
+                      onClick={() => onAdd({ ticker: group.ticker, companyName: group.assetName })}
+                    >
+                      {isTracked ? "✓" : isAdding ? "…" : "+"}
+                    </button>
+                  </div>
                 </div>
                 <div className="politician-trade-body">
-                  <div className="politician-trade-meta">
-                    <strong>{trade.filerName}</strong>
-                    <span>{trade.office}</span>
-                    {trade.party ? <span>{trade.party}</span> : null}
-                    {trade.state ? <span>{trade.state}</span> : null}
+                  <div className="politician-cluster-metrics">
+                    <div>
+                      <strong>{group.purchaseCount > 0 ? formatCompactMoney(group.estimatedPurchases) : "—"}</strong>
+                      <span>{group.purchaseCount} disclosed {group.purchaseCount === 1 ? "purchase" : "purchases"}</span>
+                    </div>
+                    <div>
+                      <strong>{group.saleCount > 0 ? formatCompactMoney(group.estimatedSales) : "—"}</strong>
+                      <span>{group.saleCount} disclosed {group.saleCount === 1 ? "sale" : "sales"}</span>
+                    </div>
+                    <div className={group.lateCount > 0 ? "is-alert" : ""}>
+                      <strong>{group.medianLag === null ? "—" : `${group.medianLag}d`}</strong>
+                      <span>Median filing lag</span>
+                    </div>
                   </div>
-                  <div className="politician-trade-amounts">
-                    <span>{trade.amountRange}</span>
-                    <span>Filed {formatDate(trade.filingDate)}</span>
-                    {trade.transactionDate ? <span>Traded {formatDate(trade.transactionDate)}</span> : null}
-                    {trade.isLate ? <span className="politician-trade-late">Late filing</span> : null}
+                  <div className="politician-cluster-list">
+                    {group.trades.map((trade) => {
+                      const tone = directionTone(trade.direction);
+                      return (
+                        <div className="politician-cluster-row" key={trade.id}>
+                          <div>
+                            <strong>{trade.filerName}</strong>
+                            <span>{trade.office}</span>
+                          </div>
+                          <div>
+                            <span className={`ink-chip ink-chip--${tone}`}>{trade.transactionType}</span>
+                            <strong>{trade.amountRange}</strong>
+                          </div>
+                          <small>
+                            Traded {trade.transactionDate ? formatDate(trade.transactionDate) : "—"} · Filed {formatDate(trade.filingDate)}
+                            {trade.isLate ? <em>Late</em> : null}
+                          </small>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="investor-idea-footer">
+                    <Link href={`/companies/${group.ticker}`} className="investor-idea-footer-link">Open company →</Link>
+                    {group.trades[0]?.sourceUrl ? (
+                      <a href={group.trades[0].sourceUrl} target="_blank" rel="noreferrer">View filing source ↗</a>
+                    ) : null}
                   </div>
                 </div>
               </article>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       <p className="investor-moves-disclaimer">

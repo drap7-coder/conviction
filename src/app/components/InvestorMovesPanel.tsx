@@ -13,6 +13,9 @@ import type {
 } from "@/lib/sec/institutional";
 import type { EvidenceStrength } from "@/lib/display/vocabulary";
 import { inkChipClass } from "@/lib/display/ink-tone";
+import { SmartMoneyDecisionCard } from "@/components/market/SmartMoneyDecisionCard";
+import { SmartMoneyRadar } from "@/components/market/SmartMoneyRadar";
+import { buildInstitutionalBrief, classifyInstitutionalIdea } from "@/lib/market/smart-money-brief";
 
 type InvestorMovesResponse = InstitutionalMarketResult & {
   status?: "success" | "timeout" | "error";
@@ -187,6 +190,11 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
       });
   }, [filter, response]);
 
+  const institutionalBrief = useMemo(
+    () => buildInstitutionalBrief(visibleIdeas, response?.managerCount ?? 0),
+    [response?.managerCount, visibleIdeas],
+  );
+
   if (status === "loading" || status === "idle") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves" aria-busy="true">
@@ -214,25 +222,23 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
 
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves">
-      {visibleIdeas[0] ? (
-        <div className="smart-money-answer" aria-label="Most notable institutional filing">
-          <div className="smart-money-answer-copy">
-            <span className="smart-money-answer-eyebrow">Most notable filing</span>
-            <h2>{ideaConclusion(visibleIdeas[0])}</h2>
-            <p>{ideaEvidence(visibleIdeas[0])}</p>
-          </div>
-          <div className="smart-money-answer-metrics">
-            <div>
-              <strong>{response?.managerCount ?? 0}</strong>
-              <span>Managers read</span>
-            </div>
-            <div>
-              <strong>{visibleIdeas.length}</strong>
-              <span>{filter === "all" ? "Ideas surfaced" : "Filter matches"}</span>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <SmartMoneyDecisionCard brief={institutionalBrief} />
+
+      <SmartMoneyRadar
+        title={filter === "all" ? "Highest-priority filing signals" : `${filter} research queue`}
+        subtitle="Ranked for deeper work—not as buy recommendations."
+        items={visibleIdeas.slice(0, 3).map((idea) => {
+          const priority = classifyInstitutionalIdea(idea);
+          return {
+            ticker: idea.ticker,
+            label: `${priority.grade} · ${priority.label}`,
+            detail: priority.reason,
+            meta: `${idea.holderCount} managers hold · As of ${formatDate(idea.filingQuarter)}`,
+            href: `/companies/${idea.ticker}`,
+            tone: priority.tone,
+          };
+        })}
+      />
 
       <div className="investor-filter-row" role="group" aria-label="Filter by investor">
         <span className="investor-filter-label">Filter</span>
@@ -262,13 +268,22 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
           No ownership moves match this investor in the latest filings.
         </div>
       ) : (
-        <div className="investor-idea-grid">
+        <>
+          <div className="smart-money-section-label">
+            <div>
+              <span>Evidence detail</span>
+              <h3>{filter === "all" ? "All surfaced ownership signals" : `${filter} filings`}</h3>
+            </div>
+            <p>Compare independent managers, then open the company to test the thesis.</p>
+          </div>
+          <div className="investor-idea-grid">
           {visibleIdeas.map((idea) => {
             const isTracked = trackedTickers.has(idea.ticker);
             const isAdding = addingTicker === idea.ticker;
             const strength = ideaStrength(idea);
+            const priority = classifyInstitutionalIdea(idea);
             return (
-              <article className="investor-idea-card" key={idea.ticker}>
+              <article className={`investor-idea-card priority-${priority.grade.toLowerCase()}`} key={idea.ticker}>
                 <div className="investor-idea-card-top">
                   <Link href={`/companies/${idea.ticker}`} className="investor-idea-company">
                     <LogoDisplay ticker={idea.ticker} size="card" />
@@ -278,6 +293,9 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
                     </div>
                   </Link>
                   <div className="investor-idea-actions">
+                    <span className={`investor-priority-chip tone-${priority.tone}`}>
+                      {priority.grade} · {priority.label}
+                    </span>
                     <button
                       type="button"
                       className={`investor-watchlist-add${isTracked ? " tracked" : ""}`}
@@ -340,7 +358,8 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
               </article>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       <p className="investor-moves-disclaimer">
