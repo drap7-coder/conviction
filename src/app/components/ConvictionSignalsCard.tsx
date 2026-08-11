@@ -530,7 +530,11 @@ export function ConvictionSignalsCard({
   return (
     <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
       <header className="evidence-lanes-heading">
-        <h2 className="company-driver-title evidence-lanes-title">Conviction Signals</h2>
+        <div>
+          <span className="company-section-kicker">How the evidence stacks up</span>
+          <h2 className="company-driver-title evidence-lanes-title">Conviction signals</h2>
+        </div>
+        <p>Scan all three lenses, then open any line to inspect the underlying filings or market data.</p>
       </header>
 
       <CompositeReadCard

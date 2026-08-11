@@ -5,6 +5,7 @@ import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
 import { RelatedCompanies } from "@/app/components/RelatedCompanies";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
+import { CompanyDecisionBrief } from "@/app/components/CompanyDecisionBrief";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
 import { getMarketInstrument, listMarketInstruments } from "@/lib/market/market-instruments";
@@ -90,33 +91,70 @@ export default async function CompanyPage({
       />
 
       <div className="detail-nav">
-        <Link href="/" className="detail-back">
-          ← Watchlist
+        <Link href="/pulse" className="detail-back">
+          ← Pulse
         </Link>
-        <span className="detail-context">Live decision brief</span>
+        <span className="detail-context">Company workbench</span>
       </div>
+
+      <nav className="company-section-nav" aria-label="Company dashboard sections">
+        <a href="#overview">Overview</a>
+        <a href="#decision">Decision</a>
+        <a href="#catalyst">Catalyst</a>
+        {supportsSignals ? <a href="#evidence">Evidence</a> : null}
+        <a href="#peers">Peers</a>
+      </nav>
 
       <CompanyDashboard
         briefing={
           <>
-            {/* 1. Catalyst card — no section headline */}
-            <MaterialNewsCard key={upperTicker} ticker={upperTicker} companyName={companyName} />
-            {/* 2. Quote + chart as one object */}
-            <CompanyQuoteCard
-              ticker={upperTicker}
-              companyName={companyName}
-              sectorName={sectorName}
-              logoUrl={getLogoUrl(upperTicker) ?? null}
-            />
-            {supportsSignals ? (
-              /* 3. Conviction Signals */
-              <ConvictionSignalsCard
+            <div id="overview" className="company-section-anchor company-overview-stack">
+              <CompanyQuoteCard
                 ticker={upperTicker}
+                companyName={companyName}
+                sectorName={sectorName}
                 logoUrl={getLogoUrl(upperTicker) ?? null}
               />
+            </div>
+            {supportsSignals ? (
+              <div id="decision" className="company-section-anchor">
+                <CompanyDecisionBrief ticker={upperTicker} />
+              </div>
+            ) : (
+              <section id="decision" className="company-market-scope company-section-anchor">
+                <span>Price + news view</span>
+                <p>
+                  Filing-based conviction signals do not apply to this market instrument. Use the
+                  live tape, catalyst feed, and related instruments below.
+                </p>
+              </section>
+            )}
+            <div id="catalyst" className="company-section-anchor company-catalyst-stack">
+              <div className="company-section-heading">
+                <div>
+                  <span>What changed</span>
+                  <h2>Latest catalyst</h2>
+                </div>
+                <small>Fresh company-specific headlines only</small>
+              </div>
+              <MaterialNewsCard
+                key={upperTicker}
+                ticker={upperTicker}
+                companyName={companyName}
+                showEmpty
+              />
+            </div>
+            {supportsSignals ? (
+              <div id="evidence" className="company-section-anchor">
+                <ConvictionSignalsCard
+                  ticker={upperTicker}
+                  logoUrl={getLogoUrl(upperTicker) ?? null}
+                />
+              </div>
             ) : null}
-            {/* 4. Related companies — room under the signals carousel */}
-            <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
+            <div id="peers" className="company-section-anchor">
+              <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
+            </div>
           </>
         }
       />

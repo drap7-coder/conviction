@@ -36,8 +36,11 @@ export function RelatedCompanies({
   return (
     <section className="related-companies" aria-label="Related companies">
       <header className="related-companies-heading">
-        <h2 className="related-companies-title">Related</h2>
-        <p className="related-companies-lede">{label}</p>
+        <div>
+          <span className="company-section-kicker">Comparison set</span>
+          <h2 className="related-companies-title">Read the peers next</h2>
+        </div>
+        <p className="related-companies-lede">{label} · same evidence framework, one click away</p>
       </header>
       <ul className="related-companies-list">
         {peers.map((peer) => (

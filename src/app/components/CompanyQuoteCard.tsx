@@ -8,6 +8,8 @@ import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { buildMoveDriverView } from "@/lib/evidence/move-driver-brief";
 import { inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
+import { rangePosition } from "@/lib/market/quote-gauges";
+import { fmtCompactCurrency, fmtMarketCap } from "@/lib/display/format";
 
 interface CompanyQuoteCardProps {
   ticker: string;
@@ -137,6 +139,16 @@ export function CompanyQuoteCard({
   const direction = live?.change != null
     ? live.change > 0 ? "up" : live.change < 0 ? "down" : ""
     : "";
+  const rangePercent = quote
+    ? rangePosition(live?.price ?? quote.price, quote.fiftyTwoWeekLow, quote.fiftyTwoWeekHigh)
+    : null;
+  const sessionLabel = quote?.marketState === "REGULAR"
+    ? "Market open"
+    : quote?.marketState === "PRE"
+      ? "Pre-market"
+      : quote?.marketState === "POST"
+        ? "After hours"
+        : "Latest close";
 
   return (
     <section className="company-quote-card ink-panel" aria-label={`${ticker} quote and chart`}>
@@ -210,6 +222,42 @@ export function CompanyQuoteCard({
           )}
         </div>
       </header>
+
+      <div className="company-quote-rule" aria-hidden="true" />
+
+      <div className="company-quote-context" aria-label="Trading context">
+        <article>
+          <span>Market value</span>
+          <strong>{loading ? "—" : fmtMarketCap(quote?.marketCap ?? null)}</strong>
+          <small>{quote?.exchange ?? "Exchange unavailable"}</small>
+        </article>
+        <article>
+          <span>Dollar volume</span>
+          <strong>{loading ? "—" : fmtCompactCurrency(quote?.dollarVolume ?? null)}</strong>
+          <small>{sessionLabel}</small>
+        </article>
+        <article className="company-range-stat">
+          <span>52-week position</span>
+          <strong>{rangePercent === null ? "—" : `${Math.round(rangePercent)}%`}</strong>
+          <small>
+            {quote?.fiftyTwoWeekLow == null || quote?.fiftyTwoWeekHigh == null
+              ? "Range unavailable"
+              : `$${formatPrice(quote.fiftyTwoWeekLow)} low · $${formatPrice(quote.fiftyTwoWeekHigh)} high`}
+          </small>
+          <div className="company-range-track" aria-hidden="true">
+            <i style={{ width: rangePercent === null ? "0%" : `${rangePercent}%` }} />
+          </div>
+        </article>
+        <article>
+          <span>Day range</span>
+          <strong>
+            {quote?.dayLow == null || quote?.dayHigh == null
+              ? "—"
+              : `$${formatPrice(quote.dayLow)}–${formatPrice(quote.dayHigh)}`}
+          </strong>
+          <small>Current session</small>
+        </article>
+      </div>
 
       <div className="company-quote-rule" aria-hidden="true" />
 

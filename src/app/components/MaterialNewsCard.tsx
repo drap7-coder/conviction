@@ -7,6 +7,7 @@ import type { StockQuote } from "@/lib/market/quotes";
 import { buildMoveDriverView } from "@/lib/evidence/move-driver-brief";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { NewsDriverBrief } from "./NewsDriverBrief";
+import { SignalBlock } from "@/components/display/SignalBlock";
 
 interface NewsEvidenceResponse {
   events: EvidenceEvent[];
@@ -19,6 +20,7 @@ interface NewsEvidenceResponse {
 interface MaterialNewsCardProps {
   ticker: string;
   companyName?: string;
+  showEmpty?: boolean;
 }
 
 function DriverShell({ children }: { children: ReactNode }) {
@@ -29,7 +31,7 @@ function DriverShell({ children }: { children: ReactNode }) {
   );
 }
 
-export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps) {
+export function MaterialNewsCard({ ticker, companyName, showEmpty = false }: MaterialNewsCardProps) {
   const [events, setEvents] = useState<EvidenceEvent[]>([]);
   const [driver, setDriver] = useState<NewsDriver | null>(null);
   const [absChangePercent, setAbsChangePercent] = useState<number | null>(null);
@@ -110,12 +112,28 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
 
   // Stay out of the way until we know whether this card should lead.
   if (status === "loading" || status === "idle") {
-    return null;
+    return showEmpty ? (
+      <DriverShell>
+        <div className="company-catalyst-loading" aria-label="Checking company catalysts">
+          <span />
+          <span />
+        </div>
+      </DriverShell>
+    ) : null;
   }
 
   // Hard failures: only surface if the session move is meaningful.
   if (status === "timeout" || status === "error") {
-    if (absChangePercent == null || absChangePercent < 1) return null;
+    if (absChangePercent == null || absChangePercent < 1) {
+      return showEmpty ? (
+        <DriverShell>
+          <SignalBlock
+            conclusion="No fresh company-specific catalyst is confirmed in the current feed."
+            hideMeta
+          />
+        </DriverShell>
+      ) : null;
+    }
     return (
       <DriverShell>
         <NewsDriverBrief
@@ -133,7 +151,14 @@ export function MaterialNewsCard({ ticker, companyName }: MaterialNewsCardProps)
   }
 
   if (view.mode === "hidden") {
-    return null;
+    return showEmpty ? (
+      <DriverShell>
+        <SignalBlock
+          conclusion="No fresh company-specific catalyst is confirmed in the current feed."
+          hideMeta
+        />
+      </DriverShell>
+    ) : null;
   }
 
   return (
