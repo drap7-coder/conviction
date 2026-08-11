@@ -25,11 +25,13 @@ export async function GET(request: NextRequest) {
     headline: string | null;
     url: string | null;
     date: string | null;
+    publisher: string | null;
     driver: NewsDriver | null;
     headlines: Array<{
       headline: string;
       url: string | null;
       date: string;
+      publisher: string | null;
     }>;
   }> = {};
 
@@ -48,24 +50,26 @@ export async function GET(request: NextRequest) {
         headline: newsEvent.title.slice(0, 200),
         url: newsEvent.sourceUrl ?? null,
         date: newsEvent.date,
+        publisher: newsEvent.metadata?.publisher ?? null,
       }));
       if (event) {
         results[ticker] = {
           headline: event.title.slice(0, 200),
           url: event.sourceUrl ?? null,
           date: event.date,
+          publisher: event.metadata?.publisher ?? null,
           driver: summary.driver,
           headlines,
         };
       } else {
-        results[ticker] = { headline: null, url: null, date: null, driver: null, headlines: [] };
+        results[ticker] = { headline: null, url: null, date: null, publisher: null, driver: null, headlines: [] };
       }
     } catch (error) {
       console.error("[news-batch] provider request failed", {
         ticker,
         error: error instanceof Error ? error.message : String(error),
       });
-      results[ticker] = { headline: null, url: null, date: null, driver: null, headlines: [] };
+      results[ticker] = { headline: null, url: null, date: null, publisher: null, driver: null, headlines: [] };
     }
   }));
 

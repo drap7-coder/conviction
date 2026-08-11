@@ -90,8 +90,6 @@ function parseRssDate(dateStr: string): string {
 function publisherFromItem(item: RssItem, sourceLabel: string): string {
   const source = stripHtml(item.source).trim();
   if (source) return source;
-  const suffix = /\s[-–—]\s([^–—-]{2,48})$/.exec(stripHtml(item.title));
-  if (suffix?.[1]) return suffix[1].trim();
   return sourceLabel.replace(/\s+RSS$/i, "");
 }
 

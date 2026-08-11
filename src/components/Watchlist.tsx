@@ -11,6 +11,11 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import {
+  WatchlistDailyBrief,
+  type WatchlistNewsSummary,
+  type WatchlistTransition,
+} from "@/components/WatchlistDailyBrief";
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
 
@@ -83,6 +88,9 @@ export default function Watchlist({
   const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [briefLoading, setBriefLoading] = useState(false);
+  const [newsByTicker, setNewsByTicker] = useState<Record<string, WatchlistNewsSummary>>({});
+  const [transitions, setTransitions] = useState<WatchlistTransition[]>([]);
 
   // Add company state
   const [addInput, setAddInput] = useState("");
@@ -196,6 +204,54 @@ export default function Watchlist({
       cancelled = true;
       window.clearInterval(refreshInterval);
       document.removeEventListener("visibilitychange", refreshVisibleDashboard);
+    };
+  }, [entries]);
+
+  useEffect(() => {
+    if (entries.length === 0) {
+      setNewsByTicker({});
+      setTransitions([]);
+      setBriefLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+    const tickers = entries.map((entry) => entry.ticker.toUpperCase());
+    const chunks: string[][] = [];
+    for (let index = 0; index < tickers.length; index += 10) {
+      chunks.push(tickers.slice(index, index + 10));
+    }
+
+    async function loadBriefingEvidence() {
+      setBriefLoading(true);
+      try {
+        const [newsResults, transitionResult] = await Promise.all([
+          Promise.all(chunks.map((chunk) =>
+            fetchJsonWithTimeout<{ news?: Record<string, WatchlistNewsSummary> }>(
+              `/api/evidence/news-batch?tickers=${encodeURIComponent(chunk.join(","))}`,
+              24_000,
+              controller.signal,
+            ).catch(() => ({ news: {} })),
+          )),
+          fetchJsonWithTimeout<{ transitions?: WatchlistTransition[] }>(
+            "/api/conviction/transitions",
+            8_000,
+            controller.signal,
+          ).catch(() => ({ transitions: [] })),
+        ]);
+        if (cancelled) return;
+        setNewsByTicker(Object.assign({}, ...newsResults.map((result) => result.news ?? {})));
+        setTransitions(transitionResult.transitions ?? []);
+      } finally {
+        if (!cancelled) setBriefLoading(false);
+      }
+    }
+
+    void loadBriefingEvidence();
+    return () => {
+      cancelled = true;
+      controller.abort();
     };
   }, [entries]);
 
@@ -480,14 +536,6 @@ export default function Watchlist({
   const quotedEntries = entries
     .map((entry) => quotes[entry.ticker])
     .filter((quote): quote is StockQuote => Boolean(quote));
-  const advancingCount = quotedEntries.filter((quote) => {
-    const change = getLivePrice(quote).changePercent ?? quote.changePercent;
-    return change !== null && change > 0;
-  }).length;
-  const attentionCount = quotedEntries.filter((quote) => {
-    const change = getLivePrice(quote).changePercent ?? quote.changePercent;
-    return change !== null && Math.abs(change) >= 2;
-  }).length;
   const sessionLabel = quotedEntries
     .map((quote) => getLivePrice(quote).label)
     .find((label): label is string => Boolean(label)) ?? "Market session";
@@ -501,31 +549,14 @@ export default function Watchlist({
         </div>
       ) : null}
 
-      <section className="product-stage product-stage--watchlist" aria-label="Watchlist overview">
-        <div className="product-stage-copy">
-          <span className="product-stage-eyebrow">
-            <i aria-hidden="true" /> Watchlist · {sessionLabel}
-          </span>
-          <h1>See what changed. Ignore what didn’t.</h1>
-          <p>
-            Your companies in one field of view—sized by importance and colored by the move.
-          </p>
-        </div>
-        <div className="product-stage-metrics" aria-label="Watchlist summary">
-          <div>
-            <strong>{loading ? "—" : entries.length}</strong>
-            <span>Tracked</span>
-          </div>
-          <div>
-            <strong>{loading ? "—" : advancingCount}</strong>
-            <span>Advancing</span>
-          </div>
-          <div className={attentionCount > 0 ? "is-alert" : ""}>
-            <strong>{loading ? "—" : attentionCount}</strong>
-            <span>Moving 2%+</span>
-          </div>
-        </div>
-      </section>
+      <WatchlistDailyBrief
+        entries={entries}
+        quotes={quotes}
+        newsByTicker={newsByTicker}
+        transitions={transitions}
+        loading={loading || briefLoading}
+        sessionLabel={sessionLabel}
+      />
 
       {composeFirst ? composeBar : null}
 

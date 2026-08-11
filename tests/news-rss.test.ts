@@ -27,4 +27,20 @@ describe("RSS news metadata", () => {
       metadata: { publisher: "Reuters" },
     });
   });
+
+  it("does not mistake a headline clause for a publisher when RSS omits the source", async () => {
+    const xml = `
+      <rss><channel><item>
+        <title><![CDATA[Markets Slide - TSLA, INTC, and NFLX In Focus]]></title>
+        <link>https://example.com/markets</link>
+        <pubDate>Mon, 10 Aug 2026 23:02:45 +0000</pubDate>
+      </item></channel></rss>
+    `;
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(xml, { status: 200 })));
+
+    const events = await fetchRssNews("INTC", 1);
+
+    expect(events[0]?.metadata?.publisher).toBe("Yahoo Finance");
+    expect(events[0]?.title).toBe("Markets Slide - TSLA, INTC, and NFLX In Focus");
+  });
 });
