@@ -1,6 +1,6 @@
 /**
  * Compact portfolio holding row — same ring-list language as Watchlist,
- * with a color-accented holdings band (shares / value / alloc / cost / G&L).
+ * with a color-accented holdings band (shares / value / cost / total return).
  * Edit and remove are always visible; company dashboard is a ticker link.
  */
 
@@ -254,19 +254,13 @@ export function PortfolioHoldingCard({
             </span>
           </div>
           <div className="pf-ring-holding-item">
-            <span className="pf-ring-holding-label">Alloc</span>
-            <span className="pf-ring-holding-value">
-              {isFiniteNumber(metrics.weight) ? `${Math.round(metrics.weight)}%` : "—"}
-            </span>
-          </div>
-          <div className="pf-ring-holding-item">
             <span className="pf-ring-holding-label">Cost</span>
             <span className="pf-ring-holding-value">
               {compactCurrency(metrics.totalCost)}
             </span>
           </div>
           <div className="pf-ring-holding-item">
-            <span className="pf-ring-holding-label">Gain/Loss</span>
+            <span className="pf-ring-holding-label">Total return</span>
             <span className={`pf-ring-holding-value pf-ring-holding-gl ${accent}`}>
               {compactCurrency(metrics.totalGainLoss)}
               {isFiniteNumber(metrics.totalGainLossPercent)

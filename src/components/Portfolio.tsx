@@ -101,6 +101,13 @@ function weightPct(value: number | null): string {
   return `${value.toFixed(0)}%`;
 }
 
+function valueToneLabel(tone: ReturnType<typeof buildPortfolioValueBrief>["tone"]): string {
+  if (tone === "balanced") return "Balanced";
+  if (tone === "watch") return "Watch sizing";
+  if (tone === "concentrated") return "Concentrated";
+  return "Sizing read";
+}
+
 // ── Sort types ──────────────────────────────────────────────────────────────
 
 type SortKey = "ticker" | "value" | "weight" | "dayGl" | "totalGl";
@@ -154,7 +161,10 @@ function SampleBooksSwitcher({
   return (
     <section className="pf-book-switch" aria-label="Sample portfolios">
       <header className="pf-book-switch-header">
-        <p className="pf-book-switch-label">Portfolios</p>
+        <div className="pf-book-switch-title-row">
+          <p className="pf-book-switch-label"><i aria-hidden="true" /> Portfolio book</p>
+          <span>{active ? "Sample" : "Personal"}</span>
+        </div>
         <p className="pf-book-switch-lede">
           {active
             ? `${active.label} · illustrative $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k equal-weight book`
@@ -731,6 +741,7 @@ export default function Portfolio({
 
       <div
         id="portfolio-panel-value"
+        className="pf-value-view"
         role="tabpanel"
         aria-labelledby="portfolio-tab-value"
         hidden={activeTab !== "value"}
@@ -770,10 +781,13 @@ export default function Portfolio({
                 {!hideHero ? (
                   <section className={`pf-value-stage tone-${valueBrief.tone}`} aria-label="Portfolio value and concentration">
                     <div className="pf-value-stage-copy">
-                      <span className="pf-value-stage-eyebrow">
-                        <i aria-hidden="true" />
-                        {activeSampleBook ? `${activeSampleBook.label} · Illustrative portfolio` : "My portfolio · Live value"}
-                      </span>
+                      <div className="pf-value-stage-topline">
+                        <span className="pf-value-stage-eyebrow">
+                          <i aria-hidden="true" />
+                          {activeSampleBook ? `${activeSampleBook.label} · Illustrative portfolio` : "My portfolio · Live value"}
+                        </span>
+                        <span className="pf-value-stage-status">{valueToneLabel(valueBrief.tone)}</span>
+                      </div>
                       <div className="pf-value-stage-total">
                         <SplitFlapMetric
                           variant="hero"
@@ -784,6 +798,9 @@ export default function Portfolio({
                       </div>
                       <h1>{valueBrief.headline}</h1>
                       <p>{valueBrief.summary}</p>
+                      <button className="pf-value-refresh" onClick={handleRefresh} disabled={loading}>
+                        {loading ? "Refreshing prices…" : "Refresh prices"}
+                      </button>
                       {activeSampleBook ? (
                         <small>Sample positions never replace your saved portfolio. Editing one creates a personal copy.</small>
                       ) : null}
@@ -809,13 +826,7 @@ export default function Portfolio({
                   </section>
                 ) : null}
 
-                <div className="pf-toolbar">
-                  {loading && <span className="pf-loading">Loading portfolio prices</span>}
-                  {error && <span className="pf-error">{error}</span>}
-                  <button className="pf-refresh-btn" onClick={handleRefresh} disabled={loading}>
-                    {loading ? "Loading…" : "Refresh"}
-                  </button>
-                </div>
+                {error && !calcFailed ? <div className="pf-state-card pf-state-warn">{error}</div> : null}
 
                 {calcFailed && (
                   <div className="pf-state-card pf-state-warn">
@@ -841,79 +852,54 @@ export default function Portfolio({
                 {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
                   <StockHeatmap
                     title="Today’s movement"
-                    subtitle=""
+                    subtitle="Sized by position value · color shows today’s move"
                     items={portfolioHeatmapItems}
                     sessionLabel={portfolioHeatmapSession}
                   />
                 )}
 
                 {composeBar}
-
-                <div className="pf-positions-header" id="portfolio-positions">
-                  <div className="wl-list-header pf-ring-list-header">
-                    <div className="wl-list-title-row">
-                      <h2 className="wl-list-title pf-section-title">Positions</h2>
-                      <span className="wl-list-count">
-                        {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
-                      </span>
+                <section className="pf-values-positions" id="portfolio-positions" aria-label="Portfolio holdings">
+                  <header className="pf-values-positions-header">
+                    <div>
+                      <span className="pf-section-eyebrow">Holdings</span>
+                      <h2>Where the value lives</h2>
+                      <p>Live price, daily move, allocation, and total return—without leaving the portfolio.</p>
                     </div>
-                    <div className="wl-conviction-legend" aria-label="Allocation gauge legend">
+                    <span className="pf-values-position-count">
+                      {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
+                    </span>
+                  </header>
+
+                  <div className="pf-values-controls">
+                    <div className="pf-sort-row" role="group" aria-label="Sort positions">
+                      {(
+                        [
+                          ["ticker", "Ticker"],
+                          ["value", "Value"],
+                          ["weight", "Alloc"],
+                          ["dayGl", "Day"],
+                          ["totalGl", "Gain/Loss"],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className={`pf-sort-chip${sort.key === key ? " is-active" : ""}`}
+                          onClick={() => toggleSort(key)}
+                        >
+                          {label}{sortArrow(key)}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="wl-conviction-legend pf-allocation-legend" aria-label="Allocation gauge legend">
                       <span><i className="quote-dot green" /> Under 12%</span>
                       <span><i className="quote-dot amber" /> 12–20%</span>
                       <span><i className="quote-dot red" /> Over 20%</span>
                     </div>
                   </div>
-                </div>
 
-                <div className="pf-sort-row" role="group" aria-label="Sort positions">
-                  {(
-                    [
-                      ["ticker", "Ticker"],
-                      ["value", "Value"],
-                      ["weight", "Alloc"],
-                      ["dayGl", "Day"],
-                      ["totalGl", "Gain/Loss"],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`pf-sort-chip${sort.key === key ? " is-active" : ""}`}
-                      onClick={() => toggleSort(key)}
-                    >
-                      {label}{sortArrow(key)}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="wl-manage-row pf-manage-row" aria-label="Manage portfolio positions">
-                  <span className="wl-manage-label">
-                    {positions.length} position{positions.length === 1 ? "" : "s"}
-                  </span>
-                  <div className="wl-manage-chips">
-                    {positions.map((position) => (
-                      <span key={position.ticker} className="wl-manage-chip">
-                        <button
-                          type="button"
-                          className="pf-manage-chip-edit"
-                          onClick={() => handleStartEdit(position.ticker)}
-                        >
-                          {position.ticker}
-                        </button>
-                        <button
-                          type="button"
-                          className="wl-manage-remove"
-                          onClick={() => handleRemove(position.ticker)}
-                          aria-label={`Remove ${position.ticker} from portfolio`}
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="watchlist-list pf-ring-list">
+                  <div className="watchlist-list pf-ring-list">
                   {sortedPositions.map(({ pos, metrics, dailyPct }) => {
                     const ticker = pos.companyId.toUpperCase();
                     const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
@@ -953,13 +939,15 @@ export default function Portfolio({
                       />
                     );
                   })}
-                </div>
-
-                {positions.length > 0 && (
-                  <div className="pf-clear-wrap">
-                    <button className="pf-clear-btn" onClick={handleClearAll}>Clear All</button>
                   </div>
-                )}
+
+                  {positions.length > 0 && (
+                    <footer className="pf-values-positions-footer">
+                      <span>Edit or remove a holding from its card.</span>
+                      <button className="pf-clear-btn" onClick={handleClearAll}>Clear portfolio</button>
+                    </footer>
+                  )}
+                </section>
               </>
             ) : null}
           </>
