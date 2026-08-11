@@ -20,8 +20,6 @@ import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
-import { fetchConvictionScores } from "@/app/components/fetch-conviction-score";
-import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import SectorMixBars from "@/components/SectorMixBars";
 import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
 import { isFiniteNumber } from "@/lib/display/format";
@@ -205,8 +203,6 @@ export default function Portfolio({
   const [formError, setFormError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
-  const [convictionScores, setConvictionScores] = useState<Record<string, ConvictionScoreView>>({});
-  const [pendingScores, setPendingScores] = useState<Record<string, true>>({});
   const [activeTab, setActiveTab] = useState<PortfolioTab>("value");
 
   // Load positions + active book from localStorage on mount
@@ -219,42 +215,6 @@ export default function Portfolio({
     setActiveBookId(null);
     saveActiveSampleBookId(null);
   }
-
-  const convictionTickerKey = positions.map((position) => position.ticker).join(",");
-
-  useEffect(() => {
-    if (!convictionTickerKey) {
-      setConvictionScores({});
-      setPendingScores({});
-      return;
-    }
-    let cancelled = false;
-    const tickers = convictionTickerKey.split(",").filter(Boolean);
-    const initialPending: Record<string, true> = {};
-    for (const ticker of tickers) initialPending[ticker] = true;
-    setPendingScores(initialPending);
-
-    async function loadConvictionScores() {
-      await fetchConvictionScores(tickers, undefined, (partial, settled) => {
-        if (cancelled) return;
-        setConvictionScores((prev) => ({ ...prev, ...partial }));
-        if (settled) {
-          setPendingScores((prev) => {
-            if (!prev[settled.ticker]) return prev;
-            const next = { ...prev };
-            delete next[settled.ticker];
-            return next;
-          });
-        }
-      });
-      if (!cancelled) setPendingScores({});
-    }
-
-    void loadConvictionScores();
-    return () => {
-      cancelled = true;
-    };
-  }, [convictionTickerKey]);
 
   // Share quotes from PortfolioDataProvider (one Yahoo fan-out for hero + holdings).
   useEffect(() => {
@@ -612,6 +572,13 @@ export default function Portfolio({
 
   const insightsBody = hasData ? (
     <>
+      {!calcFailed ? (
+        <PortfolioCheckPanel
+          riskFlags={riskFlags}
+          onReviewPositions={() => setActiveTab("value")}
+        />
+      ) : null}
+
       {sectorMixData.length > 0 ? (
         <section className="pf-section pf-exposure-card">
           <div className="pf-exposure-heading">
@@ -622,13 +589,7 @@ export default function Portfolio({
             <p>Position values by economic sector — ranked, not pie-sliced.</p>
           </div>
           <SectorMixBars sectors={sectorMixData} />
-          <div className="pf-exposure-rule" aria-hidden="true" />
-          <PortfolioCheckPanel riskFlags={riskFlags} embedded />
         </section>
-      ) : null}
-
-      {sectorMixData.length === 0 && !calcFailed ? (
-        <PortfolioCheckPanel riskFlags={riskFlags} />
       ) : null}
 
       {calcFailed ? (
@@ -768,7 +729,7 @@ export default function Portfolio({
                   />
                 )}
 
-                <div className="pf-positions-header">
+                <div className="pf-positions-header" id="portfolio-positions">
                   <div className="wl-list-header pf-ring-list-header">
                     <div className="wl-list-title-row">
                       <h2 className="wl-list-title pf-section-title">Positions</h2>
@@ -776,10 +737,10 @@ export default function Portfolio({
                         {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
                       </span>
                     </div>
-                    <div className="wl-conviction-legend" aria-label="Conviction ring legend">
-                      <span><i className="quote-dot red" /> Distribution</span>
-                      <span><i className="quote-dot amber" /> Holding</span>
-                      <span><i className="quote-dot green" /> Accumulating</span>
+                    <div className="wl-conviction-legend" aria-label="Allocation gauge legend">
+                      <span><i className="quote-dot green" /> Under 12%</span>
+                      <span><i className="quote-dot amber" /> 12–20%</span>
+                      <span><i className="quote-dot red" /> Over 20%</span>
                     </div>
                   </div>
                 </div>
@@ -837,7 +798,6 @@ export default function Portfolio({
                     const ticker = pos.companyId.toUpperCase();
                     const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
                     const live = quote ? getLivePrice(quote) : null;
-                    const composite = convictionScores[ticker];
                     const isEditing = editingTicker?.toUpperCase() === ticker;
 
                     return (
@@ -850,9 +810,6 @@ export default function Portfolio({
                         sessionLabel={live?.label ?? null}
                         closePrice={live?.label ? quote?.price ?? null : null}
                         closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                        convictionTone={composite?.tone ?? "neutral"}
-                        convictionStrength={composite?.displayScore ?? null}
-                        scoreLoading={Boolean(pendingScores[ticker])}
                         shares={pos.shares}
                         metrics={metrics}
                         isEditing={isEditing}

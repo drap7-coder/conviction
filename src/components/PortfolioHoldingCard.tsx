@@ -24,10 +24,6 @@ export interface PortfolioHoldingCardProps {
   /** Regular-session close reference when extended */
   closePrice: number | null;
   closeChangePercent: number | null;
-  convictionTone: string;
-  convictionStrength: number | null;
-  /** True while the shared score request is still in flight. */
-  scoreLoading?: boolean;
   shares: number;
   metrics: PositionMetrics;
   isEditing?: boolean;
@@ -68,17 +64,11 @@ function compactCurrency(value: number | null) {
   })}`;
 }
 
-function ringFromComposite(tone: string, strength: number | null): {
-  tone: GaugeTone;
-  label: string;
-} {
-  if (tone === "green") return { tone: "green", label: "Accumulating" };
-  if (tone === "red") return { tone: "red", label: "Distribution" };
-  if (tone === "amber") return { tone: "amber", label: "Holding" };
-  if (tone === "positive") return { tone: "green", label: "Accumulating" };
-  if (tone === "negative") return { tone: "red", label: "Distribution" };
-  if (tone === "contested") return { tone: "amber", label: "Holding" };
-  return { tone: "neutral", label: strength === null ? "Awaiting" : "Holding" };
+function allocationTone(weight: number | null): GaugeTone {
+  if (!isFiniteNumber(weight)) return "neutral";
+  if (weight > 20) return "red";
+  if (weight >= 12) return "amber";
+  return "green";
 }
 
 function holdingAccent(totalGainLoss: number | null): "up" | "down" | "flat" {
@@ -94,9 +84,6 @@ export function PortfolioHoldingCard({
   sessionLabel,
   closePrice,
   closeChangePercent,
-  convictionTone,
-  convictionStrength,
-  scoreLoading = false,
   shares,
   metrics,
   isEditing = false,
@@ -124,7 +111,7 @@ export function PortfolioHoldingCard({
         : "quiet",
   );
 
-  const ring = ringFromComposite(convictionTone, convictionStrength);
+  const allocation = metrics.weight;
   const accent = holdingAccent(metrics.totalGainLoss);
   const displayName = companyName?.trim() || ticker;
 
@@ -166,22 +153,11 @@ export function PortfolioHoldingCard({
         <div className="wl-ring-gauge">
           <GaugeRing
             size="sm"
-            value={scoreLoading ? null : convictionStrength}
-            label={
-              scoreLoading
-                ? "…"
-                : convictionStrength !== null
-                  ? String(convictionStrength)
-                  : "—"
-            }
-            caption={scoreLoading ? "Scoring" : ""}
-            tone={ring.tone}
-            loading={scoreLoading}
-            ariaLabel={
-              scoreLoading
-                ? `Conviction score computing for ${ticker}`
-                : `Conviction ${convictionStrength ?? "unavailable"}: ${ring.label}`
-            }
+            value={allocation}
+            label={isFiniteNumber(allocation) ? `${Math.round(allocation)}%` : "—"}
+            sublabel="Alloc"
+            tone={allocationTone(allocation)}
+            ariaLabel={`${ticker} allocation ${isFiniteNumber(allocation) ? `${allocation.toFixed(1)} percent` : "unavailable"}`}
           />
         </div>
 
