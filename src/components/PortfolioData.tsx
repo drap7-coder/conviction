@@ -1,7 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { loadPositions } from "@/lib/portfolio/persist";
+import {
+  loadActiveSampleBookId,
+  loadSampleBookPositions,
+  resolveActivePortfolioPositions,
+} from "@/lib/portfolio/sample-books";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { computePortfolioMetrics } from "@/lib/portfolio/calculations";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
@@ -106,9 +111,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const quoteRequestRef = useRef(0);
+  const quoteAbortRef = useRef<AbortController | null>(null);
 
   const reloadPositions = useCallback(() => {
-    setPositions(loadPositions());
+    const activeBookId = loadActiveSampleBookId();
+    const next = resolveActivePortfolioPositions(
+      loadPositions(),
+      activeBookId,
+      loadSampleBookPositions(activeBookId),
+    );
+    setPositions(next);
+    setLoading(next.length > 0);
   }, []);
 
   useEffect(() => {
@@ -121,6 +135,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   }, [reloadPositions]);
 
   const fetchQuotes = useCallback(async (tickers: string[]) => {
+    quoteAbortRef.current?.abort();
+    const controller = new AbortController();
+    quoteAbortRef.current = controller;
+    const requestId = quoteRequestRef.current + 1;
+    quoteRequestRef.current = requestId;
+
     if (tickers.length === 0) {
       setQuotes([]);
       setLoading(false);
@@ -131,16 +151,23 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     setError(null);
 
     try {
-      const res = await fetch(`/api/market/quotes?tickers=${tickers.join(",")}`);
+      const res = await fetch(`/api/market/quotes?tickers=${tickers.join(",")}`, {
+        signal: controller.signal,
+      });
       if (!res.ok) throw new Error("Quote data is temporarily unavailable");
       const data = await res.json();
-      setQuotes(data.quotes ?? []);
+      if (requestId === quoteRequestRef.current) setQuotes(data.quotes ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load prices");
+      if (controller.signal.aborted) return;
+      if (requestId === quoteRequestRef.current) {
+        setError(err instanceof Error ? err.message : "Failed to load prices");
+      }
     } finally {
-      setLoading(false);
+      if (requestId === quoteRequestRef.current) setLoading(false);
     }
   }, []);
+
+  useEffect(() => () => quoteAbortRef.current?.abort(), []);
 
   useEffect(() => {
     const tickers = positions.map((p) => p.ticker).filter(Boolean);

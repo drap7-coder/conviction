@@ -12,6 +12,12 @@ export type SampleBook = {
 export const SAMPLE_BOOK_TARGET_VALUE = 100_000;
 
 const ACTIVE_BOOK_KEY = "conviction-portfolio-active-book";
+const SAMPLE_POSITIONS_KEY = "conviction-portfolio-sample-positions";
+
+interface StoredSamplePositions {
+  bookId: string;
+  positions: PersistedPosition[];
+}
 
 /**
  * Theme sample books aligned with Pulse narrative themes.
@@ -183,4 +189,50 @@ export function saveActiveSampleBookId(id: string | null): void {
   } catch {
     // ignore quota / private mode
   }
+}
+
+function isPersistedPosition(value: unknown): value is PersistedPosition {
+  if (!value || typeof value !== "object") return false;
+  const position = value as Partial<PersistedPosition>;
+  return typeof position.ticker === "string" && typeof position.shares === "number" && Number.isFinite(position.shares);
+}
+
+export function loadSampleBookPositions(bookId: string | null | undefined): PersistedPosition[] {
+  if (typeof window === "undefined" || !bookId) return [];
+  try {
+    const raw = localStorage.getItem(SAMPLE_POSITIONS_KEY);
+    if (!raw) return [];
+    const stored = JSON.parse(raw) as Partial<StoredSamplePositions>;
+    if (stored.bookId !== bookId || !Array.isArray(stored.positions)) return [];
+    return stored.positions.filter(isPersistedPosition);
+  } catch {
+    return [];
+  }
+}
+
+export function saveSampleBookPositions(bookId: string, positions: PersistedPosition[]): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    localStorage.setItem(SAMPLE_POSITIONS_KEY, JSON.stringify({ bookId, positions }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Resolve the visible book without ever replacing the user's saved positions. */
+export function resolveActivePortfolioPositions(
+  personalPositions: PersistedPosition[],
+  activeBookId: string | null,
+  samplePositions: PersistedPosition[],
+): PersistedPosition[] {
+  if (activeBookId && samplePositions.length > 0) return samplePositions;
+  return personalPositions;
+}
+
+/** Detect positions written by the legacy sample flow so they can be migrated safely. */
+export function positionsMatchSampleBook(positions: PersistedPosition[], book: SampleBook): boolean {
+  const positionTickers = [...new Set(positions.map((position) => position.ticker.trim().toUpperCase()))].sort();
+  const bookTickers = [...new Set(book.tickers.map((ticker) => ticker.trim().toUpperCase()))].sort();
+  return positionTickers.length === bookTickers.length && positionTickers.every((ticker, index) => ticker === bookTickers[index]);
 }

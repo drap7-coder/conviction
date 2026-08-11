@@ -3,6 +3,8 @@ import {
   SAMPLE_BOOK_TARGET_VALUE,
   SAMPLE_PORTFOLIO_BOOKS,
   equalWeightPositions,
+  positionsMatchSampleBook,
+  resolveActivePortfolioPositions,
 } from "@/lib/portfolio/sample-books";
 import {
   getSectorForCompany,
@@ -40,6 +42,23 @@ describe("sample portfolio books", () => {
     for (const pos of positions) {
       expect(pos.shares * prices[pos.ticker]!).toBeCloseTo(SAMPLE_BOOK_TARGET_VALUE / 10, 0);
     }
+  });
+
+  it("keeps a sample preview separate from the saved personal portfolio", () => {
+    const personal = [{ ticker: "OXY", shares: 100, averageCost: 45 }];
+    const sample = [{ ticker: "NVDA", shares: 20, averageCost: 180 }];
+
+    expect(resolveActivePortfolioPositions(personal, "ai-compute", sample)).toEqual(sample);
+    expect(resolveActivePortfolioPositions(personal, null, sample)).toEqual(personal);
+    expect(resolveActivePortfolioPositions(personal, "ai-compute", [])).toEqual(personal);
+  });
+
+  it("recognizes legacy sample positions without mistaking a personal book", () => {
+    const book = SAMPLE_PORTFOLIO_BOOKS[0];
+    const legacySample = book.tickers.map((ticker) => ({ ticker, shares: 10 }));
+
+    expect(positionsMatchSampleBook(legacySample, book)).toBe(true);
+    expect(positionsMatchSampleBook([{ ticker: "OXY", shares: 100 }], book)).toBe(false);
   });
 });
 

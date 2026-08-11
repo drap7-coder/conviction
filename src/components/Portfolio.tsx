@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { loadPositions, upsertPosition, removePosition, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
+import { loadPositions, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
 import {
   computePortfolioMetrics,
   computePositionMetrics,
@@ -13,7 +13,11 @@ import {
   SAMPLE_BOOK_TARGET_VALUE,
   equalWeightPositions,
   loadActiveSampleBookId,
+  loadSampleBookPositions,
+  positionsMatchSampleBook,
+  resolveActivePortfolioPositions,
   saveActiveSampleBookId,
+  saveSampleBookPositions,
   type SampleBook,
 } from "@/lib/portfolio/sample-books";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
@@ -31,6 +35,8 @@ import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
+import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
+import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 const PORTFOLIO_TABS = [
   {
@@ -133,10 +139,14 @@ function enrichWithPrices(
 function SampleBooksSwitcher({
   activeId,
   onSelect,
+  onSelectPersonal,
+  personalCount,
   disabled = false,
 }: {
   activeId: string | null;
   onSelect: (book: SampleBook) => void;
+  onSelectPersonal: () => void;
+  personalCount: number;
   disabled?: boolean;
 }) {
   const active = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeId) ?? null;
@@ -147,11 +157,24 @@ function SampleBooksSwitcher({
         <p className="pf-book-switch-label">Portfolios</p>
         <p className="pf-book-switch-lede">
           {active
-            ? `${active.label} · $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k equal weight`
-            : `Six $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k themes — pick one to begin`}
+            ? `${active.label} · illustrative $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k equal-weight book`
+            : personalCount > 0
+              ? `Your saved portfolio · ${personalCount} ${personalCount === 1 ? "position" : "positions"}`
+              : "Your saved portfolio is empty — add positions or explore a sample"}
         </p>
       </header>
       <div className="pf-book-switch-tabs" role="tablist" aria-label="Choose a sample portfolio">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeId === null}
+          disabled={disabled}
+          className={`pf-book-switch-tab pf-book-switch-personal${activeId === null ? " is-active" : ""}`}
+          onClick={onSelectPersonal}
+        >
+          My portfolio
+        </button>
+        <span className="pf-book-switch-divider" aria-hidden="true" />
         {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
           const selected = activeId === book.id;
           return (
@@ -186,6 +209,7 @@ export default function Portfolio({
 }) {
   const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
+  const [personalPositionCount, setPersonalPositionCount] = useState(0);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [loadingBook, setLoadingBook] = useState(false);
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
@@ -204,12 +228,44 @@ export default function Portfolio({
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PortfolioTab>("value");
+  const sampleLoadRef = useRef(0);
+  const sampleAbortRef = useRef<AbortController | null>(null);
+  const sampleAwaitingQuotesRef = useRef(false);
 
   // Load positions + active book from localStorage on mount
   useEffect(() => {
-    setPositions(loadPositions());
-    setActiveBookId(loadActiveSampleBookId());
+    let storedBookId = loadActiveSampleBookId();
+    let personalPositions = loadPositions();
+    let samplePositions = loadSampleBookPositions(storedBookId);
+    const legacyBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === storedBookId) ?? null;
+
+    if (storedBookId && samplePositions.length === 0) {
+      if (legacyBook && positionsMatchSampleBook(personalPositions, legacyBook)) {
+        samplePositions = personalPositions;
+        saveSampleBookPositions(storedBookId, samplePositions);
+        savePositions([]);
+        personalPositions = [];
+      } else {
+        saveActiveSampleBookId(null);
+        storedBookId = null;
+      }
+    }
+
+    setActiveBookId(storedBookId);
+    setPersonalPositionCount(personalPositions.length);
+    setPositions(resolveActivePortfolioPositions(
+      personalPositions,
+      storedBookId,
+      samplePositions,
+    ));
+    return () => sampleAbortRef.current?.abort();
   }, []);
+
+  useEffect(() => {
+    if (!loadingBook || !sampleAwaitingQuotesRef.current || sharedData.loading) return;
+    sampleAwaitingQuotesRef.current = false;
+    setLoadingBook(false);
+  }, [loadingBook, sharedData.loading, quotes, sharedData.error]);
 
   function clearActiveBook() {
     setActiveBookId(null);
@@ -369,6 +425,32 @@ export default function Portfolio({
     return null;
   }, [quotes]);
 
+  const valueBrief = useMemo(
+    () => buildPortfolioValueBrief(sortedPositions.map(({ pos, metrics }) => ({
+      ticker: pos.companyId.toUpperCase(),
+      weight: metrics.weight,
+    }))),
+    [sortedPositions],
+  );
+
+  const allocationItems = useMemo(() => sortedPositions
+    .filter(({ metrics }) => metrics.weight !== null)
+    .map(({ pos, metrics }) => {
+      const ticker = pos.companyId.toUpperCase();
+      const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
+      return {
+        ticker,
+        companyName: quote?.name ?? ticker,
+        weight: metrics.weight ?? 0,
+        marketValue: compactCurrency(metrics.marketValue),
+        dailyChange: signedCurrency(metrics.dailyChange),
+        dailyChangeValue: metrics.dailyChange,
+      };
+    })
+    .sort((a, b) => b.weight - a.weight), [quotes, sortedPositions]);
+
+  const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
+
   // ── Data-quality states ──
 
   const hasQuotes = quotes.length > 0;
@@ -405,7 +487,13 @@ export default function Portfolio({
       return false;
     }
 
-    const updated = upsertPosition({ ticker, shares, averageCost: cost });
+    const updated = [...positions];
+    const existingIndex = updated.findIndex((position) => position.ticker.toUpperCase() === ticker);
+    const nextPosition = { ticker, shares, averageCost: cost };
+    if (existingIndex >= 0) updated[existingIndex] = nextPosition;
+    else updated.push(nextPosition);
+    savePositions(updated);
+    setPersonalPositionCount(updated.length);
     setPositions(updated);
     clearActiveBook();
     notifyPortfolioChanged();
@@ -424,7 +512,9 @@ export default function Portfolio({
   }
 
   function handleRemove(ticker: string) {
-    const updated = removePosition(ticker);
+    const updated = positions.filter((position) => position.ticker.toUpperCase() !== ticker.toUpperCase());
+    savePositions(updated);
+    setPersonalPositionCount(updated.length);
     setPositions(updated);
     clearActiveBook();
     setRemovingTicker(null);
@@ -446,12 +536,19 @@ export default function Portfolio({
 
   function handleClearAll() {
     savePositions([]);
+    setPersonalPositionCount(0);
     setPositions([]);
     clearActiveBook();
     notifyPortfolioChanged();
   }
 
   async function handleLoadSample(book: SampleBook) {
+    sampleAbortRef.current?.abort();
+    const controller = new AbortController();
+    sampleAbortRef.current = controller;
+    const requestId = sampleLoadRef.current + 1;
+    sampleLoadRef.current = requestId;
+    sampleAwaitingQuotesRef.current = false;
     setLoadingBook(true);
     setError(null);
     setShowAddForm(false);
@@ -462,7 +559,9 @@ export default function Portfolio({
 
     const priceMap: Record<string, number | null> = {};
     try {
-      const res = await fetch(`/api/market/quotes?tickers=${book.tickers.join(",")}`);
+      const res = await fetch(`/api/market/quotes?tickers=${book.tickers.join(",")}`, {
+        signal: controller.signal,
+      });
       if (res.ok) {
         const data = (await res.json()) as { quotes?: StockQuote[] };
         for (const quote of data.quotes ?? []) {
@@ -471,15 +570,26 @@ export default function Portfolio({
         }
       }
     } catch {
+      if (controller.signal.aborted) return;
       // Fall through to placeholder sizing; quotes provider will catch up.
     }
 
+    if (requestId !== sampleLoadRef.current) return;
     const sized = equalWeightPositions(book.tickers, priceMap, SAMPLE_BOOK_TARGET_VALUE);
-    savePositions(sized);
+    saveSampleBookPositions(book.id, sized);
     setPositions(sized);
+    sampleAwaitingQuotesRef.current = true;
     notifyPortfolioChanged();
-    void refreshSharedQuotes();
+  }
+
+  function handleSelectPersonal() {
+    sampleAbortRef.current?.abort();
+    sampleLoadRef.current += 1;
+    sampleAwaitingQuotesRef.current = false;
     setLoadingBook(false);
+    clearActiveBook();
+    setPositions(loadPositions());
+    notifyPortfolioChanged();
   }
 
   function handleStartEdit(ticker: string) {
@@ -636,6 +746,8 @@ export default function Portfolio({
             <SampleBooksSwitcher
               activeId={activeBookId}
               onSelect={(book) => { void handleLoadSample(book); }}
+              onSelectPersonal={handleSelectPersonal}
+              personalCount={personalPositionCount}
               disabled={loadingBook}
             />
 
@@ -649,47 +761,51 @@ export default function Portfolio({
               </div>
             ) : null}
 
-            {composeFirst ? composeBar : null}
+            {composeFirst && !hasData ? composeBar : null}
 
-            {hasData ? (
+            {hasData && !loadingBook ? (
               <>
                 {!hideHero ? (
-                  <section className="pf-hero ink-panel" aria-label="Portfolio value">
-                    <div className="pf-hero-flap">
-                      <SplitFlapMetric
-                        variant="hero"
-                        label="Portfolio value"
-                        value={currency(portfolioMetrics.totalMarketValue)}
-                        change={
-                          portfolioMetrics.dailyChange !== null
-                            ? `${signedCurrency(portfolioMetrics.dailyChange)} ${percent(portfolioMetrics.dailyChangePercent)}`
-                            : undefined
-                        }
-                        isPositive={
-                          portfolioMetrics.dailyChange === null
-                            ? undefined
-                            : (portfolioMetrics.dailyChange ?? 0) >= 0
-                        }
-                      />
-                      {portfolioHeatmapSession ? (
-                        <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span>
+                  <section className={`pf-value-stage tone-${valueBrief.tone}`} aria-label="Portfolio value and concentration">
+                    <div className="pf-value-stage-copy">
+                      <span className="pf-value-stage-eyebrow">
+                        <i aria-hidden="true" />
+                        {activeSampleBook ? `${activeSampleBook.label} · Illustrative portfolio` : "My portfolio · Live value"}
+                      </span>
+                      <div className="pf-value-stage-total">
+                        <SplitFlapMetric
+                          variant="hero"
+                          label="Portfolio value"
+                          value={currency(portfolioMetrics.totalMarketValue)}
+                        />
+                        {portfolioHeatmapSession ? <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span> : null}
+                      </div>
+                      <h1>{valueBrief.headline}</h1>
+                      <p>{valueBrief.summary}</p>
+                      {activeSampleBook ? (
+                        <small>Sample positions never replace your saved portfolio. Editing one creates a personal copy.</small>
                       ) : null}
                     </div>
-                    {portfolioMetrics.totalUnrealizedGL !== null && (
-                      <div className={`pf-hero-secondary ${(portfolioMetrics.totalUnrealizedGL ?? 0) >= 0 ? "up" : "down"}`}>
-                        Unrealized {signedCurrency(portfolioMetrics.totalUnrealizedGL)}
-                        {portfolioMetrics.totalUnrealizedGLPercent !== null && (
-                          <> ({percent(portfolioMetrics.totalUnrealizedGLPercent)})</>
-                        )}
-                        {missingCost && (
-                          <span className="pf-hero-note"> · partial (cost basis missing for {portfolioMetrics.positionsMissingCost})</span>
-                        )}
+                    <div className="pf-value-stage-metrics" aria-label="Portfolio value readings">
+                      <div className={portfolioMetrics.dailyChange !== null && portfolioMetrics.dailyChange < 0 ? "down" : "up"}>
+                        <strong>{signedCurrency(portfolioMetrics.dailyChange)}</strong>
+                        <span>Today · {percent(portfolioMetrics.dailyChangePercent)}</span>
                       </div>
-                    )}
+                      <div className={portfolioMetrics.totalUnrealizedGL !== null && portfolioMetrics.totalUnrealizedGL < 0 ? "down" : "up"}>
+                        <strong>{signedCurrency(portfolioMetrics.totalUnrealizedGL)}</strong>
+                        <span>Unrealized · {portfolioMetrics.positionsWithCost}/{portfolioMetrics.positionCount} cost basis</span>
+                      </div>
+                      <div className={valueBrief.largest && valueBrief.largest.weight > 20 ? "alert" : ""}>
+                        <strong>{valueBrief.largest ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(1)}%` : "—"}</strong>
+                        <span>Largest position</span>
+                      </div>
+                      <div className={valueBrief.topThreeWeight !== null && valueBrief.topThreeWeight > 60 ? "alert" : ""}>
+                        <strong>{valueBrief.topThreeWeight === null ? "—" : `${valueBrief.topThreeWeight.toFixed(1)}%`}</strong>
+                        <span>Top three weight</span>
+                      </div>
+                    </div>
                   </section>
                 ) : null}
-
-                {!composeFirst ? composeBar : null}
 
                 <div className="pf-toolbar">
                   {loading && <span className="pf-loading">Loading portfolio prices</span>}
@@ -720,14 +836,18 @@ export default function Portfolio({
                   </div>
                 )}
 
+                {!calcFailed ? <PortfolioAllocationLadder items={allocationItems} /> : null}
+
                 {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
                   <StockHeatmap
-                    title="Portfolio"
+                    title="Today’s movement"
                     subtitle=""
                     items={portfolioHeatmapItems}
                     sessionLabel={portfolioHeatmapSession}
                   />
                 )}
+
+                {composeBar}
 
                 <div className="pf-positions-header" id="portfolio-positions">
                   <div className="wl-list-header pf-ring-list-header">
