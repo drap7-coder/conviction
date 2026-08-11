@@ -9,6 +9,8 @@ import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { TrendingManageChips } from "@/components/TrendingManageChips";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
+import { buildMomentumBrief } from "@/lib/market/pulse-brief";
 
 interface TrendingCompany {
   ticker: string;
@@ -190,6 +192,15 @@ export function MarketMovesPanel() {
     );
   }
 
+  const momentumBrief = buildMomentumBrief(trending.map((idea) => {
+    const live = getLivePrice(idea.quote);
+    return {
+      ticker: idea.ticker,
+      companyName: idea.companyName,
+      changePercent: live.changePercent,
+    };
+  }));
+
   return (
     <div className="market-moves-panel">
       {addMessage ? (
@@ -198,8 +209,10 @@ export function MarketMovesPanel() {
         </p>
       ) : null}
 
+      <PulseDecisionCard brief={momentumBrief} compact />
+
       <StockHeatmap
-        title="Market Moves"
+        title="Active-name board"
         subtitle=""
         sessionLabel={
           trending
@@ -239,6 +252,7 @@ export function MarketMovesPanel() {
         })}
         onRemove={handleRemoveTrending}
       />
+      <p className="pulse-trending-note">Ranked by liquidity and price movement. Activity reveals attention—not conviction.</p>
     </div>
   );
 }

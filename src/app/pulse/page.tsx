@@ -7,6 +7,7 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { HeatTile } from "@/components/HeatTile";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
+import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
 import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
 import { PulseNewsFeed } from "@/components/market/PulseNewsFeed";
 import {
@@ -17,6 +18,7 @@ import {
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
+import { buildIndexTapeBrief, buildTrendingBreadthBrief } from "@/lib/market/pulse-brief";
 
 const COLORS = {
   green: "#0D9488",
@@ -340,6 +342,8 @@ export default function MarketPulsePage() {
   const smallCapLead = relativeSpread(changeFor("IWM"), spyChange);
   const cyclicalAvg = avg(data.sectorLeadership.characteristics.cyclical);
   const defensiveAvg = avg(data.sectorLeadership.characteristics.defensive);
+  const indexTapeBrief = buildIndexTapeBrief(majorIndexes);
+  const trendingBreadthBrief = buildTrendingBreadthBrief(equalWeightLead, smallCapLead);
 
   return (
     <main className="markets-page">
@@ -382,10 +386,7 @@ export default function MarketPulsePage() {
       >
         {activeTab === "indexes" ? (
           <>
-            <section className="market-gauge-grid" aria-label="Market danger zones">
-              <Gauge label="VIX" value={vix} config={VIX_GAUGE} />
-              <Gauge label="10Y Yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
-            </section>
+            <PulseDecisionCard brief={indexTapeBrief} />
             <GlobalMarketsHeatmap
               markets={majorIndexes}
               title="Major Indexes"
@@ -395,19 +396,9 @@ export default function MarketPulsePage() {
               uniformTiles
               sessionLabel={data.sessionLabel ?? null}
             />
-            {themeMarkets.length > 0 ? (
-              <GlobalMarketsHeatmap
-                markets={themeMarkets}
-                title="Themes"
-                subtitle=""
-                narrativeGroup="Themes"
-                narratives={data.marketNarratives.themes}
-                uniformTiles
-              />
-            ) : null}
-            <section className="market-gauge-grid" aria-label="Sector leadership gauges">
-              <Gauge label="Cyclical" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
-              <Gauge label="Defensive" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+            <section className="market-gauge-grid pulse-gauge-section" aria-label="Market risk conditions">
+              <Gauge label="Volatility · VIX" value={vix} config={VIX_GAUGE} />
+              <Gauge label="Rates · 10Y yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
             </section>
             <div id="industries">
               <GlobalMarketsHeatmap
@@ -418,6 +409,20 @@ export default function MarketPulsePage() {
                 narratives={data.marketNarratives.themes}
               />
             </div>
+            <section className="market-gauge-grid pulse-gauge-section" aria-label="Sector leadership gauges">
+              <Gauge label="Cyclical leadership" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+              <Gauge label="Defensive leadership" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+            </section>
+            {themeMarkets.length > 0 ? (
+              <GlobalMarketsHeatmap
+                markets={themeMarkets}
+                title="Themes"
+                subtitle=""
+                narrativeGroup="Themes"
+                narratives={data.marketNarratives.themes}
+                uniformTiles
+              />
+            ) : null}
             <GlobalMarketsHeatmap
               markets={commodities}
               title="Commodities"
@@ -468,9 +473,10 @@ export default function MarketPulsePage() {
       >
         {activeTab === "trending" ? (
           <>
-            <section className="market-gauge-grid" aria-label="Trending breadth gauges">
-              <Gauge label="Equal weight" value={equalWeightLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
-              <Gauge label="Small caps" value={smallCapLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
+            <PulseDecisionCard brief={trendingBreadthBrief} />
+            <section className="market-gauge-grid pulse-gauge-section" aria-label="Trending breadth gauges">
+              <Gauge label="Equal weight vs S&P" value={equalWeightLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
+              <Gauge label="Small caps vs S&P" value={smallCapLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
             </section>
             <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
               <MarketMovesPanel />
