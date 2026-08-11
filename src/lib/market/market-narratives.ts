@@ -117,6 +117,7 @@ export interface MarketNarrativeHeadline {
   title: string;
   url: string | null;
   date: string;
+  publisher?: string | null;
 }
 
 export interface MarketNarrativeTheme {
@@ -251,12 +252,52 @@ function toNarrativeHeadline(item: {
   title: string;
   sourceUrl?: string | null;
   date: string;
+  metadata?: { publisher?: string };
 }): MarketNarrativeHeadline {
   return {
     title: item.title,
     url: item.sourceUrl ?? null,
     date: item.date,
+    publisher: item.metadata?.publisher ?? null,
   };
+}
+
+const HEADLINE_STOP_WORDS = new Set([
+  "a", "an", "and", "as", "at", "be", "by", "for", "from", "has", "in",
+  "is", "it", "of", "on", "or", "that", "the", "this", "to", "with",
+]);
+
+function headlineTokens(title: string): Set<string> {
+  return new Set(
+    title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .split(/\s+/)
+      .filter((token) => token.length > 2 && !HEADLINE_STOP_WORDS.has(token)),
+  );
+}
+
+function headlineSimilarity(a: string, b: string): number {
+  const aTokens = headlineTokens(a);
+  const bTokens = headlineTokens(b);
+  if (aTokens.size === 0 || bTokens.size === 0) return 0;
+  let shared = 0;
+  for (const token of aTokens) {
+    if (bTokens.has(token)) shared += 1;
+  }
+  return shared / Math.min(aTokens.size, bTokens.size);
+}
+
+function publisherWeight(publisher: string | null | undefined): number {
+  const value = publisher?.toLowerCase() ?? "";
+  if (/reuters|associated press|ap news|bloomberg|financial times|wall street journal/.test(value)) return 4;
+  if (/cnbc|yahoo finance|marketwatch|barron|fortune|business insider/.test(value)) return 3;
+  if (/seeking alpha|benzinga|motley fool|globenewswire|business wire/.test(value)) return 1;
+  return 2;
+}
+
+function lowValueHeadline(title: string): boolean {
+  return /stocks? moving|whale activity|millionaire maker|stock to buy|before you buy|moomoo|press release/i.test(title);
 }
 
 function rankHeadlines(
@@ -269,6 +310,13 @@ function rankHeadlines(
     const bMatch = pattern.test(b.title) ? 1 : 0;
     if (bMatch !== aMatch) return bMatch - aMatch;
 
+    const aLowValue = lowValueHeadline(a.title) ? 1 : 0;
+    const bLowValue = lowValueHeadline(b.title) ? 1 : 0;
+    if (aLowValue !== bLowValue) return aLowValue - bLowValue;
+
+    const sourceDiff = publisherWeight(b.publisher) - publisherWeight(a.publisher);
+    if (sourceDiff !== 0) return sourceDiff;
+
     const aAge = headlineAgeDays(a.date, now);
     const bAge = headlineAgeDays(b.date, now);
     const aScore = aAge === null ? Number.POSITIVE_INFINITY : aAge;
@@ -276,6 +324,18 @@ function rankHeadlines(
     if (aScore !== bScore) return aScore - bScore;
     return a.title.localeCompare(b.title);
   });
+}
+
+function dedupeHeadlines(headlines: MarketNarrativeHeadline[]): MarketNarrativeHeadline[] {
+  const kept: MarketNarrativeHeadline[] = [];
+  for (const headline of headlines) {
+    const duplicate = kept.some((existing) =>
+      existing.title.trim().toLowerCase() === headline.title.trim().toLowerCase()
+      || headlineSimilarity(existing.title, headline.title) >= 0.72,
+    );
+    if (!duplicate) kept.push(headline);
+  }
+  return kept;
 }
 
 async function fetchTheme(
@@ -291,18 +351,14 @@ async function fetchTheme(
   ]);
 
   const pool = [...yahooHeadlines, ...googleTickerHeadlines, ...googleThemeHeadlines];
-  const seen = new Set<string>();
-  const headlines = rankHeadlines(
-    pool
-      .map(toNarrativeHeadline)
-      .filter((headline) => {
-        const key = headline.title.trim().toLowerCase();
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      }),
-    config.headlinePattern,
-    now,
+  const headlines = dedupeHeadlines(
+    rankHeadlines(
+      pool
+        .map(toNarrativeHeadline)
+        .filter((headline) => headline.title.trim().length > 0),
+      config.headlinePattern,
+      now,
+    ),
   ).slice(0, 10);
 
   const matchedHeadlines = headlines.filter((headline) =>

@@ -456,7 +456,6 @@ export default function MarketPulsePage() {
           <PulseNewsFeed
             themes={data.marketNarratives.themes}
             status={data.marketNarratives.status}
-            regime={data.macroRegime}
           />
         ) : null}
       </div>

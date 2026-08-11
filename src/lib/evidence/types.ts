@@ -45,6 +45,7 @@ export interface EvidenceEvent {
   metadata?: {
     insiderName?: string;
     insiderRole?: string | null;
+    publisher?: string;
     transactionClass?: string;
     transactionType?: string;
     shares?: number;

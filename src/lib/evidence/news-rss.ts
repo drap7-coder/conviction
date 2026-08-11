@@ -14,6 +14,7 @@ interface RssItem {
   link: string;
   description: string;
   pubDate: string;
+  source: string;
 }
 
 /**
@@ -34,9 +35,16 @@ function parseRssXml(xml: string): RssItem[] {
     const link = extractTag(block, "link");
     const description = extractTag(block, "description");
     const pubDate = extractTag(block, "pubDate");
+    const source = extractTag(block, "source");
 
     if (title && link) {
-      items.push({ title, link, description: description ?? "", pubDate: pubDate ?? "" });
+      items.push({
+        title,
+        link,
+        description: description ?? "",
+        pubDate: pubDate ?? "",
+        source: source ?? "",
+      });
     }
   }
 
@@ -45,11 +53,11 @@ function parseRssXml(xml: string): RssItem[] {
 
 function extractTag(xml: string, tag: string): string | null {
   // Handles <tag>value</tag> and <tag><![CDATA[value]]></tag>
-  const cdataRegex = new RegExp(`<${tag}>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>\\s*</${tag}>`, "i");
+  const cdataRegex = new RegExp(`<${tag}(?:\\s[^>]*)?>\\s*<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>\\s*</${tag}>`, "i");
   const cdataMatch = cdataRegex.exec(xml);
   if (cdataMatch) return cdataMatch[1].trim();
 
-  const plainRegex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`, "i");
+  const plainRegex = new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i");
   const plainMatch = plainRegex.exec(xml);
   if (plainMatch) return plainMatch[1].trim();
 
@@ -72,11 +80,26 @@ function parseRssDate(dateStr: string): string {
   // Yahoo RSS format: "Fri, 10 Jul 2026 14:30:00 +0000"
   try {
     const d = new Date(dateStr);
-    if (!isNaN(d.getTime())) return d.toISOString().slice(0, 10);
+    if (!isNaN(d.getTime())) return d.toISOString();
   } catch {
     // fall through
   }
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toISOString();
+}
+
+function publisherFromItem(item: RssItem, sourceLabel: string): string {
+  const source = stripHtml(item.source).trim();
+  if (source) return source;
+  const suffix = /\s[-–—]\s([^–—-]{2,48})$/.exec(stripHtml(item.title));
+  if (suffix?.[1]) return suffix[1].trim();
+  return sourceLabel.replace(/\s+RSS$/i, "");
+}
+
+function cleanPublisherSuffix(title: string, publisher: string): string {
+  const clean = stripHtml(title);
+  if (!publisher) return clean;
+  const escaped = publisher.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return clean.replace(new RegExp(`\\s[-–—]\\s${escaped}$`, "i"), "").trim();
 }
 
 async function fetchRssXml(url: string): Promise<string | null> {
@@ -113,13 +136,14 @@ function itemsToEvents(
 
     const date = parseRssDate(item.pubDate);
     const description = stripHtml(item.description).slice(0, 300);
+    const publisher = publisherFromItem(item, sourceLabel);
 
     events.push({
       id: `rss-${ticker}-${date}-${events.length}`,
       ticker: ticker.toUpperCase(),
       type: "material-news",
       direction: "neutral",
-      title: stripHtml(item.title).slice(0, 200),
+      title: cleanPublisherSuffix(item.title, publisher).slice(0, 200),
       summary: description || "No summary available.",
       source: "publisher",
       sourceUrl: item.link,
@@ -130,6 +154,7 @@ function itemsToEvents(
       isContradiction: false,
       aiExplanation: `Sourced RSS headline from ${sourceLabel}.`,
       metadata: {
+        publisher,
         transactionClass: sourceLabel,
       },
     });
