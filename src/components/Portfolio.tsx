@@ -723,7 +723,7 @@ export default function Portfolio({
   ) : (
     <div className="pf-empty">
       <p className="pf-empty-text">
-        Pick a portfolio on Value — or add a position — to see mix and concentration.
+        Pick a portfolio book above — or add a position on Value — to see mix and concentration.
       </p>
     </div>
   );
@@ -739,6 +739,19 @@ export default function Portfolio({
         onChange={(id) => setActiveTab(id as PortfolioTab)}
       />
 
+      {/* Always-on book switcher — available on Value and Insights. */}
+      <SampleBooksSwitcher
+        activeId={activeBookId}
+        onSelect={(book) => { void handleLoadSample(book); }}
+        onSelectPersonal={handleSelectPersonal}
+        personalCount={personalPositionCount}
+        disabled={loadingBook}
+      />
+
+      {loadingBook ? (
+        <PageLoadingMotion label="Sizing portfolio" compact />
+      ) : null}
+
       <div
         id="portfolio-panel-value"
         className="pf-value-view"
@@ -748,21 +761,9 @@ export default function Portfolio({
       >
         {activeTab === "value" ? (
           <>
-            {loading || loadingBook ? (
-              <PageLoadingMotion
-                label={loadingBook ? "Sizing portfolio" : "Loading portfolio prices"}
-                compact
-              />
+            {loading ? (
+              <PageLoadingMotion label="Loading portfolio prices" compact />
             ) : null}
-
-            {/* Always-on book switcher — Jobs: choose once, switch anytime. */}
-            <SampleBooksSwitcher
-              activeId={activeBookId}
-              onSelect={(book) => { void handleLoadSample(book); }}
-              onSelectPersonal={handleSelectPersonal}
-              personalCount={personalPositionCount}
-              disabled={loadingBook}
-            />
 
             {/* Empty: invite to pick a book or add manually. */}
             {!hasData && !loading && !loadingBook ? (
@@ -960,7 +961,7 @@ export default function Portfolio({
         aria-labelledby="portfolio-tab-insights"
         hidden={activeTab !== "insights"}
       >
-        {activeTab === "insights" ? insightsBody : null}
+        {activeTab === "insights" && !loadingBook ? insightsBody : null}
       </div>
     </div>
   );
