@@ -141,11 +141,14 @@ function Gauge({
   value,
   suffix = "",
   config,
+  sessionBadge = "Live",
 }: {
   label: string;
   value: number | null;
   suffix?: string;
   config: GaugeConfig;
+  /** Pre-Market / After Hours / Live — session freshness for this reading. */
+  sessionBadge?: string;
 }) {
   const bounded = isFiniteNumber(value) ? Math.min(config.max, Math.max(config.min, value)) : config.min;
   const marker = ((bounded - config.min) / (config.max - config.min)) * 100;
@@ -155,6 +158,7 @@ function Gauge({
     <article className="market-gauge-card">
       <div className="market-card-heading">
         <span>{label}</span>
+        <span className="market-live">{sessionBadge}</span>
       </div>
       <strong className="market-gauge-value">
         {isFiniteNumber(value) ? formatGaugeValue(value, config) : "—"}
@@ -337,6 +341,7 @@ export default function MarketPulsePage() {
   const defensiveAvg = avg(data.sectorLeadership.characteristics.defensive);
   const indexTapeBrief = buildIndexTapeBrief(majorIndexes);
   const trendingBreadthBrief = buildTrendingBreadthBrief(equalWeightLead, smallCapLead);
+  const gaugeSessionBadge = data.sessionLabel ?? "Live";
 
   return (
     <main className="markets-page">
@@ -390,8 +395,8 @@ export default function MarketPulsePage() {
               sessionLabel={data.sessionLabel ?? null}
             />
             <section className="market-gauge-grid pulse-gauge-section" aria-label="Market risk conditions">
-              <Gauge label="Volatility · VIX" value={vix} config={VIX_GAUGE} />
-              <Gauge label="Rates · 10Y yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} />
+              <Gauge label="Volatility · VIX" value={vix} config={VIX_GAUGE} sessionBadge={gaugeSessionBadge} />
+              <Gauge label="Rates · 10Y yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} sessionBadge={gaugeSessionBadge} />
             </section>
             <div id="industries">
               <GlobalMarketsHeatmap
@@ -403,8 +408,8 @@ export default function MarketPulsePage() {
               />
             </div>
             <section className="market-gauge-grid pulse-gauge-section" aria-label="Sector leadership gauges">
-              <Gauge label="Cyclical leadership" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
-              <Gauge label="Defensive leadership" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} />
+              <Gauge label="Cyclical leadership" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
+              <Gauge label="Defensive leadership" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
             </section>
             {themeMarkets.length > 0 ? (
               <GlobalMarketsHeatmap
@@ -454,8 +459,8 @@ export default function MarketPulsePage() {
           <>
             <PulseDecisionCard brief={trendingBreadthBrief} />
             <section className="market-gauge-grid pulse-gauge-section" aria-label="Trending breadth gauges">
-              <Gauge label="Equal weight vs S&P" value={equalWeightLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
-              <Gauge label="Small caps vs S&P" value={smallCapLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
+              <Gauge label="Equal weight vs S&P" value={equalWeightLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} sessionBadge={gaugeSessionBadge} />
+              <Gauge label="Small caps vs S&P" value={smallCapLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} sessionBadge={gaugeSessionBadge} />
             </section>
             <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
               <MarketMovesPanel showDecisionCard={false} />
