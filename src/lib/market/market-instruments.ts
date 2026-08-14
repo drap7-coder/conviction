@@ -44,11 +44,17 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   VNQ: etf("VNQ", "U.S. Real Estate", "ETF"),
   IYT: etf("IYT", "Transportation", "ETF"),
   UUP: etf("UUP", "U.S. Dollar", "ETF"),
+  VTI: etf("VTI", "Total Stock Market", "ETF"),
+
+  // Treasuries (All-Weather / rates proxies)
+  TLT: etf("TLT", "20+ Year Treasury", "Bond"),
+  IEF: etf("IEF", "7–10 Year Treasury", "Bond"),
 
   // Commodities
   USO: etf("USO", "Crude Oil", "Commodity"),
   GLD: etf("GLD", "Gold", "Commodity"),
   SLV: etf("SLV", "Silver", "Commodity"),
+  DBC: etf("DBC", "Broad Commodities", "Commodity"),
 
   // International country ETFs (six-country Pulse set)
   EWJ: etf("EWJ", "Japan", "International"),

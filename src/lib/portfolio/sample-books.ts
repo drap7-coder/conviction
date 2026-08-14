@@ -6,6 +6,11 @@ export type SampleBook = {
   description: string;
   /** Theme tickers — sized to a shared target value when loaded. */
   tickers: string[];
+  /**
+   * Optional target weights in percent of book value (should sum to ~100).
+   * When omitted, the book is equal-weighted across tickers.
+   */
+  weights?: Record<string, number>;
 };
 
 /** Every sample book targets the same round book size. */
@@ -20,10 +25,22 @@ interface StoredSamplePositions {
 }
 
 /**
- * Theme sample books aligned with Pulse narrative themes.
- * Ten single-name stocks each (no ETFs). Dollar size is applied at load time.
+ * Sample books: strategy allocations (weighted) plus theme baskets (equal-weight stocks).
  */
 export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
+  {
+    id: "all-weather",
+    label: "All-Weather",
+    description: "Ray Dalio risk-balanced mix across growth and inflation regimes",
+    tickers: ["VTI", "TLT", "IEF", "GLD", "DBC"],
+    weights: {
+      VTI: 30,
+      TLT: 40,
+      IEF: 15,
+      GLD: 7.5,
+      DBC: 7.5,
+    },
+  },
   {
     id: "ai-compute",
     label: "AI + Compute",
@@ -169,6 +186,60 @@ export function equalWeightPositions(
     ...sized,
     ...missing.map((ticker) => ({ ticker, shares: 10 })),
   ];
+}
+
+/** Size a book to target percent weights using live prices (fractional shares OK). */
+export function weightedPositions(
+  tickers: string[],
+  weights: Record<string, number>,
+  prices: Record<string, number | null | undefined>,
+  targetTotal = SAMPLE_BOOK_TARGET_VALUE,
+): PersistedPosition[] {
+  const unique = [...new Set(tickers.map((ticker) => ticker.trim().toUpperCase()).filter(Boolean))];
+  if (unique.length === 0) return [];
+
+  const rows = unique.map((ticker) => {
+    const weight = weights[ticker] ?? weights[ticker.toLowerCase()];
+    const price = prices[ticker];
+    return {
+      ticker,
+      weight: typeof weight === "number" && Number.isFinite(weight) && weight > 0 ? weight : 0,
+      price: typeof price === "number" && Number.isFinite(price) && price > 0 ? price : null,
+    };
+  });
+
+  const priced = rows.filter((row) => row.weight > 0 && row.price !== null);
+  if (priced.length === 0) {
+    return unique.map((ticker) => ({ ticker, shares: 10 }));
+  }
+
+  const sized = priced.map((row) => {
+    const dollars = targetTotal * (row.weight / 100);
+    const price = row.price!;
+    return {
+      ticker: row.ticker,
+      shares: Number((dollars / price).toFixed(4)),
+      averageCost: Number(price.toFixed(2)),
+    };
+  });
+
+  const missing = rows
+    .filter((row) => !priced.some((pricedRow) => pricedRow.ticker === row.ticker))
+    .map((row) => ({ ticker: row.ticker, shares: 10 }));
+
+  return [...sized, ...missing];
+}
+
+/** Size any sample book — weighted when targets exist, otherwise equal-weight. */
+export function sizeSampleBookPositions(
+  book: SampleBook,
+  prices: Record<string, number | null | undefined>,
+  targetTotal = SAMPLE_BOOK_TARGET_VALUE,
+): PersistedPosition[] {
+  if (book.weights) {
+    return weightedPositions(book.tickers, book.weights, prices, targetTotal);
+  }
+  return equalWeightPositions(book.tickers, prices, targetTotal);
 }
 
 export function loadActiveSampleBookId(): string | null {

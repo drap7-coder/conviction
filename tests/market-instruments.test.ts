@@ -33,6 +33,26 @@ describe("validateTicker market instruments", () => {
     expect(xlk.supportsConvictionSignals).toBe(false);
     expect(getMarketInstrument("XLK")?.tag).toBe("Sector");
   });
+
+  it("accepts All-Weather ETFs without SEC membership", async () => {
+    const cases = [
+      { ticker: "VTI", name: "Total Stock Market", tag: "ETF" },
+      { ticker: "TLT", name: "20+ Year Treasury", tag: "Bond" },
+      { ticker: "IEF", name: "7–10 Year Treasury", tag: "Bond" },
+      { ticker: "GLD", name: "Gold", tag: "Commodity" },
+      { ticker: "DBC", name: "Broad Commodities", tag: "Commodity" },
+    ] as const;
+
+    for (const item of cases) {
+      const result = await validateTicker(item.ticker);
+      expect(result.valid).toBe(true);
+      expect(result.ticker).toBe(item.ticker);
+      expect(result.companyName).toBe(item.name);
+      expect(result.instrumentKind).toBe("etf");
+      expect(result.supportsConvictionSignals).toBe(false);
+      expect(getMarketInstrument(item.ticker)?.tag).toBe(item.tag);
+    }
+  });
 });
 
 describe("supportsConvictionSignals", () => {
