@@ -39,7 +39,7 @@ function StrategyDesignCard({ brief }: { brief: StrategyDesignBrief }) {
         {brief.sleeves.map((sleeve) => (
           <div key={sleeve.ticker} className="portfolio-insight-sleeve">
             <strong>{sleeve.ticker}</strong>
-            <b>{Number.isInteger(sleeve.weight) ? `${sleeve.weight}%` : `${sleeve.weight}%`}</b>
+            <b>{`${sleeve.weight}%`}</b>
             <span>{sleeve.role}</span>
           </div>
         ))}
