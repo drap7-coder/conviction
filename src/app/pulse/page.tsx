@@ -256,12 +256,10 @@ export default function MarketPulsePage() {
   const marketsByCategory = (category: string) =>
     data.globalMarkets.filter((market) => market.category === category);
   const majorIndexes = marketsByCategory("Major Index");
-  const crossAssetMarkets = [
-    ...marketsByCategory("Themes"),
-    ...marketsByCategory("Commodity"),
-    ...marketsByCategory("Crypto"),
-    ...marketsByCategory("International"),
-  ];
+  const themeMarkets = marketsByCategory("Themes");
+  const commodities = marketsByCategory("Commodity");
+  const cryptoMarkets = marketsByCategory("Crypto");
+  const internationalMarkets = marketsByCategory("International");
   const industryMarkets = sectorsToMarkets(data.sectors);
 
   const changeFor = (ticker: string) =>
@@ -284,7 +282,7 @@ export default function MarketPulsePage() {
       >
         <p className="view-switch-context-line">
           {activeTab === "indexes"
-            ? "Regime map — indexes, sectors, cross-asset."
+            ? "Regime map — indexes, then sectors, then the rest."
             : "Active names — breadth, then the board."}
         </p>
       </ViewSwitcher>
@@ -342,16 +340,41 @@ export default function MarketPulsePage() {
               <Gauge label="Cyclical" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
               <Gauge label="Defensive" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
             </section>
-            <GlobalMarketsHeatmap
-              markets={crossAssetMarkets}
-              title="Cross-asset"
-              subtitle="Themes, commodities, crypto, and international."
-              narrativeGroup="Themes"
-              narratives={data.marketNarratives.themes}
-              uniformTiles
-              showDrivers={false}
-              tileSubtitle={(market) => market.category}
-            />
+
+            <div className="pulse-more-markets" aria-label="More markets">
+              <p className="pulse-more-markets-label">More markets</p>
+              <GlobalMarketsHeatmap
+                markets={themeMarkets}
+                title="Themes"
+                subtitle=""
+                narrativeGroup="Themes"
+                narratives={data.marketNarratives.themes}
+                uniformTiles
+              />
+              <GlobalMarketsHeatmap
+                markets={commodities}
+                title="Commodities"
+                subtitle=""
+                narrativeGroup="Commodity"
+                narratives={data.marketNarratives.themes}
+                uniformTiles
+              />
+              <GlobalMarketsHeatmap
+                markets={cryptoMarkets}
+                title="Crypto"
+                subtitle=""
+                narrativeGroup="Crypto"
+                narratives={data.marketNarratives.themes}
+                uniformTiles
+              />
+              <GlobalMarketsHeatmap
+                markets={internationalMarkets}
+                title="International"
+                subtitle=""
+                narrativeGroup="International"
+                narratives={data.marketNarratives.themes}
+              />
+            </div>
           </>
         ) : null}
       </div>
