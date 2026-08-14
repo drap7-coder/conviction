@@ -74,6 +74,6 @@ describe("portfolio insight brief", () => {
   it("stays calm when a personal book has no pressure points", () => {
     const brief = buildPersonalInsightBrief(flags());
     expect(brief.findings).toEqual([]);
-    expect(brief.headline.toLowerCase()).toContain("no single name");
+    expect(brief.headline.toLowerCase()).toContain("no name");
   });
 });

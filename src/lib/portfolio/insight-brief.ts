@@ -239,8 +239,8 @@ export function buildPersonalInsightBrief(flags: PortfolioRiskFlags): PersonalIn
   if (attention > 0) {
     return {
       mode: "personal",
-      headline: "A few outcomes can dominate.",
-      summary: "Size is the risk. Fix the exposures that can break the book before adding complexity.",
+      headline: "A few names can break it.",
+      summary: "Size is the risk. Fix what can dominate before adding complexity.",
       findings: findings.slice(0, 4),
     };
   }
@@ -248,16 +248,16 @@ export function buildPersonalInsightBrief(flags: PortfolioRiskFlags): PersonalIn
   if (findings.length > 0) {
     return {
       mode: "personal",
-      headline: "Structure is mostly sound.",
-      summary: "Nothing is dominant. Close the remaining gaps so the numbers stay honest.",
+      headline: "Mostly sound.",
+      summary: "Nothing dominates. Close the remaining gaps.",
       findings: findings.slice(0, 4),
     };
   }
 
   return {
     mode: "personal",
-    headline: "No single name is running the book.",
-    summary: "Position and sector weights are inside the concentration guardrails.",
+    headline: "No name runs the book.",
+    summary: "Position and sector weights stay inside the rails.",
     findings: [],
   };
 }

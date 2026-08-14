@@ -22,8 +22,8 @@ export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): Por
 
   if (ranked.length === 0) {
     return {
-      headline: "Portfolio value is waiting for complete prices.",
-      summary: "Position weights will resolve as market data becomes available.",
+      headline: "Waiting on prices.",
+      summary: "Weights resolve when quotes land.",
       tone: "neutral",
       largest: null,
       topThreeWeight: null,
@@ -35,8 +35,8 @@ export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): Por
 
   if (largest.weight > 25) {
     return {
-      headline: `${largest.ticker} is the book’s binding concentration.`,
-      summary: `At ${largest.weight.toFixed(0)}% of portfolio value, a 20% move in the position would move the total book by roughly ${(largest.weight * 0.2).toFixed(1)}%.`,
+      headline: `${largest.ticker} runs the book.`,
+      summary: `${largest.weight.toFixed(0)}% of value. A 20% move swings the book ~${(largest.weight * 0.2).toFixed(1)}%.`,
       tone: "concentrated",
       largest,
       topThreeWeight,
@@ -45,8 +45,8 @@ export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): Por
 
   if (topThreeWeight > 60) {
     return {
-      headline: "Three positions drive most of the portfolio.",
-      summary: `The top three holdings represent ${topThreeWeight.toFixed(0)}% of total value. The book is diversified by name count more than by capital at risk.`,
+      headline: "Top three run the book.",
+      summary: `${topThreeWeight.toFixed(0)}% of value in three names. Count ≠ capital risk.`,
       tone: "watch",
       largest,
       topThreeWeight,
@@ -55,8 +55,8 @@ export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): Por
 
   if (largest.weight > 20) {
     return {
-      headline: `${largest.ticker} is moving into concentration territory.`,
-      summary: `The largest position represents ${largest.weight.toFixed(0)}% of portfolio value. It is not yet dominant, but it deserves an explicit size limit and trim rule.`,
+      headline: `${largest.ticker} is getting large.`,
+      summary: `${largest.weight.toFixed(0)}% of value — not dominant yet. Set a size rule.`,
       tone: "watch",
       largest,
       topThreeWeight,
@@ -65,8 +65,8 @@ export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): Por
 
   if (ranked.length >= 5 && largest.weight < 12) {
     return {
-      headline: "Position sizing is balanced across the book.",
-      summary: `${largest.ticker} is the largest holding at ${largest.weight.toFixed(0)}%, while the top three account for ${topThreeWeight.toFixed(0)}% of value. No single outcome dominates.`,
+      headline: "Sizing looks balanced.",
+      summary: `${largest.ticker} largest at ${largest.weight.toFixed(0)}%. Top three: ${topThreeWeight.toFixed(0)}%.`,
       tone: "balanced",
       largest,
       topThreeWeight,
@@ -74,8 +74,8 @@ export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): Por
   }
 
   return {
-    headline: "Capital is distributed without one dominant position.",
-    summary: `${largest.ticker} is largest at ${largest.weight.toFixed(0)}%, and the top three holdings account for ${topThreeWeight.toFixed(0)}% of total value.`,
+    headline: "No single name dominates.",
+    summary: `${largest.ticker} largest at ${largest.weight.toFixed(0)}%. Top three: ${topThreeWeight.toFixed(0)}%.`,
     tone: "neutral",
     largest,
     topThreeWeight,

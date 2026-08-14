@@ -134,10 +134,9 @@ export default function SmartMoneyPage() {
           <span className="product-stage-eyebrow">
             <i aria-hidden="true" /> Smart Money · Filed evidence
           </span>
-          <h1>Watch what power files.</h1>
+          <h1>What power filed.</h1>
           <p>
-            Open a top investor’s latest 13F book—or congressional disclosures. Filed positions, not forecasts.
-            Not the same as Portfolio’s educational sample books.
+            13F books and STOCK Act. Filed positions — not forecasts.
           </p>
         </div>
         <div className="product-stage-metrics product-stage-metrics--text" aria-label="Available evidence">
