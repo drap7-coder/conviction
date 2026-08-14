@@ -154,7 +154,7 @@ function Gauge({
   return (
     <article className="market-gauge-card">
       <div className="market-card-heading">
-        <span>{label}</span><span className="market-live">LIVE</span>
+        <span>{label}</span>
       </div>
       <strong className="market-gauge-value">
         {isFiniteNumber(value) ? formatGaugeValue(value, config) : "—"}
@@ -458,7 +458,7 @@ export default function MarketPulsePage() {
               <Gauge label="Small caps vs S&P" value={smallCapLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} />
             </section>
             <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
-              <MarketMovesPanel />
+              <MarketMovesPanel showDecisionCard={false} />
             </section>
           </>
         ) : null}

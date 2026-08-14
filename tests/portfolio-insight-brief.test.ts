@@ -32,6 +32,14 @@ describe("portfolio insight brief", () => {
     expect(brief!.stress.toLowerCase()).toContain("inflation");
   });
 
+  it("teaches Dogs of the Dow as a yield screen, not concentration theater", () => {
+    const book = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === "dogs-of-the-dow")!;
+    const brief = buildStrategyDesignBrief(book);
+    expect(brief?.mode).toBe("strategy");
+    expect(brief!.principle.toLowerCase()).toContain("yield");
+    expect(brief!.sleeves).toHaveLength(10);
+  });
+
   it("routes sample strategy books away from personal pressure scoring", () => {
     const book = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === "sixty-forty")!;
     const brief = buildPortfolioInsightBrief(

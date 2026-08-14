@@ -63,7 +63,12 @@ function writeBrowserWatchlist(entries: WatchlistEntry[]) {
   }
 }
 
-export function MarketMovesPanel() {
+export function MarketMovesPanel({
+  showDecisionCard = true,
+}: {
+  /** When false, skip the stacked momentum brief (Pulse Trending already has breadth). */
+  showDecisionCard?: boolean;
+}) {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [trackedTickers, setTrackedTickers] = useState<Set<string>>(new Set());
@@ -192,14 +197,16 @@ export function MarketMovesPanel() {
     );
   }
 
-  const momentumBrief = buildMomentumBrief(trending.map((idea) => {
-    const live = getLivePrice(idea.quote);
-    return {
-      ticker: idea.ticker,
-      companyName: idea.companyName,
-      changePercent: live.changePercent,
-    };
-  }));
+  const momentumBrief = showDecisionCard
+    ? buildMomentumBrief(trending.map((idea) => {
+        const live = getLivePrice(idea.quote);
+        return {
+          ticker: idea.ticker,
+          companyName: idea.companyName,
+          changePercent: live.changePercent,
+        };
+      }))
+    : null;
 
   return (
     <div className="market-moves-panel">
@@ -209,7 +216,7 @@ export function MarketMovesPanel() {
         </p>
       ) : null}
 
-      <PulseDecisionCard brief={momentumBrief} compact />
+      {momentumBrief ? <PulseDecisionCard brief={momentumBrief} compact /> : null}
 
       <StockHeatmap
         title="Active-name board"

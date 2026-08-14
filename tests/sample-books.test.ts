@@ -14,9 +14,17 @@ import {
 } from "@/lib/market/industries";
 
 describe("sample portfolio books", () => {
-  const STRATEGY_BOOK_IDS = ["all-weather", "sixty-forty", "three-fund", "permanent"] as const;
+  const STRATEGY_BOOK_IDS = [
+    "all-weather",
+    "sixty-forty",
+    "three-fund",
+    "permanent",
+    "dogs-of-the-dow",
+    "dividend",
+    "growth",
+  ] as const;
 
-  it("keeps only classic educational strategy allocations", () => {
+  it("keeps classic educational strategy and stock-screen allocations", () => {
     expect(SAMPLE_PORTFOLIO_BOOKS.map((book) => book.id)).toEqual([...STRATEGY_BOOK_IDS]);
 
     for (const book of SAMPLE_PORTFOLIO_BOOKS) {
@@ -48,6 +56,11 @@ describe("sample portfolio books", () => {
         DBC: 7.5,
       },
     });
+    expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "dogs-of-the-dow")?.tickers).toHaveLength(10);
+    expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "dividend")?.tickers).toEqual([
+      "JNJ", "PG", "KO", "PEP", "ABBV", "MRK", "HD", "MMM", "IBM", "VZ",
+    ]);
+    expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "growth")?.tickers).toHaveLength(10);
   });
 
   it("sizes equal-weight books to $100k when prices exist", () => {
@@ -83,6 +96,32 @@ describe("sample portfolio books", () => {
       BND: 72,
       VXUS: 60,
       SGOV: 100,
+      VZ: 40,
+      IBM: 220,
+      DOW: 55,
+      CVX: 160,
+      AMGN: 280,
+      KO: 70,
+      CSCO: 50,
+      JPM: 200,
+      MMM: 140,
+      WBA: 12,
+      JNJ: 160,
+      PG: 170,
+      PEP: 170,
+      ABBV: 180,
+      MRK: 110,
+      HD: 380,
+      AAPL: 190,
+      MSFT: 420,
+      NVDA: 120,
+      AMZN: 180,
+      GOOG: 160,
+      META: 500,
+      AVGO: 180,
+      NFLX: 600,
+      CRM: 280,
+      COST: 800,
     };
 
     for (const bookId of STRATEGY_BOOK_IDS) {
@@ -135,7 +174,7 @@ describe("sector normalization", () => {
     expect(normalizeSectorName("Financial Services")).toBe("Financials");
   });
 
-  it("classifies dividend-book names without falling through", () => {
+  it("classifies dividend and Dogs-of-the-Dow names without falling through", () => {
     const dividend = ["JNJ", "PG", "KO", "PEP", "ABBV", "MRK", "HD", "MMM", "IBM", "VZ"];
     for (const ticker of dividend) {
       expect(getSectorForCompany(ticker)?.name).toBeTruthy();
@@ -144,5 +183,9 @@ describe("sector normalization", () => {
     expect(getSectorForCompany("PG")?.name).toBe("Consumer Staples");
     expect(getSectorForCompany("VZ")?.name).toBe("Communication Services");
     expect(getSectorForCompany("MMM")?.name).toBe("Industrials");
+    expect(getSectorForCompany("AMGN")?.name).toBe("Health Care");
+    expect(getSectorForCompany("CSCO")?.name).toBe("Technology");
+    expect(getSectorForCompany("DOW")?.name).toBe("Materials");
+    expect(getSectorForCompany("WBA")?.name).toBe("Consumer Staples");
   });
 });

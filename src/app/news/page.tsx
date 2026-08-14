@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PulseNewsFeed } from "@/components/market/PulseNewsFeed";
 import type { MarketNarrativePulse } from "@/lib/market/market-narratives";
 import { buildNewsPageBrief } from "@/lib/market/news-brief";
@@ -11,9 +12,27 @@ interface NewsResponse {
   fetchedAt: string;
 }
 
+const NEWS_TABS = [
+  {
+    id: "brief",
+    label: "Brief",
+    tabId: "news-tab-brief",
+    panelId: "news-panel-brief",
+  },
+  {
+    id: "headlines",
+    label: "Headlines",
+    tabId: "news-tab-headlines",
+    panelId: "news-panel-headlines",
+  },
+] as const;
+
+type NewsTab = (typeof NEWS_TABS)[number]["id"];
+
 export default function NewsPage() {
   const [data, setData] = useState<NewsResponse | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [activeTab, setActiveTab] = useState<NewsTab>("brief");
 
   useEffect(() => {
     let cancelled = false;
@@ -60,36 +79,68 @@ export default function NewsPage() {
 
   return (
     <main className="markets-page news-page">
+      <ViewSwitcher
+        label="Choose a News view"
+        options={[...NEWS_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as NewsTab)}
+      >
+        <p className="view-switch-context-line">
+          {activeTab === "brief"
+            ? "Three stories with investing consequence."
+            : "Secondary coverage by narrative — not a firehose."}
+        </p>
+      </ViewSwitcher>
+
       <section className="product-stage product-stage--news" aria-label="News intelligence">
         <div className="product-stage-copy">
           <span className="product-stage-eyebrow">
             <i aria-hidden="true" /> News · {brief.statusLabel}
           </span>
-          <h1>What changed. Why it matters.</h1>
+          <h1>
+            {activeTab === "brief"
+              ? "What changed. Why it matters."
+              : "Read the wire without the noise."}
+          </h1>
           <p>
-            A ranked market brief built around the stories with the clearest investing consequence—not a firehose of headlines.
+            {activeTab === "brief"
+              ? brief.leadTheme
+                ? `Lead narrative: ${brief.leadTheme}. Ranked by consequence—not volume.`
+                : "A ranked market brief built around investing consequence—not headline volume."
+              : "Filter by theme when you want depth. Skip filler."}
           </p>
-        </div>
-        <div className="product-stage-metrics product-stage-metrics--text" aria-label="News coverage readings">
-          <div>
-            <strong>{brief.leadTheme}</strong>
-            <span>Lead narrative</span>
-          </div>
-          <div>
-            <strong>{brief.activeNarratives}</strong>
-            <span>Active themes</span>
-          </div>
-          <div>
-            <strong>{brief.storyCount}</strong>
-            <span>Ranked stories</span>
-          </div>
         </div>
       </section>
 
-      <PulseNewsFeed
-        themes={data.marketNarratives.themes}
-        status={data.marketNarratives.status}
-      />
+      <div
+        id="news-panel-brief"
+        role="tabpanel"
+        aria-labelledby="news-tab-brief"
+        hidden={activeTab !== "brief"}
+      >
+        {activeTab === "brief" ? (
+          <PulseNewsFeed
+            themes={data.marketNarratives.themes}
+            status={data.marketNarratives.status}
+            section="brief"
+          />
+        ) : null}
+      </div>
+
+      <div
+        id="news-panel-headlines"
+        role="tabpanel"
+        aria-labelledby="news-tab-headlines"
+        hidden={activeTab !== "headlines"}
+      >
+        {activeTab === "headlines" ? (
+          <PulseNewsFeed
+            themes={data.marketNarratives.themes}
+            status={data.marketNarratives.status}
+            section="headlines"
+          />
+        ) : null}
+      </div>
     </main>
   );
 }

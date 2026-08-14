@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "News",
-  description: "The market stories that matter now, ranked by relevance, source quality, freshness, and confirming price action.",
+  description: "Market stories ranked by investing consequence — Brief for the few that matter, Headlines for the wire.",
   alternates: {
     canonical: "/news",
   },

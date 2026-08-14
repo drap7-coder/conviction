@@ -2087,17 +2087,10 @@ details > summary::before {
 
 .pf-book-switch-tabs {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 6px;
   margin: 0;
   padding: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-.pf-book-switch-tabs::-webkit-scrollbar {
-  display: none;
 }
 
 .pf-book-switch-personal {
@@ -11172,6 +11165,11 @@ a.signal-block-conclusion-link:hover {
 .product-stage--news {
   --stage-accent: #fb8ca0;
   --stage-glow: rgba(251, 113, 133, 0.16);
+}
+
+.product-stage--watchlist {
+  --stage-accent: #5eead4;
+  --stage-glow: rgba(94, 234, 212, 0.14);
 }
 
 .product-stage--smart-money {
