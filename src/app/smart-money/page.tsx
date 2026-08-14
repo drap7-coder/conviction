@@ -122,6 +122,13 @@ export default function SmartMoneyPage() {
 
   return (
     <div className="smart-money-page">
+      <ViewSwitcher
+        label="Choose a Smart Money view"
+        options={[...SMART_MONEY_VIEWS]}
+        activeId={activeView}
+        onChange={(id) => setActiveView(id as SmartMoneyView)}
+      />
+
       <section className="product-stage product-stage--smart-money" aria-label="Smart Money overview">
         <div className="product-stage-copy">
           <span className="product-stage-eyebrow">
@@ -147,13 +154,6 @@ export default function SmartMoneyPage() {
           </div>
         </div>
       </section>
-
-      <ViewSwitcher
-        label="Choose a Smart Money view"
-        options={[...SMART_MONEY_VIEWS]}
-        activeId={activeView}
-        onChange={(id) => setActiveView(id as SmartMoneyView)}
-      />
 
       <div
         id="smart-money-panel-institutions"
