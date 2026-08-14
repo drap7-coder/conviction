@@ -16521,6 +16521,11 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 10px;
 }
 
+.politician-trade-list--broad .politician-trade-card,
+.politician-trade-card.is-broad-market {
+  opacity: 0.88;
+}
+
 .politician-trade-card {
   display: flex;
   min-width: 0;
