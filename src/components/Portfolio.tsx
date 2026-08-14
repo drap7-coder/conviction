@@ -186,18 +186,18 @@ function SampleBooksSwitcher({
             />
           </svg>
         </button>
-        <p className="pf-book-switch-lede">
-          {active
-            ? `${active.label} · ${active.description}`
-            : personalCount > 0
+        {personalActive ? (
+          <p className="pf-book-switch-lede">
+            {personalCount > 0
               ? `${personalCount} saved ${personalCount === 1 ? "position" : "positions"}`
-              : "Empty — add a position, or try a sample book below"}
-        </p>
+              : "Empty — add a position on Value"}
+          </p>
+        ) : null}
       </div>
 
-      <div className="pf-book-switch-samples">
-        <p className="pf-book-switch-samples-label">Sample books</p>
-        <div className="pf-book-switch-tabs" role="tablist" aria-label="Choose a sample portfolio">
+      <div className="pf-book-switch-samples" role="group" aria-label="Sample portfolio options">
+        <p className="pf-book-switch-samples-label">Or try a sample</p>
+        <div className="pf-book-switch-tabs" role="tablist" aria-label="Sample portfolio books">
           {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
             const selected = activeId === book.id;
             return (
@@ -216,6 +216,12 @@ function SampleBooksSwitcher({
             );
           })}
         </div>
+        {active ? (
+          <p className="pf-book-switch-lede pf-book-switch-lede--sample" aria-live="polite">
+            <strong>{active.label}</strong>
+            <span>{active.description}</span>
+          </p>
+        ) : null}
       </div>
     </section>
   );
