@@ -2087,10 +2087,17 @@ details > summary::before {
 
 .pf-book-switch-tabs {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   margin: 0;
   padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pf-book-switch-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .pf-book-switch-personal {
@@ -2098,13 +2105,16 @@ details > summary::before {
 }
 
 .pf-book-switch-divider {
+  flex: 0 0 auto;
   width: 1px;
+  align-self: stretch;
   min-height: 24px;
   margin: 3px 2px;
   background: var(--border);
 }
 
 .pf-book-switch-tab {
+  flex: 0 0 auto;
   margin: 0;
   padding: 8px 12px;
   border: 1px solid var(--border);
@@ -2118,6 +2128,7 @@ details > summary::before {
   line-height: 1.2;
   cursor: pointer;
   transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
 }
 
 .pf-book-switch-tab:hover,
@@ -6698,6 +6709,23 @@ details > summary::before {
   display: inline-block;
 }
 
+button.brief-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--accent, #0d9488);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+button.brief-link:hover,
+button.brief-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
 .empty-state.compact {
   padding: 28px 16px;
 }
@@ -7024,6 +7052,38 @@ details > summary::before {
   transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
 }
 
+.pf-value-stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 3px;
+}
+
+.pf-value-stage-actions .pf-value-refresh {
+  margin: 0;
+}
+
+.pf-value-insights-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--pf-value-accent) 88%, #fff);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  cursor: pointer;
+}
+
+.pf-value-insights-link:hover,
+.pf-value-insights-link:focus-visible {
+  color: #fff;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .pf-value-refresh:hover:not(:disabled),
 .pf-value-refresh:focus-visible {
   border-color: color-mix(in srgb, var(--pf-value-accent) 50%, transparent);
@@ -7035,6 +7095,23 @@ details > summary::before {
 .pf-value-refresh:disabled {
   opacity: 0.55;
   cursor: default;
+}
+
+.pf-coverage-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35em 0.75em;
+}
+
+.pf-coverage-note strong {
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+}
+
+.pf-coverage-note span {
+  color: var(--muted);
+  font-size: 0.82rem;
 }
 
 .pf-value-stage-metrics {
@@ -7426,10 +7503,10 @@ details > summary::before {
 
 @media (max-width: 560px) {
   .pf-book-switch-divider {
-    width: 100%;
-    height: 1px;
-    min-height: 1px;
-    margin: 2px 0;
+    width: 1px;
+    height: auto;
+    min-height: 24px;
+    margin: 3px 4px;
   }
 
   .pf-value-stage {
@@ -12110,7 +12187,160 @@ a.signal-block-conclusion-link:hover {
   }
 }
 
-/* ── Portfolio Check: a first-class Insights card ── */
+/* ── Portfolio Insight: design brief (strategy) or pressure points (personal) ── */
+
+.portfolio-insight-card {
+  --insight-accent: #5eead4;
+  --insight-accent-soft: rgba(94, 234, 212, 0.12);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 0 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 92% 0%, var(--insight-accent-soft), transparent 32%),
+    linear-gradient(155deg, #0c1118 0%, #0a0e14 100%);
+  color: #f7faf9;
+  box-shadow: 0 22px 56px rgba(7, 10, 14, 0.18);
+}
+
+.portfolio-insight-card.is-personal {
+  --insight-accent: #f8d477;
+  --insight-accent-soft: rgba(248, 212, 119, 0.12);
+}
+
+.portfolio-insight-header {
+  display: grid;
+  gap: 10px;
+  padding: 26px 26px 8px;
+}
+
+.portfolio-insight-kicker {
+  color: color-mix(in srgb, var(--insight-accent) 82%, #fff);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.portfolio-insight-header h2 {
+  margin: 0;
+  max-width: 18ch;
+  font-size: clamp(1.55rem, 3.2vw, 2.05rem);
+  font-weight: 650;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+}
+
+.portfolio-insight-header p,
+.portfolio-insight-principle {
+  margin: 0;
+  max-width: 40rem;
+  color: rgba(233, 240, 237, 0.72);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.portfolio-insight-machine {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 18px 26px 8px;
+}
+
+.portfolio-insight-machine > div {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.portfolio-insight-machine span {
+  color: rgba(233, 240, 237, 0.45);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portfolio-insight-machine p {
+  margin: 0;
+  color: rgba(245, 248, 247, 0.88);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.portfolio-insight-sleeves {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 8px;
+  padding: 18px 26px 26px;
+}
+
+.portfolio-insight-sleeve {
+  display: grid;
+  gap: 4px;
+  padding: 14px 14px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.portfolio-insight-sleeve strong {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+}
+
+.portfolio-insight-sleeve b {
+  color: var(--insight-accent);
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.portfolio-insight-sleeve span {
+  color: rgba(233, 240, 237, 0.55);
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
+.portfolio-insight-clear {
+  margin: 0;
+  padding: 8px 26px 26px;
+  color: rgba(233, 240, 237, 0.62);
+  font-size: 0.9rem;
+}
+
+.portfolio-insight-card .portfolio-check-findings {
+  padding-top: 12px;
+}
+
+.portfolio-insight-card .portfolio-check-findings-heading button {
+  color: var(--insight-accent);
+}
+
+@media (max-width: 720px) {
+  .portfolio-insight-machine {
+    grid-template-columns: 1fr;
+  }
+
+  .portfolio-insight-header,
+  .portfolio-insight-machine,
+  .portfolio-insight-sleeves,
+  .portfolio-insight-clear {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+}
+
+/* ── Portfolio Check findings (shared list language) ── */
 
 .portfolio-check-card {
   --check-accent: #65f2a6;
@@ -12307,6 +12537,22 @@ a.signal-block-conclusion-link:hover {
   background: rgba(255, 255, 255, 0.035);
 }
 
+button.portfolio-check-item {
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+button.portfolio-check-item:hover,
+button.portfolio-check-item:focus-visible {
+  border-color: color-mix(in srgb, var(--check-accent) 42%, rgba(255, 255, 255, 0.12));
+  background: rgba(255, 255, 255, 0.055);
+  outline: none;
+}
+
 .portfolio-check-item.is-clear {
   grid-column: 1 / -1;
   min-height: 0;
@@ -12404,6 +12650,10 @@ a.signal-block-conclusion-link:hover {
 }
 
 #portfolio-positions {
+  scroll-margin-top: 84px;
+}
+
+[id^="portfolio-holding-"] {
   scroll-margin-top: 84px;
 }
 

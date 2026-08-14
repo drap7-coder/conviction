@@ -507,8 +507,8 @@ export function getTopReturnContributors(
 // ── Risk flags ────────────────────────────────────────────────────────────
 
 /**
- * Compute explicit, rules-based risk flags for the Portfolio Check section.
- * Uses only plain-language observations — no opaque scores.
+ * Explicit risk flags for personal portfolio pressure points.
+ * Strategy sample books should not be graded with these thresholds.
  *
  * Rules:
  * - Single-position concentration:   > 20% weight
