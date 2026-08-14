@@ -1,5 +1,6 @@
 import type { InstitutionalMarketIdea } from "@/lib/sec/institutional";
 import type { PoliticalTrade } from "@/lib/political-trades";
+import { getMarketInstrument } from "@/lib/market/market-instruments";
 
 export type SmartMoneyTone = "positive" | "negative" | "mixed" | "neutral" | "alert";
 
@@ -40,10 +41,23 @@ export interface PoliticalTradeGroup {
   latestFilingDate: string;
   directionLabel: string;
   tone: SmartMoneyTone;
+  /** Index/ETF/broad-market sleeves — size without stock-level insight. */
+  isBroadMarket: boolean;
 }
 
 function plural(value: number, singular: string, pluralForm = `${singular}s`) {
   return `${value} ${value === 1 ? singular : pluralForm}`;
+}
+
+/**
+ * Broad indexes and ETFs inflate midpoint size without naming a business.
+ * Prefer single-name equities for political research leads.
+ */
+export function isBroadMarketPoliticalPlay(ticker: string, assetName = ""): boolean {
+  const instrument = getMarketInstrument(ticker);
+  if (instrument?.kind === "etf") return true;
+  if (instrument?.kind === "crypto") return true;
+  return /\b(ETF|ETN|index fund|S&P\s*500|Nasdaq|Russell|Dow Jones|Treasury|bond fund)\b/i.test(assetName);
 }
 
 export function formatCompactMoney(value: number): string {
@@ -195,63 +209,88 @@ export function groupPoliticalTrades(trades: PoliticalTrade[]): PoliticalTradeGr
         ),
         directionLabel,
         tone,
+        isBroadMarket: isBroadMarketPoliticalPlay(ticker, groupTrades[0]?.assetName),
       };
     })
     .sort((a, b) =>
+      Number(a.isBroadMarket) - Number(b.isBroadMarket) ||
       b.estimatedTotal - a.estimatedTotal ||
       b.trades.length - a.trades.length ||
       b.latestFilingDate.localeCompare(a.latestFilingDate),
     );
 }
 
+/** Single-name clusters only — used for decision brief and radar. */
+export function insightPoliticalGroups(groups: PoliticalTradeGroup[]): PoliticalTradeGroup[] {
+  return groups.filter((group) => !group.isBroadMarket);
+}
+
 export function buildPoliticalBrief(trades: PoliticalTrade[]): SmartMoneyBrief {
   const groups = groupPoliticalTrades(trades);
-  const top = groups[0];
-  const purchases = trades.filter((trade) => trade.direction === "purchase");
-  const sales = trades.filter((trade) => trade.direction === "sale");
+  const insightGroups = insightPoliticalGroups(groups);
+  const top = insightGroups[0] ?? null;
+  const insightTrades = insightGroups.flatMap((group) => group.trades);
+  const briefTrades = insightTrades.length > 0 ? insightTrades : trades;
+  const purchases = briefTrades.filter((trade) => trade.direction === "purchase");
+  const sales = briefTrades.filter((trade) => trade.direction === "sale");
   const purchaseAmount = purchases.reduce((sum, trade) => sum + (trade.estimatedAmount ?? 0), 0);
   const saleAmount = sales.reduce((sum, trade) => sum + (trade.estimatedAmount ?? 0), 0);
-  const overallLag = median(trades
+  const overallLag = median(briefTrades
     .map((trade) => trade.daysToFile)
     .filter((value): value is number => typeof value === "number" && Number.isFinite(value)));
+  const broadMarketCount = groups.length - insightGroups.length;
 
   if (!top) {
     return {
-      eyebrow: "Congressional disclosure radar",
-      headline: "No recent disclosures are available.",
-      summary: "The feed will repopulate when new STOCK Act filings are available.",
+      eyebrow: "STOCK Act",
+      headline: insightGroups.length === 0 && groups.length > 0
+        ? "Mostly ETFs. No stock lead."
+        : "No filings yet.",
+      summary: insightGroups.length === 0 && groups.length > 0
+        ? `${plural(broadMarketCount, "index/ETF cluster")} filed — none name a single business.`
+        : "New disclosures will show up here.",
       tone: "neutral",
-      metrics: [],
+      metrics: insightGroups.length === 0 && groups.length > 0
+        ? [
+          { label: "Stock clusters", value: "0" },
+          { label: "ETF / index", value: String(broadMarketCount) },
+          { label: "Median lag", value: overallLag === null ? "—" : `${overallLag}d` },
+        ]
+        : [],
     };
   }
 
-  let headline = `${top.ticker} is the largest disclosed cluster.`;
-  let summary = `${plural(top.trades.length, "filing")} across ${plural(top.filerCount, "official")} total ${formatCompactMoney(top.estimatedTotal)} at reported-range midpoints.`;
+  let headline = `${top.ticker} leads the tape.`;
+  let summary = `${plural(top.trades.length, "filing")} · ${plural(top.filerCount, "official")} · ${formatCompactMoney(top.estimatedTotal)} midpoint.`;
   let tone = top.tone;
 
   if (top.lateCount > 0) {
-    headline = `${top.ticker} is the largest disclosure—and it arrived late.`;
-    summary = `${plural(top.trades.length, "filing")} total ${formatCompactMoney(top.estimatedTotal)} at range midpoints, but ${plural(top.lateCount, "filing")} arrived after the deadline. Size is notable; timing quality is weak.`;
+    headline = `${top.ticker} leads — filed late.`;
+    summary = `${formatCompactMoney(top.estimatedTotal)} midpoint · ${plural(top.lateCount, "late filing")}. Size without timing.`;
     tone = "alert";
   } else if (top.purchaseCount > top.saleCount) {
-    headline = `${top.ticker} leads disclosed buying.`;
-    summary = `${plural(top.purchaseCount, "purchase")} across ${plural(top.filerCount, "official")} total ${formatCompactMoney(top.estimatedPurchases)} at reported-range midpoints. It is a research lead, not proof of intent.`;
+    headline = `${top.ticker} leads buying.`;
+    summary = `${plural(top.purchaseCount, "buy")} · ${plural(top.filerCount, "official")} · ${formatCompactMoney(top.estimatedPurchases)} midpoint. Research lead, not intent.`;
     tone = "positive";
   } else if (top.saleCount > top.purchaseCount) {
-    headline = `${top.ticker} leads disclosed selling.`;
-    summary = `${plural(top.saleCount, "sale")} across ${plural(top.filerCount, "official")} total ${formatCompactMoney(top.estimatedSales)} at reported-range midpoints. Sales can reflect many motives, so context matters.`;
+    headline = `${top.ticker} leads selling.`;
+    summary = `${plural(top.saleCount, "sale")} · ${plural(top.filerCount, "official")} · ${formatCompactMoney(top.estimatedSales)} midpoint. Motive unknown — check context.`;
     tone = "negative";
   }
 
+  if (broadMarketCount > 0) {
+    summary += ` ${broadMarketCount} ETF${broadMarketCount === 1 ? "" : "s"} demoted.`;
+  }
+
   return {
-    eyebrow: "Congressional disclosure radar",
+    eyebrow: "STOCK Act",
     headline,
     summary,
     tone,
     metrics: [
-      { label: "Estimated purchases", value: formatCompactMoney(purchaseAmount), tone: "positive" },
-      { label: "Estimated sales", value: formatCompactMoney(saleAmount), tone: "negative" },
-      { label: "Median filing lag", value: overallLag === null ? "—" : `${overallLag}d`, tone: overallLag !== null && overallLag > 45 ? "alert" : "neutral" },
+      { label: "Buys", value: formatCompactMoney(purchaseAmount), tone: "positive" },
+      { label: "Sells", value: formatCompactMoney(saleAmount), tone: "negative" },
+      { label: "Median lag", value: overallLag === null ? "—" : `${overallLag}d`, tone: overallLag !== null && overallLag > 45 ? "alert" : "neutral" },
     ],
   };
 }

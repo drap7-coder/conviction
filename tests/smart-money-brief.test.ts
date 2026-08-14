@@ -96,25 +96,45 @@ describe("Smart Money decision briefs", () => {
     ]);
 
     expect(groups[0]).toMatchObject({
+      ticker: "PINS",
+      saleCount: 1,
+      isBroadMarket: false,
+    });
+    expect(groups[1]).toMatchObject({
       ticker: "SPY",
       purchaseCount: 2,
       estimatedPurchases: 825_002,
       medianLag: 53,
       lateCount: 2,
       directionLabel: "Purchase cluster",
+      isBroadMarket: true,
     });
     expect(groups).toHaveLength(2);
   });
 
-  it("makes late reporting part of the political headline", () => {
+  it("makes late stock reporting part of the political headline", () => {
     const brief = buildPoliticalBrief([
       politicalTrade("a", "SPY", "purchase", 75_001, 53),
       politicalTrade("b", "SPY", "purchase", 750_001, 53),
-      politicalTrade("c", "PINS", "sale", 32_501, 0),
+      politicalTrade("c", "PINS", "sale", 32_501, 53, {
+        isLate: true,
+        assetName: "Pinterest Inc.",
+      }),
     ]);
 
     expect(brief.tone).toBe("alert");
-    expect(brief.headline).toContain("arrived late");
+    expect(brief.headline).toBe("PINS leads — filed late.");
+    expect(brief.summary).toMatch(/demoted/i);
     expect(brief.metrics[2].value).toBe("53d");
+  });
+
+  it("does not let SPY own the political research lead", () => {
+    const brief = buildPoliticalBrief([
+      politicalTrade("a", "SPY", "purchase", 750_001, 10, { assetName: "SPDR S&P 500 ETF" }),
+      politicalTrade("b", "NVDA", "purchase", 32_501, 10, { assetName: "NVIDIA Corp" }),
+    ]);
+
+    expect(brief.headline).toBe("NVDA leads buying.");
+    expect(brief.eyebrow).toBe("STOCK Act");
   });
 });
