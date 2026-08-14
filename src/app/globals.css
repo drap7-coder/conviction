@@ -16643,6 +16643,23 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   position: relative;
 }
 
+.pulse-more-markets {
+  display: grid;
+  gap: 16px;
+  margin: 4px 0 0;
+  padding-top: 6px;
+}
+
+.pulse-more-markets-label {
+  margin: 0 0 2px;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .pulse-trending-note {
   margin: 12px 2px 0;
   color: var(--muted);
