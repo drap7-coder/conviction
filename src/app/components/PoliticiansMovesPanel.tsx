@@ -12,6 +12,8 @@ import {
   buildPoliticalBrief,
   formatCompactMoney,
   groupPoliticalTrades,
+  insightPoliticalGroups,
+  type PoliticalTradeGroup,
   type SmartMoneyTone,
 } from "@/lib/market/smart-money-brief";
 
@@ -38,6 +40,95 @@ function signalTone(tone: SmartMoneyTone): "up" | "down" | "quiet" {
   if (tone === "positive") return "up";
   if (tone === "negative") return "down";
   return "quiet";
+}
+
+function PoliticalGroupCard({
+  group,
+  trackedTickers,
+  addingTicker,
+  onAdd,
+}: {
+  group: PoliticalTradeGroup;
+  trackedTickers: Set<string>;
+  addingTicker: string | null;
+  onAdd: (idea: { ticker: string; companyName: string }) => void;
+}) {
+  const isTracked = trackedTickers.has(group.ticker);
+  const isAdding = addingTicker === group.ticker;
+  return (
+    <article className={`politician-trade-card tone-${group.tone}${group.isBroadMarket ? " is-broad-market" : ""}`}>
+      <div className="politician-trade-card-top">
+        <Link href={`/companies/${group.ticker}`} className="politician-trade-company">
+          <LogoDisplay ticker={group.ticker} size="card" />
+          <div>
+            <strong>{group.ticker}</strong>
+            <span>{group.assetName}</span>
+          </div>
+        </Link>
+        <div className="investor-idea-actions">
+          {group.isBroadMarket ? (
+            <span className="ink-chip ink-chip--quiet">Broad market</span>
+          ) : null}
+          <span className={`ink-chip ink-chip--${signalTone(group.tone)}`}>
+            {group.directionLabel}
+          </span>
+          <button
+            type="button"
+            className={`investor-watchlist-add${isTracked ? " tracked" : ""}`}
+            aria-label={isTracked ? `${group.ticker} is already on your watchlist` : `Add ${group.ticker} to watchlist`}
+            title={isTracked ? "Already on watchlist" : "Add to watchlist"}
+            disabled={isTracked || isAdding}
+            onClick={() => onAdd({ ticker: group.ticker, companyName: group.assetName })}
+          >
+            {isTracked ? "✓" : isAdding ? "…" : "+"}
+          </button>
+        </div>
+      </div>
+      <div className="politician-trade-body">
+        <div className="politician-cluster-metrics">
+          <div>
+            <strong>{group.purchaseCount > 0 ? formatCompactMoney(group.estimatedPurchases) : "—"}</strong>
+            <span>{group.purchaseCount} disclosed {group.purchaseCount === 1 ? "purchase" : "purchases"}</span>
+          </div>
+          <div>
+            <strong>{group.saleCount > 0 ? formatCompactMoney(group.estimatedSales) : "—"}</strong>
+            <span>{group.saleCount} disclosed {group.saleCount === 1 ? "sale" : "sales"}</span>
+          </div>
+          <div className={group.lateCount > 0 ? "is-alert" : ""}>
+            <strong>{group.medianLag === null ? "—" : `${group.medianLag}d`}</strong>
+            <span>Median filing lag</span>
+          </div>
+        </div>
+        <div className="politician-cluster-list">
+          {group.trades.map((trade) => {
+            const tone = directionTone(trade.direction);
+            return (
+              <div className="politician-cluster-row" key={trade.id}>
+                <div>
+                  <strong>{trade.filerName}</strong>
+                  <span>{trade.office}</span>
+                </div>
+                <div>
+                  <span className={`ink-chip ink-chip--${tone}`}>{trade.transactionType}</span>
+                  <strong>{trade.amountRange}</strong>
+                </div>
+                <small>
+                  Traded {trade.transactionDate ? formatDate(trade.transactionDate) : "—"} · Filed {formatDate(trade.filingDate)}
+                  {trade.isLate ? <em>Late</em> : null}
+                </small>
+              </div>
+            );
+          })}
+        </div>
+        <div className="investor-idea-footer">
+          <Link href={`/companies/${group.ticker}`} className="investor-idea-footer-link">Open company →</Link>
+          {group.trades[0]?.sourceUrl ? (
+            <a href={group.trades[0].sourceUrl} target="_blank" rel="noreferrer">View filing source ↗</a>
+          ) : null}
+        </div>
+      </div>
+    </article>
+  );
 }
 
 interface PoliticiansMovesPanelProps {
@@ -87,6 +178,11 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
 
   const politicalBrief = useMemo(() => buildPoliticalBrief(trades), [trades]);
   const visibleGroups = useMemo(() => groupPoliticalTrades(visibleTrades), [visibleTrades]);
+  const stockGroups = useMemo(() => insightPoliticalGroups(visibleGroups), [visibleGroups]);
+  const broadMarketGroups = useMemo(
+    () => visibleGroups.filter((group) => group.isBroadMarket),
+    [visibleGroups],
+  );
 
   if (status === "loading" || status === "idle") {
     return (
@@ -118,9 +214,9 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
       <SmartMoneyDecisionCard brief={politicalBrief} political />
 
       <SmartMoneyRadar
-        title={filter === "all" ? "Largest disclosed clusters" : `Largest disclosed ${filter}s`}
-        subtitle="Grouped by ticker and ranked by reported-range midpoint. Filing lag stays visible."
-        items={visibleGroups.slice(0, 3).map((group) => ({
+        title={filter === "all" ? "Largest disclosed stock clusters" : `Largest disclosed stock ${filter}s`}
+        subtitle="Single-name equities only. Index and ETF filings are demoted below — size without a business."
+        items={stockGroups.slice(0, 3).map((group) => ({
           ticker: group.ticker,
           label: group.directionLabel,
           detail: `${formatCompactMoney(group.estimatedTotal)} midpoint · ${group.trades.length} ${group.trades.length === 1 ? "filing" : "filings"}`,
@@ -169,85 +265,48 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
               <span>Evidence detail</span>
               <h3>Disclosures grouped by company</h3>
             </div>
-            <p>Repeated trades are consolidated so concentration and filing quality are easier to judge.</p>
+            <p>Stock clusters first. Broad-market ETFs stay visible but off the research lead.</p>
           </div>
-          <div className="politician-trade-list">
-          {visibleGroups.map((group) => {
-            const isTracked = trackedTickers.has(group.ticker);
-            const isAdding = addingTicker === group.ticker;
-            return (
-              <article key={group.ticker} className={`politician-trade-card tone-${group.tone}`}>
-                <div className="politician-trade-card-top">
-                  <Link href={`/companies/${group.ticker}`} className="politician-trade-company">
-                    <LogoDisplay ticker={group.ticker} size="card" />
-                    <div>
-                      <strong>{group.ticker}</strong>
-                      <span>{group.assetName}</span>
-                    </div>
-                  </Link>
-                  <div className="investor-idea-actions">
-                    <span className={`ink-chip ink-chip--${signalTone(group.tone)}`}>
-                      {group.directionLabel}
-                    </span>
-                    <button
-                      type="button"
-                      className={`investor-watchlist-add${isTracked ? " tracked" : ""}`}
-                      aria-label={isTracked ? `${group.ticker} is already on your watchlist` : `Add ${group.ticker} to watchlist`}
-                      title={isTracked ? "Already on watchlist" : "Add to watchlist"}
-                      disabled={isTracked || isAdding}
-                      onClick={() => onAdd({ ticker: group.ticker, companyName: group.assetName })}
-                    >
-                      {isTracked ? "✓" : isAdding ? "…" : "+"}
-                    </button>
-                  </div>
+          {stockGroups.length > 0 ? (
+            <div className="politician-trade-list">
+              {stockGroups.map((group) => (
+                <PoliticalGroupCard
+                  key={group.ticker}
+                  group={group}
+                  trackedTickers={trackedTickers}
+                  addingTicker={addingTicker}
+                  onAdd={onAdd}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="investor-moves-filter-empty">
+              No single-name stock disclosures in this filter — only broad-market ETFs below.
+            </div>
+          )}
+
+          {broadMarketGroups.length > 0 ? (
+            <>
+              <div className="smart-money-section-label">
+                <div>
+                  <span>Broad market</span>
+                  <h3>Index and ETF disclosures</h3>
                 </div>
-                <div className="politician-trade-body">
-                  <div className="politician-cluster-metrics">
-                    <div>
-                      <strong>{group.purchaseCount > 0 ? formatCompactMoney(group.estimatedPurchases) : "—"}</strong>
-                      <span>{group.purchaseCount} disclosed {group.purchaseCount === 1 ? "purchase" : "purchases"}</span>
-                    </div>
-                    <div>
-                      <strong>{group.saleCount > 0 ? formatCompactMoney(group.estimatedSales) : "—"}</strong>
-                      <span>{group.saleCount} disclosed {group.saleCount === 1 ? "sale" : "sales"}</span>
-                    </div>
-                    <div className={group.lateCount > 0 ? "is-alert" : ""}>
-                      <strong>{group.medianLag === null ? "—" : `${group.medianLag}d`}</strong>
-                      <span>Median filing lag</span>
-                    </div>
-                  </div>
-                  <div className="politician-cluster-list">
-                    {group.trades.map((trade) => {
-                      const tone = directionTone(trade.direction);
-                      return (
-                        <div className="politician-cluster-row" key={trade.id}>
-                          <div>
-                            <strong>{trade.filerName}</strong>
-                            <span>{trade.office}</span>
-                          </div>
-                          <div>
-                            <span className={`ink-chip ink-chip--${tone}`}>{trade.transactionType}</span>
-                            <strong>{trade.amountRange}</strong>
-                          </div>
-                          <small>
-                            Traded {trade.transactionDate ? formatDate(trade.transactionDate) : "—"} · Filed {formatDate(trade.filingDate)}
-                            {trade.isLate ? <em>Late</em> : null}
-                          </small>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="investor-idea-footer">
-                    <Link href={`/companies/${group.ticker}`} className="investor-idea-footer-link">Open company →</Link>
-                    {group.trades[0]?.sourceUrl ? (
-                      <a href={group.trades[0].sourceUrl} target="_blank" rel="noreferrer">View filing source ↗</a>
-                    ) : null}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-          </div>
+                <p>Useful for regime context, not company research. Ranked separately so they do not crowd the lead.</p>
+              </div>
+              <div className="politician-trade-list politician-trade-list--broad">
+                {broadMarketGroups.map((group) => (
+                  <PoliticalGroupCard
+                    key={group.ticker}
+                    group={group}
+                    trackedTickers={trackedTickers}
+                    addingTicker={addingTicker}
+                    onAdd={onAdd}
+                  />
+                ))}
+              </div>
+            </>
+          ) : null}
         </>
       )}
 
