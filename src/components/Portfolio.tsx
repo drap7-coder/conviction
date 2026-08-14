@@ -11,7 +11,7 @@ import {
 import {
   SAMPLE_PORTFOLIO_BOOKS,
   SAMPLE_BOOK_TARGET_VALUE,
-  equalWeightPositions,
+  sizeSampleBookPositions,
   loadActiveSampleBookId,
   loadSampleBookPositions,
   positionsMatchSampleBook,
@@ -167,7 +167,7 @@ function SampleBooksSwitcher({
         </div>
         <p className="pf-book-switch-lede">
           {active
-            ? `${active.label} · illustrative $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k equal-weight book`
+            ? `${active.label} · illustrative $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k ${active.weights ? "target-weight" : "equal-weight"} book`
             : personalCount > 0
               ? `Your saved portfolio · ${personalCount} ${personalCount === 1 ? "position" : "positions"}`
               : "Your saved portfolio is empty — add positions or explore a sample"}
@@ -585,7 +585,7 @@ export default function Portfolio({
     }
 
     if (requestId !== sampleLoadRef.current) return;
-    const sized = equalWeightPositions(book.tickers, priceMap, SAMPLE_BOOK_TARGET_VALUE);
+    const sized = sizeSampleBookPositions(book, priceMap, SAMPLE_BOOK_TARGET_VALUE);
     saveSampleBookPositions(book.id, sized);
     setPositions(sized);
     sampleAwaitingQuotesRef.current = true;
