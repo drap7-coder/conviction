@@ -87,8 +87,8 @@ export default function NewsPage() {
       >
         <p className="view-switch-context-line">
           {activeTab === "brief"
-            ? "Three stories with investing consequence."
-            : "Secondary coverage by narrative — not a firehose."}
+            ? "The few stories that matter."
+            : "Wire by theme. Skip filler."}
         </p>
       </ViewSwitcher>
 
@@ -99,15 +99,15 @@ export default function NewsPage() {
           </span>
           <h1>
             {activeTab === "brief"
-              ? "What changed. Why it matters."
-              : "Read the wire without the noise."}
+              ? "What changed."
+              : "The wire."}
           </h1>
           <p>
             {activeTab === "brief"
               ? brief.leadTheme
-                ? `Lead narrative: ${brief.leadTheme}. Ranked by consequence—not volume.`
-                : "A ranked market brief built around investing consequence—not headline volume."
-              : "Filter by theme when you want depth. Skip filler."}
+                ? `Lead: ${brief.leadTheme}. Ranked by consequence.`
+                : "Consequence over volume."
+              : "Filter when you want depth."}
           </p>
         </div>
       </section>

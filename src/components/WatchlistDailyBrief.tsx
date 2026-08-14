@@ -272,12 +272,12 @@ export function WatchlistDailyBrief({
   });
 
   const headline = loading
-    ? "Building your brief."
+    ? "Building…"
     : entries.length === 0
-      ? "Your brief starts with one company."
+      ? "Add one company."
       : items.length === 0
-        ? "Nothing material changed. Stay selective."
-        : `${items.length} ${items.length === 1 ? "thing changed" : "things changed"} for you.`;
+        ? "Quiet. Stay selective."
+        : `${items.length} need a look.`;
 
   return (
     <>
@@ -288,7 +288,7 @@ export function WatchlistDailyBrief({
           </span>
           <h1>{headline}</h1>
           <p>
-            Ranked by material moves, earnings and ownership evidence, and conviction changes—not headline volume.
+            Moves, earnings, ownership — not headline count.
           </p>
         </div>
         <div className="product-stage-metrics" aria-label="Daily brief summary">
@@ -304,9 +304,9 @@ export function WatchlistDailyBrief({
           <header className="for-you-feed-header">
             <div>
               <span>What changed for you</span>
-              <h2>{loading ? "Ranking the signal" : items.length > 0 ? "The few things worth your attention" : "No thesis needs attention"}</h2>
+              <h2>{loading ? "Ranking…" : items.length > 0 ? "Worth your attention" : "Nothing needs attention"}</h2>
             </div>
-            <p>{entries.length} {entries.length === 1 ? "company" : "companies"} checked · maximum 5</p>
+            <p>{entries.length} {entries.length === 1 ? "company" : "companies"} · max 5</p>
           </header>
 
           {loading ? (

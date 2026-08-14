@@ -214,7 +214,7 @@ export function classifyMacroRegime(
     return {
       label: "Insufficient data",
       confidence: "low",
-      summary: "Too few market indicators are available to assess the macro regime.",
+      summary: "Too few indicators to call a regime.",
       drivers,
       missingInputs,
     };
@@ -227,7 +227,6 @@ export function classifyMacroRegime(
   const ratesUp = ratesDir === "rising";
   const ratesDown = ratesDir === "falling";
   const oilUp = oilDir === "rising";
-  const oilDown = oilDir === "falling";
 
   // Risk-on: equities up, VIX down
   if (equitiesUp && vixDown) {
@@ -235,7 +234,7 @@ export function classifyMacroRegime(
       return {
         label: "Risk-on",
         confidence: "high",
-        summary: "Equities are rising with declining volatility and falling yields. Conditions broadly support risk assets, particularly growth and duration-sensitive names.",
+        summary: "Equities up, vol down, yields easing. Risk assets have the wind.",
         drivers,
         missingInputs,
       };
@@ -244,7 +243,7 @@ export function classifyMacroRegime(
       return {
         label: "Cyclical rotation",
         confidence: "medium",
-        summary: "Equities are rising despite rising yields and higher oil, suggesting a cyclical rotation toward value and commodity-sensitive sectors.",
+        summary: "Equities rising into higher yields and oil — value and cyclicals lead.",
         drivers,
         missingInputs,
       };
@@ -252,7 +251,7 @@ export function classifyMacroRegime(
     return {
       label: "Risk-on",
       confidence: "medium",
-      summary: "Equities are advancing with declining volatility, supporting risk asset positioning.",
+      summary: "Equities advancing with softer volatility.",
       drivers,
       missingInputs,
     };
@@ -263,7 +262,7 @@ export function classifyMacroRegime(
     return {
       label: "Cyclical rotation",
       confidence: "medium",
-      summary: "Equities are rising alongside higher yields and oil, pointing to a cyclical / value tilt rather than a clean risk-on tape.",
+      summary: "Equities up with yields and oil — cyclical tilt, not clean risk-on.",
       drivers,
       missingInputs,
     };
@@ -274,7 +273,7 @@ export function classifyMacroRegime(
     return {
       label: "Risk-off",
       confidence: "high",
-      summary: "Equities are declining with rising volatility, indicating broad risk aversion. Defensive positioning may be warranted.",
+      summary: "Equities down, vol up. Broad risk aversion.",
       drivers,
       missingInputs,
     };
@@ -285,7 +284,7 @@ export function classifyMacroRegime(
     return {
       label: "Growth-led",
       confidence: "medium",
-      summary: "Technology and growth names are leading the advance, supported by stable or falling yields.",
+      summary: "Growth and tech lead. Yields are not fighting them.",
       drivers,
       missingInputs,
     };
@@ -296,7 +295,7 @@ export function classifyMacroRegime(
     return {
       label: "Defensive rotation",
       confidence: "low",
-      summary: "Equities are modestly lower without a spike in volatility. Sector leadership may be rotating toward defensive areas.",
+      summary: "Equities soft without a vol spike. Defensives may be taking the baton.",
       drivers,
       missingInputs,
     };
@@ -307,7 +306,7 @@ export function classifyMacroRegime(
     return {
       label: "Volatility expansion",
       confidence: "medium",
-      summary: "Volatility is rising even as broad equity indexes hold. This divergence warrants attention — it may signal building stress beneath the surface.",
+      summary: "Vol rising while indexes hold — stress may be building under the surface.",
       drivers,
       missingInputs,
     };
@@ -318,7 +317,7 @@ export function classifyMacroRegime(
     return {
       label: "Volatility compression",
       confidence: "low",
-      summary: "Volatility is compressing while equities are range-bound. This is consistent with a low-conviction, waiting-for-catalyst environment.",
+      summary: "Vol compressing, equities range-bound. Waiting on a catalyst.",
       drivers,
       missingInputs,
     };
@@ -329,7 +328,7 @@ export function classifyMacroRegime(
     return {
       label: "Rates pressure",
       confidence: "medium",
-      summary: "Rising yields are not being matched by equity strength, suggesting rate-sensitive assets may be under pressure.",
+      summary: "Yields rising without equity strength. Duration and growth feel it first.",
       drivers,
       missingInputs,
     };
@@ -340,7 +339,7 @@ export function classifyMacroRegime(
     label: "Mixed Signals",
     confidence: "low",
     summary: commentaryFromDrivers(
-      "Market indicators are sending mixed or conflicting signals. No dominant macro regime is clearly identifiable.",
+      "Mixed tape. No dominant regime.",
     ),
     drivers,
     missingInputs,

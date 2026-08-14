@@ -24,7 +24,7 @@ describe("portfolio value brief", () => {
     ]);
 
     expect(brief.tone).toBe("watch");
-    expect(brief.headline).toContain("Three positions");
+    expect(brief.headline).toContain("Top three");
     expect(brief.topThreeWeight).toBe(61);
   });
 
