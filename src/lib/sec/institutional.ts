@@ -56,6 +56,12 @@ export interface InstitutionalIdeaSecurity {
   cusips: string[];
 }
 
+export interface InstitutionalManagerSnapshot {
+  manager: InstitutionalManager;
+  latest: InstitutionalFiling;
+  previous: InstitutionalFiling | null;
+}
+
 export interface InstitutionalManagerBookPosition {
   issuer: string;
   classTitle: string;

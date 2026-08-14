@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Smart Money",
   description:
-    "Institutional 13F ownership moves and STOCK Act political trade disclosures — where capital is being put to work.",
+    "Open filed 13F books for Berkshire, Pershing Square, Third Point, and peers — plus STOCK Act political disclosures. Lagged evidence, not live portfolios.",
   alternates: {
     canonical: "/smart-money",
   },
