@@ -62,9 +62,8 @@ export const MARKET_NARRATIVE_THEMES: NarrativeThemeConfig[] = [
       { ticker: "USO", label: "Oil" },
       { ticker: "GLD", label: "Gold" },
       { ticker: "SLV", label: "Silver" },
-      { ticker: "UUP", label: "U.S. Dollar" },
     ],
-    headlinePattern: /oil|crude|opec|energy|gas|gold|silver|commodity|dollar|fx/i,
+    headlinePattern: /oil|crude|opec|energy|gas|gold|silver|commodity/i,
   },
   {
     id: "crypto-liquidity",

@@ -52,7 +52,6 @@ const GLOBAL_MARKETS = [
   { ticker: "USO", name: "Crude Oil", weight: 8, category: "Commodity" },
   { ticker: "GLD", name: "Gold", weight: 7, category: "Commodity" },
   { ticker: "SLV", name: "Silver", weight: 5, category: "Commodity" },
-  { ticker: "UUP", name: "U.S. Dollar", weight: 6, category: "Commodity" },
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
   { ticker: "ETH-USD", name: "Ethereum", weight: 10, category: "Crypto" },
   { ticker: "SOL-USD", name: "Solana", weight: 8, category: "Crypto" },
