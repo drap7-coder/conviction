@@ -157,51 +157,65 @@ function SampleBooksSwitcher({
   disabled?: boolean;
 }) {
   const active = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeId) ?? null;
+  const personalActive = activeId === null;
 
   return (
-    <section className="pf-book-switch" aria-label="Sample portfolios">
-      <header className="pf-book-switch-header">
-        <div className="pf-book-switch-title-row">
-          <p className="pf-book-switch-label"><i aria-hidden="true" /> Portfolio book</p>
-          <span>{active ? "Sample" : "Personal"}</span>
-        </div>
+    <section className="pf-book-switch" aria-label="Portfolio books">
+      <div className="pf-book-switch-stack">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={personalActive}
+          disabled={disabled}
+          className={`pf-book-switch-mine${personalActive ? " is-active" : ""}`}
+          onClick={onSelectPersonal}
+        >
+          <span className="pf-book-switch-mine-label">My Portfolio</span>
+          <svg
+            className="pf-book-switch-pencil"
+            viewBox="0 0 120 6"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M1.5 3.2 C 18 1.1, 34 4.8, 52 2.6 S 88 5.2, 118.5 2.9"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
         <p className="pf-book-switch-lede">
           {active
             ? `${active.label} · ${active.description}`
             : personalCount > 0
-              ? `Your saved portfolio · ${personalCount} ${personalCount === 1 ? "position" : "positions"}`
-              : "Empty personal book — pick a classic sample above, or add a position on Value"}
+              ? `${personalCount} saved ${personalCount === 1 ? "position" : "positions"}`
+              : "Empty — add a position, or try a sample book below"}
         </p>
-      </header>
-      <div className="pf-book-switch-tabs" role="tablist" aria-label="Choose a sample portfolio">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={activeId === null}
-          disabled={disabled}
-          className={`pf-book-switch-tab pf-book-switch-personal${activeId === null ? " is-active" : ""}`}
-          onClick={onSelectPersonal}
-        >
-          My portfolio
-        </button>
-        <span className="pf-book-switch-divider" aria-hidden="true" />
-        {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
-          const selected = activeId === book.id;
-          return (
-            <button
-              key={book.id}
-              type="button"
-              role="tab"
-              aria-selected={selected}
-              title={book.description}
-              disabled={disabled}
-              className={`pf-book-switch-tab${selected ? " is-active" : ""}`}
-              onClick={() => onSelect(book)}
-            >
-              {book.label}
-            </button>
-          );
-        })}
+      </div>
+
+      <div className="pf-book-switch-samples">
+        <p className="pf-book-switch-samples-label">Sample books</p>
+        <div className="pf-book-switch-tabs" role="tablist" aria-label="Choose a sample portfolio">
+          {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
+            const selected = activeId === book.id;
+            return (
+              <button
+                key={book.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                title={book.description}
+                disabled={disabled}
+                className={`pf-book-switch-tab${selected ? " is-active" : ""}`}
+                onClick={() => onSelect(book)}
+              >
+                {book.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
