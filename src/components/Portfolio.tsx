@@ -167,10 +167,10 @@ function SampleBooksSwitcher({
         </div>
         <p className="pf-book-switch-lede">
           {active
-            ? `${active.label} · illustrative $${(SAMPLE_BOOK_TARGET_VALUE / 1000).toFixed(0)}k ${active.weights ? "target-weight" : "equal-weight"} book`
+            ? `${active.label} · ${active.description}`
             : personalCount > 0
               ? `Your saved portfolio · ${personalCount} ${personalCount === 1 ? "position" : "positions"}`
-              : "Your saved portfolio is empty — add positions or explore a sample"}
+              : "Empty personal book — pick a classic sample above, or add a position on Value"}
         </p>
       </header>
       <div className="pf-book-switch-tabs" role="tablist" aria-label="Choose a sample portfolio">
@@ -237,10 +237,19 @@ export default function Portfolio({
   const [formError, setFormError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<PortfolioTab>("value");
+  const [activeTab, setActiveTab] = useState<PortfolioTab>(() => {
+    if (typeof window === "undefined") return "value";
+    try {
+      return sessionStorage.getItem("conviction-portfolio-tab") === "insights" ? "insights" : "value";
+    } catch {
+      return "value";
+    }
+  });
+  const [focusTicker, setFocusTicker] = useState<string | null>(null);
   const sampleLoadRef = useRef(0);
   const sampleAbortRef = useRef<AbortController | null>(null);
   const sampleAwaitingQuotesRef = useRef(false);
+  const focusClearRef = useRef<number | null>(null);
 
   // Load positions + active book from localStorage on mount
   useEffect(() => {
@@ -268,8 +277,19 @@ export default function Portfolio({
       storedBookId,
       samplePositions,
     ));
-    return () => sampleAbortRef.current?.abort();
+    return () => {
+      sampleAbortRef.current?.abort();
+      if (focusClearRef.current) window.clearTimeout(focusClearRef.current);
+    };
   }, []);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("conviction-portfolio-tab", activeTab);
+    } catch {
+      // ignore private mode / quota
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (!loadingBook || !sampleAwaitingQuotesRef.current || sharedData.loading) return;
@@ -544,6 +564,20 @@ export default function Portfolio({
     void fetchSectorProfiles(Array.from(new Set(tickers)));
   }
 
+  function reviewPositions(ticker?: string) {
+    const target = ticker?.trim().toUpperCase() || null;
+    setActiveTab("value");
+    setFocusTicker(target);
+    window.requestAnimationFrame(() => {
+      const el = target
+        ? document.getElementById(`portfolio-holding-${target}`)
+        : document.getElementById("portfolio-positions");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    if (focusClearRef.current) window.clearTimeout(focusClearRef.current);
+    focusClearRef.current = window.setTimeout(() => setFocusTicker(null), 2200);
+  }
+
   function handleClearAll() {
     savePositions([]);
     setPersonalPositionCount(0);
@@ -695,7 +729,7 @@ export default function Portfolio({
       {!calcFailed ? (
         <PortfolioCheckPanel
           riskFlags={riskFlags}
-          onReviewPositions={() => setActiveTab("value")}
+          onReviewPositions={reviewPositions}
         />
       ) : null}
 
@@ -715,16 +749,22 @@ export default function Portfolio({
       ) : null}
 
       {calcFailed ? (
-        <div className="pf-state-card pf-state-warn">
-          Insights need live prices. Retry from the Value tab once quotes load.
+        <div className="empty-state compact">
+          <p>Insights need live prices.</p>
+          <small>Open Value and refresh quotes, then come back to the check.</small>
+          <button type="button" className="brief-link" onClick={() => { setActiveTab("value"); handleRefresh(); }}>
+            Retry on Value →
+          </button>
         </div>
       ) : null}
     </>
   ) : (
-    <div className="pf-empty">
-      <p className="pf-empty-text">
-        Pick a portfolio book above — or add a position on Value — to see mix and concentration.
-      </p>
+    <div className="empty-state">
+      <p>Insights need a portfolio to check.</p>
+      <small>Pick All-Weather, 60/40, Three-Fund, or Permanent above — or add a position on Value.</small>
+      <button type="button" className="brief-link" onClick={() => setActiveTab("value")}>
+        Go to Value →
+      </button>
     </div>
   );
 
@@ -749,7 +789,10 @@ export default function Portfolio({
       />
 
       {loadingBook ? (
-        <PageLoadingMotion label="Sizing portfolio" compact />
+        <PageLoadingMotion
+          label={`Sizing ${activeSampleBook?.label ?? "portfolio"}…`}
+          compact
+        />
       ) : null}
 
       <div
@@ -767,17 +810,19 @@ export default function Portfolio({
 
             {/* Empty: invite to pick a book or add manually. */}
             {!hasData && !loading && !loadingBook ? (
-              <div className={composeFirst ? "pf-sample-books" : "pf-empty"}>
-                <p className="pf-empty-text list-compose-empty-note">
-                  Or add a position yourself{composeFirst ? " below" : ""}.
-                </p>
+              <div className="empty-state">
+                <p>Start with a classic portfolio book.</p>
+                <small>
+                  Pick All-Weather, 60/40, Three-Fund, or Permanent above — or add a position yourself
+                  {composeFirst ? " below" : ""}.
+                </small>
                 {composeFirst ? null : composeBar}
               </div>
             ) : null}
 
             {composeFirst && !hasData ? composeBar : null}
 
-            {hasData && !loadingBook ? (
+            {hasData ? (
               <>
                 {!hideHero ? (
                   <section className={`pf-value-stage tone-${valueBrief.tone}`} aria-label="Portfolio value and concentration">
@@ -799,9 +844,20 @@ export default function Portfolio({
                       </div>
                       <h1>{valueBrief.headline}</h1>
                       <p>{valueBrief.summary}</p>
-                      <button className="pf-value-refresh" onClick={handleRefresh} disabled={loading}>
-                        {loading ? "Refreshing prices…" : "Refresh prices"}
-                      </button>
+                      <div className="pf-value-stage-actions">
+                        <button className="pf-value-refresh" onClick={handleRefresh} disabled={loading}>
+                          {loading ? "Refreshing prices…" : "Refresh prices"}
+                        </button>
+                        {valueBrief.tone === "watch" || valueBrief.tone === "concentrated" ? (
+                          <button
+                            type="button"
+                            className="pf-value-insights-link"
+                            onClick={() => setActiveTab("insights")}
+                          >
+                            See why on Insights <span aria-hidden="true">→</span>
+                          </button>
+                        ) : null}
+                      </div>
                       {activeSampleBook ? (
                         <small>Sample positions never replace your saved portfolio. Editing one creates a personal copy.</small>
                       ) : null}
@@ -838,17 +894,21 @@ export default function Portfolio({
                   </div>
                 )}
 
-                {partialQuotes && !calcFailed && (
-                  <div className="pf-state-card pf-state-warn">
-                    Prices are unavailable for {portfolioMetrics.positionsMissingPrice} position{portfolioMetrics.positionsMissingPrice > 1 ? "s" : ""}. Displayed totals and changes reflect only positions with current prices.
+                {!calcFailed && (partialQuotes || (missingCost && portfolioMetrics.totalUnrealizedGL !== null)) ? (
+                  <div className="pf-state-card pf-state-info pf-coverage-note" role="status">
+                    <strong>Data coverage</strong>
+                    <span>
+                      {[
+                        partialQuotes
+                          ? `Prices missing for ${portfolioMetrics.positionsMissingPrice} position${portfolioMetrics.positionsMissingPrice === 1 ? "" : "s"}`
+                          : null,
+                        missingCost && portfolioMetrics.totalUnrealizedGL !== null
+                          ? `Cost basis on ${portfolioMetrics.positionsWithCost}/${portfolioMetrics.positionCount}`
+                          : null,
+                      ].filter(Boolean).join(" · ")}
+                    </span>
                   </div>
-                )}
-
-                {missingCost && portfolioMetrics.totalUnrealizedGL !== null && !calcFailed && (
-                  <div className="pf-state-card pf-state-info">
-                    Return calculations cover {portfolioMetrics.positionsWithCost} of {portfolioMetrics.positionCount} positions. Add an average cost to {portfolioMetrics.positionsMissingCost} position{portfolioMetrics.positionsMissingCost > 1 ? "s" : ""} for full coverage.
-                  </div>
-                )}
+                ) : null}
 
                 {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
                   <StockHeatmap
@@ -924,6 +984,7 @@ export default function Portfolio({
                         formCost={isEditing ? formCost : ""}
                         formError={isEditing ? formError : null}
                         confirmRemove={removingTicker?.toUpperCase() === ticker}
+                        focused={focusTicker === ticker}
                         onEdit={handleStartEdit}
                         onCancelEdit={handleCancelEdit}
                         onSharesChange={setFormShares}
@@ -961,7 +1022,7 @@ export default function Portfolio({
         aria-labelledby="portfolio-tab-insights"
         hidden={activeTab !== "insights"}
       >
-        {activeTab === "insights" && !loadingBook ? insightsBody : null}
+        {activeTab === "insights" ? insightsBody : null}
       </div>
     </div>
   );

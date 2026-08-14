@@ -31,6 +31,7 @@ export interface PortfolioHoldingCardProps {
   formCost?: string;
   formError?: string | null;
   confirmRemove?: boolean;
+  focused?: boolean;
   onEdit: (ticker: string) => void;
   onCancelEdit: () => void;
   onSharesChange: (value: string) => void;
@@ -91,6 +92,7 @@ export function PortfolioHoldingCard({
   formCost = "",
   formError = null,
   confirmRemove = false,
+  focused = false,
   onEdit,
   onCancelEdit,
   onSharesChange,
@@ -117,7 +119,8 @@ export function PortfolioHoldingCard({
 
   return (
     <article
-      className={`wl-ring-row pf-holding-card ${inkBoxClass(moveTone)}${isEditing ? " is-editing" : ""}`}
+      id={`portfolio-holding-${ticker}`}
+      className={`wl-ring-row pf-holding-card ${inkBoxClass(moveTone)}${isEditing ? " is-editing" : ""}${focused ? " focused-card" : ""}`}
       aria-label={`${displayName} holding`}
     >
       <div className="wl-ring-row-main">

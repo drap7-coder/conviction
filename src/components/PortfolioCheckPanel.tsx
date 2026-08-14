@@ -14,6 +14,8 @@ type CheckItem = {
   detail: string;
   value: string;
   tone: CheckTone;
+  /** When set, Review can deep-link to this holding on Value. */
+  ticker?: string;
 };
 
 function weight(value: number | null): string {
@@ -32,6 +34,7 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
       detail: `A 20% move in ${position.ticker} would move the portfolio by roughly ${(position.weight * 0.2).toFixed(1)}%.`,
       value: weight(position.weight),
       tone: "attention",
+      ticker: position.ticker,
     });
   }
 
@@ -65,6 +68,7 @@ function buildCheckItems(flags: PortfolioRiskFlags): CheckItem[] {
       detail: "The position is below the concentration line, but large enough to shape results.",
       value: weight(position.weight),
       tone: "watch",
+      ticker: position.ticker,
     });
   }
 
@@ -151,7 +155,7 @@ export function PortfolioCheckPanel({
   onReviewPositions,
 }: {
   riskFlags: PortfolioRiskFlags;
-  onReviewPositions?: () => void;
+  onReviewPositions?: (ticker?: string) => void;
 }) {
   const items = buildCheckItems(riskFlags);
   const score = getScore(riskFlags);
@@ -159,6 +163,10 @@ export function PortfolioCheckPanel({
   const positionAlerts = riskFlags.elevatedPositions.length + riskFlags.singleConcentration.length;
   const sectorAlerts = riskFlags.sectorConcentration.length;
   const dataGapCount = riskFlags.missingCostCount + riskFlags.missingPriceCount;
+  const primaryTicker =
+    riskFlags.singleConcentration[0]?.ticker
+    ?? riskFlags.elevatedPositions[0]?.ticker
+    ?? undefined;
 
   return (
     <section
@@ -207,25 +215,47 @@ export function PortfolioCheckPanel({
         <div className="portfolio-check-findings-heading">
           <span>What matters now</span>
           {onReviewPositions ? (
-            <button type="button" onClick={onReviewPositions}>
+            <button type="button" onClick={() => onReviewPositions(primaryTicker)}>
               Review positions <span aria-hidden="true">→</span>
             </button>
           ) : null}
         </div>
         <div className="portfolio-check-list">
-          {items.slice(0, 5).map((item) => (
-            <article key={item.id} className={`portfolio-check-item is-${item.tone}`}>
-              <div className="portfolio-check-item-icon" aria-hidden="true">
-                <CheckIcon tone={item.tone} />
-              </div>
-              <div className="portfolio-check-item-copy">
-                <span>{item.label}</span>
-                <strong>{item.title}</strong>
-                <p>{item.detail}</p>
-              </div>
-              <b>{item.value}</b>
-            </article>
-          ))}
+          {items.slice(0, 5).map((item) => {
+            const interactive = Boolean(onReviewPositions && item.ticker);
+            const body = (
+              <>
+                <div className="portfolio-check-item-icon" aria-hidden="true">
+                  <CheckIcon tone={item.tone} />
+                </div>
+                <div className="portfolio-check-item-copy">
+                  <span>{item.label}</span>
+                  <strong>{item.title}</strong>
+                  <p>{item.detail}</p>
+                </div>
+                <b>{item.value}</b>
+              </>
+            );
+
+            if (interactive) {
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`portfolio-check-item is-${item.tone} is-action`}
+                  onClick={() => onReviewPositions?.(item.ticker)}
+                >
+                  {body}
+                </button>
+              );
+            }
+
+            return (
+              <article key={item.id} className={`portfolio-check-item is-${item.tone}`}>
+                {body}
+              </article>
+            );
+          })}
         </div>
         {items.length > 5 ? (
           <p className="portfolio-check-more">
