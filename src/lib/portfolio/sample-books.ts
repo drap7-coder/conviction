@@ -4,10 +4,10 @@ export type SampleBook = {
   id: string;
   label: string;
   description: string;
-  /** Theme tickers — sized to a shared target value when loaded. */
+  /** Constituent tickers — sized to a shared target value when loaded. */
   tickers: string[];
   /**
-   * Optional target weights in percent of book value (should sum to ~100).
+   * Target weights in percent of book value (should sum to ~100).
    * When omitted, the book is equal-weighted across tickers.
    */
   weights?: Record<string, number>;
@@ -25,7 +25,8 @@ interface StoredSamplePositions {
 }
 
 /**
- * Sample books: strategy allocations (weighted) plus theme baskets (equal-weight stocks).
+ * Educational sample books — classic target-weight allocations for learning
+ * portfolio construction. Dollar size is applied at load time.
  */
 export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
@@ -73,108 +74,6 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
       GLD: 25,
       SGOV: 25,
     },
-  },
-  {
-    id: "ai-compute",
-    label: "AI + Compute",
-    description: "AI platforms, semis, and data-center names",
-    tickers: [
-      "NVDA",
-      "AMD",
-      "AVGO",
-      "MSFT",
-      "GOOG",
-      "META",
-      "AMZN",
-      "TSM",
-      "ORCL",
-      "PLTR",
-    ],
-  },
-  {
-    id: "rates-fed",
-    label: "Dividend Income",
-    description: "Cash-returning blue chips and staples",
-    tickers: [
-      "JNJ",
-      "PG",
-      "KO",
-      "PEP",
-      "ABBV",
-      "MRK",
-      "HD",
-      "MMM",
-      "IBM",
-      "VZ",
-    ],
-  },
-  {
-    id: "energy-oil",
-    label: "Energy + Metals",
-    description: "Oil producers, services, and miners",
-    tickers: [
-      "XOM",
-      "CVX",
-      "COP",
-      "SLB",
-      "OXY",
-      "EOG",
-      "FCX",
-      "NEM",
-      "AA",
-      "NUE",
-    ],
-  },
-  {
-    id: "crypto-liquidity",
-    label: "Crypto",
-    description: "Exchanges, miners, and crypto-linked equities",
-    tickers: [
-      "COIN",
-      "MSTR",
-      "HOOD",
-      "MARA",
-      "RIOT",
-      "CLSK",
-      "IREN",
-      "WULF",
-      "PYPL",
-      "SQ",
-    ],
-  },
-  {
-    id: "trade-supply",
-    label: "Global",
-    description: "US-listed global leaders and ADRs",
-    tickers: [
-      "TSM",
-      "ASML",
-      "NVO",
-      "SAP",
-      "TM",
-      "SONY",
-      "BABA",
-      "PDD",
-      "MELI",
-      "UL",
-    ],
-  },
-  {
-    id: "consumer-demand",
-    label: "Sector Leadership",
-    description: "Tech, discretionary, and financial leaders",
-    tickers: [
-      "AAPL",
-      "MSFT",
-      "AMZN",
-      "TSLA",
-      "NFLX",
-      "JPM",
-      "V",
-      "MA",
-      "COST",
-      "WMT",
-    ],
   },
 ];
 

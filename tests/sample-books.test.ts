@@ -16,12 +16,10 @@ import {
 describe("sample portfolio books", () => {
   const STRATEGY_BOOK_IDS = ["all-weather", "sixty-forty", "three-fund", "permanent"] as const;
 
-  it("keeps theme books at ten names and includes classic strategy allocations", () => {
-    const strategyBooks = SAMPLE_PORTFOLIO_BOOKS.filter((book) =>
-      (STRATEGY_BOOK_IDS as readonly string[]).includes(book.id),
-    );
-    expect(strategyBooks).toHaveLength(4);
-    for (const book of strategyBooks) {
+  it("keeps only classic educational strategy allocations", () => {
+    expect(SAMPLE_PORTFOLIO_BOOKS.map((book) => book.id)).toEqual([...STRATEGY_BOOK_IDS]);
+
+    for (const book of SAMPLE_PORTFOLIO_BOOKS) {
       expect(book.weights).toBeTruthy();
       const weightSum = Object.values(book.weights!).reduce((sum, weight) => sum + weight, 0);
       expect(weightSum).toBeCloseTo(100, 5);
@@ -40,28 +38,20 @@ describe("sample portfolio books", () => {
       tickers: ["VTI", "TLT", "GLD", "SGOV"],
       weights: { VTI: 25, TLT: 25, GLD: 25, SGOV: 25 },
     });
-
-    const allWeather = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "all-weather");
-    expect(allWeather!.tickers).toEqual(["VTI", "TLT", "IEF", "GLD", "DBC"]);
-    expect(allWeather!.weights).toEqual({
-      VTI: 30,
-      TLT: 40,
-      IEF: 15,
-      GLD: 7.5,
-      DBC: 7.5,
+    expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "all-weather")).toMatchObject({
+      tickers: ["VTI", "TLT", "IEF", "GLD", "DBC"],
+      weights: {
+        VTI: 30,
+        TLT: 40,
+        IEF: 15,
+        GLD: 7.5,
+        DBC: 7.5,
+      },
     });
-
-    const themeBooks = SAMPLE_PORTFOLIO_BOOKS.filter(
-      (book) => !(STRATEGY_BOOK_IDS as readonly string[]).includes(book.id),
-    );
-    expect(themeBooks).toHaveLength(6);
-    for (const book of themeBooks) {
-      expect(book.tickers).toHaveLength(10);
-      expect(book.weights).toBeUndefined();
-    }
   });
 
-  it("sizes every book to $100k equal weight when prices exist", () => {
+  it("sizes equal-weight books to $100k when prices exist", () => {
+    const tickers = ["JNJ", "PG", "KO", "PEP", "ABBV", "MRK", "HD", "MMM", "IBM", "VZ"];
     const prices: Record<string, number> = {
       JNJ: 160,
       PG: 170,
@@ -74,10 +64,7 @@ describe("sample portfolio books", () => {
       IBM: 220,
       VZ: 40,
     };
-    const positions = equalWeightPositions(
-      SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "rates-fed")!.tickers,
-      prices,
-    );
+    const positions = equalWeightPositions(tickers, prices);
     expect(positions).toHaveLength(10);
     const total = positions.reduce((sum, pos) => sum + pos.shares * prices[pos.ticker]!, 0);
     expect(total).toBeCloseTo(SAMPLE_BOOK_TARGET_VALUE, 0);
@@ -123,15 +110,15 @@ describe("sample portfolio books", () => {
 
   it("keeps a sample preview separate from the saved personal portfolio", () => {
     const personal = [{ ticker: "OXY", shares: 100, averageCost: 45 }];
-    const sample = [{ ticker: "NVDA", shares: 20, averageCost: 180 }];
+    const sample = [{ ticker: "VTI", shares: 20, averageCost: 180 }];
 
-    expect(resolveActivePortfolioPositions(personal, "ai-compute", sample)).toEqual(sample);
+    expect(resolveActivePortfolioPositions(personal, "sixty-forty", sample)).toEqual(sample);
     expect(resolveActivePortfolioPositions(personal, null, sample)).toEqual(personal);
-    expect(resolveActivePortfolioPositions(personal, "ai-compute", [])).toEqual(personal);
+    expect(resolveActivePortfolioPositions(personal, "sixty-forty", [])).toEqual(personal);
   });
 
   it("recognizes legacy sample positions without mistaking a personal book", () => {
-    const book = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === "ai-compute")!;
+    const book = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === "sixty-forty")!;
     const legacySample = book.tickers.map((ticker) => ({ ticker, shares: 10 }));
 
     expect(positionsMatchSampleBook(legacySample, book)).toBe(true);
