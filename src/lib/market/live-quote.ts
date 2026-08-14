@@ -53,26 +53,19 @@ export function getMarketSession(marketState: string | null): MarketSession {
   return "closed";
 }
 
-export interface LivePrice {
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
-  label: string | null;
-}
-
 /**
  * Given a quote-like object, return the best currently-live
  * price/change/changePercent and a human-readable label
- * ("Pre-Market" or "After Hours").
+ * ("Pre-Market", "After Hours", or "At close").
  *
  * Logic:
  * - `marketState === "PRE"`  → use preMarket* fields (fall back to regular)
- * - `marketState === "POST"` or `"POSTPOST"` → use postMarket* fields (fall back to regular)
- * - Otherwise → use the regular price/change/changePercent fields
+ * - After-hours window (and overnight while closed) → use postMarket* when present
+ * - Closed with no post print → regular close labeled "At close"
+ * - Regular session → unlabeled regular print
  */
 export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice {
   const state = quote.marketState ?? "";
-  const session = getMarketSession(quote.marketState);
   const clockSession = easternClockSession(now);
 
   const getExtendedMove = (extendedPrice: number) => {
@@ -95,16 +88,17 @@ export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice
       change: move.change ?? quote.preMarketChange,
       changePercent: move.changePercent ?? quote.preMarketChangePercent,
       label: "Pre-Market",
-      session,
+      session: "pre_market",
     };
   }
 
-  // After-hours. Yahoo switches to CLOSED at 8 p.m. ET but leaves the
-  // completed post-market quote populated, so keep showing that result.
+  // After-hours print. Yahoo often flips marketState to CLOSED at 8 p.m. ET
+  // while leaving postMarket* populated — keep that last extended print (and
+  // its label) until the next pre-market session.
   if (
-    clockSession === "after_hours" &&
-    (state === "POST" || state === "POSTPOST" || state === "CLOSED") &&
-    quote.postMarketPrice != null
+    (clockSession === "after_hours" || clockSession === "closed")
+    && (state === "POST" || state === "POSTPOST" || state === "CLOSED")
+    && quote.postMarketPrice != null
   ) {
     const move = getExtendedMove(quote.postMarketPrice);
     return {
@@ -116,12 +110,23 @@ export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice
     };
   }
 
-  // Regular / closed / fallback
+  // Markets closed with only a regular close available.
+  if (clockSession === "closed" || state === "CLOSED") {
+    return {
+      price: quote.price,
+      change: quote.change,
+      changePercent: quote.changePercent,
+      label: "At close",
+      session: "closed",
+    };
+  }
+
+  // Regular session / fallback
   return {
     price: quote.price,
     change: quote.change,
     changePercent: quote.changePercent,
     label: null,
-    session: clockSession === "closed" ? "closed" : "regular",
+    session: "regular",
   };
 }
