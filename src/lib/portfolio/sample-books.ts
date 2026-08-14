@@ -4,10 +4,10 @@ export type SampleBook = {
   id: string;
   label: string;
   description: string;
-  /** Theme tickers — sized to a shared target value when loaded. */
+  /** Constituent tickers — sized to a shared target value when loaded. */
   tickers: string[];
   /**
-   * Optional target weights in percent of book value (should sum to ~100).
+   * Target weights in percent of book value (should sum to ~100).
    * When omitted, the book is equal-weighted across tickers.
    */
   weights?: Record<string, number>;
@@ -25,7 +25,8 @@ interface StoredSamplePositions {
 }
 
 /**
- * Sample books: strategy allocations (weighted) plus theme baskets (equal-weight stocks).
+ * Educational sample books — classic target-weight allocations for learning
+ * portfolio construction. Dollar size is applied at load time.
  */
 export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
@@ -42,106 +43,37 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
     },
   },
   {
-    id: "ai-compute",
-    label: "AI + Compute",
-    description: "AI platforms, semis, and data-center names",
-    tickers: [
-      "NVDA",
-      "AMD",
-      "AVGO",
-      "MSFT",
-      "GOOG",
-      "META",
-      "AMZN",
-      "TSM",
-      "ORCL",
-      "PLTR",
-    ],
+    id: "sixty-forty",
+    label: "60/40",
+    description: "Classic balanced mix — stocks for growth, bonds for ballast",
+    tickers: ["VTI", "BND"],
+    weights: {
+      VTI: 60,
+      BND: 40,
+    },
   },
   {
-    id: "rates-fed",
-    label: "Dividend Income",
-    description: "Cash-returning blue chips and staples",
-    tickers: [
-      "JNJ",
-      "PG",
-      "KO",
-      "PEP",
-      "ABBV",
-      "MRK",
-      "HD",
-      "MMM",
-      "IBM",
-      "VZ",
-    ],
+    id: "three-fund",
+    label: "Three-Fund",
+    description: "Bogleheads global core — US stocks, international stocks, and bonds",
+    tickers: ["VTI", "VXUS", "BND"],
+    weights: {
+      VTI: 50,
+      VXUS: 30,
+      BND: 20,
+    },
   },
   {
-    id: "energy-oil",
-    label: "Energy + Metals",
-    description: "Oil producers, services, and miners",
-    tickers: [
-      "XOM",
-      "CVX",
-      "COP",
-      "SLB",
-      "OXY",
-      "EOG",
-      "FCX",
-      "NEM",
-      "AA",
-      "NUE",
-    ],
-  },
-  {
-    id: "crypto-liquidity",
-    label: "Crypto",
-    description: "Exchanges, miners, and crypto-linked equities",
-    tickers: [
-      "COIN",
-      "MSTR",
-      "HOOD",
-      "MARA",
-      "RIOT",
-      "CLSK",
-      "IREN",
-      "WULF",
-      "PYPL",
-      "SQ",
-    ],
-  },
-  {
-    id: "trade-supply",
-    label: "Global",
-    description: "US-listed global leaders and ADRs",
-    tickers: [
-      "TSM",
-      "ASML",
-      "NVO",
-      "SAP",
-      "TM",
-      "SONY",
-      "BABA",
-      "PDD",
-      "MELI",
-      "UL",
-    ],
-  },
-  {
-    id: "consumer-demand",
-    label: "Sector Leadership",
-    description: "Tech, discretionary, and financial leaders",
-    tickers: [
-      "AAPL",
-      "MSFT",
-      "AMZN",
-      "TSLA",
-      "NFLX",
-      "JPM",
-      "V",
-      "MA",
-      "COST",
-      "WMT",
-    ],
+    id: "permanent",
+    label: "Permanent",
+    description: "Harry Browne equal sleeves — stocks, long bonds, gold, and cash",
+    tickers: ["VTI", "TLT", "GLD", "SGOV"],
+    weights: {
+      VTI: 25,
+      TLT: 25,
+      GLD: 25,
+      SGOV: 25,
+    },
   },
 ];
 

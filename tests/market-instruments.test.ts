@@ -34,13 +34,16 @@ describe("validateTicker market instruments", () => {
     expect(getMarketInstrument("XLK")?.tag).toBe("Sector");
   });
 
-  it("accepts All-Weather ETFs without SEC membership", async () => {
+  it("accepts strategy-book ETFs without SEC membership", async () => {
     const cases = [
       { ticker: "VTI", name: "Total Stock Market", tag: "ETF" },
       { ticker: "TLT", name: "20+ Year Treasury", tag: "Bond" },
       { ticker: "IEF", name: "7–10 Year Treasury", tag: "Bond" },
       { ticker: "GLD", name: "Gold", tag: "Commodity" },
       { ticker: "DBC", name: "Broad Commodities", tag: "Commodity" },
+      { ticker: "BND", name: "Total Bond Market", tag: "Bond" },
+      { ticker: "VXUS", name: "Total International Stock", tag: "International" },
+      { ticker: "SGOV", name: "0–3 Month Treasury", tag: "Cash" },
     ] as const;
 
     for (const item of cases) {
