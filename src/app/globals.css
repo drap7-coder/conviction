@@ -11510,6 +11510,26 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: rgba(114, 145, 255, 0.17);
 }
 
+.product-stage--portfolio {
+  --stage-accent: #9fb8ff;
+  --stage-glow: rgba(114, 145, 255, 0.17);
+}
+
+.product-stage--portfolio.tone-balanced {
+  --stage-accent: #5eead4;
+  --stage-glow: rgba(45, 212, 191, 0.15);
+}
+
+.product-stage--portfolio.tone-watch {
+  --stage-accent: #f8d477;
+  --stage-glow: rgba(248, 212, 119, 0.15);
+}
+
+.product-stage--portfolio.tone-concentrated {
+  --stage-accent: #ff8585;
+  --stage-glow: rgba(248, 113, 113, 0.15);
+}
+
 .product-stage-copy {
   display: grid;
   gap: 5px;
@@ -11571,6 +11591,51 @@ a.signal-block-conclusion-link:hover {
   font-family: var(--font-sans);
   font-size: clamp(0.76rem, 1.3vw, 0.86rem);
   line-height: 1.45;
+}
+
+.product-stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin-top: 4px;
+}
+
+.product-stage-action {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #c5cedb;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.product-stage-action:hover,
+.product-stage-action:focus-visible {
+  color: #ffffff;
+}
+
+.product-stage-action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.product-stage-action--link {
+  color: var(--stage-accent);
+}
+
+.product-stage-note {
+  display: block;
+  margin-top: 2px;
+  color: #788599;
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  line-height: 1.4;
 }
 
 .product-stage-metrics {

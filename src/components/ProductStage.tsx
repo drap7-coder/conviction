@@ -3,11 +3,13 @@
 import type { ReactNode } from "react";
 import { TypewriterText } from "@/components/TypewriterText";
 
-export type ProductStageVariant = "pulse" | "news" | "smart-money" | "watchlist";
+export type ProductStageVariant = "pulse" | "news" | "smart-money" | "watchlist" | "portfolio";
+
+export type ProductStageTone = "balanced" | "watch" | "concentrated" | "neutral";
 
 /**
  * Compact page-top stage: eyebrow + typewriter headline + short line,
- * optional metrics. Shared across Pulse / News / Smart Money / Watchlist.
+ * optional metrics. Shared across Pulse / News / Smart Money / Watchlist / Portfolio.
  */
 export function ProductStage({
   variant,
@@ -15,6 +17,8 @@ export function ProductStage({
   headline,
   summary,
   metrics,
+  tone,
+  children,
   "aria-label": ariaLabel,
 }: {
   variant: ProductStageVariant;
@@ -22,13 +26,17 @@ export function ProductStage({
   headline: string;
   summary?: ReactNode;
   metrics?: ReactNode;
+  tone?: ProductStageTone;
+  /** Extra copy-column content (actions, notes). */
+  children?: ReactNode;
   "aria-label": string;
 }) {
   const hasMetrics = Boolean(metrics);
+  const toneClass = tone && tone !== "neutral" ? ` tone-${tone}` : "";
 
   return (
     <section
-      className={`product-stage product-stage--${variant}${hasMetrics ? " has-metrics" : " is-copy-only"}`}
+      className={`product-stage product-stage--${variant}${hasMetrics ? " has-metrics" : " is-copy-only"}${toneClass}`}
       aria-label={ariaLabel}
     >
       <div className="product-stage-copy">
@@ -38,6 +46,7 @@ export function ProductStage({
         </span>
         <TypewriterText as="h1" text={headline} className="product-stage-headline" />
         {summary ? <p>{summary}</p> : null}
+        {children}
       </div>
       {hasMetrics ? (
         <div className="product-stage-metrics" aria-label="Key readings">
