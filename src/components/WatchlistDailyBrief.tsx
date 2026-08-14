@@ -277,7 +277,7 @@ export function WatchlistDailyBrief({
       ? "Add one company."
       : items.length === 0
         ? "Quiet. Stay selective."
-        : `${items.length} need a look.`;
+        : "Something moved.";
 
   return (
     <>
@@ -291,10 +291,26 @@ export function WatchlistDailyBrief({
             Moves, earnings, ownership — not headline count.
           </p>
         </div>
-        <div className="product-stage-metrics" aria-label="Daily brief summary">
+        <div className="product-stage-metrics product-stage-metrics--text" aria-label="Daily brief summary">
           <div className={items.length > 0 ? "is-alert" : ""}>
-            <strong>{loading ? "—" : items.length}</strong>
-            <span>Need a look</span>
+            <strong>
+              {loading
+                ? "—"
+                : items.length > 0
+                  ? "Worth your attention"
+                  : entries.length === 0
+                    ? "Start here"
+                    : "All clear"}
+            </strong>
+            <span>
+              {loading
+                ? "Brief"
+                : items.length > 0
+                  ? "For you"
+                  : entries.length === 0
+                    ? "Watchlist"
+                    : "Nothing material"}
+            </span>
           </div>
         </div>
       </section>
