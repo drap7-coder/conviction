@@ -110,44 +110,44 @@ export function buildTrendingBreadthBrief(
   const bothLagging = readings.length === 2 && readings.every((value) => value <= -0.25);
   const split = readings.length === 2 && Math.sign(readings[0]) !== Math.sign(readings[1]);
 
-  let headline = "Participation is close to the benchmark.";
-  let summary = "Equal-weight stocks and small caps are moving near the S&P 500. The active-name board below is the better place to look for emerging leadership.";
+  let headline = "Participation near the benchmark.";
+  let summary = "Equal-weight and small caps track the S&P. Use the board below for emerging leadership.";
   let tone: PulseBriefTone = "neutral";
   let confirmation = "Neutral";
 
   if (readings.length === 0) {
-    headline = "Breadth confirmation is temporarily unavailable.";
-    summary = "Use the active-name board below to see which stocks are attracting the most liquidity and movement.";
+    headline = "Breadth unavailable.";
+    summary = "Use the active-name board below for liquidity and movement.";
     confirmation = "Unavailable";
   } else if (bothLeading) {
-    headline = "Momentum has broad market confirmation.";
-    summary = "Equal-weight stocks and small caps are both outrunning the S&P 500. Leadership is extending beyond the largest companies—a healthier backdrop for trending moves.";
+    headline = "Breadth confirms the move.";
+    summary = "Equal-weight and small caps both beat the S&P. Leadership extends past megacaps.";
     tone = "positive";
     confirmation = "Broad";
   } else if (bothLagging) {
-    headline = "Momentum is concentrated at the top.";
-    summary = "Equal-weight stocks and small caps are both lagging the S&P 500. Trending names may be powerful, but the broader market is not confirming them yet.";
+    headline = "Narrow tape — top-heavy.";
+    summary = "Equal-weight and small caps lag the S&P. Trending names may be loud without broad confirmation.";
     tone = "negative";
     confirmation = "Narrow";
   } else if (split) {
-    headline = "Participation is sending a mixed signal.";
-    summary = "Equal-weight stocks and small caps disagree on leadership. Favor moves with company-specific evidence instead of assuming a broad risk-on tape.";
+    headline = "Mixed participation.";
+    summary = "Equal-weight and small caps disagree. Prefer company evidence over a risk-on assumption.";
     tone = "mixed";
     confirmation = "Split";
   } else if (readings.some((value) => value >= 0.25)) {
-    headline = "Breadth is improving, but not fully confirmed.";
-    summary = "One participation measure is leading the S&P 500 while the other remains near the benchmark. Momentum is broadening selectively, not decisively.";
+    headline = "Breadth improving — partial.";
+    summary = "One measure leads the S&P; the other is flat. Broadening selectively.";
     tone = "mixed";
     confirmation = "Partial";
   } else if (readings.some((value) => value <= -0.25)) {
-    headline = "Breadth is softening beneath the leaders.";
-    summary = "At least one participation measure is lagging the S&P 500. Look for durable evidence before chasing the most active names.";
+    headline = "Breadth softening.";
+    summary = "At least one measure lags the S&P. Wait for durable evidence before chasing.";
     tone = "negative";
     confirmation = "Soft";
   }
 
   return {
-    eyebrow: "Breadth check",
+    eyebrow: "Breadth",
     headline,
     summary,
     tone,

@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import type { PulseData, PulseGlobalMarket, PulseIndicator, PulseSector } from "@/app/api/market/pulse/route";
+import { useEffect, useState } from "react";
+import type { PulseData, PulseGlobalMarket, PulseSector } from "@/app/api/market/pulse/route";
 import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { HeatTile } from "@/components/HeatTile";
-import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
 import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
@@ -17,45 +16,14 @@ import {
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
-import { buildIndexTapeBrief, buildTrendingBreadthBrief } from "@/lib/market/pulse-brief";
-
-const COLORS = {
-  green: "#0D9488",
-  red: "#DC2626",
-  yellow: "#D97706",
-  orange: "#EA580C",
-  blue: "#0D9488",
-};
+import { buildTrendingBreadthBrief } from "@/lib/market/pulse-brief";
 
 type GaugeConfig = {
   min: number;
   max: number;
   zones: Array<{ label: string; end: number; color: string }>;
-  /** Digits after the decimal for the big number. */
   decimals?: number;
-  /** Prefixed + for positive values (spreads / day moves). */
   signed?: boolean;
-};
-
-const VIX_GAUGE: GaugeConfig = {
-  min: 10,
-  max: 40,
-  zones: [
-    { label: "Calm", end: 15, color: "#0D9488" },
-    { label: "Normal", end: 20, color: "#5EEAD4" },
-    { label: "Elevated", end: 25, color: "#D97706" },
-    { label: "Danger", end: 40, color: "#DC2626" },
-  ],
-};
-
-const TEN_YEAR_GAUGE: GaugeConfig = {
-  min: 2.5,
-  max: 6,
-  zones: [
-    { label: "Normal", end: 4.25, color: "#0D9488" },
-    { label: "Elevated", end: 5, color: "#D97706" },
-    { label: "High", end: 6, color: "#DC2626" },
-  ],
 };
 
 /** Average sector day-move for Cyclical / Defensive leadership. */
@@ -68,19 +36,6 @@ const SECTOR_MOVE_GAUGE: GaugeConfig = {
     { label: "Soft", end: -1, color: "#DC2626" },
     { label: "Mixed", end: 1, color: "#D97706" },
     { label: "Firm", end: 3, color: "#0D9488" },
-  ],
-};
-
-/** Relative day-move vs SPY for breadth / small-cap risk appetite. */
-const RELATIVE_SPREAD_GAUGE: GaugeConfig = {
-  min: -2,
-  max: 2,
-  decimals: 2,
-  signed: true,
-  zones: [
-    { label: "Lagging", end: -0.5, color: "#DC2626" },
-    { label: "Inline", end: 0.5, color: "#D97706" },
-    { label: "Leading", end: 2, color: "#0D9488" },
   ],
 };
 
@@ -102,14 +57,6 @@ const PULSE_TABS = [
 ] as const;
 
 type PulseTab = (typeof PULSE_TABS)[number]["id"];
-
-const MACRO_SERIES = [
-  { ticker: "SPY", key: "equities", label: "Equities", color: COLORS.green },
-  { ticker: "^TNX", key: "yield", label: "10Y Yield", color: COLORS.red },
-  { ticker: "^VIX", key: "vix", label: "Volatility", color: COLORS.yellow },
-  { ticker: "USO", key: "oil", label: "Oil", color: COLORS.orange },
-  { ticker: "UUP", key: "dollar", label: "Dollar", color: COLORS.blue },
-] as const;
 
 function fmtPct(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
@@ -147,7 +94,6 @@ function Gauge({
   value: number | null;
   suffix?: string;
   config: GaugeConfig;
-  /** Pre-Market / After Hours / Live — session freshness for this reading. */
   sessionBadge?: string;
 }) {
   const bounded = isFiniteNumber(value) ? Math.min(config.max, Math.max(config.min, value)) : config.min;
@@ -183,7 +129,6 @@ function tileSpan(weight: number): number {
   return 1;
 }
 
-/** Day-status square beside the asset-class title (up / down / mixed). */
 function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
   const values = markets
     .map((market) => market.changePercent)
@@ -192,9 +137,9 @@ function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
   const up = values.filter((value) => value > 0.05).length;
   const down = values.filter((value) => value < -0.05).length;
   if (up > 0 && down > 0) return "amber";
-  const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
-  if (avg > 0.05) return "up";
-  if (avg < -0.05) return "down";
+  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
+  if (mean > 0.05) return "up";
+  if (mean < -0.05) return "down";
   return "quiet";
 }
 
@@ -212,7 +157,8 @@ function GlobalMarketsHeatmap({
   narrativeGroup,
   narratives,
   uniformTiles = false,
-  sessionLabel = null,
+  showDrivers = true,
+  tileSubtitle,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
@@ -220,10 +166,12 @@ function GlobalMarketsHeatmap({
   narrativeGroup: NarrativeHeatmapGroup;
   narratives: MarketNarrativeTheme[];
   uniformTiles?: boolean;
-  sessionLabel?: string | null;
+  showDrivers?: boolean;
+  /** Override tile subtitle (default: ticker). */
+  tileSubtitle?: (market: PulseGlobalMarket) => string;
 }) {
   if (markets.length === 0) return null;
-  const groupThemes = themesForHeatmapGroup(narratives, narrativeGroup);
+  const groupThemes = showDrivers ? themesForHeatmapGroup(narratives, narrativeGroup) : [];
   const dayTone = groupDayTone(markets);
 
   return (
@@ -242,26 +190,23 @@ function GlobalMarketsHeatmap({
             />
             {title}
           </h2>
-          {sessionLabel ? (
-            <span className="market-session-badge ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
-              <i className="market-session-dot" aria-hidden="true" />
-              {sessionLabel}
-            </span>
-          ) : null}
         </div>
         {subtitle.trim() ? <p className="market-heatmap-subtitle">{subtitle}</p> : null}
       </div>
-      <div className="stock-heat-footer">
-        <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
-      </div>
+      {showDrivers ? (
+        <div className="stock-heat-footer">
+          <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
+        </div>
+      ) : null}
       <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
         {markets.map((market) => {
           const span = uniformTiles ? 1 : tileSpan(market.weight);
+          const sub = tileSubtitle ? tileSubtitle(market) : market.ticker;
           return (
             <HeatTile
-              key={market.ticker}
+              key={`${market.category}-${market.ticker}`}
               label={market.name}
-              subtitle={market.ticker}
+              subtitle={sub}
               changePercent={market.changePercent}
               href={companyDetailHref(market.ticker)}
               ariaLabel={`${market.name}, ${fmtPct(market.changePercent)}, ${market.category}, ${market.ticker}`}
@@ -288,16 +233,6 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
   }));
 }
 
-function indicatorsToMacroSeries(indicators: PulseIndicator[]): MacroChainSeries[] {
-  const lookup = new Map(indicators.map((item) => [item.ticker, item]));
-  return MACRO_SERIES.map((series) => ({
-    key: series.key,
-    label: series.label,
-    color: series.color,
-    values: (lookup.get(series.ticker)?.history ?? []).slice(-15).map((point) => point.close),
-  })).filter((series) => series.values.length >= 2);
-}
-
 export default function MarketPulsePage() {
   const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -312,11 +247,6 @@ export default function MarketPulsePage() {
     return () => { cancelled = true; };
   }, []);
 
-  const macroSeries = useMemo(
-    () => (data ? indicatorsToMacroSeries(data.indicators) : []),
-    [data],
-  );
-
   if (status === "loading") return <PageLoadingMotion label="Loading pulse" />;
   if (status === "error" || !data) return <div className="markets-page"><div className="market-empty">Market data is temporarily unavailable.</div></div>;
 
@@ -326,10 +256,12 @@ export default function MarketPulsePage() {
   const marketsByCategory = (category: string) =>
     data.globalMarkets.filter((market) => market.category === category);
   const majorIndexes = marketsByCategory("Major Index");
-  const themeMarkets = marketsByCategory("Themes");
-  const commodities = marketsByCategory("Commodity");
-  const cryptoMarkets = marketsByCategory("Crypto");
-  const internationalMarkets = marketsByCategory("International");
+  const crossAssetMarkets = [
+    ...marketsByCategory("Themes"),
+    ...marketsByCategory("Commodity"),
+    ...marketsByCategory("Crypto"),
+    ...marketsByCategory("International"),
+  ];
   const industryMarkets = sectorsToMarkets(data.sectors);
 
   const changeFor = (ticker: string) =>
@@ -339,7 +271,6 @@ export default function MarketPulsePage() {
   const smallCapLead = relativeSpread(changeFor("IWM"), spyChange);
   const cyclicalAvg = avg(data.sectorLeadership.characteristics.cyclical);
   const defensiveAvg = avg(data.sectorLeadership.characteristics.defensive);
-  const indexTapeBrief = buildIndexTapeBrief(majorIndexes);
   const trendingBreadthBrief = buildTrendingBreadthBrief(equalWeightLead, smallCapLead);
   const gaugeSessionBadge = data.sessionLabel ?? "Live";
 
@@ -350,7 +281,13 @@ export default function MarketPulsePage() {
         options={[...PULSE_TABS]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as PulseTab)}
-      />
+      >
+        <p className="view-switch-context-line">
+          {activeTab === "indexes"
+            ? "Regime map — indexes, sectors, cross-asset."
+            : "Active names — breadth, then the board."}
+        </p>
+      </ViewSwitcher>
 
       <section className="product-stage product-stage--pulse" aria-label="Market regime">
         <div className="product-stage-copy">
@@ -384,7 +321,6 @@ export default function MarketPulsePage() {
       >
         {activeTab === "indexes" ? (
           <>
-            <PulseDecisionCard brief={indexTapeBrief} />
             <GlobalMarketsHeatmap
               markets={majorIndexes}
               title="Major Indexes"
@@ -392,12 +328,7 @@ export default function MarketPulsePage() {
               narrativeGroup="Major Index"
               narratives={data.marketNarratives.themes}
               uniformTiles
-              sessionLabel={data.sessionLabel ?? null}
             />
-            <section className="market-gauge-grid pulse-gauge-section" aria-label="Market risk conditions">
-              <Gauge label="Volatility · VIX" value={vix} config={VIX_GAUGE} sessionBadge={gaugeSessionBadge} />
-              <Gauge label="Rates · 10Y yield" value={tenYear} suffix="%" config={TEN_YEAR_GAUGE} sessionBadge={gaugeSessionBadge} />
-            </section>
             <div id="industries">
               <GlobalMarketsHeatmap
                 markets={industryMarkets}
@@ -407,44 +338,20 @@ export default function MarketPulsePage() {
                 narratives={data.marketNarratives.themes}
               />
             </div>
-            <section className="market-gauge-grid pulse-gauge-section" aria-label="Sector leadership gauges">
-              <Gauge label="Cyclical leadership" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
-              <Gauge label="Defensive leadership" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
+            <section className="market-gauge-grid pulse-gauge-section" aria-label="Sector leadership">
+              <Gauge label="Cyclical" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
+              <Gauge label="Defensive" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
             </section>
-            {themeMarkets.length > 0 ? (
-              <GlobalMarketsHeatmap
-                markets={themeMarkets}
-                title="Themes"
-                subtitle=""
-                narrativeGroup="Themes"
-                narratives={data.marketNarratives.themes}
-                uniformTiles
-              />
-            ) : null}
             <GlobalMarketsHeatmap
-              markets={commodities}
-              title="Commodities"
-              subtitle=""
-              narrativeGroup="Commodity"
+              markets={crossAssetMarkets}
+              title="Cross-asset"
+              subtitle="Themes, commodities, crypto, and international."
+              narrativeGroup="Themes"
               narratives={data.marketNarratives.themes}
               uniformTiles
+              showDrivers={false}
+              tileSubtitle={(market) => market.category}
             />
-            <GlobalMarketsHeatmap
-              markets={cryptoMarkets}
-              title="Crypto"
-              subtitle=""
-              narrativeGroup="Crypto"
-              narratives={data.marketNarratives.themes}
-              uniformTiles
-            />
-            <GlobalMarketsHeatmap
-              markets={internationalMarkets}
-              title="International"
-              subtitle=""
-              narrativeGroup="International"
-              narratives={data.marketNarratives.themes}
-            />
-            <MacroChainChart series={macroSeries} />
           </>
         ) : null}
       </div>
@@ -458,10 +365,6 @@ export default function MarketPulsePage() {
         {activeTab === "trending" ? (
           <>
             <PulseDecisionCard brief={trendingBreadthBrief} />
-            <section className="market-gauge-grid pulse-gauge-section" aria-label="Trending breadth gauges">
-              <Gauge label="Equal weight vs S&P" value={equalWeightLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} sessionBadge={gaugeSessionBadge} />
-              <Gauge label="Small caps vs S&P" value={smallCapLead} suffix="%" config={RELATIVE_SPREAD_GAUGE} sessionBadge={gaugeSessionBadge} />
-            </section>
             <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
               <MarketMovesPanel showDecisionCard={false} />
             </section>

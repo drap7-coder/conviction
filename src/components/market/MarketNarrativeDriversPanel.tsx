@@ -37,13 +37,7 @@ export function MarketNarrativeDriversPanel({
 }) {
   const theme = themes[0] ?? null;
 
-  if (!theme) {
-    return (
-      <section className="pulse-why-block" aria-label={`${groupLabel} narrative`}>
-        <p className="pulse-why-empty">No clear driver for {groupLabel} yet.</p>
-      </section>
-    );
-  }
+  if (!theme) return null;
 
   const lead = [...theme.assets]
     .filter((asset) => asset.changePercent !== null)
