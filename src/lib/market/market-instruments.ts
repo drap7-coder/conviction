@@ -45,6 +45,9 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   IYT: etf("IYT", "Transportation", "ETF"),
   UUP: etf("UUP", "U.S. Dollar", "ETF"),
   VTI: etf("VTI", "Total Stock Market", "ETF"),
+  VXUS: etf("VXUS", "Total International Stock", "International"),
+  BND: etf("BND", "Total Bond Market", "Bond"),
+  SGOV: etf("SGOV", "0–3 Month Treasury", "Cash"),
 
   // Treasuries (All-Weather / rates proxies)
   TLT: etf("TLT", "20+ Year Treasury", "Bond"),

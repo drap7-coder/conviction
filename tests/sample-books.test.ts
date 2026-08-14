@@ -14,9 +14,34 @@ import {
 } from "@/lib/market/industries";
 
 describe("sample portfolio books", () => {
-  it("keeps theme books at ten names and includes All-Weather weights", () => {
+  const STRATEGY_BOOK_IDS = ["all-weather", "sixty-forty", "three-fund", "permanent"] as const;
+
+  it("keeps theme books at ten names and includes classic strategy allocations", () => {
+    const strategyBooks = SAMPLE_PORTFOLIO_BOOKS.filter((book) =>
+      (STRATEGY_BOOK_IDS as readonly string[]).includes(book.id),
+    );
+    expect(strategyBooks).toHaveLength(4);
+    for (const book of strategyBooks) {
+      expect(book.weights).toBeTruthy();
+      const weightSum = Object.values(book.weights!).reduce((sum, weight) => sum + weight, 0);
+      expect(weightSum).toBeCloseTo(100, 5);
+      expect(Object.keys(book.weights!).sort()).toEqual([...book.tickers].sort());
+    }
+
+    expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "sixty-forty")).toMatchObject({
+      tickers: ["VTI", "BND"],
+      weights: { VTI: 60, BND: 40 },
+    });
+    expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "three-fund")).toMatchObject({
+      tickers: ["VTI", "VXUS", "BND"],
+      weights: { VTI: 50, VXUS: 30, BND: 20 },
+    });
+    expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "permanent")).toMatchObject({
+      tickers: ["VTI", "TLT", "GLD", "SGOV"],
+      weights: { VTI: 25, TLT: 25, GLD: 25, SGOV: 25 },
+    });
+
     const allWeather = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "all-weather");
-    expect(allWeather).toBeTruthy();
     expect(allWeather!.tickers).toEqual(["VTI", "TLT", "IEF", "GLD", "DBC"]);
     expect(allWeather!.weights).toEqual({
       VTI: 30,
@@ -25,10 +50,10 @@ describe("sample portfolio books", () => {
       GLD: 7.5,
       DBC: 7.5,
     });
-    const weightSum = Object.values(allWeather!.weights!).reduce((sum, weight) => sum + weight, 0);
-    expect(weightSum).toBeCloseTo(100, 5);
 
-    const themeBooks = SAMPLE_PORTFOLIO_BOOKS.filter((book) => book.id !== "all-weather");
+    const themeBooks = SAMPLE_PORTFOLIO_BOOKS.filter(
+      (book) => !(STRATEGY_BOOK_IDS as readonly string[]).includes(book.id),
+    );
     expect(themeBooks).toHaveLength(6);
     for (const book of themeBooks) {
       expect(book.tickers).toHaveLength(10);
@@ -61,28 +86,39 @@ describe("sample portfolio books", () => {
     }
   });
 
-  it("sizes All-Weather to classic Dalio target weights", () => {
-    const book = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === "all-weather")!;
+  it("sizes strategy books to their published target weights", () => {
     const prices: Record<string, number> = {
       VTI: 250,
       TLT: 90,
       IEF: 95,
       GLD: 180,
       DBC: 22,
+      BND: 72,
+      VXUS: 60,
+      SGOV: 100,
     };
-    const positions = sizeSampleBookPositions(book, prices);
-    expect(positions).toHaveLength(5);
 
-    const total = positions.reduce((sum, pos) => sum + pos.shares * prices[pos.ticker]!, 0);
-    expect(total).toBeCloseTo(SAMPLE_BOOK_TARGET_VALUE, 0);
+    for (const bookId of STRATEGY_BOOK_IDS) {
+      const book = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === bookId)!;
+      const positions = sizeSampleBookPositions(book, prices);
+      expect(positions).toHaveLength(book.tickers.length);
 
-    for (const pos of positions) {
-      const weight = book.weights![pos.ticker]!;
-      expect(pos.shares * prices[pos.ticker]!).toBeCloseTo(SAMPLE_BOOK_TARGET_VALUE * (weight / 100), 0);
+      const total = positions.reduce((sum, pos) => sum + pos.shares * prices[pos.ticker]!, 0);
+      expect(total).toBeCloseTo(SAMPLE_BOOK_TARGET_VALUE, 0);
+
+      for (const pos of positions) {
+        const weight = book.weights![pos.ticker]!;
+        expect(pos.shares * prices[pos.ticker]!).toBeCloseTo(
+          SAMPLE_BOOK_TARGET_VALUE * (weight / 100),
+          0,
+        );
+      }
     }
 
-    // Direct weighted helper stays available for callers that pass raw maps.
-    expect(weightedPositions(book.tickers, book.weights!, prices)).toEqual(positions);
+    const allWeather = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === "all-weather")!;
+    expect(weightedPositions(allWeather.tickers, allWeather.weights!, prices)).toEqual(
+      sizeSampleBookPositions(allWeather, prices),
+    );
   });
 
   it("keeps a sample preview separate from the saved personal portfolio", () => {

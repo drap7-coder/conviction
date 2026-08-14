@@ -42,6 +42,39 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
     },
   },
   {
+    id: "sixty-forty",
+    label: "60/40",
+    description: "Classic balanced mix — stocks for growth, bonds for ballast",
+    tickers: ["VTI", "BND"],
+    weights: {
+      VTI: 60,
+      BND: 40,
+    },
+  },
+  {
+    id: "three-fund",
+    label: "Three-Fund",
+    description: "Bogleheads global core — US stocks, international stocks, and bonds",
+    tickers: ["VTI", "VXUS", "BND"],
+    weights: {
+      VTI: 50,
+      VXUS: 30,
+      BND: 20,
+    },
+  },
+  {
+    id: "permanent",
+    label: "Permanent",
+    description: "Harry Browne equal sleeves — stocks, long bonds, gold, and cash",
+    tickers: ["VTI", "TLT", "GLD", "SGOV"],
+    weights: {
+      VTI: 25,
+      TLT: 25,
+      GLD: 25,
+      SGOV: 25,
+    },
+  },
+  {
     id: "ai-compute",
     label: "AI + Compute",
     description: "AI platforms, semis, and data-center names",
