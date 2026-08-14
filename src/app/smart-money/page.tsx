@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { InvestorMovesPanel } from "@/app/components/InvestorMovesPanel";
+import { InvestorBookPanel } from "@/app/components/InvestorBookPanel";
 import { PoliticiansMovesPanel } from "@/app/components/PoliticiansMovesPanel";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
@@ -134,9 +134,10 @@ export default function SmartMoneyPage() {
           <span className="product-stage-eyebrow">
             <i aria-hidden="true" /> Smart Money · Filed evidence
           </span>
-          <h1>Watch what power does.</h1>
+          <h1>Watch what power files.</h1>
           <p>
-            Follow institutional ownership and congressional disclosures—the actions behind the opinions.
+            Open a top investor’s latest 13F book—or congressional disclosures. Filed positions, not forecasts.
+            Not the same as Portfolio’s educational sample books.
           </p>
         </div>
         <div className="product-stage-metrics product-stage-metrics--text" aria-label="Available evidence">
@@ -162,7 +163,7 @@ export default function SmartMoneyPage() {
         hidden={activeView !== "institutions"}
       >
         {activeView === "institutions" ? (
-          <InvestorMovesPanel
+          <InvestorBookPanel
             trackedTickers={trackedTickers}
             addingTicker={addingTicker}
             onAdd={handleAdd}

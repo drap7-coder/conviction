@@ -1,5 +1,6 @@
 import { secFetch } from "./client";
 import { INSTITUTIONAL_MANAGERS, type InstitutionalManager } from "./institutional-managers";
+import { managerStyle } from "@/lib/conviction/score/manager-style";
 
 const SEC_BASE = "https://data.sec.gov";
 const SEC_ARCHIVES = "https://www.sec.gov/Archives/edgar/data";
@@ -60,6 +61,207 @@ export interface InstitutionalManagerSnapshot {
   latest: InstitutionalFiling;
   previous: InstitutionalFiling | null;
 }
+
+export interface InstitutionalManagerBookPosition {
+  issuer: string;
+  classTitle: string;
+  cusip: string;
+  shares: number;
+  previousShares: number;
+  shareChange: number;
+  percentageChange: number | null;
+  reportedValue: number;
+  weight: number | null;
+  status: AccumulationStatus;
+  /** Resolved when the CUSIP is in our known equity map. */
+  ticker: string | null;
+}
+
+export interface InstitutionalManagerBook {
+  manager: InstitutionalManager;
+  style: "durable" | "trading" | "other";
+  filingQuarter: string;
+  filingDate: string;
+  previousQuarter: string | null;
+  accession: string;
+  positionCount: number;
+  totalReportedValue: number;
+  newCount: number;
+  increasedCount: number;
+  reducedCount: number;
+  exitedCount: number;
+  positions: InstitutionalManagerBookPosition[];
+  fetchedAt: string;
+  source: "sec-13f";
+  note: string;
+}
+
+export function listInstitutionalManagers(): InstitutionalManager[] {
+  return [...INSTITUTIONAL_MANAGERS];
+}
+
+export function findInstitutionalManager(query: string): InstitutionalManager | null {
+  const cleaned = query.trim().toLowerCase();
+  if (!cleaned) return null;
+  const compact = cleaned.replace(/[^a-z0-9]/g, "");
+  return INSTITUTIONAL_MANAGERS.find((manager) => {
+    const display = manager.displayName.toLowerCase();
+    const full = manager.manager.toLowerCase();
+    const cik = manager.cik.replace(/^0+/, "");
+    const displaySlug = display.replace(/[^a-z0-9]+/g, "-");
+    return (
+      manager.cik === cleaned ||
+      cik === cleaned.replace(/^0+/, "") ||
+      display === cleaned ||
+      full === cleaned ||
+      displaySlug === cleaned ||
+      display.replace(/[^a-z0-9]/g, "") === compact ||
+      full.replace(/[^a-z0-9]/g, "") === compact
+    );
+  }) ?? null;
+}
+
+function tickerForCusip(cusip: string): string | null {
+  const match = INSTITUTIONAL_IDEA_UNIVERSE.find((security) => security.cusips.includes(cusip));
+  return match?.ticker ?? null;
+}
+
+function aggregateHoldingsBySecurity(holdings: InstitutionalHolding[]): InstitutionalHolding[] {
+  const grouped = new Map<string, InstitutionalHolding[]>();
+  for (const holding of holdings) {
+    if (!isCommonShareHolding(holding)) continue;
+    const key = securityKey(holding);
+    const rows = grouped.get(key) ?? [];
+    rows.push(holding);
+    grouped.set(key, rows);
+  }
+
+  return [...grouped.values()].map((rows) => {
+    const [first] = rows;
+    return {
+      ...first,
+      shares: rows.reduce((sum, row) => sum + row.shares, 0),
+      value: rows.reduce((sum, row) => sum + row.value, 0),
+    };
+  });
+}
+
+/** Pure builder — used by API and tests. */
+export function buildInstitutionalManagerBook(
+  snapshot: InstitutionalManagerSnapshot,
+): InstitutionalManagerBook {
+  const latestRows = aggregateHoldingsBySecurity(snapshot.latest.holdings);
+  const previousRows = aggregateHoldingsBySecurity(snapshot.previous?.holdings ?? []);
+  const previousByKey = new Map(previousRows.map((row) => [securityKey(row), row]));
+  const latestKeys = new Set(latestRows.map((row) => securityKey(row)));
+
+  const active: InstitutionalManagerBookPosition[] = latestRows.map((row) => {
+    const previous = previousByKey.get(securityKey(row));
+    const previousShares = previous?.shares ?? 0;
+    const shareChange = row.shares - previousShares;
+    const percentageChange = previousShares > 0
+      ? Math.round((shareChange / previousShares) * 10_000) / 100
+      : null;
+
+    let status: AccumulationStatus = "Unchanged";
+    if (previousShares === 0 && row.shares > 0) status = "New";
+    else if (shareChange > 0) status = "Increased";
+    else if (shareChange < 0) status = "Reduced";
+
+    return {
+      issuer: row.issuer,
+      classTitle: row.classTitle,
+      cusip: row.cusip,
+      shares: row.shares,
+      previousShares,
+      shareChange,
+      percentageChange,
+      reportedValue: row.value,
+      weight: null,
+      status,
+      ticker: tickerForCusip(row.cusip),
+    };
+  });
+
+  const exited: InstitutionalManagerBookPosition[] = previousRows
+    .filter((row) => !latestKeys.has(securityKey(row)))
+    .map((row) => ({
+      issuer: row.issuer,
+      classTitle: row.classTitle,
+      cusip: row.cusip,
+      shares: 0,
+      previousShares: row.shares,
+      shareChange: -row.shares,
+      percentageChange: -100,
+      reportedValue: 0,
+      weight: null,
+      status: "Exited" as const,
+      ticker: tickerForCusip(row.cusip),
+    }));
+
+  const totalReportedValue = active.reduce((sum, row) => sum + row.reportedValue, 0);
+  const positions = [...active, ...exited]
+    .map((row) => ({
+      ...row,
+      weight: totalReportedValue > 0 && row.reportedValue > 0
+        ? Math.round((row.reportedValue / totalReportedValue) * 10_000) / 100
+        : row.status === "Exited" ? 0 : null,
+    }))
+    .sort((a, b) => {
+      const order: Record<AccumulationStatus, number> = {
+        New: 0,
+        Increased: 1,
+        Unchanged: 2,
+        Reduced: 3,
+        Exited: 4,
+      };
+      if (a.status !== b.status && (a.status === "Exited" || b.status === "Exited")) {
+        return order[a.status] - order[b.status];
+      }
+      return b.reportedValue - a.reportedValue || a.issuer.localeCompare(b.issuer);
+    });
+
+  return {
+    manager: snapshot.manager,
+    style: managerStyle(snapshot.manager.manager),
+    filingQuarter: snapshot.latest.quarter,
+    filingDate: snapshot.latest.filingDate,
+    previousQuarter: snapshot.previous?.quarter ?? null,
+    accession: snapshot.latest.accession,
+    positionCount: active.length,
+    totalReportedValue,
+    newCount: positions.filter((row) => row.status === "New").length,
+    increasedCount: positions.filter((row) => row.status === "Increased").length,
+    reducedCount: positions.filter((row) => row.status === "Reduced").length,
+    exitedCount: positions.filter((row) => row.status === "Exited").length,
+    positions,
+    fetchedAt: new Date().toISOString(),
+    source: "sec-13f",
+    note: "13F holdings are as-of quarter-end and can file up to 45 days late. This is a filed book, not a live portfolio or a sample you can load into Portfolio.",
+  };
+}
+
+export async function getInstitutionalManagerBook(
+  query: string,
+  options: { forceRefresh?: boolean } = {},
+): Promise<InstitutionalManagerBook | null> {
+  const manager = findInstitutionalManager(query);
+  if (!manager) return null;
+
+  const filings = await fetchManagerSubmissions(manager);
+  if (filings.length < 1) return null;
+
+  const [latest, previous] = await Promise.all([
+    getParsedFiling(manager, filings[0], options.forceRefresh),
+    filings[1]
+      ? getParsedFiling(manager, filings[1], options.forceRefresh)
+      : Promise.resolve(null),
+  ]);
+  if (!latest) return null;
+
+  return buildInstitutionalManagerBook({ manager, latest, previous });
+}
+
 
 export interface InstitutionalMarketMove {
   displayName: string;

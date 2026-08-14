@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildInstitutionalManagerBook,
   buildInstitutionalMarketIdeas,
   compareHoldings,
   extract13FSubmissions,
   findCompanyHolding,
+  findInstitutionalManager,
   getInstitutionalFilingCacheKey,
   issuerMatchesCompany,
   parse13FInformationTable,
@@ -305,5 +307,54 @@ describe("institutional market ideas", () => {
     ], [{ ticker: "ACME", companyName: "Acme Corp", cusips: ["000000000"] }]);
 
     expect(ideas).toEqual([]);
+  });
+});
+
+describe("institutional manager books", () => {
+  it("resolves managers by display name, slug, or CIK", () => {
+    expect(findInstitutionalManager("Pershing Square")?.displayName).toBe("Pershing Square");
+    expect(findInstitutionalManager("third-point")?.displayName).toBe("Third Point");
+    expect(findInstitutionalManager("0001067983")?.displayName).toBe("Berkshire Hathaway");
+  });
+
+  it("builds a QoQ book with weights and exit rows", () => {
+    const book = buildInstitutionalManagerBook({
+      manager: {
+        manager: "Berkshire Hathaway",
+        cik: "0001067983",
+        displayName: "Berkshire Hathaway",
+      },
+      latest: filing({
+        holdings: [
+          holding({ issuer: "APPLE INC", cusip: "037833100", shares: 200, value: 400 }),
+          holding({ issuer: "AMAZON COM INC", cusip: "023135106", shares: 50, value: 100 }),
+        ],
+      }),
+      previous: filing({
+        quarter: "2025-12-31",
+        holdings: [
+          holding({ issuer: "APPLE INC", cusip: "037833100", shares: 100, value: 180 }),
+          holding({ issuer: "OLDCO INC", cusip: "111111111", shares: 40, value: 40 }),
+        ],
+      }),
+    });
+
+    expect(book.positionCount).toBe(2);
+    expect(book.newCount).toBe(1);
+    expect(book.increasedCount).toBe(1);
+    expect(book.exitedCount).toBe(1);
+    expect(book.totalReportedValue).toBe(500);
+
+    const apple = book.positions.find((row) => row.cusip === "037833100");
+    expect(apple).toMatchObject({
+      ticker: "AAPL",
+      status: "Increased",
+      weight: 80,
+      percentageChange: 100,
+    });
+
+    const exited = book.positions.find((row) => row.status === "Exited");
+    expect(exited?.issuer).toBe("OLDCO INC");
+    expect(book.note.toLowerCase()).toContain("45 days");
   });
 });
