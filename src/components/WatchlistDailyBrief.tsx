@@ -270,8 +270,6 @@ export function WatchlistDailyBrief({
     portfolioTickers,
     watchlistTickers,
   });
-  const watchlistCount = new Set((watchlistTickers ?? entries.map((entry) => entry.ticker)).map((ticker) => ticker.toUpperCase())).size;
-  const portfolioCount = new Set(portfolioTickers.map((ticker) => ticker.toUpperCase())).size;
 
   const headline = loading
     ? "Building your brief."
@@ -290,18 +288,10 @@ export function WatchlistDailyBrief({
           </span>
           <h1>{headline}</h1>
           <p>
-            Ranked across your portfolio and watchlist by conviction changes, material moves, and fresh evidence—not headline volume.
+            Ranked by material moves, earnings and ownership evidence, and conviction changes—not headline volume.
           </p>
         </div>
         <div className="product-stage-metrics" aria-label="Daily brief summary">
-          <div>
-            <strong>{loading ? "—" : portfolioCount}</strong>
-            <span>Portfolio</span>
-          </div>
-          <div>
-            <strong>{loading ? "—" : watchlistCount}</strong>
-            <span>Watchlist</span>
-          </div>
           <div className={items.length > 0 ? "is-alert" : ""}>
             <strong>{loading ? "—" : items.length}</strong>
             <span>Need a look</span>
@@ -333,7 +323,6 @@ export function WatchlistDailyBrief({
                   <div className="for-you-feed-card-top">
                     <div className="for-you-feed-tags">
                       <span className="for-you-feed-rank">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="for-you-feed-scope">{item.scope}</span>
                       <span className="for-you-feed-kind">{item.kind}</span>
                     </div>
                     <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
@@ -361,7 +350,6 @@ export function WatchlistDailyBrief({
                       <span>{item.sourceLabel}</span>
                     </div>
                     <div>
-                      <span>Conviction {item.convictionEffect.toLowerCase()}</span>
                       <time>{formatAge(item.occurredAt)}</time>
                     </div>
                     <em>Open company brief <span aria-hidden="true">→</span></em>

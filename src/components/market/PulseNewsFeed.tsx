@@ -46,13 +46,6 @@ function formatMove(value: number | null): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
-function heatLabel(heat: MarketNarrativeTheme["heat"]): string {
-  if (heat === "surging") return "High attention";
-  if (heat === "building") return "Building";
-  if (heat === "quiet") return "Quiet";
-  return "Active";
-}
-
 function primaryHeadline(theme: MarketNarrativeTheme): MarketNarrativeHeadline | null {
   return theme.headline ?? theme.headlines[0] ?? null;
 }
@@ -146,9 +139,6 @@ function NarrativeCard({
         <span className="pulse-news-narrative-label">{theme.label}</span>
         <div className="pulse-news-narrative-tags">
           {personal ? <span className="pulse-news-personal-chip">For you</span> : null}
-          <span className={`pulse-news-attention heat-${theme.heat}`}>
-            {heatLabel(theme.heat)}
-          </span>
         </div>
       </div>
 
@@ -202,9 +192,12 @@ function NarrativeCard({
 export function PulseNewsFeed({
   themes,
   status,
+  section = "all",
 }: {
   themes: MarketNarrativeTheme[];
   status: "live" | "partial" | "unavailable";
+  /** Split Brief vs Headlines when the parent owns a ViewSwitcher. */
+  section?: "all" | "brief" | "headlines";
 }) {
   const [activeTheme, setActiveTheme] = useState<ThemeFilter>("all");
   const [expanded, setExpanded] = useState(false);
@@ -269,107 +262,127 @@ export function PulseNewsFeed({
   }
 
   const visibleItems = moreItems.slice(0, expanded ? 18 : 8);
+  const showBrief = section === "all" || section === "brief";
+  const showHeadlines = section === "all" || section === "headlines";
 
   return (
     <section className="pulse-news-feed" aria-label="Market news">
-      <header className="pulse-news-brief-header">
-        <div>
-          <span className="pulse-news-brief-eyebrow">
-            News intelligence {status === "partial" ? "· Partial coverage" : "· Live"}
-          </span>
-          <h2>Three stories that matter now.</h2>
-        </div>
-        <p>Ranked by relevant coverage, source quality, freshness, and confirming price action.</p>
-      </header>
-
-      <div className="pulse-news-brief-grid">
-        {leadThemes.map((theme, index) => (
-          <NarrativeCard
-            key={theme.id}
-            theme={theme}
-            featured={index === 0}
-            personal={themeIsPersonal(theme)}
-          />
-        ))}
-      </div>
-
-      {connectedTheme ? (
-        <aside className="pulse-news-connected" aria-label="News connected to your portfolio or watchlist">
-          <span>Connected to you</span>
-          <div>
-            <strong>{connectedTheme.label}</strong>
-            <p>{connectedTheme.summary}</p>
-          </div>
-          {primaryHeadline(connectedTheme)?.url ? (
-            <a href={primaryHeadline(connectedTheme)!.url!} target="_blank" rel="noopener noreferrer">
-              Read the lead story ↗
-            </a>
+      {showBrief ? (
+        <>
+          {section === "all" ? (
+            <header className="pulse-news-brief-header">
+              <div>
+                <span className="pulse-news-brief-eyebrow">
+                  News intelligence {status === "partial" ? "· Partial coverage" : "· Live"}
+                </span>
+                <h2>Three stories that matter now.</h2>
+              </div>
+              <p>Ranked by relevant coverage, source quality, freshness, and confirming price action.</p>
+            </header>
           ) : null}
-        </aside>
+
+          <div className="pulse-news-brief-grid">
+            {leadThemes.map((theme, index) => (
+              <NarrativeCard
+                key={theme.id}
+                theme={theme}
+                featured={index === 0}
+                personal={themeIsPersonal(theme)}
+              />
+            ))}
+          </div>
+
+          {connectedTheme ? (
+            <aside className="pulse-news-connected" aria-label="News connected to your portfolio or watchlist">
+              <span>Connected to you</span>
+              <div>
+                <strong>{connectedTheme.label}</strong>
+                <p>{connectedTheme.summary}</p>
+              </div>
+              {primaryHeadline(connectedTheme)?.url ? (
+                <a href={primaryHeadline(connectedTheme)!.url!} target="_blank" rel="noopener noreferrer">
+                  Read the lead story ↗
+                </a>
+              ) : null}
+            </aside>
+          ) : null}
+        </>
       ) : null}
 
-      <section className="pulse-news-more" aria-labelledby="pulse-news-more-title">
-        <header className="pulse-news-more-header">
-          <div>
-            <span>Deeper read</span>
-            <h2 id="pulse-news-more-title">More headlines</h2>
-          </div>
-          <p>Secondary coverage, without repeats or filler.</p>
-        </header>
-
-        <div className="pulse-news-filters" role="group" aria-label="Filter news by narrative">
-          <button
-            type="button"
-            className={activeTheme === "all" ? "is-active" : ""}
-            aria-pressed={activeTheme === "all"}
-            onClick={() => setActiveTheme("all")}
-          >
-            All
-          </button>
-          {rankedThemes.map((theme) => (
-            <button
-              key={theme.id}
-              type="button"
-              className={activeTheme === theme.id ? "is-active" : ""}
-              aria-pressed={activeTheme === theme.id}
-              onClick={() => setActiveTheme(theme.id)}
-            >
-              {theme.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="pulse-news-stream" role="feed" aria-busy="false">
-          {visibleItems.map((item) => (
-            <article key={item.id} className="pulse-news-row">
-              <div className="pulse-news-row-meta">
-                <span>{item.themeLabel}</span>
-                <span>{item.publisher || "Market source"}</span>
-                <time dateTime={item.date}>{formatTime(item.date)}</time>
+      {showHeadlines ? (
+        <section className="pulse-news-more" aria-labelledby="pulse-news-more-title">
+          {section === "all" ? (
+            <header className="pulse-news-more-header">
+              <div>
+                <span>Deeper read</span>
+                <h2 id="pulse-news-more-title">More headlines</h2>
               </div>
-              {item.url ? (
-                <a href={item.url} target="_blank" rel="noopener noreferrer">
-                  {item.title}
-                  <span aria-hidden="true">↗</span>
-                </a>
-              ) : (
-                <p>{item.title}</p>
-              )}
-            </article>
-          ))}
-        </div>
+              <p>Secondary coverage, without repeats or filler.</p>
+            </header>
+          ) : (
+            <header className="pulse-news-more-header">
+              <div>
+                <span>Wire</span>
+                <h2 id="pulse-news-more-title">Headlines by narrative</h2>
+              </div>
+              <p>Secondary coverage, without repeats or filler.</p>
+            </header>
+          )}
 
-        {moreItems.length > 8 ? (
-          <button
-            type="button"
-            className="pulse-news-expand"
-            onClick={() => setExpanded((value) => !value)}
-            aria-expanded={expanded}
-          >
-            {expanded ? "Show fewer headlines" : `Show ${Math.min(18, moreItems.length) - 8} more headlines`}
-          </button>
-        ) : null}
-      </section>
+          <div className="pulse-news-filters" role="group" aria-label="Filter news by narrative">
+            <button
+              type="button"
+              className={activeTheme === "all" ? "is-active" : ""}
+              aria-pressed={activeTheme === "all"}
+              onClick={() => setActiveTheme("all")}
+            >
+              All
+            </button>
+            {rankedThemes.map((theme) => (
+              <button
+                key={theme.id}
+                type="button"
+                className={activeTheme === theme.id ? "is-active" : ""}
+                aria-pressed={activeTheme === theme.id}
+                onClick={() => setActiveTheme(theme.id)}
+              >
+                {theme.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="pulse-news-stream" role="feed" aria-busy="false">
+            {visibleItems.map((item) => (
+              <article key={item.id} className="pulse-news-row">
+                <div className="pulse-news-row-meta">
+                  <span>{item.themeLabel}</span>
+                  <span>{item.publisher || "Market source"}</span>
+                  <time dateTime={item.date}>{formatTime(item.date)}</time>
+                </div>
+                {item.url ? (
+                  <a href={item.url} target="_blank" rel="noopener noreferrer">
+                    {item.title}
+                    <span aria-hidden="true">↗</span>
+                  </a>
+                ) : (
+                  <p>{item.title}</p>
+                )}
+              </article>
+            ))}
+          </div>
+
+          {moreItems.length > 8 ? (
+            <button
+              type="button"
+              className="pulse-news-expand"
+              onClick={() => setExpanded((value) => !value)}
+              aria-expanded={expanded}
+            >
+              {expanded ? "Show fewer headlines" : `Show ${Math.min(18, moreItems.length) - 8} more headlines`}
+            </button>
+          ) : null}
+        </section>
+      ) : null}
     </section>
   );
 }

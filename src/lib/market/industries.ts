@@ -68,7 +68,7 @@ export const SECTORS: Sector[] = [
     description: "Software, hardware, semiconductors, and IT services.",
     representativeTickers: [
       "AAPL", "MSFT", "NVDA", "AVGO", "CRM", "INTC", "IBM", "AMD", "ORCL", "PLTR",
-      "TSM", "ASML", "SAP", "SONY", "APLD", "VOOG",
+      "CSCO", "TSM", "ASML", "SAP", "SONY", "APLD", "VOOG",
     ],
   },
   {
@@ -84,7 +84,7 @@ export const SECTORS: Sector[] = [
     name: "Health Care",
     description: "Pharmaceuticals, biotech, health equipment, and managed care.",
     representativeTickers: [
-      "LLY", "PFE", "UNH", "ABBV", "MRK", "JNJ", "NVO",
+      "LLY", "PFE", "UNH", "ABBV", "MRK", "JNJ", "NVO", "AMGN",
     ],
   },
   {
@@ -116,7 +116,7 @@ export const SECTORS: Sector[] = [
     name: "Consumer Staples",
     description: "Food, beverage, household goods, and personal care products.",
     representativeTickers: [
-      "PG", "KO", "PEP", "WMT", "COST", "UL",
+      "PG", "KO", "PEP", "WMT", "COST", "UL", "WBA",
     ],
   },
   {
@@ -144,7 +144,7 @@ export const SECTORS: Sector[] = [
     name: "Materials",
     description: "Chemicals, metals, mining, and construction materials.",
     representativeTickers: [
-      "LIN", "SHW", "APD", "ECL", "NEM", "FCX", "AA", "NUE",
+      "LIN", "SHW", "APD", "ECL", "NEM", "FCX", "AA", "NUE", "DOW",
     ],
   },
 ];
