@@ -249,7 +249,6 @@ export function WatchlistDailyBrief({
   newsByTicker,
   transitions,
   loading,
-  sessionLabel,
   portfolioTickers = [],
   watchlistTickers,
 }: {
@@ -258,7 +257,7 @@ export function WatchlistDailyBrief({
   newsByTicker: Record<string, WatchlistNewsSummary>;
   transitions: WatchlistTransition[];
   loading: boolean;
-  sessionLabel: string;
+  sessionLabel?: string;
   portfolioTickers?: string[];
   watchlistTickers?: string[];
 }) {
@@ -271,119 +270,92 @@ export function WatchlistDailyBrief({
     watchlistTickers,
   });
 
-  const headline = loading
+  const title = loading
     ? "Building…"
     : entries.length === 0
-      ? "Add one company."
+      ? "Add one company"
       : items.length === 0
-        ? "Quiet. Stay selective."
-        : "Something moved.";
+        ? "All clear"
+        : "Worth your attention";
 
   return (
-    <>
-      <section className="product-stage product-stage--watchlist" aria-label="What changed for you overview">
-        <div className="product-stage-copy">
-          <span className="product-stage-eyebrow">
-            <i aria-hidden="true" /> For you · {sessionLabel}
-          </span>
-          <h1>{headline}</h1>
-          <p>
-            Moves, earnings, ownership — not headline count.
-          </p>
-        </div>
-        <div className="product-stage-metrics product-stage-metrics--text" aria-label="Daily brief summary">
-          <div className={items.length > 0 ? "is-alert" : ""}>
-            <strong>
-              {loading
-                ? "—"
-                : items.length > 0
-                  ? "Worth your attention"
-                  : entries.length === 0
-                    ? "Start here"
-                    : "All clear"}
-            </strong>
-            <span>
-              {loading
-                ? "Brief"
-                : items.length > 0
-                  ? "For you"
-                  : entries.length === 0
-                    ? "Watchlist"
-                    : "Nothing material"}
-            </span>
+    <section
+      className={`for-you-feed${items.length === 0 && !loading ? " is-clear" : ""}`}
+      aria-label="Worth your attention"
+    >
+      <div
+        className={`for-you-title${items.length > 0 ? " is-alert" : ""}`}
+        aria-live="polite"
+      >
+        <strong>{title}</strong>
+      </div>
+
+      {entries.length === 0 ? (
+        <div className="for-you-feed-clear">
+          <div>
+            <strong>Track a company to start the brief.</strong>
+            <p>Insights appear here when something material moves.</p>
           </div>
         </div>
-      </section>
-
-      {entries.length > 0 ? (
-        <section className={`for-you-feed${items.length === 0 && !loading ? " is-clear" : ""}`} aria-label="What changed for you">
-          <header className="for-you-feed-header">
-            <div>
-              <span>What changed for you</span>
-              <h2>{loading ? "Ranking…" : items.length > 0 ? "Worth your attention" : "Nothing needs attention"}</h2>
-            </div>
-            <p>{entries.length} {entries.length === 1 ? "company" : "companies"} · max 5</p>
-          </header>
-
-          {loading ? (
-            <div className="for-you-feed-loading" aria-live="polite">Reading prices, evidence, and conviction changes…</div>
-          ) : items.length > 0 ? (
-            <div className={`for-you-feed-grid item-count-${items.length}`}>
-              {items.map((item, index) => (
-                <Link
-                  href={`/companies/${encodeURIComponent(item.ticker)}`}
-                  key={`${item.ticker}-${item.kind}`}
-                  className={`for-you-feed-card tone-${item.tone}${index === 0 ? " is-lead" : ""}`}
-                  aria-label={`Open ${item.ticker} company brief`}
-                >
-                  <div className="for-you-feed-card-top">
-                    <div className="for-you-feed-tags">
-                      <span className="for-you-feed-rank">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="for-you-feed-kind">{item.kind}</span>
-                    </div>
-                    <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
-                      {formatMove(item.changePercent)}
-                    </span>
-                  </div>
-                  <div className="for-you-feed-company">
-                    <strong>{item.ticker}</strong>
-                    <span>{item.companyName}</span>
-                  </div>
-                  <h3>{item.headline}</h3>
-                  <div className="for-you-feed-reason">
-                    <span>Why it matters</span>
-                    <p>{item.why}</p>
-                  </div>
-                  <div className="for-you-feed-next">
-                    <span>Next proof point</span>
-                    <p>{item.watchNext}</p>
-                  </div>
-                  <footer>
-                    <div>
-                      <span className={`for-you-feed-proof${item.proofStatus === "Price only" ? " is-price-only" : ""}`}>
-                        {item.proofStatus}
-                      </span>
-                      <span>{item.sourceLabel}</span>
-                    </div>
-                    <div>
-                      <time>{formatAge(item.occurredAt)}</time>
-                    </div>
-                    <em>Open company brief <span aria-hidden="true">→</span></em>
-                  </footer>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="for-you-feed-clear">
-              <span aria-hidden="true">✓</span>
-              <div>
-                <strong>No material changes require a thesis review.</strong>
-                <p>That is useful information too. Your portfolio and watchlist are quiet, so there is nothing to chase.</p>
+      ) : loading ? (
+        <div className="for-you-feed-loading" aria-live="polite">
+          Reading prices, evidence, and conviction changes…
+        </div>
+      ) : items.length > 0 ? (
+        <div className={`for-you-feed-grid item-count-${items.length}`}>
+          {items.map((item, index) => (
+            <Link
+              href={`/companies/${encodeURIComponent(item.ticker)}`}
+              key={`${item.ticker}-${item.kind}`}
+              className={`for-you-feed-card tone-${item.tone}${index === 0 ? " is-lead" : ""}`}
+              aria-label={`Open ${item.ticker} company brief`}
+            >
+              <div className="for-you-feed-card-top">
+                <div className="for-you-feed-tags">
+                  <span className="for-you-feed-rank">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="for-you-feed-kind">{item.kind}</span>
+                </div>
+                <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
+                  {formatMove(item.changePercent)}
+                </span>
               </div>
-            </div>
-          )}
-        </section>
-      ) : null}
-    </>
+              <div className="for-you-feed-company">
+                <strong>{item.ticker}</strong>
+                <span>{item.companyName}</span>
+              </div>
+              <h3>{item.headline}</h3>
+              <div className="for-you-feed-reason">
+                <span>Why it matters</span>
+                <p>{item.why}</p>
+              </div>
+              <div className="for-you-feed-next">
+                <span>Next proof point</span>
+                <p>{item.watchNext}</p>
+              </div>
+              <footer>
+                <div>
+                  <span className={`for-you-feed-proof${item.proofStatus === "Price only" ? " is-price-only" : ""}`}>
+                    {item.proofStatus}
+                  </span>
+                  <span>{item.sourceLabel}</span>
+                </div>
+                <div>
+                  <time>{formatAge(item.occurredAt)}</time>
+                </div>
+                <em>Open company brief <span aria-hidden="true">→</span></em>
+              </footer>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div className="for-you-feed-clear">
+          <span aria-hidden="true">✓</span>
+          <div>
+            <strong>Nothing material needs a look.</strong>
+            <p>Your book is quiet — nothing to chase.</p>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
