@@ -18,27 +18,6 @@ import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { buildTrendingBreadthBrief } from "@/lib/market/pulse-brief";
 
-type GaugeConfig = {
-  min: number;
-  max: number;
-  zones: Array<{ label: string; end: number; color: string }>;
-  decimals?: number;
-  signed?: boolean;
-};
-
-/** Average sector day-move for Cyclical / Defensive leadership. */
-const SECTOR_MOVE_GAUGE: GaugeConfig = {
-  min: -3,
-  max: 3,
-  decimals: 2,
-  signed: true,
-  zones: [
-    { label: "Soft", end: -1, color: "#DC2626" },
-    { label: "Mixed", end: 1, color: "#D97706" },
-    { label: "Firm", end: 3, color: "#0D9488" },
-  ],
-};
-
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
 
 const PULSE_TABS = [
@@ -63,64 +42,12 @@ function fmtPct(value: number | null): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
-function avg(values: number[]): number | null {
-  if (values.length === 0) return null;
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
 function relativeSpread(
   lead: number | null | undefined,
   baseline: number | null | undefined,
 ): number | null {
   if (!isFiniteNumber(lead) || !isFiniteNumber(baseline)) return null;
   return lead - baseline;
-}
-
-function formatGaugeValue(value: number, config: GaugeConfig): string {
-  const decimals = config.decimals ?? 2;
-  const body = value.toFixed(decimals);
-  if (config.signed && value > 0) return `+${body}`;
-  return body;
-}
-
-function Gauge({
-  label,
-  value,
-  suffix = "",
-  config,
-  sessionBadge = "Live",
-}: {
-  label: string;
-  value: number | null;
-  suffix?: string;
-  config: GaugeConfig;
-  sessionBadge?: string;
-}) {
-  const bounded = isFiniteNumber(value) ? Math.min(config.max, Math.max(config.min, value)) : config.min;
-  const marker = ((bounded - config.min) / (config.max - config.min)) * 100;
-  let previousEnd = config.min;
-
-  return (
-    <article className="market-gauge-card">
-      <div className="market-card-heading">
-        <span>{label}</span>
-        <span className="market-live">{sessionBadge}</span>
-      </div>
-      <strong className="market-gauge-value">
-        {isFiniteNumber(value) ? formatGaugeValue(value, config) : "—"}
-        {suffix}
-      </strong>
-      <div className="market-gauge" aria-label={`${label} gauge`}>
-        {config.zones.map((zone) => {
-          const width = ((zone.end - previousEnd) / (config.max - config.min)) * 100;
-          previousEnd = zone.end;
-          return <span key={zone.label} title={zone.label} style={{ width: `${width}%`, background: zone.color }} />;
-        })}
-        {isFiniteNumber(value) && <i className="market-gauge-marker" style={{ left: `${marker}%` }} />}
-      </div>
-      <div className="market-gauge-labels"><span>{config.zones[0].label}</span><span>{config.zones.at(-1)?.label}</span></div>
-    </article>
-  );
 }
 
 function tileSpan(weight: number): number {
@@ -267,10 +194,7 @@ export default function MarketPulsePage() {
   const spyChange = changeFor("SPY");
   const equalWeightLead = relativeSpread(changeFor("RSP"), spyChange);
   const smallCapLead = relativeSpread(changeFor("IWM"), spyChange);
-  const cyclicalAvg = avg(data.sectorLeadership.characteristics.cyclical);
-  const defensiveAvg = avg(data.sectorLeadership.characteristics.defensive);
   const trendingBreadthBrief = buildTrendingBreadthBrief(equalWeightLead, smallCapLead);
-  const gaugeSessionBadge = data.sessionLabel ?? "Live";
 
   return (
     <main className="markets-page">
@@ -336,10 +260,6 @@ export default function MarketPulsePage() {
                 narratives={data.marketNarratives.themes}
               />
             </div>
-            <section className="market-gauge-grid pulse-gauge-section" aria-label="Sector leadership">
-              <Gauge label="Cyclical" value={cyclicalAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
-              <Gauge label="Defensive" value={defensiveAvg} suffix="%" config={SECTOR_MOVE_GAUGE} sessionBadge={gaugeSessionBadge} />
-            </section>
 
             <div className="pulse-more-markets" aria-label="More markets">
               <p className="pulse-more-markets-label">More markets</p>
@@ -350,6 +270,7 @@ export default function MarketPulsePage() {
                 narrativeGroup="Themes"
                 narratives={data.marketNarratives.themes}
                 uniformTiles
+                showDrivers={false}
               />
               <GlobalMarketsHeatmap
                 markets={commodities}
@@ -358,6 +279,7 @@ export default function MarketPulsePage() {
                 narrativeGroup="Commodity"
                 narratives={data.marketNarratives.themes}
                 uniformTiles
+                showDrivers={false}
               />
               <GlobalMarketsHeatmap
                 markets={cryptoMarkets}
@@ -366,6 +288,7 @@ export default function MarketPulsePage() {
                 narrativeGroup="Crypto"
                 narratives={data.marketNarratives.themes}
                 uniformTiles
+                showDrivers={false}
               />
               <GlobalMarketsHeatmap
                 markets={internationalMarkets}
@@ -373,6 +296,7 @@ export default function MarketPulsePage() {
                 subtitle=""
                 narrativeGroup="International"
                 narratives={data.marketNarratives.themes}
+                showDrivers={false}
               />
             </div>
           </>

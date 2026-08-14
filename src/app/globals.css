@@ -16561,13 +16561,9 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   font-size: 0.76rem;
 }
 
-.pulse-gauge-section {
-  position: relative;
-}
-
 .pulse-more-markets {
   display: grid;
-  gap: 16px;
+  gap: 14px;
   margin: 4px 0 0;
   padding-top: 6px;
 }
@@ -16580,6 +16576,17 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+@media (min-width: 900px) {
+  .pulse-more-markets {
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+  }
+
+  .pulse-more-markets-label {
+    grid-column: 1 / -1;
+  }
 }
 
 .pulse-trending-note {
