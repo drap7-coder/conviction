@@ -277,6 +277,9 @@ export function WatchlistDailyBrief({
       : items.length === 0
         ? "All clear"
         : "Worth your attention";
+  const lead = items[0] ?? null;
+  const rest = items.slice(1);
+  const showPencil = !loading && items.length > 0;
 
   return (
     <section
@@ -284,10 +287,50 @@ export function WatchlistDailyBrief({
       aria-label="Worth your attention"
     >
       <div
-        className={`for-you-title${items.length > 0 ? " is-alert" : ""}`}
+        className={`for-you-title${showPencil ? " is-active" : ""}`}
         aria-live="polite"
       >
-        <strong>{title}</strong>
+        <div className="for-you-title-mark">
+          <span className="for-you-title-label">{title}</span>
+          {showPencil ? (
+            <svg
+              className="for-you-title-pencil"
+              viewBox="0 0 160 6"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M1.5 3.2 C 24 1.1, 48 4.8, 72 2.6 S 120 5.2, 158.5 2.9"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          ) : null}
+        </div>
+
+        {lead && !loading ? (
+          <Link
+            href={`/companies/${encodeURIComponent(lead.ticker)}`}
+            className="for-you-title-lead"
+            aria-label={`Open ${lead.ticker} company brief`}
+          >
+            <span className="for-you-title-lead-meta">
+              <b>{lead.ticker}</b>
+              <span>{lead.companyName}</span>
+              <span className={`for-you-title-lead-move${lead.changePercent !== null && lead.changePercent < 0 ? " is-down" : ""}`}>
+                {formatMove(lead.changePercent)}
+              </span>
+            </span>
+            <strong className="for-you-title-lead-headline">{lead.headline}</strong>
+            <p className="for-you-title-lead-why">{lead.why}</p>
+            <span className="for-you-title-lead-cta">
+              {lead.watchNext}
+              <em aria-hidden="true"> →</em>
+            </span>
+          </Link>
+        ) : null}
       </div>
 
       {entries.length === 0 ? (
@@ -301,18 +344,18 @@ export function WatchlistDailyBrief({
         <div className="for-you-feed-loading" aria-live="polite">
           Reading prices, evidence, and conviction changes…
         </div>
-      ) : items.length > 0 ? (
-        <div className={`for-you-feed-grid item-count-${items.length}`}>
-          {items.map((item, index) => (
+      ) : rest.length > 0 ? (
+        <div className={`for-you-feed-grid item-count-${rest.length}`}>
+          {rest.map((item, index) => (
             <Link
               href={`/companies/${encodeURIComponent(item.ticker)}`}
               key={`${item.ticker}-${item.kind}`}
-              className={`for-you-feed-card tone-${item.tone}${index === 0 ? " is-lead" : ""}`}
+              className={`for-you-feed-card tone-${item.tone}`}
               aria-label={`Open ${item.ticker} company brief`}
             >
               <div className="for-you-feed-card-top">
                 <div className="for-you-feed-tags">
-                  <span className="for-you-feed-rank">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="for-you-feed-rank">{String(index + 2).padStart(2, "0")}</span>
                   <span className="for-you-feed-kind">{item.kind}</span>
                 </div>
                 <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
@@ -347,7 +390,7 @@ export function WatchlistDailyBrief({
             </Link>
           ))}
         </div>
-      ) : (
+      ) : items.length === 0 ? (
         <div className="for-you-feed-clear">
           <span aria-hidden="true">✓</span>
           <div>
@@ -355,7 +398,7 @@ export function WatchlistDailyBrief({
             <p>Your book is quiet — nothing to chase.</p>
           </div>
         </div>
-      )}
+      ) : null}
     </section>
   );
 }
