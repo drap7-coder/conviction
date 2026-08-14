@@ -12003,6 +12003,34 @@ a.signal-block-conclusion-link:hover {
   margin: 0 0 22px;
 }
 
+.for-you-title {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 78%, #ffffff);
+}
+
+.for-you-title strong {
+  margin: 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.for-you-title.is-alert {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+}
+
+.for-you-title.is-alert strong {
+  color: color-mix(in srgb, var(--ink) 88%, var(--accent));
+}
+
 .for-you-feed-header {
   display: flex;
   align-items: end;
