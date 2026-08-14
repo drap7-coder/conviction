@@ -214,13 +214,13 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
       <SmartMoneyDecisionCard brief={politicalBrief} political />
 
       <SmartMoneyRadar
-        title={filter === "all" ? "Largest disclosed stock clusters" : `Largest disclosed stock ${filter}s`}
-        subtitle="Single-name equities only. Index and ETF filings are demoted below — size without a business."
+        title={filter === "all" ? "Top stock clusters" : `Top stock ${filter}s`}
+        subtitle="Single names first. ETFs demoted."
         items={stockGroups.slice(0, 3).map((group) => ({
           ticker: group.ticker,
           label: group.directionLabel,
           detail: `${formatCompactMoney(group.estimatedTotal)} midpoint · ${group.trades.length} ${group.trades.length === 1 ? "filing" : "filings"}`,
-          meta: `${group.filerCount} ${group.filerCount === 1 ? "official" : "officials"} · ${group.medianLag === null ? "Unknown" : `${group.medianLag}d`} median lag${group.lateCount > 0 ? ` · ${group.lateCount} late` : ""}`,
+          meta: `${group.filerCount} ${group.filerCount === 1 ? "official" : "officials"} · ${group.medianLag === null ? "Unknown" : `${group.medianLag}d`} lag${group.lateCount > 0 ? ` · ${group.lateCount} late` : ""}`,
           href: `/companies/${group.ticker}`,
           tone: group.lateCount > 0 ? "alert" : group.tone,
         }))}
@@ -262,10 +262,10 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
         <>
           <div className="smart-money-section-label">
             <div>
-              <span>Evidence detail</span>
-              <h3>Disclosures grouped by company</h3>
+              <span>Stocks</span>
+              <h3>By company</h3>
             </div>
-            <p>Stock clusters first. Broad-market ETFs stay visible but off the research lead.</p>
+            <p>Concentration and lag, without ETF noise.</p>
           </div>
           {stockGroups.length > 0 ? (
             <div className="politician-trade-list">
@@ -281,7 +281,7 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
             </div>
           ) : (
             <div className="investor-moves-filter-empty">
-              No single-name stock disclosures in this filter — only broad-market ETFs below.
+              No single-name stocks here — only ETFs below.
             </div>
           )}
 
@@ -290,9 +290,9 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
               <div className="smart-money-section-label">
                 <div>
                   <span>Broad market</span>
-                  <h3>Index and ETF disclosures</h3>
+                  <h3>Indexes &amp; ETFs</h3>
                 </div>
-                <p>Useful for regime context, not company research. Ranked separately so they do not crowd the lead.</p>
+                <p>Regime context. Not a company lead.</p>
               </div>
               <div className="politician-trade-list politician-trade-list--broad">
                 {broadMarketGroups.map((group) => (
@@ -311,7 +311,7 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
       )}
 
       <p className="investor-moves-disclaimer">
-        STOCK Act filings can land days after the trade. Amounts are reported in ranges, not exact sizes.
+        Filings can lag the trade. Amounts are ranges, not exact sizes.
       </p>
     </section>
   );

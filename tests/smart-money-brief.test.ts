@@ -123,10 +123,8 @@ describe("Smart Money decision briefs", () => {
     ]);
 
     expect(brief.tone).toBe("alert");
-    expect(brief.headline).toContain("PINS");
-    expect(brief.headline).toContain("arrived late");
-    expect(brief.headline).not.toContain("SPY");
-    expect(brief.summary).toMatch(/ETF or index/i);
+    expect(brief.headline).toBe("PINS leads — filed late.");
+    expect(brief.summary).toMatch(/demoted/i);
     expect(brief.metrics[2].value).toBe("53d");
   });
 
@@ -136,7 +134,7 @@ describe("Smart Money decision briefs", () => {
       politicalTrade("b", "NVDA", "purchase", 32_501, 10, { assetName: "NVIDIA Corp" }),
     ]);
 
-    expect(brief.headline).toContain("NVDA");
-    expect(brief.headline).not.toContain("SPY");
+    expect(brief.headline).toBe("NVDA leads buying.");
+    expect(brief.eyebrow).toBe("STOCK Act");
   });
 });
