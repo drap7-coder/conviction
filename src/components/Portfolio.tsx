@@ -36,6 +36,7 @@ import { notifyPortfolioChanged, usePortfolioData } from "@/components/Portfolio
 import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
+import { TypewriterText } from "@/components/TypewriterText";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 const PORTFOLIO_TABS = [
@@ -880,7 +881,7 @@ export default function Portfolio({
                         />
                         {portfolioHeatmapSession ? <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span> : null}
                       </div>
-                      <h1>{stageBrief.headline}</h1>
+                      <TypewriterText as="h1" text={stageBrief.headline} className="pf-value-stage-headline" />
                       <p>{stageBrief.summary}</p>
                       <div className="pf-value-stage-actions">
                         <button className="pf-value-refresh" onClick={handleRefresh} disabled={loading}>

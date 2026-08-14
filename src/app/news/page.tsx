@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PulseNewsFeed } from "@/components/market/PulseNewsFeed";
 import type { MarketNarrativePulse } from "@/lib/market/market-narratives";
@@ -92,25 +93,19 @@ export default function NewsPage() {
         </p>
       </ViewSwitcher>
 
-      <section className="product-stage product-stage--news" aria-label="News intelligence">
-        <div className="product-stage-copy">
-          <span className="product-stage-eyebrow">
-            <i aria-hidden="true" /> News · {brief.statusLabel}
-          </span>
-          <h1>
-            {activeTab === "brief"
-              ? "What changed."
-              : "The wire."}
-          </h1>
-          <p>
-            {activeTab === "brief"
-              ? brief.leadTheme
-                ? `Lead: ${brief.leadTheme}. Ranked by consequence.`
-                : "Consequence over volume."
-              : "Filter when you want depth."}
-          </p>
-        </div>
-      </section>
+      <ProductStage
+        variant="news"
+        aria-label="News intelligence"
+        eyebrow={`News · ${brief.statusLabel}`}
+        headline={activeTab === "brief" ? "What changed." : "The wire."}
+        summary={
+          activeTab === "brief"
+            ? brief.leadTheme
+              ? `Lead: ${brief.leadTheme}. Ranked by consequence.`
+              : "Consequence over volume."
+            : "Filter when you want depth."
+        }
+      />
 
       <div
         id="news-panel-brief"

@@ -7207,19 +7207,20 @@ button.brief-link:focus-visible {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(370px, 0.62fr);
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.55fr);
   align-items: stretch;
-  gap: 30px;
+  gap: 18px;
   overflow: hidden;
-  margin: 0 0 16px;
-  padding: clamp(24px, 4vw, 38px);
+  margin: 0 0 14px;
+  padding: clamp(14px, 2vw, 22px) clamp(14px, 2.2vw, 22px);
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 22px;
+  border-radius: 16px;
   background:
     radial-gradient(circle at 96% 0%, var(--pf-value-glow), transparent 38%),
     linear-gradient(145deg, #111722 0%, #0a0f16 100%);
   color: #f8fafc;
-  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.17);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .pf-value-stage::before {
@@ -7319,18 +7320,20 @@ button.brief-link:focus-visible {
 
 .pf-value-stage-total .sf-char {
   color: #ffffff;
-  font-size: clamp(1.8rem, 4.8vw, 2.65rem);
+  font-size: clamp(1.45rem, 3.6vw, 2.1rem);
   font-weight: 800;
 }
 
-.pf-value-stage h1 {
+.pf-value-stage h1,
+.pf-value-stage-headline {
   max-width: 19ch;
   margin: 0;
+  min-height: 1.1em;
   color: #ffffff;
-  font-size: clamp(1.42rem, 3vw, 2.05rem);
+  font-size: clamp(1.3rem, 2.6vw, 1.75rem);
   font-weight: 720;
   letter-spacing: -0.05em;
-  line-height: 1.04;
+  line-height: 1.05;
   text-wrap: balance;
 }
 
@@ -7817,8 +7820,8 @@ button.brief-link:focus-visible {
 
 @media (max-width: 560px) {
   .pf-value-stage {
-    padding: 21px 16px 16px;
-    border-radius: 17px;
+    padding: 14px 14px 12px;
+    border-radius: 14px;
   }
 
   .pf-value-stage-topline {
@@ -11433,27 +11436,43 @@ a.signal-block-conclusion-link:hover {
   gap: 0;
 }
 
-/* ── Product stages: one decisive answer before the tools ── */
+/* ── Product stages: compact arrival + typewriter headline ── */
 
 .product-stage {
   --stage-accent: #5eead4;
-  --stage-glow: rgba(45, 212, 191, 0.16);
+  --stage-glow: rgba(45, 212, 191, 0.14);
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(270px, 0.48fr);
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
   align-items: end;
-  gap: 28px;
+  gap: 16px;
   overflow: hidden;
-  margin: 0 0 18px;
-  padding: clamp(24px, 4vw, 42px);
+  margin: 0 0 14px;
+  padding: clamp(14px, 2vw, 20px) clamp(14px, 2.2vw, 22px);
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 24px;
+  border-radius: 16px;
   background:
     radial-gradient(circle at 93% 3%, var(--stage-glow), transparent 34%),
     linear-gradient(145deg, #0b0f14 0%, #101722 100%);
   color: #f8fafc;
-  box-shadow: 0 22px 60px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.product-stage.is-copy-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@keyframes product-stage-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .product-stage::after {
@@ -11462,13 +11481,13 @@ a.signal-block-conclusion-link:hover {
   z-index: -1;
   right: -58px;
   bottom: -82px;
-  width: 220px;
-  height: 220px;
+  width: 180px;
+  height: 180px;
   border: 1px solid color-mix(in srgb, var(--stage-accent) 16%, transparent);
   border-radius: 50%;
   box-shadow:
-    0 0 0 34px color-mix(in srgb, var(--stage-accent) 4%, transparent),
-    0 0 0 72px color-mix(in srgb, var(--stage-accent) 2%, transparent);
+    0 0 0 28px color-mix(in srgb, var(--stage-accent) 4%, transparent),
+    0 0 0 58px color-mix(in srgb, var(--stage-accent) 2%, transparent);
 }
 
 .product-stage--pulse {
@@ -11493,7 +11512,7 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage-copy {
   display: grid;
-  gap: 10px;
+  gap: 5px;
   min-width: 0;
 }
 
@@ -11503,7 +11522,7 @@ a.signal-block-conclusion-link:hover {
   gap: 8px;
   color: #a7b0bf;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
+  font-size: 0.58rem;
   font-weight: 750;
   letter-spacing: 0.09em;
   line-height: 1.2;
@@ -11511,31 +11530,47 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage-eyebrow i {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--stage-accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--stage-accent) 13%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--stage-accent) 13%, transparent);
 }
 
-.product-stage h1 {
-  max-width: 12ch;
+.product-stage h1,
+.product-stage-headline {
+  max-width: 18ch;
   margin: 0;
+  min-height: 1.1em;
   color: #ffffff;
-  font-size: clamp(2.05rem, 5vw, 3.75rem);
+  font-size: clamp(1.45rem, 3.2vw, 2.15rem);
   font-weight: 730;
-  letter-spacing: -0.065em;
-  line-height: 0.96;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
   text-wrap: balance;
 }
 
+.product-stage .typewriter-line,
+.pf-value-stage .typewriter-line {
+  display: block;
+}
+
+.product-stage .typewriter-cursor,
+.pf-value-stage .typewriter-cursor {
+  width: 2px;
+  height: 0.92em;
+  margin-left: 3px;
+  background: var(--stage-accent, var(--pf-value-accent, #5eead4));
+  vertical-align: -0.08em;
+}
+
 .product-stage p {
-  max-width: 44rem;
-  margin: 3px 0 0;
+  max-width: 38rem;
+  margin: 1px 0 0;
   color: #9da8b8;
   font-family: var(--font-sans);
-  font-size: clamp(0.84rem, 1.5vw, 0.96rem);
-  line-height: 1.5;
+  font-size: clamp(0.76rem, 1.3vw, 0.86rem);
+  line-height: 1.45;
 }
 
 .product-stage-metrics {
@@ -11546,7 +11581,7 @@ a.signal-block-conclusion-link:hover {
   align-self: stretch;
   min-width: 0;
   border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 16px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.045);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -11556,9 +11591,9 @@ a.signal-block-conclusion-link:hover {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
-  padding: 16px 13px;
+  padding: 11px 10px;
 }
 
 .product-stage-metrics > div + div {
@@ -11569,7 +11604,7 @@ a.signal-block-conclusion-link:hover {
   overflow: hidden;
   color: #ffffff;
   font-family: var(--font-mono);
-  font-size: clamp(1.05rem, 2.4vw, 1.45rem);
+  font-size: clamp(0.92rem, 1.8vw, 1.15rem);
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 1;
@@ -11581,7 +11616,7 @@ a.signal-block-conclusion-link:hover {
   overflow: hidden;
   color: #7f8a9a;
   font-family: var(--font-mono);
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   line-height: 1.25;
@@ -11606,37 +11641,45 @@ a.signal-block-conclusion-link:hover {
 @media (max-width: 760px) {
   .product-stage {
     grid-template-columns: 1fr;
-    gap: 22px;
-    padding: 24px 20px 20px;
-    border-radius: 20px;
+    gap: 14px;
+    padding: 16px 16px 14px;
+    border-radius: 14px;
   }
 
-  .product-stage h1 {
-    max-width: 13ch;
-    font-size: clamp(2rem, 10vw, 3.1rem);
+  .product-stage h1,
+  .product-stage-headline {
+    max-width: 16ch;
+    font-size: clamp(1.35rem, 7vw, 1.85rem);
   }
 
   .product-stage-metrics {
-    min-height: 82px;
+    min-height: 0;
   }
 
   .product-stage-metrics > div {
-    padding: 13px 11px;
+    padding: 10px 9px;
   }
 }
 
 @media (max-width: 390px) {
   .product-stage {
-    padding: 21px 16px 16px;
+    padding: 14px 14px 12px;
   }
 
   .product-stage-metrics strong {
-    font-size: 0.98rem;
+    font-size: 0.9rem;
   }
 
   .product-stage-metrics span {
     font-size: 0.48rem;
     letter-spacing: 0.04em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-stage,
+  .pf-value-stage {
+    animation: none;
   }
 }
 
