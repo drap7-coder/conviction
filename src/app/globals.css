@@ -6709,6 +6709,23 @@ details > summary::before {
   display: inline-block;
 }
 
+button.brief-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--accent, #0d9488);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+button.brief-link:hover,
+button.brief-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
 .empty-state.compact {
   padding: 28px 16px;
 }
