@@ -15,23 +15,35 @@ function allocationTone(weight: number) {
   return "balanced";
 }
 
-export function PortfolioAllocationLadder({ items }: { items: PortfolioAllocationItem[] }) {
+export function PortfolioAllocationLadder({
+  items,
+  mode = "personal",
+}: {
+  items: PortfolioAllocationItem[];
+  /** Strategy books show a target map; personal books keep concentration thresholds. */
+  mode?: "personal" | "strategy";
+}) {
   if (items.length === 0) return null;
   const visible = items.slice(0, 10);
+  const strategy = mode === "strategy";
 
   return (
-    <section className="pf-allocation-ladder" aria-label="Portfolio allocation ladder">
+    <section className="pf-allocation-ladder" aria-label={strategy ? "Target allocation map" : "Portfolio allocation ladder"}>
       <div className="pf-allocation-heading">
         <div>
-          <span className="pf-section-eyebrow">Capital map</span>
-          <h2>Allocation ladder</h2>
+          <span className="pf-section-eyebrow">{strategy ? "Target map" : "Capital map"}</span>
+          <h2>{strategy ? "Sleeves by weight" : "Allocation ladder"}</h2>
         </div>
-        <p>Position weight on a 0–25% risk scale. The markers show 12% watch and 20% concentration thresholds.</p>
+        <p>
+          {strategy
+            ? "Live weights for the strategy’s intended sleeves — not a stock-concentration scorecard."
+            : "Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration."}
+        </p>
       </div>
       <div className="pf-allocation-list">
         {visible.map((item, index) => {
-          const tone = allocationTone(item.weight);
-          const fill = Math.min(100, (item.weight / 25) * 100);
+          const tone = strategy ? "balanced" : allocationTone(item.weight);
+          const fill = Math.min(100, (item.weight / (strategy ? 50 : 25)) * 100);
           return (
             <article className={`pf-allocation-row tone-${tone}`} key={item.ticker}>
               <span className="pf-allocation-rank">{String(index + 1).padStart(2, "0")}</span>
@@ -40,8 +52,12 @@ export function PortfolioAllocationLadder({ items }: { items: PortfolioAllocatio
                 <span>{item.companyName}</span>
               </Link>
               <div className="pf-allocation-gauge" aria-label={`${item.ticker} is ${item.weight.toFixed(1)}% of portfolio`}>
-                <i className="pf-allocation-threshold is-watch" />
-                <i className="pf-allocation-threshold is-high" />
+                {strategy ? null : (
+                  <>
+                    <i className="pf-allocation-threshold is-watch" />
+                    <i className="pf-allocation-threshold is-high" />
+                  </>
+                )}
                 <span style={{ width: `${fill}%` }} />
               </div>
               <strong className="pf-allocation-weight">{item.weight.toFixed(1)}%</strong>

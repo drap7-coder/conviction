@@ -463,6 +463,20 @@ export default function Portfolio({
     [sortedPositions],
   );
 
+  const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
+  const isStrategyBook = Boolean(activeSampleBook?.weights);
+
+  /** Strategy samples are designed concentration — don’t narrate them as portfolio failure. */
+  const stageBrief = isStrategyBook && activeSampleBook
+    ? {
+        headline: activeSampleBook.label,
+        summary: activeSampleBook.description,
+        tone: "neutral" as const,
+        largest: valueBrief.largest,
+        topThreeWeight: valueBrief.topThreeWeight,
+      }
+    : valueBrief;
+
   const allocationItems = useMemo(() => sortedPositions
     .filter(({ metrics }) => metrics.weight !== null)
     .map(({ pos, metrics }) => {
@@ -478,8 +492,6 @@ export default function Portfolio({
       };
     })
     .sort((a, b) => b.weight - a.weight), [quotes, sortedPositions]);
-
-  const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
 
   // ── Data-quality states ──
 
@@ -729,13 +741,19 @@ export default function Portfolio({
       {!calcFailed ? (
         <PortfolioCheckPanel
           riskFlags={riskFlags}
+          sampleBook={activeSampleBook}
           onReviewPositions={reviewPositions}
         />
       ) : null}
 
-      {!calcFailed ? <PortfolioAllocationLadder items={allocationItems} /> : null}
+      {!calcFailed ? (
+        <PortfolioAllocationLadder
+          items={allocationItems}
+          mode={activeSampleBook?.weights ? "strategy" : "personal"}
+        />
+      ) : null}
 
-      {sectorMixData.length > 0 ? (
+      {sectorMixData.length > 0 && !activeSampleBook?.weights ? (
         <section className="pf-section pf-exposure-card">
           <div className="pf-exposure-heading">
             <div>
@@ -751,7 +769,7 @@ export default function Portfolio({
       {calcFailed ? (
         <div className="empty-state compact">
           <p>Insights need live prices.</p>
-          <small>Open Value and refresh quotes, then come back to the check.</small>
+          <small>Open Value and refresh quotes, then come back.</small>
           <button type="button" className="brief-link" onClick={() => { setActiveTab("value"); handleRefresh(); }}>
             Retry on Value →
           </button>
@@ -760,8 +778,8 @@ export default function Portfolio({
     </>
   ) : (
     <div className="empty-state">
-      <p>Insights need a portfolio to check.</p>
-      <small>Pick All-Weather, 60/40, Three-Fund, or Permanent above — or add a position on Value.</small>
+      <p>Insights need a portfolio to read.</p>
+      <small>Pick a classic book above to learn the design — or add positions on Value.</small>
       <button type="button" className="brief-link" onClick={() => setActiveTab("value")}>
         Go to Value →
       </button>
@@ -825,14 +843,14 @@ export default function Portfolio({
             {hasData ? (
               <>
                 {!hideHero ? (
-                  <section className={`pf-value-stage tone-${valueBrief.tone}`} aria-label="Portfolio value and concentration">
+                  <section className={`pf-value-stage tone-${stageBrief.tone}`} aria-label="Portfolio value and concentration">
                     <div className="pf-value-stage-copy">
                       <div className="pf-value-stage-topline">
                         <span className="pf-value-stage-eyebrow">
                           <i aria-hidden="true" />
                           {activeSampleBook ? `${activeSampleBook.label} · Illustrative portfolio` : "My portfolio · Live value"}
                         </span>
-                        <span className="pf-value-stage-status">{valueToneLabel(valueBrief.tone)}</span>
+                        <span className="pf-value-stage-status">{valueToneLabel(stageBrief.tone)}</span>
                       </div>
                       <div className="pf-value-stage-total">
                         <SplitFlapMetric
@@ -842,19 +860,20 @@ export default function Portfolio({
                         />
                         {portfolioHeatmapSession ? <span className="pf-hero-session-chip">{portfolioHeatmapSession}</span> : null}
                       </div>
-                      <h1>{valueBrief.headline}</h1>
-                      <p>{valueBrief.summary}</p>
+                      <h1>{stageBrief.headline}</h1>
+                      <p>{stageBrief.summary}</p>
                       <div className="pf-value-stage-actions">
                         <button className="pf-value-refresh" onClick={handleRefresh} disabled={loading}>
                           {loading ? "Refreshing prices…" : "Refresh prices"}
                         </button>
-                        {valueBrief.tone === "watch" || valueBrief.tone === "concentrated" ? (
+                        {isStrategyBook || stageBrief.tone === "watch" || stageBrief.tone === "concentrated" ? (
                           <button
                             type="button"
                             className="pf-value-insights-link"
                             onClick={() => setActiveTab("insights")}
                           >
-                            See why on Insights <span aria-hidden="true">→</span>
+                            {isStrategyBook ? "See how it’s built" : "See why on Insights"}{" "}
+                            <span aria-hidden="true">→</span>
                           </button>
                         ) : null}
                       </div>
@@ -871,12 +890,12 @@ export default function Portfolio({
                         <strong>{signedCurrency(portfolioMetrics.totalUnrealizedGL)}</strong>
                         <span>Unrealized · {portfolioMetrics.positionsWithCost}/{portfolioMetrics.positionCount} cost basis</span>
                       </div>
-                      <div className={valueBrief.largest && valueBrief.largest.weight > 20 ? "alert" : ""}>
-                        <strong>{valueBrief.largest ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(1)}%` : "—"}</strong>
-                        <span>Largest position</span>
+                      <div className={!isStrategyBook && stageBrief.largest && stageBrief.largest.weight > 20 ? "alert" : ""}>
+                        <strong>{stageBrief.largest ? `${stageBrief.largest.ticker} ${stageBrief.largest.weight.toFixed(1)}%` : "—"}</strong>
+                        <span>{isStrategyBook ? "Largest sleeve" : "Largest position"}</span>
                       </div>
-                      <div className={valueBrief.topThreeWeight !== null && valueBrief.topThreeWeight > 60 ? "alert" : ""}>
-                        <strong>{valueBrief.topThreeWeight === null ? "—" : `${valueBrief.topThreeWeight.toFixed(1)}%`}</strong>
+                      <div className={!isStrategyBook && stageBrief.topThreeWeight !== null && stageBrief.topThreeWeight > 60 ? "alert" : ""}>
+                        <strong>{stageBrief.topThreeWeight === null ? "—" : `${stageBrief.topThreeWeight.toFixed(1)}%`}</strong>
                         <span>Top three weight</span>
                       </div>
                     </div>
