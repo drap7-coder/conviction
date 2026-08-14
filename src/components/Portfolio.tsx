@@ -477,16 +477,9 @@ export default function Portfolio({
   const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
   const isStrategyBook = Boolean(activeSampleBook?.weights);
 
-  /** Strategy samples are designed concentration — don’t narrate them as portfolio failure. */
-  const stageBrief = isStrategyBook && activeSampleBook
-    ? {
-        headline: activeSampleBook.label,
-        summary: activeSampleBook.description,
-        tone: "neutral" as const,
-        largest: valueBrief.largest,
-        topThreeWeight: valueBrief.topThreeWeight,
-      }
-    : valueBrief;
+  /** Book name in the stage — “My Portfolio” or “All-Weather”, not a prose brief. */
+  const stageHeadline = activeSampleBook?.label ?? "My Portfolio";
+  const stageTone = isStrategyBook ? ("neutral" as const) : valueBrief.tone;
 
   const allocationItems = useMemo(() => sortedPositions
     .filter(({ metrics }) => metrics.weight !== null)
@@ -801,13 +794,9 @@ export default function Portfolio({
 
   const stageEyebrow = hasData
     ? activeSampleBook
-      ? `${activeSampleBook.label} · Illustrative`
-      : `My portfolio · ${portfolioHeatmapSession ?? "Live"}`
+      ? "Portfolio · Illustrative"
+      : `Portfolio · ${portfolioHeatmapSession ?? "Live"}`
     : "Portfolio";
-  const stageHeadline = hasData ? stageBrief.headline : "Pick a book.";
-  const stageSummary = hasData
-    ? stageBrief.summary
-    : "Classic sleeves below — or add a position.";
 
   return (
     <div className="pf">
@@ -821,10 +810,9 @@ export default function Portfolio({
       <ProductStage
         variant="portfolio"
         aria-label="Portfolio overview"
-        tone={hasData ? stageBrief.tone : "neutral"}
+        tone={hasData ? stageTone : "neutral"}
         eyebrow={stageEyebrow}
-        headline={stageHeadline}
-        summary={stageSummary}
+        headline={hasData ? stageHeadline : "My Portfolio"}
         metrics={
           hasData ? (
             <>
@@ -836,10 +824,10 @@ export default function Portfolio({
                 <strong>{signedCurrency(portfolioMetrics.dailyChange)}</strong>
                 <span>Today · {percent(portfolioMetrics.dailyChangePercent)}</span>
               </div>
-              <div className={!isStrategyBook && stageBrief.largest && stageBrief.largest.weight > 20 ? "is-alert" : ""}>
+              <div className={!isStrategyBook && valueBrief.largest && valueBrief.largest.weight > 20 ? "is-alert" : ""}>
                 <strong>
-                  {stageBrief.largest
-                    ? `${stageBrief.largest.ticker} ${stageBrief.largest.weight.toFixed(0)}%`
+                  {valueBrief.largest
+                    ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(0)}%`
                     : "—"}
                 </strong>
                 <span>{isStrategyBook ? "Largest sleeve" : "Largest position"}</span>
@@ -853,22 +841,24 @@ export default function Portfolio({
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
               {loading ? "Refreshing…" : "Refresh prices"}
             </button>
-            {isStrategyBook || stageBrief.tone === "watch" || stageBrief.tone === "concentrated" ? (
+            {!isStrategyBook && (stageTone === "watch" || stageTone === "concentrated") ? (
               <button
                 type="button"
                 className="product-stage-action product-stage-action--link"
                 onClick={() => setActiveTab("insights")}
               >
-                {isStrategyBook ? "See how it’s built" : "See why on Insights"}{" "}
-                <span aria-hidden="true">→</span>
+                See why on Insights <span aria-hidden="true">→</span>
+              </button>
+            ) : isStrategyBook ? (
+              <button
+                type="button"
+                className="product-stage-action product-stage-action--link"
+                onClick={() => setActiveTab("insights")}
+              >
+                See how it’s built <span aria-hidden="true">→</span>
               </button>
             ) : null}
           </div>
-        ) : null}
-        {activeSampleBook ? (
-          <small className="product-stage-note">
-            Sample positions never replace your saved portfolio. Editing one creates a personal copy.
-          </small>
         ) : null}
       </ProductStage>
 
