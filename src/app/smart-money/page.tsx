@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { InvestorBookPanel } from "@/app/components/InvestorBookPanel";
 import { PoliticiansMovesPanel } from "@/app/components/PoliticiansMovesPanel";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
+import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const SMART_MONEY_VIEWS = [
@@ -129,31 +130,13 @@ export default function SmartMoneyPage() {
         onChange={(id) => setActiveView(id as SmartMoneyView)}
       />
 
-      <section className="product-stage product-stage--smart-money" aria-label="Smart Money overview">
-        <div className="product-stage-copy">
-          <span className="product-stage-eyebrow">
-            <i aria-hidden="true" /> Smart Money · Filed evidence
-          </span>
-          <h1>What power filed.</h1>
-          <p>
-            13F books and STOCK Act. Filed positions — not forecasts.
-          </p>
-        </div>
-        <div className="product-stage-metrics product-stage-metrics--text" aria-label="Available evidence">
-          <div>
-            <strong>13F</strong>
-            <span>Institutions</span>
-          </div>
-          <div>
-            <strong>STOCK</strong>
-            <span>Politicians</span>
-          </div>
-          <div>
-            <strong>Filed</strong>
-            <span>Not forecast</span>
-          </div>
-        </div>
-      </section>
+      <ProductStage
+        variant="smart-money"
+        aria-label="Smart Money overview"
+        eyebrow="Smart Money · Filed evidence"
+        headline="What power filed."
+        summary="13F books and STOCK Act. Filed positions — not forecasts."
+      />
 
       <div
         id="smart-money-panel-institutions"

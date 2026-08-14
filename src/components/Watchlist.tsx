@@ -12,6 +12,7 @@ import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import {
   WatchlistDailyBrief,
@@ -93,11 +94,9 @@ function highlightMatch(text: string, query: string) {
 
 export default function Watchlist({
   children,
-  hidePurpose = false,
   composeFirst = false,
 }: {
   children?: ReactNode;
-  hidePurpose?: boolean;
   /** Put the Track compose bar under portfolio value / above list content. */
   composeFirst?: boolean;
 }) {
@@ -591,18 +590,19 @@ export default function Watchlist({
 
   return (
     <div>
-      {!hidePurpose ? (
-        <div className="page-purpose">
-          <span className="page-purpose-eyebrow">Watchlist</span>
-          <h2 className="page-purpose-title">What changed in the companies you follow?</h2>
-        </div>
-      ) : null}
-
       <ViewSwitcher
         label="Choose a Watchlist view"
         options={[...WATCHLIST_TABS]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as WatchlistTab)}
+      />
+
+      <ProductStage
+        variant="watchlist"
+        aria-label="Watchlist"
+        eyebrow={`Watchlist · ${sessionLabel}`}
+        headline="What changed."
+        summary="Companies you follow — evidence first."
       />
 
       {composeFirst ? composeBar : null}
