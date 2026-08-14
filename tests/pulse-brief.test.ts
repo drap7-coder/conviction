@@ -35,11 +35,11 @@ describe("Pulse decision briefs", () => {
   it("distinguishes broad from concentrated trending confirmation", () => {
     expect(buildTrendingBreadthBrief(0.6, 0.4)).toMatchObject({
       tone: "positive",
-      headline: "Momentum has broad market confirmation.",
+      headline: "Breadth confirms the move.",
     });
     expect(buildTrendingBreadthBrief(-0.7, -0.5)).toMatchObject({
       tone: "negative",
-      headline: "Momentum is concentrated at the top.",
+      headline: "Narrow tape — top-heavy.",
     });
   });
 
