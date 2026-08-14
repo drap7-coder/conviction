@@ -2297,47 +2297,47 @@ details > summary::before {
   margin: 0;
 }
 
-/* Always-on portfolio book switcher — personal first, samples below. */
+/* Always-on portfolio book switcher — My Portfolio pill, samples below. */
 .pf-book-switch {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   margin: 0 0 16px;
-  padding: 16px 18px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--surface) 76%, #ffffff);
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
-.pf-book-switch-stack {
+.pf-book-switch-primary {
   display: grid;
   gap: 6px;
   justify-items: start;
 }
 
 .pf-book-switch-mine {
-  display: grid;
-  gap: 3px;
+  display: inline-grid;
+  gap: 2px;
+  justify-items: center;
   margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  padding: 8px 14px 6px;
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, #ffffff);
   color: var(--ink);
   font-family: inherit;
-  font-size: 1.18rem;
+  font-size: 0.92rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   line-height: 1.15;
   cursor: pointer;
-  text-align: left;
+  text-align: center;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.pf-book-switch-mine:hover .pf-book-switch-mine-label,
-.pf-book-switch-mine:focus-visible .pf-book-switch-mine-label {
-  color: color-mix(in srgb, var(--ink) 82%, var(--accent));
-  outline: none;
-}
-
+.pf-book-switch-mine:hover,
 .pf-book-switch-mine:focus-visible {
+  border-color: color-mix(in srgb, var(--ink) 34%, var(--border));
+  color: var(--ink);
   outline: none;
 }
 
@@ -2347,11 +2347,18 @@ details > summary::before {
 
 .pf-book-switch-pencil {
   display: block;
-  width: min(7.5rem, 100%);
-  height: 6px;
-  color: color-mix(in srgb, var(--ink) 42%, var(--border));
-  opacity: 0.72;
+  width: min(5.8rem, 100%);
+  height: 5px;
+  color: color-mix(in srgb, var(--ink) 28%, var(--border));
+  opacity: 0.55;
   transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.pf-book-switch-mine.is-active {
+  border-color: color-mix(in srgb, var(--ink) 55%, var(--border));
+  background: var(--ink);
+  color: var(--on-ink, #fff);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--ink) 16%, transparent);
 }
 
 .pf-book-switch-mine.is-active .pf-book-switch-pencil {
@@ -2363,10 +2370,14 @@ details > summary::before {
   color: var(--muted);
 }
 
+.pf-book-switch-mine:not(.is-active) .pf-book-switch-pencil {
+  opacity: 0.35;
+}
+
 .pf-book-switch-lede {
   margin: 0;
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
   line-height: 1.35;
   max-width: 36rem;
 }
@@ -2375,10 +2386,10 @@ details > summary::before {
   display: grid;
   gap: 2px;
   margin-top: 2px;
-  padding: 10px 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .pf-book-switch-lede--sample strong {
@@ -2396,11 +2407,10 @@ details > summary::before {
 
 .pf-book-switch-samples {
   display: grid;
-  gap: 10px;
-  margin-left: 2px;
-  padding: 12px 0 0 14px;
-  border-top: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
-  border-left: 2px solid color-mix(in srgb, var(--border) 88%, transparent);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
 .pf-book-switch-samples-label {
@@ -2426,7 +2436,7 @@ details > summary::before {
   margin: 0;
   padding: 7px 11px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 999px;
   background: transparent;
   color: var(--muted);
   font-family: inherit;
@@ -2456,85 +2466,6 @@ details > summary::before {
 .pf-book-switch-mine:disabled {
   opacity: 0.55;
   cursor: default;
-}
-
-.pf-value-view .pf-book-switch {
-  gap: 14px;
-  padding: 16px 18px;
-  border-color: rgba(255, 255, 255, 0.09);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 100% 0%, rgba(94, 234, 212, 0.09), transparent 34%),
-    linear-gradient(145deg, #111722 0%, #0d131c 100%);
-  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-}
-
-.pf-value-view .pf-book-switch-mine {
-  color: #f8fafc;
-}
-
-.pf-value-view .pf-book-switch-mine:not(.is-active) {
-  color: #98a4b5;
-}
-
-.pf-value-view .pf-book-switch-mine:hover .pf-book-switch-mine-label,
-.pf-value-view .pf-book-switch-mine:focus-visible .pf-book-switch-mine-label {
-  color: #d8fffa;
-}
-
-.pf-value-view .pf-book-switch-pencil {
-  color: rgba(148, 163, 184, 0.55);
-}
-
-.pf-value-view .pf-book-switch-mine.is-active .pf-book-switch-pencil {
-  color: #5eead4;
-}
-
-.pf-value-view .pf-book-switch-lede {
-  color: #8f9bad;
-  font-size: 0.77rem;
-}
-
-.pf-value-view .pf-book-switch-lede--sample {
-  border-color: rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.pf-value-view .pf-book-switch-lede--sample strong {
-  color: #e2e8f0;
-}
-
-.pf-value-view .pf-book-switch-lede--sample span {
-  color: #8f9bad;
-}
-
-.pf-value-view .pf-book-switch-samples {
-  border-top-color: rgba(255, 255, 255, 0.08);
-  border-left-color: rgba(94, 234, 212, 0.22);
-}
-
-.pf-value-view .pf-book-switch-samples-label {
-  color: #8390a2;
-}
-
-.pf-value-view .pf-book-switch-tab {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.035);
-  color: #98a4b5;
-}
-
-.pf-value-view .pf-book-switch-tab:hover,
-.pf-value-view .pf-book-switch-tab:focus-visible {
-  border-color: rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.065);
-  color: #f8fafc;
-}
-
-.pf-value-view .pf-book-switch-tab.is-active {
-  border-color: rgba(94, 234, 212, 0.5);
-  background: rgba(94, 234, 212, 0.15);
-  color: #d8fffa;
-  box-shadow: inset 0 0 0 1px rgba(94, 234, 212, 0.06);
 }
 
 /* Legacy empty-state sample chips (kept for any residual empty layouts). */

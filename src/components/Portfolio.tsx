@@ -154,7 +154,7 @@ function SampleBooksSwitcher({
 
   return (
     <section className="pf-book-switch" aria-label="Portfolio books">
-      <div className="pf-book-switch-stack">
+      <div className="pf-book-switch-primary">
         <button
           type="button"
           role="tab"
