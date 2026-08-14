@@ -2371,11 +2371,36 @@ details > summary::before {
   max-width: 36rem;
 }
 
+.pf-book-switch-lede--sample {
+  display: grid;
+  gap: 2px;
+  margin-top: 2px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+}
+
+.pf-book-switch-lede--sample strong {
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.pf-book-switch-lede--sample span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 .pf-book-switch-samples {
   display: grid;
-  gap: 8px;
-  padding-top: 12px;
+  gap: 10px;
+  margin-left: 2px;
+  padding: 12px 0 0 14px;
   border-top: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--border) 88%, transparent);
 }
 
 .pf-book-switch-samples-label {
@@ -2470,8 +2495,22 @@ details > summary::before {
   font-size: 0.77rem;
 }
 
+.pf-value-view .pf-book-switch-lede--sample {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.pf-value-view .pf-book-switch-lede--sample strong {
+  color: #e2e8f0;
+}
+
+.pf-value-view .pf-book-switch-lede--sample span {
+  color: #8f9bad;
+}
+
 .pf-value-view .pf-book-switch-samples {
   border-top-color: rgba(255, 255, 255, 0.08);
+  border-left-color: rgba(94, 234, 212, 0.22);
 }
 
 .pf-value-view .pf-book-switch-samples-label {
