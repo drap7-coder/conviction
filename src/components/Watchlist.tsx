@@ -12,13 +12,33 @@ import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { ViewSwitcher } from "@/components/ViewSwitcher";
 import {
   WatchlistDailyBrief,
   type WatchlistNewsSummary,
   type WatchlistTransition,
 } from "@/components/WatchlistDailyBrief";
+
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
+
+/** Matches Portfolio Value/Insights: glanceable surface first, analysis second. */
+const WATCHLIST_TABS = [
+  {
+    id: "moves",
+    label: "Moves",
+    tabId: "watchlist-tab-moves",
+    panelId: "watchlist-panel-moves",
+  },
+  {
+    id: "insights",
+    label: "Insights",
+    tabId: "watchlist-tab-insights",
+    panelId: "watchlist-panel-insights",
+  },
+] as const;
+
+type WatchlistTab = (typeof WATCHLIST_TABS)[number]["id"];
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
@@ -113,6 +133,7 @@ export default function Watchlist({
 
   // Search state
   const [searchResult, setSearchResult] = useState<{ type: "navigate" | "filter" | "unrecognized"; text: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<WatchlistTab>("moves");
 
   const loadWatchlist = useCallback(async () => {
     const browserEntries = readBrowserWatchlist();
@@ -577,15 +598,11 @@ export default function Watchlist({
         </div>
       ) : null}
 
-      <WatchlistDailyBrief
-        entries={briefingEntries}
-        quotes={quotes}
-        newsByTicker={newsByTicker}
-        transitions={transitions}
-        loading={loading || briefLoading}
-        sessionLabel={sessionLabel}
-        portfolioTickers={portfolioTickers}
-        watchlistTickers={entries.map((entry) => entry.ticker)}
+      <ViewSwitcher
+        label="Choose a Watchlist view"
+        options={[...WATCHLIST_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as WatchlistTab)}
       />
 
       {composeFirst ? composeBar : null}
@@ -598,80 +615,111 @@ export default function Watchlist({
 
       {!composeFirst ? composeBar : null}
 
-      {loading ? <PageLoadingMotion label="Loading watchlist" compact /> : null}
+      <div
+        id="watchlist-panel-moves"
+        role="tabpanel"
+        aria-labelledby="watchlist-tab-moves"
+        hidden={activeTab !== "moves"}
+      >
+        {activeTab === "moves" ? (
+          <>
+            {loading ? <PageLoadingMotion label="Loading watchlist" compact /> : null}
 
-      {!loading && entries.length === 0 ? (
-        <div className="empty-state">
-          <p>Add companies you care about.</p>
-          <small>Track names above, then tap a heatmap tile to open the company dashboard.</small>
-          <Link href="/pulse" className="brief-link">
-            Browse market moves →
-          </Link>
-        </div>
-      ) : null}
-
-      {loading || entries.length > 0 || children ? (
-        <StockHeatmap
-          title="Watchlist"
-          subtitle=""
-          loading={loading}
-          sessionLabel={
-            entries
-              .map((entry) => {
-                const quote = quotes[entry.ticker];
-                return quote ? getLivePrice(quote).label : null;
-              })
-              .find((label): label is string => Boolean(label)) ?? null
-          }
-          items={entries.map((entry) => {
-            const quote = quotes[entry.ticker];
-            const live = quote ? getLivePrice(quote) : null;
-            const price = live?.price ?? quote?.price ?? null;
-            const previousClose =
-              quote?.previousClose
-              ?? (price != null && quote?.change != null ? price - quote.change : null);
-            return {
-              ticker: entry.ticker,
-              name: entry.companyName,
-              price,
-              changePercent: live?.changePercent ?? quote?.changePercent ?? null,
-              marketCap: quote?.marketCap ?? null,
-              sparkline: sparklineValuesFromQuote({
-                sparkline: quote?.sparkline,
-                price,
-                previousClose,
-              }),
-            };
-          })}
-          footer={children}
-        />
-      ) : null}
-
-      {!loading && entries.length > 0 ? (
-        <div className="wl-manage-row" aria-label="Manage watchlist names">
-          <span className="wl-manage-label">
-            {entries.length} symbol{entries.length === 1 ? "" : "s"}
-          </span>
-          <div className="wl-manage-chips">
-            {entries.map((entry) => (
-              <span key={entry.ticker} className="wl-manage-chip">
-                <Link href={`/companies/${encodeURIComponent(entry.ticker)}`}>
-                  {entry.ticker}
+            {!loading && entries.length === 0 ? (
+              <div className="empty-state">
+                <p>Add companies you care about.</p>
+                <small>Track names above, then tap a heatmap tile to open the company dashboard.</small>
+                <Link href="/pulse" className="brief-link">
+                  Browse market moves →
                 </Link>
-                <button
-                  type="button"
-                  className="wl-manage-remove"
-                  onClick={() => void handleRemove(entry.ticker)}
-                  disabled={removing === entry.ticker}
-                  aria-label={`Remove ${entry.ticker} from watchlist`}
-                >
-                  {removing === entry.ticker ? "…" : "×"}
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
+              </div>
+            ) : null}
+
+            {loading || entries.length > 0 || children ? (
+              <StockHeatmap
+                title="Watchlist"
+                subtitle=""
+                loading={loading}
+                sessionLabel={
+                  entries
+                    .map((entry) => {
+                      const quote = quotes[entry.ticker];
+                      return quote ? getLivePrice(quote).label : null;
+                    })
+                    .find((label): label is string => Boolean(label)) ?? null
+                }
+                items={entries.map((entry) => {
+                  const quote = quotes[entry.ticker];
+                  const live = quote ? getLivePrice(quote) : null;
+                  const price = live?.price ?? quote?.price ?? null;
+                  const previousClose =
+                    quote?.previousClose
+                    ?? (price != null && quote?.change != null ? price - quote.change : null);
+                  return {
+                    ticker: entry.ticker,
+                    name: entry.companyName,
+                    price,
+                    changePercent: live?.changePercent ?? quote?.changePercent ?? null,
+                    marketCap: quote?.marketCap ?? null,
+                    sparkline: sparklineValuesFromQuote({
+                      sparkline: quote?.sparkline,
+                      price,
+                      previousClose,
+                    }),
+                  };
+                })}
+                footer={children}
+              />
+            ) : null}
+
+            {!loading && entries.length > 0 ? (
+              <div className="wl-manage-row" aria-label="Manage watchlist names">
+                <span className="wl-manage-label">
+                  {entries.length} symbol{entries.length === 1 ? "" : "s"}
+                </span>
+                <div className="wl-manage-chips">
+                  {entries.map((entry) => (
+                    <span key={entry.ticker} className="wl-manage-chip">
+                      <Link href={`/companies/${encodeURIComponent(entry.ticker)}`}>
+                        {entry.ticker}
+                      </Link>
+                      <button
+                        type="button"
+                        className="wl-manage-remove"
+                        onClick={() => void handleRemove(entry.ticker)}
+                        disabled={removing === entry.ticker}
+                        aria-label={`Remove ${entry.ticker} from watchlist`}
+                      >
+                        {removing === entry.ticker ? "…" : "×"}
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : null}
+      </div>
+
+      <div
+        id="watchlist-panel-insights"
+        role="tabpanel"
+        aria-labelledby="watchlist-tab-insights"
+        hidden={activeTab !== "insights"}
+      >
+        {activeTab === "insights" ? (
+          <WatchlistDailyBrief
+            entries={briefingEntries}
+            quotes={quotes}
+            newsByTicker={newsByTicker}
+            transitions={transitions}
+            loading={loading || briefLoading}
+            sessionLabel={sessionLabel}
+            portfolioTickers={portfolioTickers}
+            watchlistTickers={entries.map((entry) => entry.ticker)}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
