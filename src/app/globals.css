@@ -2372,16 +2372,6 @@ details > summary::before {
   opacity: 0.35;
 }
 
-.pf-book-switch-lede {
-  margin: 2px 0 0;
-  color: var(--ink);
-  font-size: 0.92rem;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  line-height: 1.35;
-  max-width: 36rem;
-}
-
 .pf-book-switch-samples {
   display: grid;
   gap: 10px;
@@ -11553,6 +11543,39 @@ a.signal-block-conclusion-link:hover {
   font-family: var(--font-mono);
   font-size: 0.52rem;
   line-height: 1.4;
+}
+
+.product-stage-footer {
+  position: relative;
+  z-index: 1;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.portfolio-stage-lede {
+  display: grid;
+  gap: 7px;
+  padding-top: 4px;
+}
+
+.portfolio-stage-pencil-rule {
+  display: block;
+  width: 100%;
+  height: 8px;
+  color: rgba(248, 212, 119, 0.48);
+}
+
+.portfolio-stage-lede-text {
+  color: #f8d477;
+  font-family: var(--font-mono);
+  font-size: clamp(0.68rem, 1.2vw, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  line-height: 1.4;
+}
+
+.product-stage .portfolio-stage-lede-text .typewriter-cursor {
+  background: #f8d477;
 }
 
 .product-stage-metrics {

@@ -19,6 +19,7 @@ export function ProductStage({
   metrics,
   tone,
   children,
+  footer,
   "aria-label": ariaLabel,
 }: {
   variant: ProductStageVariant;
@@ -29,6 +30,8 @@ export function ProductStage({
   tone?: ProductStageTone;
   /** Extra copy-column content (actions, notes). */
   children?: ReactNode;
+  /** Full-width content anchored beneath both copy and metrics. */
+  footer?: ReactNode;
   "aria-label": string;
 }) {
   const hasMetrics = Boolean(metrics);
@@ -53,6 +56,7 @@ export function ProductStage({
           {metrics}
         </div>
       ) : null}
+      {footer ? <div className="product-stage-footer">{footer}</div> : null}
     </section>
   );
 }
