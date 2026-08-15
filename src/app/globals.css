@@ -71,6 +71,7 @@
   --ticker-z: 100;
   --bottom-tab-height: 58px;
   --mobile-page-gutter: 22px;
+  --sticky-header-offset: 68px;
 
   /* Chart theme */
   --chart-surface: #ffffff;
@@ -646,24 +647,92 @@ details > summary::before {
 }
 
 .bottom-tab-item {
+  --tab-accent: var(--accent);
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
   min-width: 0;
-  padding: 4px 2px;
+  padding: 3px 2px 2px;
+  border-radius: 12px;
   color: var(--quiet);
   text-decoration: none;
-  transition: color 0.15s;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.bottom-tab-item.tone-teal,
+.desktop-nav-item.tone-teal { --tab-accent: #0f9f8f; }
+
+.bottom-tab-item.tone-blue,
+.desktop-nav-item.tone-blue { --tab-accent: #4263eb; }
+
+.bottom-tab-item.tone-amber,
+.desktop-nav-item.tone-amber { --tab-accent: #d97706; }
+
+.bottom-tab-item.tone-rose,
+.desktop-nav-item.tone-rose { --tab-accent: #e64980; }
+
+.bottom-tab-item.tone-violet,
+.desktop-nav-item.tone-violet { --tab-accent: #7950f2; }
+
+.bottom-tab-icon {
+  display: grid;
+  width: 34px;
+  height: 27px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--tab-accent) 14%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tab-accent) 8%, transparent);
+  color: color-mix(in srgb, var(--tab-accent) 74%, var(--quiet));
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .bottom-tab-item.active {
-  color: var(--accent);
+  background: color-mix(in srgb, var(--tab-accent) 6%, transparent);
+  color: var(--ink);
 }
 
-.bottom-tab-item:hover {
-  color: var(--muted);
+.bottom-tab-item.active::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 24px;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: var(--tab-accent);
+  transform: translateX(-50%);
+}
+
+.bottom-tab-item.active .bottom-tab-icon {
+  border-color: color-mix(in srgb, var(--tab-accent) 38%, transparent);
+  background: color-mix(in srgb, var(--tab-accent) 17%, transparent);
+  color: var(--tab-accent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--tab-accent) 17%, transparent);
+  transform: translateY(-1px);
+}
+
+.bottom-tab-item.active .bottom-tab-label {
+  color: var(--ink);
+  font-weight: 750;
+}
+
+.bottom-tab-item:hover .bottom-tab-icon,
+.bottom-tab-item:focus-visible .bottom-tab-icon {
+  border-color: color-mix(in srgb, var(--tab-accent) 32%, transparent);
+  color: var(--tab-accent);
+}
+
+.bottom-tab-item:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--tab-accent) 45%, transparent);
+  outline-offset: 1px;
 }
 
 .bottom-tab-label {
@@ -689,6 +758,7 @@ details > summary::before {
 }
 
 .desktop-nav-item {
+  --tab-accent: var(--accent);
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -708,8 +778,8 @@ details > summary::before {
 }
 
 .desktop-nav-item.active {
-  color: var(--accent);
-  background: var(--accent-dim);
+  color: var(--tab-accent);
+  background: color-mix(in srgb, var(--tab-accent) 10%, transparent);
 }
 
 .desktop-nav-label {
@@ -15516,7 +15586,15 @@ a.pulse-news-narrative-title:focus-visible {
 
 /* Shared view switcher — text labels, selected = ink + underline. */
 .view-switch {
-  margin: 0 0 18px;
+  position: sticky;
+  top: var(--sticky-header-offset);
+  z-index: calc(var(--ticker-z) - 20);
+  margin: -4px -8px 14px;
+  padding: 4px 8px 0;
+  scroll-margin-top: var(--sticky-header-offset);
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .view-switch-tabs {
@@ -15547,7 +15625,7 @@ a.pulse-news-narrative-title:focus-visible {
   line-height: 1.2;
   text-align: center;
   cursor: pointer;
-  transition: color 0.16s ease;
+  transition: color 0.16s ease, background-color 0.16s ease;
 }
 
 .view-switch-tab::after {
@@ -15570,6 +15648,7 @@ a.pulse-news-narrative-title:focus-visible {
 .view-switch-tab.is-active {
   color: var(--ink);
   font-weight: 650;
+  background: color-mix(in srgb, var(--ink) 4%, transparent);
 }
 
 .view-switch-tab.is-active::after {
