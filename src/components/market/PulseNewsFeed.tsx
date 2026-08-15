@@ -313,24 +313,15 @@ export function PulseNewsFeed({
       ) : null}
 
       {showHeadlines ? (
-        <section className="pulse-news-more" aria-labelledby="pulse-news-more-title">
+        <section className="pulse-news-more" aria-label="Headlines">
           {section === "all" ? (
             <header className="pulse-news-more-header">
               <div>
                 <span>Deeper read</span>
-                <h2 id="pulse-news-more-title">More headlines</h2>
+                <h2>More headlines</h2>
               </div>
-              <p>Secondary coverage, without repeats or filler.</p>
             </header>
-          ) : (
-            <header className="pulse-news-more-header">
-              <div>
-                <span>Wire</span>
-                <h2 id="pulse-news-more-title">Headlines by narrative</h2>
-              </div>
-              <p>Secondary coverage, without repeats or filler.</p>
-            </header>
-          )}
+          ) : null}
 
           <div className="pulse-news-filters" role="group" aria-label="Filter news by narrative">
             <button

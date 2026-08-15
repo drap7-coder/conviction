@@ -904,8 +904,8 @@ export default function Portfolio({
 
                 {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
                   <StockHeatmap
-                    title="Today’s movement"
-                    subtitle="Sized by position value · color shows today’s move"
+                    title="Today’s move"
+                    subtitle=""
                     items={portfolioHeatmapItems}
                     sessionLabel={portfolioHeatmapSession}
                   />
@@ -917,7 +917,6 @@ export default function Portfolio({
                     <div>
                       <span className="pf-section-eyebrow">Holdings</span>
                       <h2>Where the value lives</h2>
-                      <p>Live price, daily move, allocation, and total return—without leaving the portfolio.</p>
                     </div>
                     <span className="pf-values-position-count">
                       {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}

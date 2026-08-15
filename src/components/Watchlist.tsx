@@ -598,12 +598,7 @@ export default function Watchlist({
         variant="watchlist"
         aria-label="Watchlist"
         eyebrow={`Watchlist · ${sessionLabel}`}
-        headline={activeTab === "insights" ? "Worth your attention." : "What changed."}
-        summary={
-          activeTab === "insights"
-            ? undefined
-            : "Companies you follow — evidence first."
-        }
+        headline={activeTab === "insights" ? "Worth your attention." : "Your names."}
       />
 
       <GuestModeBanner
@@ -634,7 +629,7 @@ export default function Watchlist({
 
             {loading || entries.length > 0 || children ? (
               <StockHeatmap
-                title="Watchlist"
+                title="Today’s move"
                 subtitle=""
                 loading={loading}
                 sessionLabel={

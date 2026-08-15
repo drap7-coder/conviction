@@ -191,13 +191,7 @@ export default function MarketPulsePage() {
         options={[...PULSE_TABS]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as PulseTab)}
-      >
-        <p className="view-switch-context-line">
-          {activeTab === "indexes"
-            ? "Regime map — indexes, then sectors, then the rest."
-            : "Active names — liquidity and movement."}
-        </p>
-      </ViewSwitcher>
+      />
 
       <ProductStage
         variant="pulse"

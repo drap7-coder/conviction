@@ -85,13 +85,7 @@ export default function NewsPage() {
         options={[...NEWS_TABS]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as NewsTab)}
-      >
-        <p className="view-switch-context-line">
-          {activeTab === "brief"
-            ? "The few stories that matter."
-            : "Wire by theme. Skip filler."}
-        </p>
-      </ViewSwitcher>
+      />
 
       <ProductStage
         variant="news"
@@ -99,11 +93,9 @@ export default function NewsPage() {
         eyebrow={`News · ${brief.statusLabel}`}
         headline={activeTab === "brief" ? "What changed." : "The wire."}
         summary={
-          activeTab === "brief"
-            ? brief.leadTheme
-              ? `Lead: ${brief.leadTheme}. Ranked by consequence.`
-              : "Consequence over volume."
-            : "Filter when you want depth."
+          activeTab === "brief" && brief.leadTheme
+            ? `Lead: ${brief.leadTheme}.`
+            : undefined
         }
       />
 

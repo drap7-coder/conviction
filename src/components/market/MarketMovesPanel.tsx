@@ -219,7 +219,7 @@ export function MarketMovesPanel({
       {momentumBrief ? <PulseDecisionCard brief={momentumBrief} compact /> : null}
 
       <StockHeatmap
-        title="Active-name board"
+        title="Active names"
         subtitle=""
         sessionLabel={
           trending
@@ -259,7 +259,6 @@ export function MarketMovesPanel({
         })}
         onRemove={handleRemoveTrending}
       />
-      <p className="pulse-trending-note">Ranked by liquidity and price movement. Activity reveals attention—not conviction.</p>
     </div>
   );
 }

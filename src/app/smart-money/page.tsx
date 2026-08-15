@@ -134,8 +134,7 @@ export default function SmartMoneyPage() {
         variant="smart-money"
         aria-label="Smart Money overview"
         eyebrow="Smart Money · Filed evidence"
-        headline="What power filed."
-        summary="13F books and STOCK Act. Filed positions — not forecasts."
+        headline={activeView === "institutions" ? "What funds filed." : "What they traded."}
       />
 
       <div
