@@ -320,6 +320,13 @@ export const INSTITUTIONAL_IDEA_UNIVERSE: InstitutionalIdeaSecurity[] = [
   { ticker: "BABA", companyName: "Alibaba Group Holding", cusips: ["01609W102"] },
 ];
 
+export function findInstitutionalIdeaSecurity(
+  ticker: string,
+): InstitutionalIdeaSecurity | null {
+  const upper = ticker.trim().toUpperCase();
+  return INSTITUTIONAL_IDEA_UNIVERSE.find((security) => security.ticker === upper) ?? null;
+}
+
 export interface RecentFiling {
   accession: string;
   filingDate: string;

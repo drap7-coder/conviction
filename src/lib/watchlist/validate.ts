@@ -14,6 +14,7 @@
 
 import { CIK_MAP } from "@/lib/sec/cik";
 import { resolveCompanyByTicker, resolveCompanyByName, getCompanyTickerDataset } from "@/lib/sec/company-tickers";
+import { findInstitutionalIdeaSecurity } from "@/lib/sec/institutional";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
 
 // ---------------------------------------------------------------------------
@@ -367,7 +368,19 @@ export async function validateTicker(input: string): Promise<TickerValidationRes
     return resolveTickerFromCikMap(fallbackName);
   }
 
-  // 5. Try SEC dataset (dynamic)
+  // 5. Curated 13F rows must still open a quote when the SEC ticker directory is unavailable.
+  const institutionalSecurity = findInstitutionalIdeaSecurity(upperTicker);
+  if (institutionalSecurity) {
+    return {
+      valid: true,
+      ticker: institutionalSecurity.ticker,
+      companyName: institutionalSecurity.companyName,
+      source: "fallback",
+      supportsConvictionSignals: true,
+    };
+  }
+
+  // 6. Try SEC dataset (dynamic)
   return resolveTickerFromDataset(upperName);
 }
 
