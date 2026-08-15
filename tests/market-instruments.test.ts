@@ -62,6 +62,16 @@ describe("validateTicker market instruments", () => {
     expect(getMarketInstrument("XLK")?.portfolioExposure).toBe("Technology");
     expect(getMarketInstrument("XLV")?.portfolioExposure).toBe("Health Care");
   });
+
+  it("keeps curated institutional quote links valid without the SEC directory", async () => {
+    const brookfield = await validateTicker("BN");
+    expect(brookfield).toMatchObject({
+      valid: true,
+      ticker: "BN",
+      companyName: "Brookfield Corporation",
+      source: "fallback",
+    });
+  });
 });
 
 describe("supportsConvictionSignals", () => {

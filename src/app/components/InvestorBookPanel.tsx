@@ -10,6 +10,7 @@ import {
 } from "@/app/components/evidence-request";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import { INSTITUTIONAL_MANAGERS } from "@/lib/sec/institutional-managers";
+import { fmtCompactCurrency } from "@/lib/display/format";
 import type {
   AccumulationStatus,
   InstitutionalManagerBook,
@@ -32,6 +33,8 @@ type InvestorBookResponse = {
   status?: "success" | "timeout" | "error" | "empty";
   message?: string;
 };
+
+type PositionFilter = "changes" | "added" | "trimmed" | "all";
 
 const DEFAULT_MANAGER = "Berkshire Hathaway";
 
@@ -61,15 +64,6 @@ function formatShares(value: number): string {
   if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M`;
   if (amount >= 1_000) return `${Math.round(amount / 1_000)}K`;
   return amount.toLocaleString();
-}
-
-/** 13F values are reported in thousands of USD. */
-function formatReportedValue(value: number): string {
-  const dollars = value * 1000;
-  if (dollars >= 1_000_000_000) return `$${(dollars / 1_000_000_000).toFixed(1)}B`;
-  if (dollars >= 1_000_000) return `$${(dollars / 1_000_000).toFixed(1)}M`;
-  if (dollars >= 1_000) return `$${Math.round(dollars / 1_000)}K`;
-  return `$${Math.round(dollars).toLocaleString()}`;
 }
 
 function statusChipClass(status: AccumulationStatus): string {
@@ -133,7 +127,7 @@ export function InvestorBookPanel({
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
   const [requestKey, setRequestKey] = useState(0);
-  const [showExits, setShowExits] = useState(false);
+  const [positionFilter, setPositionFilter] = useState<PositionFilter>("changes");
 
   const selected = MANAGER_OPTIONS.find((manager) => manager.cik === selectedCik) ?? MANAGER_OPTIONS[0];
 
@@ -175,9 +169,17 @@ export function InvestorBookPanel({
 
   const visiblePositions = useMemo(() => {
     const positions = book?.positions ?? [];
-    if (showExits) return positions;
-    return positions.filter((position) => position.status !== "Exited");
-  }, [book, showExits]);
+    if (positionFilter === "added") {
+      return positions.filter((position) => position.status === "New" || position.status === "Increased");
+    }
+    if (positionFilter === "trimmed") {
+      return positions.filter((position) => position.status === "Reduced" || position.status === "Exited");
+    }
+    if (positionFilter === "changes") {
+      return positions.filter((position) => position.status !== "Unchanged");
+    }
+    return positions;
+  }, [book, positionFilter]);
 
   useEffect(() => {
     if (status === "success" && book) {
@@ -187,19 +189,41 @@ export function InvestorBookPanel({
 
   return (
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
-      <div className="investor-filter-row investor-book-managers" role="tablist" aria-label="Choose an investor">
-        {MANAGER_OPTIONS.map((manager) => (
-          <button
-            key={manager.cik}
-            type="button"
-            role="tab"
-            aria-selected={manager.cik === selectedCik}
-            className={manager.cik === selectedCik ? "active" : ""}
-            onClick={() => setSelectedCik(manager.cik)}
+      <div className="smart-money-control-row">
+        <label className="investor-manager-picker">
+          <span>Investor</span>
+          <select
+            value={selectedCik}
+            onChange={(event) => setSelectedCik(event.target.value)}
+            aria-label="Choose an investor"
           >
-            {manager.displayName}
-          </button>
-        ))}
+            {MANAGER_OPTIONS.map((manager) => (
+              <option key={manager.cik} value={manager.cik}>
+                {manager.displayName}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="investor-filter-row investor-book-filters" role="group" aria-label="Filter positions">
+          {(
+            [
+              ["changes", "Changes"],
+              ["added", "Added"],
+              ["trimmed", "Trimmed"],
+              ["all", "All"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={positionFilter === value}
+              className={positionFilter === value ? "active" : ""}
+              onClick={() => setPositionFilter(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {status === "loading" || status === "idle" ? (
@@ -220,71 +244,74 @@ export function InvestorBookPanel({
         <>
           <div className="smart-money-toolbar">
             <p>
-              As of {formatDate(book.filingQuarter)}
+              Showing {visiblePositions.length} position{visiblePositions.length === 1 ? "" : "s"}
+              {" · "}
+              as of {formatDate(book.filingQuarter)}
               {book.previousQuarter ? ` · vs ${formatDate(book.previousQuarter)}` : ""}
               {" · "}
-              {book.positionCount} holding{book.positionCount === 1 ? "" : "s"}
-              {" · "}
-              {formatReportedValue(book.totalReportedValue)}
+              {fmtCompactCurrency(book.totalReportedValue)}
             </p>
-            <button type="button" className="investor-book-toggle" onClick={() => setShowExits((value) => !value)}>
-              {showExits ? "Hide exits" : `Show exits (${book.exitedCount})`}
-            </button>
           </div>
 
-          <div className="smart-money-stream" role="list">
-            {visiblePositions.map((position, index) => {
-              const key = `${position.cusip}-${position.issuer}-${position.status}`;
-              const tracked = position.ticker ? trackedTickers.has(position.ticker.toUpperCase()) : false;
-              const adding = position.ticker ? addingTicker === position.ticker : false;
-              return (
-                <article
-                  className={`smart-money-row${index % 2 === 1 ? " is-alt" : ""}${statusRowClass(position.status)}`}
-                  role="listitem"
-                  key={key}
-                >
-                  <div className="smart-money-row-identity">
+          {visiblePositions.length > 0 ? (
+            <div className="smart-money-stream" role="list">
+              {visiblePositions.map((position, index) => {
+                const key = `${position.cusip}-${position.issuer}-${position.status}`;
+                const tracked = position.ticker ? trackedTickers.has(position.ticker.toUpperCase()) : false;
+                const adding = position.ticker ? addingTicker === position.ticker : false;
+                return (
+                  <article
+                    className={`smart-money-row${index % 2 === 1 ? " is-alt" : ""}${statusRowClass(position.status)}`}
+                    role="listitem"
+                    key={key}
+                  >
+                    <div className="smart-money-row-identity">
+                      {position.ticker ? (
+                        <Link href={`/companies/${encodeURIComponent(position.ticker)}`}>
+                          <strong>{position.ticker}</strong>
+                          <span>{position.issuer}</span>
+                        </Link>
+                      ) : (
+                        <div>
+                          <strong>{position.issuer}</strong>
+                          <span>{position.classTitle || "Common"}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="smart-money-row-move">
+                      <span className={statusChipClass(position.status)}>
+                        {statusLabel(position.status)}
+                      </span>
+                      <span>{changeSummary(position)}</span>
+                    </div>
+                    <div className="smart-money-row-size">
+                      <strong>
+                        {position.weight === null ? "—" : `${position.weight.toFixed(1)}% of book`}
+                      </strong>
+                      <span>
+                        {position.status === "Exited" ? "exited" : fmtCompactCurrency(position.reportedValue)}
+                      </span>
+                    </div>
                     {position.ticker ? (
-                      <Link href={`/companies/${encodeURIComponent(position.ticker)}`}>
-                        <strong>{position.ticker}</strong>
-                        <span>{position.issuer}</span>
-                      </Link>
+                      <WatchlistTrackControl
+                        ticker={position.ticker}
+                        companyName={position.issuer}
+                        tracked={tracked}
+                        adding={adding}
+                        onAdd={onAdd}
+                      />
                     ) : (
-                      <div>
-                        <strong>{position.issuer}</strong>
-                        <span>{position.classTitle || "Common"}</span>
-                      </div>
+                      <span className="watchlist-track is-missing" aria-hidden="true">—</span>
                     )}
-                  </div>
-                  <div className="smart-money-row-move">
-                    <span className={statusChipClass(position.status)}>
-                      {statusLabel(position.status)}
-                    </span>
-                    <span>{changeSummary(position)}</span>
-                  </div>
-                  <div className="smart-money-row-size">
-                    <strong>
-                      {position.weight === null ? "—" : `${position.weight.toFixed(1)}% of book`}
-                    </strong>
-                    <span>
-                      {position.status === "Exited" ? "exited" : formatReportedValue(position.reportedValue)}
-                    </span>
-                  </div>
-                  {position.ticker ? (
-                    <WatchlistTrackControl
-                      ticker={position.ticker}
-                      companyName={position.issuer}
-                      tracked={tracked}
-                      adding={adding}
-                      onAdd={onAdd}
-                    />
-                  ) : (
-                    <span className="watchlist-track is-missing" aria-hidden="true">—</span>
-                  )}
-                </article>
-              );
-            })}
-          </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="investor-moves-filter-empty">
+              No positions match this filter in the latest filing.
+            </div>
+          )}
         </>
       ) : null}
     </section>

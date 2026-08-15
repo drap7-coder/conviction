@@ -935,8 +935,58 @@ details > summary::before {
   line-height: 1.45;
 }
 
-.investor-book-managers {
-  margin-bottom: 16px;
+.smart-money-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 12px;
+}
+
+.smart-money-control-row .investor-filter-row {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.investor-manager-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.investor-manager-picker > span {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.investor-manager-picker select {
+  width: min(250px, 60vw);
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px solid var(--on-ink-border);
+  border-radius: 9px;
+  background: var(--ink-panel);
+  color: var(--on-ink);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.investor-manager-picker select:hover,
+.investor-manager-picker select:focus-visible {
+  border-color: color-mix(in srgb, #ffffff 24%, transparent);
+  outline: none;
+}
+
+.investor-manager-picker option {
+  background: var(--ink-panel);
+  color: var(--on-ink);
 }
 
 .smart-money-toolbar {
@@ -952,18 +1002,6 @@ details > summary::before {
   margin: 0;
   color: var(--muted);
   font-size: 0.82rem;
-}
-
-.investor-book-toggle {
-  padding: 7px 10px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: transparent;
-  color: var(--ink);
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 650;
-  cursor: pointer;
 }
 
 .smart-money-stream {
@@ -1177,6 +1215,19 @@ details > summary::before {
 }
 
 @media (max-width: 720px) {
+  .smart-money-control-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .investor-manager-picker {
+    justify-content: space-between;
+  }
+
+  .investor-manager-picker select {
+    width: min(260px, 72vw);
+  }
+
   .smart-money-row {
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 6px 12px;
