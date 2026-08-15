@@ -10,6 +10,7 @@ import {
 } from "@/app/components/evidence-request";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import { INSTITUTIONAL_MANAGERS } from "@/lib/sec/institutional-managers";
+import { fmtCompactCurrency } from "@/lib/display/format";
 import type {
   AccumulationStatus,
   InstitutionalManagerBook,
@@ -63,15 +64,6 @@ function formatShares(value: number): string {
   if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(1)}M`;
   if (amount >= 1_000) return `${Math.round(amount / 1_000)}K`;
   return amount.toLocaleString();
-}
-
-/** 13F values are reported in thousands of USD. */
-function formatReportedValue(value: number): string {
-  const dollars = value * 1000;
-  if (dollars >= 1_000_000_000) return `$${(dollars / 1_000_000_000).toFixed(1)}B`;
-  if (dollars >= 1_000_000) return `$${(dollars / 1_000_000).toFixed(1)}M`;
-  if (dollars >= 1_000) return `$${Math.round(dollars / 1_000)}K`;
-  return `$${Math.round(dollars).toLocaleString()}`;
 }
 
 function statusChipClass(status: AccumulationStatus): string {
@@ -257,7 +249,7 @@ export function InvestorBookPanel({
               as of {formatDate(book.filingQuarter)}
               {book.previousQuarter ? ` · vs ${formatDate(book.previousQuarter)}` : ""}
               {" · "}
-              {formatReportedValue(book.totalReportedValue)}
+              {fmtCompactCurrency(book.totalReportedValue)}
             </p>
           </div>
 
@@ -297,7 +289,7 @@ export function InvestorBookPanel({
                         {position.weight === null ? "—" : `${position.weight.toFixed(1)}% of book`}
                       </strong>
                       <span>
-                        {position.status === "Exited" ? "exited" : formatReportedValue(position.reportedValue)}
+                        {position.status === "Exited" ? "exited" : fmtCompactCurrency(position.reportedValue)}
                       </span>
                     </div>
                     {position.ticker ? (
