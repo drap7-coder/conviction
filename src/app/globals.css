@@ -2384,20 +2384,22 @@ details > summary::before {
 
 .pf-book-switch-samples {
   display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
+  gap: 10px;
+  margin: 2px 0 0;
+  padding: 14px 0 0;
   border: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border) 92%, transparent);
 }
 
 .pf-book-switch-samples-label {
   margin: 0;
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.95rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-transform: none;
 }
 
 .pf-book-switch-tabs {
