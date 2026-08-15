@@ -14718,6 +14718,13 @@ button.portfolio-check-item:focus-visible {
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
+.pulse-news-narrative.is-alt {
+  background:
+    radial-gradient(circle at 102% -8%, color-mix(in srgb, var(--narrative-accent) 12%, transparent), transparent 32%),
+    color-mix(in srgb, var(--ink) 4%, #f3f5f8);
+  border-color: color-mix(in srgb, var(--ink) 10%, var(--border));
+}
+
 .pulse-news-narrative.tone-negative {
   --narrative-accent: var(--red);
 }
@@ -15068,15 +15075,21 @@ a.pulse-news-narrative-title:focus-visible {
   align-items: center;
   min-width: 0;
   padding: 13px 15px;
+  background: #ffffff;
   transition: background-color 0.15s ease;
+}
+
+.pulse-news-row.is-alt {
+  background: color-mix(in srgb, var(--ink) 4%, #f2f4f7);
 }
 
 .pulse-news-row + .pulse-news-row {
   border-top: 1px solid var(--divider);
 }
 
-.pulse-news-row:hover {
-  background: color-mix(in srgb, var(--accent) 3%, #ffffff);
+.pulse-news-row:hover,
+.pulse-news-row.is-alt:hover {
+  background: color-mix(in srgb, var(--accent) 6%, #ffffff);
 }
 
 .pulse-news-row-meta {
