@@ -23,14 +23,12 @@ import {
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
-import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import SectorMixBars from "@/components/SectorMixBars";
 import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { StockHeatmap } from "@/components/StockHeatmap";
 import { PortfolioCheckPanel } from "@/components/PortfolioCheckPanel";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
@@ -42,16 +40,16 @@ import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 const PORTFOLIO_TABS = [
   {
-    id: "value",
-    label: "Value",
-    tabId: "portfolio-tab-value",
-    panelId: "portfolio-panel-value",
-  },
-  {
     id: "insights",
     label: "Insights",
     tabId: "portfolio-tab-insights",
     panelId: "portfolio-panel-insights",
+  },
+  {
+    id: "holdings",
+    label: "Holdings",
+    tabId: "portfolio-tab-holdings",
+    panelId: "portfolio-panel-holdings",
   },
 ] as const;
 
@@ -96,11 +94,6 @@ function percent(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   const sign = value >= 0 ? "+" : "";
   return `${sign}${value.toFixed(2)}%`;
-}
-
-function weightPct(value: number | null): string {
-  if (!isFiniteNumber(value)) return "—";
-  return `${value.toFixed(0)}%`;
 }
 
 // ── Sort types ──────────────────────────────────────────────────────────────
@@ -244,11 +237,12 @@ export default function Portfolio({
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PortfolioTab>(() => {
-    if (typeof window === "undefined") return "value";
+    if (typeof window === "undefined") return "insights";
     try {
-      return sessionStorage.getItem("conviction-portfolio-tab") === "insights" ? "insights" : "value";
+      const stored = sessionStorage.getItem("conviction-portfolio-tab");
+      return stored === "holdings" || stored === "value" ? "holdings" : "insights";
     } catch {
-      return "value";
+      return "insights";
     }
   });
   const [focusTicker, setFocusTicker] = useState<string | null>(null);
@@ -449,26 +443,6 @@ export default function Portfolio({
     return rows;
   }, [enriched, portfolioMetrics, sort]);
 
-  const portfolioHeatmapItems = useMemo(() => sortedPositions.map(({ pos, metrics, dailyPct }) => {
-    const quote = quotes.find((item) => item.ticker.toUpperCase() === pos.companyId.toUpperCase());
-    const live = quote ? getLivePrice(quote) : null;
-    const price = live?.price ?? pos.currentPrice ?? null;
-    return {
-      ticker: pos.companyId.toUpperCase(),
-      name: quote?.name ?? pos.companyId.toUpperCase(),
-      price,
-      changePercent: live?.changePercent ?? dailyPct,
-      marketCap: quote?.marketCap ?? null,
-      sizeValue: metrics.marketValue,
-      sizeLabel: `${metrics.marketValue !== null ? compactCurrency(metrics.marketValue) : "—"} position · ${metrics.weight !== null ? weightPct(metrics.weight) : "—"} of portfolio`,
-      sparkline: sparklineValuesFromQuote({
-        sparkline: quote?.sparkline,
-        price,
-        previousClose: quote?.previousClose ?? pos.previousClose ?? null,
-      }),
-    };
-  }), [quotes, sortedPositions]);
-
   const portfolioHeatmapSession = useMemo(() => {
     for (const quote of quotes) {
       const label = getLivePrice(quote).label;
@@ -589,7 +563,7 @@ export default function Portfolio({
 
   function reviewPositions(ticker?: string) {
     const target = ticker?.trim().toUpperCase() || null;
-    setActiveTab("value");
+    setActiveTab("holdings");
     setFocusTicker(target);
     window.requestAnimationFrame(() => {
       const el = target
@@ -775,9 +749,9 @@ export default function Portfolio({
       {calcFailed ? (
         <div className="empty-state compact">
           <p>Insights need live prices.</p>
-          <small>Open Value and refresh quotes, then come back.</small>
-          <button type="button" className="brief-link" onClick={() => { setActiveTab("value"); handleRefresh(); }}>
-            Retry on Value →
+          <small>Open Holdings and refresh quotes, then come back.</small>
+          <button type="button" className="brief-link" onClick={() => { setActiveTab("holdings"); handleRefresh(); }}>
+            Retry on Holdings →
           </button>
         </div>
       ) : null}
@@ -785,9 +759,9 @@ export default function Portfolio({
   ) : (
     <div className="empty-state">
       <p>Insights need a portfolio to read.</p>
-      <small>Pick a classic book above to learn the design — or add positions on Value.</small>
-      <button type="button" className="brief-link" onClick={() => setActiveTab("value")}>
-        Go to Value →
+      <small>Pick a classic book above to learn the design — or add positions on Holdings.</small>
+      <button type="button" className="brief-link" onClick={() => setActiveTab("holdings")}>
+        Go to Holdings →
       </button>
     </div>
   );
@@ -866,7 +840,7 @@ export default function Portfolio({
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
               {loading ? "Refreshing…" : "Refresh prices"}
             </button>
-            {activeTab === "value" && (stageTone === "watch" || stageTone === "concentrated") ? (
+            {activeTab === "holdings" && (stageTone === "watch" || stageTone === "concentrated") ? (
               <button
                 type="button"
                 className="product-stage-action product-stage-action--link"
@@ -894,13 +868,13 @@ export default function Portfolio({
       ) : null}
 
       <div
-        id="portfolio-panel-value"
+        id="portfolio-panel-holdings"
         className="pf-value-view"
         role="tabpanel"
-        aria-labelledby="portfolio-tab-value"
-        hidden={activeTab !== "value"}
+        aria-labelledby="portfolio-tab-holdings"
+        hidden={activeTab !== "holdings"}
       >
-        {activeTab === "value" ? (
+        {activeTab === "holdings" ? (
           <>
             {loading ? (
               <PageLoadingMotion label="Loading portfolio prices" compact />
@@ -948,15 +922,6 @@ export default function Portfolio({
                     </span>
                   </div>
                 ) : null}
-
-                {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
-                  <StockHeatmap
-                    title="Today’s move"
-                    subtitle=""
-                    items={portfolioHeatmapItems}
-                    sessionLabel={portfolioHeatmapSession}
-                  />
-                )}
 
                 {composeBar}
                 <section className="pf-values-positions" id="portfolio-positions" aria-label="Portfolio holdings">
