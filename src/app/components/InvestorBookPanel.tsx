@@ -8,6 +8,7 @@ import {
   fetchJsonWithTimeout,
   type EvidenceStatus,
 } from "@/app/components/evidence-request";
+import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import { INSTITUTIONAL_MANAGERS } from "@/lib/sec/institutional-managers";
 import type {
   AccumulationStatus,
@@ -199,94 +200,69 @@ export function InvestorBookPanel({
 
       {status === "success" && book ? (
         <>
-          <section className="investor-book-stage" aria-label={`${book.manager.displayName} filing overview`}>
-            <div className="investor-book-stage-copy">
-              <span className="investor-book-stage-eyebrow">
-                <i aria-hidden="true" />
-                {book.style === "durable" ? "Durable capital" : book.style === "trading" ? "Trading-oriented" : "Institutional"} · 13F
-              </span>
-              <h3>{book.manager.displayName}</h3>
-              <p>
-                As of {formatDate(book.filingQuarter)} · filed {formatDate(book.filingDate)}
-                {book.previousQuarter ? ` · vs ${formatDate(book.previousQuarter)}` : ""}
-              </p>
-              <small>{book.note}</small>
-            </div>
-            <div className="investor-book-stage-metrics" aria-label="Book summary">
-              <div>
-                <strong>{book.positionCount}</strong>
-                <span>Holdings</span>
-              </div>
-              <div>
-                <strong>{formatReportedValue(book.totalReportedValue)}</strong>
-                <span>Reported value</span>
-              </div>
-              <div>
-                <strong>{book.newCount + book.increasedCount}</strong>
-                <span>New / added</span>
-              </div>
-              <div>
-                <strong>{book.reducedCount + book.exitedCount}</strong>
-                <span>Trimmed / exited</span>
-              </div>
-            </div>
-          </section>
-
-          <div className="investor-book-toolbar">
+          <div className="smart-money-toolbar">
             <p>
-              Showing {visiblePositions.length} position{visiblePositions.length === 1 ? "" : "s"}
-              {showExits ? "" : " · exits hidden"}
+              As of {formatDate(book.filingQuarter)}
+              {book.previousQuarter ? ` · vs ${formatDate(book.previousQuarter)}` : ""}
+              {" · "}
+              {book.positionCount} holding{book.positionCount === 1 ? "" : "s"}
+              {" · "}
+              {formatReportedValue(book.totalReportedValue)}
             </p>
             <button type="button" className="investor-book-toggle" onClick={() => setShowExits((value) => !value)}>
               {showExits ? "Hide exits" : `Show exits (${book.exitedCount})`}
             </button>
           </div>
 
-          <div className="investor-book-list" role="list">
-            {visiblePositions.map((position) => {
+          <div className="smart-money-stream" role="list">
+            {visiblePositions.map((position, index) => {
               const key = `${position.cusip}-${position.issuer}-${position.status}`;
-              const tracked = position.ticker ? trackedTickers.has(position.ticker) : false;
+              const tracked = position.ticker ? trackedTickers.has(position.ticker.toUpperCase()) : false;
               const adding = position.ticker ? addingTicker === position.ticker : false;
               return (
-                <article className="investor-book-row" role="listitem" key={key}>
-                  <div className="investor-book-row-main">
-                    <div className="investor-book-identity">
-                      {position.ticker ? (
-                        <Link href={`/companies/${encodeURIComponent(position.ticker)}`}>
-                          <strong>{position.ticker}</strong>
-                          <span>{position.issuer}</span>
-                        </Link>
-                      ) : (
-                        <div>
-                          <strong>{position.issuer}</strong>
-                          <span>{position.classTitle || "Common"}</span>
-                        </div>
-                      )}
-                    </div>
-                    <span className={`investor-book-status ${statusChipClass(position.status)}`}>
+                <article
+                  className={`smart-money-row${index % 2 === 1 ? " is-alt" : ""}`}
+                  role="listitem"
+                  key={key}
+                >
+                  <div className="smart-money-row-identity">
+                    {position.ticker ? (
+                      <Link href={`/companies/${encodeURIComponent(position.ticker)}`}>
+                        <strong>{position.ticker}</strong>
+                        <span>{position.issuer}</span>
+                      </Link>
+                    ) : (
+                      <div>
+                        <strong>{position.issuer}</strong>
+                        <span>{position.classTitle || "Common"}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="smart-money-row-move">
+                    <span className={statusChipClass(position.status)}>
                       {statusLabel(position.status)}
                     </span>
-                    <div className="investor-book-weight">
-                      <strong>{position.weight === null ? "—" : `${position.weight.toFixed(1)}%`}</strong>
-                      <span>of book</span>
-                    </div>
-                    <div className="investor-book-value">
-                      <strong>{position.status === "Exited" ? "—" : formatReportedValue(position.reportedValue)}</strong>
-                      <span>{changeSummary(position)}</span>
-                    </div>
+                    <span>{changeSummary(position)}</span>
+                  </div>
+                  <div className="smart-money-row-size">
+                    <strong>
+                      {position.weight === null ? "—" : `${position.weight.toFixed(1)}%`}
+                    </strong>
+                    <span>
+                      {position.status === "Exited" ? "exited" : formatReportedValue(position.reportedValue)}
+                    </span>
                   </div>
                   {position.ticker ? (
-                    <div className="investor-book-row-actions">
-                      <button
-                        type="button"
-                        className="investor-track-btn"
-                        disabled={tracked || adding}
-                        onClick={() => onAdd({ ticker: position.ticker!, companyName: position.issuer })}
-                      >
-                        {tracked ? "Tracked" : adding ? "Adding…" : "Track"}
-                      </button>
-                    </div>
-                  ) : null}
+                    <WatchlistTrackControl
+                      ticker={position.ticker}
+                      companyName={position.issuer}
+                      tracked={tracked}
+                      adding={adding}
+                      onAdd={onAdd}
+                    />
+                  ) : (
+                    <span className="watchlist-track is-missing" aria-hidden="true">—</span>
+                  )}
                 </article>
               );
             })}

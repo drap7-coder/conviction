@@ -8,6 +8,8 @@ import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { buildMoveDriverView } from "@/lib/evidence/move-driver-brief";
 import { inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
+import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
+import { useWatchlistTracking } from "@/app/components/use-watchlist-tracking";
 import { rangePosition } from "@/lib/market/quote-gauges";
 import { fmtCompactCurrency, fmtMarketCap } from "@/lib/display/format";
 
@@ -53,6 +55,7 @@ export function CompanyQuoteCard({
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [loading, setLoading] = useState(true);
   const [catalystBadge, setCatalystBadge] = useState<{ label: string; tone: string } | null>(null);
+  const { trackedTickers, addingTicker, addToWatchlist } = useWatchlistTracking();
 
   useEffect(() => {
     let cancelled = false;
@@ -162,7 +165,18 @@ export function CompanyQuoteCard({
             </div>
           )}
           <div className="company-quote-copy">
-            <h1 className="company-quote-ticker">{ticker}</h1>
+            <div className="company-quote-ticker-row">
+              <h1 className="company-quote-ticker">{ticker}</h1>
+              <WatchlistTrackControl
+                ticker={ticker}
+                companyName={companyName}
+                tracked={trackedTickers.has(ticker.toUpperCase())}
+                adding={addingTicker === ticker}
+                onAdd={addToWatchlist}
+                size="quote"
+                surface="ink"
+              />
+            </div>
             <p className="company-quote-name">
               {companyName}
               {sectorName ? (
