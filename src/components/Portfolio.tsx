@@ -785,13 +785,6 @@ export default function Portfolio({
         onChange={(id) => setActiveTab(id as PortfolioTab)}
       />
 
-      <SampleBooksSwitcher
-        activeId={activeBookId}
-        onSelect={(book) => { void handleLoadSample(book); }}
-        onSelectPersonal={handleSelectPersonal}
-        disabled={loadingBook}
-      />
-
       <ProductStage
         variant="portfolio"
         aria-label="Portfolio overview"
@@ -799,7 +792,7 @@ export default function Portfolio({
         eyebrow={stageEyebrow}
         headline={hasData ? stageHeadline : "My Portfolio"}
         metrics={
-          hasData && activeTab === "value" ? (
+          hasData ? (
             <>
               <div>
                 <strong>{currency(portfolioMetrics.totalMarketValue)}</strong>
@@ -821,12 +814,12 @@ export default function Portfolio({
           ) : undefined
         }
       >
-        {hasData && activeTab === "value" ? (
+        {hasData ? (
           <div className="product-stage-actions">
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
               {loading ? "Refreshing…" : "Refresh prices"}
             </button>
-            {stageTone === "watch" || stageTone === "concentrated" ? (
+            {activeTab === "value" && (stageTone === "watch" || stageTone === "concentrated") ? (
               <button
                 type="button"
                 className="product-stage-action product-stage-action--link"
@@ -838,6 +831,13 @@ export default function Portfolio({
           </div>
         ) : null}
       </ProductStage>
+
+      <SampleBooksSwitcher
+        activeId={activeBookId}
+        onSelect={(book) => { void handleLoadSample(book); }}
+        onSelectPersonal={handleSelectPersonal}
+        disabled={loadingBook}
+      />
 
       {loadingBook ? (
         <PageLoadingMotion
@@ -864,7 +864,7 @@ export default function Portfolio({
               <div className="empty-state">
                 <p>Start with a classic portfolio book.</p>
                 <small>
-                  Pick All-Weather, 60/40, Three-Fund, or Permanent above — or add a position yourself
+                  Pick All-Weather, 60/40, Three-Fund, or Permanent below — or add a position yourself
                   {composeFirst ? " below" : ""}.
                 </small>
                 {composeFirst ? null : composeBar}
@@ -904,8 +904,8 @@ export default function Portfolio({
 
                 {!calcFailed && (portfolioHeatmapItems.length > 0 || hasData) && (
                   <StockHeatmap
-                    title="Today’s movement"
-                    subtitle="Sized by position value · color shows today’s move"
+                    title="Today’s move"
+                    subtitle=""
                     items={portfolioHeatmapItems}
                     sessionLabel={portfolioHeatmapSession}
                   />
@@ -917,7 +917,6 @@ export default function Portfolio({
                     <div>
                       <span className="pf-section-eyebrow">Holdings</span>
                       <h2>Where the value lives</h2>
-                      <p>Live price, daily move, allocation, and total return—without leaving the portfolio.</p>
                     </div>
                     <span className="pf-values-position-count">
                       {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}

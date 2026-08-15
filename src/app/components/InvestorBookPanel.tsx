@@ -168,17 +168,6 @@ export function InvestorBookPanel({
 
   return (
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
-      <header className="investor-book-intro">
-        <div>
-          <span className="investor-moves-eyebrow">Institutions · Form 13F</span>
-          <h2>Lens into filed investor books</h2>
-          <p>
-            See what Berkshire, Pershing Square, Third Point, and peers reported last quarter—
-            and what changed versus the prior filing. This is evidence, not a Portfolio sample book.
-          </p>
-        </div>
-      </header>
-
       <div className="investor-filter-row investor-book-managers" role="tablist" aria-label="Choose an investor">
         {MANAGER_OPTIONS.map((manager) => (
           <button
