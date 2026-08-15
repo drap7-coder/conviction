@@ -188,7 +188,7 @@ function SampleBooksSwitcher({
       </div>
 
       <div className="pf-book-switch-samples" role="group" aria-label="Sample portfolio options">
-        <p className="pf-book-switch-samples-label">Or try a sample</p>
+        <p className="pf-book-switch-samples-label">Or try a sample portfolio</p>
         <div className="pf-book-switch-tabs" role="tablist" aria-label="Sample portfolio books">
           {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
             const selected = activeId === book.id;
