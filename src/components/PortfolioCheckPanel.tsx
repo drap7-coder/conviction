@@ -34,16 +34,6 @@ function StrategyDesignCard({ brief }: { brief: StrategyDesignBrief }) {
           <p>{brief.stress}</p>
         </div>
       </div>
-
-      <div className="portfolio-insight-sleeves" aria-label={`${brief.label} sleeves`}>
-        {brief.sleeves.map((sleeve) => (
-          <div key={sleeve.ticker} className="portfolio-insight-sleeve">
-            <strong>{sleeve.ticker}</strong>
-            <b>{`${sleeve.weight}%`}</b>
-            <span>{sleeve.role}</span>
-          </div>
-        ))}
-      </div>
     </section>
   );
 }
