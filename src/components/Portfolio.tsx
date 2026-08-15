@@ -149,7 +149,6 @@ function SampleBooksSwitcher({
   personalCount: number;
   disabled?: boolean;
 }) {
-  const active = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeId) ?? null;
   const personalActive = activeId === null;
 
   return (
@@ -189,7 +188,7 @@ function SampleBooksSwitcher({
       </div>
 
       <div className="pf-book-switch-samples" role="group" aria-label="Sample portfolio options">
-        <p className="pf-book-switch-samples-label">Or try a sample</p>
+        <p className="pf-book-switch-samples-label">Or try a sample portfolio</p>
         <div className="pf-book-switch-tabs" role="tablist" aria-label="Sample portfolio books">
           {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
             const selected = activeId === book.id;
@@ -209,12 +208,6 @@ function SampleBooksSwitcher({
             );
           })}
         </div>
-        {active ? (
-          <p className="pf-book-switch-lede pf-book-switch-lede--sample" aria-live="polite">
-            <strong>{active.label}</strong>
-            <span>{active.description}</span>
-          </p>
-        ) : null}
       </div>
     </section>
   );
