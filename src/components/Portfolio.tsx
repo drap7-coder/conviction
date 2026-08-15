@@ -136,20 +136,22 @@ function enrichWithPrices(
   });
 }
 
+const PERSONAL_BOOK_DESCRIPTION = "Your book. Size is the risk.";
+
 function SampleBooksSwitcher({
   activeId,
   onSelect,
   onSelectPersonal,
-  personalCount,
   disabled = false,
 }: {
   activeId: string | null;
   onSelect: (book: SampleBook) => void;
   onSelectPersonal: () => void;
-  personalCount: number;
   disabled?: boolean;
 }) {
+  const active = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeId) ?? null;
   const personalActive = activeId === null;
+  const description = active?.description ?? PERSONAL_BOOK_DESCRIPTION;
 
   return (
     <section className="pf-book-switch" aria-label="Portfolio books">
@@ -178,13 +180,6 @@ function SampleBooksSwitcher({
             />
           </svg>
         </button>
-        {personalActive ? (
-          <p className="pf-book-switch-lede">
-            {personalCount > 0
-              ? `${personalCount} saved ${personalCount === 1 ? "position" : "positions"}`
-              : "Empty — add a position on Value"}
-          </p>
-        ) : null}
       </div>
 
       <div className="pf-book-switch-samples" role="group" aria-label="Sample portfolio options">
@@ -209,6 +204,10 @@ function SampleBooksSwitcher({
           })}
         </div>
       </div>
+
+      <p className="pf-book-switch-lede" aria-live="polite">
+        {description}
+      </p>
     </section>
   );
 }
@@ -223,7 +222,6 @@ export default function Portfolio({
 }) {
   const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
-  const [personalPositionCount, setPersonalPositionCount] = useState(0);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [loadingBook, setLoadingBook] = useState(false);
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
@@ -275,7 +273,6 @@ export default function Portfolio({
     }
 
     setActiveBookId(storedBookId);
-    setPersonalPositionCount(personalPositions.length);
     setPositions(resolveActivePortfolioPositions(
       personalPositions,
       storedBookId,
@@ -468,11 +465,8 @@ export default function Portfolio({
   );
 
   const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
-  const isStrategyBook = Boolean(activeSampleBook?.weights);
-
-  /** Book name in the stage — “My Portfolio” or “All-Weather”, not a prose brief. */
   const stageHeadline = activeSampleBook?.label ?? "My Portfolio";
-  const stageTone = isStrategyBook ? ("neutral" as const) : valueBrief.tone;
+  const stageTone = valueBrief.tone;
 
   const allocationItems = useMemo(() => sortedPositions
     .filter(({ metrics }) => metrics.weight !== null)
@@ -532,7 +526,6 @@ export default function Portfolio({
     if (existingIndex >= 0) updated[existingIndex] = nextPosition;
     else updated.push(nextPosition);
     savePositions(updated);
-    setPersonalPositionCount(updated.length);
     setPositions(updated);
     clearActiveBook();
     notifyPortfolioChanged();
@@ -553,7 +546,6 @@ export default function Portfolio({
   function handleRemove(ticker: string) {
     const updated = positions.filter((position) => position.ticker.toUpperCase() !== ticker.toUpperCase());
     savePositions(updated);
-    setPersonalPositionCount(updated.length);
     setPositions(updated);
     clearActiveBook();
     setRemovingTicker(null);
@@ -589,7 +581,6 @@ export default function Portfolio({
 
   function handleClearAll() {
     savePositions([]);
-    setPersonalPositionCount(0);
     setPositions([]);
     clearActiveBook();
     notifyPortfolioChanged();
@@ -735,7 +726,7 @@ export default function Portfolio({
 
   const insightsBody = hasData ? (
     <>
-      {sectorMixData.length > 0 && !activeSampleBook?.weights ? (
+      {sectorMixData.length > 0 ? (
         <section className="pf-section pf-exposure-card">
           <div className="pf-exposure-heading">
             <div>
@@ -749,16 +740,12 @@ export default function Portfolio({
       ) : null}
 
       {!calcFailed ? (
-        <PortfolioAllocationLadder
-          items={allocationItems}
-          mode={activeSampleBook?.weights ? "strategy" : "personal"}
-        />
+        <PortfolioAllocationLadder items={allocationItems} />
       ) : null}
 
       {!calcFailed ? (
         <PortfolioCheckPanel
           riskFlags={riskFlags}
-          sampleBook={activeSampleBook}
           onReviewPositions={reviewPositions}
         />
       ) : null}
@@ -786,9 +773,7 @@ export default function Portfolio({
   // ── Render ──
 
   const stageEyebrow = hasData
-    ? activeSampleBook
-      ? "Portfolio · Illustrative"
-      : `Portfolio · ${portfolioHeatmapSession ?? "Live"}`
+    ? `Portfolio · ${portfolioHeatmapSession ?? "Live"}`
     : "Portfolio";
 
   return (
@@ -798,6 +783,13 @@ export default function Portfolio({
         options={[...PORTFOLIO_TABS]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as PortfolioTab)}
+      />
+
+      <SampleBooksSwitcher
+        activeId={activeBookId}
+        onSelect={(book) => { void handleLoadSample(book); }}
+        onSelectPersonal={handleSelectPersonal}
+        disabled={loadingBook}
       />
 
       <ProductStage
@@ -817,13 +809,13 @@ export default function Portfolio({
                 <strong>{signedCurrency(portfolioMetrics.dailyChange)}</strong>
                 <span>Today · {percent(portfolioMetrics.dailyChangePercent)}</span>
               </div>
-              <div className={!isStrategyBook && valueBrief.largest && valueBrief.largest.weight > 20 ? "is-alert" : ""}>
+              <div className={valueBrief.largest && valueBrief.largest.weight > 20 ? "is-alert" : ""}>
                 <strong>
                   {valueBrief.largest
                     ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(0)}%`
                     : "—"}
                 </strong>
-                <span>{isStrategyBook ? "Largest sleeve" : "Largest position"}</span>
+                <span>Largest position</span>
               </div>
             </>
           ) : undefined
@@ -834,7 +826,7 @@ export default function Portfolio({
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
               {loading ? "Refreshing…" : "Refresh prices"}
             </button>
-            {!isStrategyBook && (stageTone === "watch" || stageTone === "concentrated") ? (
+            {stageTone === "watch" || stageTone === "concentrated" ? (
               <button
                 type="button"
                 className="product-stage-action product-stage-action--link"
@@ -842,27 +834,10 @@ export default function Portfolio({
               >
                 See why on Insights <span aria-hidden="true">→</span>
               </button>
-            ) : isStrategyBook ? (
-              <button
-                type="button"
-                className="product-stage-action product-stage-action--link"
-                onClick={() => setActiveTab("insights")}
-              >
-                See how it’s built <span aria-hidden="true">→</span>
-              </button>
             ) : null}
           </div>
         ) : null}
       </ProductStage>
-
-      {/* Always-on book switcher — available on Value and Insights. */}
-      <SampleBooksSwitcher
-        activeId={activeBookId}
-        onSelect={(book) => { void handleLoadSample(book); }}
-        onSelectPersonal={handleSelectPersonal}
-        personalCount={personalPositionCount}
-        disabled={loadingBook}
-      />
 
       {loadingBook ? (
         <PageLoadingMotion

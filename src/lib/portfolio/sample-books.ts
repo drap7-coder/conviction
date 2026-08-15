@@ -32,7 +32,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "all-weather",
     label: "All-Weather",
-    description: "Ray Dalio risk-balanced mix across growth and inflation regimes",
+    description: "Risk-balanced across growth and inflation.",
     tickers: ["VTI", "TLT", "IEF", "GLD", "DBC"],
     weights: {
       VTI: 30,
@@ -45,7 +45,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "sixty-forty",
     label: "60/40",
-    description: "Classic balanced mix — stocks for growth, bonds for ballast",
+    description: "Stocks for growth. Bonds for ballast.",
     tickers: ["VTI", "BND"],
     weights: {
       VTI: 60,
@@ -55,7 +55,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "three-fund",
     label: "Three-Fund",
-    description: "Bogleheads global core — US stocks, international stocks, and bonds",
+    description: "US, international, bonds. The whole market.",
     tickers: ["VTI", "VXUS", "BND"],
     weights: {
       VTI: 50,
@@ -66,7 +66,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "permanent",
     label: "Permanent",
-    description: "Harry Browne equal sleeves — stocks, long bonds, gold, and cash",
+    description: "Four seasons. Equal capital. No forecast.",
     tickers: ["VTI", "TLT", "GLD", "SGOV"],
     weights: {
       VTI: 25,
@@ -78,7 +78,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "dogs-of-the-dow",
     label: "Dogs of the Dow",
-    description: "Classic equal-weight screen — ten highest-yielding Dow names, rebalanced annually",
+    description: "Ten highest-yielding Dow names. Equal weight.",
     tickers: ["VZ", "IBM", "DOW", "CVX", "AMGN", "KO", "CSCO", "JPM", "MMM", "WBA"],
     weights: {
       VZ: 10,
@@ -96,7 +96,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "dividend",
     label: "Dividend",
-    description: "Cash-returning blue chips — understandable businesses that pay you to wait",
+    description: "Cash-returning blue chips. Paid to wait.",
     tickers: ["JNJ", "PG", "KO", "PEP", "ABBV", "MRK", "HD", "MMM", "IBM", "VZ"],
     weights: {
       JNJ: 10,
@@ -114,7 +114,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "growth",
     label: "Growth",
-    description: "Mega-cap compounders — businesses with durable earnings stories, equal-weighted",
+    description: "Mega-cap compounders. Equal weight.",
     tickers: ["AAPL", "MSFT", "NVDA", "AMZN", "GOOG", "META", "AVGO", "NFLX", "CRM", "COST"],
     weights: {
       AAPL: 10,

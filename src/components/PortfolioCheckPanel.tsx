@@ -1,13 +1,10 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
-import type { SampleBook } from "@/lib/portfolio/sample-books";
 import type { PortfolioRiskFlags } from "@/lib/portfolio/types";
 import {
-  buildPortfolioInsightBrief,
+  buildPersonalInsightBrief,
   type InsightFinding,
-  type PortfolioInsightBrief,
-  type StrategyDesignBrief,
 } from "@/lib/portfolio/insight-brief";
 
 function FindingIcon({ tone }: { tone: InsightFinding["tone"] }) {
@@ -15,36 +12,18 @@ function FindingIcon({ tone }: { tone: InsightFinding["tone"] }) {
   return <span aria-hidden="true" className="portfolio-check-dot" />;
 }
 
-function StrategyDesignCard({ brief }: { brief: StrategyDesignBrief }) {
-  return (
-    <section className="portfolio-insight-card is-strategy" aria-labelledby="portfolio-insight-title">
-      <header className="portfolio-insight-header">
-        <span className="portfolio-insight-kicker">Design</span>
-        <h2 id="portfolio-insight-title">{brief.label}</h2>
-        <p className="portfolio-insight-principle">{brief.principle}</p>
-      </header>
-
-      <div className="portfolio-insight-machine">
-        <div>
-          <span>How it’s built</span>
-          <p>{brief.design}</p>
-        </div>
-        <div>
-          <span>What breaks it</span>
-          <p>{brief.stress}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function PersonalFindingsCard({
-  brief,
+/**
+ * Same pressure-point read for My Portfolio and sample books.
+ * Size is the risk — designed concentration still shows as size.
+ */
+export function PortfolioCheckPanel({
+  riskFlags,
   onReviewPositions,
 }: {
-  brief: Extract<PortfolioInsightBrief, { mode: "personal" }>;
+  riskFlags: PortfolioRiskFlags;
   onReviewPositions?: (ticker?: string) => void;
 }) {
+  const brief = buildPersonalInsightBrief(riskFlags);
   const primaryTicker = brief.findings.find((item) => item.ticker)?.ticker;
 
   return (
@@ -108,26 +87,4 @@ function PersonalFindingsCard({
       )}
     </section>
   );
-}
-
-/**
- * Insights hero: teach strategy design, or surface personal pressure points.
- * No resilience score — that was theater.
- */
-export function PortfolioCheckPanel({
-  riskFlags,
-  sampleBook = null,
-  onReviewPositions,
-}: {
-  riskFlags: PortfolioRiskFlags;
-  sampleBook?: SampleBook | null;
-  onReviewPositions?: (ticker?: string) => void;
-}) {
-  const brief = buildPortfolioInsightBrief(riskFlags, sampleBook);
-
-  if (brief.mode === "strategy") {
-    return <StrategyDesignCard brief={brief} />;
-  }
-
-  return <PersonalFindingsCard brief={brief} onReviewPositions={onReviewPositions} />;
 }
