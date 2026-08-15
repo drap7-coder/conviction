@@ -11,15 +11,18 @@ export function MobileTabBar() {
 
   return (
     <nav className="bottom-tab-bar">
-      {navTabs.map(({ href, label, icon: Icon }) => {
+      {navTabs.map(({ href, label, icon: Icon, tone }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
             key={href}
             href={href}
-            className={`bottom-tab-item${active ? " active" : ""}`}
+            className={`bottom-tab-item tone-${tone}${active ? " active" : ""}`}
+            aria-current={active ? "page" : undefined}
           >
-            <Icon size={20} />
+            <span className="bottom-tab-icon" aria-hidden="true">
+              <Icon size={20} strokeWidth={active ? 2.4 : 2} />
+            </span>
             <span className="bottom-tab-label">{label}</span>
           </Link>
         );
@@ -35,13 +38,14 @@ export function DesktopNav() {
 
   return (
     <nav className="desktop-nav">
-      {navTabs.map(({ href, label, icon: Icon }) => {
+      {navTabs.map(({ href, label, icon: Icon, tone }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
             key={href}
             href={href}
-            className={`desktop-nav-item${active ? " active" : ""}`}
+            className={`desktop-nav-item tone-${tone}${active ? " active" : ""}`}
+            aria-current={active ? "page" : undefined}
           >
             <Icon size={16} />
             <span className="desktop-nav-label">{label}</span>

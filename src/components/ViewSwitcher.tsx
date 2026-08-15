@@ -30,6 +30,18 @@ export function ViewSwitcher({
   className,
   style,
 }: ViewSwitcherProps) {
+  function selectView(option: ViewSwitcherOption) {
+    onChange(option.id);
+    window.requestAnimationFrame(() => {
+      const switcher = document.getElementById(option.tabId)?.closest(".view-switch");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      switcher?.scrollIntoView({
+        behavior: reducedMotion ? "auto" : "smooth",
+        block: "start",
+      });
+    });
+  }
+
   return (
     <div className={["view-switch", className].filter(Boolean).join(" ")} style={style}>
       <div className="view-switch-tabs" role="tablist" aria-label={label}>
@@ -45,7 +57,7 @@ export function ViewSwitcher({
               aria-controls={option.panelId}
               tabIndex={selected ? 0 : -1}
               className={["view-switch-tab", selected ? "is-active" : ""].filter(Boolean).join(" ")}
-              onClick={() => onChange(option.id)}
+              onClick={() => selectView(option)}
             >
               {option.label}
             </button>
