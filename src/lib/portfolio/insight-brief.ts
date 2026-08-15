@@ -264,11 +264,7 @@ export function buildPersonalInsightBrief(flags: PortfolioRiskFlags): PersonalIn
 
 export function buildPortfolioInsightBrief(
   flags: PortfolioRiskFlags,
-  sampleBook: SampleBook | null,
+  _sampleBook?: SampleBook | null,
 ): PortfolioInsightBrief {
-  if (sampleBook?.weights) {
-    const strategy = buildStrategyDesignBrief(sampleBook);
-    if (strategy) return strategy;
-  }
   return buildPersonalInsightBrief(flags);
 }

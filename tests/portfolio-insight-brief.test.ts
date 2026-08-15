@@ -40,7 +40,7 @@ describe("portfolio insight brief", () => {
     expect(brief!.sleeves).toHaveLength(10);
   });
 
-  it("routes sample strategy books away from personal pressure scoring", () => {
+  it("reads sample books with the same pressure points as a personal book", () => {
     const book = SAMPLE_PORTFOLIO_BOOKS.find((item) => item.id === "sixty-forty")!;
     const brief = buildPortfolioInsightBrief(
       flags({
@@ -50,9 +50,9 @@ describe("portfolio insight brief", () => {
       }),
       book,
     );
-    expect(brief.mode).toBe("strategy");
-    if (brief.mode === "strategy") {
-      expect(brief.principle.toLowerCase()).toContain("ballast");
+    expect(brief.mode).toBe("personal");
+    if (brief.mode === "personal") {
+      expect(brief.findings.some((item) => item.ticker === "VTI")).toBe(true);
     }
   });
 
