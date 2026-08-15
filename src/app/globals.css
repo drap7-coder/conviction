@@ -986,6 +986,14 @@ details > summary::before {
   transition: background-color 0.15s ease;
 }
 
+.smart-money-row.is-positive {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--green) 72%, transparent);
+}
+
+.smart-money-row.is-negative {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--red) 72%, transparent);
+}
+
 .smart-money-row.is-alt {
   background: color-mix(in srgb, var(--ink) 4%, #f2f4f7);
 }
@@ -1049,6 +1057,32 @@ details > summary::before {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.smart-money-row.is-positive .smart-money-row-move > span:last-child {
+  color: var(--green);
+}
+
+.smart-money-row.is-negative .smart-money-row-move > span:last-child {
+  color: var(--red);
+}
+
+.smart-money-row .ink-chip--up {
+  border: 1px solid color-mix(in srgb, var(--green) 24%, transparent);
+  background: color-mix(in srgb, var(--green) 10%, #ffffff);
+  color: var(--green);
+}
+
+.smart-money-row .ink-chip--down {
+  border: 1px solid color-mix(in srgb, var(--red) 24%, transparent);
+  background: color-mix(in srgb, var(--red) 9%, #ffffff);
+  color: var(--red);
+}
+
+.smart-money-row .ink-chip--quiet {
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--ink) 4%, #ffffff);
+  color: var(--muted);
 }
 
 .smart-money-row-size {
@@ -11417,6 +11451,21 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: rgba(114, 145, 255, 0.17);
 }
 
+.product-stage--smart-money.tone-positive {
+  --stage-accent: #5eead4;
+  --stage-glow: rgba(45, 212, 191, 0.15);
+}
+
+.product-stage--smart-money.tone-negative {
+  --stage-accent: #ff8585;
+  --stage-glow: rgba(248, 113, 113, 0.15);
+}
+
+.product-stage--smart-money.tone-watch {
+  --stage-accent: #f8d477;
+  --stage-glow: rgba(248, 212, 119, 0.15);
+}
+
 .product-stage--portfolio {
   --stage-accent: #9fb8ff;
   --stage-glow: rgba(114, 145, 255, 0.17);
@@ -11632,6 +11681,10 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage-metrics .is-alert strong {
   color: #f8d477;
+}
+
+.product-stage-metrics .is-positive strong {
+  color: #5eead4;
 }
 
 .product-stage-metrics .is-negative strong {

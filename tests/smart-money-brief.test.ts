@@ -5,7 +5,14 @@ import {
   classifyInstitutionalIdea,
   groupPoliticalTrades,
 } from "@/lib/market/smart-money-brief";
-import type { InstitutionalMarketIdea } from "@/lib/sec/institutional";
+import {
+  buildInstitutionStageSummary,
+  buildPoliticianStageSummary,
+} from "@/lib/market/smart-money-stage";
+import type {
+  InstitutionalManagerBook,
+  InstitutionalMarketIdea,
+} from "@/lib/sec/institutional";
 import type { PoliticalTrade, PoliticalTradeDirection } from "@/lib/political-trades";
 
 function institutionalIdea(
@@ -136,5 +143,52 @@ describe("Smart Money decision briefs", () => {
 
     expect(brief.headline).toBe("NVDA leads buying.");
     expect(brief.eyebrow).toBe("STOCK Act");
+  });
+});
+
+describe("Smart Money stage summaries", () => {
+  it("summarizes an institutional book with directional counts", () => {
+    const book: InstitutionalManagerBook = {
+      manager: {
+        manager: "Test Capital",
+        cik: "0000000001",
+        displayName: "Test Capital",
+      },
+      style: "other",
+      filingQuarter: "2026-03-31",
+      filingDate: "2026-05-15",
+      previousQuarter: "2025-12-31",
+      accession: "test",
+      positionCount: 18,
+      totalReportedValue: 1_000_000,
+      newCount: 3,
+      increasedCount: 4,
+      reducedCount: 1,
+      exitedCount: 1,
+      positions: [],
+      fetchedAt: "2026-05-15T00:00:00.000Z",
+      source: "sec-13f",
+      note: "Quarterly filing.",
+    };
+
+    expect(buildInstitutionStageSummary(book)).toMatchObject({
+      headline: "Test Capital is adding.",
+      tone: "positive",
+      metrics: [
+        { label: "New / added", value: "7", tone: "positive" },
+        { label: "Trimmed / exited", value: "2", tone: "negative" },
+        { label: "Holdings", value: "18" },
+      ],
+    });
+  });
+
+  it("keeps political buys and sells visibly distinct in the stage", () => {
+    const summary = buildPoliticianStageSummary([
+      politicalTrade("a", "NVDA", "purchase", 75_001, 10, { assetName: "NVIDIA Corp" }),
+      politicalTrade("b", "PINS", "sale", 32_501, 10, { assetName: "Pinterest Inc." }),
+    ]);
+
+    expect(summary.metrics[0]).toMatchObject({ label: "Buys", tone: "positive" });
+    expect(summary.metrics[1]).toMatchObject({ label: "Sells", tone: "negative" });
   });
 });

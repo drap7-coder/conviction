@@ -11,6 +11,10 @@ import {
   groupPoliticalTrades,
   type PoliticalTradeGroup,
 } from "@/lib/market/smart-money-brief";
+import {
+  buildPoliticianStageSummary,
+  type SmartMoneyStageSummary,
+} from "@/lib/market/smart-money-stage";
 
 type DirectionFilter = "all" | "purchase" | "sale";
 
@@ -77,7 +81,7 @@ function PoliticalMoveRow({
 
   return (
     <article
-      className={`smart-money-row${alt ? " is-alt" : ""}${group.isBroadMarket ? " is-broad" : ""}`}
+      className={`smart-money-row${alt ? " is-alt" : ""}${group.isBroadMarket ? " is-broad" : ""} is-${chip.tone === "up" ? "positive" : chip.tone === "down" ? "negative" : "neutral"}`}
       role="listitem"
     >
       <div className="smart-money-row-identity">
@@ -91,7 +95,7 @@ function PoliticalMoveRow({
         <span>{groupAction(group)}</span>
       </div>
       <div className="smart-money-row-size">
-        <strong>{groupDate(group)}</strong>
+        <strong>Traded {groupDate(group)}</strong>
         <span>{group.isBroadMarket ? "ETF / index" : `${group.trades.length} filing${group.trades.length === 1 ? "" : "s"}`}</span>
       </div>
       <WatchlistTrackControl
@@ -109,9 +113,15 @@ interface PoliticiansMovesPanelProps {
   trackedTickers: Set<string>;
   addingTicker: string | null;
   onAdd: (idea: { ticker: string; companyName: string }) => void;
+  onSummaryChange: (summary: SmartMoneyStageSummary) => void;
 }
 
-export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: PoliticiansMovesPanelProps) {
+export function PoliticiansMovesPanel({
+  trackedTickers,
+  addingTicker,
+  onAdd,
+  onSummaryChange,
+}: PoliticiansMovesPanelProps) {
   const [trades, setTrades] = useState<PoliticalTrade[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [filter, setFilter] = useState<DirectionFilter>("all");
@@ -151,6 +161,19 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
   }, [filter, trades]);
 
   const visibleGroups = useMemo(() => groupPoliticalTrades(visibleTrades), [visibleTrades]);
+  const latestVisibleTradeDate = useMemo(
+    () => visibleTrades.reduce((latest, trade) => {
+      const value = trade.transactionDate || trade.filingDate;
+      return value > latest ? value : latest;
+    }, ""),
+    [visibleTrades],
+  );
+
+  useEffect(() => {
+    if (status === "success") {
+      onSummaryChange(buildPoliticianStageSummary(trades));
+    }
+  }, [onSummaryChange, status, trades]);
 
   if (status === "loading" || status === "idle") {
     return (
@@ -207,18 +230,28 @@ export function PoliticiansMovesPanel({ trackedTickers, addingTicker, onAdd }: P
           No disclosures match this filter right now.
         </div>
       ) : (
-        <div className="smart-money-stream" role="list">
-          {visibleGroups.map((group, index) => (
-            <PoliticalMoveRow
-              key={group.ticker}
-              group={group}
-              alt={index % 2 === 1}
-              trackedTickers={trackedTickers}
-              addingTicker={addingTicker}
-              onAdd={onAdd}
-            />
-          ))}
-        </div>
+        <>
+          <div className="smart-money-toolbar">
+            <p>
+              {visibleGroups.length} name{visibleGroups.length === 1 ? "" : "s"}
+              {" · "}
+              {visibleTrades.length} disclosure{visibleTrades.length === 1 ? "" : "s"}
+              {latestVisibleTradeDate ? ` · through ${formatDate(latestVisibleTradeDate)}` : ""}
+            </p>
+          </div>
+          <div className="smart-money-stream" role="list">
+            {visibleGroups.map((group, index) => (
+              <PoliticalMoveRow
+                key={group.ticker}
+                group={group}
+                alt={index % 2 === 1}
+                trackedTickers={trackedTickers}
+                addingTicker={addingTicker}
+                onAdd={onAdd}
+              />
+            ))}
+          </div>
+        </>
       )}
 
       <p className="investor-moves-disclaimer">
