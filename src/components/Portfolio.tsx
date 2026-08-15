@@ -26,6 +26,7 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import SectorMixBars from "@/components/SectorMixBars";
 import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
+import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -109,6 +110,13 @@ type SortDir = "asc" | "desc";
 interface SortState {
   key: SortKey;
   dir: SortDir;
+}
+
+interface PortfolioProfile {
+  sector: string | null;
+  marketCap: number | null;
+  longName: string | null;
+  quoteType: string | null;
 }
 
 // ── Convert persisted positions to PortfolioPosition with live prices ───────
@@ -224,7 +232,7 @@ export default function Portfolio({
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [loadingBook, setLoadingBook] = useState(false);
-  const [sectorProfiles, setSectorProfiles] = useState<Record<string, { sector: string | null; marketCap: number | null }>>({});
+  const [sectorProfiles, setSectorProfiles] = useState<Record<string, PortfolioProfile>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -325,9 +333,14 @@ export default function Portfolio({
       const profileRes = await fetch(`/api/market/sector-profile?tickers=${tickers.join(",")}`);
       if (!profileRes.ok) return;
       const profileData = await profileRes.json();
-      const profileMap: Record<string, { sector: string | null; marketCap: number | null }> = {};
+      const profileMap: Record<string, PortfolioProfile> = {};
       for (const p of (profileData.profiles ?? [])) {
-        profileMap[p.ticker] = { sector: p.sector, marketCap: p.marketCap };
+        profileMap[p.ticker] = {
+          sector: p.sector,
+          marketCap: p.marketCap,
+          longName: p.longName,
+          quoteType: p.quoteType,
+        };
       }
       setSectorProfiles(profileMap);
     } catch {
@@ -352,16 +365,28 @@ export default function Portfolio({
       const ticker = p.companyId.toUpperCase();
       if (cmap.has(ticker)) continue;
       const profile = sectorProfiles[ticker];
-      const sector =
-        normalizeSectorName(profile?.sector)
-        ?? normalizeSectorName(getSectorForCompany(ticker)?.name)
-        ?? undefined;
+      const instrument = getMarketInstrument(ticker);
+      const quoteType = profile?.quoteType?.toUpperCase() ?? null;
+      const isFund = instrument?.kind === "etf"
+        || quoteType === "ETF"
+        || quoteType === "MUTUALFUND"
+        || quoteType === "INDEX";
+      const exposure = instrument?.portfolioExposure
+        ?? (quoteType === "ETF"
+          ? "Other ETF"
+          : quoteType === "MUTUALFUND"
+            ? "Other Fund"
+            : quoteType === "INDEX"
+              ? "Index"
+              : normalizeSectorName(profile?.sector)
+                ?? normalizeSectorName(getSectorForCompany(ticker)?.name)
+                ?? undefined);
       cmap.set(ticker, {
         id: ticker,
         ticker,
-        name: ticker,
-        assetType: "stock",
-        sector,
+        name: profile?.longName ?? ticker,
+        assetType: instrument?.kind === "crypto" ? "other" : isFund ? "etf" : "stock",
+        sector: exposure,
         industry: undefined,
       });
     }
@@ -733,7 +758,7 @@ export default function Portfolio({
               <span className="pf-section-eyebrow">Portfolio mix</span>
               <h2>Where your money is</h2>
             </div>
-            <p>By economic sector — ranked, not pie-sliced.</p>
+            <p>Stocks by sector. Funds by asset-class sleeve.</p>
           </div>
           <SectorMixBars sectors={sectorMixData} />
         </section>

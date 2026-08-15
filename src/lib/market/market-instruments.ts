@@ -11,14 +11,21 @@ export interface MarketInstrument {
   kind: MarketInstrumentKind;
   /** Short header tag on the light detail page. */
   tag: string;
+  /** Portfolio Mix bucket when a fund has no single company sector. */
+  portfolioExposure: string;
 }
 
 function crypto(ticker: string, name: string): MarketInstrument {
-  return { ticker, name, kind: "crypto", tag: "Crypto" };
+  return { ticker, name, kind: "crypto", tag: "Crypto", portfolioExposure: "Crypto" };
 }
 
-function etf(ticker: string, name: string, tag = "ETF"): MarketInstrument {
-  return { ticker, name, kind: "etf", tag };
+function etf(
+  ticker: string,
+  name: string,
+  tag = "ETF",
+  portfolioExposure = "Other ETF",
+): MarketInstrument {
+  return { ticker, name, kind: "etf", tag, portfolioExposure };
 }
 
 /**
@@ -32,53 +39,53 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   "SOL-USD": crypto("SOL-USD", "Solana"),
 
   // Major index proxies
-  DIA: etf("DIA", "Dow Jones Industrial Average", "Index"),
-  SPY: etf("SPY", "S&P 500", "Index"),
-  QQQ: etf("QQQ", "Nasdaq 100", "Index"),
+  DIA: etf("DIA", "Dow Jones Industrial Average", "Index", "U.S. Equity"),
+  SPY: etf("SPY", "S&P 500", "Index", "U.S. Equity"),
+  QQQ: etf("QQQ", "Nasdaq 100", "Index", "U.S. Equity"),
 
   // U.S. market / style ETFs
-  IWM: etf("IWM", "Russell 2000", "Index"),
-  RSP: etf("RSP", "S&P 500 Equal Weight", "Index"),
-  MDY: etf("MDY", "S&P MidCap 400", "Index"),
-  SCHD: etf("SCHD", "U.S. Dividend 100", "ETF"),
-  VNQ: etf("VNQ", "U.S. Real Estate", "ETF"),
-  IYT: etf("IYT", "Transportation", "ETF"),
-  UUP: etf("UUP", "U.S. Dollar", "ETF"),
-  VTI: etf("VTI", "Total Stock Market", "ETF"),
-  VXUS: etf("VXUS", "Total International Stock", "International"),
-  BND: etf("BND", "Total Bond Market", "Bond"),
-  SGOV: etf("SGOV", "0–3 Month Treasury", "Cash"),
+  IWM: etf("IWM", "Russell 2000", "Index", "U.S. Equity"),
+  RSP: etf("RSP", "S&P 500 Equal Weight", "Index", "U.S. Equity"),
+  MDY: etf("MDY", "S&P MidCap 400", "Index", "U.S. Equity"),
+  SCHD: etf("SCHD", "U.S. Dividend 100", "ETF", "U.S. Equity"),
+  VNQ: etf("VNQ", "U.S. Real Estate", "ETF", "Real Estate"),
+  IYT: etf("IYT", "Transportation", "ETF", "Industrials"),
+  UUP: etf("UUP", "U.S. Dollar", "ETF", "Currency"),
+  VTI: etf("VTI", "Total Stock Market", "ETF", "U.S. Equity"),
+  VXUS: etf("VXUS", "Total International Stock", "International", "International Equity"),
+  BND: etf("BND", "Total Bond Market", "Bond", "Fixed Income"),
+  SGOV: etf("SGOV", "0–3 Month Treasury", "Cash", "Cash"),
 
   // Treasuries (All-Weather / rates proxies)
-  TLT: etf("TLT", "20+ Year Treasury", "Bond"),
-  IEF: etf("IEF", "7–10 Year Treasury", "Bond"),
+  TLT: etf("TLT", "20+ Year Treasury", "Bond", "Fixed Income"),
+  IEF: etf("IEF", "7–10 Year Treasury", "Bond", "Fixed Income"),
 
   // Commodities
-  USO: etf("USO", "Crude Oil", "Commodity"),
-  GLD: etf("GLD", "Gold", "Commodity"),
-  SLV: etf("SLV", "Silver", "Commodity"),
-  DBC: etf("DBC", "Broad Commodities", "Commodity"),
+  USO: etf("USO", "Crude Oil", "Commodity", "Commodities"),
+  GLD: etf("GLD", "Gold", "Commodity", "Commodities"),
+  SLV: etf("SLV", "Silver", "Commodity", "Commodities"),
+  DBC: etf("DBC", "Broad Commodities", "Commodity", "Commodities"),
 
   // International country ETFs (six-country Pulse set)
-  EWJ: etf("EWJ", "Japan", "International"),
-  MCHI: etf("MCHI", "China", "International"),
-  EWU: etf("EWU", "United Kingdom", "International"),
-  INDA: etf("INDA", "India", "International"),
-  EWT: etf("EWT", "Taiwan", "International"),
-  EWG: etf("EWG", "Germany", "International"),
+  EWJ: etf("EWJ", "Japan", "International", "International Equity"),
+  MCHI: etf("MCHI", "China", "International", "International Equity"),
+  EWU: etf("EWU", "United Kingdom", "International", "International Equity"),
+  INDA: etf("INDA", "India", "International", "International Equity"),
+  EWT: etf("EWT", "Taiwan", "International", "International Equity"),
+  EWG: etf("EWG", "Germany", "International", "International Equity"),
 
   // S&P sector SPDRs (Pulse sectors heatmap)
-  XLK: etf("XLK", "Technology", "Sector"),
-  XLF: etf("XLF", "Financials", "Sector"),
-  XLV: etf("XLV", "Healthcare", "Sector"),
-  XLE: etf("XLE", "Energy", "Sector"),
-  XLI: etf("XLI", "Industrials", "Sector"),
-  XLY: etf("XLY", "Consumer Discretionary", "Sector"),
-  XLP: etf("XLP", "Consumer Staples", "Sector"),
-  XLU: etf("XLU", "Utilities", "Sector"),
-  XLRE: etf("XLRE", "Real Estate", "Sector"),
-  XLC: etf("XLC", "Communication Services", "Sector"),
-  XLB: etf("XLB", "Materials", "Sector"),
+  XLK: etf("XLK", "Technology", "Sector", "Technology"),
+  XLF: etf("XLF", "Financials", "Sector", "Financials"),
+  XLV: etf("XLV", "Healthcare", "Sector", "Health Care"),
+  XLE: etf("XLE", "Energy", "Sector", "Energy"),
+  XLI: etf("XLI", "Industrials", "Sector", "Industrials"),
+  XLY: etf("XLY", "Consumer Discretionary", "Sector", "Consumer Discretionary"),
+  XLP: etf("XLP", "Consumer Staples", "Sector", "Consumer Staples"),
+  XLU: etf("XLU", "Utilities", "Sector", "Utilities"),
+  XLRE: etf("XLRE", "Real Estate", "Sector", "Real Estate"),
+  XLC: etf("XLC", "Communication Services", "Sector", "Communication Services"),
+  XLB: etf("XLB", "Materials", "Sector", "Materials"),
 };
 
 export function getMarketInstrument(ticker: string): MarketInstrument | null {
