@@ -37,6 +37,7 @@ import { notifyPortfolioChanged, usePortfolioData } from "@/components/Portfolio
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import { ProductStage } from "@/components/ProductStage";
+import { TypewriterText } from "@/components/TypewriterText";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 const PORTFOLIO_TABS = [
@@ -157,9 +158,7 @@ function SampleBooksSwitcher({
   onSelectPersonal: () => void;
   disabled?: boolean;
 }) {
-  const active = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeId) ?? null;
   const personalActive = activeId === null;
-  const description = active?.description ?? PERSONAL_BOOK_DESCRIPTION;
 
   return (
     <section className="pf-book-switch" aria-label="Portfolio books">
@@ -213,9 +212,6 @@ function SampleBooksSwitcher({
         </div>
       </div>
 
-      <p className="pf-book-switch-lede" aria-live="polite">
-        {description}
-      </p>
     </section>
   );
 }
@@ -491,6 +487,7 @@ export default function Portfolio({
 
   const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
   const stageHeadline = activeSampleBook?.label ?? "My Portfolio";
+  const stageDescription = activeSampleBook?.description ?? PERSONAL_BOOK_DESCRIPTION;
   const stageTone = valueBrief.tone;
 
   const allocationItems = useMemo(() => sortedPositions
@@ -816,6 +813,31 @@ export default function Portfolio({
         tone={hasData ? stageTone : "neutral"}
         eyebrow={stageEyebrow}
         headline={hasData ? stageHeadline : "My Portfolio"}
+        footer={
+          <div className="portfolio-stage-lede" aria-live="polite">
+            <svg
+              className="portfolio-stage-pencil-rule"
+              viewBox="0 0 600 8"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2 4.4 C 84 1.4, 156 6.8, 242 3.6 S 402 6.1, 598 3.8"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.35"
+                strokeLinecap="round"
+              />
+            </svg>
+            <TypewriterText
+              as="span"
+              text={stageDescription}
+              className="portfolio-stage-lede-text"
+              msPerChar={24}
+              startDelay={180}
+            />
+          </div>
+        }
         metrics={
           hasData ? (
             <>
