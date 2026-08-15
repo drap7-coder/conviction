@@ -9,7 +9,7 @@ import Watchlist from "@/components/Watchlist";
 export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) {
   return (
     <div className="my-list-shell">
-      <Watchlist composeFirst>
+      <Watchlist>
         {publicFeed}
       </Watchlist>
     </div>
