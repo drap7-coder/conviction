@@ -94,11 +94,8 @@ function highlightMatch(text: string, query: string) {
 
 export default function Watchlist({
   children,
-  composeFirst = false,
 }: {
   children?: ReactNode;
-  /** Put the Track compose bar under portfolio value / above list content. */
-  composeFirst?: boolean;
 }) {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
@@ -601,19 +598,19 @@ export default function Watchlist({
         variant="watchlist"
         aria-label="Watchlist"
         eyebrow={`Watchlist · ${sessionLabel}`}
-        headline="What changed."
-        summary="Companies you follow — evidence first."
+        headline={activeTab === "insights" ? "Worth your attention." : "What changed."}
+        summary={
+          activeTab === "insights"
+            ? undefined
+            : "Companies you follow — evidence first."
+        }
       />
-
-      {composeFirst ? composeBar : null}
 
       <GuestModeBanner
         authenticated={authenticated}
         authConfigured={authConfigured}
         accountLabel={accountLabel}
       />
-
-      {!composeFirst ? composeBar : null}
 
       <div
         id="watchlist-panel-moves"
@@ -628,7 +625,7 @@ export default function Watchlist({
             {!loading && entries.length === 0 ? (
               <div className="empty-state">
                 <p>Add companies you care about.</p>
-                <small>Track names above, then tap a heatmap tile to open the company dashboard.</small>
+                <small>Track names below, then tap a heatmap tile to open the company dashboard.</small>
                 <Link href="/pulse" className="brief-link">
                   Browse market moves →
                 </Link>
@@ -671,6 +668,8 @@ export default function Watchlist({
                 footer={children}
               />
             ) : null}
+
+            {composeBar}
 
             {!loading && entries.length > 0 ? (
               <div className="wl-manage-row" aria-label="Manage watchlist names">

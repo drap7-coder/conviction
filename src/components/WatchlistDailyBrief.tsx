@@ -270,50 +270,19 @@ export function WatchlistDailyBrief({
     watchlistTickers,
   });
 
-  const title = loading
-    ? "Building…"
-    : entries.length === 0
-      ? "Add one company"
-      : items.length === 0
-        ? "All clear"
-        : "Worth your attention";
   const lead = items[0] ?? null;
   const rest = items.slice(1);
-  const showPencil = !loading && items.length > 0;
 
   return (
     <section
       className={`for-you-feed${items.length === 0 && !loading ? " is-clear" : ""}`}
       aria-label="Worth your attention"
     >
-      <div
-        className={`for-you-title${showPencil ? " is-active" : ""}`}
-        aria-live="polite"
-      >
-        <span className="for-you-title-label">{title}</span>
-        {showPencil ? (
-          <svg
-            className="for-you-title-pencil"
-            viewBox="0 0 160 6"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M1.5 3.2 C 24 1.1, 48 4.8, 72 2.6 S 120 5.2, 158.5 2.9"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
-        ) : null}
-      </div>
-
       {entries.length === 0 ? (
         <div className="for-you-feed-clear">
           <div>
-            <strong>Track a company to start the brief.</strong>
-            <p>Insights appear here when something material moves.</p>
+            <strong>Nothing to brief yet.</strong>
+            <p>Insights appear here when something material moves on Moves.</p>
           </div>
         </div>
       ) : loading ? (
