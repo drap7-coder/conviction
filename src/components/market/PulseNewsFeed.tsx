@@ -122,10 +122,12 @@ function readBrowserWatchlistTickers(): string[] {
 function NarrativeCard({
   theme,
   featured = false,
+  alt = false,
   personal = false,
 }: {
   theme: MarketNarrativeTheme;
   featured?: boolean;
+  alt?: boolean;
   personal?: boolean;
 }) {
   const headline = primaryHeadline(theme);
@@ -133,7 +135,7 @@ function NarrativeCard({
 
   return (
     <article
-      className={`pulse-news-narrative${featured ? " is-featured" : ""} tone-${theme.marketTone}`}
+      className={`pulse-news-narrative${featured ? " is-featured" : ""}${alt ? " is-alt" : ""} tone-${theme.marketTone}`}
     >
       <div className="pulse-news-narrative-top">
         <span className="pulse-news-narrative-label">{theme.label}</span>
@@ -287,6 +289,7 @@ export function PulseNewsFeed({
                 key={theme.id}
                 theme={theme}
                 featured={index === 0}
+                alt={index === 2}
                 personal={themeIsPersonal(theme)}
               />
             ))}
@@ -352,8 +355,11 @@ export function PulseNewsFeed({
           </div>
 
           <div className="pulse-news-stream" role="feed" aria-busy="false">
-            {visibleItems.map((item) => (
-              <article key={item.id} className="pulse-news-row">
+            {visibleItems.map((item, index) => (
+              <article
+                key={item.id}
+                className={`pulse-news-row${index % 2 === 1 ? " is-alt" : ""}`}
+              >
                 <div className="pulse-news-row-meta">
                   <span>{item.themeLabel}</span>
                   <span>{item.publisher || "Market source"}</span>
