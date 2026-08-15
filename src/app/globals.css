@@ -11449,6 +11449,10 @@ a.signal-block-conclusion-link:hover {
 .product-stage--smart-money {
   --stage-accent: #9fb8ff;
   --stage-glow: rgba(114, 145, 255, 0.17);
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 0.34fr);
+  gap: 13px;
+  padding: clamp(12px, 1.6vw, 16px) clamp(12px, 1.8vw, 18px);
+  border-radius: 14px;
 }
 
 .product-stage--smart-money.tone-positive {
@@ -11464,6 +11468,45 @@ a.signal-block-conclusion-link:hover {
 .product-stage--smart-money.tone-watch {
   --stage-accent: #f8d477;
   --stage-glow: rgba(248, 212, 119, 0.15);
+}
+
+.product-stage--smart-money .product-stage-headline {
+  font-size: clamp(1.3rem, 2.65vw, 1.8rem);
+}
+
+.product-stage--smart-money .product-stage-metrics {
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.product-stage--smart-money .product-stage-metrics > div {
+  gap: 3px;
+  padding: 8px;
+}
+
+.product-stage--smart-money .product-stage-metrics .is-positive {
+  background: color-mix(in srgb, #5eead4 7%, transparent);
+}
+
+.product-stage--smart-money .product-stage-metrics .is-negative {
+  background: color-mix(in srgb, #ff8585 7%, transparent);
+}
+
+.product-stage--smart-money .product-stage-metrics .is-alert {
+  background: color-mix(in srgb, #f8d477 7%, transparent);
+}
+
+.product-stage--smart-money .product-stage-metrics strong {
+  font-size: clamp(0.84rem, 1.5vw, 1rem);
+}
+
+.product-stage--smart-money .product-stage-metrics span {
+  overflow: visible;
+  font-size: 0.48rem;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .product-stage--portfolio {
@@ -11702,6 +11745,11 @@ a.signal-block-conclusion-link:hover {
     gap: 14px;
     padding: 16px 16px 14px;
     border-radius: 14px;
+  }
+
+  .product-stage--smart-money {
+    padding: 13px;
+    gap: 11px;
   }
 
   .product-stage h1,

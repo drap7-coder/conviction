@@ -27,6 +27,17 @@ function formatFilingDate(value: string | null | undefined): string {
   }).format(new Date(`${value}T00:00:00Z`));
 }
 
+function directionalValue(
+  value: string,
+  tone: SmartMoneyStageMetric["tone"],
+): string {
+  if (tone !== "positive" && tone !== "negative") return value;
+  if (value === "—" || /^[+−-]/.test(value)) return value;
+  const numeric = Number(value.replace(/[^0-9.]/g, ""));
+  if (Number.isFinite(numeric) && numeric === 0) return value;
+  return `${tone === "positive" ? "+" : "−"}${value}`;
+}
+
 export function buildInstitutionStageSummary(
   book: InstitutionalManagerBook,
 ): SmartMoneyStageSummary {
@@ -48,8 +59,8 @@ export function buildInstitutionStageSummary(
     summary: `Quarter ended ${formatFilingDate(book.filingQuarter)} · filed ${formatFilingDate(book.filingDate)}. Position changes, not live trades.`,
     tone,
     metrics: [
-      { label: "New / added", value: String(additions), tone: "positive" },
-      { label: "Trimmed / exited", value: String(reductions), tone: "negative" },
+      { label: "New / added", value: directionalValue(String(additions), "positive"), tone: "positive" },
+      { label: "Trimmed / exited", value: directionalValue(String(reductions), "negative"), tone: "negative" },
       { label: "Holdings", value: String(book.positionCount) },
     ],
   };
@@ -71,16 +82,19 @@ export function buildPoliticianStageSummary(
     headline: brief.headline,
     summary: brief.summary,
     tone,
-    metrics: brief.metrics.map((metric) => ({
-      label: metric.label,
-      value: metric.value,
-      tone: metric.tone === "positive"
+    metrics: brief.metrics.map((metric) => {
+      const metricTone = metric.tone === "positive"
         ? "positive"
         : metric.tone === "negative"
           ? "negative"
           : metric.tone === "alert"
             ? "alert"
-            : undefined,
-    })),
+            : undefined;
+      return {
+        label: metric.label,
+        value: directionalValue(metric.value, metricTone),
+        tone: metricTone,
+      };
+    }),
   };
 }
