@@ -149,7 +149,6 @@ function SampleBooksSwitcher({
   personalCount: number;
   disabled?: boolean;
 }) {
-  const active = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeId) ?? null;
   const personalActive = activeId === null;
 
   return (
@@ -209,12 +208,6 @@ function SampleBooksSwitcher({
             );
           })}
         </div>
-        {active ? (
-          <p className="pf-book-switch-lede pf-book-switch-lede--sample" aria-live="polite">
-            <strong>{active.label}</strong>
-            <span>{active.description}</span>
-          </p>
-        ) : null}
       </div>
     </section>
   );
