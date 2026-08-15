@@ -735,12 +735,17 @@ export default function Portfolio({
 
   const insightsBody = hasData ? (
     <>
-      {!calcFailed ? (
-        <PortfolioCheckPanel
-          riskFlags={riskFlags}
-          sampleBook={activeSampleBook}
-          onReviewPositions={reviewPositions}
-        />
+      {sectorMixData.length > 0 && !activeSampleBook?.weights ? (
+        <section className="pf-section pf-exposure-card">
+          <div className="pf-exposure-heading">
+            <div>
+              <span className="pf-section-eyebrow">Portfolio mix</span>
+              <h2>Where your money is</h2>
+            </div>
+            <p>By economic sector — ranked, not pie-sliced.</p>
+          </div>
+          <SectorMixBars sectors={sectorMixData} />
+        </section>
       ) : null}
 
       {!calcFailed ? (
@@ -750,17 +755,12 @@ export default function Portfolio({
         />
       ) : null}
 
-      {sectorMixData.length > 0 && !activeSampleBook?.weights ? (
-        <section className="pf-section pf-exposure-card">
-          <div className="pf-exposure-heading">
-            <div>
-              <span className="pf-section-eyebrow">Portfolio mix</span>
-              <h2>Where your money is</h2>
-            </div>
-            <p>Position values by economic sector — ranked, not pie-sliced.</p>
-          </div>
-          <SectorMixBars sectors={sectorMixData} />
-        </section>
+      {!calcFailed ? (
+        <PortfolioCheckPanel
+          riskFlags={riskFlags}
+          sampleBook={activeSampleBook}
+          onReviewPositions={reviewPositions}
+        />
       ) : null}
 
       {calcFailed ? (
@@ -807,7 +807,7 @@ export default function Portfolio({
         eyebrow={stageEyebrow}
         headline={hasData ? stageHeadline : "My Portfolio"}
         metrics={
-          hasData ? (
+          hasData && activeTab === "value" ? (
             <>
               <div>
                 <strong>{currency(portfolioMetrics.totalMarketValue)}</strong>
@@ -829,7 +829,7 @@ export default function Portfolio({
           ) : undefined
         }
       >
-        {hasData ? (
+        {hasData && activeTab === "value" ? (
           <div className="product-stage-actions">
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
               {loading ? "Refreshing…" : "Refresh prices"}
