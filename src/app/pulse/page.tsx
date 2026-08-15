@@ -6,7 +6,6 @@ import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { HeatTile } from "@/components/HeatTile";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
-import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
 import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
 import {
   themesForHeatmapGroup,
@@ -17,7 +16,6 @@ import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
-import { buildTrendingBreadthBrief } from "@/lib/market/pulse-brief";
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
 
@@ -41,14 +39,6 @@ type PulseTab = (typeof PULSE_TABS)[number]["id"];
 function fmtPct(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
-
-function relativeSpread(
-  lead: number | null | undefined,
-  baseline: number | null | undefined,
-): number | null {
-  if (!isFiniteNumber(lead) || !isFiniteNumber(baseline)) return null;
-  return lead - baseline;
 }
 
 function tileSpan(weight: number): number {
@@ -193,9 +183,6 @@ export default function MarketPulsePage() {
   const changeFor = (ticker: string) =>
     data.globalMarkets.find((market) => market.ticker === ticker)?.changePercent ?? null;
   const spyChange = changeFor("SPY");
-  const equalWeightLead = relativeSpread(changeFor("RSP"), spyChange);
-  const smallCapLead = relativeSpread(changeFor("IWM"), spyChange);
-  const trendingBreadthBrief = buildTrendingBreadthBrief(equalWeightLead, smallCapLead);
 
   return (
     <main className="markets-page">
@@ -208,7 +195,7 @@ export default function MarketPulsePage() {
         <p className="view-switch-context-line">
           {activeTab === "indexes"
             ? "Regime map — indexes, then sectors, then the rest."
-            : "Active names — breadth, then the board."}
+            : "Active names — liquidity and movement."}
         </p>
       </ViewSwitcher>
 
@@ -311,12 +298,9 @@ export default function MarketPulsePage() {
         hidden={activeTab !== "trending"}
       >
         {activeTab === "trending" ? (
-          <>
-            <PulseDecisionCard brief={trendingBreadthBrief} />
-            <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
-              <MarketMovesPanel showDecisionCard={false} />
-            </section>
-          </>
+          <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
+            <MarketMovesPanel showDecisionCard={false} />
+          </section>
         ) : null}
       </div>
     </main>
