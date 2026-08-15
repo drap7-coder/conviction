@@ -175,8 +175,8 @@ describe("Smart Money stage summaries", () => {
       headline: "Test Capital is adding.",
       tone: "positive",
       metrics: [
-        { label: "New / added", value: "7", tone: "positive" },
-        { label: "Trimmed / exited", value: "2", tone: "negative" },
+        { label: "New / added", value: "+7", tone: "positive" },
+        { label: "Trimmed / exited", value: "−2", tone: "negative" },
         { label: "Holdings", value: "18" },
       ],
     });
@@ -188,7 +188,7 @@ describe("Smart Money stage summaries", () => {
       politicalTrade("b", "PINS", "sale", 32_501, 10, { assetName: "Pinterest Inc." }),
     ]);
 
-    expect(summary.metrics[0]).toMatchObject({ label: "Buys", tone: "positive" });
-    expect(summary.metrics[1]).toMatchObject({ label: "Sells", tone: "negative" });
+    expect(summary.metrics[0]).toMatchObject({ label: "Buys", value: "+$75K", tone: "positive" });
+    expect(summary.metrics[1]).toMatchObject({ label: "Sells", value: "−$33K", tone: "negative" });
   });
 });
