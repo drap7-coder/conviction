@@ -5,7 +5,13 @@ import { TypewriterText } from "@/components/TypewriterText";
 
 export type ProductStageVariant = "pulse" | "news" | "smart-money" | "watchlist" | "portfolio";
 
-export type ProductStageTone = "balanced" | "watch" | "concentrated" | "neutral";
+export type ProductStageTone =
+  | "balanced"
+  | "watch"
+  | "concentrated"
+  | "positive"
+  | "negative"
+  | "neutral";
 
 /**
  * Compact page-top stage: eyebrow + typewriter headline + short line,

@@ -15,6 +15,10 @@ import type {
   InstitutionalManagerBook,
 } from "@/lib/sec/institutional";
 import { inkChipClass } from "@/lib/display/ink-tone";
+import {
+  buildInstitutionStageSummary,
+  type SmartMoneyStageSummary,
+} from "@/lib/market/smart-money-stage";
 
 type ManagerOption = {
   cik: string;
@@ -74,6 +78,12 @@ function statusChipClass(status: AccumulationStatus): string {
   return inkChipClass("quiet");
 }
 
+function statusRowClass(status: AccumulationStatus): string {
+  if (status === "New" || status === "Increased") return " is-positive";
+  if (status === "Reduced" || status === "Exited") return " is-negative";
+  return " is-neutral";
+}
+
 function statusLabel(status: AccumulationStatus): string {
   if (status === "New") return "New";
   if (status === "Increased") return "Added";
@@ -105,12 +115,14 @@ interface InvestorBookPanelProps {
   trackedTickers: Set<string>;
   addingTicker: string | null;
   onAdd: (idea: { ticker: string; companyName: string }) => void;
+  onSummaryChange: (summary: SmartMoneyStageSummary) => void;
 }
 
 export function InvestorBookPanel({
   trackedTickers,
   addingTicker,
   onAdd,
+  onSummaryChange,
 }: InvestorBookPanelProps) {
   const [selectedCik, setSelectedCik] = useState(
     () => MANAGER_OPTIONS.find((manager) => manager.displayName === DEFAULT_MANAGER)?.cik
@@ -167,6 +179,12 @@ export function InvestorBookPanel({
     return positions.filter((position) => position.status !== "Exited");
   }, [book, showExits]);
 
+  useEffect(() => {
+    if (status === "success" && book) {
+      onSummaryChange(buildInstitutionStageSummary(book));
+    }
+  }, [book, onSummaryChange, status]);
+
   return (
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
       <div className="investor-filter-row investor-book-managers" role="tablist" aria-label="Choose an investor">
@@ -221,7 +239,7 @@ export function InvestorBookPanel({
               const adding = position.ticker ? addingTicker === position.ticker : false;
               return (
                 <article
-                  className={`smart-money-row${index % 2 === 1 ? " is-alt" : ""}`}
+                  className={`smart-money-row${index % 2 === 1 ? " is-alt" : ""}${statusRowClass(position.status)}`}
                   role="listitem"
                   key={key}
                 >
@@ -246,7 +264,7 @@ export function InvestorBookPanel({
                   </div>
                   <div className="smart-money-row-size">
                     <strong>
-                      {position.weight === null ? "—" : `${position.weight.toFixed(1)}%`}
+                      {position.weight === null ? "—" : `${position.weight.toFixed(1)}% of book`}
                     </strong>
                     <span>
                       {position.status === "Exited" ? "exited" : formatReportedValue(position.reportedValue)}
