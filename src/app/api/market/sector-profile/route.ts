@@ -18,7 +18,14 @@ export async function GET(request: NextRequest) {
 
   const profiles = await fetchSectorProfiles(tickers);
   const result = tickers
-    .map((t) => profiles.get(t) ?? { ticker: t, sector: null, industry: null, longName: null, marketCap: null })
+    .map((t) => profiles.get(t) ?? {
+      ticker: t,
+      sector: null,
+      industry: null,
+      longName: null,
+      marketCap: null,
+      quoteType: null,
+    })
     .filter(Boolean);
 
   return NextResponse.json({ profiles: result, fetchedAt: new Date().toISOString() });

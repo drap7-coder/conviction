@@ -13,6 +13,7 @@ export interface SectorProfile {
   industry: string | null;
   longName: string | null;
   marketCap: number | null;
+  quoteType: string | null;
 }
 
 interface YahooQuoteSummaryResult {
@@ -32,6 +33,7 @@ interface YahooQuoteSummaryResult {
       price?: {
         longName?: string;
         marketCap?: { raw: number; fmt: string };
+        quoteType?: string;
       };
     }>;
   };
@@ -55,13 +57,27 @@ export async function fetchSectorProfile(ticker: string): Promise<SectorProfile 
   try {
     const response = await fetchWithTimeout(url, {}, 6_000);
     if (!response.ok) {
-      return { ticker: upper, sector: fallbackSector, industry: null, longName: null, marketCap: null };
+      return {
+        ticker: upper,
+        sector: fallbackSector,
+        industry: null,
+        longName: null,
+        marketCap: null,
+        quoteType: null,
+      };
     }
 
     const data = (await response.json()) as YahooQuoteSummaryResult;
     const result = data.quoteSummary?.result?.[0];
     if (!result) {
-      return { ticker: upper, sector: fallbackSector, industry: null, longName: null, marketCap: null };
+      return {
+        ticker: upper,
+        sector: fallbackSector,
+        industry: null,
+        longName: null,
+        marketCap: null,
+        quoteType: null,
+      };
     }
 
     const profile = result.assetProfile;
@@ -73,9 +89,17 @@ export async function fetchSectorProfile(ticker: string): Promise<SectorProfile 
       industry: profile?.industry ?? null,
       longName: price?.longName ?? null,
       marketCap: toFiniteNumber(price?.marketCap?.raw),
+      quoteType: price?.quoteType?.toUpperCase() ?? null,
     };
   } catch {
-    return { ticker: upper, sector: fallbackSector, industry: null, longName: null, marketCap: null };
+    return {
+      ticker: upper,
+      sector: fallbackSector,
+      industry: null,
+      longName: null,
+      marketCap: null,
+      quoteType: null,
+    };
   }
 }
 

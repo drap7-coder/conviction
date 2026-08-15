@@ -4,11 +4,21 @@ import { useMemo } from "react";
 import type { SectorAllocation } from "@/lib/portfolio/types";
 
 /**
- * Ranked sector mix — clearer than a pie for “where the money is,”
- * and better than a gauge (gauges answer one scalar, not a composition).
+ * Ranked exposure mix — stocks use sectors; funds use asset-class sleeves.
+ * This avoids pretending a broad ETF belongs to one company sector.
  */
 
 const SECTOR_NAME_COLORS: Record<string, string> = {
+  "U.S. Equity": "#0052CC",
+  "International Equity": "#7F55E0",
+  "Fixed Income": "#00B8D9",
+  Cash: "#00875A",
+  Commodities: "#F59E0B",
+  Currency: "#A67C52",
+  Crypto: "#F97316",
+  "Other ETF": "#64748B",
+  "Other Fund": "#64748B",
+  Index: "#475569",
   Technology: "#0052CC",
   Financials: "#00875A",
   "Health Care": "#E0115F",
@@ -47,7 +57,7 @@ export default function SectorMixBars({ sectors }: SectorMixBarsProps) {
   if (rows.length === 0) return null;
 
   return (
-    <ul className="pf-sector-mix" aria-label="Sector mix">
+    <ul className="pf-sector-mix" aria-label="Portfolio exposure mix">
       {rows.map((row) => (
         <li key={row.name} className="pf-sector-mix-row">
           <div className="pf-sector-mix-meta">
