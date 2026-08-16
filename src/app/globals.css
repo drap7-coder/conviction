@@ -15584,17 +15584,12 @@ a.pulse-news-narrative-title:focus-visible {
   --market-red: var(--on-ink-red);
 }
 
-/* Shared view switcher — text labels, selected = ink + underline. */
+/* Shared view switcher — text labels, selected = ink + underline.
+   Scrolls away with the page so content can use the full top of the viewport. */
 .view-switch {
-  position: sticky;
-  top: var(--sticky-header-offset);
-  z-index: calc(var(--ticker-z) - 20);
   margin: -4px -8px 14px;
   padding: 4px 8px 0;
   scroll-margin-top: var(--sticky-header-offset);
-  background: color-mix(in srgb, var(--bg) 92%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .view-switch-tabs {
