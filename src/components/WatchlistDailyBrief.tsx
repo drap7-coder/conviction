@@ -270,8 +270,60 @@ export function WatchlistDailyBrief({
     watchlistTickers,
   });
 
-  const lead = items[0] ?? null;
-  const rest = items.slice(1);
+  // Same desktop composition as News Brief: one featured lead + up to two beside it.
+  const board = items.slice(0, 3);
+  const more = items.slice(3);
+
+  function renderCard(item: WatchlistBriefItem, index: number, featured = false) {
+    return (
+      <Link
+        href={`/companies/${encodeURIComponent(item.ticker)}`}
+        key={`${item.ticker}-${item.kind}`}
+        className={[
+          "for-you-feed-card",
+          `tone-${item.tone}`,
+          featured ? "is-lead" : "",
+          index === 2 ? "is-alt" : "",
+        ].filter(Boolean).join(" ")}
+        aria-label={`Open ${item.ticker} company brief`}
+      >
+        <div className="for-you-feed-card-top">
+          <div className="for-you-feed-tags">
+            <span className="for-you-feed-rank">{String(index + 1).padStart(2, "0")}</span>
+            <span className="for-you-feed-kind">{item.kind}</span>
+          </div>
+          <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
+            {formatMove(item.changePercent)}
+          </span>
+        </div>
+        <div className="for-you-feed-company">
+          <strong>{item.ticker}</strong>
+          <span>{item.companyName}</span>
+        </div>
+        <h3>{item.headline}</h3>
+        <div className="for-you-feed-reason">
+          <span>Why it matters</span>
+          <p>{item.why}</p>
+        </div>
+        <div className="for-you-feed-next">
+          <span>Next proof point</span>
+          <p>{item.watchNext}</p>
+        </div>
+        <footer>
+          <div>
+            <span className={`for-you-feed-proof${item.proofStatus === "Price only" ? " is-price-only" : ""}`}>
+              {item.proofStatus}
+            </span>
+            <span>{item.sourceLabel}</span>
+          </div>
+          <div>
+            <time>{formatAge(item.occurredAt)}</time>
+          </div>
+          <em>Open company brief <span aria-hidden="true">→</span></em>
+        </footer>
+      </Link>
+    );
+  }
 
   return (
     <section
@@ -289,94 +341,18 @@ export function WatchlistDailyBrief({
         <div className="for-you-feed-loading" aria-live="polite">
           Reading prices, evidence, and conviction changes…
         </div>
-      ) : lead ? (
+      ) : board.length > 0 ? (
         <>
-          <Link
-            href={`/companies/${encodeURIComponent(lead.ticker)}`}
-            className={`for-you-feed-card tone-${lead.tone} is-lead`}
-            aria-label={`Open ${lead.ticker} company brief`}
+          <div
+            className={`for-you-feed-board item-count-${board.length}`}
+            aria-label="Top watchlist stories"
           >
-            <div className="for-you-feed-card-top">
-              <div className="for-you-feed-tags">
-                <span className="for-you-feed-rank">01</span>
-                <span className="for-you-feed-kind">{lead.kind}</span>
-              </div>
-              <span className={`for-you-feed-move${lead.changePercent !== null && lead.changePercent < 0 ? " is-down" : ""}`}>
-                {formatMove(lead.changePercent)}
-              </span>
-            </div>
-            <div className="for-you-feed-company">
-              <strong>{lead.ticker}</strong>
-              <span>{lead.companyName}</span>
-            </div>
-            <h3>{lead.headline}</h3>
-            <div className="for-you-feed-reason">
-              <span>Why it matters</span>
-              <p>{lead.why}</p>
-            </div>
-            <div className="for-you-feed-next">
-              <span>Next proof point</span>
-              <p>{lead.watchNext}</p>
-            </div>
-            <footer>
-              <div>
-                <span className={`for-you-feed-proof${lead.proofStatus === "Price only" ? " is-price-only" : ""}`}>
-                  {lead.proofStatus}
-                </span>
-                <span>{lead.sourceLabel}</span>
-              </div>
-              <div>
-                <time>{formatAge(lead.occurredAt)}</time>
-              </div>
-              <em>Open company brief <span aria-hidden="true">→</span></em>
-            </footer>
-          </Link>
+            {board.map((item, index) => renderCard(item, index, index === 0))}
+          </div>
 
-          {rest.length > 0 ? (
-            <div className={`for-you-feed-grid item-count-${rest.length}`}>
-              {rest.map((item, index) => (
-                <Link
-                  href={`/companies/${encodeURIComponent(item.ticker)}`}
-                  key={`${item.ticker}-${item.kind}`}
-                  className={`for-you-feed-card tone-${item.tone}`}
-                  aria-label={`Open ${item.ticker} company brief`}
-                >
-                  <div className="for-you-feed-card-top">
-                    <div className="for-you-feed-tags">
-                      <span className="for-you-feed-rank">{String(index + 2).padStart(2, "0")}</span>
-                      <span className="for-you-feed-kind">{item.kind}</span>
-                    </div>
-                    <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
-                      {formatMove(item.changePercent)}
-                    </span>
-                  </div>
-                  <div className="for-you-feed-company">
-                    <strong>{item.ticker}</strong>
-                    <span>{item.companyName}</span>
-                  </div>
-                  <h3>{item.headline}</h3>
-                  <div className="for-you-feed-reason">
-                    <span>Why it matters</span>
-                    <p>{item.why}</p>
-                  </div>
-                  <div className="for-you-feed-next">
-                    <span>Next proof point</span>
-                    <p>{item.watchNext}</p>
-                  </div>
-                  <footer>
-                    <div>
-                      <span className={`for-you-feed-proof${item.proofStatus === "Price only" ? " is-price-only" : ""}`}>
-                        {item.proofStatus}
-                      </span>
-                      <span>{item.sourceLabel}</span>
-                    </div>
-                    <div>
-                      <time>{formatAge(item.occurredAt)}</time>
-                    </div>
-                    <em>Open company brief <span aria-hidden="true">→</span></em>
-                  </footer>
-                </Link>
-              ))}
+          {more.length > 0 ? (
+            <div className="for-you-feed-more" aria-label="More watchlist stories">
+              {more.map((item, index) => renderCard(item, index + board.length))}
             </div>
           ) : null}
         </>
