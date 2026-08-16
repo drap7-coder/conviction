@@ -13,7 +13,14 @@ export interface SectorProfile {
   industry: string | null;
   longName: string | null;
   marketCap: number | null;
+  /** Trailing dividend yield as a percent (e.g. 1.25 for 1.25%). */
+  dividendYield: number | null;
   quoteType: string | null;
+}
+
+interface YahooRawNumber {
+  raw?: number;
+  fmt?: string;
 }
 
 interface YahooQuoteSummaryResult {
@@ -32,8 +39,13 @@ interface YahooQuoteSummaryResult {
       };
       price?: {
         longName?: string;
-        marketCap?: { raw: number; fmt: string };
+        marketCap?: YahooRawNumber;
         quoteType?: string;
+      };
+      summaryDetail?: {
+        dividendYield?: YahooRawNumber;
+        trailingAnnualDividendYield?: YahooRawNumber;
+        yield?: YahooRawNumber;
       };
     }>;
   };
@@ -43,45 +55,58 @@ function toFiniteNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+/** Yahoo yields arrive as fractions (0.012) or occasionally already as percent. */
+export function normalizeYahooYieldPercent(raw: number | null | undefined): number | null {
+  const value = toFiniteNumber(raw);
+  if (value === null || value < 0) return null;
+  if (value > 0 && value < 1) return value * 100;
+  return value;
+}
+
+function emptyProfile(ticker: string, fallbackSector: string | null): SectorProfile {
+  return {
+    ticker,
+    sector: fallbackSector,
+    industry: null,
+    longName: null,
+    marketCap: null,
+    dividendYield: null,
+    quoteType: null,
+  };
+}
+
 /**
  * Fetch sector/industry/profile info for a single ticker from Yahoo Finance.
- * Uses the quoteSummary endpoint which returns assetProfile data.
+ * Uses quoteSummary — chart meta often omits marketCap; price module is reliable.
+ * summaryDetail carries dividend / fund yield.
  */
 export async function fetchSectorProfile(ticker: string): Promise<SectorProfile | null> {
   const upper = ticker.trim().toUpperCase();
   const fallbackSector = normalizeSectorName(
     getSectorForCompany(upper)?.name ?? getSectorByTicker(upper)?.name ?? null,
   );
-  const url = `${YAHOO_BASE}/v10/finance/quoteSummary/${encodeURIComponent(upper)}?modules=assetProfile%2Cprice`;
+  const url = `${YAHOO_BASE}/v10/finance/quoteSummary/${encodeURIComponent(upper)}?modules=assetProfile%2Cprice%2CsummaryDetail`;
 
   try {
     const response = await fetchWithTimeout(url, {}, 6_000);
     if (!response.ok) {
-      return {
-        ticker: upper,
-        sector: fallbackSector,
-        industry: null,
-        longName: null,
-        marketCap: null,
-        quoteType: null,
-      };
+      return emptyProfile(upper, fallbackSector);
     }
 
     const data = (await response.json()) as YahooQuoteSummaryResult;
     const result = data.quoteSummary?.result?.[0];
     if (!result) {
-      return {
-        ticker: upper,
-        sector: fallbackSector,
-        industry: null,
-        longName: null,
-        marketCap: null,
-        quoteType: null,
-      };
+      return emptyProfile(upper, fallbackSector);
     }
 
     const profile = result.assetProfile;
     const price = result.price;
+    const summary = result.summaryDetail;
+    const dividendYield = normalizeYahooYieldPercent(
+      summary?.dividendYield?.raw
+      ?? summary?.trailingAnnualDividendYield?.raw
+      ?? summary?.yield?.raw,
+    );
 
     return {
       ticker: upper,
@@ -89,17 +114,11 @@ export async function fetchSectorProfile(ticker: string): Promise<SectorProfile 
       industry: profile?.industry ?? null,
       longName: price?.longName ?? null,
       marketCap: toFiniteNumber(price?.marketCap?.raw),
+      dividendYield,
       quoteType: price?.quoteType?.toUpperCase() ?? null,
     };
   } catch {
-    return {
-      ticker: upper,
-      sector: fallbackSector,
-      industry: null,
-      longName: null,
-      marketCap: null,
-      quoteType: null,
-    };
+    return emptyProfile(upper, fallbackSector);
   }
 }
 
