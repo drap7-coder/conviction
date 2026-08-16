@@ -720,36 +720,41 @@ export default function Portfolio({
     </section>
   );
 
+  const isSampleBook = Boolean(activeSampleBook);
+  const judgmentPanel = !calcFailed ? (
+    <div className={`pf-insights-judgment${isSampleBook ? " is-first" : ""}`}>
+      <PortfolioCheckPanel
+        riskFlags={riskFlags}
+        sampleBook={activeSampleBook}
+        onReviewPositions={reviewPositions}
+      />
+    </div>
+  ) : null;
+  const mixPanel = sectorMixData.length > 0 ? (
+    <section className="pf-section pf-exposure-card pf-insights-mix">
+      <div className="pf-exposure-heading">
+        <div>
+          <span className="pf-section-eyebrow">Portfolio mix</span>
+          <h2>Where your money is</h2>
+        </div>
+        <p>Stocks by sector. Funds by asset-class sleeve.</p>
+      </div>
+      <SectorMixBars sectors={sectorMixData} />
+    </section>
+  ) : null;
+  const allocationPanel = !calcFailed ? (
+    <div className="pf-insights-allocation">
+      <PortfolioAllocationLadder items={allocationItems} />
+    </div>
+  ) : null;
+
   const insightsBody = hasData ? (
-    <div className="pf-insights-flow">
-      {sectorMixData.length > 0 ? (
-        <section className="pf-section pf-exposure-card pf-insights-mix">
-          <div className="pf-exposure-heading">
-            <div>
-              <span className="pf-section-eyebrow">Portfolio mix</span>
-              <h2>Where your money is</h2>
-            </div>
-            <p>Stocks by sector. Funds by asset-class sleeve.</p>
-          </div>
-          <SectorMixBars sectors={sectorMixData} />
-        </section>
-      ) : null}
-
-      {!calcFailed ? (
-        <div className="pf-insights-allocation">
-          <PortfolioAllocationLadder items={allocationItems} />
-        </div>
-      ) : null}
-
-      {!calcFailed ? (
-        <div className="pf-insights-judgment">
-          <PortfolioCheckPanel
-            riskFlags={riskFlags}
-            sampleBook={activeSampleBook}
-            onReviewPositions={reviewPositions}
-          />
-        </div>
-      ) : null}
+    <div className={`pf-insights-flow${isSampleBook ? " is-sample" : ""}`}>
+      {/* Sample books lead with Design; personal books map first, then pressure points. */}
+      {isSampleBook ? judgmentPanel : null}
+      {mixPanel}
+      {allocationPanel}
+      {!isSampleBook ? judgmentPanel : null}
 
       {calcFailed ? (
         <div className="empty-state compact">
