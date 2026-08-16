@@ -721,9 +721,9 @@ export default function Portfolio({
   );
 
   const insightsBody = hasData ? (
-    <>
+    <div className="pf-insights-flow">
       {sectorMixData.length > 0 ? (
-        <section className="pf-section pf-exposure-card">
+        <section className="pf-section pf-exposure-card pf-insights-mix">
           <div className="pf-exposure-heading">
             <div>
               <span className="pf-section-eyebrow">Portfolio mix</span>
@@ -736,14 +736,19 @@ export default function Portfolio({
       ) : null}
 
       {!calcFailed ? (
-        <PortfolioAllocationLadder items={allocationItems} />
+        <div className="pf-insights-allocation">
+          <PortfolioAllocationLadder items={allocationItems} />
+        </div>
       ) : null}
 
       {!calcFailed ? (
-        <PortfolioCheckPanel
-          riskFlags={riskFlags}
-          onReviewPositions={reviewPositions}
-        />
+        <div className="pf-insights-judgment">
+          <PortfolioCheckPanel
+            riskFlags={riskFlags}
+            sampleBook={activeSampleBook}
+            onReviewPositions={reviewPositions}
+          />
+        </div>
       ) : null}
 
       {calcFailed ? (
@@ -755,7 +760,7 @@ export default function Portfolio({
           </button>
         </div>
       ) : null}
-    </>
+    </div>
   ) : (
     <div className="empty-state">
       <p>Insights need a portfolio to read.</p>
