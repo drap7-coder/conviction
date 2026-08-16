@@ -26,18 +26,18 @@
   --chart-grid: color-mix(in srgb, #ffffff 10%, transparent);
   --chart-border: var(--on-ink-border);
 
-  margin-inline: -26px;
-  padding: 4px 26px 28px;
+  margin-inline: calc(var(--page-gutter) * -1);
+  padding: 4px var(--page-gutter) 20px;
   min-height: calc(100vh - 110px);
   background: var(--ink-panel);
   color: var(--on-ink);
 }
 
-/* Match .app-shell mobile gutters (12px) so the navy bleed stays flush,
+/* Match .app-shell mobile gutters so the navy bleed stays flush,
    then keep inner content padding tighter than the rest of the app. */
 @media (max-width: 767px) {
   .company-detail-page {
-    margin-inline: -12px;
+    margin-inline: calc(var(--page-gutter-mobile) * -1);
     padding: 0 8px 16px;
     min-height: calc(100vh - 96px);
   }
@@ -82,7 +82,7 @@
 
 .company-dashboard {
   display: grid;
-  gap: 14px;
+  gap: var(--section-gap);
   width: min(100%, 1120px);
   margin-inline: auto;
 }
@@ -90,7 +90,7 @@
 /* Fast section rail: keeps a long research page navigable without hiding content. */
 .company-section-nav {
   position: sticky;
-  top: 76px;
+  top: var(--sticky-header-offset);
   z-index: 20;
   display: flex;
   gap: 4px;
@@ -134,14 +134,14 @@
 }
 
 .company-section-anchor {
-  scroll-margin-top: 138px;
+  scroll-margin-top: var(--sticky-subnav-offset);
 }
 
 /* ── Company Briefing ── */
 
 .company-briefing {
   display: grid;
-  gap: 16px;
+  gap: var(--section-gap);
   min-width: 0;
 }
 
@@ -1176,7 +1176,7 @@
 
 @media (max-width: 640px) {
   .company-section-nav {
-    top: 68px;
+    top: var(--sticky-header-offset);
     width: calc(100% + 4px);
     margin-inline: -2px;
     margin-bottom: 8px;
@@ -1189,7 +1189,7 @@
   }
 
   .company-section-anchor {
-    scroll-margin-top: 124px;
+    scroll-margin-top: calc(var(--sticky-header-offset) + 44px);
   }
 
   .company-dashboard {
