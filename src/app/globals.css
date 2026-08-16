@@ -67,11 +67,20 @@
   --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  /* Fixed-element dimensions */
+  /* Fixed-element dimensions + shared density scale */
   --ticker-z: 100;
   --bottom-tab-height: 58px;
-  --mobile-page-gutter: 22px;
+  --page-gutter: 26px;
+  --page-gutter-mobile: 12px;
+  /* Keep alias: historically used for bottom pad; align with real mobile gutter. */
+  --mobile-page-gutter: var(--page-gutter-mobile);
   --sticky-header-offset: 68px;
+  --sticky-subnav-offset: calc(var(--sticky-header-offset) + 48px);
+  --section-gap: 14px;
+  --card-pad: 16px;
+  --stage-pad-block: clamp(12px, 1.6vw, 16px);
+  --stage-pad-inline: clamp(12px, 1.8vw, 18px);
+  --lead-min-height: 320px;
 
   /* Chart theme */
   --chart-surface: #ffffff;
@@ -392,7 +401,7 @@ details > summary::before {
   min-height: 100vh;
   max-width: 960px;
   margin: 0 auto;
-  padding: 0 26px calc(
+  padding: 0 var(--page-gutter) calc(
     var(--bottom-tab-height) + var(--mobile-page-gutter) + env(safe-area-inset-bottom)
   );
 }
@@ -405,7 +414,7 @@ details > summary::before {
 
 @media (min-width: 768px) {
   .app-shell {
-    padding-bottom: 26px;
+    padding-bottom: var(--page-gutter);
   }
 }
 
@@ -445,9 +454,9 @@ details > summary::before {
   grid-template-columns: auto 1fr;
   align-items: center;
   justify-content: space-between;
-  margin-inline: -26px;
-  margin-bottom: 14px;
-  padding: 18px 26px 14px;
+  margin-inline: calc(var(--page-gutter) * -1);
+  margin-bottom: var(--section-gap);
+  padding: 14px var(--page-gutter) 12px;
   border-bottom: 1px solid var(--border);
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(14px);
@@ -982,7 +991,7 @@ details > summary::before {
 
 .investor-moves-panel,
 .smart-money-panel {
-  margin-bottom: 24px;
+  margin-bottom: var(--section-gap);
 }
 
 .investor-book-intro {
@@ -7067,7 +7076,7 @@ details > summary::before {
 
 .empty-state {
   text-align: center;
-  padding: 48px 20px;
+  padding: 28px 16px;
 }
 
 .empty-state p {
@@ -7731,13 +7740,13 @@ button.brief-link:focus-visible {
 }
 
 .pf-insights-judgment.is-first {
-  margin-bottom: 20px;
+  margin-bottom: var(--section-gap);
 }
 
 /* ── Allocation ladder: position weights on explicit risk thresholds ── */
 
 .pf-allocation-ladder {
-  margin: 0 0 20px;
+  margin: 0 0 var(--section-gap);
   padding: 20px;
   border: 1px solid var(--border-active);
   border-radius: 18px;
@@ -8073,7 +8082,7 @@ button.brief-link:focus-visible {
 /* ── Section ── */
 
 .pf-section {
-  margin-bottom: 24px;
+  margin-bottom: var(--section-gap);
 }
 
 .pf-section-title {
@@ -8087,7 +8096,7 @@ button.brief-link:focus-visible {
 }
 
 .pf-exposure-card {
-  padding: 22px;
+  padding: var(--card-pad);
   border: 1px solid var(--on-ink-border);
   border-radius: var(--radius);
   background: var(--ink-panel-elevated);
@@ -9254,7 +9263,7 @@ button.brief-link:focus-visible {
 
 .pf-empty {
   text-align: center;
-  padding: 48px 16px;
+  padding: 28px 16px;
 }
 
 .pf-empty-text {
@@ -9624,13 +9633,13 @@ button.brief-link:focus-visible {
 
 @media (max-width: 767px) {
   .app-shell {
-    padding: 0 12px var(--mobile-page-gutter);
+    padding: 0 var(--page-gutter-mobile) var(--mobile-page-gutter);
   }
 
   .app-header {
     display: block;
-    margin-inline: -12px;
-    padding: 10px 12px 10px;
+    margin-inline: calc(var(--page-gutter-mobile) * -1);
+    padding: 10px var(--page-gutter-mobile) 10px;
   }
 
   .header-brand-row {
@@ -11544,10 +11553,10 @@ a.signal-block-conclusion-link:hover {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
   align-items: end;
-  gap: 16px;
+  gap: 12px;
   overflow: hidden;
-  margin: 0 0 14px;
-  padding: clamp(14px, 2vw, 20px) clamp(14px, 2.2vw, 22px);
+  margin: 0 0 var(--section-gap);
+  padding: var(--stage-pad-block) var(--stage-pad-inline);
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 16px;
   background:
@@ -11607,8 +11616,6 @@ a.signal-block-conclusion-link:hover {
   --stage-accent: #9fb8ff;
   --stage-glow: rgba(114, 145, 255, 0.17);
   grid-template-columns: minmax(0, 1fr) minmax(200px, 0.34fr);
-  gap: 13px;
-  padding: clamp(12px, 1.6vw, 16px) clamp(12px, 1.8vw, 18px);
   border-radius: 14px;
 }
 
@@ -11899,13 +11906,12 @@ a.signal-block-conclusion-link:hover {
 @media (max-width: 760px) {
   .product-stage {
     grid-template-columns: 1fr;
-    gap: 14px;
-    padding: 16px 16px 14px;
+    gap: 12px;
+    padding: var(--stage-pad-block) var(--stage-pad-inline);
     border-radius: 14px;
   }
 
   .product-stage--smart-money {
-    padding: 13px;
     gap: 11px;
   }
 
@@ -11950,8 +11956,8 @@ a.signal-block-conclusion-link:hover {
 
 .daily-brief {
   display: grid;
-  gap: 13px;
-  margin: 0 0 18px;
+  gap: 12px;
+  margin: 0 0 var(--section-gap);
 }
 
 .daily-brief-header {
@@ -12277,7 +12283,7 @@ a.signal-block-conclusion-link:hover {
 
   .daily-brief-grid.item-count-3 .daily-brief-card.is-lead {
     grid-row: auto;
-    min-height: 360px;
+    min-height: var(--lead-min-height);
   }
 }
 
@@ -12305,8 +12311,8 @@ a.signal-block-conclusion-link:hover {
 
 .for-you-feed {
   display: grid;
-  gap: 14px;
-  margin: 0 0 22px;
+  gap: 12px;
+  margin: 0 0 var(--section-gap);
 }
 
 .for-you-title {
@@ -12409,9 +12415,9 @@ a.signal-block-conclusion-link:hover {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 13px;
+  gap: 11px;
   overflow: hidden;
-  padding: 20px;
+  padding: var(--card-pad);
   border: 1px solid var(--border);
   border-radius: 19px;
   background:
@@ -12448,8 +12454,8 @@ a.signal-block-conclusion-link:hover {
 
 .for-you-feed-card.is-lead {
   grid-row: 1 / span 2;
-  min-height: 430px;
-  padding: clamp(24px, 3vw, 34px);
+  min-height: var(--lead-min-height);
+  padding: clamp(16px, 2.5vw, 22px);
   border-color: rgba(255, 255, 255, 0.09);
   background:
     radial-gradient(circle at 91% 3%, color-mix(in srgb, var(--feed-accent) 18%, transparent), transparent 34%),
@@ -12464,7 +12470,7 @@ a.signal-block-conclusion-link:hover {
 }
 
 .for-you-feed-board.item-count-1 .for-you-feed-card.is-lead {
-  min-height: 340px;
+  min-height: 280px;
 }
 
 .for-you-feed-card-top,
@@ -12760,7 +12766,7 @@ a.signal-block-conclusion-link:hover {
 
   .for-you-feed-card.is-lead {
     grid-row: auto;
-    min-height: 390px;
+    min-height: var(--lead-min-height);
   }
 }
 
@@ -12875,8 +12881,8 @@ a.signal-block-conclusion-link:hover {
 
 .portfolio-insight-header {
   display: grid;
-  gap: 10px;
-  padding: 26px 26px 8px;
+  gap: 8px;
+  padding: 18px 18px 6px;
 }
 
 .portfolio-insight-kicker {
@@ -12909,8 +12915,8 @@ a.signal-block-conclusion-link:hover {
 .portfolio-insight-machine {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  padding: 18px 26px 8px;
+  gap: 10px;
+  padding: 12px 18px 6px;
 }
 
 .portfolio-insight-machine > div {
@@ -12940,8 +12946,8 @@ a.signal-block-conclusion-link:hover {
 
 .portfolio-insight-history {
   display: grid;
-  gap: 14px;
-  padding: 10px 26px 26px;
+  gap: 12px;
+  padding: 8px 18px 18px;
 }
 
 .portfolio-insight-history-heading {
@@ -13392,11 +13398,11 @@ button.portfolio-check-item:focus-visible {
 }
 
 #portfolio-positions {
-  scroll-margin-top: 84px;
+  scroll-margin-top: calc(var(--sticky-header-offset) + 16px);
 }
 
 [id^="portfolio-holding-"] {
-  scroll-margin-top: 84px;
+  scroll-margin-top: calc(var(--sticky-header-offset) + 16px);
 }
 
 @media (max-width: 767px) {
@@ -15020,7 +15026,7 @@ button.portfolio-check-item:focus-visible {
 /* Pulse news stream */
 .pulse-news-feed {
   display: grid;
-  gap: 22px;
+  gap: var(--section-gap);
   min-width: 0;
 }
 
@@ -15086,10 +15092,10 @@ button.portfolio-check-item:focus-visible {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 10px;
   overflow: hidden;
   min-width: 0;
-  padding: 19px 20px;
+  padding: var(--card-pad);
   border: 1px solid var(--border);
   border-radius: 18px;
   background:
@@ -15115,8 +15121,8 @@ button.portfolio-check-item:focus-visible {
 
 .pulse-news-narrative.is-featured {
   grid-row: 1 / span 2;
-  min-height: 430px;
-  padding: clamp(22px, 4vw, 34px);
+  min-height: var(--lead-min-height);
+  padding: clamp(16px, 2.5vw, 22px);
   border-color: rgba(255, 255, 255, 0.09);
   background:
     radial-gradient(circle at 93% 3%, color-mix(in srgb, var(--narrative-accent) 16%, transparent), transparent 34%),
@@ -15568,7 +15574,7 @@ a.pulse-news-narrative-title:focus-visible {
 
   .pulse-news-narrative.is-featured {
     grid-row: auto;
-    min-height: 390px;
+    min-height: var(--lead-min-height);
   }
 
   .pulse-news-connected {
@@ -15597,12 +15603,12 @@ a.pulse-news-narrative-title:focus-visible {
 @media (max-width: 430px) {
   .pulse-news-narrative,
   .pulse-news-narrative.is-featured {
-    padding: 18px;
+    padding: 14px;
     border-radius: 16px;
   }
 
   .pulse-news-narrative.is-featured {
-    min-height: 360px;
+    min-height: 280px;
   }
 
   .pulse-news-narrative.is-featured .pulse-news-narrative-title {
@@ -15715,8 +15721,8 @@ a.pulse-news-narrative-title:focus-visible {
 /* Shared view switcher — text labels, selected = ink + underline.
    Scrolls away with the page so content can use the full top of the viewport. */
 .view-switch {
-  margin: -4px -8px 14px;
-  padding: 4px 8px 0;
+  margin: -4px -8px var(--section-gap);
+  padding: 2px 8px 0;
   scroll-margin-top: var(--sticky-header-offset);
 }
 
@@ -15735,7 +15741,7 @@ a.pulse-news-narrative-title:focus-visible {
   flex: 1 1 0;
   min-width: 0;
   margin: 0;
-  padding: 12px 10px 14px;
+  padding: 8px 10px 10px;
   border: none;
   border-radius: 0;
   background: transparent;
@@ -15890,15 +15896,15 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .market-panel {
-  padding: 20px;
-  margin-bottom: 18px;
+  padding: var(--card-pad);
+  margin-bottom: var(--section-gap);
 }
 
 /* Heatmaps: bright white shell + flush dark title (Watchlist + Pulse). */
 .stock-heat-panel,
 .market-heatmap-shell {
-  margin: 0 0 20px;
-  padding: 0 0 14px;
+  margin: 0 0 var(--section-gap);
+  padding: 0 0 12px;
   border: 1px solid var(--border-active);
   border-radius: 16px;
   background: #ffffff;
@@ -16795,7 +16801,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 /* Pulse / Industries grids use the shared .heat-tile component class */
 
 .market-empty {
-  min-height: 40vh;
+  min-height: 12rem;
   display: grid;
   place-items: center;
   color: var(--market-muted);
@@ -17351,7 +17357,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 @media (max-width: 640px) {
   .view-switch-tab {
-    padding: 10px 6px 12px;
+    padding: 8px 6px 10px;
     font-size: 0.95rem;
   }
 
