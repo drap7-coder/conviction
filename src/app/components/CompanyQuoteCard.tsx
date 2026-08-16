@@ -4,10 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { SectorProfile } from "@/lib/market/sector-profile";
-import type { EvidenceEvent } from "@/lib/evidence/types";
-import type { NewsDriver } from "@/lib/evidence/news-driver";
-import { buildMoveDriverView } from "@/lib/evidence/move-driver-brief";
-import { inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import { useWatchlistTracking } from "@/app/components/use-watchlist-tracking";
@@ -19,11 +15,6 @@ interface CompanyQuoteCardProps {
   companyName: string;
   sectorName: string | null;
   logoUrl: string | null;
-}
-
-interface NewsEvidenceResponse {
-  events?: EvidenceEvent[];
-  driver?: NewsDriver | null;
 }
 
 function formatPrice(value: number | null): string {
@@ -61,7 +52,6 @@ export function CompanyQuoteCard({
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [profile, setProfile] = useState<SectorProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [catalystBadge, setCatalystBadge] = useState<{ label: string; tone: string } | null>(null);
   const { trackedTickers, addingTicker, addToWatchlist } = useWatchlistTracking();
 
   useEffect(() => {
@@ -93,45 +83,6 @@ export function CompanyQuoteCard({
       cancelled = true;
     };
   }, [ticker]);
-
-  // Catalyst kind pill lives on the quote card so the news headline can stay full-width.
-  useEffect(() => {
-    let cancelled = false;
-    const controller = new AbortController();
-
-    async function loadCatalyst() {
-      try {
-        const res = await fetch(`/api/evidence/news?ticker=${encodeURIComponent(ticker)}`, {
-          signal: controller.signal,
-        });
-        if (!res.ok) return;
-        const data = (await res.json()) as NewsEvidenceResponse;
-        if (cancelled) return;
-
-        const headlines = (data.events ?? []).slice(0, 6).map((event) => ({
-          headline: event.title,
-          url: event.sourceUrl ?? null,
-          date: event.date,
-        }));
-        const view = buildMoveDriverView({
-          ticker,
-          companyName,
-          driver: data.driver ?? null,
-          headlines,
-          showBadge: true,
-        });
-        setCatalystBadge(view.mode === "catalyst" ? view.badge : null);
-      } catch {
-        if (!cancelled) setCatalystBadge(null);
-      }
-    }
-
-    void loadCatalyst();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [ticker, companyName]);
 
   const live = useMemo(() => (quote ? getLivePrice(quote) : null), [quote]);
   const isExtendedSession = live?.session === "pre_market" || live?.session === "after_hours";
@@ -204,13 +155,6 @@ export function CompanyQuoteCard({
                 </>
               ) : null}
             </p>
-            {catalystBadge ? (
-              <span
-                className={`${inkChipClass(inkToneFromSemantic(catalystBadge.tone))} company-quote-catalyst`}
-              >
-                {catalystBadge.label}
-              </span>
-            ) : null}
           </div>
         </div>
 

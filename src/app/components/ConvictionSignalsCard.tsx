@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowUpRight, CircleHelp, Radio, ShieldAlert } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
@@ -19,25 +18,19 @@ import {
   type ConvictionSignalTone,
 } from "@/lib/conviction/signal-display";
 import {
-  compositeEvidenceLabel,
-  countEvidenceSemantics,
   evidenceSemantic,
   evidenceStatusLabel,
-  EVIDENCE_GROUPS,
   EVIDENCE_LANE_META,
   plainLanguageLaneCopy,
-  synthesizeEvidenceRead,
   type EvidenceLaneId,
   type EvidenceSemantic,
 } from "@/lib/conviction/evidence-display";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
-import { buildEvidenceDecisionView } from "@/lib/conviction/evidence-decision";
 import type { EarningsEvidence } from "@/lib/earnings/types";
 
 type EvidenceLane = {
   id: EvidenceLaneId;
   label: string;
-  icon: string;
   tone: ConvictionSignalTone;
   status: ConvictionSignalDisplay["status"];
   semantic: EvidenceSemantic | "loading" | "unavailable";
@@ -45,18 +38,12 @@ type EvidenceLane = {
   secondary?: string | null;
 };
 
+/** Decision owns the verdict. These are the only default source lanes. */
 const CORE_ORDER: ConvictionSignalCategory[] = [
   "institutional",
   "insider",
   "technicals",
   "short_interest",
-];
-
-const FILING_ORDER: Array<Exclude<EvidenceLaneId, ConvictionSignalCategory>> = [
-  "earnings",
-  "political",
-  "ownership",
-  "disclosures",
 ];
 
 function compactCoreHeadline(category: ConvictionSignalCategory, headline: string): string {
@@ -169,7 +156,6 @@ function toLane(
   return {
     id,
     label: meta.label,
-    icon: meta.icon,
     tone,
     status,
     semantic,
@@ -178,22 +164,41 @@ function toLane(
   };
 }
 
-function initialFilingLanes(): EvidenceLane[] {
-  return FILING_ORDER.map((id) =>
-    toLane(id, "unavailable", "loading", "Checking…"),
-  );
+async function loadEarningsLane(
+  ticker: string,
+  signal: AbortSignal,
+): Promise<EvidenceLane> {
+  const earnings = await fetchJsonWithTimeout<EarningsEvidence>(
+    `/api/evidence/earnings?ticker=${encodeURIComponent(ticker)}`,
+    12_000,
+    signal,
+  ).catch(() => null);
+
+  if (!earnings || earnings.status === "unavailable") {
+    return toLane("earnings", "unavailable", "unavailable", "No recent results");
+  }
+  const latest = earnings.history[0];
+  const next = formatShortDate(earnings.nextEarningsDate);
+  let headline = earnings.momentum !== "Unavailable" ? earnings.momentum : "Results on file";
+  if (latest) {
+    const beat = latest.actualEps >= latest.estimatedEps;
+    headline = `${latest.fiscalQuarter} ${beat ? "beat" : "miss"} · ${latest.surprisePercent >= 0 ? "+" : ""}${latest.surprisePercent.toFixed(1)}%`;
+  } else if (next) {
+    headline = `Next print ${next}`;
+  }
+  const tone: ConvictionSignalTone =
+    earnings.momentum === "Estimates rising" ? "positive"
+      : earnings.momentum === "Estimates falling" ? "negative"
+        : "neutral";
+  return toLane("earnings", tone, "available", headline);
 }
 
-async function loadFilingLanes(
+/** Optional filings — only surface when something material is on file. */
+async function loadOptionalFilingLanes(
   ticker: string,
   signal: AbortSignal,
 ): Promise<EvidenceLane[]> {
-  const [earnings, political, ownership, disclosures] = await Promise.all([
-    fetchJsonWithTimeout<EarningsEvidence>(
-      `/api/evidence/earnings?ticker=${encodeURIComponent(ticker)}`,
-      12_000,
-      signal,
-    ).catch(() => null),
+  const [political, ownership, disclosures] = await Promise.all([
     fetchJsonWithTimeout<{
       status?: string;
       trades?: Array<{ direction?: string }>;
@@ -229,34 +234,10 @@ async function loadFilingLanes(
     ).catch(() => null),
   ]);
 
-  const earningsLane = ((): EvidenceLane => {
-    if (!earnings || earnings.status === "unavailable") {
-      return toLane("earnings", "unavailable", "unavailable", "No recent results");
-    }
-    const latest = earnings.history[0];
-    const next = formatShortDate(earnings.nextEarningsDate);
-    let headline = earnings.momentum !== "Unavailable" ? earnings.momentum : "Results on file";
-    if (latest) {
-      const beat = latest.actualEps >= latest.estimatedEps;
-      headline = `${latest.fiscalQuarter} ${beat ? "beat" : "miss"} · ${latest.surprisePercent >= 0 ? "+" : ""}${latest.surprisePercent.toFixed(1)}%`;
-    } else if (next) {
-      headline = `Next print ${next}`;
-    }
-    const tone: ConvictionSignalTone =
-      earnings.momentum === "Estimates rising" ? "positive"
-        : earnings.momentum === "Estimates falling" ? "negative"
-          : "neutral";
-    return toLane("earnings", tone, "available", headline);
-  })();
+  const lanes: EvidenceLane[] = [];
 
-  const politicalLane = ((): EvidenceLane => {
-    const trades = political?.trades ?? [];
-    if (!political || political.status === "error" || political.status === "timeout") {
-      return toLane("political", "unavailable", "unavailable", "Feed unavailable");
-    }
-    if (trades.length === 0) {
-      return toLane("political", "neutral", "quiet", "No recent matches");
-    }
+  const trades = political?.trades ?? [];
+  if (political && political.status !== "error" && political.status !== "timeout" && trades.length > 0) {
     const buys = political.purchases?.length ?? 0;
     const sells = political.sales?.length ?? 0;
     const filed = formatShortDate(political.latestFilingDate);
@@ -264,43 +245,37 @@ async function loadFilingLanes(
       ? `${buys} disclosed purchase${buys === 1 ? "" : "s"}${filed ? ` · ${filed}` : ""}`
       : `${trades.length} disclosed trade${trades.length === 1 ? "" : "s"}${filed ? ` · ${filed}` : ""}`;
     const tone: ConvictionSignalTone = buys > sells ? "positive" : sells > buys ? "negative" : "neutral";
-    return toLane("political", tone, "available", headline);
-  })();
+    lanes.push(toLane("political", tone, "available", headline));
+  }
 
-  const ownershipLane = ((): EvidenceLane => {
-    const latest = ownership?.latestFiling ?? ownership?.filings?.[0] ?? null;
-    if (!ownership || ownership.status === "error" || ownership.status === "timeout" || ownership.status === "unsupported") {
-      return toLane("ownership", "unavailable", "unavailable", "Filings unavailable");
-    }
-    if (!latest) {
-      return toLane("ownership", "neutral", "quiet", "No recent 13D / 13G");
-    }
-    const filed = formatShortDate(latest.filingDate);
-    return toLane("ownership", "neutral", "available", latest.title, {
-      form: latest.form,
+  const latestOwnership = ownership?.latestFiling ?? ownership?.filings?.[0] ?? null;
+  if (
+    ownership
+    && ownership.status !== "error"
+    && ownership.status !== "timeout"
+    && ownership.status !== "unsupported"
+    && latestOwnership
+  ) {
+    const filed = formatShortDate(latestOwnership.filingDate);
+    lanes.push(toLane("ownership", "neutral", "available", latestOwnership.title, {
+      form: latestOwnership.form,
       filingDate: filed,
-      ownershipTitle: latest.title,
-    });
-  })();
+      ownershipTitle: latestOwnership.title,
+    }));
+  }
 
-  const disclosuresLane = ((): EvidenceLane => {
-    const latest = disclosures?.latestDisclosure ?? null;
-    if (!disclosures || disclosures.status === "error" || disclosures.status === "timeout") {
-      return toLane("disclosures", "unavailable", "unavailable", "SEC unavailable");
-    }
-    if (!latest) {
-      return toLane("disclosures", "neutral", "quiet", "No recent 8-K / events");
-    }
-    const filed = formatShortDate(latest.filingDate);
-    const tone: ConvictionSignalTone = latest.direction === "supporting" ? "positive" : "neutral";
-    return toLane("disclosures", tone, "available", latest.title, {
-      form: latest.form,
+  const latestDisclosure = disclosures?.latestDisclosure ?? null;
+  if (disclosures && disclosures.status !== "error" && disclosures.status !== "timeout" && latestDisclosure) {
+    const filed = formatShortDate(latestDisclosure.filingDate);
+    const tone: ConvictionSignalTone = latestDisclosure.direction === "supporting" ? "positive" : "neutral";
+    lanes.push(toLane("disclosures", tone, "available", latestDisclosure.title, {
+      form: latestDisclosure.form,
       filingDate: filed,
-      ownershipTitle: latest.title,
-    });
-  })();
+      ownershipTitle: latestDisclosure.title,
+    }));
+  }
 
-  return [earningsLane, politicalLane, ownershipLane, disclosuresLane];
+  return lanes;
 }
 
 function laneDetail(id: EvidenceLaneId, ticker: string): ReactNode {
@@ -326,383 +301,129 @@ function laneDetail(id: EvidenceLaneId, ticker: string): ReactNode {
   }
 }
 
-function CompositeReadCard({
-  lanes,
-  loading,
-  ticker,
-  logoUrl,
-}: {
-  lanes: EvidenceLane[];
-  loading: boolean;
-  ticker: string;
-  logoUrl: string | null;
-}) {
-  const counts = useMemo(
-    () => countEvidenceSemantics(lanes.map((lane) => lane.semantic)),
-    [lanes],
-  );
-  const overall = compositeEvidenceLabel(counts);
-  const decision = useMemo(() => buildEvidenceDecisionView(lanes), [lanes]);
-  const synthesis = useMemo(() => (
-    loading
-      ? "Reading ownership, filings, fundamentals, and market evidence…"
-      : synthesizeEvidenceRead(lanes)
-  ), [lanes, loading]);
-  const unresolvedCopy = decision.unresolved
-    ? `${decision.unresolved.label} — ${decision.unresolved.primary}`
-    : decision.gapLabels.length > 0
-      ? `Waiting on ${decision.gapLabels.join(", ")}`
-      : "No major unresolved lane in the current stack.";
-
-  return (
-    <div className={`evidence-composite evidence-decision-board ink-box ink-box--quiet tone-${decision.stance}`}>
-      <div className="evidence-decision-hero">
-        <div className="evidence-composite-lead">
-          {logoUrl ? (
-            <img src={logoUrl} alt="" className="evidence-composite-logo" />
-          ) : (
-            <div className="evidence-composite-logo-fallback" aria-hidden="true">
-              {ticker.charAt(0)}
-            </div>
-          )}
-          <div className="evidence-decision-copy">
-            <span>Signal verdict</span>
-            <h3>{loading ? "Building the evidence map…" : decision.headline}</h3>
-            <p>{loading ? synthesis : decision.explanation}</p>
-          </div>
-        </div>
-        <span className={`evidence-status-pill tone-${loading ? overall : decision.stance}`}>
-          {loading ? "Checking" : evidenceStatusLabel(decision.stance)}
-        </span>
-      </div>
-
-      <div className="evidence-decision-metrics" aria-label="Evidence balance">
-        <article className="support">
-          <span>Supports</span>
-          <strong>{loading ? "—" : decision.supportCount}</strong>
-          <small>directional lanes</small>
-        </article>
-        <article className="against">
-          <span>Pushes back</span>
-          <strong>{loading ? "—" : decision.againstCount}</strong>
-          <small>live contradictions</small>
-        </article>
-        <article className="coverage">
-          <span>Live coverage</span>
-          <strong>{loading ? "—" : `${decision.coveragePercent}%`}</strong>
-          <small>{loading ? "Checking sources" : `${decision.coveredCount} of ${decision.totalCount} lanes`}</small>
-          <div className="evidence-coverage-track" aria-hidden="true">
-            <i style={{ width: loading ? "14%" : `${decision.coveragePercent}%` }} />
-          </div>
-        </article>
-      </div>
-
-      <div
-        className="evidence-composite-bar"
-        role="img"
-        aria-label={`${counts.support} support, ${counts.mixed} mixed, ${counts.against} against, ${counts.quiet} quiet`}
-      >
-        {counts.support > 0 ? <i className="seg-support" style={{ flex: `${counts.support} 1 0` }} /> : null}
-        {counts.mixed > 0 ? <i className="seg-mixed" style={{ flex: `${counts.mixed} 1 0` }} /> : null}
-        {counts.against > 0 ? <i className="seg-against" style={{ flex: `${counts.against} 1 0` }} /> : null}
-        {counts.quiet > 0 ? <i className="seg-quiet" style={{ flex: `${counts.quiet} 1 0` }} /> : null}
-      </div>
-
-      <div className="evidence-decision-proof-grid">
-        <article className="support">
-          <ArrowUpRight aria-hidden="true" />
-          <div>
-            <span>Leading support</span>
-            <p>{loading ? "Finding the strongest confirmation…" : decision.leadingSupport
-              ? `${decision.leadingSupport.label} — ${decision.leadingSupport.primary}`
-              : "No live directional support has cleared the bar yet."}</p>
-          </div>
-        </article>
-        <article className="risk">
-          <ShieldAlert aria-hidden="true" />
-          <div>
-            <span>Main contradiction</span>
-            <p>{loading ? "Testing the strongest counter-signal…" : decision.leadingRisk
-              ? `${decision.leadingRisk.label} — ${decision.leadingRisk.primary}`
-              : "No live directional contradiction is visible in the current stack."}</p>
-          </div>
-        </article>
-        <article className="unresolved">
-          <CircleHelp aria-hidden="true" />
-          <div>
-            <span>Still unresolved</span>
-            <p>{loading ? "Finding the biggest evidence gap…" : unresolvedCopy}</p>
-          </div>
-        </article>
-      </div>
-
-      <footer className="evidence-decision-footnote">
-        <Radio aria-hidden="true" />
-        <span>{loading ? "Refreshing source-backed signals" : `${synthesis} Price action is context, not proof.`}</span>
-      </footer>
-    </div>
-  );
-}
-
+/**
+ * Source deep-dive under Decision — flat expandable lanes, no second verdict board.
+ */
 export function ConvictionSignalsCard({
   ticker,
-  logoUrl = null,
 }: {
   ticker: string;
   logoUrl?: string | null;
 }) {
   const [core, setCore] = useState<ConvictionSignalDisplay[]>(initialCoreSignals);
-  const [filingLanes, setFilingLanes] = useState<EvidenceLane[]>(initialFilingLanes);
+  const [earningsLane, setEarningsLane] = useState<EvidenceLane | null>(null);
+  const [optionalLanes, setOptionalLanes] = useState<EvidenceLane[]>([]);
   const [coreLoading, setCoreLoading] = useState(true);
   const [openLane, setOpenLane] = useState<EvidenceLaneId | null>(null);
-  const [activeGroup, setActiveGroup] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<Array<HTMLElement | null>>([]);
-  const activeGroupRef = useRef(0);
-
-  const selectGroup = (index: number, opts?: { scroll?: boolean }) => {
-    if (activeGroupRef.current !== index) {
-      activeGroupRef.current = index;
-      setActiveGroup(index);
-      setOpenLane(null);
-    }
-    if (opts?.scroll) {
-      cardRefs.current[index]?.scrollIntoView({
-        behavior: "smooth",
-        inline: "start",
-        block: "nearest",
-      });
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
-
     setCore(initialCoreSignals());
-    setFilingLanes(initialFilingLanes());
+    setEarningsLane(null);
+    setOptionalLanes([]);
     setCoreLoading(true);
     setOpenLane(null);
-    activeGroupRef.current = 0;
-    setActiveGroup(0);
 
-    async function loadCore() {
-      try {
-        const view = await fetchJsonWithTimeout<ConvictionScoreView>(
+    async function load() {
+      const [score, earnings, optional] = await Promise.all([
+        fetchJsonWithTimeout<ConvictionScoreView>(
           `/api/conviction/score?ticker=${encodeURIComponent(ticker)}`,
           45_000,
           controller.signal,
-        );
-        if (!cancelled) setCore(coreFromView(view));
-      } catch {
-        if (!cancelled) {
-          setCore(CORE_ORDER.map((category) =>
-            unavailableCore(category, "Could not load"),
-          ));
-        }
-      } finally {
-        if (!cancelled) setCoreLoading(false);
-      }
+        ).catch(() => null),
+        loadEarningsLane(ticker, controller.signal),
+        loadOptionalFilingLanes(ticker, controller.signal),
+      ]);
+      if (cancelled) return;
+      setCore(score ? coreFromView(score) : CORE_ORDER.map((category) => unavailableCore(category, "Unavailable")));
+      setEarningsLane(earnings);
+      setOptionalLanes(optional);
+      setCoreLoading(false);
     }
 
-    async function loadFilings() {
-      try {
-        const lanes = await loadFilingLanes(ticker, controller.signal);
-        if (!cancelled) setFilingLanes(lanes);
-      } catch {
-        if (!cancelled) {
-          setFilingLanes(FILING_ORDER.map((id) =>
-            toLane(id, "unavailable", "unavailable", "Could not load"),
-          ));
-        }
-      }
-    }
-
-    void loadCore();
-    void loadFilings();
-
+    void load();
     return () => {
       cancelled = true;
       controller.abort();
     };
   }, [ticker]);
 
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track) return;
-
-    const cards = cardRefs.current.filter(Boolean) as HTMLElement[];
-    if (cards.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        let best: { index: number; ratio: number } | null = null;
-        for (const entry of entries) {
-          const index = cards.indexOf(entry.target as HTMLElement);
-          if (index < 0) continue;
-          if (!best || entry.intersectionRatio > best.ratio) {
-            best = { index, ratio: entry.intersectionRatio };
-          }
-        }
-        if (best && best.ratio > 0.45) {
-          selectGroup(best.index);
-        }
-      },
-      {
-        root: track,
-        threshold: [0.35, 0.5, 0.65, 0.8],
-      },
+  const lanes = useMemo(() => {
+    const fromCore = core.map((signal) =>
+      toLane(signal.category, signal.tone, signal.status, signal.headline),
     );
-
-    for (const card of cards) observer.observe(card);
-    return () => observer.disconnect();
-  }, [ticker, filingLanes, core]);
-
-  const lanesById = useMemo(() => {
-    const map = new Map<EvidenceLaneId, EvidenceLane>();
-    for (const signal of core) {
-      map.set(
-        signal.category,
-        toLane(signal.category, signal.tone, signal.status, signal.headline),
-      );
+    const ordered: EvidenceLane[] = [];
+    // Fixed machine order: ownership flow → earnings → tape → risk.
+    for (const id of ["institutional", "insider", "earnings", "technicals", "short_interest"] as const) {
+      if (id === "earnings") {
+        if (earningsLane) ordered.push(earningsLane);
+        continue;
+      }
+      const lane = fromCore.find((item) => item.id === id);
+      if (lane) ordered.push(lane);
     }
-    for (const lane of filingLanes) {
-      map.set(lane.id, lane);
-    }
-    return map;
-  }, [core, filingLanes]);
+    return [...ordered, ...optionalLanes];
+  }, [core, earningsLane, optionalLanes]);
 
-  const allLanes = useMemo(
-    () => EVIDENCE_GROUPS.flatMap((group) =>
-      group.laneIds.map((id) => lanesById.get(id)).filter((lane): lane is EvidenceLane => Boolean(lane)),
-    ),
-    [lanesById],
-  );
-
-  const anyLoading = coreLoading || filingLanes.some((lane) => lane.status === "loading");
-  const openDetail = openLane ? lanesById.get(openLane) : null;
+  const openDetail = openLane ? lanes.find((lane) => lane.id === openLane) ?? null : null;
 
   return (
-    <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
+    <section className="company-driver-module evidence-sources" aria-label="Source deep-dive">
       <header className="evidence-lanes-heading">
         <div>
-          <span className="company-section-kicker">Source deep-dive</span>
-          <h2 className="company-driver-title evidence-lanes-title">Evidence lanes</h2>
+          <span className="company-section-kicker">Inspect sources</span>
+          <h2 className="company-driver-title evidence-lanes-title">Sources</h2>
         </div>
         <p>
-          Decision above owns the consolidated read. Use these lanes to inspect ownership, filings,
-          technicals, and short interest one source at a time.
+          Decision owns the investment read. Open a source only when you need the underlying filing,
+          tape, or ownership detail.
         </p>
       </header>
 
-      <CompositeReadCard
-        lanes={allLanes}
-        loading={anyLoading}
-        ticker={ticker}
-        logoUrl={logoUrl}
-      />
-
-      <div
-        className="evidence-carousel"
-        role="region"
-        aria-roledescription="carousel"
-        aria-label="Signal categories"
-      >
-        <div className="evidence-carousel-track bcn-list" ref={trackRef}>
-          {EVIDENCE_GROUPS.map((group, groupIndex) => {
-            const groupLanes = group.laneIds
-              .map((id) => lanesById.get(id))
-              .filter((lane): lane is EvidenceLane => Boolean(lane));
-            if (groupLanes.length === 0) return null;
-
-            const counts = countEvidenceSemantics(groupLanes.map((lane) => lane.semantic));
-            const overall = compositeEvidenceLabel(counts);
-
-            return (
-              <article
-                key={group.id}
-                ref={(el) => {
-                  cardRefs.current[groupIndex] = el;
-                }}
-                className={`evidence-carousel-card bcn-item${activeGroup === groupIndex ? " is-active" : ""}`}
-                aria-label={group.label}
-                aria-current={activeGroup === groupIndex ? "true" : undefined}
-                onFocusCapture={() => selectGroup(groupIndex)}
+      <ul className="evidence-source-list">
+        {lanes.map((lane) => {
+          const isOpen = openLane === lane.id;
+          const isLoadingRow = lane.status === "loading" || (coreLoading && CORE_ORDER.includes(lane.id as ConvictionSignalCategory));
+          const tone = lane.semantic === "loading" || lane.semantic === "unavailable"
+            ? "quiet"
+            : lane.semantic;
+          return (
+            <li key={lane.id}>
+              <button
+                type="button"
+                className={`evidence-source-row tone-${tone}${isOpen ? " is-open" : ""}${isLoadingRow ? " is-loading" : ""}`}
+                disabled={isLoadingRow}
+                aria-expanded={isOpen}
+                onClick={() => setOpenLane((current) => (current === lane.id ? null : lane.id))}
               >
-                <div className="evidence-carousel-card-inner ink-box ink-box--quiet">
-                  <header className="evidence-carousel-card-header">
-                    <div>
-                      <h3 className="evidence-carousel-card-title">{group.label}</h3>
-                      <small>{counts.support} support · {counts.against} against</small>
-                    </div>
-                    <span className={`evidence-status-pill tone-${overall}`}>{evidenceStatusLabel(overall)}</span>
-                  </header>
-                  <ul className="evidence-carousel-lanes">
-                    {groupLanes.map((lane) => {
-                      const isOpen = openLane === lane.id;
-                      const isLoadingRow = lane.status === "loading";
-                      const tone = lane.semantic === "loading" || lane.semantic === "unavailable"
-                        ? "quiet"
-                        : lane.semantic;
-                      return (
-                        <li key={lane.id}>
-                          <button
-                            type="button"
-                            className={`evidence-carousel-lane tone-${tone}${isOpen ? " is-open" : ""}${isLoadingRow ? " is-loading" : ""}`}
-                            disabled={isLoadingRow}
-                            aria-expanded={isOpen}
-                            onClick={() => {
-                              selectGroup(groupIndex);
-                              setOpenLane((current) => (current === lane.id ? null : lane.id));
-                            }}
-                          >
-                            <span className="evidence-carousel-lane-label">{lane.label}</span>
-                            <span className="evidence-carousel-lane-fact">
-                              {isLoadingRow ? "Checking…" : lane.primary}
-                              {!isLoadingRow && lane.secondary ? <small>{lane.secondary}</small> : null}
-                            </span>
-                            <span className={`evidence-status-pill tone-${tone}`}>
-                              {evidenceStatusLabel(lane.semantic)}
-                            </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className="evidence-carousel-dots" role="tablist" aria-label="Signal categories">
-          {EVIDENCE_GROUPS.map((group, index) => (
-            <button
-              key={group.id}
-              type="button"
-              role="tab"
-              aria-label={group.label}
-              aria-selected={activeGroup === index}
-              className={`evidence-carousel-dot${activeGroup === index ? " is-active" : ""}`}
-              onClick={() => selectGroup(index, { scroll: true })}
-            />
-          ))}
-        </div>
-      </div>
+                <span className="evidence-source-label">{lane.label}</span>
+                <span className="evidence-source-fact">
+                  {isLoadingRow ? "Checking…" : lane.primary}
+                  {!isLoadingRow && lane.secondary ? <small>{lane.secondary}</small> : null}
+                </span>
+                <span className={`evidence-status-pill tone-${tone}`}>
+                  {evidenceStatusLabel(lane.semantic)}
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
 
       {openDetail && openLane ? (
-        <div className="evidence-carousel-detail" aria-label={`${openDetail.label} detail`}>
-          <div className="evidence-carousel-detail-bar">
+        <div className="evidence-source-detail" aria-label={`${openDetail.label} detail`}>
+          <div className="evidence-source-detail-bar">
             <strong>{openDetail.label}</strong>
             <button
               type="button"
-              className="evidence-carousel-detail-close"
+              className="evidence-source-detail-close"
               onClick={() => setOpenLane(null)}
             >
               Close
             </button>
           </div>
-          <div className="evidence-lane-panel evidence-carousel-detail-body">
+          <div className="evidence-lane-panel evidence-source-detail-body">
             {laneDetail(openLane, ticker)}
           </div>
         </div>

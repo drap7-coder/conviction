@@ -34,7 +34,7 @@ export async function generateMetadata({
 
   const title = `${companyName} (${upperTicker})`;
   const description = supportsSignals
-    ? `Ownership signals, institutional activity, insider filings, earnings, and what’s driving ${companyName} (${upperTicker}).`
+    ? `Decision snapshot, catalyst, and source filings for ${companyName} (${upperTicker}).`
     : `Price, chart, and news for ${companyName} (${upperTicker}).`;
 
   return {
@@ -77,7 +77,7 @@ export default async function CompanyPage({
     name: `${companyName} (${upperTicker}) · CONVICTION`,
     url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
     description: supportsSignals
-      ? `Ownership signals and filings for ${companyName} (${upperTicker}).`
+      ? `Decision snapshot and source filings for ${companyName} (${upperTicker}).`
       : `Price, chart, and news for ${companyName} (${upperTicker}).`,
   };
 
@@ -94,15 +94,14 @@ export default async function CompanyPage({
         <Link href="/pulse" className="detail-back">
           ← Pulse
         </Link>
-        <span className="detail-context">Company workbench</span>
+        <span className="detail-context">Company</span>
       </div>
 
       <nav className="company-section-nav" aria-label="Company dashboard sections">
         <a href="#overview">Overview</a>
         <a href="#decision">Decision</a>
         <a href="#catalyst">Catalyst</a>
-        {supportsSignals ? <a href="#evidence">Evidence</a> : null}
-        <a href="#peers">Peers</a>
+        {supportsSignals ? <a href="#sources">Sources</a> : null}
       </nav>
 
       <CompanyDashboard
@@ -125,7 +124,7 @@ export default async function CompanyPage({
                 <span>Price + news view</span>
                 <p>
                   Filing-based conviction signals do not apply to this market instrument. Use the
-                  live tape, catalyst feed, and related instruments below.
+                  live tape and catalyst feed below.
                 </p>
               </section>
             )}
@@ -145,16 +144,11 @@ export default async function CompanyPage({
               />
             </div>
             {supportsSignals ? (
-              <div id="evidence" className="company-section-anchor">
-                <ConvictionSignalsCard
-                  ticker={upperTicker}
-                  logoUrl={getLogoUrl(upperTicker) ?? null}
-                />
+              <div id="sources" className="company-section-anchor">
+                <ConvictionSignalsCard ticker={upperTicker} />
               </div>
             ) : null}
-            <div id="peers" className="company-section-anchor">
-              <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
-            </div>
+            <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
           </>
         }
       />
