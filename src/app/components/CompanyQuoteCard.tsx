@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { StockQuote } from "@/lib/market/quotes";
+import type { SectorProfile } from "@/lib/market/sector-profile";
 import type { EvidenceEvent } from "@/lib/evidence/types";
 import type { NewsDriver } from "@/lib/evidence/news-driver";
 import { buildMoveDriverView } from "@/lib/evidence/move-driver-brief";
@@ -42,6 +43,11 @@ function formatChange(value: number | null, percent: number | null) {
   };
 }
 
+function formatDividendYield(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—";
+  return `${value.toFixed(value >= 10 ? 1 : 2)}%`;
+}
+
 /**
  * One card for who it is, what it costs, and how it moves.
  * Identity + quote above a pencil rule; chart below.
@@ -53,6 +59,7 @@ export function CompanyQuoteCard({
   logoUrl,
 }: CompanyQuoteCardProps) {
   const [quote, setQuote] = useState<StockQuote | null>(null);
+  const [profile, setProfile] = useState<SectorProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [catalystBadge, setCatalystBadge] = useState<{ label: string; tone: string } | null>(null);
   const { trackedTickers, addingTicker, addToWatchlist } = useWatchlistTracking();
@@ -61,11 +68,19 @@ export function CompanyQuoteCard({
     let cancelled = false;
     async function load() {
       try {
-        const res = await fetch(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`);
-        if (!res.ok) return;
-        const data = (await res.json()) as { quotes?: StockQuote[] };
-        if (!cancelled) {
-          setQuote((data.quotes ?? [])[0] ?? null);
+        const [quoteRes, profileRes] = await Promise.all([
+          fetch(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`),
+          fetch(`/api/market/sector-profile?tickers=${encodeURIComponent(ticker)}`),
+        ]);
+
+        if (quoteRes.ok) {
+          const data = (await quoteRes.json()) as { quotes?: StockQuote[] };
+          if (!cancelled) setQuote((data.quotes ?? [])[0] ?? null);
+        }
+
+        if (profileRes.ok) {
+          const data = (await profileRes.json()) as { profiles?: SectorProfile[] };
+          if (!cancelled) setProfile((data.profiles ?? [])[0] ?? null);
         }
       } catch {
         // ignore
@@ -120,6 +135,9 @@ export function CompanyQuoteCard({
 
   const live = useMemo(() => (quote ? getLivePrice(quote) : null), [quote]);
   const isExtendedSession = live?.session === "pre_market" || live?.session === "after_hours";
+  // Chart meta often omits marketCap — quoteSummary price module fills the gap.
+  const marketCap = quote?.marketCap ?? profile?.marketCap ?? null;
+  const dividendYield = profile?.dividendYield ?? null;
 
   let changeText: ReturnType<typeof formatChange> = null;
   let arrow: string | null = null;
@@ -242,8 +260,13 @@ export function CompanyQuoteCard({
       <div className="company-quote-context" aria-label="Trading context">
         <article>
           <span>Market value</span>
-          <strong>{loading ? "—" : fmtMarketCap(quote?.marketCap ?? null)}</strong>
+          <strong>{loading ? "—" : fmtMarketCap(marketCap)}</strong>
           <small>{quote?.exchange ?? "Exchange unavailable"}</small>
+        </article>
+        <article>
+          <span>Dividend yield</span>
+          <strong>{loading ? "—" : formatDividendYield(dividendYield)}</strong>
+          <small>{dividendYield === null && !loading ? "No trailing yield" : "Trailing twelve months"}</small>
         </article>
         <article>
           <span>Dollar volume</span>
@@ -261,15 +284,6 @@ export function CompanyQuoteCard({
           <div className="company-range-track" aria-hidden="true">
             <i style={{ width: rangePercent === null ? "0%" : `${rangePercent}%` }} />
           </div>
-        </article>
-        <article>
-          <span>Day range</span>
-          <strong>
-            {quote?.dayLow == null || quote?.dayHigh == null
-              ? "—"
-              : `$${formatPrice(quote.dayLow)}–${formatPrice(quote.dayHigh)}`}
-          </strong>
-          <small>Current session</small>
         </article>
       </div>
 

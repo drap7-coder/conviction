@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarClock, CircleGauge, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Activity, CalendarClock, CircleGauge, ShieldCheck, TriangleAlert } from "lucide-react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import {
   buildCompanyDecisionBrief,
@@ -9,6 +9,8 @@ import {
 } from "@/lib/company/company-decision-brief";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import type { EarningsEvidence } from "@/lib/earnings/types";
+import { deriveTechnicalState } from "@/lib/market/technical-state";
+import type { StockHistory } from "@/lib/market/quotes";
 
 const TONE_LABEL: Record<CompanyDecisionTone, string> = {
   positive: "Constructive",
@@ -20,6 +22,7 @@ const TONE_LABEL: Record<CompanyDecisionTone, string> = {
 export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
   const [score, setScore] = useState<ConvictionScoreView | null>(null);
   const [earnings, setEarnings] = useState<EarningsEvidence | null>(null);
+  const [history, setHistory] = useState<StockHistory | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +31,7 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
 
     async function load() {
       setLoading(true);
-      const [scoreResult, earningsResult] = await Promise.all([
+      const [scoreResult, earningsResult, historyResult] = await Promise.all([
         fetchJsonWithTimeout<ConvictionScoreView>(
           `/api/conviction/score?ticker=${encodeURIComponent(ticker)}`,
           45_000,
@@ -39,10 +42,16 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
           15_000,
           controller.signal,
         ).catch(() => null),
+        fetchJsonWithTimeout<{ history?: StockHistory }>(
+          `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
+          12_000,
+          controller.signal,
+        ).catch(() => null),
       ]);
       if (cancelled) return;
       setScore(scoreResult);
       setEarnings(earningsResult);
+      setHistory(historyResult?.history ?? null);
       setLoading(false);
     }
 
@@ -54,6 +63,15 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
   }, [ticker]);
 
   const brief = useMemo(() => buildCompanyDecisionBrief(score, earnings), [score, earnings]);
+  const tape = useMemo(() => {
+    if (!history?.points?.length) return null;
+    return deriveTechnicalState(
+      history.points,
+      history.endPrice,
+      history.fiftyTwoWeekHigh,
+      history.fiftyTwoWeekLow,
+    );
+  }, [history]);
 
   return (
     <section
@@ -91,6 +109,15 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
           <strong>{loading ? "—" : brief.earningsValue}</strong>
           <small>{loading ? "Reading the latest quarter" : brief.earningsDetail}</small>
         </article>
+        <article>
+          <span>Tape</span>
+          <strong>{loading ? "—" : (tape?.label ?? "—")}</strong>
+          <small>
+            {loading
+              ? "Reading trend and averages"
+              : (tape?.interpretation ?? "Technical history unavailable")}
+          </small>
+        </article>
       </div>
 
       <div className="company-decision-questions">
@@ -113,6 +140,25 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
           <div>
             <span>Next proof point</span>
             <p>{loading ? "Checking the next evidence window…" : brief.nextCheck}</p>
+          </div>
+        </article>
+        <article className="company-decision-question tape">
+          <Activity aria-hidden="true" />
+          <div>
+            <span>Technical read</span>
+            <p>
+              {loading
+                ? "Checking moving averages and short-term trend…"
+                : tape
+                  ? [
+                      tape.sma50Relation ? `Price ${tape.sma50Relation} SMA-50` : null,
+                      tape.sma200Relation ? `${tape.sma200Relation} SMA-200` : null,
+                      tape.shortTermTrend !== null
+                        ? `5-day ${tape.shortTermTrend >= 0 ? "+" : ""}${tape.shortTermTrend.toFixed(1)}%`
+                        : null,
+                    ].filter(Boolean).join(" · ") || tape.interpretation
+                  : "Open Evidence → Market Signals for the full technical panel."}
+            </p>
           </div>
         </article>
       </div>

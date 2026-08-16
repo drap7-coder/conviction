@@ -586,10 +586,13 @@ export function ConvictionSignalsCard({
     <section className="company-driver-module evidence-lanes" aria-label="Conviction signals">
       <header className="evidence-lanes-heading">
         <div>
-          <span className="company-section-kicker">Company thesis · stock setup · evidence gaps</span>
-          <h2 className="company-driver-title evidence-lanes-title">Conviction signals</h2>
+          <span className="company-section-kicker">Source deep-dive</span>
+          <h2 className="company-driver-title evidence-lanes-title">Evidence lanes</h2>
         </div>
-        <p>Start with the verdict, then inspect the evidence that confirms, contradicts, or leaves the case unresolved.</p>
+        <p>
+          Decision above owns the consolidated read. Use these lanes to inspect ownership, filings,
+          technicals, and short interest one source at a time.
+        </p>
       </header>
 
       <CompositeReadCard

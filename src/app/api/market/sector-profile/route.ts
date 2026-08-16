@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       industry: null,
       longName: null,
       marketCap: null,
+      dividendYield: null,
       quoteType: null,
     })
     .filter(Boolean);
