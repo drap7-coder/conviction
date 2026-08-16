@@ -7698,7 +7698,7 @@ button.brief-link:focus-visible {
   color: color-mix(in srgb, var(--on-ink-red) 85%, #ffffff);
 }
 
-/* Insights read top → bottom: mix → allocation → judgment. */
+/* Personal: mix → allocation → pressure. Sample: design → mix → allocation. */
 .pf-insights-flow {
   display: flex;
   flex-direction: column;
@@ -7716,6 +7716,22 @@ button.brief-link:focus-visible {
 
 .pf-insights-judgment {
   order: 3;
+}
+
+.pf-insights-flow.is-sample .pf-insights-judgment {
+  order: 1;
+}
+
+.pf-insights-flow.is-sample .pf-insights-mix {
+  order: 2;
+}
+
+.pf-insights-flow.is-sample .pf-insights-allocation {
+  order: 3;
+}
+
+.pf-insights-judgment.is-first {
+  margin-bottom: 20px;
 }
 
 /* ── Allocation ladder: position weights on explicit risk thresholds ── */
