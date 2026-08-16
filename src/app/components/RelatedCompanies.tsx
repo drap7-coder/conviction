@@ -18,8 +18,7 @@ export function relatedCompanyTickers(ticker: string, limit = 6): string[] {
 }
 
 /**
- * Quiet peer strip under Conviction Signals — sector neighbors only.
- * One job: help someone keep reading adjacent names.
+ * Quiet footer hop to sector neighbors — not a first-class dashboard section.
  */
 export function RelatedCompanies({
   ticker,
@@ -31,17 +30,11 @@ export function RelatedCompanies({
   const peers = relatedCompanyTickers(ticker);
   if (peers.length === 0) return null;
 
-  const label = sectorName?.trim() || getSectorForCompany(ticker)?.name || "Related";
+  const label = sectorName?.trim() || getSectorForCompany(ticker)?.name || "Peers";
 
   return (
-    <section className="related-companies" aria-label="Related companies">
-      <header className="related-companies-heading">
-        <div>
-          <span className="company-section-kicker">Comparison set</span>
-          <h2 className="related-companies-title">Read the peers next</h2>
-        </div>
-        <p className="related-companies-lede">{label} · same evidence framework, one click away</p>
-      </header>
+    <aside className="related-companies is-quiet" aria-label={`${label} peers`}>
+      <span className="related-companies-quiet-label">{label}</span>
       <ul className="related-companies-list">
         {peers.map((peer) => (
           <li key={peer}>
@@ -52,6 +45,6 @@ export function RelatedCompanies({
           </li>
         ))}
       </ul>
-    </section>
+    </aside>
   );
 }
