@@ -7698,6 +7698,26 @@ button.brief-link:focus-visible {
   color: color-mix(in srgb, var(--on-ink-red) 85%, #ffffff);
 }
 
+/* Insights read top → bottom: mix → allocation → judgment. */
+.pf-insights-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.pf-insights-mix {
+  order: 1;
+  margin-bottom: 20px;
+}
+
+.pf-insights-allocation {
+  order: 2;
+}
+
+.pf-insights-judgment {
+  order: 3;
+}
+
 /* ── Allocation ladder: position weights on explicit risk thresholds ── */
 
 .pf-allocation-ladder {
@@ -12889,6 +12909,80 @@ a.signal-block-conclusion-link:hover {
   line-height: 1.45;
 }
 
+.portfolio-insight-history {
+  display: grid;
+  gap: 14px;
+  padding: 10px 26px 26px;
+}
+
+.portfolio-insight-history-heading {
+  display: grid;
+  gap: 4px;
+}
+
+.portfolio-insight-history-heading span {
+  color: rgba(233, 240, 237, 0.45);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portfolio-insight-history-heading p {
+  margin: 0;
+  color: rgba(233, 240, 237, 0.62);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.portfolio-insight-history-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.portfolio-insight-history-metrics > div {
+  display: grid;
+  gap: 8px;
+  padding: 14px 14px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.portfolio-insight-history-metrics span {
+  color: rgba(233, 240, 237, 0.45);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.portfolio-insight-history-metrics strong {
+  color: #f7faf9;
+  font-size: 1.2rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.portfolio-insight-history-metrics .is-best strong {
+  color: color-mix(in srgb, var(--on-ink-green) 88%, #ffffff);
+}
+
+.portfolio-insight-history-metrics .is-worst strong {
+  color: color-mix(in srgb, var(--on-ink-red) 88%, #ffffff);
+}
+
+.portfolio-insight-history-note {
+  margin: 0;
+  color: rgba(233, 240, 237, 0.48);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
 .portfolio-insight-sleeves {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
@@ -12945,8 +13039,13 @@ a.signal-block-conclusion-link:hover {
     grid-template-columns: 1fr;
   }
 
+  .portfolio-insight-history-metrics {
+    grid-template-columns: 1fr;
+  }
+
   .portfolio-insight-header,
   .portfolio-insight-machine,
+  .portfolio-insight-history,
   .portfolio-insight-sleeves,
   .portfolio-insight-clear {
     padding-left: 18px;

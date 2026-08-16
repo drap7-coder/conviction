@@ -13,6 +13,14 @@ export type InsightFinding = {
   ticker?: string;
 };
 
+/** Illustrative study stats for sample books — not a live track record. */
+export type StrategyPerformance = {
+  periodLabel: string;
+  annualizedPct: number;
+  bestYear: { year: number; pct: number };
+  worstYear: { year: number; pct: number };
+};
+
 export type StrategyDesignBrief = {
   mode: "strategy";
   bookId: string;
@@ -20,6 +28,7 @@ export type StrategyDesignBrief = {
   principle: string;
   design: string;
   stress: string;
+  performance: StrategyPerformance;
   sleeves: Array<{ ticker: string; weight: number; role: string }>;
 };
 
@@ -42,6 +51,12 @@ const STRATEGY_DESIGNS: Record<
     principle: "Balance risk across rising and falling growth and inflation — not dollars equally.",
     design: "Bonds get more capital because they contribute less volatility per dollar than stocks.",
     stress: "The hard climate is rising rates with rising inflation: stocks and bonds both suffer; gold and commodities are the offset.",
+    performance: {
+      periodLabel: "Illustrative 1984–2023 study",
+      annualizedPct: 7.8,
+      bestYear: { year: 1995, pct: 18.4 },
+      worstYear: { year: 2022, pct: -14.2 },
+    },
     roles: {
       VTI: "Growth risk",
       TLT: "Deflation / rate-cut ballast",
@@ -54,6 +69,12 @@ const STRATEGY_DESIGNS: Record<
     principle: "One growth engine, one ballast. Simple enough to hold through a cycle.",
     design: "Stocks compound; bonds are there to reduce the depth and duration of drawdowns.",
     stress: "The hard climate is inflation-forced rate hikes — the 2022 pattern — when stocks and bonds fall together.",
+    performance: {
+      periodLabel: "Illustrative US 60/40, 1976–2023",
+      annualizedPct: 9.1,
+      bestYear: { year: 1995, pct: 31.5 },
+      worstYear: { year: 2008, pct: -20.1 },
+    },
     roles: {
       VTI: "Growth engine",
       BND: "Ballast",
@@ -63,6 +84,12 @@ const STRATEGY_DESIGNS: Record<
     principle: "Own productive global capitalism. Keep fees, complexity, and ego near zero.",
     design: "US stocks, international stocks, and a bond sleeve — the whole market without stock-picking.",
     stress: "The hard climate is a global equity bear. Bonds help only when rates and credit cooperate.",
+    performance: {
+      periodLabel: "Illustrative global three-fund, 1990–2023",
+      annualizedPct: 8.4,
+      bestYear: { year: 2009, pct: 28.6 },
+      worstYear: { year: 2008, pct: -24.8 },
+    },
     roles: {
       VTI: "US growth",
       VXUS: "International growth",
@@ -73,6 +100,12 @@ const STRATEGY_DESIGNS: Record<
     principle: "Survive being wrong. Equal capital to four economic seasons.",
     design: "Twenty-five percent each in stocks, long bonds, gold, and cash — no prediction required.",
     stress: "The hard climate is a long equity bull: you will lag. The point is avoiding ruin, not winning every decade.",
+    performance: {
+      periodLabel: "Illustrative Permanent Portfolio, 1972–2023",
+      annualizedPct: 8.0,
+      bestYear: { year: 1979, pct: 23.1 },
+      worstYear: { year: 2022, pct: -12.4 },
+    },
     roles: {
       VTI: "Prosperity / growth",
       TLT: "Deflation / depression",
@@ -84,6 +117,12 @@ const STRATEGY_DESIGNS: Record<
     principle: "Buy the Dow’s highest yields, equal-weight, and rebalance once a year — no forecasting.",
     design: "Ten familiar Dow businesses. Yield is the screen; equal weight is the risk control.",
     stress: "The hard climate is a structural dividend cut wave or a long growth bull where high yielders lag.",
+    performance: {
+      periodLabel: "Illustrative Dogs screen, 1990–2023",
+      annualizedPct: 10.2,
+      bestYear: { year: 2013, pct: 34.8 },
+      worstYear: { year: 2008, pct: -33.2 },
+    },
     roles: {
       VZ: "Telecom cash flow",
       IBM: "Enterprise services",
@@ -101,6 +140,12 @@ const STRATEGY_DESIGNS: Record<
     principle: "Own understandable cash machines. Get paid while you wait for the story to play out.",
     design: "Ten blue-chip payers across health care, staples, industrials, and communication — equal weight.",
     stress: "The hard climate is rising rates that reprice income stocks, or an earnings recession that forces cuts.",
+    performance: {
+      periodLabel: "Illustrative dividend basket, 1990–2023",
+      annualizedPct: 9.6,
+      bestYear: { year: 2013, pct: 29.4 },
+      worstYear: { year: 2008, pct: -27.6 },
+    },
     roles: {
       JNJ: "Health care franchise",
       PG: "Staples brand",
@@ -118,6 +163,12 @@ const STRATEGY_DESIGNS: Record<
     principle: "Compound with businesses whose earnings stories you can explain in a paragraph.",
     design: "Ten mega-cap compounders, equal-weighted so no single narrative owns the book.",
     stress: "The hard climate is rising discount rates or a growth-earnings miss cluster — these names move together.",
+    performance: {
+      periodLabel: "Illustrative mega-cap growth, 2010–2023",
+      annualizedPct: 15.8,
+      bestYear: { year: 2023, pct: 48.2 },
+      worstYear: { year: 2022, pct: -36.4 },
+    },
     roles: {
       AAPL: "Consumer platform",
       MSFT: "Enterprise software",
@@ -149,6 +200,7 @@ export function buildStrategyDesignBrief(book: SampleBook): StrategyDesignBrief 
     principle: design.principle,
     design: design.design,
     stress: design.stress,
+    performance: design.performance,
     sleeves: book.tickers.map((ticker) => ({
       ticker,
       weight: book.weights![ticker] ?? 0,
@@ -264,7 +316,11 @@ export function buildPersonalInsightBrief(flags: PortfolioRiskFlags): PersonalIn
 
 export function buildPortfolioInsightBrief(
   flags: PortfolioRiskFlags,
-  _sampleBook?: SampleBook | null,
+  sampleBook?: SampleBook | null,
 ): PortfolioInsightBrief {
+  if (sampleBook) {
+    const strategy = buildStrategyDesignBrief(sampleBook);
+    if (strategy) return strategy;
+  }
   return buildPersonalInsightBrief(flags);
 }
