@@ -188,11 +188,11 @@ export function PoliticiansMovesPanel({
   const tabIntro = (
     <header className="smart-money-tab-intro">
       <div>
-        <span className="smart-money-tab-eyebrow">Congressional disclosures</span>
-        <h2>Recently reported trades</h2>
+        <span className="smart-money-tab-eyebrow">Politicians · STOCK Act filings</span>
+        <h2>Review reported congressional trades</h2>
         <p>
-          STOCK Act filings can arrive after the trade. Read the transaction date and filing lag
-          before treating a disclosure as current.
+          See what members of Congress reported buying or selling. Check the transaction date and
+          filing lag before treating any disclosure as current.
         </p>
       </div>
       <div className="smart-money-tab-stamp" aria-label="Latest congressional filing date">

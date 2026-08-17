@@ -192,12 +192,11 @@ export function InvestorBookPanel({
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
       <header className="smart-money-tab-intro">
         <div>
-          <span className="smart-money-tab-eyebrow">Institutional filings</span>
-          <h2>{selected?.displayName ?? "Selected manager"}</h2>
+          <span className="smart-money-tab-eyebrow">Institutions · 13F filings</span>
+          <h2>Compare conviction across quarters</h2>
           <p>
-            {book
-              ? `Latest 13F filed ${formatDate(book.filingDate)}${book.previousQuarter ? `, compared with ${formatDate(book.previousQuarter)}` : ""}.`
-              : "Choose a manager, then read the latest disclosed quarter against the one before it."}
+            Choose a manager to see what they opened, added, trimmed, or exited. Holdings are
+            reported quarterly and can arrive up to 45 days after quarter-end.
           </p>
         </div>
         <div className="smart-money-tab-stamp" aria-label="Holdings reporting period">
@@ -208,7 +207,7 @@ export function InvestorBookPanel({
 
       <div className="smart-money-control-row">
         <label className="investor-manager-picker">
-          <span>Investor</span>
+          <span>Selected manager</span>
           <select
             value={selectedCik}
             onChange={(event) => setSelectedCik(event.target.value)}
