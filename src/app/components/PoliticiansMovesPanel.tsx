@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { SmartMoneyInsightCard } from "@/app/components/SmartMoneyInsightCard";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import type { PoliticalTrade } from "@/lib/political-trades";
@@ -13,7 +14,6 @@ import {
 } from "@/lib/market/smart-money-brief";
 import {
   buildPoliticianStageSummary,
-  type SmartMoneyStageSummary,
 } from "@/lib/market/smart-money-stage";
 
 type DirectionFilter = "all" | "purchase" | "sale";
@@ -113,14 +113,12 @@ interface PoliticiansMovesPanelProps {
   trackedTickers: Set<string>;
   addingTicker: string | null;
   onAdd: (idea: { ticker: string; companyName: string }) => void;
-  onSummaryChange: (summary: SmartMoneyStageSummary) => void;
 }
 
 export function PoliticiansMovesPanel({
   trackedTickers,
   addingTicker,
   onAdd,
-  onSummaryChange,
 }: PoliticiansMovesPanelProps) {
   const [trades, setTrades] = useState<PoliticalTrade[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
@@ -179,11 +177,9 @@ export function PoliticiansMovesPanel({
     [trades],
   );
 
-  useEffect(() => {
-    if (status === "success") {
-      onSummaryChange(buildPoliticianStageSummary(trades));
-    }
-  }, [onSummaryChange, status, trades]);
+  const insight = status === "success"
+    ? buildPoliticianStageSummary(trades)
+    : null;
 
   const disclosureNote = (
     <p className="smart-money-disclosure-note">
@@ -218,6 +214,9 @@ export function PoliticiansMovesPanel({
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
       {disclosureNote}
+      {insight ? (
+        <SmartMoneyInsightCard eyebrow="Congressional disclosure read" summary={insight} />
+      ) : null}
       <div className="investor-filter-row" role="group" aria-label="Filter by trade direction">
         <button
           type="button"

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { SmartMoneyInsightCard } from "@/app/components/SmartMoneyInsightCard";
 import {
   classifyClientError,
   fetchJsonWithTimeout,
@@ -18,7 +19,6 @@ import type {
 import { inkChipClass } from "@/lib/display/ink-tone";
 import {
   buildInstitutionStageSummary,
-  type SmartMoneyStageSummary,
 } from "@/lib/market/smart-money-stage";
 
 type ManagerOption = {
@@ -109,14 +109,12 @@ interface InvestorBookPanelProps {
   trackedTickers: Set<string>;
   addingTicker: string | null;
   onAdd: (idea: { ticker: string; companyName: string }) => void;
-  onSummaryChange: (summary: SmartMoneyStageSummary) => void;
 }
 
 export function InvestorBookPanel({
   trackedTickers,
   addingTicker,
   onAdd,
-  onSummaryChange,
 }: InvestorBookPanelProps) {
   const [selectedCik, setSelectedCik] = useState(
     () => MANAGER_OPTIONS.find((manager) => manager.displayName === DEFAULT_MANAGER)?.cik
@@ -182,11 +180,9 @@ export function InvestorBookPanel({
     return positions;
   }, [book, positionFilter]);
 
-  useEffect(() => {
-    if (status === "success" && book) {
-      onSummaryChange(buildInstitutionStageSummary(book));
-    }
-  }, [book, onSummaryChange, status]);
+  const insight = status === "success" && book
+    ? buildInstitutionStageSummary(book)
+    : null;
 
   return (
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
@@ -231,6 +227,13 @@ export function InvestorBookPanel({
         13F holdings are quarter-end snapshots and can arrive up to 45 days later.
         {book ? <> Holdings {formatDate(book.filingQuarter)} · filed {formatDate(book.filingDate)}.</> : null}
       </p>
+
+      {insight ? (
+        <SmartMoneyInsightCard
+          eyebrow={`${selected?.displayName ?? "Selected manager"} filing read`}
+          summary={insight}
+        />
+      ) : null}
 
       {status === "loading" || status === "idle" ? (
         <PageLoadingMotion label={`Reading ${selected?.displayName ?? "investor"} 13F`} />
