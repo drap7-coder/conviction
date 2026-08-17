@@ -784,6 +784,13 @@ export default function Portfolio({
 
   return (
     <div className="pf">
+      <ViewSwitcher
+        label="Choose a portfolio view"
+        options={[...PORTFOLIO_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as PortfolioTab)}
+      />
+
       <ProductStage
         variant="portfolio"
         aria-label="Portfolio overview"
@@ -855,13 +862,6 @@ export default function Portfolio({
           </div>
         ) : null}
       </ProductStage>
-
-      <ViewSwitcher
-        label="Choose a portfolio view"
-        options={[...PORTFOLIO_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as PortfolioTab)}
-      />
 
       <SampleBooksSwitcher
         activeId={activeBookId}

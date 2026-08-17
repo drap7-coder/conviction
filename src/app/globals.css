@@ -463,6 +463,117 @@ details > summary::before {
   -webkit-backdrop-filter: blur(14px);
 }
 
+/* Shared market context for the five top-level workspaces. It scrolls away. */
+.market-tape {
+  display: flex;
+  align-items: stretch;
+  min-width: 0;
+  margin: calc(var(--section-gap) * -1) -8px 10px;
+  padding: 0 8px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-elevated) 78%, var(--bg));
+  font-family: var(--font-mono);
+}
+
+.market-tape-heading {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 7px 12px 7px 2px;
+  color: var(--quiet);
+  font-size: 0.54rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.market-tape-track {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.market-tape-track::-webkit-scrollbar {
+  display: none;
+}
+
+.market-tape-item {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 0 auto;
+  gap: 6px;
+  min-width: max-content;
+  padding: 7px 10px;
+  border-left: 1px solid var(--border);
+  color: var(--ink);
+  font-size: 0.65rem;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+a.market-tape-item:hover,
+a.market-tape-item:focus-visible {
+  background: var(--accent-dim);
+  outline: none;
+}
+
+.market-tape-symbol {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.market-tape-name {
+  color: var(--quiet);
+  font-size: 0.54rem;
+}
+
+.market-tape-item strong {
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-tape-change {
+  color: var(--quiet);
+  font-size: 0.58rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.market-tape-change.is-up { color: var(--green); }
+.market-tape-change.is-down { color: var(--red); }
+
+.market-tape.is-loading .market-tape-item strong,
+.market-tape.is-loading .market-tape-change {
+  color: transparent;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--quiet) 14%, transparent);
+}
+
+@media (max-width: 640px) {
+  .market-tape {
+    margin-inline: -4px;
+    padding-inline: 4px;
+  }
+
+  .market-tape-heading {
+    padding-right: 8px;
+  }
+
+  .market-tape-name {
+    display: none;
+  }
+
+  .market-tape-item {
+    gap: 5px;
+    padding-inline: 9px;
+  }
+}
+
 @media (min-width: 641px) {
   .app-header {
     display: flex;
@@ -11455,8 +11566,8 @@ a.signal-block-conclusion-link:hover {
   animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* The stage is orientation; the next surface is the work. */
-.product-stage + .view-switch {
+/* The selector establishes the active view before its stage types the read. */
+.view-switch + .product-stage {
   margin-top: -4px;
 }
 

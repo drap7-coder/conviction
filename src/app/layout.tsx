@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
+import { MarketTape } from "@/components/MarketTape";
 import AnimatedTitle from "@/components/AnimatedTitle";
 import {
   SITE_DESCRIPTION,
@@ -90,6 +91,7 @@ export default function RootLayout({
               </div>
             </div>
           </header>
+          <MarketTape />
           {children}
         </div>
         <MobileTabBar />
