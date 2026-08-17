@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
+import { PriceTrendCard, type TrendRange } from "./PriceTrendCard";
 import { TechnicalStateCard } from "./TechnicalStateCard";
 
 interface StockHistoryPoint {
@@ -11,7 +12,7 @@ interface StockHistoryPoint {
 
 interface StockHistory {
   ticker: string;
-  range: string;
+  range: TrendRange;
   points: StockHistoryPoint[];
   startPrice: number | null;
   endPrice: number | null;
@@ -31,6 +32,7 @@ interface MarketPanelProps {
 }
 
 export function MarketPanel({ ticker }: MarketPanelProps) {
+  const [range, setRange] = useState<TrendRange>("1y");
   const [history, setHistory] = useState<StockHistory | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
 
@@ -41,7 +43,7 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
       setStatus("loading");
       try {
         const data = await fetchJsonWithTimeout<HistoryResponse>(
-          `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
+          `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=${range}`,
           8_000,
           controller.signal,
         );
@@ -55,13 +57,22 @@ export function MarketPanel({ ticker }: MarketPanelProps) {
 
     void load();
     return () => controller.abort();
-  }, [ticker]);
+  }, [ticker, range]);
 
   return (
-    <TechnicalStateCard
-      history={history}
-      status={status}
-      currentPrice={history?.endPrice ?? null}
-    />
+    <div className="market-panel-opening">
+      <PriceTrendCard
+        ticker={ticker}
+        history={history}
+        status={status}
+        activeRange={range}
+        onRangeChange={setRange}
+      />
+      <TechnicalStateCard
+        history={history}
+        status={status}
+        currentPrice={history?.endPrice ?? null}
+      />
+    </div>
   );
 }

@@ -87,6 +87,15 @@
   margin-inline: auto;
 }
 
+.market-panel-opening {
+  display: grid;
+  gap: var(--section-gap);
+}
+
+.market-panel-opening .price-trend-card {
+  margin-top: 0;
+}
+
 /* Fast section rail: keeps a long research page navigable without hiding content. */
 .company-section-nav {
   position: sticky;
@@ -95,7 +104,7 @@
   display: flex;
   gap: 4px;
   width: min(100%, 1120px);
-  margin: 2px auto 12px;
+  margin: 0 auto;
   padding: 5px;
   overflow-x: auto;
   border: 1px solid color-mix(in srgb, #ffffff 12%, transparent);

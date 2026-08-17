@@ -587,18 +587,18 @@ export default function Watchlist({
 
   return (
     <div>
-      <ViewSwitcher
-        label="Choose a Watchlist view"
-        options={[...WATCHLIST_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as WatchlistTab)}
-      />
-
       <ProductStage
         variant="watchlist"
         aria-label="Watchlist"
         eyebrow={`Watchlist · ${sessionLabel}`}
         headline={activeTab === "insights" ? "Worth your attention." : "Your names."}
+      />
+
+      <ViewSwitcher
+        label="Choose a Watchlist view"
+        options={[...WATCHLIST_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as WatchlistTab)}
       />
 
       <GuestModeBanner

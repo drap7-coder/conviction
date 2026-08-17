@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { UtilityPageLead } from "@/components/UtilityPageLead";
 
 interface ActivityEvent {
   id: string;
@@ -123,12 +124,27 @@ export default function ActivityPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <div>
+        <UtilityPageLead
+          eyebrow="Activity · Watchlist signals"
+          title="What changed."
+          summary="Conviction changes, new evidence, and expiring signals for the companies you track."
+        />
+        <PageLoadingMotion label="Loading activity" />
+      </div>
+    );
+  }
+
   if (!authenticated) {
     return (
       <div>
-        <div className="section-header">
-          <h2 className="section-title">Activity</h2>
-        </div>
+        <UtilityPageLead
+          eyebrow="Activity · Watchlist signals"
+          title="What changed."
+          summary="Conviction changes, new evidence, and expiring signals for the companies you track."
+        />
         <div className="empty-state">
           <p>Sign in to see conviction activity for your watchlist.</p>
           <small className="mt-8 block" style={{ marginTop: 12 }}>
@@ -141,28 +157,30 @@ export default function ActivityPage() {
 
   return (
     <div>
-      <div className="section-header activity-header">
-        <h2 className="section-title">Activity</h2>
-        <div className="activity-header-actions">
-          {unreadCount > 0 && (
-            <span className="section-count">{unreadCount} unread</span>
-          )}
-          {entries.length > 0 && unreadCount > 0 && (
-            <button
-              type="button"
-              className="activity-action"
-              onClick={handleMarkAllRead}
-              disabled={markingAll}
-            >
-              {markingAll ? "Marking..." : "Mark all read"}
-            </button>
-          )}
-        </div>
-      </div>
+      <UtilityPageLead
+        eyebrow="Activity · Watchlist signals"
+        title="What changed."
+        summary="Conviction changes, new evidence, and expiring signals for the companies you track."
+        actions={
+          <div className="activity-header-actions">
+            {unreadCount > 0 && (
+              <span className="section-count">{unreadCount} unread</span>
+            )}
+            {entries.length > 0 && unreadCount > 0 && (
+              <button
+                type="button"
+                className="activity-action"
+                onClick={handleMarkAllRead}
+                disabled={markingAll}
+              >
+                {markingAll ? "Marking..." : "Mark all read"}
+              </button>
+            )}
+          </div>
+        }
+      />
 
-      {loading ? (
-        <PageLoadingMotion label="Loading activity" />
-      ) : entries.length === 0 ? (
+      {entries.length === 0 ? (
         <div className="empty-state">
           <p>No conviction activity yet.</p>
           <small>

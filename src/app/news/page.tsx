@@ -80,13 +80,6 @@ export default function NewsPage() {
 
   return (
     <main className="markets-page news-page">
-      <ViewSwitcher
-        label="Choose a News view"
-        options={[...NEWS_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as NewsTab)}
-      />
-
       <ProductStage
         variant="news"
         aria-label="News intelligence"
@@ -97,6 +90,13 @@ export default function NewsPage() {
             ? `Lead: ${brief.leadTheme}.`
             : undefined
         }
+      />
+
+      <ViewSwitcher
+        label="Choose a News view"
+        options={[...NEWS_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as NewsTab)}
       />
 
       <div

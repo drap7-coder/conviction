@@ -97,13 +97,6 @@ export default async function CompanyPage({
         <span className="detail-context">Company</span>
       </div>
 
-      <nav className="company-section-nav" aria-label="Company dashboard sections">
-        <a href="#overview">Overview</a>
-        <a href="#decision">Decision</a>
-        <a href="#catalyst">Catalyst</a>
-        {supportsSignals ? <a href="#sources">Sources</a> : null}
-      </nav>
-
       <CompanyDashboard
         briefing={
           <>
@@ -115,6 +108,12 @@ export default async function CompanyPage({
                 logoUrl={getLogoUrl(upperTicker) ?? null}
               />
             </div>
+            <nav className="company-section-nav" aria-label="Company dashboard sections">
+              <a href="#overview">Overview</a>
+              <a href="#decision">Decision</a>
+              <a href="#catalyst">Catalyst</a>
+              {supportsSignals ? <a href="#sources">Sources</a> : null}
+            </nav>
             {supportsSignals ? (
               <div id="decision" className="company-section-anchor">
                 <CompanyDecisionBrief ticker={upperTicker} />

@@ -1,12 +1,14 @@
 import Link from "next/link";
+import { UtilityPageLead } from "@/components/UtilityPageLead";
 
 export default function JournalPage() {
   return (
     <div>
-      <div className="section-header">
-        <h2 className="section-title">Decision journal</h2>
-        <span className="section-count">Private</span>
-      </div>
+      <UtilityPageLead
+        eyebrow="Decision journal · Private"
+        title="Write the reason down."
+        summary="Keep the thesis, the evidence, and what would change your mind beside every saved company."
+      />
 
       <div className="empty-state">
         <p>No thesis entries yet.</p>

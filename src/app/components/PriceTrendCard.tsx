@@ -5,7 +5,7 @@ import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { computeSma } from "@/lib/market/technical-state";
 import { inkBoxClass, inkChipClass } from "@/lib/display/ink-tone";
 
-type TrendRange = "1d" | "1w" | "1m" | "6m" | "1y";
+export type TrendRange = "1d" | "1w" | "1m" | "6m" | "1y";
 
 interface StockHistoryPoint {
   date: string;

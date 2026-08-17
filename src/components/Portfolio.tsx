@@ -35,7 +35,6 @@ import { notifyPortfolioChanged, usePortfolioData } from "@/components/Portfolio
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import { ProductStage } from "@/components/ProductStage";
-import { TypewriterText } from "@/components/TypewriterText";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 const PORTFOLIO_TABS = [
@@ -784,13 +783,6 @@ export default function Portfolio({
 
   return (
     <div className="pf">
-      <ViewSwitcher
-        label="Choose a portfolio view"
-        options={[...PORTFOLIO_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as PortfolioTab)}
-      />
-
       <ProductStage
         variant="portfolio"
         aria-label="Portfolio overview"
@@ -813,13 +805,7 @@ export default function Portfolio({
                 strokeLinecap="round"
               />
             </svg>
-            <TypewriterText
-              as="span"
-              text={stageDescription}
-              className="portfolio-stage-lede-text"
-              msPerChar={24}
-              startDelay={180}
-            />
+            <span className="portfolio-stage-lede-text">{stageDescription}</span>
           </div>
         }
         metrics={
@@ -862,6 +848,13 @@ export default function Portfolio({
           </div>
         ) : null}
       </ProductStage>
+
+      <ViewSwitcher
+        label="Choose a portfolio view"
+        options={[...PORTFOLIO_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as PortfolioTab)}
+      />
 
       <SampleBooksSwitcher
         activeId={activeBookId}

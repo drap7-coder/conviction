@@ -186,13 +186,6 @@ export default function MarketPulsePage() {
 
   return (
     <main className="markets-page">
-      <ViewSwitcher
-        label="Choose a Pulse view"
-        options={[...PULSE_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as PulseTab)}
-      />
-
       <ProductStage
         variant="pulse"
         aria-label="Market regime"
@@ -215,6 +208,13 @@ export default function MarketPulsePage() {
             </div>
           </>
         }
+      />
+
+      <ViewSwitcher
+        label="Choose a Pulse view"
+        options={[...PULSE_TABS]}
+        activeId={activeTab}
+        onChange={(id) => setActiveTab(id as PulseTab)}
       />
 
       <div
