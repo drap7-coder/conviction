@@ -190,21 +190,6 @@ export function InvestorBookPanel({
 
   return (
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
-      <header className="smart-money-tab-intro">
-        <div>
-          <span className="smart-money-tab-eyebrow">Institutions · 13F filings</span>
-          <h2>Compare conviction across quarters</h2>
-          <p>
-            Choose a manager to see what they opened, added, trimmed, or exited. Holdings are
-            reported quarterly and can arrive up to 45 days after quarter-end.
-          </p>
-        </div>
-        <div className="smart-money-tab-stamp" aria-label="Holdings reporting period">
-          <strong>{book ? formatDate(book.filingQuarter) : "13F"}</strong>
-          <span>{book ? "holdings date" : "quarterly filing"}</span>
-        </div>
-      </header>
-
       <div className="smart-money-control-row">
         <label className="investor-manager-picker">
           <span>Selected manager</span>
@@ -241,6 +226,11 @@ export function InvestorBookPanel({
           ))}
         </div>
       </div>
+
+      <p className="smart-money-disclosure-note">
+        13F holdings are quarter-end snapshots and can arrive up to 45 days later.
+        {book ? <> Holdings {formatDate(book.filingQuarter)} · filed {formatDate(book.filingDate)}.</> : null}
+      </p>
 
       {status === "loading" || status === "idle" ? (
         <PageLoadingMotion label={`Reading ${selected?.displayName ?? "investor"} 13F`} />

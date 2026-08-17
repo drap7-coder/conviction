@@ -41,6 +41,22 @@ function fmtPct(value: number | null): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
+function regimeDecisionHeadline(label: string | undefined): string {
+  switch (label) {
+    case "Risk-on": return "Risk appetite is broadening.";
+    case "Risk-off": return "Risk is coming out of the market.";
+    case "Defensive rotation": return "Defensives are taking the lead.";
+    case "Growth-led": return "Growth is leading the market.";
+    case "Cyclical rotation": return "Cyclicals are taking the lead.";
+    case "Volatility expansion": return "Volatility is rising beneath a steady market.";
+    case "Volatility compression": return "Volatility is easing while stocks wait.";
+    case "Rates pressure": return "Higher yields are pressuring risk.";
+    case "Mixed Signals": return "The market is sending mixed signals.";
+    case "Insufficient data": return "The market read is still forming.";
+    default: return "Read the market at a glance.";
+  }
+}
+
 function tileSpan(weight: number): number {
   if (weight > HEATMAP_SPANS.largeWeight) return 3;
   if (weight > HEATMAP_SPANS.mediumWeight) return 2;
@@ -193,8 +209,8 @@ export default function MarketPulsePage() {
       <ProductStage
         variant="pulse"
         aria-label="Market regime"
-        eyebrow={`Pulse · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
-        headline={data?.macroRegime.label ?? "Read the market at a glance."}
+        eyebrow={`Pulse · ${data ? "Live data" : "Market read"} · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
+        headline={regimeDecisionHeadline(data?.macroRegime.label)}
         summary={data?.macroRegime.summary ?? "See the regime first, then scan the indexes, sectors, and stocks driving the day."}
         metrics={
           <>

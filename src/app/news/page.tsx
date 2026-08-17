@@ -81,14 +81,34 @@ export default function NewsPage() {
       <ProductStage
         variant="news"
         aria-label="News intelligence"
-        eyebrow={`News · ${brief?.statusLabel ?? (status === "loading" ? "Reading the tape" : "Temporarily unavailable")}`}
-        headline={activeTab === "brief" ? "Know what changed." : "The wire."}
+        eyebrow={`News · ${brief?.statusLabel === "Live" ? "Live data" : brief?.statusLabel ?? (status === "loading" ? "Reading the tape" : "Temporarily unavailable")}`}
+        headline={
+          activeTab === "brief"
+            ? brief ? `${brief.leadTheme} is today’s lead.` : "Today’s market story is still forming."
+            : brief ? `${brief.storyCount} market headline${brief.storyCount === 1 ? " is" : "s are"} live.` : "The market wire is loading."
+        }
         summary={
-          activeTab === "brief" && brief?.leadTheme
-            ? `Lead: ${brief.leadTheme}.`
-            : activeTab === "brief"
-              ? "Start with the market brief, then open the evidence behind the story."
-              : "Scan the latest market headlines without losing the larger signal."
+          brief
+            ? activeTab === "brief"
+              ? `${brief.storyCount} recent stories distilled into ${brief.activeNarratives} active market narrative${brief.activeNarratives === 1 ? "" : "s"}.`
+              : "Scan the wire, then open the evidence behind the move."
+            : "Start with the market brief, then open the evidence behind the story."
+        }
+        metrics={
+          <>
+            <div>
+              <strong>{brief?.storyCount ?? "—"}</strong>
+              <span>Recent stories</span>
+            </div>
+            <div className={brief && brief.activeNarratives > 0 ? "is-alert" : undefined}>
+              <strong>{brief?.activeNarratives ?? "—"}</strong>
+              <span>Active narratives</span>
+            </div>
+            <div>
+              <strong>{brief?.statusLabel ?? "—"}</strong>
+              <span>Feed status</span>
+            </div>
+          </>
         }
       />
 

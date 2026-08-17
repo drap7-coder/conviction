@@ -15,6 +15,7 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import {
+  buildWatchlistBriefItems,
   WatchlistDailyBrief,
   type WatchlistNewsSummary,
   type WatchlistTransition,
@@ -40,6 +41,10 @@ const WATCHLIST_TABS = [
 ] as const;
 
 type WatchlistTab = (typeof WATCHLIST_TABS)[number]["id"];
+
+function formatStagePercent(value: number): string {
+  return `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(1)}%`;
+}
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
@@ -585,6 +590,56 @@ export default function Watchlist({
     .map((quote) => getLivePrice(quote).label)
     .find((label): label is string => Boolean(label)) ?? "Market session";
 
+  const moveReadings = entries
+    .map((entry) => {
+      const quote = quotes[entry.ticker];
+      const changePercent = quote
+        ? (getLivePrice(quote).changePercent ?? quote.changePercent ?? null)
+        : null;
+      return changePercent === null
+        ? null
+        : { ticker: entry.ticker, changePercent };
+    })
+    .filter((item): item is { ticker: string; changePercent: number } => item !== null);
+  const advancing = moveReadings.filter((item) => item.changePercent > 0.05).length;
+  const declining = moveReadings.filter((item) => item.changePercent < -0.05).length;
+  const quiet = Math.max(0, moveReadings.length - advancing - declining);
+  const biggestMove = [...moveReadings]
+    .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))[0] ?? null;
+  const attentionItems = useMemo(() => buildWatchlistBriefItems({
+    entries: briefingEntries,
+    quotes,
+    newsByTicker,
+    transitions,
+    portfolioTickers,
+    watchlistTickers: entries.map((entry) => entry.ticker),
+  }), [briefingEntries, entries, newsByTicker, portfolioTickers, quotes, transitions]);
+  const convictionChanges = attentionItems.filter((item) => item.kind === "Conviction change").length;
+  const largeMoves = attentionItems.filter((item) => item.kind === "Large move").length;
+  const freshEvidence = attentionItems.filter((item) => item.kind === "Fresh evidence").length;
+  const stageHeadline = activeTab === "insights"
+    ? briefLoading
+      ? "Reading what changed."
+      : attentionItems.length > 0
+        ? `${attentionItems.length} ${attentionItems.length === 1 ? "name needs" : "names need"} attention.`
+        : briefingEntries.length > 0
+          ? "Nothing material needs a look."
+          : "Build a watchlist worth returning to."
+    : loading
+      ? "Reading your names."
+      : entries.length === 0
+        ? "Build a watchlist worth returning to."
+        : moveReadings.length > 0
+          ? `${advancing} higher. ${declining} lower.`
+          : "Live prices are resolving.";
+  const stageSummary = activeTab === "insights"
+    ? attentionItems[0]
+      ? `${attentionItems[0].ticker}: ${attentionItems[0].headline}`
+      : "No large move, fresh evidence, or conviction change is demanding action."
+    : biggestMove
+      ? `${biggestMove.ticker} is the largest move at ${formatStagePercent(biggestMove.changePercent)}. Open it to see what changed.`
+      : "Add companies you care about, then return for the moves and evidence that matter.";
+
   return (
     <div>
       <ViewSwitcher
@@ -597,14 +652,42 @@ export default function Watchlist({
       <ProductStage
         variant="watchlist"
         aria-label="Watchlist"
-        eyebrow={`Watchlist · ${sessionLabel}`}
-        headline={activeTab === "insights" ? "Worth your attention." : "Your names."}
-      />
-
-      <GuestModeBanner
-        authenticated={authenticated}
-        authConfigured={authConfigured}
-        accountLabel={accountLabel}
+        eyebrow={`Watchlist · Live data · ${sessionLabel}`}
+        headline={stageHeadline}
+        summary={stageSummary}
+        metrics={
+          activeTab === "insights" ? (
+            <>
+              <div className={convictionChanges > 0 ? "is-alert" : undefined}>
+                <strong>{briefLoading ? "—" : convictionChanges}</strong>
+                <span>Conviction changes</span>
+              </div>
+              <div className={largeMoves > 0 ? "is-alert" : undefined}>
+                <strong>{briefLoading ? "—" : largeMoves}</strong>
+                <span>Large moves</span>
+              </div>
+              <div>
+                <strong>{briefLoading ? "—" : freshEvidence}</strong>
+                <span>Fresh evidence</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="is-positive">
+                <strong>{loading ? "—" : advancing}</strong>
+                <span>Higher</span>
+              </div>
+              <div className="is-negative">
+                <strong>{loading ? "—" : declining}</strong>
+                <span>Lower</span>
+              </div>
+              <div>
+                <strong>{loading ? "—" : quiet}</strong>
+                <span>Quiet</span>
+              </div>
+            </>
+          )
+        }
       />
 
       <div
@@ -714,6 +797,12 @@ export default function Watchlist({
           />
         ) : null}
       </div>
+
+      <GuestModeBanner
+        authenticated={authenticated}
+        authConfigured={authConfigured}
+        accountLabel={accountLabel}
+      />
     </div>
   );
 }

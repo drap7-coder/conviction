@@ -172,7 +172,7 @@ describe("Smart Money stage summaries", () => {
     };
 
     expect(buildInstitutionStageSummary(book)).toMatchObject({
-      headline: "Test Capital is adding.",
+      headline: "Test Capital added more than it trimmed.",
       tone: "positive",
       metrics: [
         { label: "New / added", value: "+7", tone: "positive" },

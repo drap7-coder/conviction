@@ -44,13 +44,13 @@ export function buildInstitutionStageSummary(
   const additions = book.newCount + book.increasedCount;
   const reductions = book.reducedCount + book.exitedCount;
 
-  let headline = `${book.manager.displayName} is mostly holding.`;
+  let headline = `${book.manager.displayName} matched additions with trims.`;
   let tone: SmartMoneyStageTone = "neutral";
   if (additions > reductions) {
-    headline = `${book.manager.displayName} is adding.`;
+    headline = `${book.manager.displayName} added more than it trimmed.`;
     tone = "positive";
   } else if (reductions > additions) {
-    headline = `${book.manager.displayName} is trimming.`;
+    headline = `${book.manager.displayName} trimmed more than it added.`;
     tone = "negative";
   }
 

@@ -185,27 +185,17 @@ export function PoliticiansMovesPanel({
     }
   }, [onSummaryChange, status, trades]);
 
-  const tabIntro = (
-    <header className="smart-money-tab-intro">
-      <div>
-        <span className="smart-money-tab-eyebrow">Politicians · STOCK Act filings</span>
-        <h2>Review reported congressional trades</h2>
-        <p>
-          See what members of Congress reported buying or selling. Check the transaction date and
-          filing lag before treating any disclosure as current.
-        </p>
-      </div>
-      <div className="smart-money-tab-stamp" aria-label="Latest congressional filing date">
-        <strong>{latestFilingDate ? formatDate(latestFilingDate) : "STOCK Act"}</strong>
-        <span>{latestFilingDate ? "latest filing" : "filing basis"}</span>
-      </div>
-    </header>
+  const disclosureNote = (
+    <p className="smart-money-disclosure-note">
+      STOCK Act filings can arrive after the trade; check the transaction date and filing lag.
+      {latestFilingDate ? <> Latest filing {formatDate(latestFilingDate)}.</> : null}
+    </p>
   );
 
   if (status === "loading" || status === "idle") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Political trades" aria-busy="true">
-        {tabIntro}
+        {disclosureNote}
         <PageLoadingMotion label="Loading congressional disclosures" />
       </section>
     );
@@ -214,7 +204,7 @@ export function PoliticiansMovesPanel({
   if (status === "error" || status === "timeout" || status === "empty") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
-        {tabIntro}
+        {disclosureNote}
         <div className="empty-state compact">
           <p>No STOCK Act filings are available right now.</p>
           <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
@@ -227,7 +217,7 @@ export function PoliticiansMovesPanel({
 
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
-      {tabIntro}
+      {disclosureNote}
       <div className="investor-filter-row" role="group" aria-label="Filter by trade direction">
         <button
           type="button"

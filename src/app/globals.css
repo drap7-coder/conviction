@@ -1258,6 +1258,14 @@ a.market-tape-item:focus-visible {
   padding-bottom: 0;
 }
 
+.smart-money-disclosure-note {
+  margin: -4px 0 12px;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  line-height: 1.45;
+}
+
 .investor-manager-picker {
   display: flex;
   align-items: center;
@@ -11613,11 +11621,11 @@ a.signal-block-conclusion-link:hover {
   isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
-  align-items: end;
-  gap: 12px;
+  align-items: center;
+  gap: 16px;
   overflow: hidden;
-  margin: 0 0 var(--section-gap);
-  padding: var(--stage-pad-block) var(--stage-pad-inline);
+  margin: 0 0 12px;
+  padding: 12px 16px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 16px;
   background:
@@ -11701,7 +11709,7 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--smart-money .product-stage-headline {
-  font-size: clamp(1.3rem, 2.65vw, 1.8rem);
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
 }
 
 .product-stage--smart-money .product-stage-metrics {
@@ -11788,11 +11796,11 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage h1,
 .product-stage-headline {
-  max-width: 18ch;
+  max-width: 24ch;
   margin: 0;
   min-height: 1.1em;
   color: #ffffff;
-  font-size: clamp(1.45rem, 3.2vw, 2.15rem);
+  font-size: clamp(1.3rem, 2.8vw, 1.85rem);
   font-weight: 730;
   letter-spacing: -0.05em;
   line-height: 1.05;
@@ -11818,7 +11826,7 @@ a.signal-block-conclusion-link:hover {
   margin: 1px 0 0;
   color: #9da8b8;
   font-family: var(--font-sans);
-  font-size: clamp(0.76rem, 1.3vw, 0.86rem);
+  font-size: clamp(0.72rem, 1.2vw, 0.8rem);
   line-height: 1.45;
 }
 
@@ -11867,39 +11875,6 @@ a.signal-block-conclusion-link:hover {
   line-height: 1.4;
 }
 
-.product-stage-footer {
-  position: relative;
-  z-index: 1;
-  grid-column: 1 / -1;
-  min-width: 0;
-}
-
-.portfolio-stage-lede {
-  display: grid;
-  gap: 7px;
-  padding-top: 4px;
-}
-
-.portfolio-stage-pencil-rule {
-  display: block;
-  width: 100%;
-  height: 8px;
-  color: rgba(248, 212, 119, 0.48);
-}
-
-.portfolio-stage-lede-text {
-  color: #f8d477;
-  font-family: var(--font-mono);
-  font-size: clamp(0.68rem, 1.2vw, 0.78rem);
-  font-weight: 700;
-  letter-spacing: 0.025em;
-  line-height: 1.4;
-}
-
-.product-stage .portfolio-stage-lede-text .typewriter-cursor {
-  background: #f8d477;
-}
-
 .product-stage-metrics {
   position: relative;
   z-index: 1;
@@ -11920,7 +11895,7 @@ a.signal-block-conclusion-link:hover {
   justify-content: flex-end;
   gap: 4px;
   min-width: 0;
-  padding: 11px 10px;
+  padding: 8px 9px;
 }
 
 .product-stage-metrics > div + div {
@@ -11931,7 +11906,7 @@ a.signal-block-conclusion-link:hover {
   overflow: hidden;
   color: #ffffff;
   font-family: var(--font-mono);
-  font-size: clamp(0.92rem, 1.8vw, 1.15rem);
+  font-size: clamp(0.86rem, 1.6vw, 1.02rem);
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 1;

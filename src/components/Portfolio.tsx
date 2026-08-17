@@ -35,7 +35,6 @@ import { notifyPortfolioChanged, usePortfolioData } from "@/components/Portfolio
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import { ProductStage } from "@/components/ProductStage";
-import { TypewriterText } from "@/components/TypewriterText";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 const PORTFOLIO_TABS = [
@@ -137,8 +136,6 @@ function enrichWithPrices(
     };
   });
 }
-
-const PERSONAL_BOOK_DESCRIPTION = "Your book. Size is the risk.";
 
 function SampleBooksSwitcher({
   activeId,
@@ -460,8 +457,6 @@ export default function Portfolio({
   );
 
   const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
-  const stageHeadline = activeSampleBook?.label ?? "My Portfolio";
-  const stageDescription = activeSampleBook?.description ?? PERSONAL_BOOK_DESCRIPTION;
   const stageTone = valueBrief.tone;
 
   const allocationItems = useMemo(() => sortedPositions
@@ -778,9 +773,24 @@ export default function Portfolio({
 
   // ── Render ──
 
+  const stageSubject = activeSampleBook?.label ?? "Your portfolio";
+  const stagePeriod = (portfolioHeatmapSession ?? "today").toLowerCase();
+  const stagePerformanceHeadline = isFiniteNumber(portfolioMetrics.dailyChangePercent)
+    ? Math.abs(portfolioMetrics.dailyChangePercent) < 0.005
+      ? `${stageSubject} is flat ${stagePeriod}.`
+      : `${stageSubject} is ${portfolioMetrics.dailyChangePercent > 0 ? "up" : "down"} ${Math.abs(portfolioMetrics.dailyChangePercent).toFixed(1)}% ${stagePeriod}.`
+    : `See what is driving ${stageSubject.toLowerCase()}.`;
+  const stageHeadline = hasData
+    ? activeTab === "insights" ? valueBrief.headline : stagePerformanceHeadline
+    : "Build or try a portfolio.";
+  const stageSummary = hasData
+    ? activeTab === "insights"
+      ? valueBrief.summary
+      : `${valueBrief.headline} ${valueBrief.summary}`
+    : "Add your holdings or load a sample book below. Conviction will map performance, exposure, and sizing risk.";
   const stageEyebrow = hasData
-    ? `Portfolio · ${portfolioHeatmapSession ?? "Live"}`
-    : "Portfolio";
+    ? `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}${activeSampleBook ? ` · ${activeSampleBook.label}` : ""}`
+    : "Portfolio · Setup";
 
   return (
     <div className="pf">
@@ -796,32 +806,8 @@ export default function Portfolio({
         aria-label="Portfolio overview"
         tone={hasData ? stageTone : "neutral"}
         eyebrow={stageEyebrow}
-        headline={hasData ? stageHeadline : "My Portfolio"}
-        footer={
-          <div className="portfolio-stage-lede" aria-live="polite">
-            <svg
-              className="portfolio-stage-pencil-rule"
-              viewBox="0 0 600 8"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 4.4 C 84 1.4, 156 6.8, 242 3.6 S 402 6.1, 598 3.8"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.35"
-                strokeLinecap="round"
-              />
-            </svg>
-            <TypewriterText
-              as="span"
-              text={stageDescription}
-              className="portfolio-stage-lede-text"
-              msPerChar={24}
-              startDelay={180}
-            />
-          </div>
-        }
+        headline={stageHeadline}
+        summary={stageSummary}
         metrics={
           hasData ? (
             <>

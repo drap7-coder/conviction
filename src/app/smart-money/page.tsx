@@ -66,9 +66,10 @@ export default function SmartMoneyPage() {
       <ProductStage
         variant="smart-money"
         aria-label="Smart Money overview"
-        eyebrow="Smart Money · Disclosed ownership"
-        headline="See where influential capital is moving."
-        summary="Choose Institutions to compare quarterly 13F changes, or Politicians to review reported STOCK Act trades. Use the evidence as a lead—not a live signal."
+        eyebrow={activeView === "institutions" ? "Smart Money · 13F filings" : "Smart Money · STOCK Act filings"}
+        headline={activeSummary.headline}
+        summary={activeSummary.summary}
+        tone={activeSummary.tone}
         metrics={
           <>
             {activeSummary.metrics.map((metric) => (
