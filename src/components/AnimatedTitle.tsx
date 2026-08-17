@@ -44,13 +44,13 @@ export default function AnimatedTitle() {
   }, []);
 
   if (skip) {
-    return <h1 className="app-title">CONVICTION<span className="accent-dot">.</span></h1>;
+    return <span className="app-title">CONVICTION<span className="accent-dot">.</span></span>;
   }
 
   return (
-    <h1 className="app-title typewriter">
+    <span className="app-title typewriter">
       {displayed}
       {!done && <span className="typewriter-cursor" />}
-    </h1>
+    </span>
   );
 }

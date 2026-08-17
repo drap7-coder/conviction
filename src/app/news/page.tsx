@@ -69,15 +69,6 @@ export default function NewsPage() {
     [data],
   );
 
-  if (status === "loading") return <PageLoadingMotion label="Loading news intelligence" />;
-  if (status === "error" || !data || !brief) {
-    return (
-      <main className="markets-page news-page">
-        <div className="market-empty">News intelligence is temporarily unavailable.</div>
-      </main>
-    );
-  }
-
   return (
     <main className="markets-page news-page">
       <ViewSwitcher
@@ -90,14 +81,21 @@ export default function NewsPage() {
       <ProductStage
         variant="news"
         aria-label="News intelligence"
-        eyebrow={`News · ${brief.statusLabel}`}
-        headline={activeTab === "brief" ? "What changed." : "The wire."}
+        eyebrow={`News · ${brief?.statusLabel ?? (status === "loading" ? "Reading the tape" : "Temporarily unavailable")}`}
+        headline={activeTab === "brief" ? "Know what changed." : "The wire."}
         summary={
-          activeTab === "brief" && brief.leadTheme
+          activeTab === "brief" && brief?.leadTheme
             ? `Lead: ${brief.leadTheme}.`
-            : undefined
+            : activeTab === "brief"
+              ? "Start with the market brief, then open the evidence behind the story."
+              : "Scan the latest market headlines without losing the larger signal."
         }
       />
+
+      {status === "loading" ? <PageLoadingMotion label="Loading news intelligence" compact /> : null}
+      {status === "error" || (status === "success" && (!data || !brief)) ? (
+        <div className="market-empty">News intelligence is temporarily unavailable.</div>
+      ) : null}
 
       <div
         id="news-panel-brief"
@@ -105,7 +103,7 @@ export default function NewsPage() {
         aria-labelledby="news-tab-brief"
         hidden={activeTab !== "brief"}
       >
-        {activeTab === "brief" ? (
+        {activeTab === "brief" && data ? (
           <PulseNewsFeed
             themes={data.marketNarratives.themes}
             status={data.marketNarratives.status}
@@ -120,7 +118,7 @@ export default function NewsPage() {
         aria-labelledby="news-tab-headlines"
         hidden={activeTab !== "headlines"}
       >
-        {activeTab === "headlines" ? (
+        {activeTab === "headlines" && data ? (
           <PulseNewsFeed
             themes={data.marketNarratives.themes}
             status={data.marketNarratives.status}

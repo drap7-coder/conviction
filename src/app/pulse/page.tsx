@@ -165,23 +165,20 @@ export default function MarketPulsePage() {
     return () => { cancelled = true; };
   }, []);
 
-  if (status === "loading") return <PageLoadingMotion label="Loading pulse" />;
-  if (status === "error" || !data) return <div className="markets-page"><div className="market-empty">Market data is temporarily unavailable.</div></div>;
-
-  const indicatorMap = new Map(data.indicators.map((indicator) => [indicator.ticker, indicator]));
+  const indicatorMap = new Map((data?.indicators ?? []).map((indicator) => [indicator.ticker, indicator]));
   const vix = indicatorMap.get("^VIX")?.price ?? null;
   const tenYear = indicatorMap.get("^TNX")?.price ?? null;
   const marketsByCategory = (category: string) =>
-    data.globalMarkets.filter((market) => market.category === category);
+    data?.globalMarkets.filter((market) => market.category === category) ?? [];
   const majorIndexes = marketsByCategory("Major Index");
   const themeMarkets = marketsByCategory("Themes");
   const commodities = marketsByCategory("Commodity");
   const cryptoMarkets = marketsByCategory("Crypto");
   const internationalMarkets = marketsByCategory("International");
-  const industryMarkets = sectorsToMarkets(data.sectors);
+  const industryMarkets = sectorsToMarkets(data?.sectors ?? []);
 
   const changeFor = (ticker: string) =>
-    data.globalMarkets.find((market) => market.ticker === ticker)?.changePercent ?? null;
+    data?.globalMarkets.find((market) => market.ticker === ticker)?.changePercent ?? null;
   const spyChange = changeFor("SPY");
 
   return (
@@ -196,9 +193,9 @@ export default function MarketPulsePage() {
       <ProductStage
         variant="pulse"
         aria-label="Market regime"
-        eyebrow={`Pulse · ${data.sessionLabel ?? "Live market"}`}
-        headline={data.macroRegime.label}
-        summary={data.macroRegime.summary}
+        eyebrow={`Pulse · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
+        headline={data?.macroRegime.label ?? "Read the market at a glance."}
+        summary={data?.macroRegime.summary ?? "See the regime first, then scan the indexes, sectors, and stocks driving the day."}
         metrics={
           <>
             <div className={spyChange !== null && spyChange < 0 ? "is-negative" : ""}>
@@ -217,13 +214,18 @@ export default function MarketPulsePage() {
         }
       />
 
+      {status === "loading" ? <PageLoadingMotion label="Loading pulse" compact /> : null}
+      {status === "error" || (status === "success" && !data) ? (
+        <div className="market-empty">Market data is temporarily unavailable.</div>
+      ) : null}
+
       <div
         id="pulse-panel-indexes"
         role="tabpanel"
         aria-labelledby="pulse-tab-indexes"
         hidden={activeTab !== "indexes"}
       >
-        {activeTab === "indexes" ? (
+        {activeTab === "indexes" && data ? (
           <>
             <GlobalMarketsHeatmap
               markets={majorIndexes}
@@ -291,7 +293,7 @@ export default function MarketPulsePage() {
         aria-labelledby="pulse-tab-trending"
         hidden={activeTab !== "trending"}
       >
-        {activeTab === "trending" ? (
+        {activeTab === "trending" && data ? (
           <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
             <MarketMovesPanel showDecisionCard={false} />
           </section>
