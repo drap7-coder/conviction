@@ -514,6 +514,12 @@ details > summary::before {
   line-height: 1;
   text-decoration: none;
   white-space: nowrap;
+  animation: market-tape-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes market-tape-enter {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 a.market-tape-item:hover,
@@ -547,6 +553,55 @@ a.market-tape-item:focus-visible {
 .market-tape-change.is-up { color: var(--green); }
 .market-tape-change.is-down { color: var(--red); }
 
+.market-tape-group-label {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border-left: 1px solid var(--border);
+  color: var(--accent);
+  font-size: 0.52rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.market-tape-item--trending {
+  flex-grow: 0;
+}
+
+.market-tape-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.48rem;
+  font-weight: 800;
+}
+
+.market-tape-item.is-flashing.is-up {
+  animation: market-tape-flash-up 900ms ease-out;
+}
+
+.market-tape-item.is-flashing.is-down {
+  animation: market-tape-flash-down 900ms ease-out;
+}
+
+@keyframes market-tape-flash-up {
+  0% { background: color-mix(in srgb, var(--green) 20%, transparent); }
+  100% { background: transparent; }
+}
+
+@keyframes market-tape-flash-down {
+  0% { background: color-mix(in srgb, var(--red) 18%, transparent); }
+  100% { background: transparent; }
+}
+
 .market-tape.is-loading .market-tape-item strong,
 .market-tape.is-loading .market-tape-change {
   color: transparent;
@@ -577,6 +632,13 @@ a.market-tape-item:focus-visible {
 @media (min-width: 641px) {
   .app-header {
     display: flex;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .market-tape-item,
+  .market-tape-item.is-flashing {
+    animation: none;
   }
 }
 
