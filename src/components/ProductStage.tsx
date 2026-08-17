@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { TypewriterText } from "@/components/TypewriterText";
 
 export type ProductStageVariant = "pulse" | "news" | "smart-money" | "watchlist" | "portfolio";
 
@@ -14,7 +13,7 @@ export type ProductStageTone =
   | "neutral";
 
 /**
- * Compact page-top stage: eyebrow + typewriter headline + short line,
+ * Compact page-top stage: eyebrow + immediate headline + short line,
  * optional metrics. Shared across Pulse / News / Smart Money / Watchlist / Portfolio.
  */
 export function ProductStage({
@@ -53,7 +52,7 @@ export function ProductStage({
           <i aria-hidden="true" />
           {eyebrow}
         </span>
-        <TypewriterText as="h1" text={headline} className="product-stage-headline" />
+        <h1 className="product-stage-headline">{headline}</h1>
         {summary ? <p>{summary}</p> : null}
         {children}
       </div>
