@@ -69,22 +69,6 @@ export interface EmergingIdea {
   topEvent: EvidenceEvent;
 }
 
-export type ThesisStatus = "active" | "validated" | "invalidated" | "expired";
-
-export interface DecisionJournalEntry {
-  id: string;
-  ticker: Ticker;
-  thesis: string;
-  expectedCatalyst: string;
-  timeHorizon: string;
-  invalidationCondition: string;
-  positionSize: string;
-  risks: string;
-  decisionDate: string;
-  status: ThesisStatus;
-  outcome?: string;
-}
-
 export interface CompanyState {
   ticker: Ticker;
   name: string;
@@ -95,5 +79,4 @@ export interface CompanyState {
   nextCatalyst: string;
   newEventCount: number;
   events: EvidenceEvent[];
-  journalEntries: DecisionJournalEntry[];
 }

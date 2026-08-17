@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 function read(path: string) {
@@ -8,14 +8,25 @@ function read(path: string) {
 describe("production copy and fixture isolation", () => {
   it("keeps real company pages detached from fixture/demo evidence", () => {
     const companyPage = read("src/app/companies/[ticker]/page.tsx");
-    const journalPage = read("src/app/journal/page.tsx");
 
     expect(companyPage).not.toContain("FIXTURE_COMPANIES");
     expect(companyPage).not.toContain("FIXTURE_JOURNAL_ENTRIES");
     expect(companyPage).not.toContain("DEMO_LABEL");
     expect(companyPage).not.toContain("legacy-context");
-    expect(journalPage).not.toContain("FIXTURE_JOURNAL_ENTRIES");
-    expect(journalPage).not.toContain("DEMO DATA");
+  });
+
+  it("keeps retired utility routes out of the product", () => {
+    expect(existsSync(new URL("../src/app/activity/page.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/activity/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/journal/page.tsx", import.meta.url))).toBe(false);
+  });
+
+  it("keeps Portfolio Insights as the default portfolio experience", () => {
+    const portfolio = read("src/components/Portfolio.tsx");
+
+    expect(portfolio).toContain('if (typeof window === "undefined") return "insights"');
+    expect(portfolio).toContain("<PortfolioCheckPanel");
+    expect(portfolio).toContain('id="portfolio-panel-insights"');
   });
 
   it("does not render setup instructions in the guest watchlist experience", () => {

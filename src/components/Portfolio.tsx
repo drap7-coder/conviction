@@ -35,6 +35,7 @@ import { notifyPortfolioChanged, usePortfolioData } from "@/components/Portfolio
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import { ProductStage } from "@/components/ProductStage";
+import { TypewriterText } from "@/components/TypewriterText";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 const PORTFOLIO_TABS = [
@@ -805,7 +806,13 @@ export default function Portfolio({
                 strokeLinecap="round"
               />
             </svg>
-            <span className="portfolio-stage-lede-text">{stageDescription}</span>
+            <TypewriterText
+              as="span"
+              text={stageDescription}
+              className="portfolio-stage-lede-text"
+              msPerChar={24}
+              startDelay={180}
+            />
           </div>
         }
         metrics={
