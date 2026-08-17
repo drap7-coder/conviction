@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { SmartMoneyInsightCard } from "@/app/components/SmartMoneyInsightCard";
+import {
+  SmartMoneyInsightCard,
+  SmartMoneyInsightLoadingCard,
+} from "@/app/components/SmartMoneyInsightCard";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import type { PoliticalTrade } from "@/lib/political-trades";
@@ -192,7 +194,7 @@ export function PoliticiansMovesPanel({
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Political trades" aria-busy="true">
         {disclosureNote}
-        <PageLoadingMotion label="Loading congressional disclosures" />
+        <SmartMoneyInsightLoadingCard label="Reading congressional disclosures" />
       </section>
     );
   }

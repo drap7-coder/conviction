@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { SmartMoneyInsightCard } from "@/app/components/SmartMoneyInsightCard";
+import {
+  SmartMoneyInsightCard,
+  SmartMoneyInsightLoadingCard,
+} from "@/app/components/SmartMoneyInsightCard";
 import {
   classifyClientError,
   fetchJsonWithTimeout,
@@ -136,7 +138,6 @@ export function InvestorBookPanel({
 
     async function loadBook() {
       setStatus("loading");
-      setBook(null);
       setMessage(null);
       try {
         const data = await fetchJsonWithTimeout<InvestorBookResponse>(
@@ -180,7 +181,7 @@ export function InvestorBookPanel({
     return positions;
   }, [book, positionFilter]);
 
-  const insight = status === "success" && book
+  const insight = book
     ? buildInstitutionStageSummary(book)
     : null;
 
@@ -230,13 +231,14 @@ export function InvestorBookPanel({
 
       {insight ? (
         <SmartMoneyInsightCard
-          eyebrow={`${selected?.displayName ?? "Selected manager"} filing read`}
+          eyebrow={`${book?.manager.displayName ?? "Selected manager"} filing read`}
           summary={insight}
+          updating={status === "loading"}
         />
       ) : null}
 
-      {status === "loading" || status === "idle" ? (
-        <PageLoadingMotion label={`Reading ${selected?.displayName ?? "investor"} 13F`} />
+      {!insight && (status === "loading" || status === "idle") ? (
+        <SmartMoneyInsightLoadingCard label={`Reading ${selected?.displayName ?? "investor"} 13F`} />
       ) : null}
 
       {status === "error" || status === "timeout" || status === "empty" ? (

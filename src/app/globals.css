@@ -1268,10 +1268,12 @@ a.market-tape-item:focus-visible {
 
 .smart-money-insight-card {
   --insight-accent: #64748b;
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(250px, 0.42fr);
   align-items: center;
   gap: 14px;
+  overflow: hidden;
   margin: 0 0 12px;
   padding: 12px 14px;
   border: 1px solid var(--border);
@@ -1294,12 +1296,28 @@ a.market-tape-item:focus-visible {
   --insight-accent: #c18c22;
 }
 
+.smart-money-insight-card.is-updating::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  border-radius: 0 0 12px 12px;
+  background: linear-gradient(90deg, transparent, var(--insight-accent), transparent);
+  background-size: 45% 100%;
+  background-repeat: no-repeat;
+  animation: smart-money-progress 1.1s ease-in-out infinite;
+}
+
 .smart-money-insight-copy {
   min-width: 0;
 }
 
 .smart-money-insight-eyebrow {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin-bottom: 3px;
   color: var(--insight-accent);
   font-family: var(--font-mono);
@@ -1308,6 +1326,25 @@ a.market-tape-item:focus-visible {
   letter-spacing: 0.08em;
   line-height: 1.2;
   text-transform: uppercase;
+}
+
+.smart-money-insight-eyebrow i {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--quiet);
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.smart-money-insight-eyebrow i::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--insight-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--insight-accent) 13%, transparent);
+  animation: smart-money-status-pulse 1.1s ease-in-out infinite;
 }
 
 .smart-money-insight-card h2 {
@@ -1366,6 +1403,7 @@ a.market-tape-item:focus-visible {
   color: var(--ink);
   font-size: 0.82rem;
   line-height: 1;
+  animation: smart-money-value-arrive 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .smart-money-insight-metrics span {
@@ -1389,6 +1427,54 @@ a.market-tape-item:focus-visible {
   color: #a97510;
 }
 
+.smart-money-insight-card.is-loading {
+  position: relative;
+  overflow: hidden;
+  min-height: 94px;
+}
+
+.smart-money-insight-card.is-loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 24%, rgba(255, 255, 255, 0.72) 42%, transparent 60%);
+  transform: translateX(-100%);
+  animation: smart-money-sheen 1.5s ease-in-out infinite;
+}
+
+.smart-money-insight-placeholder {
+  display: block;
+  border-radius: 999px;
+  background: #e6e9ee;
+}
+
+.smart-money-insight-placeholder.is-headline {
+  width: min(28rem, 78%);
+  height: 18px;
+  margin-top: 8px;
+}
+
+.smart-money-insight-placeholder.is-summary {
+  width: min(36rem, 92%);
+  height: 9px;
+  margin-top: 9px;
+}
+
+.smart-money-insight-loading-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  min-height: 54px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--border);
+}
+
+.smart-money-insight-loading-metrics span {
+  background: var(--card-inset);
+}
+
 @keyframes smart-money-insight-arrive {
   from {
     opacity: 0;
@@ -1398,6 +1484,32 @@ a.market-tape-item:focus-visible {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes smart-money-value-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes smart-money-progress {
+  from { background-position: -70% 0; }
+  to { background-position: 170% 0; }
+}
+
+@keyframes smart-money-sheen {
+  0%, 15% { transform: translateX(-100%); }
+  75%, 100% { transform: translateX(100%); }
+}
+
+@keyframes smart-money-status-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 @media (max-width: 760px) {
@@ -1480,6 +1592,24 @@ a.market-tape-item:focus-visible {
   padding: 13px 15px;
   background: #ffffff;
   transition: background-color 0.15s ease;
+  animation: smart-money-row-arrive 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.smart-money-row:nth-child(2) { animation-delay: 45ms; }
+.smart-money-row:nth-child(3) { animation-delay: 90ms; }
+.smart-money-row:nth-child(4) { animation-delay: 135ms; }
+.smart-money-row:nth-child(5) { animation-delay: 180ms; }
+.smart-money-row:nth-child(n + 6) { animation-delay: 225ms; }
+
+@keyframes smart-money-row-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .smart-money-row.is-positive {
@@ -11925,6 +12055,7 @@ a.signal-block-conclusion-link:hover {
   letter-spacing: 0.09em;
   line-height: 1.2;
   text-transform: uppercase;
+  animation: product-stage-detail-arrive 300ms 70ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .product-stage-eyebrow i {
@@ -11950,13 +12081,24 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage-headline > span {
   display: block;
-  animation: product-stage-reading-arrive 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: product-stage-reading-arrive 380ms 110ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes product-stage-reading-arrive {
   from {
     opacity: 0;
     transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes product-stage-detail-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -11985,6 +12127,7 @@ a.signal-block-conclusion-link:hover {
   font-family: var(--font-sans);
   font-size: clamp(0.72rem, 1.2vw, 0.8rem);
   line-height: 1.45;
+  animation: product-stage-detail-arrive 340ms 170ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .product-stage-actions {
@@ -11993,6 +12136,7 @@ a.signal-block-conclusion-link:hover {
   align-items: center;
   gap: 8px 14px;
   margin-top: 4px;
+  animation: product-stage-detail-arrive 340ms 210ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .product-stage-action {
@@ -12044,6 +12188,7 @@ a.signal-block-conclusion-link:hover {
   background: rgba(255, 255, 255, 0.045);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  animation: product-stage-detail-arrive 400ms 210ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .product-stage-metrics > div {
@@ -12053,7 +12198,11 @@ a.signal-block-conclusion-link:hover {
   gap: 4px;
   min-width: 0;
   padding: 8px 9px;
+  animation: product-stage-detail-arrive 320ms 270ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+.product-stage-metrics > div:nth-child(2) { animation-delay: 320ms; }
+.product-stage-metrics > div:nth-child(3) { animation-delay: 370ms; }
 
 .product-stage-metrics > div + div {
   border-left: 1px solid rgba(255, 255, 255, 0.09);
@@ -12145,9 +12294,19 @@ a.signal-block-conclusion-link:hover {
 
 @media (prefers-reduced-motion: reduce) {
   .product-stage,
+  .product-stage-eyebrow,
   .product-stage-headline > span,
+  .product-stage p,
+  .product-stage-actions,
+  .product-stage-metrics,
+  .product-stage-metrics > div,
   .smart-money-insight-card,
   .smart-money-insight-card h2 > span,
+  .smart-money-insight-metrics strong,
+  .smart-money-insight-card.is-loading::after,
+  .smart-money-insight-card.is-updating::after,
+  .smart-money-insight-eyebrow i::before,
+  .smart-money-stream > .smart-money-row,
   .pf-value-stage {
     animation: none;
   }
