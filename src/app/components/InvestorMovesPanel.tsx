@@ -206,9 +206,9 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
   if (status === "error" || status === "timeout" || status === "empty") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves">
-        <div className="investor-moves-intro ink-panel">
+        <div className="smart-money-tab-intro">
           <div>
-            <span className="investor-moves-eyebrow">Institutions · Form 13F</span>
+            <span className="smart-money-tab-eyebrow">Institutions · Form 13F</span>
             <h2>The filing feed is quiet right now</h2>
             <p>{response?.message ?? "No qualifying institutional ideas were found in the latest comparison."}</p>
             <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>

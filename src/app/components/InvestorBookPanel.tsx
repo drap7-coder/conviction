@@ -138,6 +138,7 @@ export function InvestorBookPanel({
 
     async function loadBook() {
       setStatus("loading");
+      setBook(null);
       setMessage(null);
       try {
         const data = await fetchJsonWithTimeout<InvestorBookResponse>(
@@ -189,6 +190,22 @@ export function InvestorBookPanel({
 
   return (
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
+      <header className="smart-money-tab-intro">
+        <div>
+          <span className="smart-money-tab-eyebrow">Institutional filings</span>
+          <h2>{selected?.displayName ?? "Selected manager"}</h2>
+          <p>
+            {book
+              ? `Latest 13F filed ${formatDate(book.filingDate)}${book.previousQuarter ? `, compared with ${formatDate(book.previousQuarter)}` : ""}.`
+              : "Choose a manager, then read the latest disclosed quarter against the one before it."}
+          </p>
+        </div>
+        <div className="smart-money-tab-stamp" aria-label="Holdings reporting period">
+          <strong>{book ? formatDate(book.filingQuarter) : "13F"}</strong>
+          <span>{book ? "holdings date" : "quarterly filing"}</span>
+        </div>
+      </header>
+
       <div className="smart-money-control-row">
         <label className="investor-manager-picker">
           <span>Investor</span>

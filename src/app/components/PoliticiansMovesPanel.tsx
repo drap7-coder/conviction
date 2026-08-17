@@ -144,7 +144,10 @@ export function PoliticiansMovesPanel({
         setTrades(next);
         setStatus(next.length > 0 ? "success" : "empty");
       } catch (err) {
-        if (!cancelled) setStatus(classifyClientError(err));
+        if (!cancelled) {
+          setTrades([]);
+          setStatus(classifyClientError(err));
+        }
       }
     }
 
@@ -168,6 +171,13 @@ export function PoliticiansMovesPanel({
     }, ""),
     [visibleTrades],
   );
+  const latestFilingDate = useMemo(
+    () => trades.reduce(
+      (latest, trade) => trade.filingDate > latest ? trade.filingDate : latest,
+      "",
+    ),
+    [trades],
+  );
 
   useEffect(() => {
     if (status === "success") {
@@ -175,9 +185,27 @@ export function PoliticiansMovesPanel({
     }
   }, [onSummaryChange, status, trades]);
 
+  const tabIntro = (
+    <header className="smart-money-tab-intro">
+      <div>
+        <span className="smart-money-tab-eyebrow">Congressional disclosures</span>
+        <h2>Recently reported trades</h2>
+        <p>
+          STOCK Act filings can arrive after the trade. Read the transaction date and filing lag
+          before treating a disclosure as current.
+        </p>
+      </div>
+      <div className="smart-money-tab-stamp" aria-label="Latest congressional filing date">
+        <strong>{latestFilingDate ? formatDate(latestFilingDate) : "STOCK Act"}</strong>
+        <span>{latestFilingDate ? "latest filing" : "filing basis"}</span>
+      </div>
+    </header>
+  );
+
   if (status === "loading" || status === "idle") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Political trades" aria-busy="true">
+        {tabIntro}
         <PageLoadingMotion label="Loading congressional disclosures" />
       </section>
     );
@@ -186,6 +214,7 @@ export function PoliticiansMovesPanel({
   if (status === "error" || status === "timeout" || status === "empty") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
+        {tabIntro}
         <div className="empty-state compact">
           <p>No STOCK Act filings are available right now.</p>
           <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
@@ -198,6 +227,7 @@ export function PoliticiansMovesPanel({
 
   return (
     <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
+      {tabIntro}
       <div className="investor-filter-row" role="group" aria-label="Filter by trade direction">
         <button
           type="button"
