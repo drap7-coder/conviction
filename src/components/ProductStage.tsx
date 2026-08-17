@@ -49,7 +49,9 @@ export function ProductStage({
           <i aria-hidden="true" />
           {eyebrow}
         </span>
-        <h1 className="product-stage-headline">{headline}</h1>
+        <h1 className="product-stage-headline" aria-live="polite">
+          <span key={headline}>{headline}</span>
+        </h1>
         {summary ? <p>{summary}</p> : null}
         {children}
       </div>

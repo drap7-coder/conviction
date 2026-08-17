@@ -621,9 +621,9 @@ export default function Watchlist({
     ? briefLoading
       ? "Reading what changed."
       : attentionItems.length > 0
-        ? `${attentionItems.length} ${attentionItems.length === 1 ? "name needs" : "names need"} attention.`
+        ? `${attentionItems.length} ${attentionItems.length === 1 ? "update" : "updates"} worth a look.`
         : briefingEntries.length > 0
-          ? "Nothing material needs a look."
+          ? "You’re caught up."
           : "Build a watchlist worth returning to."
     : loading
       ? "Reading your names."
@@ -631,11 +631,11 @@ export default function Watchlist({
         ? "Build a watchlist worth returning to."
         : moveReadings.length > 0
           ? `${advancing} higher. ${declining} lower.`
-          : "Live prices are resolving.";
+          : "Reading your names.";
   const stageSummary = activeTab === "insights"
     ? attentionItems[0]
       ? `${attentionItems[0].ticker}: ${attentionItems[0].headline}`
-      : "No large move, fresh evidence, or conviction change is demanding action."
+      : "No new move, evidence, or conviction change stands out right now."
     : biggestMove
       ? `${biggestMove.ticker} is the largest move at ${formatStagePercent(biggestMove.changePercent)}. Open it to see what changed.`
       : "Add companies you care about, then return for the moves and evidence that matter.";
