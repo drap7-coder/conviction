@@ -199,7 +199,9 @@ export function CompanyQuoteCard({
         </div>
       </header>
 
-      <div className="company-quote-rule" aria-hidden="true" />
+      <div className="company-quote-chart-surface">
+        <PriceTrendCard ticker={ticker} showQuote={false} embedded />
+      </div>
 
       <div className="company-quote-context" aria-label="Trading context">
         <article>
@@ -230,10 +232,6 @@ export function CompanyQuoteCard({
           </div>
         </article>
       </div>
-
-      <div className="company-quote-rule" aria-hidden="true" />
-
-      <PriceTrendCard ticker={ticker} showQuote={false} embedded />
     </section>
   );
 }

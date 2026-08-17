@@ -140,10 +140,9 @@ export function PriceTrendCard({
   showQuote = true,
   embedded = false,
 }: PriceTrendCardProps) {
-  const [internalRange, setInternalRange] = useState<TrendRange>("1m");
+  const [internalRange, setInternalRange] = useState<TrendRange>("1y");
   const [internalHistory, setInternalHistory] = useState<StockHistory | null>(null);
   const [internalStatus, setInternalStatus] = useState<EvidenceStatus>("idle");
-  const [responsiveRangeReady, setResponsiveRangeReady] = useState(false);
 
   const range = activeRange ?? internalRange;
   const history = externalHistory ?? internalHistory;
@@ -152,16 +151,8 @@ export function PriceTrendCard({
   const setRange = onRangeChange ?? setInternalRange;
 
   useEffect(() => {
-    if (activeRange === undefined && window.matchMedia("(max-width: 640px)").matches) {
-      setInternalRange("1w");
-    }
-    setResponsiveRangeReady(true);
-  }, [activeRange]);
-
-  useEffect(() => {
     // If external history is provided, skip internal fetch
     if (externalHistory !== undefined) return;
-    if (!responsiveRangeReady) return;
     const controller = new AbortController();
 
     async function load() {
@@ -182,7 +173,7 @@ export function PriceTrendCard({
 
     void load();
     return () => controller.abort();
-  }, [ticker, range, externalHistory, responsiveRangeReady]);
+  }, [ticker, range, externalHistory]);
 
   const geometry = useMemo(
     () => chartGeometry(history?.points ?? [], range),
@@ -226,8 +217,8 @@ export function PriceTrendCard({
               </span>
             ) : null}
           </div>
-        ) : embedded ? null : (
-          <span className="price-trend-label">Chart</span>
+        ) : (
+          <span className="price-trend-label">Price history</span>
         )}
         <div className={`price-range-tabs${embedded ? " price-range-tabs--end" : ""}`} aria-label="Price range">
           {RANGES.map((option) => (
