@@ -49,13 +49,54 @@
   --chart-surface: var(--dashboard-card);
   --chart-grid: var(--dashboard-divider);
   --chart-border: var(--on-ink-border);
-  --shadow-ink: var(--shadow-sm);
+  --shadow-ink: var(--shadow-lg);
 
   margin-inline: 0;
   padding: 4px 0 20px;
   min-height: calc(100vh - 110px);
   background: var(--dashboard-canvas);
   color: var(--on-ink);
+}
+
+/* Navy chip/box recipes used translucent white. On paper, use ink tints. */
+.company-detail-page .ink-chip,
+.company-detail-page .ink-chip--quiet {
+  background: var(--dashboard-subtle);
+  border: 1px solid var(--dashboard-border);
+  color: var(--dashboard-muted);
+}
+
+.company-detail-page .ink-chip--up {
+  background: var(--green-soft);
+  border-color: color-mix(in srgb, var(--dashboard-green) 22%, var(--dashboard-border));
+  color: var(--dashboard-green);
+}
+
+.company-detail-page .ink-chip--down {
+  background: var(--red-soft);
+  border-color: color-mix(in srgb, var(--dashboard-red) 22%, var(--dashboard-border));
+  color: var(--dashboard-red);
+}
+
+.company-detail-page .ink-chip--amber {
+  background: var(--card-warning);
+  border-color: color-mix(in srgb, var(--dashboard-amber) 22%, var(--dashboard-border));
+  color: var(--dashboard-amber);
+}
+
+.company-detail-page .ink-box--up {
+  background: var(--green-soft);
+  border-color: color-mix(in srgb, var(--dashboard-green) 28%, var(--dashboard-border));
+}
+
+.company-detail-page .ink-box--down {
+  background: var(--red-soft);
+  border-color: color-mix(in srgb, var(--dashboard-red) 28%, var(--dashboard-border));
+}
+
+.company-detail-page .ink-box--amber {
+  background: var(--card-warning);
+  border-color: color-mix(in srgb, var(--dashboard-amber) 26%, var(--dashboard-border));
 }
 
 /* Retain the app shell's standard mobile gutter instead of full-bleed color. */
@@ -578,6 +619,13 @@
 
 .company-briefing .price-trend-card {
   margin-top: 0;
+}
+
+.company-detail-page .company-quote-card,
+.company-detail-page .company-quote-card.ink-panel,
+.company-detail-page .company-decision-brief,
+.company-detail-page .company-market-scope {
+  box-shadow: var(--shadow-lg);
 }
 
 .company-detail-page .company-quote-card,
