@@ -143,7 +143,7 @@ export function CompanyQuoteCard({
                 adding={addingTicker === ticker}
                 onAdd={addToWatchlist}
                 size="quote"
-                surface="ink"
+                surface="paper"
               />
             </div>
             <p className="company-quote-name">
