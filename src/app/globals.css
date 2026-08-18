@@ -6462,19 +6462,19 @@ a.market-tape-item:focus-visible {
 .company-quote-rule {
   height: 1px;
   margin: 0;
-  background: color-mix(in srgb, #ffffff 12%, transparent);
+  background: var(--on-ink-border);
 }
 
-/* LIVE badge — dark chip + pulsing green dot (Pre-Market pattern). */
+/* LIVE badge follows the surrounding company surface. */
 .company-quote-card .evidence-live-pill.company-live-pill {
   gap: 8px;
-  background: color-mix(in srgb, #ffffff 8%, transparent);
-  border: 1px solid color-mix(in srgb, #ffffff 16%, transparent);
+  background: var(--card-soft);
+  border: 1px solid var(--on-ink-border);
   color: var(--on-ink);
   box-shadow: none;
 }
 
-/* Keep the quote decisive and dark, then let the chart breathe on paper. */
+/* Keep the chart on a crisp paper inset inside the quote card. */
 .company-quote-chart-surface {
   --ink: #111318;
   --muted: #6b7280;
@@ -6495,7 +6495,7 @@ a.market-tape-item:focus-visible {
   padding: 14px;
   color: var(--ink);
   background: #ffffff;
-  border: 1px solid color-mix(in srgb, #ffffff 34%, transparent);
+  border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
@@ -14808,16 +14808,16 @@ button.portfolio-check-item:focus-visible {
 }
 
 .company-detail-page .evidence-source-row {
-  border-color: color-mix(in srgb, #ffffff 10%, transparent);
-  background: color-mix(in srgb, #ffffff 4%, transparent);
+  border-color: var(--border);
+  background: var(--surface-elevated);
   color: var(--on-ink);
 }
 
 .company-detail-page .evidence-source-row:hover,
 .company-detail-page .evidence-source-row:focus-visible,
 .company-detail-page .evidence-source-row.is-open {
-  border-color: color-mix(in srgb, #ffffff 18%, transparent);
-  background: color-mix(in srgb, #ffffff 7%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 5%, var(--surface-elevated));
 }
 
 .company-detail-page .evidence-source-label,
@@ -14830,17 +14830,17 @@ button.portfolio-check-item:focus-visible {
 }
 
 .company-detail-page .evidence-source-detail {
-  border-color: color-mix(in srgb, #ffffff 10%, transparent);
-  background: color-mix(in srgb, #ffffff 4%, transparent);
+  border-color: var(--border);
+  background: var(--surface-elevated);
 }
 
 .company-detail-page .evidence-source-detail-bar {
-  border-bottom-color: color-mix(in srgb, #ffffff 10%, transparent);
-  background: color-mix(in srgb, #ffffff 5%, transparent);
+  border-bottom-color: var(--divider);
+  background: var(--surface);
 }
 
 .company-detail-page .related-companies.is-quiet {
-  border-top-color: color-mix(in srgb, #ffffff 10%, transparent);
+  border-top-color: var(--divider);
 }
 
 .company-detail-page .related-companies-quiet-label {
@@ -14848,7 +14848,7 @@ button.portfolio-check-item:focus-visible {
 }
 
 .company-detail-page .related-companies.is-quiet .related-companies-link {
-  border-color: color-mix(in srgb, #ffffff 12%, transparent);
+  border-color: var(--border);
   color: var(--on-ink);
 }
 
