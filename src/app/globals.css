@@ -1058,7 +1058,11 @@ a.market-tape-item:focus-visible {
   transition: color 0.05s ease;
 }
 
-/* No first-load animations, no card entrance animations, no bounce/spring */
+/* Load arrival is the one motion language. No bounce/spring. */
+.page-slot {
+  display: contents;
+}
+
 .live-pulse {
   transition: opacity 0.2s ease;
 }
@@ -1281,7 +1285,7 @@ a.market-tape-item:focus-visible {
   border-radius: 12px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-  animation: smart-money-insight-arrive 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: smart-money-insight-arrive 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .smart-money-insight-card.tone-positive {
@@ -1592,7 +1596,7 @@ a.market-tape-item:focus-visible {
   padding: 13px 15px;
   background: #ffffff;
   transition: background-color 0.15s ease;
-  animation: smart-money-row-arrive 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: smart-money-row-arrive 360ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .smart-money-row:nth-child(2) { animation-delay: 45ms; }
@@ -7630,7 +7634,7 @@ button.brief-link:focus-visible {
     linear-gradient(145deg, #111722 0%, #0a0f16 100%);
   color: #f8fafc;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
-  animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .pf-value-stage::before {
@@ -11903,7 +11907,7 @@ a.signal-block-conclusion-link:hover {
     linear-gradient(145deg, #0b0f14 0%, #101722 100%);
   color: #f8fafc;
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
-  animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* The selector establishes the active view before its stage types the read. */
@@ -11913,6 +11917,17 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage.is-copy-only {
   grid-template-columns: minmax(0, 1fr);
+}
+
+@keyframes motion-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes product-stage-arrive {
@@ -11925,6 +11940,63 @@ a.signal-block-conclusion-link:hover {
     transform: translateY(0);
   }
 }
+
+/* Cards use the same arrival as the page stage. `backwards` keeps hover transforms. */
+.heat-tile,
+.for-you-feed-card,
+.pulse-news-narrative,
+.pulse-why-card,
+.portfolio-insight-card,
+.pf-holding-card,
+.investor-idea-card {
+  animation: motion-arrive 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.stock-heat-grid > .heat-tile:nth-child(1),
+.market-heatmap > .heat-tile:nth-child(1),
+.for-you-feed-board > *:nth-child(1),
+.pulse-news-brief-grid > *:nth-child(1),
+.investor-idea-grid > *:nth-child(1),
+.pf-ring-list > *:nth-child(1) { animation-delay: 30ms; }
+
+.stock-heat-grid > .heat-tile:nth-child(2),
+.market-heatmap > .heat-tile:nth-child(2),
+.for-you-feed-board > *:nth-child(2),
+.pulse-news-brief-grid > *:nth-child(2),
+.investor-idea-grid > *:nth-child(2),
+.pf-ring-list > *:nth-child(2) { animation-delay: 70ms; }
+
+.stock-heat-grid > .heat-tile:nth-child(3),
+.market-heatmap > .heat-tile:nth-child(3),
+.for-you-feed-board > *:nth-child(3),
+.pulse-news-brief-grid > *:nth-child(3),
+.investor-idea-grid > *:nth-child(3),
+.pf-ring-list > *:nth-child(3) { animation-delay: 110ms; }
+
+.stock-heat-grid > .heat-tile:nth-child(4),
+.market-heatmap > .heat-tile:nth-child(4),
+.for-you-feed-more > *:nth-child(1),
+.investor-idea-grid > *:nth-child(4),
+.pf-ring-list > *:nth-child(4) { animation-delay: 150ms; }
+
+.stock-heat-grid > .heat-tile:nth-child(5),
+.market-heatmap > .heat-tile:nth-child(5),
+.for-you-feed-more > *:nth-child(2),
+.investor-idea-grid > *:nth-child(5),
+.pf-ring-list > *:nth-child(5) { animation-delay: 190ms; }
+
+.stock-heat-grid > .heat-tile:nth-child(6),
+.market-heatmap > .heat-tile:nth-child(6),
+.investor-idea-grid > *:nth-child(6),
+.pf-ring-list > *:nth-child(6) { animation-delay: 230ms; }
+
+.stock-heat-grid > .heat-tile:nth-child(7),
+.market-heatmap > .heat-tile:nth-child(7),
+.investor-idea-grid > *:nth-child(n + 7),
+.pf-ring-list > *:nth-child(n + 7) { animation-delay: 270ms; }
+
+.stock-heat-grid > .heat-tile:nth-child(n + 8),
+.market-heatmap > .heat-tile:nth-child(n + 8) { animation-delay: 300ms; }
 
 .product-stage::after {
   content: "";
@@ -12307,7 +12379,15 @@ a.signal-block-conclusion-link:hover {
   .smart-money-insight-card.is-updating::after,
   .smart-money-insight-eyebrow i::before,
   .smart-money-stream > .smart-money-row,
-  .pf-value-stage {
+  .pf-value-stage,
+  .heat-tile,
+  .for-you-feed-card,
+  .pulse-news-narrative,
+  .pulse-why-card,
+  .portfolio-insight-card,
+  .pf-holding-card,
+  .investor-idea-card,
+  .company-briefing > * {
     animation: none;
   }
 }

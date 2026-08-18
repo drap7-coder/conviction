@@ -12,20 +12,7 @@ export type ProductStageTone =
   | "negative"
   | "neutral";
 
-/**
- * Compact page-top stage: eyebrow + immediate headline + short line,
- * optional metrics. Shared across Pulse / News / Smart Money / Watchlist / Portfolio.
- */
-export function ProductStage({
-  variant,
-  eyebrow,
-  headline,
-  summary,
-  metrics,
-  tone,
-  children,
-  "aria-label": ariaLabel,
-}: {
+type ProductStageProps = {
   variant: ProductStageVariant;
   eyebrow: ReactNode;
   headline: string;
@@ -35,7 +22,26 @@ export function ProductStage({
   /** Extra copy-column content (actions, notes). */
   children?: ReactNode;
   "aria-label": string;
-}) {
+};
+
+/**
+ * Compact page-top stage: eyebrow + headline + short line, optional metrics.
+ * Remounts when the headline changes so arrival motion plays on a live read.
+ */
+export function ProductStage(props: ProductStageProps) {
+  return <ProductStageView key={props.headline} {...props} />;
+}
+
+function ProductStageView({
+  variant,
+  eyebrow,
+  headline,
+  summary,
+  metrics,
+  tone,
+  children,
+  "aria-label": ariaLabel,
+}: ProductStageProps) {
   const hasMetrics = Boolean(metrics);
   const toneClass = tone && tone !== "neutral" ? ` tone-${tone}` : "";
 
