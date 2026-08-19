@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Activity, CalendarClock, CircleGauge, ShieldCheck, TriangleAlert } from "lucide-react";
+import { CalendarClock, CircleGauge, ShieldCheck, TriangleAlert } from "lucide-react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import {
   buildCompanyDecisionBrief,
@@ -140,25 +140,6 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
           <div>
             <span>Next proof point</span>
             <p>{loading ? "Checking the next evidence window…" : brief.nextCheck}</p>
-          </div>
-        </article>
-        <article className="company-decision-question tape">
-          <Activity aria-hidden="true" />
-          <div>
-            <span>Technical read</span>
-            <p>
-              {loading
-                ? "Checking moving averages and short-term trend…"
-                : tape
-                  ? [
-                      tape.sma50Relation ? `Price ${tape.sma50Relation} SMA-50` : null,
-                      tape.sma200Relation ? `${tape.sma200Relation} SMA-200` : null,
-                      tape.shortTermTrend !== null
-                        ? `5-day ${tape.shortTermTrend >= 0 ? "+" : ""}${tape.shortTermTrend.toFixed(1)}%`
-                        : null,
-                    ].filter(Boolean).join(" · ") || tape.interpretation
-                  : "Open Evidence → Market Signals for the full technical panel."}
-            </p>
           </div>
         </article>
       </div>
