@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ShieldCheck, TriangleAlert } from "lucide-react";
+import { Activity, CalendarClock, ShieldCheck, TriangleAlert } from "lucide-react";
 import { TypewriterText } from "@/components/TypewriterText";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import {
@@ -10,6 +10,8 @@ import {
 } from "@/lib/company/company-decision-brief";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import type { EarningsEvidence } from "@/lib/earnings/types";
+import { deriveTechnicalState } from "@/lib/market/technical-state";
+import type { StockHistory } from "@/lib/market/quotes";
 
 const TONE_LABEL: Record<CompanyDecisionTone, string> = {
   positive: "Constructive",
@@ -21,6 +23,7 @@ const TONE_LABEL: Record<CompanyDecisionTone, string> = {
 export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
   const [score, setScore] = useState<ConvictionScoreView | null>(null);
   const [earnings, setEarnings] = useState<EarningsEvidence | null>(null);
+  const [history, setHistory] = useState<StockHistory | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +32,7 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
 
     async function load() {
       setLoading(true);
-      const [scoreResult, earningsResult] = await Promise.all([
+      const [scoreResult, earningsResult, historyResult] = await Promise.all([
         fetchJsonWithTimeout<ConvictionScoreView>(
           `/api/conviction/score?ticker=${encodeURIComponent(ticker)}`,
           45_000,
@@ -40,10 +43,16 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
           15_000,
           controller.signal,
         ).catch(() => null),
+        fetchJsonWithTimeout<{ history?: StockHistory }>(
+          `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
+          12_000,
+          controller.signal,
+        ).catch(() => null),
       ]);
       if (cancelled) return;
       setScore(scoreResult);
       setEarnings(earningsResult);
+      setHistory(historyResult?.history ?? null);
       setLoading(false);
     }
 
@@ -55,6 +64,15 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
   }, [ticker]);
 
   const brief = useMemo(() => buildCompanyDecisionBrief(score, earnings), [score, earnings]);
+  const tape = useMemo(() => {
+    if (!history?.points?.length) return null;
+    return deriveTechnicalState(
+      history.points,
+      history.endPrice,
+      history.fiftyTwoWeekHigh,
+      history.fiftyTwoWeekLow,
+    );
+  }, [history]);
 
   return (
     <section
@@ -84,6 +102,43 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
           {loading ? "…" : TONE_LABEL[brief.tone]}
         </span>
       </header>
+
+      <div className="company-decision-signals" aria-label="Reliable signals">
+        <article className="company-decision-signal">
+          <CalendarClock aria-hidden="true" />
+          <div>
+            <span>Earnings</span>
+            {loading ? (
+              <>
+                <span className="company-decision-skeleton company-decision-skeleton-signal-strong" aria-hidden="true" />
+                <span className="company-decision-skeleton company-decision-skeleton-line company-decision-skeleton-line--short" aria-hidden="true" />
+              </>
+            ) : (
+              <>
+                <strong>{brief.earningsValue}</strong>
+                <small>{brief.earningsDetail}</small>
+              </>
+            )}
+          </div>
+        </article>
+        <article className="company-decision-signal">
+          <Activity aria-hidden="true" />
+          <div>
+            <span>Technical read</span>
+            {loading ? (
+              <>
+                <span className="company-decision-skeleton company-decision-skeleton-signal-strong" aria-hidden="true" />
+                <span className="company-decision-skeleton company-decision-skeleton-line company-decision-skeleton-line--short" aria-hidden="true" />
+              </>
+            ) : (
+              <>
+                <strong>{tape?.label ?? "—"}</strong>
+                <small>{tape?.interpretation ?? "Technical history unavailable"}</small>
+              </>
+            )}
+          </div>
+        </article>
+      </div>
 
       <div className="company-decision-questions company-decision-questions--simple" aria-label="Quick take">
         <article className="company-decision-question support">

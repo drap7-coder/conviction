@@ -1,5 +1,10 @@
 import { fetchWithTimeout } from "@/lib/request-timeout";
 import {
+  getYahooSession,
+  withYahooCrumb,
+  yahooRequestHeaders,
+} from "@/lib/market/yahoo-session";
+import {
   getSectorByTicker,
   getSectorForCompany,
   normalizeSectorName,
@@ -25,6 +30,7 @@ interface YahooRawNumber {
 
 interface YahooQuoteSummaryResult {
   quoteSummary?: {
+    error?: { code?: string; description?: string };
     result?: Array<{
       assetProfile?: {
         sector?: string;
@@ -85,15 +91,24 @@ export async function fetchSectorProfile(ticker: string): Promise<SectorProfile 
   const fallbackSector = normalizeSectorName(
     getSectorForCompany(upper)?.name ?? getSectorByTicker(upper)?.name ?? null,
   );
-  const url = `${YAHOO_BASE}/v10/finance/quoteSummary/${encodeURIComponent(upper)}?modules=assetProfile%2Cprice%2CsummaryDetail`;
+  const baseUrl = `${YAHOO_BASE}/v10/finance/quoteSummary/${encodeURIComponent(upper)}?modules=assetProfile%2Cprice%2CsummaryDetail`;
 
   try {
-    const response = await fetchWithTimeout(url, {}, 6_000);
+    const session = await getYahooSession();
+    const url = withYahooCrumb(baseUrl, session);
+    const response = await fetchWithTimeout(
+      url,
+      { headers: yahooRequestHeaders(session) },
+      6_000,
+    );
     if (!response.ok) {
       return emptyProfile(upper, fallbackSector);
     }
 
     const data = (await response.json()) as YahooQuoteSummaryResult;
+    if (data.quoteSummary?.error) {
+      return emptyProfile(upper, fallbackSector);
+    }
     const result = data.quoteSummary?.result?.[0];
     if (!result) {
       return emptyProfile(upper, fallbackSector);
