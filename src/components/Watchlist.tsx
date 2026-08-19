@@ -645,6 +645,7 @@ export default function Watchlist({
         sessionLabel={sessionLabel}
         portfolioTickers={portfolioTickers}
         watchlistTickers={entries.map((entry) => entry.ticker)}
+        section="lead"
       />
 
       {loading ? <PageLoadingMotion label="Loading watchlist" compact /> : null}
@@ -695,6 +696,18 @@ export default function Watchlist({
           footer={children}
         />
       ) : null}
+
+      <WatchlistDailyBrief
+        entries={briefingEntries}
+        quotes={quotes}
+        newsByTicker={newsByTicker}
+        transitions={transitions}
+        loading={loading || briefLoading}
+        sessionLabel={sessionLabel}
+        portfolioTickers={portfolioTickers}
+        watchlistTickers={entries.map((entry) => entry.ticker)}
+        section="rest"
+      />
 
       {composeBar}
 
