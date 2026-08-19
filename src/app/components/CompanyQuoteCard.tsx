@@ -125,6 +125,13 @@ export function CompanyQuoteCard({
         ? "After hours"
         : "Latest close";
 
+  const extendedSessionTone = (() => {
+    if (!isExtendedSession) return "quiet";
+    if (direction === "up") return "up";
+    if (direction === "down") return "down";
+    return "quiet";
+  })();
+
   return (
     <section className="company-quote-card ink-panel" aria-label={`${ticker} quote and chart`}>
       <header className="company-quote-top">
@@ -183,11 +190,23 @@ export function CompanyQuoteCard({
                   <span aria-hidden="true"> · </span>
                   {changeText.percent}
                   {live.label ? (
-                    <span className="company-quote-session"> {live.label}</span>
+                    <span
+                      className={`company-quote-session-pill ${extendedSessionTone === "up" ? "is-up" : extendedSessionTone === "down" ? "is-down" : "is-quiet"}${isExtendedSession ? " is-extended" : ""}`}
+                      aria-label={`${live.label} session`}
+                    >
+                      <span className="company-quote-session-dot" aria-hidden="true" />
+                      {live.label}
+                    </span>
                   ) : null}
                 </span>
               ) : live.label ? (
-                <span className="company-quote-session">{live.label}</span>
+                <span
+                  className={`company-quote-session-pill ${extendedSessionTone === "up" ? "is-up" : extendedSessionTone === "down" ? "is-down" : "is-quiet"}${isExtendedSession ? " is-extended" : ""}`}
+                  aria-label={`${live.label} session`}
+                >
+                  <span className="company-quote-session-dot" aria-hidden="true" />
+                  {live.label}
+                </span>
               ) : null}
               {isExtendedSession && quote ? (
                 <span
