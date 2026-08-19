@@ -55,17 +55,62 @@ function toneFromScore(score: ConvictionScoreView | null): CompanyDecisionTone {
   return "mixed";
 }
 
-function headlineFor(score: ConvictionScoreView | null): string {
+function clipHeadline(value: string, max = 140): string {
+  const trimmed = sentence(value.replace(/\s+/g, " ").trim());
+  if (trimmed.length <= max) return trimmed;
+  return `${trimmed.slice(0, max - 1).trim()}…`;
+}
+
+function headlineFor(
+  score: ConvictionScoreView | null,
+  earnings: EarningsEvidence | null,
+  tape: { label: string; interpretation: string } | null | undefined,
+  support: string,
+  pressure: string,
+): string {
   if (!score || score.displayScore === null) {
-    return "The evidence stack is still forming. Use the live tape and source panels below before drawing a conclusion.";
+    if (earnings?.momentum === "Estimates rising") {
+      return "Wall Street estimates are moving up.";
+    }
+    if (earnings?.momentum === "Estimates falling") {
+      return "Estimate revisions have turned down.";
+    }
+    if (tape?.interpretation && tape.label && tape.label !== "—") {
+      return clipHeadline(tape.interpretation);
+    }
+    return "Still reading price, earnings, and filings.";
   }
-  if (score.tone === "green") {
-    return "Business quality and live evidence lean constructive; the open risks below are the fastest way to test that read.";
+
+  if (earnings?.momentum === "Estimates rising") {
+    const latest = earnings.history[0];
+    if (latest) {
+      return clipHeadline(
+        `Estimates are rising after ${latest.fiscalQuarter} ${latest.surprisePercent >= 0 ? "beat" : "missed"} by ${Math.abs(latest.surprisePercent).toFixed(1)}%.`,
+      );
+    }
+    return "Wall Street estimates are moving up.";
   }
-  if (score.tone === "red") {
-    return "The evidence stack is leaning defensive. Start with the pressure point and wait for a measurable reversal.";
+
+  if (earnings?.momentum === "Estimates falling") {
+    return "Estimate revisions have turned down — that is the main watch.";
   }
-  return "The setup is contested. No single signal is strong enough to carry the decision on its own.";
+
+  if (tape?.interpretation && tape.label && tape.label !== "—") {
+    return clipHeadline(tape.interpretation);
+  }
+
+  if (!support.startsWith("No ")) {
+    const detail = support.includes(" — ") ? support.split(" — ").slice(1).join(" — ") : support;
+    return clipHeadline(detail);
+  }
+
+  if (!pressure.startsWith("No ") && !pressure.includes("not providing")) {
+    const detail = pressure.includes(" — ") ? pressure.split(" — ").slice(1).join(" — ") : pressure;
+    const normalized = detail.charAt(0).toLowerCase() + detail.slice(1);
+    return clipHeadline(`Watch ${normalized}`);
+  }
+
+  return "Use the earnings and chart signals below before leaning in.";
 }
 
 function strongestSupport(score: ConvictionScoreView | null): string {
@@ -143,8 +188,11 @@ function earningsRead(earnings: EarningsEvidence | null): Pick<
 export function buildCompanyDecisionBrief(
   score: ConvictionScoreView | null,
   earnings: EarningsEvidence | null,
+  tape?: { label: string; interpretation: string } | null,
 ): CompanyDecisionBriefView {
   const earningsView = earningsRead(earnings);
+  const support = strongestSupport(score);
+  const pressure = strongestPressure(score);
   const coverage = score?.coverage ?? null;
   const coveragePercent = coverage === null ? null : Math.round(coverage * 100);
   const coverageDetail = coveragePercent === null
@@ -158,7 +206,7 @@ export function buildCompanyDecisionBrief(
   return {
     tone: toneFromScore(score),
     status: score?.ringLabel ?? "Awaiting",
-    headline: headlineFor(score),
+    headline: headlineFor(score, earnings, tape, support, pressure),
     scoreValue: score?.displayScore === null || score?.displayScore === undefined
       ? "—"
       : `${Math.round(score.displayScore)}/100`,
@@ -171,8 +219,8 @@ export function buildCompanyDecisionBrief(
     coverageDetail,
     earningsValue: earningsView.earningsValue,
     earningsDetail: earningsView.earningsDetail,
-    support: strongestSupport(score),
-    pressure: strongestPressure(score),
+    support,
+    pressure,
     nextCheck: earningsView.nextCheck,
     freshness: `${earningsView.freshness}${score ? ` · Score model ${score.scoringVersion}` : ""}`,
   };
