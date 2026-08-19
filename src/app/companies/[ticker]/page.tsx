@@ -143,7 +143,7 @@ export default async function CompanyPage({
               />
             </div>
             {supportsSignals ? (
-              <div id="sources" className="company-section-anchor">
+              <div className="company-section-anchor">
                 <ConvictionSignalsCard ticker={upperTicker} />
               </div>
             ) : null}

@@ -463,7 +463,7 @@
 
 .company-decision-questions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid var(--on-ink-border);
   border-bottom: 1px solid var(--on-ink-border);
 }
@@ -1246,12 +1246,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .company-decision-question:nth-child(3),
-  .company-decision-question:nth-child(4) {
-    border-top: 1px solid var(--on-ink-border);
-  }
-
   .company-decision-question:nth-child(3) {
+    border-top: 1px solid var(--on-ink-border);
     border-left: 0;
   }
 }
@@ -1270,8 +1266,7 @@
   }
 
   .company-decision-question + .company-decision-question,
-  .company-decision-question:nth-child(3),
-  .company-decision-question:nth-child(4) {
+  .company-decision-question:nth-child(3) {
     border-top: 1px solid var(--on-ink-border);
     border-left: 0;
   }
@@ -1541,6 +1536,67 @@ body {
 
 .vector-card-loading {
   grid-column: 1 / -1;
+}
+
+/* Sources collapsed by default — Decision owns the read; expand for filing detail. */
+.company-sources-disclosure {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.company-sources-disclosure:not([open]) {
+  box-shadow: var(--shadow-sm);
+}
+
+.company-sources-summary {
+  display: grid;
+  gap: 4px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.company-sources-summary::-webkit-details-marker {
+  display: none;
+}
+
+.company-sources-summary::before {
+  content: "▸";
+  float: right;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  transition: transform 160ms ease;
+}
+
+.company-sources-disclosure[open] .company-sources-summary::before {
+  transform: rotate(90deg);
+}
+
+.company-sources-summary-label {
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
+.company-sources-summary-copy {
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+  padding-right: 1.5rem;
+}
+
+.company-sources-body {
+  padding: 0 18px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.company-sources-body .evidence-source-list {
+  margin-top: 12px;
 }
 
 @media (max-width: 640px) {
