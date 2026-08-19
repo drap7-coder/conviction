@@ -22,6 +22,8 @@ type ProductStageProps = {
   tone?: ProductStageTone;
   /** If true, headline animates in left-to-right like a terminal/typewriter. */
   typewriterHeadline?: boolean;
+  /** When true, render a skeleton loader (no messaging) instead of copy. */
+  loading?: boolean;
   /** Extra copy-column content (actions, notes). */
   children?: ReactNode;
   "aria-label": string;
@@ -43,12 +45,48 @@ function ProductStageView({
   metrics,
   tone,
   typewriterHeadline,
+  loading,
   children,
   "aria-label": ariaLabel,
 }: ProductStageProps) {
   const hasMetrics = Boolean(metrics);
   const toneClass = tone && tone !== "neutral" ? ` tone-${tone}` : "";
   const useTypewriter = typewriterHeadline ?? true;
+
+  if (loading) {
+    return (
+      <section
+        className={`product-stage product-stage--${variant} product-stage--skeleton${hasMetrics ? " has-metrics" : " is-copy-only"}${toneClass}`}
+        aria-label={ariaLabel}
+        aria-busy="true"
+      >
+        <div className="product-stage-copy" aria-hidden="true">
+          <span className="product-stage-skeleton product-stage-skeleton-eyebrow" />
+          <h1 className="product-stage-skeleton-headline" aria-hidden="true">
+            <span className="product-stage-skeleton product-stage-skeleton-line product-stage-skeleton-headline-line" />
+          </h1>
+          {summary ? <div className="product-stage-skeleton product-stage-skeleton-summary" /> : null}
+        </div>
+
+        {hasMetrics ? (
+          <div className="product-stage-metrics product-stage-metrics--skeleton" aria-hidden="true">
+            <div>
+              <span className="product-stage-skeleton product-stage-skeleton-strong" />
+              <span className="product-stage-skeleton product-stage-skeleton-small" />
+            </div>
+            <div>
+              <span className="product-stage-skeleton product-stage-skeleton-strong" />
+              <span className="product-stage-skeleton product-stage-skeleton-small" />
+            </div>
+            <div>
+              <span className="product-stage-skeleton product-stage-skeleton-strong" />
+              <span className="product-stage-skeleton product-stage-skeleton-small" />
+            </div>
+          </div>
+        ) : null}
+      </section>
+    );
+  }
 
   return (
     <section

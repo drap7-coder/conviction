@@ -353,8 +353,11 @@ export function WatchlistDailyBrief({
           </div>
         </div>
       ) : showLoading ? (
-        <div className="for-you-feed-loading" aria-live="polite">
-          Reading prices, evidence, and conviction changes…
+        <div className="for-you-feed-loading for-you-feed-loading--skeleton" aria-hidden="true">
+          <span className="for-you-feed-skeleton-block for-you-feed-skeleton-pill" />
+          <span className="for-you-feed-skeleton-block for-you-feed-skeleton-title" />
+          <span className="for-you-feed-skeleton-block for-you-feed-skeleton-line" />
+          <span className="for-you-feed-skeleton-block for-you-feed-skeleton-line for-you-feed-skeleton-line--short" />
         </div>
       ) : (visibleBoard.length > 0 || visibleMore.length > 0) ? (
         <>
