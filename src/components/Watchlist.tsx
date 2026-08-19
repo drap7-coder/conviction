@@ -618,6 +618,7 @@ export default function Watchlist({
         eyebrow={`Watchlist · Live data · ${sessionLabel}`}
         headline={stageHeadline}
         summary={stageSummary}
+        loading={loading || briefLoading}
         metrics={
           <>
             <div className={attentionItems.length > 0 ? "is-alert" : undefined}>
@@ -648,7 +649,15 @@ export default function Watchlist({
         section="lead"
       />
 
-      {loading ? <PageLoadingMotion label="Loading watchlist" compact /> : null}
+      {loading ? (
+        <PageLoadingMotion
+          label="Loading watchlist"
+          compact
+          showLabel={false}
+          showSubtitle={false}
+          speed="slow"
+        />
+      ) : null}
 
       {!loading && entries.length === 0 ? (
         <div className="empty-state">
