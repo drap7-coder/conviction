@@ -1265,6 +1265,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .company-decision-signals {
+    grid-template-columns: 1fr;
+  }
+
   .company-decision-questions {
     grid-template-columns: 1fr;
   }
@@ -1546,6 +1550,68 @@ body {
 .company-decision-questions--simple {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   border-bottom: 0;
+}
+
+.company-decision-signals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.company-decision-signal {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  padding: 12px 14px;
+  border: 1px solid var(--on-ink-border);
+  border-radius: 14px;
+  background: var(--dashboard-well);
+  box-shadow: var(--dashboard-well-shadow);
+}
+
+.company-decision-signal > svg {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  color: var(--on-ink-accent);
+}
+
+.company-decision-signal > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.company-decision-signal span {
+  color: var(--on-ink-quiet);
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.company-decision-signal strong {
+  color: var(--on-ink);
+  font-family: var(--font-mono);
+  font-size: clamp(0.95rem, 1.8vw, 1.15rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.company-decision-signal small {
+  color: var(--on-ink-muted);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+.company-decision-skeleton-signal-strong {
+  width: 68%;
+  height: 18px;
+  border-radius: 10px;
+  margin-top: 2px;
 }
 
 .company-decision-brief--simple {
