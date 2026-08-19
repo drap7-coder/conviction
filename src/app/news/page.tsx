@@ -55,6 +55,7 @@ export default function NewsPage() {
       <ProductStage
         variant="news"
         aria-label="News intelligence"
+        loading={status === "loading"}
         eyebrow={`News · ${brief?.statusLabel === "Live" ? "Live data" : brief?.statusLabel ?? (status === "loading" ? "Reading the tape" : "Temporarily unavailable")}`}
         headline={
           brief
@@ -84,7 +85,15 @@ export default function NewsPage() {
         }
       />
 
-      {status === "loading" ? <PageLoadingMotion label="Loading news intelligence" compact /> : null}
+      {status === "loading" ? (
+        <PageLoadingMotion
+          label="Loading news intelligence"
+          compact
+          showLabel={false}
+          showSubtitle={false}
+          speed="slow"
+        />
+      ) : null}
       {status === "error" || (status === "success" && (!data || !brief)) ? (
         <div className="market-empty">News intelligence is temporarily unavailable.</div>
       ) : null}

@@ -804,6 +804,7 @@ export default function Portfolio({
       <ProductStage
         variant="portfolio"
         aria-label="Portfolio overview"
+        loading={loading || loadingBook}
         tone={hasData ? stageTone : "neutral"}
         eyebrow={stageEyebrow}
         headline={stageHeadline}
@@ -860,6 +861,9 @@ export default function Portfolio({
         <PageLoadingMotion
           label={`Sizing ${activeSampleBook?.label ?? "portfolio"}…`}
           compact
+          showLabel={false}
+          showSubtitle={false}
+          speed="slow"
         />
       ) : null}
 
@@ -873,7 +877,13 @@ export default function Portfolio({
         {activeTab === "holdings" ? (
           <>
             {loading ? (
-              <PageLoadingMotion label="Loading portfolio prices" compact />
+              <PageLoadingMotion
+                label="Loading portfolio prices"
+                compact
+                showLabel={false}
+                showSubtitle={false}
+                speed="slow"
+              />
             ) : null}
 
             {/* Empty: invite to pick a book or add manually. */}

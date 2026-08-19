@@ -209,6 +209,7 @@ export default function MarketPulsePage() {
       <ProductStage
         variant="pulse"
         aria-label="Market regime"
+        loading={status === "loading"}
         eyebrow={`Pulse · ${data ? "Live data" : "Market read"} · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
         headline={regimeDecisionHeadline(data?.macroRegime.label)}
         summary={data?.macroRegime.summary ?? "See the regime first, then scan the indexes, sectors, and stocks driving the day."}
@@ -230,7 +231,15 @@ export default function MarketPulsePage() {
         }
       />
 
-      {status === "loading" ? <PageLoadingMotion label="Loading pulse" compact /> : null}
+      {status === "loading" ? (
+        <PageLoadingMotion
+          label="Loading pulse"
+          compact
+          showLabel={false}
+          showSubtitle={false}
+          speed="slow"
+        />
+      ) : null}
       {status === "error" || (status === "success" && !data) ? (
         <div className="market-empty">Market data is temporarily unavailable.</div>
       ) : null}

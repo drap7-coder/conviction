@@ -178,7 +178,12 @@ export function MarketMovesPanel({
   if (trendingStatus === "loading" || trendingStatus === "idle") {
     return (
       <div className="market-moves-panel">
-        <PageLoadingMotion label="Finding active names" />
+        <PageLoadingMotion
+          label="Finding active names"
+          showLabel={false}
+          showSubtitle={false}
+          speed="slow"
+        />
       </div>
     );
   }
