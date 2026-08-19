@@ -198,7 +198,12 @@ export function InvestorMovesPanel({ trackedTickers, addingTicker, onAdd }: Inve
   if (status === "loading" || status === "idle") {
     return (
       <section className="investor-moves-panel smart-money-panel" aria-label="Institutional moves" aria-busy="true">
-        <PageLoadingMotion label="Reading institutional filings" />
+        <PageLoadingMotion
+          label="Reading institutional filings"
+          showLabel={false}
+          showSubtitle={false}
+          speed="slow"
+        />
       </section>
     );
   }
