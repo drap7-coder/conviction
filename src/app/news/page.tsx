@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { ProductStage } from "@/components/ProductStage";
-import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PulseNewsFeed } from "@/components/market/PulseNewsFeed";
 import type { MarketNarrativePulse } from "@/lib/market/market-narratives";
 import { buildNewsPageBrief } from "@/lib/market/news-brief";
@@ -13,27 +12,9 @@ interface NewsResponse {
   fetchedAt: string;
 }
 
-const NEWS_TABS = [
-  {
-    id: "brief",
-    label: "Brief",
-    tabId: "news-tab-brief",
-    panelId: "news-panel-brief",
-  },
-  {
-    id: "headlines",
-    label: "Headlines",
-    tabId: "news-tab-headlines",
-    panelId: "news-panel-headlines",
-  },
-] as const;
-
-type NewsTab = (typeof NEWS_TABS)[number]["id"];
-
 export default function NewsPage() {
   const [data, setData] = useState<NewsResponse | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [activeTab, setActiveTab] = useState<NewsTab>("brief");
 
   useEffect(() => {
     let cancelled = false;
@@ -71,27 +52,18 @@ export default function NewsPage() {
 
   return (
     <main className="markets-page news-page">
-      <ViewSwitcher
-        label="Choose a News view"
-        options={[...NEWS_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as NewsTab)}
-      />
-
       <ProductStage
         variant="news"
         aria-label="News intelligence"
         eyebrow={`News · ${brief?.statusLabel === "Live" ? "Live data" : brief?.statusLabel ?? (status === "loading" ? "Reading the tape" : "Temporarily unavailable")}`}
         headline={
-          activeTab === "brief"
-            ? brief ? `${brief.leadTheme} is today’s lead.` : "Today’s market story is still forming."
-            : brief ? `${brief.storyCount} market headline${brief.storyCount === 1 ? " is" : "s are"} live.` : "The market wire is loading."
+          brief
+            ? `${brief.leadTheme} is today’s lead.`
+            : "Today’s market story is still forming."
         }
         summary={
           brief
-            ? activeTab === "brief"
-              ? `${brief.storyCount} recent stories distilled into ${brief.activeNarratives} active market narrative${brief.activeNarratives === 1 ? "" : "s"}.`
-              : "Scan the wire, then open the evidence behind the move."
+            ? `${brief.storyCount} recent stories distilled into ${brief.activeNarratives} active market narrative${brief.activeNarratives === 1 ? "" : "s"}. Scroll for the brief, then the wire.`
             : "Start with the market brief, then open the evidence behind the story."
         }
         metrics={
@@ -117,35 +89,13 @@ export default function NewsPage() {
         <div className="market-empty">News intelligence is temporarily unavailable.</div>
       ) : null}
 
-      <div
-        id="news-panel-brief"
-        role="tabpanel"
-        aria-labelledby="news-tab-brief"
-        hidden={activeTab !== "brief"}
-      >
-        {activeTab === "brief" && data ? (
-          <PulseNewsFeed
-            themes={data.marketNarratives.themes}
-            status={data.marketNarratives.status}
-            section="brief"
-          />
-        ) : null}
-      </div>
-
-      <div
-        id="news-panel-headlines"
-        role="tabpanel"
-        aria-labelledby="news-tab-headlines"
-        hidden={activeTab !== "headlines"}
-      >
-        {activeTab === "headlines" && data ? (
-          <PulseNewsFeed
-            themes={data.marketNarratives.themes}
-            status={data.marketNarratives.status}
-            section="headlines"
-          />
-        ) : null}
-      </div>
+      {data ? (
+        <PulseNewsFeed
+          themes={data.marketNarratives.themes}
+          status={data.marketNarratives.status}
+          section="all"
+        />
+      ) : null}
     </main>
   );
 }
