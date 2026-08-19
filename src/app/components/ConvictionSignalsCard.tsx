@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { InstitutionalConvictionSection } from "@/app/components/InstitutionalConvictionSection";
 import { InsiderActivitySection } from "@/app/components/InsiderActivitySection";
@@ -310,13 +310,25 @@ export function ConvictionSignalsCard({
   ticker: string;
   logoUrl?: string | null;
 }) {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  const [expanded, setExpanded] = useState(false);
   const [core, setCore] = useState<ConvictionSignalDisplay[]>(initialCoreSignals);
   const [earningsLane, setEarningsLane] = useState<EvidenceLane | null>(null);
   const [optionalLanes, setOptionalLanes] = useState<EvidenceLane[]>([]);
-  const [coreLoading, setCoreLoading] = useState(true);
+  const [coreLoading, setCoreLoading] = useState(false);
+  const [loadedTicker, setLoadedTicker] = useState<string | null>(null);
   const [openLane, setOpenLane] = useState<EvidenceLaneId | null>(null);
 
   useEffect(() => {
+    setLoadedTicker(null);
+    setExpanded(false);
+    setOpenLane(null);
+    if (detailsRef.current) detailsRef.current.open = false;
+  }, [ticker]);
+
+  useEffect(() => {
+    if (!expanded || loadedTicker === ticker) return;
+
     let cancelled = false;
     const controller = new AbortController();
     setCore(initialCoreSignals());
@@ -340,6 +352,7 @@ export function ConvictionSignalsCard({
       setEarningsLane(earnings);
       setOptionalLanes(optional);
       setCoreLoading(false);
+      setLoadedTicker(ticker);
     }
 
     void load();
@@ -347,7 +360,7 @@ export function ConvictionSignalsCard({
       cancelled = true;
       controller.abort();
     };
-  }, [ticker]);
+  }, [expanded, loadedTicker, ticker]);
 
   const lanes = useMemo(() => {
     const fromCore = core.map((signal) =>
@@ -369,18 +382,20 @@ export function ConvictionSignalsCard({
   const openDetail = openLane ? lanes.find((lane) => lane.id === openLane) ?? null : null;
 
   return (
-    <section className="company-driver-module evidence-sources" aria-label="Source deep-dive">
-      <header className="evidence-lanes-heading">
-        <div>
-          <span className="company-section-kicker">Inspect sources</span>
-          <h2 className="company-driver-title evidence-lanes-title">Sources</h2>
-        </div>
-        <p>
-          Decision owns the investment read. Open a source only when you need the underlying filing,
-          tape, or ownership detail.
-        </p>
-      </header>
+    <details
+      ref={detailsRef}
+      id="sources"
+      className="company-sources-disclosure company-driver-module evidence-sources"
+      onToggle={(event) => setExpanded((event.currentTarget as HTMLDetailsElement).open)}
+    >
+      <summary className="company-sources-summary">
+        <span className="company-sources-summary-label">See filing detail</span>
+        <span className="company-sources-summary-copy">
+          Institutional, insider, earnings, and tape — expand only when you need the underlying evidence.
+        </span>
+      </summary>
 
+      <div className="company-sources-body" aria-label="Source deep-dive">
       <ul className="evidence-source-list">
         {lanes.map((lane) => {
           const isOpen = openLane === lane.id;
@@ -428,6 +443,7 @@ export function ConvictionSignalsCard({
           </div>
         </div>
       ) : null}
-    </section>
+      </div>
+    </details>
   );
 }

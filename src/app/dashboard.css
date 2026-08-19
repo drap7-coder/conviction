@@ -1543,5 +1543,129 @@ body {
   grid-column: 1 / -1;
 }
 
+.company-decision-questions--simple {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-bottom: 0;
+}
+
+.company-decision-brief--simple {
+  gap: 12px;
+}
+
+.company-decision-brief--simple .company-decision-header h2 {
+  min-height: 1.2em;
+}
+
+.company-decision-headline-typewriter.typewriter-line {
+  display: block;
+  color: var(--on-ink);
+}
+
+.company-decision-skeleton {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+}
+
+.company-decision-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-70%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: company-decision-shimmer 2.6s ease-in-out infinite;
+}
+
+@keyframes company-decision-shimmer {
+  0% { transform: translateX(-70%); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translateX(70%); opacity: 0; }
+}
+
+.company-decision-skeleton-headline {
+  width: 92%;
+  height: 28px;
+  border-radius: 12px;
+}
+
+.company-decision-skeleton-line {
+  width: 100%;
+  height: 12px;
+  margin-top: 6px;
+}
+
+.company-decision-skeleton-line--short {
+  width: 72%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .company-decision-skeleton::after {
+    animation: none;
+  }
+}
+
+/* Sources collapsed by default — power-user filing detail only. */
+.company-sources-disclosure {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.company-sources-disclosure:not([open]) {
+  box-shadow: var(--shadow-sm);
+}
+
+.company-sources-summary {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.company-sources-summary::-webkit-details-marker {
+  display: none;
+}
+
+.company-sources-summary::before {
+  content: "▸";
+  float: right;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  transition: transform 160ms ease;
+}
+
+.company-sources-disclosure[open] .company-sources-summary::before {
+  transform: rotate(90deg);
+}
+
+.company-sources-summary-label {
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.company-sources-summary-copy {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  padding-right: 1.25rem;
+}
+
+.company-sources-body {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+}
+
+.company-sources-body .evidence-source-list {
+  margin-top: 10px;
+}
+
 @media (max-width: 640px) {
 }

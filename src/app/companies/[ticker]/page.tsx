@@ -100,7 +100,7 @@ export default async function CompanyPage({
       <CompanyDashboard
         briefing={
           <>
-            <div id="overview" className="company-section-anchor company-overview-stack">
+            <div className="company-overview-stack">
               <CompanyQuoteCard
                 ticker={upperTicker}
                 companyName={companyName}
@@ -108,18 +108,10 @@ export default async function CompanyPage({
                 logoUrl={getLogoUrl(upperTicker) ?? null}
               />
             </div>
-            <nav className="company-section-nav" aria-label="Company dashboard sections">
-              <a href="#overview">Overview</a>
-              <a href="#decision">Decision</a>
-              <a href="#catalyst">Catalyst</a>
-              {supportsSignals ? <a href="#sources">Sources</a> : null}
-            </nav>
             {supportsSignals ? (
-              <div id="decision" className="company-section-anchor">
-                <CompanyDecisionBrief ticker={upperTicker} />
-              </div>
+              <CompanyDecisionBrief ticker={upperTicker} />
             ) : (
-              <section id="decision" className="company-market-scope company-section-anchor">
+              <section className="company-market-scope">
                 <span>Price + news view</span>
                 <p>
                   Filing-based conviction signals do not apply to this market instrument. Use the
@@ -127,14 +119,7 @@ export default async function CompanyPage({
                 </p>
               </section>
             )}
-            <div id="catalyst" className="company-section-anchor company-catalyst-stack">
-              <div className="company-section-heading">
-                <div>
-                  <span>What changed</span>
-                  <h2>Latest catalyst</h2>
-                </div>
-                <small>Fresh company-specific headlines only</small>
-              </div>
+            <div className="company-catalyst-stack">
               <MaterialNewsCard
                 key={upperTicker}
                 ticker={upperTicker}
@@ -143,9 +128,7 @@ export default async function CompanyPage({
               />
             </div>
             {supportsSignals ? (
-              <div id="sources" className="company-section-anchor">
-                <ConvictionSignalsCard ticker={upperTicker} />
-              </div>
+              <ConvictionSignalsCard ticker={upperTicker} />
             ) : null}
             <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
           </>
