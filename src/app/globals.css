@@ -6449,6 +6449,75 @@ a.market-tape-item:focus-visible {
   line-height: 1.2;
 }
 
+/* Pre-market / After-hours session label (pill + red/green dot). */
+.company-quote-session-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-ink-border) 55%, transparent);
+  color: var(--on-ink-quiet);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.company-quote-session-pill.is-up {
+  color: var(--on-ink-green);
+  background: color-mix(in srgb, var(--on-ink-green) 16%, transparent);
+}
+
+.company-quote-session-pill.is-down {
+  color: var(--on-ink-red);
+  background: color-mix(in srgb, var(--on-ink-red) 16%, transparent);
+}
+
+.company-quote-session-pill.is-quiet {
+  color: var(--on-ink-quiet);
+}
+
+.company-quote-session-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 22%, transparent);
+}
+
+.company-quote-session-pill.is-extended.is-up .company-quote-session-dot,
+.company-quote-session-pill.is-extended.is-down .company-quote-session-dot {
+  animation: company-session-dot-pulse 1.6s ease-out infinite;
+}
+
+@keyframes company-session-dot-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.75;
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 55%, transparent);
+  }
+  70% {
+    transform: scale(2.1);
+    opacity: 0;
+    box-shadow: 0 0 0 6px transparent;
+  }
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .company-quote-session-pill.is-extended.is-up .company-quote-session-dot,
+  .company-quote-session-pill.is-extended.is-down .company-quote-session-dot {
+    animation: none;
+  }
+}
+
 .company-quote-close {
   display: inline-flex;
   flex-wrap: wrap;
@@ -12186,6 +12255,12 @@ a.signal-block-conclusion-link:hover {
 .product-stage-headline > span {
   display: block;
   animation: product-stage-reading-arrive 380ms 110ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.product-stage-headline > .typewriter-line {
+  animation: none;
+  transform: none;
+  opacity: 1;
 }
 
 @keyframes product-stage-reading-arrive {
