@@ -251,6 +251,7 @@ export function WatchlistDailyBrief({
   loading,
   portfolioTickers = [],
   watchlistTickers,
+  section = "all",
 }: {
   entries: WatchlistEntry[];
   quotes: Record<string, StockQuote>;
@@ -260,6 +261,7 @@ export function WatchlistDailyBrief({
   sessionLabel?: string;
   portfolioTickers?: string[];
   watchlistTickers?: string[];
+  section?: "all" | "lead" | "rest";
 }) {
   const items = buildWatchlistBriefItems({
     entries,
@@ -272,7 +274,20 @@ export function WatchlistDailyBrief({
 
   // Same desktop composition as News Brief: one featured lead + up to two beside it.
   const board = items.slice(0, 3);
-  const more = items.slice(3);
+  const lead = items[0] ? [items[0]] : [];
+  const rest = items.slice(1);
+  const visibleBoard = section === "lead"
+    ? lead
+    : section === "rest"
+      ? []
+      : board;
+  const visibleMore = section === "lead"
+    ? []
+    : section === "rest"
+      ? rest
+      : items.slice(3);
+  const isLeadSection = section === "lead";
+  const showLoading = loading && section !== "rest";
 
   function renderCard(item: WatchlistBriefItem, index: number, featured = false) {
     return (
@@ -337,22 +352,24 @@ export function WatchlistDailyBrief({
             <p>Insights appear here when something material moves on Moves.</p>
           </div>
         </div>
-      ) : loading ? (
+      ) : showLoading ? (
         <div className="for-you-feed-loading" aria-live="polite">
           Reading prices, evidence, and conviction changes…
         </div>
-      ) : board.length > 0 ? (
+      ) : (visibleBoard.length > 0 || visibleMore.length > 0) ? (
         <>
-          <div
-            className={`for-you-feed-board item-count-${board.length}`}
-            aria-label="Top watchlist stories"
-          >
-            {board.map((item, index) => renderCard(item, index, index === 0))}
-          </div>
+          {visibleBoard.length > 0 ? (
+            <div
+              className={`for-you-feed-board item-count-${visibleBoard.length}`}
+              aria-label={isLeadSection ? "Top watchlist headline" : "Top watchlist stories"}
+            >
+              {visibleBoard.map((item, index) => renderCard(item, index, true))}
+            </div>
+          ) : null}
 
-          {more.length > 0 ? (
+          {visibleMore.length > 0 ? (
             <div className="for-you-feed-more" aria-label="More watchlist stories">
-              {more.map((item, index) => renderCard(item, index + board.length))}
+              {visibleMore.map((item, index) => renderCard(item, index + 1))}
             </div>
           ) : null}
         </>
