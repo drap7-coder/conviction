@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { TypewriterText } from "@/components/TypewriterText";
 
 export type ProductStageVariant = "pulse" | "news" | "smart-money" | "watchlist" | "portfolio";
 
@@ -19,6 +20,8 @@ type ProductStageProps = {
   summary?: ReactNode;
   metrics?: ReactNode;
   tone?: ProductStageTone;
+  /** If true, headline animates in left-to-right like a terminal/typewriter. */
+  typewriterHeadline?: boolean;
   /** Extra copy-column content (actions, notes). */
   children?: ReactNode;
   "aria-label": string;
@@ -39,11 +42,13 @@ function ProductStageView({
   summary,
   metrics,
   tone,
+  typewriterHeadline,
   children,
   "aria-label": ariaLabel,
 }: ProductStageProps) {
   const hasMetrics = Boolean(metrics);
   const toneClass = tone && tone !== "neutral" ? ` tone-${tone}` : "";
+  const useTypewriter = typewriterHeadline ?? true;
 
   return (
     <section
@@ -56,7 +61,17 @@ function ProductStageView({
           {eyebrow}
         </span>
         <h1 className="product-stage-headline" aria-live="polite">
-          <span key={headline}>{headline}</span>
+          {useTypewriter ? (
+            <TypewriterText
+              text={headline}
+              as="span"
+              className="product-stage-headline-typewriter"
+              msPerChar={26}
+              startDelay={70}
+            />
+          ) : (
+            <span key={headline}>{headline}</span>
+          )}
         </h1>
         {summary ? <p>{summary}</p> : null}
         {children}
