@@ -6440,14 +6440,46 @@ a.market-tape-item:focus-visible {
 .company-quote-change.up { color: var(--on-ink-green); }
 .company-quote-change.down { color: var(--on-ink-red); }
 
-.company-quote-session,
-.company-quote-close {
+.company-quote-session {
   color: var(--on-ink-quiet);
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   line-height: 1.2;
+}
+
+.company-quote-close {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  color: var(--on-ink-muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+}
+
+.company-quote-close-label {
+  color: var(--on-ink-muted);
+}
+
+.company-quote-close-change {
+  font-size: 0.78rem;
+  font-weight: 780;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.company-quote-close.up .company-quote-close-change {
+  color: var(--on-ink-green);
+}
+
+.company-quote-close.down .company-quote-close-change {
+  color: var(--on-ink-red);
 }
 
 .company-quote-price-loading {

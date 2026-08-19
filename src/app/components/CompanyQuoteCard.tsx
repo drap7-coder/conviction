@@ -111,6 +111,9 @@ export function CompanyQuoteCard({
   const direction = live?.change != null
     ? live.change > 0 ? "up" : live.change < 0 ? "down" : ""
     : "";
+  const regularDirection = quote?.change != null
+    ? quote.change > 0 ? "up" : quote.change < 0 ? "down" : ""
+    : "";
   const rangePercent = quote
     ? rangePosition(live?.price ?? quote.price, quote.fiftyTwoWeekLow, quote.fiftyTwoWeekHigh)
     : null;
@@ -187,9 +190,24 @@ export function CompanyQuoteCard({
                 <span className="company-quote-session">{live.label}</span>
               ) : null}
               {isExtendedSession && quote ? (
-                <span className="company-quote-close">
-                  Close ${formatPrice(quote.price)}
-                  {regularChangeText ? ` · ${regularChangeText.percent}` : ""}
+                <span
+                  className={`company-quote-close${regularDirection ? ` ${regularDirection}` : ""}`}
+                  aria-label={
+                    regularChangeText
+                      ? `Regular close $${formatPrice(quote.price)}, ${regularChangeText.dollars} (${regularChangeText.percent}) on the day`
+                      : `Regular close $${formatPrice(quote.price)}`
+                  }
+                >
+                  <span className="company-quote-close-label">
+                    Close ${formatPrice(quote.price)}
+                  </span>
+                  {regularChangeText ? (
+                    <strong className="company-quote-close-change">
+                      {regularChangeText.dollars}
+                      <span aria-hidden="true"> · </span>
+                      {regularChangeText.percent}
+                    </strong>
+                  ) : null}
                 </span>
               ) : null}
             </>
