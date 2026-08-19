@@ -83,6 +83,7 @@ describe("company decision brief", () => {
       coverageValue: "82%",
       earningsValue: "Estimates rising",
     });
+    expect(brief.headline).toContain("Estimates are rising");
     expect(brief.support).toContain("Technicals");
     expect(brief.pressure).toContain("Short interest");
     expect(brief.nextCheck).toContain("Sep 2026");
@@ -95,6 +96,6 @@ describe("company decision brief", () => {
     expect(brief.tone).toBe("quiet");
     expect(brief.scoreValue).toBe("—");
     expect(brief.earningsValue).toBe("Not sourced");
-    expect(brief.headline).toContain("still forming");
+    expect(brief.headline).toContain("Still reading");
   });
 });

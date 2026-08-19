@@ -6,19 +6,11 @@ import { TypewriterText } from "@/components/TypewriterText";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import {
   buildCompanyDecisionBrief,
-  type CompanyDecisionTone,
 } from "@/lib/company/company-decision-brief";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import type { EarningsEvidence } from "@/lib/earnings/types";
 import { deriveTechnicalState } from "@/lib/market/technical-state";
 import type { StockHistory } from "@/lib/market/quotes";
-
-const TONE_LABEL: Record<CompanyDecisionTone, string> = {
-  positive: "Constructive",
-  mixed: "Contested",
-  negative: "Defensive",
-  quiet: "Still forming",
-};
 
 export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
   const [score, setScore] = useState<ConvictionScoreView | null>(null);
@@ -63,7 +55,6 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
     };
   }, [ticker]);
 
-  const brief = useMemo(() => buildCompanyDecisionBrief(score, earnings), [score, earnings]);
   const tape = useMemo(() => {
     if (!history?.points?.length) return null;
     return deriveTechnicalState(
@@ -74,13 +65,21 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
     );
   }, [history]);
 
+  const brief = useMemo(
+    () => buildCompanyDecisionBrief(score, earnings, tape ? {
+      label: tape.label,
+      interpretation: tape.interpretation,
+    } : null),
+    [score, earnings, tape],
+  );
+
   return (
     <section
       className={`company-decision-brief company-decision-brief--simple tone-${brief.tone}${loading ? " is-loading" : ""}`}
       aria-label="Today's read"
       aria-busy={loading}
     >
-      <header className="company-decision-header">
+      <header className="company-decision-header company-decision-header--simple">
         <div>
           <span className="company-decision-eyebrow">Today&apos;s read</span>
           <h2>
@@ -97,10 +96,6 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
             )}
           </h2>
         </div>
-        <span className={`company-decision-status tone-${brief.tone}`}>
-          <i aria-hidden="true" />
-          {loading ? "…" : TONE_LABEL[brief.tone]}
-        </span>
       </header>
 
       <div className="company-decision-signals" aria-label="Reliable signals">

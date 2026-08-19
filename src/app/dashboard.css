@@ -1614,6 +1614,10 @@ body {
   margin-top: 2px;
 }
 
+.company-decision-header--simple > div {
+  max-width: none;
+}
+
 .company-decision-brief--simple {
   gap: 12px;
 }
