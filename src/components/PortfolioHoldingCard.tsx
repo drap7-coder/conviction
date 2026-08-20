@@ -133,18 +133,18 @@ export function PortfolioHoldingCard({
 
         <div className="wl-ring-price">
           <div className="wl-ring-price-primary">
-            <strong className="wl-ring-last">
+            <strong className="wl-ring-last tnum">
               {price !== null ? `$${formatPrice(price)}` : "—"}
             </strong>
             {sessionLabel ? (
               <span className="ink-chip ink-chip--quiet wl-ring-session-chip">{sessionLabel}</span>
             ) : null}
           </div>
-          <span className={`${inkChipClass(moveTone)} wl-ring-day-change`}>
+          <span className={`${inkChipClass(moveTone)} wl-ring-day-change tnum`}>
             {formatPercent(changePercent)}
           </span>
           {hasExtendedSession ? (
-            <span className={`wl-ring-at-close ${closeChangeClass}`}>
+            <span className={`wl-ring-at-close tnum ${closeChangeClass}`}>
               At close ${formatPrice(closePrice)}
               {isFiniteNumber(closeChangePercent)
                 ? ` (${formatPercent(closeChangePercent)})`
@@ -248,23 +248,23 @@ export function PortfolioHoldingCard({
         <div className={`pf-ring-holding ${accent}`} aria-label="Holding details">
           <div className="pf-ring-holding-item">
             <span className="pf-ring-holding-label">Shares</span>
-            <span className="pf-ring-holding-value">{shares.toLocaleString()}</span>
+            <span className="pf-ring-holding-value tnum">{shares.toLocaleString()}</span>
           </div>
           <div className="pf-ring-holding-item">
             <span className="pf-ring-holding-label">Value</span>
-            <span className="pf-ring-holding-value">
+            <span className="pf-ring-holding-value tnum">
               {compactCurrency(metrics.marketValue)}
             </span>
           </div>
           <div className="pf-ring-holding-item">
             <span className="pf-ring-holding-label">Cost</span>
-            <span className="pf-ring-holding-value">
+            <span className="pf-ring-holding-value tnum">
               {compactCurrency(metrics.totalCost)}
             </span>
           </div>
           <div className="pf-ring-holding-item">
             <span className="pf-ring-holding-label">Total return</span>
-            <span className={`pf-ring-holding-value pf-ring-holding-gl ${accent}`}>
+            <span className={`pf-ring-holding-value pf-ring-holding-gl tnum ${accent}`}>
               {compactCurrency(metrics.totalGainLoss)}
               {isFiniteNumber(metrics.totalGainLossPercent)
                 ? ` ${formatPercent(metrics.totalGainLossPercent)}`

@@ -474,6 +474,28 @@
   gap: 10px;
   padding: 14px 16px;
   min-width: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.company-decision-questions--simple .company-decision-question {
+  padding: 12px 14px;
+  border: 1px solid var(--on-ink-border);
+  border-radius: 14px;
+  background: var(--dashboard-well);
+  box-shadow: var(--dashboard-well-shadow);
+}
+
+.company-decision-questions--simple .company-decision-question + .company-decision-question {
+  border-left: 1px solid var(--on-ink-border);
+}
+
+.company-decision-questions--simple .company-decision-question.support {
+  border-color: color-mix(in srgb, var(--on-ink-green) 28%, var(--on-ink-border));
+}
+
+.company-decision-questions--simple .company-decision-question.pressure {
+  border-color: color-mix(in srgb, var(--on-ink-red) 28%, var(--on-ink-border));
 }
 
 .company-decision-question + .company-decision-question {
@@ -658,26 +680,47 @@
 }
 
 .company-quote-context article {
+  position: relative;
   display: grid;
   align-content: start;
   gap: 4px;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 11px 12px 10px;
   border: 1px solid var(--on-ink-border);
   border-radius: 12px;
   background: var(--dashboard-well);
   box-shadow: var(--dashboard-well-shadow);
+  overflow: hidden;
+}
+
+.company-quote-context article::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: color-mix(in srgb, var(--dashboard-accent) 55%, transparent);
+  opacity: 0.7;
+}
+
+.company-quote-context .company-range-stat::before {
+  background: linear-gradient(90deg, var(--on-ink-red), var(--on-ink-amber), var(--on-ink-green));
+  opacity: 0.85;
 }
 
 .company-quote-context strong {
   overflow: hidden;
   color: var(--on-ink);
   font-family: var(--font-mono);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   font-weight: 720;
+  letter-spacing: -0.03em;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .company-quote-context small {
@@ -690,11 +733,19 @@
 }
 
 .company-range-track {
-  margin-top: 4px;
+  margin-top: 6px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--dashboard-border) 70%, transparent);
+  overflow: hidden;
 }
 
 .company-range-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
   background: linear-gradient(90deg, var(--on-ink-red), var(--on-ink-amber), var(--on-ink-green));
+  box-shadow: 0 0 0 1px color-mix(in srgb, #ffffff 35%, transparent);
 }
 
 .company-briefing .evidence-lanes {
@@ -1549,7 +1600,13 @@ body {
 
 .company-decision-questions--simple {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  border-top: 0;
   border-bottom: 0;
+}
+
+.company-decision-questions--simple .company-decision-question + .company-decision-question {
+  border-left-width: 1px;
 }
 
 .company-decision-signals {
@@ -1566,8 +1623,30 @@ body {
   padding: 12px 14px;
   border: 1px solid var(--on-ink-border);
   border-radius: 14px;
+  border-left-width: 3px;
+  border-left-color: color-mix(in srgb, var(--on-ink-accent) 55%, var(--on-ink-border));
   background: var(--dashboard-well);
   box-shadow: var(--dashboard-well-shadow);
+}
+
+.company-decision-signal--earnings {
+  border-left-color: color-mix(in srgb, var(--on-ink-amber) 70%, var(--on-ink-border));
+}
+
+.company-decision-signal--tape.tone-positive {
+  border-left-color: color-mix(in srgb, var(--on-ink-green) 70%, var(--on-ink-border));
+}
+
+.company-decision-signal--tape.tone-negative {
+  border-left-color: color-mix(in srgb, var(--on-ink-red) 70%, var(--on-ink-border));
+}
+
+.company-decision-signal--tape.tone-mixed {
+  border-left-color: color-mix(in srgb, var(--on-ink-amber) 70%, var(--on-ink-border));
+}
+
+.company-decision-signal--tape.tone-quiet {
+  border-left-color: color-mix(in srgb, var(--on-ink-quiet) 55%, var(--on-ink-border));
 }
 
 .company-decision-signal > svg {
@@ -1575,6 +1654,22 @@ body {
   height: 17px;
   margin-top: 2px;
   color: var(--on-ink-accent);
+}
+
+.company-decision-signal--earnings > svg {
+  color: var(--on-ink-amber);
+}
+
+.company-decision-signal--tape.tone-positive > svg {
+  color: var(--on-ink-green);
+}
+
+.company-decision-signal--tape.tone-negative > svg {
+  color: var(--on-ink-red);
+}
+
+.company-decision-signal--tape.tone-mixed > svg {
+  color: var(--on-ink-amber);
 }
 
 .company-decision-signal > div {
@@ -1599,6 +1694,7 @@ body {
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1.15;
+  font-variant-numeric: tabular-nums;
 }
 
 .company-decision-signal small {

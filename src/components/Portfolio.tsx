@@ -813,15 +813,23 @@ export default function Portfolio({
           hasData ? (
             <>
               <div>
-                <strong>{currency(portfolioMetrics.totalMarketValue)}</strong>
+                <strong className="tnum">{currency(portfolioMetrics.totalMarketValue)}</strong>
                 <span>Total value</span>
               </div>
-              <div className={portfolioMetrics.dailyChange !== null && portfolioMetrics.dailyChange < 0 ? "is-negative" : ""}>
-                <strong>{signedCurrency(portfolioMetrics.dailyChange)}</strong>
+              <div
+                className={
+                  portfolioMetrics.dailyChange !== null && portfolioMetrics.dailyChange < 0
+                    ? "is-negative"
+                    : portfolioMetrics.dailyChange !== null && portfolioMetrics.dailyChange > 0
+                      ? "is-positive"
+                      : ""
+                }
+              >
+                <strong className="tnum">{signedCurrency(portfolioMetrics.dailyChange)}</strong>
                 <span>Today · {percent(portfolioMetrics.dailyChangePercent)}</span>
               </div>
               <div className={valueBrief.largest && valueBrief.largest.weight > 20 ? "is-alert" : ""}>
-                <strong>
+                <strong className="tnum">
                   {valueBrief.largest
                     ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(0)}%`
                     : "—"}
