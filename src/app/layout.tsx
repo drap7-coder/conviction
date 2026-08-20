@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Link from "next/link";
 import "./globals.css";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
@@ -76,7 +77,7 @@ export default function RootLayout({
         <div className="app-shell">
           <header className="app-header">
             <div className="header-brand-row">
-              <a className="app-brand" href="/watchlist" aria-label="CONVICTION home">
+              <Link className="app-brand" href="/watchlist" aria-label="CONVICTION home">
                 <img
                   alt=""
                   aria-hidden="true"
@@ -84,7 +85,7 @@ export default function RootLayout({
                   src="/conviction-bull.png"
                 />
                 <AnimatedTitle />
-              </a>
+              </Link>
               <DesktopNav />
               <div className="header-search">
                 <GlobalSearchPill />
