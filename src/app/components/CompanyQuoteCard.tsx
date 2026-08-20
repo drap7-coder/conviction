@@ -182,13 +182,15 @@ export function CompanyQuoteCard({
             <>
               <div className="company-quote-price-row">
                 <span className={`company-quote-arrow ${direction}`}>{arrow}</span>
-                <span className="company-quote-price-big">${formatPrice(live.price)}</span>
+                <span className="company-quote-price-big tnum">${formatPrice(live.price)}</span>
               </div>
               {changeText ? (
                 <span className={`company-quote-change ${direction}`}>
-                  {changeText.dollars}
-                  <span aria-hidden="true"> · </span>
-                  {changeText.percent}
+                  <span className={`company-quote-change-chip tnum ${direction}`}>
+                    {changeText.dollars}
+                    <span aria-hidden="true"> · </span>
+                    {changeText.percent}
+                  </span>
                   {live.label ? (
                     <span
                       className={`company-quote-session-pill ${extendedSessionTone === "up" ? "is-up" : extendedSessionTone === "down" ? "is-down" : "is-quiet"}${isExtendedSession ? " is-extended" : ""}`}
@@ -243,22 +245,22 @@ export function CompanyQuoteCard({
       <div className="company-quote-context" aria-label="Trading context">
         <article>
           <span>Market value</span>
-          <strong>{loading ? "—" : fmtMarketCap(marketCap)}</strong>
+          <strong className="tnum">{loading ? "—" : fmtMarketCap(marketCap)}</strong>
           <small>{quote?.exchange ?? "Exchange unavailable"}</small>
         </article>
         <article>
           <span>Dividend yield</span>
-          <strong>{loading ? "—" : formatDividendYield(dividendYield)}</strong>
+          <strong className="tnum">{loading ? "—" : formatDividendYield(dividendYield)}</strong>
           <small>{dividendYield === null && !loading ? "No trailing yield" : "Trailing twelve months"}</small>
         </article>
         <article>
           <span>Dollar volume</span>
-          <strong>{loading ? "—" : fmtCompactCurrency(quote?.dollarVolume ?? null)}</strong>
+          <strong className="tnum">{loading ? "—" : fmtCompactCurrency(quote?.dollarVolume ?? null)}</strong>
           <small>{sessionLabel}</small>
         </article>
         <article className="company-range-stat">
           <span>52-week position</span>
-          <strong>{rangePercent === null ? "—" : `${Math.round(rangePercent)}%`}</strong>
+          <strong className="tnum">{rangePercent === null ? "—" : `${Math.round(rangePercent)}%`}</strong>
           <small>
             {quote?.fiftyTwoWeekLow == null || quote?.fiftyTwoWeekHigh == null
               ? "Range unavailable"

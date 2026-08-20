@@ -99,7 +99,7 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
       </header>
 
       <div className="company-decision-signals" aria-label="Reliable signals">
-        <article className="company-decision-signal">
+        <article className="company-decision-signal company-decision-signal--earnings">
           <CalendarClock aria-hidden="true" />
           <div>
             <span>Earnings</span>
@@ -110,13 +110,13 @@ export function CompanyDecisionBrief({ ticker }: { ticker: string }) {
               </>
             ) : (
               <>
-                <strong>{brief.earningsValue}</strong>
+                <strong className="tnum">{brief.earningsValue}</strong>
                 <small>{brief.earningsDetail}</small>
               </>
             )}
           </div>
         </article>
-        <article className="company-decision-signal">
+        <article className={`company-decision-signal company-decision-signal--tape tone-${brief.tone}`}>
           <Activity aria-hidden="true" />
           <div>
             <span>Technical read</span>

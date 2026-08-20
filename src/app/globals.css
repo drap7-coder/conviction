@@ -6443,14 +6443,43 @@ a.market-tape-item:focus-visible {
   letter-spacing: -0.04em;
   line-height: 1;
   color: var(--on-ink);
+  font-variant-numeric: tabular-nums;
 }
 
 .company-quote-change {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-mono);
   font-size: 0.86rem;
   font-weight: 550;
   line-height: 1.2;
+}
+
+.company-quote-change-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--on-ink-border);
+  background: var(--card-soft);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.company-quote-change-chip.up {
+  color: var(--on-ink-green);
+  border-color: color-mix(in srgb, var(--on-ink-green) 28%, var(--on-ink-border));
+  background: color-mix(in srgb, var(--on-ink-green) 10%, transparent);
+}
+
+.company-quote-change-chip.down {
+  color: var(--on-ink-red);
+  border-color: color-mix(in srgb, var(--on-ink-red) 28%, var(--on-ink-border));
+  background: color-mix(in srgb, var(--on-ink-red) 10%, transparent);
 }
 
 .company-quote-change.up { color: var(--on-ink-green); }
@@ -8210,7 +8239,9 @@ button.brief-link:focus-visible {
   padding: 20px;
   border: 1px solid var(--border-active);
   border-radius: 18px;
-  background: #ffffff;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, #ffffff) 0%, #ffffff 42%),
+    #ffffff;
   box-shadow: 0 4px 18px rgba(17, 19, 24, 0.06);
 }
 
@@ -8328,6 +8359,7 @@ button.brief-link:focus-visible {
   font-family: var(--font-mono);
   font-size: 0.76rem;
   text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 .pf-allocation-values {
@@ -9254,28 +9286,29 @@ button.brief-link:focus-visible {
 .pf-ring-holding {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px 10px;
+  gap: 0;
   margin: 12px 0 0;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 0;
+  border-radius: 12px;
   border: 1px solid var(--on-ink-border);
   border-left-width: 3px;
-  background: color-mix(in srgb, #ffffff 6%, transparent);
+  background: color-mix(in srgb, #ffffff 5%, transparent);
+  overflow: hidden;
 }
 
 .pf-ring-holding.up {
   border-left-color: var(--on-ink-green);
-  background: color-mix(in srgb, var(--on-ink-green) 12%, transparent);
+  background: color-mix(in srgb, var(--on-ink-green) 10%, transparent);
 }
 
 .pf-ring-holding.down {
   border-left-color: var(--on-ink-red);
-  background: color-mix(in srgb, var(--on-ink-red) 12%, transparent);
+  background: color-mix(in srgb, var(--on-ink-red) 10%, transparent);
 }
 
 .pf-ring-holding.flat {
   border-left-color: var(--on-ink-amber);
-  background: color-mix(in srgb, var(--on-ink-amber) 12%, transparent);
+  background: color-mix(in srgb, var(--on-ink-amber) 10%, transparent);
 }
 
 .wl-ring-row.ink-box:hover .pf-ring-holding,
@@ -9287,20 +9320,25 @@ button.brief-link:focus-visible {
 .pf-ring-holding-item {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
+  padding: 10px 12px;
+}
+
+.pf-ring-holding-item + .pf-ring-holding-item {
+  border-left: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
 }
 
 .pf-ring-holding-label {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
   color: var(--quiet);
 }
 
 .pf-ring-holding-value {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--ink);
@@ -9308,6 +9346,7 @@ button.brief-link:focus-visible {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
 }
 
 .pf-ring-holding-gl.up {
@@ -9345,6 +9384,14 @@ button.brief-link:focus-visible {
 
   .pf-ring-holding {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pf-ring-holding-item:nth-child(2n + 1) {
+    border-left: 0;
+  }
+
+  .pf-ring-holding-item:nth-child(n + 3) {
+    border-top: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
   }
 
   .pf-values-positions {
@@ -12003,6 +12050,25 @@ a.signal-block-conclusion-link:hover {
   gap: 0;
 }
 
+.portfolio-page {
+  display: grid;
+  gap: 0;
+}
+
+.portfolio-page .pf {
+  display: grid;
+  gap: 0;
+}
+
+.portfolio-page .view-switch {
+  margin-bottom: 2px;
+}
+
+.portfolio-page .pf-book-switch {
+  margin-top: 2px;
+  margin-bottom: 14px;
+}
+
 /* ── Product stages: compact arrival + live-reading reveal ── */
 
 .product-stage {
@@ -12207,9 +12273,37 @@ a.signal-block-conclusion-link:hover {
   white-space: normal;
 }
 
-.product-stage--portfolio {
-  --stage-accent: #9fb8ff;
-  --stage-glow: rgba(114, 145, 255, 0.17);
+.product-stage--portfolio .product-stage-metrics > div {
+  position: relative;
+  gap: 5px;
+  padding: 10px 11px 9px;
+}
+
+.product-stage--portfolio .product-stage-metrics > div::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 11px;
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--stage-accent) 70%, transparent);
+}
+
+.product-stage--portfolio .product-stage-metrics .is-positive::before {
+  background: #5eead4;
+}
+
+.product-stage--portfolio .product-stage-metrics .is-negative::before {
+  background: #ff8585;
+}
+
+.product-stage--portfolio .product-stage-metrics .is-alert::before {
+  background: #f8d477;
+}
+
+.product-stage--portfolio .product-stage-metrics strong {
+  padding-top: 4px;
 }
 
 .product-stage--portfolio.tone-balanced {
@@ -12506,6 +12600,7 @@ a.signal-block-conclusion-link:hover {
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .product-stage-metrics span {
@@ -13686,6 +13781,27 @@ a.signal-block-conclusion-link:hover {
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.035);
+  position: relative;
+  overflow: hidden;
+}
+
+.portfolio-insight-history-metrics > div::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14px;
+  right: 14px;
+  height: 2px;
+  border-radius: 0 0 2px 2px;
+  background: color-mix(in srgb, var(--insight-accent) 55%, transparent);
+}
+
+.portfolio-insight-history-metrics .is-best::before {
+  background: color-mix(in srgb, var(--on-ink-green) 75%, transparent);
+}
+
+.portfolio-insight-history-metrics .is-worst::before {
+  background: color-mix(in srgb, var(--on-ink-red) 75%, transparent);
 }
 
 .portfolio-insight-history-metrics span {
@@ -13703,6 +13819,8 @@ a.signal-block-conclusion-link:hover {
   font-weight: 650;
   letter-spacing: -0.03em;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  padding-top: 2px;
 }
 
 .portfolio-insight-history-metrics .is-best strong {
