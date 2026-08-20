@@ -12624,6 +12624,8 @@ a.signal-block-conclusion-link:hover {
 .product-stage-metrics .is-negative::before { background: #ff8585; }
 .product-stage-metrics .is-alert::before { background: #f8d477; }
 
+.product-stage-metrics--skeleton > div::before { content: none; }
+
 .product-stage-metrics strong {
   overflow: hidden;
   color: #ffffff;
