@@ -86,9 +86,13 @@ describe("toInstitutionalCategoryScore", () => {
   });
 
   it("remaps 0–100 ring onto signed [-100, +100]", () => {
-    const category = toInstitutionalCategoryScore("AAPL", {
-      results: [row("New", 500_000), row("Increased", 250_000), row("Increased", 100_000)],
-    });
+    const category = toInstitutionalCategoryScore(
+      "AAPL",
+      {
+        results: [row("New", 500_000), row("Increased", 250_000), row("Increased", 100_000)],
+      },
+      new Date("2026-07-28"),
+    );
     expect(category.hasData).toBe(true);
     expect(category.isStale).toBe(false);
     expect(category.score).toBeGreaterThan(0);
