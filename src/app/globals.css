@@ -12096,10 +12096,10 @@ a.signal-block-conclusion-link:hover {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
   align-items: center;
-  gap: 16px;
+  gap: 13px;
   overflow: hidden;
-  margin: 0 0 12px;
-  padding: 12px 16px;
+  margin: 0 0 9px;
+  padding: 9px 15px;
   border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 16px;
   background:
@@ -12252,7 +12252,7 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage--smart-money .product-stage-headline {
   max-width: 34ch;
-  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  font-size: clamp(1.05rem, 2vw, 1.35rem);
 }
 
 .product-stage--smart-money .product-stage-metrics {
@@ -12372,7 +12372,7 @@ a.signal-block-conclusion-link:hover {
   margin: 0;
   min-height: 1.1em;
   color: #ffffff;
-  font-size: clamp(1.3rem, 2.8vw, 1.85rem);
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
   font-weight: 730;
   letter-spacing: -0.05em;
   line-height: 1.05;
