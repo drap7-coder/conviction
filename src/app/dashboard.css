@@ -1672,6 +1672,10 @@ body {
   color: var(--on-ink-amber);
 }
 
+.company-decision-signal--tape.tone-quiet > svg {
+  color: var(--on-ink-quiet);
+}
+
 .company-decision-signal > div {
   display: grid;
   gap: 4px;
