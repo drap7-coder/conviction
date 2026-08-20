@@ -1384,16 +1384,32 @@ a.market-tape-item:focus-visible {
 }
 
 .smart-money-insight-metrics > div {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 3px;
   min-width: 0;
-  padding: 8px;
+  padding: 13px 8px 8px;
 }
 
 .smart-money-insight-metrics > div + div {
   border-left: 1px solid var(--border);
 }
+
+.smart-money-insight-metrics > div::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 8px;
+  width: 13px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--insight-accent) 70%, transparent);
+}
+
+.smart-money-insight-metrics .is-positive::before { background: #0f8f80; }
+.smart-money-insight-metrics .is-negative::before { background: #c94f4f; }
+.smart-money-insight-metrics .is-alert::before { background: #a97510; }
 
 .smart-money-insight-metrics strong,
 .smart-money-insight-metrics span {
@@ -1407,6 +1423,7 @@ a.market-tape-item:focus-visible {
   color: var(--ink);
   font-size: 0.82rem;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
   animation: smart-money-value-arrive 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -12574,12 +12591,13 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage-metrics > div {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   gap: 4px;
   min-width: 0;
-  padding: 8px 9px;
+  padding: 11px 9px 8px;
   animation: product-stage-detail-arrive 320ms 270ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
@@ -12589,6 +12607,22 @@ a.signal-block-conclusion-link:hover {
 .product-stage-metrics > div + div {
   border-left: 1px solid rgba(255, 255, 255, 0.09);
 }
+
+/* Brokerage-grade metric accent tick — mirrors the portfolio hero across every stage variant. */
+.product-stage-metrics > div::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--stage-accent) 70%, transparent);
+}
+
+.product-stage-metrics .is-positive::before { background: #5eead4; }
+.product-stage-metrics .is-negative::before { background: #ff8585; }
+.product-stage-metrics .is-alert::before { background: #f8d477; }
 
 .product-stage-metrics strong {
   overflow: hidden;
@@ -17929,6 +17963,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 }
 
 .pulse-decision-metrics > div {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -17941,6 +17976,21 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   border-left: 1px solid rgba(255, 255, 255, 0.09);
 }
 
+.pulse-decision-metrics > div::before {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 12px;
+  width: 14px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pulse-brief-accent) 75%, transparent);
+}
+
+.pulse-decision-metrics .tone-positive::before { background: #6ee7d4; }
+.pulse-decision-metrics .tone-negative::before { background: #ff8585; }
+.pulse-decision-metrics .tone-mixed::before { background: #f8d477; }
+
 .pulse-decision-metrics strong {
   overflow: hidden;
   color: #f8fafc;
@@ -17949,6 +17999,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   font-weight: 720;
   letter-spacing: -0.035em;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
