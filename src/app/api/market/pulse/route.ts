@@ -79,6 +79,7 @@ export interface PulseSector {
   ticker: string;
   name: string;
   changePercent: number | null;
+  price: number | null;
   weight: number;
   history: Array<{ date: string; close: number }>;
 }
@@ -188,6 +189,7 @@ export async function GET() {
       ticker: sector.ticker,
       name: sector.name,
       changePercent: live?.changePercent ?? q?.changePercent ?? null,
+      price: live?.price ?? q?.price ?? null,
       weight: SECTOR_WEIGHTS[sector.ticker] ?? 0,
       history: q?.sparkline.slice(-15) ?? [],
     };
