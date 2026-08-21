@@ -8,13 +8,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      url: `${SITE_URL}/watchlist`,
+      url: `${SITE_URL}/pulse`,
       lastModified: now,
       changeFrequency: "hourly",
       priority: 1,
     },
     {
-      url: `${SITE_URL}/pulse`,
+      url: `${SITE_URL}/watchlist`,
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.9,
