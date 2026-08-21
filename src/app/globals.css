@@ -1401,7 +1401,7 @@ a.market-tape-item:focus-visible {
   position: absolute;
   top: 7px;
   left: 8px;
-  width: 13px;
+  width: 14px;
   height: 2px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--insight-accent) 70%, transparent);
@@ -12265,6 +12265,11 @@ a.signal-block-conclusion-link:hover {
   padding: 8px;
 }
 
+/* Match the accent tick to this variant's tighter 8px inset. */
+.product-stage--smart-money .product-stage-metrics > div::before {
+  left: 8px;
+}
+
 .product-stage--smart-money .product-stage-metrics .is-positive {
   background: color-mix(in srgb, #5eead4 7%, transparent);
 }
@@ -18114,6 +18119,10 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
   .pulse-decision-metrics > div {
     padding: 13px 8px;
+  }
+
+  .pulse-decision-metrics > div::before {
+    left: 8px;
   }
 
   .pulse-decision-metrics strong {
