@@ -17171,6 +17171,7 @@ a.pulse-news-narrative-title:focus-visible {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: dense;
   gap: 8px;
+
   margin: 10px 12px 0;
   padding: 8px;
   border-radius: 12px;
@@ -17178,6 +17179,15 @@ a.pulse-news-narrative-title:focus-visible {
   background: #0a0a0b;
   border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
   overflow: visible;
+}
+
+/*
+ * Watchlist quote grid: uniform, wider tiles (no market-cap size weighting)
+ * so each card has room for name + price + % on one row.
+ */
+.stock-heat-grid--uniform {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-auto-flow: row;
 }
 
 /* Compact watchlist manage strip under heatmap (replaces ring list) */
@@ -17788,9 +17798,9 @@ a.heat-tile {
   overflow: hidden;
   color: rgba(255, 255, 255, 0.95);
   font-family: var(--font-mono);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
