@@ -130,3 +130,203 @@
 .portfolio-page .pf-allocation-gauge {
   background: var(--card-inset);
 }
+
+/* ── Mode switch (Live / Study) ── */
+.portfolio-page .pf-mode-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-soft);
+}
+
+.portfolio-page .pf-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.portfolio-page .pf-mode-tab.is-active {
+  background: var(--accent-dim);
+  color: var(--ink);
+}
+
+.portfolio-page .pf-mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--quiet);
+}
+
+.portfolio-page .pf-mode-tab.is-active .pf-mode-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* ── Empty state ── */
+.portfolio-page .pf-empty-prompt {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 20px;
+  margin: 0 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.portfolio-page .pf-empty-prompt > p {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ── Capital Map (donut + divider + ladder in one card) ── */
+.portfolio-page .pf-capital-map {
+  margin: 0 0 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.portfolio-page .pf-capital-map-head {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 12px;
+}
+
+.portfolio-page .pf-capital-map-head h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}
+
+.portfolio-page .pf-capital-map-donut {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2px;
+  color: var(--ink);
+}
+
+.portfolio-page .pf-capital-map-divider {
+  height: 1px;
+  margin: 16px 0;
+  background: var(--divider);
+}
+
+/* Flatten the ladder's own card chrome inside the Capital Map. */
+.portfolio-page .pf-capital-map .pf-allocation-ladder {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ── Study Mode ── */
+.portfolio-page .pf-study-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 10px;
+  scrollbar-width: none;
+}
+
+.portfolio-page .pf-study-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.portfolio-page .pf-study-chip {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-soft);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.portfolio-page .pf-study-chip.is-active {
+  background: var(--sample-dim);
+  border-color: var(--sample);
+  color: #f1e6ff;
+}
+
+.portfolio-page .pf-study-badge {
+  display: inline-flex;
+  margin: 0 0 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--sample) 40%, transparent);
+  background: var(--sample-dim);
+  color: #e9d8ff;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Purple-tint the study strategy card + kicker. */
+.portfolio-page .pf-study .portfolio-insight-card.is-strategy {
+  --accent: var(--sample);
+  border-color: color-mix(in srgb, var(--sample) 28%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--sample) 12%, var(--card)) 0%, var(--card) 55%),
+    var(--card);
+}
+
+.portfolio-page .pf-study .portfolio-insight-kicker {
+  color: var(--sample);
+}
+
+.portfolio-page .pf-study-compare {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--sample) 26%, var(--border));
+  border-radius: 12px;
+  background: var(--sample-dim);
+}
+
+.portfolio-page .pf-study-compare span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+
+.portfolio-page .pf-study-compare strong {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+
+.portfolio-page .pf-study-compare strong.is-alert { color: var(--red); }
+.portfolio-page .pf-study-compare strong.is-positive { color: var(--green); }
