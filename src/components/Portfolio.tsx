@@ -37,6 +37,7 @@ import { notifyPortfolioChanged, usePortfolioData } from "@/components/Portfolio
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import SectorDonut from "@/components/SectorDonut";
+import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
@@ -928,6 +929,12 @@ export default function Portfolio({
         </div>
       )}
 
+      {hasData && !calcFailed ? (
+        <PortfolioBenchmarkChart
+          positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
+        />
+      ) : null}
+
       {capitalMapCard}
 
       {hasData ? (
@@ -1002,11 +1009,6 @@ export default function Portfolio({
                           {label}{sortArrow(key)}
                         </button>
                       ))}
-                    </div>
-                    <div className="wl-conviction-legend pf-allocation-legend" aria-label="Allocation gauge legend">
-                      <span><i className="quote-dot green" /> Under 12%</span>
-                      <span><i className="quote-dot amber" /> 12–20%</span>
-                      <span><i className="quote-dot red" /> Over 20%</span>
                     </div>
                   </div>
 
