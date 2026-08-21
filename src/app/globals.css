@@ -1,71 +1,72 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
-
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* ── Base (gray by default) ── */
-  --bg: #f4f5f7;
-  --surface: #fafafb;
-  --surface-elevated: #ffffff;
-  --card: #ffffff;
-  --card-soft: #fafafb;
-  --card-inset: #fafafb;
-  --divider: #edeef1;
-  --border: #e4e6ea;
-  --border-active: #d1d5db;
-  --ink: #111318;
-  --muted: #6b7280;
-  --quiet: #9ca3af;
+  /* ── Brokerage dark canvas (site-wide) ── */
+  --bg: #0a0e14;
+  --surface: #0e141c;
+  --surface-elevated: #10161f;
+  --card: #10161f;
+  --card-soft: #161d28;
+  --card-inset: #161d28;
+  --divider: #1a2129;
+  --border: #232b38;
+  --border-active: #2c3646;
+  --ink: #edf1f5;
+  --muted: #8b95a5;
+  --quiet: #5b6576;
 
   /* Selection + positive / Accumulating — same teal */
-  --accent: #0d9488;
-  --accent-dim: rgba(13, 148, 136, 0.1);
-  --on-accent: #ffffff;
+  --accent: #2dd4bf;
+  --accent-dim: rgba(45, 212, 191, 0.14);
+  --on-accent: #04121a;
 
   /* ── Semantic (earned color) ── */
-  --green: #0d9488;
-  --green-dim: rgba(13, 148, 136, 0.1);
-  --green-soft: #ccfbf1;
-  --amber: #d97706;
-  --amber-dim: rgba(217, 119, 6, 0.1);
-  --amber-400: #d97706;
-  --red: #dc2626;
-  --red-dim: rgba(220, 38, 38, 0.1);
-  --red-soft: #fef2f2;
-  --red-mild: #f87171;
+  --green: #3ddc97;
+  --green-dim: rgba(61, 220, 151, 0.12);
+  --green-soft: rgba(61, 220, 151, 0.16);
+  --amber: #f2b84b;
+  --amber-dim: rgba(242, 184, 75, 0.14);
+  --amber-400: #f2b84b;
+  --red: #f0665e;
+  --red-dim: rgba(240, 102, 94, 0.12);
+  --red-soft: rgba(240, 102, 94, 0.16);
+  --red-mild: #f0665e;
   --positive: var(--green);
   --negative: var(--red);
 
-  /* Legacy tint aliases — keep gray, not incidental accent washes */
+  /* Legacy tint aliases */
   --card-accent: var(--card-soft);
-  --card-positive: var(--green-soft);
-  --card-negative: var(--red-soft);
-  --card-warning: color-mix(in srgb, var(--amber) 10%, #ffffff);
+  --card-positive: var(--green-dim);
+  --card-negative: var(--red-dim);
+  --card-warning: var(--amber-dim);
 
-  /* ── Navy ink surfaces ──
+  /* Study-mode purple */
+  --sample: #b98ce8;
+  --sample-dim: rgba(185, 140, 232, 0.16);
+
+  /* ── Ink surfaces (heroes / dark boxes) — same family as the canvas ──
      Heroes: .ink-panel (one narrative lede per view)
      Items:  .ink-box + .ink-box--up|down|amber|quiet (color-coded dark boxes)
      Chips:  .ink-chip  (highlighted text within those boxes) */
-  --ink-panel: #0f172a;
-  --ink-panel-elevated: #1e293b;
-  --on-ink: #ffffff;
-  --on-ink-muted: #94a3b8;
-  --on-ink-quiet: #64748b;
-  --on-ink-border: color-mix(in srgb, #ffffff 12%, transparent);
+  --ink-panel: #10161f;
+  --ink-panel-elevated: #161d28;
+  --on-ink: #edf1f5;
+  --on-ink-muted: #8b95a5;
+  --on-ink-quiet: #5b6576;
+  --on-ink-border: #232b38;
   --on-ink-accent: #2dd4bf;
-  --on-ink-green: #4ade80;
-  --on-ink-red: #f87171;
-  --on-ink-amber: #fbbf24;
+  --on-ink-green: #3ddc97;
+  --on-ink-red: #f0665e;
+  --on-ink-amber: #f2b84b;
 
   --shadow-sm: none;
-  --shadow-md: 0 1px 2px rgba(17, 19, 24, 0.04);
-  --shadow-lg: 0 4px 12px rgba(17, 19, 24, 0.06);
-  --shadow-ink: 0 8px 24px rgba(15, 23, 42, 0.18);
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-ink: none;
   --shadow: var(--shadow-sm);
   --radius: 12px;
-  --font-mono: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: var(--font-plex-sans), 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
 
   /* Fixed-element dimensions + shared density scale */
   --ticker-z: 100;
@@ -83,7 +84,7 @@
   --lead-min-height: 320px;
 
   /* Chart theme */
-  --chart-surface: #ffffff;
+  --chart-surface: #10161f;
   --chart-grid: var(--divider);
   --chart-border: var(--border);
   --chart-sma50: #2563eb;
@@ -115,7 +116,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Ink surfaces: navy anchors on the white UI ──
+/* ── Ink surfaces: navy anchors on the canvas ──
    .ink-panel — one hero statement per view
    .ink-box   — color-coded dark item boxes (grids, signals, cards)
    .ink-chip  — highlighted status text inside those boxes
@@ -1180,7 +1181,7 @@ a.market-tape-item:focus-visible {
   padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--card);
 }
 
 .smart-money-tab-intro > div:first-child {
@@ -1283,7 +1284,7 @@ a.market-tape-item:focus-visible {
   border: 1px solid var(--border);
   border-left: 3px solid var(--insight-accent);
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--card);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
   animation: smart-money-insight-arrive 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
@@ -1601,7 +1602,7 @@ a.market-tape-item:focus-visible {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--card);
 }
 
 .smart-money-row {
@@ -1611,7 +1612,7 @@ a.market-tape-item:focus-visible {
   align-items: center;
   min-width: 0;
   padding: 13px 15px;
-  background: #ffffff;
+  background: var(--card);
   transition: background-color 0.15s ease;
   animation: smart-money-row-arrive 360ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
@@ -1762,7 +1763,7 @@ a.market-tape-item:focus-visible {
   padding: 5px 10px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--card);
   color: var(--ink);
   font-family: inherit;
   font-size: 0.72rem;
@@ -2039,7 +2040,7 @@ a.market-tape-item:focus-visible {
   padding: 18px;
   border: 1px solid var(--border-active);
   border-radius: 18px;
-  background: #ffffff;
+  background: var(--card);
   box-shadow: 0 4px 18px rgba(17, 19, 24, 0.06);
 }
 
@@ -2255,7 +2256,7 @@ a.market-tape-item:focus-visible {
   padding: 0 0 14px;
   border: 1px solid var(--border-active);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--card);
   color: var(--ink);
   box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
   overflow: hidden;
@@ -13039,7 +13040,7 @@ a.signal-block-conclusion-link:hover {
   min-height: 92px;
   border: 1px solid var(--border);
   border-radius: 17px;
-  background: #ffffff;
+  background: var(--card);
 }
 
 .daily-brief-loading {
@@ -13266,7 +13267,7 @@ a.signal-block-conclusion-link:hover {
   border-radius: 19px;
   background:
     radial-gradient(circle at 98% 0%, color-mix(in srgb, var(--feed-accent) 8%, transparent), transparent 32%),
-    #ffffff;
+    var(--card);
   color: var(--ink);
   box-shadow: 0 9px 25px rgba(15, 23, 42, 0.055);
   text-decoration: none;
@@ -13276,7 +13277,7 @@ a.signal-block-conclusion-link:hover {
 .for-you-feed-card.is-alt {
   background:
     radial-gradient(circle at 98% 0%, color-mix(in srgb, var(--feed-accent) 12%, transparent), transparent 32%),
-    color-mix(in srgb, var(--ink) 4%, #f3f5f8);
+    var(--card-soft);
   border-color: color-mix(in srgb, var(--ink) 10%, var(--border));
 }
 
@@ -13555,7 +13556,7 @@ a.signal-block-conclusion-link:hover {
   min-height: 100px;
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: #ffffff;
+  background: var(--card);
 }
 
 .for-you-feed-loading {
@@ -15325,7 +15326,7 @@ button.portfolio-check-item:focus-visible {
   margin-top: 10px;
   border: 1px solid var(--border);
   border-radius: 14px;
-  background: #ffffff;
+  background: var(--card);
   overflow: hidden;
 }
 
@@ -15431,7 +15432,7 @@ button.portfolio-check-item:focus-visible {
   flex-shrink: 0;
   padding: 5px 11px;
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--card);
   border: 1px solid color-mix(in srgb, var(--border) 90%, var(--ink));
   color: var(--ink);
   font-family: var(--font-mono);
@@ -15719,7 +15720,7 @@ button.portfolio-check-item:focus-visible {
   margin: 0;
   border: 1px solid color-mix(in srgb, var(--border) 88%, var(--ink));
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--card);
   box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 4%, transparent);
   overflow: hidden;
   min-width: 0;
@@ -16212,7 +16213,7 @@ button.portfolio-check-item:focus-visible {
 .pulse-news-narrative.is-alt {
   background:
     radial-gradient(circle at 102% -8%, color-mix(in srgb, var(--narrative-accent) 12%, transparent), transparent 32%),
-    color-mix(in srgb, var(--ink) 4%, #f3f5f8);
+    var(--card-soft);
   border-color: color-mix(in srgb, var(--ink) 10%, var(--border));
 }
 
@@ -16532,7 +16533,7 @@ a.pulse-news-narrative-title:focus-visible {
   padding: 7px 11px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--card);
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.6rem;
@@ -16556,7 +16557,7 @@ a.pulse-news-narrative-title:focus-visible {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--card);
 }
 
 .pulse-news-row {
@@ -16566,7 +16567,7 @@ a.pulse-news-narrative-title:focus-visible {
   align-items: center;
   min-width: 0;
   padding: 13px 15px;
-  background: #ffffff;
+  background: var(--card);
   transition: background-color 0.15s ease;
 }
 
@@ -16633,7 +16634,7 @@ a.pulse-news-narrative-title:focus-visible {
   padding: 8px 13px;
   border: 1px solid var(--border);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--card);
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.62rem;
@@ -16651,7 +16652,7 @@ a.pulse-news-narrative-title:focus-visible {
   padding: 32px 20px;
   border: 1px solid var(--border);
   border-radius: 18px;
-  background: #ffffff;
+  background: var(--card);
   color: var(--muted);
   font-size: 0.9rem;
   line-height: 1.45;
@@ -17012,7 +17013,7 @@ a.pulse-news-narrative-title:focus-visible {
   padding: 0 0 12px;
   border: 1px solid var(--border-active);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--card);
   box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
   color: var(--ink);
   font-family: var(--font-mono);
@@ -17028,10 +17029,10 @@ a.pulse-news-narrative-title:focus-visible {
   margin: 0;
   padding: 12px 14px;
   border: none;
-  border-bottom: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  border-bottom: 1px solid var(--divider);
   border-radius: 0;
-  background: #0f172a;
-  color: #fff;
+  background: var(--surface-elevated);
+  color: var(--ink);
   box-shadow: none;
 }
 
@@ -18244,7 +18245,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   padding: 0 0 14px;
   border: 1px solid var(--border-active);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--card);
   color: var(--ink);
   box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
   overflow: hidden;
