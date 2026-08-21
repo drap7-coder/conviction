@@ -13368,12 +13368,12 @@ a.signal-block-conclusion-link:hover {
 }
 
 .for-you-feed-card.is-lead h3 {
-  max-width: 21ch;
+  max-width: 24ch;
   margin-top: auto;
   color: #ffffff;
-  font-size: clamp(1.75rem, 4.2vw, 3rem);
-  letter-spacing: -0.055em;
-  line-height: 1.01;
+  font-size: clamp(1.4rem, 3vw, 2.05rem);
+  letter-spacing: -0.05em;
+  line-height: 1.08;
 }
 
 .for-you-feed-card.is-lead .for-you-feed-company strong {
@@ -13620,7 +13620,7 @@ a.signal-block-conclusion-link:hover {
   .for-you-feed-card.is-lead h3 {
     max-width: none;
     margin-top: 12px;
-    font-size: 1.55rem;
+    font-size: 1.35rem;
   }
 
   .for-you-feed-card footer {
