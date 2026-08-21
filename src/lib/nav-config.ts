@@ -8,9 +8,9 @@ export interface NavTab {
 }
 
 export const navTabs: NavTab[] = [
+  { href: "/pulse", label: "Pulse", icon: BarChart3, tone: "amber" },
   { href: "/watchlist", label: "Watchlist", icon: List, tone: "teal" },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase, tone: "blue" },
-  { href: "/pulse", label: "Pulse", icon: BarChart3, tone: "amber" },
   { href: "/news", label: "News", icon: Newspaper, tone: "rose" },
   { href: "/smart-money", label: "Smart Money", icon: Landmark, tone: "violet" },
 ];
