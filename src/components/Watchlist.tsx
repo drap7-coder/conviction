@@ -642,6 +642,7 @@ export default function Watchlist({
           loading={loading}
           showStatusDot={false}
           showPrice
+          uniform
           sessionLabel={
             entries
               .map((entry) => {

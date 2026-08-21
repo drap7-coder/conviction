@@ -48,6 +48,11 @@ interface StockHeatmapProps {
   showStatusDot?: boolean;
   /** Show each tile's last price in a bottom row (watchlist quote grid). */
   showPrice?: boolean;
+  /**
+   * Uniform equal-width tiles (no market-cap size weighting) in a wider
+   * auto-fill grid. Used for the watchlist quote grid so price + % fit.
+   */
+  uniform?: boolean;
 }
 
 function tileSpan(marketCap: number | null, maxMarketCap: number): number {
@@ -106,6 +111,7 @@ export function StockHeatmap({
   liveCards = true,
   showStatusDot = true,
   showPrice = false,
+  uniform = false,
 }: StockHeatmapProps) {
   const footerSlot = footer ? (
     <div className="stock-heat-footer">{footer}</div>
@@ -138,9 +144,9 @@ export function StockHeatmap({
     <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
       <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
       {footerSlot}
-      <div className="stock-heat-grid">
+      <div className={`stock-heat-grid${uniform ? " stock-heat-grid--uniform" : ""}`}>
         {items.map((item) => {
-          const span = tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
+          const span = uniform ? 1 : tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
           return (
             <HeatTile
               key={item.ticker}
