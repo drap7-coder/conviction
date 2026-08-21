@@ -56,6 +56,7 @@ export default function NewsPage() {
         variant="news"
         aria-label="News intelligence"
         loading={status === "loading"}
+        eyebrow="News"
         headline=""
         statOnly
         metrics={
