@@ -12075,8 +12075,8 @@ a.signal-block-conclusion-link:hover {
 /* ── Product stages: compact arrival + live-reading reveal ── */
 
 .product-stage {
-  --stage-accent: #5eead4;
-  --stage-glow: rgba(45, 212, 191, 0.14);
+  --stage-accent: var(--accent);
+  --stage-glow: var(--accent-dim);
   position: relative;
   isolation: isolate;
   display: grid;
@@ -12086,13 +12086,13 @@ a.signal-block-conclusion-link:hover {
   overflow: hidden;
   margin: 0 0 9px;
   padding: 9px 15px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--border);
   border-radius: 16px;
   background:
     radial-gradient(circle at 93% 3%, var(--stage-glow), transparent 34%),
-    linear-gradient(145deg, #0b0f14 0%, #101722 100%);
-  color: #f8fafc;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+    var(--card);
+  color: var(--ink);
+  box-shadow: none;
   animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
@@ -12200,18 +12200,18 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--pulse {
-  --stage-accent: #f8d477;
-  --stage-glow: rgba(248, 212, 119, 0.14);
+  --stage-accent: var(--amber);
+  --stage-glow: var(--amber-dim);
 }
 
 .product-stage--news {
-  --stage-accent: #fb8ca0;
-  --stage-glow: rgba(251, 113, 133, 0.16);
+  --stage-accent: var(--red);
+  --stage-glow: var(--red-dim);
 }
 
 .product-stage--watchlist {
-  --stage-accent: #5eead4;
-  --stage-glow: rgba(94, 234, 212, 0.14);
+  --stage-accent: var(--accent);
+  --stage-glow: var(--accent-dim);
 }
 
 .product-stage--smart-money {
@@ -12222,18 +12222,18 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--smart-money.tone-positive {
-  --stage-accent: #5eead4;
-  --stage-glow: rgba(45, 212, 191, 0.15);
+  --stage-accent: var(--accent);
+  --stage-glow: var(--accent-dim);
 }
 
 .product-stage--smart-money.tone-negative {
-  --stage-accent: #ff8585;
-  --stage-glow: rgba(248, 113, 113, 0.15);
+  --stage-accent: var(--red);
+  --stage-glow: var(--red-dim);
 }
 
 .product-stage--smart-money.tone-watch {
-  --stage-accent: #f8d477;
-  --stage-glow: rgba(248, 212, 119, 0.15);
+  --stage-accent: var(--amber);
+  --stage-glow: var(--amber-dim);
 }
 
 .product-stage--smart-money .product-stage-headline {
@@ -12243,7 +12243,7 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage--smart-money .product-stage-metrics {
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.035);
+  background: var(--card-soft);
 }
 
 .product-stage--smart-money .product-stage-metrics > div {
@@ -12257,15 +12257,15 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--smart-money .product-stage-metrics .is-positive {
-  background: color-mix(in srgb, #5eead4 7%, transparent);
+  background: var(--accent-dim);
 }
 
 .product-stage--smart-money .product-stage-metrics .is-negative {
-  background: color-mix(in srgb, #ff8585 7%, transparent);
+  background: var(--red-dim);
 }
 
 .product-stage--smart-money .product-stage-metrics .is-alert {
-  background: color-mix(in srgb, #f8d477 7%, transparent);
+  background: var(--amber-dim);
 }
 
 .product-stage--smart-money .product-stage-metrics strong {
@@ -12299,15 +12299,15 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--portfolio .product-stage-metrics .is-positive::before {
-  background: #5eead4;
+  background: var(--accent);
 }
 
 .product-stage--portfolio .product-stage-metrics .is-negative::before {
-  background: #ff8585;
+  background: var(--red);
 }
 
 .product-stage--portfolio .product-stage-metrics .is-alert::before {
-  background: #f8d477;
+  background: var(--amber);
 }
 
 .product-stage--portfolio .product-stage-metrics strong {
@@ -12315,18 +12315,18 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--portfolio.tone-balanced {
-  --stage-accent: #5eead4;
-  --stage-glow: rgba(45, 212, 191, 0.15);
+  --stage-accent: var(--accent);
+  --stage-glow: var(--accent-dim);
 }
 
 .product-stage--portfolio.tone-watch {
-  --stage-accent: #f8d477;
-  --stage-glow: rgba(248, 212, 119, 0.15);
+  --stage-accent: var(--amber);
+  --stage-glow: var(--amber-dim);
 }
 
 .product-stage--portfolio.tone-concentrated {
-  --stage-accent: #ff8585;
-  --stage-glow: rgba(248, 113, 113, 0.15);
+  --stage-accent: var(--red);
+  --stage-glow: var(--red-dim);
 }
 
 /* Stat-only stage: a compact metric strip (no headline/summary copy). */
@@ -12358,7 +12358,7 @@ a.signal-block-conclusion-link:hover {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #a7b0bf;
+  color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 750;
@@ -12381,7 +12381,7 @@ a.signal-block-conclusion-link:hover {
   max-width: 24ch;
   margin: 0;
   min-height: 1.1em;
-  color: #ffffff;
+  color: var(--ink);
   font-size: clamp(1.1rem, 2.2vw, 1.5rem);
   font-weight: 730;
   letter-spacing: -0.05em;
@@ -12532,7 +12532,7 @@ a.signal-block-conclusion-link:hover {
 .product-stage p {
   max-width: 38rem;
   margin: 1px 0 0;
-  color: #9da8b8;
+  color: var(--muted);
   font-family: var(--font-sans);
   font-size: clamp(0.72rem, 1.2vw, 0.8rem);
   line-height: 1.45;
@@ -12553,7 +12553,7 @@ a.signal-block-conclusion-link:hover {
   padding: 0;
   border: 0;
   background: transparent;
-  color: #c5cedb;
+  color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 700;
@@ -12564,7 +12564,7 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage-action:hover,
 .product-stage-action:focus-visible {
-  color: #ffffff;
+  color: var(--ink);
 }
 
 .product-stage-action:disabled {
@@ -12579,7 +12579,7 @@ a.signal-block-conclusion-link:hover {
 .product-stage-note {
   display: block;
   margin-top: 2px;
-  color: #788599;
+  color: var(--quiet);
   font-family: var(--font-mono);
   font-size: 0.52rem;
   line-height: 1.4;
@@ -12592,9 +12592,9 @@ a.signal-block-conclusion-link:hover {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-self: stretch;
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.045);
+  background: var(--card-soft);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   animation: product-stage-detail-arrive 400ms 210ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -12615,7 +12615,7 @@ a.signal-block-conclusion-link:hover {
 .product-stage-metrics > div:nth-child(3) { animation-delay: 370ms; }
 
 .product-stage-metrics > div + div {
-  border-left: 1px solid rgba(255, 255, 255, 0.09);
+  border-left: 1px solid var(--border);
 }
 
 /* Brokerage-grade metric accent tick — mirrors the portfolio hero across every stage variant. */
@@ -12630,15 +12630,15 @@ a.signal-block-conclusion-link:hover {
   background: color-mix(in srgb, var(--stage-accent) 70%, transparent);
 }
 
-.product-stage-metrics .is-positive::before { background: #5eead4; }
-.product-stage-metrics .is-negative::before { background: #ff8585; }
-.product-stage-metrics .is-alert::before { background: #f8d477; }
+.product-stage-metrics .is-positive::before { background: var(--accent); }
+.product-stage-metrics .is-negative::before { background: var(--red); }
+.product-stage-metrics .is-alert::before { background: var(--amber); }
 
 .product-stage-metrics--skeleton > div::before { content: none; }
 
 .product-stage-metrics strong {
   overflow: hidden;
-  color: #ffffff;
+  color: var(--ink);
   font-family: var(--font-mono);
   font-size: clamp(0.86rem, 1.6vw, 1.02rem);
   font-weight: 700;
@@ -12651,7 +12651,7 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage-metrics span {
   overflow: hidden;
-  color: #7f8a9a;
+  color: var(--quiet);
   font-family: var(--font-mono);
   font-size: 0.52rem;
   font-weight: 700;
@@ -12663,15 +12663,15 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage-metrics .is-alert strong {
-  color: #f8d477;
+  color: var(--amber);
 }
 
 .product-stage-metrics .is-positive strong {
-  color: #5eead4;
+  color: var(--accent);
 }
 
 .product-stage-metrics .is-negative strong {
-  color: #ff8585;
+  color: var(--red);
 }
 
 .product-stage-metrics--text strong {
@@ -12853,12 +12853,12 @@ a.signal-block-conclusion-link:hover {
   grid-row: 1 / span 2;
   min-height: 400px;
   padding: clamp(22px, 3.5vw, 30px);
-  border-color: rgba(255, 255, 255, 0.09);
+  border-color: var(--border);
   background:
     radial-gradient(circle at 93% 3%, color-mix(in srgb, var(--brief-accent) 16%, transparent), transparent 35%),
-    linear-gradient(145deg, #0b0f14, #111926);
-  color: #ffffff;
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.18);
+    var(--card);
+  color: var(--ink);
+  box-shadow: none;
 }
 
 .daily-brief-grid.item-count-1 .daily-brief-card.is-lead,
@@ -13990,29 +13990,29 @@ a.signal-block-conclusion-link:hover {
 /* ── Portfolio Check findings (shared list language) ── */
 
 .portfolio-check-card {
-  --check-accent: #65f2a6;
-  --check-accent-soft: rgba(101, 242, 166, 0.12);
+  --check-accent: var(--green);
+  --check-accent-soft: var(--green-dim);
   position: relative;
   isolation: isolate;
   overflow: hidden;
   margin: 0 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--border);
   border-radius: 22px;
   background:
     radial-gradient(circle at 91% 2%, var(--check-accent-soft), transparent 28%),
-    #0b0f14;
-  color: #f7faf9;
-  box-shadow: 0 24px 64px rgba(7, 10, 14, 0.2);
+    var(--card);
+  color: var(--ink);
+  box-shadow: none;
 }
 
 .portfolio-check-watch {
-  --check-accent: #f8d477;
-  --check-accent-soft: rgba(248, 212, 119, 0.12);
+  --check-accent: var(--amber);
+  --check-accent-soft: var(--amber-dim);
 }
 
 .portfolio-check-attention {
-  --check-accent: #ff8a77;
-  --check-accent-soft: rgba(255, 138, 119, 0.12);
+  --check-accent: var(--red);
+  --check-accent-soft: var(--red-dim);
 }
 
 .portfolio-check-header {
@@ -14073,7 +14073,7 @@ a.signal-block-conclusion-link:hover {
   height: 104px;
   border-radius: 50%;
   background:
-    radial-gradient(circle, #0b0f14 63%, transparent 65%),
+    radial-gradient(circle, var(--card) 63%, transparent 65%),
     conic-gradient(var(--check-accent) calc(var(--portfolio-score) * 1%), rgba(255, 255, 255, 0.1) 0);
   box-shadow: 0 0 34px var(--check-accent-soft);
 }
@@ -16214,12 +16214,12 @@ button.portfolio-check-item:focus-visible {
   grid-row: 1 / span 2;
   min-height: var(--lead-min-height);
   padding: clamp(16px, 2.5vw, 22px);
-  border-color: rgba(255, 255, 255, 0.09);
+  border-color: var(--border);
   background:
     radial-gradient(circle at 93% 3%, color-mix(in srgb, var(--narrative-accent) 16%, transparent), transparent 34%),
-    linear-gradient(145deg, #0b0f14, #111926);
-  color: #ffffff;
-  box-shadow: 0 22px 54px rgba(15, 23, 42, 0.2);
+    var(--card);
+  color: var(--ink);
+  box-shadow: none;
 }
 
 .pulse-news-narrative.is-featured::after {
@@ -16991,15 +16991,15 @@ a.pulse-news-narrative-title:focus-visible {
   margin-bottom: var(--section-gap);
 }
 
-/* Heatmaps: bright white shell + flush dark title (Watchlist + Pulse). */
+/* Heatmaps: dark card + flush title (Watchlist + Pulse). */
 .stock-heat-panel,
 .market-heatmap-shell {
   margin: 0 0 var(--section-gap);
   padding: 0 0 12px;
-  border: 1px solid var(--border-active);
+  border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--card);
-  box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
+  box-shadow: none;
   color: var(--ink);
   font-family: var(--font-mono);
   overflow: hidden;
@@ -17040,7 +17040,7 @@ a.pulse-news-narrative-title:focus-visible {
   padding: 0;
   border-radius: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.96);
+  color: var(--ink);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -17049,10 +17049,10 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .stock-heat-title {
-  /* Watchlist / Portfolio keep a quiet label chip. */
+  /* Quiet label chip on the already-dark header. */
   padding: 5px 9px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.35);
+  background: var(--card-soft);
   letter-spacing: 0.06em;
   font-size: 0.74rem;
 }
@@ -17064,8 +17064,8 @@ a.pulse-news-narrative-title:focus-visible {
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  background: color-mix(in srgb, #ffffff 28%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, #ffffff 18%, transparent);
+  background: var(--border-active);
+  box-shadow: none;
 }
 
 .pulse-day-status--up {
@@ -17084,7 +17084,7 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-day-status--quiet {
-  background: color-mix(in srgb, #ffffff 28%, transparent);
+  background: var(--border-active);
 }
 
 .stock-heat-subtitle,
@@ -17092,8 +17092,8 @@ a.pulse-news-narrative-title:focus-visible {
   margin: 0;
   padding: 6px 10px;
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.25);
-  color: rgba(255, 255, 255, 0.86);
+  background: var(--card-soft);
+  color: var(--muted);
   font-size: 0.68rem;
   line-height: 1.45;
   width: fit-content;
@@ -17105,7 +17105,7 @@ a.pulse-news-narrative-title:focus-visible {
   flex-wrap: wrap;
   gap: 8px 12px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--muted);
   font-size: 0.58rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -17117,7 +17117,7 @@ a.pulse-news-narrative-title:focus-visible {
   gap: 6px;
   padding: 3px 7px;
   border-radius: 6px;
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--card-soft);
 }
 
 .stock-heat-swatch {
@@ -17161,17 +17161,17 @@ a.pulse-news-narrative-title:focus-visible {
   margin: 10px 12px 0;
   padding: 8px;
   border-radius: 12px;
-  /* Black well so dark heat tiles stand out (not a pale pad). */
-  background: #0a0a0b;
-  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  background: var(--bg);
+  border: 1px solid var(--border);
   overflow: visible;
 }
 
 /*
- * Watchlist quote grid: uniform, wider tiles (no market-cap size weighting)
+ * Uniform quote grids: equal tiles (no market-cap size weighting)
  * so each card has room for name + price + % on one row.
  */
-.stock-heat-grid--uniform {
+.stock-heat-grid--uniform,
+.market-heatmap--uniform {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   grid-auto-flow: row;
 }
@@ -17476,8 +17476,8 @@ a.pulse-news-narrative-title:focus-visible {
   margin: 10px 12px 0;
   padding: 8px;
   border-radius: 12px;
-  background: #0a0a0b;
-  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  background: var(--bg);
+  border: 1px solid var(--border);
 }
 
 .stock-heat-loading-tile {
@@ -17547,8 +17547,8 @@ a.pulse-news-narrative-title:focus-visible {
   margin: 10px 12px 0;
   padding: 8px;
   border-radius: 12px;
-  background: #0a0a0b;
-  border: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  background: var(--bg);
+  border: 1px solid var(--border);
 }
 
 .market-panel-header {
@@ -17669,11 +17669,6 @@ a.pulse-news-narrative-title:focus-visible {
 
 .market-heatmap.compact {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-/* Compact Pulse groups (indexes / commodities): slightly shorter name tiles. */
-.market-heatmap-shell .market-heatmap.compact .heat-tile {
-  height: 6.25rem;
 }
 
 /* Shared magnitude heat tiles (Pulse, Industries, StockHeatmap) */
@@ -17941,8 +17936,8 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 /* Pulse tab briefs: interpret the tape before presenting the instruments. */
 .pulse-decision-card {
-  --pulse-brief-accent: #f8d477;
-  --pulse-brief-glow: rgba(248, 212, 119, 0.13);
+  --pulse-brief-accent: var(--amber);
+  --pulse-brief-glow: var(--amber-dim);
   position: relative;
   isolation: isolate;
   display: grid;
@@ -17952,13 +17947,13 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   overflow: hidden;
   margin: 0 0 18px;
   padding: clamp(22px, 3.5vw, 34px);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--border);
   border-radius: 20px;
   background:
     radial-gradient(circle at 96% 0%, var(--pulse-brief-glow), transparent 38%),
-    linear-gradient(145deg, #111722 0%, #0b1017 100%);
-  color: #f8fafc;
-  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.15);
+    var(--card);
+  color: var(--ink);
+  box-shadow: none;
 }
 
 .pulse-decision-card::before {
@@ -17973,18 +17968,18 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 }
 
 .pulse-decision-card.tone-positive {
-  --pulse-brief-accent: #5eead4;
-  --pulse-brief-glow: rgba(45, 212, 191, 0.14);
+  --pulse-brief-accent: var(--accent);
+  --pulse-brief-glow: var(--accent-dim);
 }
 
 .pulse-decision-card.tone-negative {
-  --pulse-brief-accent: #ff8585;
-  --pulse-brief-glow: rgba(248, 113, 113, 0.14);
+  --pulse-brief-accent: var(--red);
+  --pulse-brief-glow: var(--red-dim);
 }
 
 .pulse-decision-card.tone-mixed {
-  --pulse-brief-accent: #f8d477;
-  --pulse-brief-glow: rgba(248, 212, 119, 0.13);
+  --pulse-brief-accent: var(--amber);
+  --pulse-brief-glow: var(--amber-dim);
 }
 
 .pulse-decision-copy {
@@ -18069,9 +18064,9 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   background: color-mix(in srgb, var(--pulse-brief-accent) 75%, transparent);
 }
 
-.pulse-decision-metrics .tone-positive::before { background: #6ee7d4; }
-.pulse-decision-metrics .tone-negative::before { background: #ff8585; }
-.pulse-decision-metrics .tone-mixed::before { background: #f8d477; }
+.pulse-decision-metrics .tone-positive::before { background: var(--accent); }
+.pulse-decision-metrics .tone-negative::before { background: var(--red); }
+.pulse-decision-metrics .tone-mixed::before { background: var(--amber); }
 
 .pulse-decision-metrics strong {
   overflow: hidden;

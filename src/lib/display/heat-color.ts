@@ -16,26 +16,26 @@ const MILD_DOWN_THRESHOLD = 1;
 
 export type HeatBand = "flat" | "up-mild" | "up-strong" | "up-extreme" | "down-mild" | "down-strong" | "down-extreme";
 
-/** Tile fill — Tailwind emerald / rose / neutral scale (dark UI). */
+/** Tile fill — brokerage teal / red / canvas (readable white type). */
 export const HEAT_TILE_BG: Record<HeatBand, string> = {
-  flat: "#262626", // neutral-800
-  "up-mild": "#064E3B", // emerald-900
-  "up-strong": "#047857", // emerald-700
-  "up-extreme": "#10B981", // emerald-500
-  "down-mild": "#4C0519", // rose-950
-  "down-strong": "#9F1239", // rose-800
-  "down-extreme": "#E11D48", // rose-600
+  flat: "#1c2430",
+  "up-mild": "#0c3d38",
+  "up-strong": "#0f6e66",
+  "up-extreme": "#14b8a6",
+  "down-mild": "#3d1818",
+  "down-strong": "#8f3532",
+  "down-extreme": "#e0554d",
 };
 
 /** Percent chip fill + text — contrast matched to the chip, not the tile. */
 export const HEAT_CHIP: Record<HeatBand, { background: string; color: string }> = {
-  flat: { background: "#404040", color: "#E5E5E5" }, // neutral-700 / 200
-  "up-mild": { background: "#065F46", color: "#D1FAE5" }, // emerald-800 / 100
-  "up-strong": { background: "#059669", color: "#FFFFFF" }, // emerald-600 / white
-  "up-extreme": { background: "#34D399", color: "#022C22" }, // emerald-400 / 950
-  "down-mild": { background: "#881337", color: "#FFE4E6" }, // rose-900 / 100
-  "down-strong": { background: "#BE123C", color: "#FFFFFF" }, // rose-700 / white
-  "down-extreme": { background: "#F43F5E", color: "#FFFFFF" }, // rose-500 / white
+  flat: { background: "#2c3646", color: "#edf1f5" },
+  "up-mild": { background: "#0f6e66", color: "#d5f6f1" },
+  "up-strong": { background: "#14b8a6", color: "#04121a" },
+  "up-extreme": { background: "#2dd4bf", color: "#04121a" },
+  "down-mild": { background: "#6b2a28", color: "#fde8e6" },
+  "down-strong": { background: "#c24e48", color: "#ffffff" },
+  "down-extreme": { background: "#f0665e", color: "#04121a" },
 };
 
 /** Legend swatches (tile backgrounds). */
@@ -46,7 +46,7 @@ export const HEAT_TEAL = HEAT_TILE_BG["up-extreme"];
 export const HEAT_RED_SOFT_BG = HEAT_TILE_BG["down-mild"];
 export const HEAT_RED_MID = HEAT_TILE_BG["down-strong"];
 export const HEAT_RED_STRONG = HEAT_TILE_BG["down-extreme"];
-export const HEAT_RED_MILD = "#F87171";
+export const HEAT_RED_MILD = "#f0665e";
 
 export type ChangeToneClass =
   | "positive"

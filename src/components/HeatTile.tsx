@@ -36,7 +36,7 @@ export interface HeatTileProps {
   sparkline?: number[] | null;
   /** Optional last price shown in the tile foot (watchlist quote grid). */
   price?: number | null;
-  /** Show the pulsing live/status dot. Off for the watchlist quote grid. */
+  /** Show the pulsing live/status dot. Off by default — tone + % already convey direction. */
   showLiveDot?: boolean;
 }
 
@@ -64,7 +64,7 @@ export function HeatTile({
   live = true,
   sparkline = null,
   price = null,
-  showLiveDot = true,
+  showLiveDot = false,
 }: HeatTileProps) {
   const band: HeatBand = heatBand(changePercent);
   const accent = accentFromBand(band);

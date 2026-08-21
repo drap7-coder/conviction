@@ -34,23 +34,23 @@ interface StockHeatmapProps {
   loading?: boolean;
   /** Live session chip — "Pre-Market" / "After Hours" when extended hours are active */
   sessionLabel?: string | null;
-  /** Context feed nested under the tiles inside the white shell (e.g. What’s changing). */
+  /** Context feed nested under the tiles (e.g. What’s changing). */
   footer?: ReactNode;
   /**
-   * Live tile polish (glow, ping, sparkline, update flash).
+   * Live tile polish (glow, sparkline, update flash).
    * On by default for every heatmap; pass false only to opt out.
    */
   liveCards?: boolean;
   /**
-   * Show each tile's pulsing live/status dot. Off for the watchlist quote
-   * grid, where tone + % already convey direction.
+   * Show each tile's pulsing live/status dot. Off by default — tone + %
+   * already convey direction on every heatmap.
    */
   showStatusDot?: boolean;
-  /** Show each tile's last price in a bottom row (watchlist quote grid). */
+  /** Show each tile's last price in a bottom row. On by default. */
   showPrice?: boolean;
   /**
    * Uniform equal-width tiles (no market-cap size weighting) in a wider
-   * auto-fill grid. Used for the watchlist quote grid so price + % fit.
+   * auto-fill grid so price + % fit. On by default for every heatmap.
    */
   uniform?: boolean;
 }
@@ -109,9 +109,9 @@ export function StockHeatmap({
   sessionLabel = null,
   footer = null,
   liveCards = true,
-  showStatusDot = true,
-  showPrice = false,
-  uniform = false,
+  showStatusDot = false,
+  showPrice = true,
+  uniform = true,
 }: StockHeatmapProps) {
   const footerSlot = footer ? (
     <div className="stock-heat-footer">{footer}</div>

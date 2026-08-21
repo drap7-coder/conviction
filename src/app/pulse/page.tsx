@@ -90,7 +90,7 @@ function GlobalMarketsHeatmap({
   subtitle,
   narrativeGroup,
   narratives,
-  uniformTiles = false,
+  uniformTiles = true,
   showDrivers = true,
   tileSubtitle,
 }: {
@@ -132,7 +132,13 @@ function GlobalMarketsHeatmap({
           <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
         </div>
       ) : null}
-      <div className={`market-heatmap${markets.length <= 3 ? " compact" : ""}`}>
+      <div
+        className={[
+          "market-heatmap",
+          markets.length <= 3 ? "compact" : null,
+          uniformTiles && markets.length > 3 ? "market-heatmap--uniform" : null,
+        ].filter(Boolean).join(" ")}
+      >
         {markets.map((market) => {
           const span = uniformTiles ? 1 : tileSpan(market.weight);
           const sub = tileSubtitle ? tileSubtitle(market) : market.ticker;
@@ -147,6 +153,8 @@ function GlobalMarketsHeatmap({
               style={{ gridColumn: `span ${span} / span ${span}` }}
               live
               sparkline={(market.history ?? []).map((point) => point.close)}
+              price={market.price}
+              showLiveDot={false}
             />
           );
         })}
@@ -160,7 +168,7 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
     ticker: sector.ticker,
     name: sector.name,
     changePercent: sector.changePercent,
-    price: null,
+    price: sector.price,
     weight: sector.weight,
     category: "Sector",
     history: sector.history ?? [],
@@ -267,6 +275,7 @@ export default function MarketPulsePage() {
                 subtitle=""
                 narrativeGroup="Industries"
                 narratives={data.marketNarratives.themes}
+                uniformTiles
               />
             </div>
 
@@ -305,6 +314,7 @@ export default function MarketPulsePage() {
                 subtitle=""
                 narrativeGroup="International"
                 narratives={data.marketNarratives.themes}
+                uniformTiles
                 showDrivers={false}
               />
             </div>

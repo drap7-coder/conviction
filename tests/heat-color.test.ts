@@ -41,10 +41,10 @@ describe("heatBand / heatTileColor", () => {
 
 describe("heatChipColors", () => {
   it("returns contrast-matched chip colors per band", () => {
-    expect(heatChipColors(0.4)).toEqual({ background: "#065F46", color: "#D1FAE5" });
-    expect(heatChipColors(6.9)).toEqual({ background: "#059669", color: "#FFFFFF" });
-    expect(heatChipColors(-8.8)).toEqual({ background: "#F43F5E", color: "#FFFFFF" });
-    expect(heatChipColors(0)).toEqual({ background: "#404040", color: "#E5E5E5" });
+    expect(heatChipColors(0.4)).toEqual({ background: "#0f6e66", color: "#d5f6f1" });
+    expect(heatChipColors(6.9)).toEqual({ background: "#14b8a6", color: "#04121a" });
+    expect(heatChipColors(-8.8)).toEqual({ background: "#f0665e", color: "#04121a" });
+    expect(heatChipColors(0)).toEqual({ background: "#2c3646", color: "#edf1f5" });
   });
 });
 
