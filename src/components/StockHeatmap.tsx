@@ -41,6 +41,13 @@ interface StockHeatmapProps {
    * On by default for every heatmap; pass false only to opt out.
    */
   liveCards?: boolean;
+  /**
+   * Show each tile's pulsing live/status dot. Off for the watchlist quote
+   * grid, where tone + % already convey direction.
+   */
+  showStatusDot?: boolean;
+  /** Show each tile's last price in a bottom row (watchlist quote grid). */
+  showPrice?: boolean;
 }
 
 function tileSpan(marketCap: number | null, maxMarketCap: number): number {
@@ -97,6 +104,8 @@ export function StockHeatmap({
   sessionLabel = null,
   footer = null,
   liveCards = true,
+  showStatusDot = true,
+  showPrice = false,
 }: StockHeatmapProps) {
   const footerSlot = footer ? (
     <div className="stock-heat-footer">{footer}</div>
@@ -143,6 +152,8 @@ export function StockHeatmap({
               style={{ gridColumn: `span ${span} / span ${span}` }}
               live={liveCards}
               sparkline={item.sparkline ?? null}
+              price={showPrice ? (item.price ?? null) : null}
+              showLiveDot={showStatusDot}
             />
           );
         })}
