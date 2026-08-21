@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Portfolio from "@/components/Portfolio";
 import { PortfolioDataProvider } from "@/components/PortfolioData";
+import "@/app/portfolio.css";
 
 export const metadata: Metadata = {
   title: "Portfolio",

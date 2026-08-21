@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+/*
+ * Portfolio dark theme (scoped to .portfolio-page).
+ *
+ * The app is token-driven, so remapping the semantic CSS variables inside
+ * this scope flips the vast majority of portfolio surfaces to dark. Fonts
+ * are remapped to IBM Plex (Mono for data, Sans for narrative). Only a few
+ * surfaces that hardcode light colors need explicit overrides below.
+ */
+
+.portfolio-page {
+  /* Base surfaces */
+  --bg: #0a0e14;
+  --surface: #0e141c;
+  --surface-elevated: #10161f;
+  --card: #10161f;
+  --card-soft: #161d28;
+  --card-inset: #161d28;
+  --divider: #1a2129;
+  --border: #232b38;
+  --border-active: #2c3646;
+
+  /* Text */
+  --ink: #edf1f5;
+  --muted: #8b95a5;
+  --quiet: #5b6576;
+
+  /* Accent / semantic */
+  --accent: #2dd4bf;
+  --accent-dim: rgba(45, 212, 191, 0.14);
+  --on-accent: #04121a;
+  --green: #3ddc97;
+  --green-dim: rgba(61, 220, 151, 0.12);
+  --green-soft: rgba(61, 220, 151, 0.16);
+  --amber: #f2b84b;
+  --amber-dim: rgba(242, 184, 75, 0.14);
+  --amber-400: #f2b84b;
+  --red: #f0665e;
+  --red-dim: rgba(240, 102, 94, 0.12);
+  --red-soft: rgba(240, 102, 94, 0.16);
+  --red-mild: #f0665e;
+  --positive: var(--green);
+  --negative: var(--red);
+
+  /* Legacy tint aliases */
+  --card-accent: var(--card-soft);
+  --card-positive: var(--green-dim);
+  --card-negative: var(--red-dim);
+  --card-warning: var(--amber-dim);
+
+  /* Chart theme */
+  --chart-surface: #10161f;
+  --chart-grid: #1a2129;
+  --chart-border: #232b38;
+
+  /* Study-mode purple (used by chips / sample hero) */
+  --sample: #b98ce8;
+  --sample-dim: rgba(185, 140, 232, 0.16);
+
+  /* Typography — IBM Plex, matching company-detail standardization intent */
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
+
+  color: var(--ink);
+  background: var(--bg);
+  /* Full-bleed the dark canvas to the shell gutters so there is no light frame. */
+  margin-inline: calc(-1 * var(--page-gutter-mobile));
+  padding: 14px var(--page-gutter-mobile) 24px;
+}
+
+@media (min-width: 768px) {
+  .portfolio-page {
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 18px var(--page-gutter) 28px;
+  }
+}
+
+/*
+ * Targeted overrides for surfaces that hardcode light colors (not tokens),
+ * so nothing stays light-on-dark.
+ */
+.portfolio-page .list-compose,
+.portfolio-page .pf-state-card,
+.portfolio-page .pf-values-positions,
+.portfolio-page .pf-section,
+.portfolio-page .pf-exposure-card {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+/* Inputs / suggestion dropdowns read on dark */
+.portfolio-page .pf-add-input,
+.portfolio-page .watchlist-input {
+  background: var(--surface-elevated);
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+.portfolio-page .ticker-suggestions {
+  background: var(--surface-elevated);
+  border-color: var(--border);
+}
+
+/* Sort chips / book-switch tabs: dark idle, teal active */
+.portfolio-page .pf-sort-chip,
+.portfolio-page .pf-book-switch-tab {
+  background: var(--card-soft);
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.portfolio-page .pf-sort-chip.is-active,
+.portfolio-page .pf-book-switch-tab.is-active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+/* Allocation ladder card hardcodes a white gradient — darken it. */
+.portfolio-page .pf-allocation-ladder {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--card)) 0%, var(--card) 46%),
+    var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+/* Gauge track reads as a recessed dark well. */
+.portfolio-page .pf-allocation-gauge {
+  background: var(--card-inset);
+}
