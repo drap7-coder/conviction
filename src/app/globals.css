@@ -12378,7 +12378,7 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage h1,
 .product-stage-headline {
-  max-width: 24ch;
+  max-width: 100%;
   margin: 0;
   min-height: 1.1em;
   color: var(--ink);
@@ -12386,7 +12386,9 @@ a.signal-block-conclusion-link:hover {
   font-weight: 730;
   letter-spacing: -0.05em;
   line-height: 1.05;
-  text-wrap: balance;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .product-stage-headline > span {
@@ -13120,6 +13122,14 @@ a.signal-block-conclusion-link:hover {
 .for-you-feed--list .for-you-feed-more {
   grid-template-columns: 1fr;
   gap: 10px;
+}
+
+.for-you-feed--list .for-you-feed-card h3 {
+  display: block;
+  -webkit-line-clamp: unset;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .wl-evidence-header {
