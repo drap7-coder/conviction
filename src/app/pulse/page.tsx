@@ -153,7 +153,6 @@ function GlobalMarketsHeatmap({
               style={{ gridColumn: `span ${span} / span ${span}` }}
               live
               sparkline={(market.history ?? []).map((point) => point.close)}
-              price={market.price}
               showLiveDot={false}
             />
           );
