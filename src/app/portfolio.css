@@ -271,9 +271,10 @@
 }
 
 .portfolio-page .pf-study-chip.is-active {
-  background: var(--sample-dim);
+  background: color-mix(in srgb, var(--sample) 26%, transparent);
   border-color: var(--sample);
-  color: #f1e6ff;
+  color: #f4ecff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sample) 45%, transparent);
 }
 
 .portfolio-page .pf-study-badge {
