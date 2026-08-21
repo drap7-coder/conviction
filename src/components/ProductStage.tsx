@@ -24,6 +24,8 @@ type ProductStageProps = {
   typewriterHeadline?: boolean;
   /** When true, render a skeleton loader (no messaging) instead of copy. */
   loading?: boolean;
+  /** Render only the metric strip (no eyebrow/headline/summary copy). */
+  statOnly?: boolean;
   /** Extra copy-column content (actions, notes). */
   children?: ReactNode;
   "aria-label": string;
@@ -46,12 +48,47 @@ function ProductStageView({
   tone,
   typewriterHeadline,
   loading,
+  statOnly,
   children,
   "aria-label": ariaLabel,
 }: ProductStageProps) {
   const hasMetrics = Boolean(metrics);
   const toneClass = tone && tone !== "neutral" ? ` tone-${tone}` : "";
   const useTypewriter = typewriterHeadline ?? true;
+
+  if (statOnly) {
+    return (
+      <section
+        className={`product-stage product-stage--${variant} product-stage--stat-only${toneClass}`}
+        aria-label={ariaLabel}
+        aria-busy={loading || undefined}
+      >
+        <div
+          className={`product-stage-metrics${loading ? " product-stage-metrics--skeleton" : ""}`}
+          aria-label="Key readings"
+        >
+          {loading ? (
+            <>
+              <div>
+                <span className="product-stage-skeleton product-stage-skeleton-strong" />
+                <span className="product-stage-skeleton product-stage-skeleton-small" />
+              </div>
+              <div>
+                <span className="product-stage-skeleton product-stage-skeleton-strong" />
+                <span className="product-stage-skeleton product-stage-skeleton-small" />
+              </div>
+              <div>
+                <span className="product-stage-skeleton product-stage-skeleton-strong" />
+                <span className="product-stage-skeleton product-stage-skeleton-small" />
+              </div>
+            </>
+          ) : (
+            metrics
+          )}
+        </div>
+      </section>
+    );
+  }
 
   if (loading) {
     return (

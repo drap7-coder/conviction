@@ -14,6 +14,7 @@ import {
   sparklineStroke,
   sparklineToneFromChange,
 } from "@/lib/display/sparkline";
+import { fmtDollarPrice } from "@/lib/display/format";
 
 export interface HeatTileProps {
   /** Primary large label — instrument/company name. */
@@ -33,6 +34,10 @@ export interface HeatTileProps {
   live?: boolean;
   /** Recent closes (≈15) for the sparkline — from quote poll, not a new API. */
   sparkline?: number[] | null;
+  /** Optional last price shown in the tile foot (watchlist quote grid). */
+  price?: number | null;
+  /** Show the pulsing live/status dot. Off for the watchlist quote grid. */
+  showLiveDot?: boolean;
 }
 
 function fmtPct(value: number | null | undefined): string {
@@ -58,6 +63,8 @@ export function HeatTile({
   style,
   live = true,
   sparkline = null,
+  price = null,
+  showLiveDot = true,
 }: HeatTileProps) {
   const band: HeatBand = heatBand(changePercent);
   const accent = accentFromBand(band);
@@ -117,10 +124,12 @@ export function HeatTile({
       {live ? (
         <>
           <span className="heat-tile-glow" aria-hidden="true" />
-          <span className="heat-tile-live-dot" aria-hidden="true">
-            <i className="heat-tile-live-ping" />
-            <i className="heat-tile-live-core" />
-          </span>
+          {showLiveDot ? (
+            <span className="heat-tile-live-dot" aria-hidden="true">
+              <i className="heat-tile-live-ping" />
+              <i className="heat-tile-live-core" />
+            </span>
+          ) : null}
         </>
       ) : null}
 
@@ -156,12 +165,24 @@ export function HeatTile({
         </svg>
       ) : null}
 
-      <strong
-        className="heat-tile-pct"
-        style={{ background: chip.background, color: chip.color }}
-      >
-        {fmtPct(changePercent)}
-      </strong>
+      {price != null ? (
+        <span className="heat-tile-foot">
+          <span className="heat-tile-price tnum">{fmtDollarPrice(price)}</span>
+          <strong
+            className="heat-tile-pct"
+            style={{ background: chip.background, color: chip.color }}
+          >
+            {fmtPct(changePercent)}
+          </strong>
+        </span>
+      ) : (
+        <strong
+          className="heat-tile-pct"
+          style={{ background: chip.background, color: chip.color }}
+        >
+          {fmtPct(changePercent)}
+        </strong>
+      )}
     </>
   );
 

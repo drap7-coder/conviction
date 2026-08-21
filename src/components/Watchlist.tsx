@@ -9,6 +9,7 @@ import type { StockQuote } from "@/lib/market/types";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
+import { shortenCompanyName } from "@/lib/display/company-name";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -22,10 +23,6 @@ import {
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
-
-function formatStagePercent(value: number): string {
-  return `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(1)}%`;
-}
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
@@ -591,34 +588,15 @@ export default function Watchlist({
     portfolioTickers,
     watchlistTickers: entries.map((entry) => entry.ticker),
   }), [briefingEntries, entries, newsByTicker, portfolioTickers, quotes, transitions]);
-  const biggestMove = [...moveReadings]
-    .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))[0] ?? null;
-  const stageHeadline = briefLoading || loading
-    ? "Reading what changed."
-    : attentionItems.length > 0
-      ? `${attentionItems.length} ${attentionItems.length === 1 ? "update" : "updates"} worth a look.`
-      : entries.length === 0
-        ? "Build a watchlist worth returning to."
-        : moveReadings.length > 0
-          ? `${advancing} higher. ${declining} lower.`
-          : "You’re caught up.";
-  const stageSummary = attentionItems[0]
-    ? `${attentionItems[0].ticker}: ${attentionItems[0].headline}`
-    : biggestMove
-      ? `${biggestMove.ticker} is the largest move at ${formatStagePercent(biggestMove.changePercent)}. Open it to see what changed.`
-      : entries.length > 0
-        ? "No new move, evidence, or conviction change stands out right now."
-        : "Add companies you care about, then return for the moves and evidence that matter.";
-
   return (
     <div>
       <ProductStage
         variant="watchlist"
-        aria-label="Watchlist"
-        eyebrow={`Watchlist · Live data · ${sessionLabel}`}
-        headline={stageHeadline}
-        summary={stageSummary}
+        aria-label="Watchlist standings"
+        eyebrow="Watchlist"
+        headline=""
         loading={loading || briefLoading}
+        statOnly
         metrics={
           <>
             <div className={attentionItems.length > 0 ? "is-alert" : undefined}>
@@ -635,18 +613,6 @@ export default function Watchlist({
             </div>
           </>
         }
-      />
-
-      <WatchlistDailyBrief
-        entries={briefingEntries}
-        quotes={quotes}
-        newsByTicker={newsByTicker}
-        transitions={transitions}
-        loading={loading || briefLoading}
-        sessionLabel={sessionLabel}
-        portfolioTickers={portfolioTickers}
-        watchlistTickers={entries.map((entry) => entry.ticker)}
-        section="lead"
       />
 
       {loading ? (
@@ -674,6 +640,9 @@ export default function Watchlist({
           title="Today’s move"
           subtitle=""
           loading={loading}
+          showStatusDot={false}
+          showPrice
+          uniform
           sessionLabel={
             entries
               .map((entry) => {
@@ -691,7 +660,7 @@ export default function Watchlist({
               ?? (price != null && quote?.change != null ? price - quote.change : null);
             return {
               ticker: entry.ticker,
-              name: entry.companyName,
+              name: shortenCompanyName(entry.companyName),
               price,
               changePercent: live?.changePercent ?? quote?.changePercent ?? null,
               marketCap: quote?.marketCap ?? null,
@@ -715,7 +684,7 @@ export default function Watchlist({
         sessionLabel={sessionLabel}
         portfolioTickers={portfolioTickers}
         watchlistTickers={entries.map((entry) => entry.ticker)}
-        section="rest"
+        section="list"
       />
 
       {composeBar}
