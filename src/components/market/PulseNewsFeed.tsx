@@ -271,18 +271,6 @@ export function PulseNewsFeed({
     <section className="pulse-news-feed" aria-label="Market news">
       {showBrief ? (
         <>
-          {section === "all" ? (
-            <header className="pulse-news-brief-header">
-              <div>
-                <span className="pulse-news-brief-eyebrow">
-                  News intelligence {status === "partial" ? "· Partial coverage" : "· Live"}
-                </span>
-                <h2>Three stories that matter now.</h2>
-              </div>
-              <p>Ranked by relevant coverage, source quality, freshness, and confirming price action.</p>
-            </header>
-          ) : null}
-
           <div className="pulse-news-brief-grid">
             {leadThemes.map((theme, index) => (
               <NarrativeCard
@@ -316,10 +304,7 @@ export function PulseNewsFeed({
         <section className="pulse-news-more" aria-label="Headlines">
           {section === "all" ? (
             <header className="pulse-news-more-header">
-              <div>
-                <span>Deeper read</span>
-                <h2>More headlines</h2>
-              </div>
+              <span>Headlines</span>
             </header>
           ) : null}
 
