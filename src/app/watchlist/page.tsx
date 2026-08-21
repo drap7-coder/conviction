@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import MyListShell from "@/components/MyListShell";
 import type { Metadata } from "next";
+import "@/app/watchlist.css";
 
 export const metadata: Metadata = {
   title: "Watchlist",
