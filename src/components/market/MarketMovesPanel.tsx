@@ -6,6 +6,7 @@ import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
+import { shortenCompanyName } from "@/lib/display/company-name";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { TrendingManageChips } from "@/components/TrendingManageChips";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -226,6 +227,9 @@ export function MarketMovesPanel({
       <StockHeatmap
         title="Active names"
         subtitle=""
+        showStatusDot={false}
+        showPrice
+        uniform
         sessionLabel={
           trending
             .map((idea) => getLivePrice(idea.quote).label)
@@ -235,7 +239,7 @@ export function MarketMovesPanel({
           const live = getLivePrice(idea.quote);
           return {
             ticker: idea.ticker,
-            name: idea.companyName,
+            name: shortenCompanyName(idea.companyName),
             price: live.price,
             changePercent: live.changePercent,
             marketCap: idea.quote.marketCap,
