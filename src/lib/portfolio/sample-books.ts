@@ -136,6 +136,20 @@ export function getSampleBook(id: string | null | undefined): SampleBook | null 
   return SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === id) ?? null;
 }
 
+/** Target sleeves for Study Mode — the book itself, not an essay about the book. */
+export function sampleBookSleeves(book: SampleBook): Array<{ ticker: string; weight: number }> {
+  const fallback = book.tickers.length ? 100 / book.tickers.length : 0;
+  return book.tickers.map((ticker) => ({
+    ticker,
+    weight: book.weights?.[ticker] ?? fallback,
+  }));
+}
+
+export function sampleBookLargestWeight(book: SampleBook): number {
+  const sleeves = sampleBookSleeves(book);
+  return sleeves.length ? Math.max(...sleeves.map((sleeve) => sleeve.weight)) : 0;
+}
+
 /** Equal-weight a book to `targetTotal` using live prices (fractional shares OK). */
 export function equalWeightPositions(
   tickers: string[],

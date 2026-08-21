@@ -5,6 +5,8 @@ import {
   equalWeightPositions,
   positionsMatchSampleBook,
   resolveActivePortfolioPositions,
+  sampleBookLargestWeight,
+  sampleBookSleeves,
   sizeSampleBookPositions,
   weightedPositions,
 } from "@/lib/portfolio/sample-books";
@@ -61,6 +63,25 @@ describe("sample portfolio books", () => {
       "JNJ", "PG", "KO", "PEP", "ABBV", "MRK", "HD", "MMM", "IBM", "VZ",
     ]);
     expect(SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "growth")?.tickers).toHaveLength(10);
+  });
+
+  it("exposes study sleeves as target weights, not design copy", () => {
+    const allWeather = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === "all-weather")!;
+    expect(sampleBookSleeves(allWeather)).toEqual([
+      { ticker: "VTI", weight: 30 },
+      { ticker: "TLT", weight: 40 },
+      { ticker: "IEF", weight: 15 },
+      { ticker: "GLD", weight: 7.5 },
+      { ticker: "DBC", weight: 7.5 },
+    ]);
+    expect(sampleBookLargestWeight(allWeather)).toBe(40);
+
+    const equal = { id: "demo", label: "Demo", description: "", tickers: ["AAA", "BBB"] };
+    expect(sampleBookSleeves(equal)).toEqual([
+      { ticker: "AAA", weight: 50 },
+      { ticker: "BBB", weight: 50 },
+    ]);
+    expect(sampleBookLargestWeight(equal)).toBe(50);
   });
 
   it("sizes equal-weight books to $100k when prices exist", () => {
