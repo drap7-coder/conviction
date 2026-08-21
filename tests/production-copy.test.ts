@@ -21,12 +21,13 @@ describe("production copy and fixture isolation", () => {
     expect(existsSync(new URL("../src/app/journal/page.tsx", import.meta.url))).toBe(false);
   });
 
-  it("keeps Portfolio Insights as the default portfolio experience", () => {
+  it("keeps Live Portfolio as the default, with Study Mode insights available", () => {
     const portfolio = read("src/components/Portfolio.tsx");
 
-    expect(portfolio).toContain('if (typeof window === "undefined") return "insights"');
+    expect(portfolio).toContain('searchParams.get("mode") === "study" ? "study" : "live"');
+    expect(portfolio).toContain("Live Portfolio");
     expect(portfolio).toContain("<PortfolioCheckPanel");
-    expect(portfolio).toContain('id="portfolio-panel-insights"');
+    expect(portfolio).toContain('id="portfolio-panel-holdings"');
   });
 
   it("does not render setup instructions in the guest watchlist experience", () => {
