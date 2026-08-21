@@ -2,11 +2,6 @@
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { loadPositions } from "@/lib/portfolio/persist";
-import {
-  loadActiveSampleBookId,
-  loadSampleBookPositions,
-  resolveActivePortfolioPositions,
-} from "@/lib/portfolio/sample-books";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { computePortfolioMetrics } from "@/lib/portfolio/calculations";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
@@ -115,12 +110,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const quoteAbortRef = useRef<AbortController | null>(null);
 
   const reloadPositions = useCallback(() => {
-    const activeBookId = loadActiveSampleBookId();
-    const next = resolveActivePortfolioPositions(
-      loadPositions(),
-      activeBookId,
-      loadSampleBookPositions(activeBookId),
-    );
+    // Live book only — Study templates are illustrative and must not replace quotes.
+    const next = loadPositions();
     setPositions(next);
     setLoading(next.length > 0);
   }, []);
