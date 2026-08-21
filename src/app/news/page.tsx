@@ -56,17 +56,8 @@ export default function NewsPage() {
         variant="news"
         aria-label="News intelligence"
         loading={status === "loading"}
-        eyebrow={`News · ${brief?.statusLabel === "Live" ? "Live data" : brief?.statusLabel ?? (status === "loading" ? "Reading the tape" : "Temporarily unavailable")}`}
-        headline={
-          brief
-            ? `${brief.leadTheme} is today’s lead.`
-            : "Today’s market story is still forming."
-        }
-        summary={
-          brief
-            ? `${brief.storyCount} recent stories distilled into ${brief.activeNarratives} active market narrative${brief.activeNarratives === 1 ? "" : "s"}. Scroll for the brief, then the wire.`
-            : "Start with the market brief, then open the evidence behind the story."
-        }
+        headline=""
+        statOnly
         metrics={
           <>
             <div>
