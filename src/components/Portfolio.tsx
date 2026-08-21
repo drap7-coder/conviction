@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { loadPositions, savePositions, type PersistedPosition } from "@/lib/portfolio/persist";
 import {
   computePortfolioMetrics,
@@ -18,6 +19,7 @@ import {
   resolveActivePortfolioPositions,
   saveActiveSampleBookId,
   saveSampleBookPositions,
+  getSampleBook,
   type SampleBook,
 } from "@/lib/portfolio/sample-books";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
@@ -32,10 +34,22 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { PortfolioCheckPanel } from "@/components/PortfolioCheckPanel";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
-import { ViewSwitcher } from "@/components/ViewSwitcher";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
+import SectorDonut from "@/components/SectorDonut";
+import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
+
+const PORTFOLIO_TEMPLATE_DEFAULT = "three-fund";
+
+/** Largest single-name target weight for a study template (for the comparison line). */
+function templateLargestWeight(book: SampleBook): number {
+  if (book.weights) {
+    const values = Object.values(book.weights);
+    return values.length ? Math.max(...values) : 0;
+  }
+  return book.tickers.length ? 100 / book.tickers.length : 0;
+}
 
 const PORTFOLIO_TABS = [
   {
@@ -215,6 +229,11 @@ export default function Portfolio({
   composeFirst?: boolean;
 }) {
   const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const mode: "live" | "study" = searchParams.get("mode") === "study" ? "study" : "live";
+  const templateId = searchParams.get("template") || PORTFOLIO_TEMPLATE_DEFAULT;
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [loadingBook, setLoadingBook] = useState(false);
@@ -248,31 +267,10 @@ export default function Portfolio({
   const sampleAwaitingQuotesRef = useRef(false);
   const focusClearRef = useRef<number | null>(null);
 
-  // Load positions + active book from localStorage on mount
+  // Load personal positions on mount. Study Mode reads templates from the URL,
+  // so we no longer resolve a stored sample book into the live positions.
   useEffect(() => {
-    let storedBookId = loadActiveSampleBookId();
-    let personalPositions = loadPositions();
-    let samplePositions = loadSampleBookPositions(storedBookId);
-    const legacyBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === storedBookId) ?? null;
-
-    if (storedBookId && samplePositions.length === 0) {
-      if (legacyBook && positionsMatchSampleBook(personalPositions, legacyBook)) {
-        samplePositions = personalPositions;
-        saveSampleBookPositions(storedBookId, samplePositions);
-        savePositions([]);
-        personalPositions = [];
-      } else {
-        saveActiveSampleBookId(null);
-        storedBookId = null;
-      }
-    }
-
-    setActiveBookId(storedBookId);
-    setPositions(resolveActivePortfolioPositions(
-      personalPositions,
-      storedBookId,
-      samplePositions,
-    ));
+    setPositions(loadPositions());
     return () => {
       sampleAbortRef.current?.abort();
       if (focusClearRef.current) window.clearTimeout(focusClearRef.current);
@@ -773,44 +771,119 @@ export default function Portfolio({
 
   // ── Render ──
 
-  const stageSubject = activeSampleBook?.label ?? "Your portfolio";
-  const stagePeriod = (portfolioHeatmapSession ?? "today").toLowerCase();
-  const stagePerformanceHeadline = isFiniteNumber(portfolioMetrics.dailyChangePercent)
-    ? Math.abs(portfolioMetrics.dailyChangePercent) < 0.005
-      ? `${stageSubject} is flat ${stagePeriod}.`
-      : `${stageSubject} is ${portfolioMetrics.dailyChangePercent > 0 ? "up" : "down"} ${Math.abs(portfolioMetrics.dailyChangePercent).toFixed(1)}% ${stagePeriod}.`
-    : `See what is driving ${stageSubject.toLowerCase()}.`;
-  const stageHeadline = hasData
-    ? activeTab === "insights" ? valueBrief.headline : stagePerformanceHeadline
-    : "Build or try a portfolio.";
-  const stageSummary = hasData
-    ? activeTab === "insights"
-      ? valueBrief.summary
-      : `${valueBrief.headline} ${valueBrief.summary}`
-    : "Add your holdings or load a sample book below. Conviction will map performance, exposure, and sizing risk.";
-  const stageEyebrow = hasData
-    ? `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}${activeSampleBook ? ` · ${activeSampleBook.label}` : ""}`
-    : "Portfolio · Setup";
+  const stageHeadline = valueBrief.headline;
+  const stageSummary = valueBrief.summary;
+  const stageEyebrow = `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}`;
+
+  const studyBook =
+    getSampleBook(templateId)
+    ?? getSampleBook(PORTFOLIO_TEMPLATE_DEFAULT)
+    ?? SAMPLE_PORTFOLIO_BOOKS[0];
+  // Concentration comparison vs the user's real book — only when they have one.
+  const studyDelta = positions.length > 0 && valueBrief.largest
+    ? Math.round(valueBrief.largest.weight - templateLargestWeight(studyBook))
+    : null;
+
+  function goLive() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("mode");
+    params.delete("template");
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+  function goStudy(template?: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("mode", "study");
+    params.set("template", template ?? templateId);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
+  const capitalMapCard = hasData && !calcFailed ? (
+    <section className="pf-section pf-capital-map" aria-label="Capital map">
+      <header className="pf-capital-map-head">
+        <span className="pf-section-eyebrow">Capital Map</span>
+        <h2>Asset-class mix, drilling into positions</h2>
+      </header>
+      {sectorMixData.length > 0 ? (
+        <div className="pf-capital-map-donut">
+          <SectorDonut sectors={sectorMixData} />
+        </div>
+      ) : null}
+      <div className="pf-capital-map-divider" aria-hidden="true" />
+      {allocationPanel}
+    </section>
+  ) : null;
+
+  const studyRegion = (
+    <div className="pf-study">
+      <div className="pf-study-chips" role="tablist" aria-label="Study templates">
+        {SAMPLE_PORTFOLIO_BOOKS.map((book) => (
+          <button
+            key={book.id}
+            type="button"
+            role="tab"
+            aria-selected={book.id === studyBook.id}
+            title={book.description}
+            className={`pf-study-chip${book.id === studyBook.id ? " is-active" : ""}`}
+            onClick={() => goStudy(book.id)}
+          >
+            {book.label}
+          </button>
+        ))}
+      </div>
+      <div className="pf-study-body">
+        <span className="pf-study-badge">Sample</span>
+        <PortfolioCheckPanel riskFlags={riskFlags} sampleBook={studyBook} />
+        {studyDelta !== null ? (
+          <div className="pf-study-compare">
+            <span>Your book vs this template</span>
+            <strong className={studyDelta > 0 ? "is-alert" : studyDelta < 0 ? "is-positive" : ""}>
+              {Math.abs(studyDelta) < 1
+                ? "About the same concentration"
+                : `${studyDelta > 0 ? "+" : "−"}${Math.abs(studyDelta)}pt ${studyDelta > 0 ? "more" : "less"} concentrated`}
+            </strong>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
 
   return (
     <div className="pf">
-      <ViewSwitcher
-        label="Choose a portfolio view"
-        options={[...PORTFOLIO_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as PortfolioTab)}
-      />
+      <div className="pf-mode-switch" role="tablist" aria-label="Portfolio mode">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "live"}
+          className={`pf-mode-tab${mode === "live" ? " is-active" : ""}`}
+          onClick={goLive}
+        >
+          <span className="pf-mode-dot" aria-hidden="true" />
+          Live Portfolio
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "study"}
+          className={`pf-mode-tab${mode === "study" ? " is-active" : ""}`}
+          onClick={() => goStudy()}
+        >
+          Study Mode
+        </button>
+      </div>
 
-      <ProductStage
-        variant="portfolio"
-        aria-label="Portfolio overview"
-        loading={loading || loadingBook}
-        tone={hasData ? stageTone : "neutral"}
-        eyebrow={stageEyebrow}
-        headline={stageHeadline}
-        summary={stageSummary}
-        metrics={
-          hasData ? (
+      {mode === "study" ? studyRegion : (
+      <>
+      {hasData ? (
+        <ProductStage
+          variant="portfolio"
+          aria-label="Portfolio overview"
+          loading={loading}
+          tone={stageTone}
+          eyebrow={stageEyebrow}
+          headline={stageHeadline}
+          summary={stageSummary}
+          metrics={
             <>
               <div>
                 <strong className="tnum">{currency(portfolioMetrics.totalMarketValue)}</strong>
@@ -837,78 +910,44 @@ export default function Portfolio({
                 <span>Largest position</span>
               </div>
             </>
-          ) : undefined
-        }
-      >
-        {hasData ? (
+          }
+        >
           <div className="product-stage-actions">
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
               {loading ? "Refreshing…" : "Refresh prices"}
             </button>
-            {activeTab === "holdings" && (stageTone === "watch" || stageTone === "concentrated") ? (
-              <button
-                type="button"
-                className="product-stage-action product-stage-action--link"
-                onClick={() => setActiveTab("insights")}
-              >
-                See why on Insights <span aria-hidden="true">→</span>
-              </button>
-            ) : null}
           </div>
-        ) : null}
-      </ProductStage>
+        </ProductStage>
+      ) : (
+        <div className="pf-empty-prompt">
+          <p>No positions yet — add holdings or explore a template.</p>
+          {composeBar}
+          <button type="button" className="brief-link" onClick={() => goStudy()}>
+            Explore a template <span aria-hidden="true">→</span>
+          </button>
+        </div>
+      )}
 
-      <SampleBooksSwitcher
-        activeId={activeBookId}
-        onSelect={(book) => { void handleLoadSample(book); }}
-        onSelectPersonal={handleSelectPersonal}
-        disabled={loadingBook}
-      />
-
-      {loadingBook ? (
-        <PageLoadingMotion
-          label={`Sizing ${activeSampleBook?.label ?? "portfolio"}…`}
-          compact
-          showLabel={false}
-          showSubtitle={false}
-          speed="slow"
+      {hasData && !calcFailed ? (
+        <PortfolioBenchmarkChart
+          positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
         />
       ) : null}
 
-      <div
-        id="portfolio-panel-holdings"
-        className="pf-value-view"
-        role="tabpanel"
-        aria-labelledby="portfolio-tab-holdings"
-        hidden={activeTab !== "holdings"}
-      >
-        {activeTab === "holdings" ? (
-          <>
-            {loading ? (
-              <PageLoadingMotion
-                label="Loading portfolio prices"
-                compact
-                showLabel={false}
-                showSubtitle={false}
-                speed="slow"
-              />
-            ) : null}
+      {capitalMapCard}
 
-            {/* Empty: invite to pick a book or add manually. */}
-            {!hasData && !loading && !loadingBook ? (
-              <div className="empty-state">
-                <p>Start with a classic portfolio book.</p>
-                <small>
-                  Pick All-Weather, 60/40, Three-Fund, or Permanent below — or add a position yourself
-                  {composeFirst ? " below" : ""}.
-                </small>
-                {composeFirst ? null : composeBar}
-              </div>
-            ) : null}
-
-            {composeFirst && !hasData ? composeBar : null}
-
-            {hasData ? (
+      {hasData ? (
+      <div id="portfolio-panel-holdings" className="pf-value-view" aria-label="Portfolio holdings">
+        {loading ? (
+          <PageLoadingMotion
+            label="Loading portfolio prices"
+            compact
+            showLabel={false}
+            showSubtitle={false}
+            speed="slow"
+          />
+        ) : null}
+        {hasData ? (
               <>
                 {error && !calcFailed ? <div className="pf-state-card pf-state-warn">{error}</div> : null}
 
@@ -970,11 +1009,6 @@ export default function Portfolio({
                         </button>
                       ))}
                     </div>
-                    <div className="wl-conviction-legend pf-allocation-legend" aria-label="Allocation gauge legend">
-                      <span><i className="quote-dot green" /> Under 12%</span>
-                      <span><i className="quote-dot amber" /> 12–20%</span>
-                      <span><i className="quote-dot red" /> Over 20%</span>
-                    </div>
                   </div>
 
                   <div className="watchlist-list pf-ring-list">
@@ -1029,18 +1063,10 @@ export default function Portfolio({
                 </section>
               </>
             ) : null}
-          </>
-        ) : null}
       </div>
-
-      <div
-        id="portfolio-panel-insights"
-        role="tabpanel"
-        aria-labelledby="portfolio-tab-insights"
-        hidden={activeTab !== "insights"}
-      >
-        {activeTab === "insights" ? insightsBody : null}
-      </div>
+      ) : null}
+      </>
+      )}
     </div>
   );
 }

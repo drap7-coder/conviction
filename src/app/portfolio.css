@@ -1,69 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
-
 /*
- * Portfolio dark theme (scoped to .portfolio-page).
- *
- * The app is token-driven, so remapping the semantic CSS variables inside
- * this scope flips the vast majority of portfolio surfaces to dark. Fonts
- * are remapped to IBM Plex (Mono for data, Sans for narrative). Only a few
- * surfaces that hardcode light colors need explicit overrides below.
+ * Portfolio page layout + Live/Study chrome.
+ * Theme tokens live on :root (site-wide brokerage dark + IBM Plex).
  */
 
 .portfolio-page {
-  /* Base surfaces */
-  --bg: #0a0e14;
-  --surface: #0e141c;
-  --surface-elevated: #10161f;
-  --card: #10161f;
-  --card-soft: #161d28;
-  --card-inset: #161d28;
-  --divider: #1a2129;
-  --border: #232b38;
-  --border-active: #2c3646;
-
-  /* Text */
-  --ink: #edf1f5;
-  --muted: #8b95a5;
-  --quiet: #5b6576;
-
-  /* Accent / semantic */
-  --accent: #2dd4bf;
-  --accent-dim: rgba(45, 212, 191, 0.14);
-  --on-accent: #04121a;
-  --green: #3ddc97;
-  --green-dim: rgba(61, 220, 151, 0.12);
-  --green-soft: rgba(61, 220, 151, 0.16);
-  --amber: #f2b84b;
-  --amber-dim: rgba(242, 184, 75, 0.14);
-  --amber-400: #f2b84b;
-  --red: #f0665e;
-  --red-dim: rgba(240, 102, 94, 0.12);
-  --red-soft: rgba(240, 102, 94, 0.16);
-  --red-mild: #f0665e;
-  --positive: var(--green);
-  --negative: var(--red);
-
-  /* Legacy tint aliases */
-  --card-accent: var(--card-soft);
-  --card-positive: var(--green-dim);
-  --card-negative: var(--red-dim);
-  --card-warning: var(--amber-dim);
-
-  /* Chart theme */
-  --chart-surface: #10161f;
-  --chart-grid: #1a2129;
-  --chart-border: #232b38;
-
-  /* Study-mode purple (used by chips / sample hero) */
-  --sample: #b98ce8;
-  --sample-dim: rgba(185, 140, 232, 0.16);
-
-  /* Typography — IBM Plex, matching company-detail standardization intent */
-  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
-
-  color: var(--ink);
-  background: var(--bg);
   /* Full-bleed the dark canvas to the shell gutters so there is no light frame. */
   margin-inline: calc(-1 * var(--page-gutter-mobile));
   padding: 14px var(--page-gutter-mobile) 24px;
@@ -129,4 +69,429 @@
 /* Gauge track reads as a recessed dark well. */
 .portfolio-page .pf-allocation-gauge {
   background: var(--card-inset);
+}
+
+/* ── Mode switch (Live / Study) ── */
+.portfolio-page .pf-mode-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  margin: 0 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-soft);
+}
+
+.portfolio-page .pf-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.portfolio-page .pf-mode-tab.is-active {
+  background: var(--accent-dim);
+  color: var(--ink);
+}
+
+.portfolio-page .pf-mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--quiet);
+}
+
+.portfolio-page .pf-mode-tab.is-active .pf-mode-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* ── Empty state ── */
+.portfolio-page .pf-empty-prompt {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 20px;
+  margin: 0 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.portfolio-page .pf-empty-prompt > p {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* ── Capital Map (donut + divider + ladder in one card) ── */
+.portfolio-page .pf-capital-map {
+  margin: 0 0 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.portfolio-page .pf-capital-map-head {
+  display: grid;
+  gap: 3px;
+  margin: 0 0 12px;
+}
+
+.portfolio-page .pf-capital-map-head h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.1rem;
+  font-weight: 720;
+  letter-spacing: -0.03em;
+}
+
+.portfolio-page .pf-capital-map-donut {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2px;
+  color: var(--ink);
+}
+
+.portfolio-page .pf-capital-map-divider {
+  height: 1px;
+  margin: 16px 0;
+  background: var(--divider);
+}
+
+/* Flatten the ladder's own card chrome inside the Capital Map. */
+.portfolio-page .pf-capital-map .pf-allocation-ladder {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ── Study Mode ── */
+.portfolio-page .pf-study-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 10px;
+  scrollbar-width: none;
+}
+
+.portfolio-page .pf-study-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.portfolio-page .pf-study-chip {
+  flex: 0 0 auto;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-soft);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.portfolio-page .pf-study-chip.is-active {
+  background: color-mix(in srgb, var(--sample) 26%, transparent);
+  border-color: var(--sample);
+  color: #f4ecff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sample) 45%, transparent);
+}
+
+.portfolio-page .pf-study-badge {
+  display: inline-flex;
+  margin: 0 0 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--sample) 40%, transparent);
+  background: var(--sample-dim);
+  color: #e9d8ff;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Purple-tint the study strategy card + kicker. */
+.portfolio-page .pf-study .portfolio-insight-card.is-strategy {
+  --accent: var(--sample);
+  border-color: color-mix(in srgb, var(--sample) 28%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--sample) 12%, var(--card)) 0%, var(--card) 55%),
+    var(--card);
+}
+
+.portfolio-page .pf-study .portfolio-insight-kicker {
+  color: var(--sample);
+}
+
+.portfolio-page .pf-study-compare {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--sample) 26%, var(--border));
+  border-radius: 12px;
+  background: var(--sample-dim);
+}
+
+.portfolio-page .pf-study-compare span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+}
+
+.portfolio-page .pf-study-compare strong {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--ink);
+}
+
+.portfolio-page .pf-study-compare strong.is-alert { color: var(--red); }
+.portfolio-page .pf-study-compare strong.is-positive { color: var(--green); }
+
+/* ── Book vs Benchmark ── */
+.portfolio-page .pf-benchmark {
+  margin: 0 0 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.portfolio-page .pf-benchmark .market-panel {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  --on-ink: #edf1f5;
+  --on-ink-muted: #8b95a5;
+  --on-ink-quiet: #5b6576;
+  --on-ink-border: #232b38;
+  --ink-panel-elevated: transparent;
+}
+
+.portfolio-page .pf-benchmark .market-panel-header h2 {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.portfolio-page .pf-benchmark .market-panel-header p,
+.portfolio-page .pf-benchmark .market-legend {
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+.portfolio-page .pf-benchmark-skeleton {
+  height: 168px;
+  margin: 12px 0 4px;
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, var(--card-soft) 0%, #161d28 50%, var(--card-soft) 100%);
+  background-size: 200% 100%;
+  animation: pf-benchmark-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-page .pf-benchmark-skeleton {
+    animation: none;
+  }
+}
+
+@keyframes pf-benchmark-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.portfolio-page .pf-benchmark-takeaway {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.portfolio-page .pf-benchmark-takeaway.is-ahead { color: var(--green); }
+.portfolio-page .pf-benchmark-takeaway.is-behind { color: var(--red); }
+
+/* ── Position cards (badge / name / value / allocation bar) ── */
+.portfolio-page .pf-holding-card {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card-soft);
+  box-shadow: none;
+  overflow: hidden;
+}
+
+.portfolio-page .pf-holding-card.focused-card,
+.portfolio-page .pf-holding-card.is-editing {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.portfolio-page .pf-holding-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.portfolio-page .pf-holding-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.portfolio-page .pf-holding-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.portfolio-page .pf-holding-name {
+  overflow: hidden;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portfolio-page .pf-holding-name:hover,
+.portfolio-page .pf-holding-name:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
+.portfolio-page .pf-holding-meta {
+  overflow: hidden;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.portfolio-page .pf-holding-figures {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  min-width: max-content;
+}
+
+.portfolio-page .pf-holding-value {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.portfolio-page .pf-holding-day,
+.portfolio-page .pf-holding-close {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.portfolio-page .pf-holding-close {
+  color: var(--quiet);
+}
+
+.portfolio-page .pf-holding-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.portfolio-page .pf-holding-bar {
+  height: 3px;
+  margin: 2px -12px 0;
+  background: var(--divider);
+}
+
+.portfolio-page .pf-holding-bar i {
+  display: block;
+  height: 100%;
+  background: var(--quiet);
+}
+
+.portfolio-page .pf-holding-bar.is-green i { background: var(--green); }
+.portfolio-page .pf-holding-bar.is-amber i { background: var(--amber); }
+.portfolio-page .pf-holding-bar.is-red i { background: var(--red); }
+
+.portfolio-page .pf-holding-edit {
+  background: var(--card);
+  border-color: var(--border);
+}
+
+.portfolio-page .pf-holding-edit-field input {
+  background: var(--surface-elevated);
+  border-color: var(--border);
+  color: var(--ink);
+}
+
+@media (max-width: 400px) {
+  .portfolio-page .pf-holding-main {
+    gap: 8px;
+  }
+
+  .portfolio-page .pf-holding-badge {
+    padding: 4px 6px;
+    font-size: 0.68rem;
+  }
+
+  .portfolio-page .pf-holding-value {
+    font-size: 0.86rem;
+  }
 }

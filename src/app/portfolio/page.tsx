@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Portfolio from "@/components/Portfolio";
 import { PortfolioDataProvider } from "@/components/PortfolioData";
 import "@/app/portfolio.css";
@@ -15,9 +16,11 @@ export const metadata: Metadata = {
 export default function PortfolioPage() {
   return (
     <div className="portfolio-page">
-      <PortfolioDataProvider>
-        <Portfolio composeFirst />
-      </PortfolioDataProvider>
+      <Suspense fallback={null}>
+        <PortfolioDataProvider>
+          <Portfolio composeFirst />
+        </PortfolioDataProvider>
+      </Suspense>
     </div>
   );
 }

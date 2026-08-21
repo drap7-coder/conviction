@@ -1,0 +1,15 @@
+/*
+ * Watchlist page layout. Theme tokens live on :root.
+ */
+
+.watchlist-page {
+  margin-inline: calc(-1 * var(--page-gutter-mobile));
+  padding: 14px var(--page-gutter-mobile) 24px;
+}
+
+@media (min-width: 768px) {
+  .watchlist-page {
+    margin-inline: calc(-1 * var(--page-gutter));
+    padding: 18px var(--page-gutter) 28px;
+  }
+}

@@ -1,16 +1,13 @@
 /**
- * Compact portfolio holding row — same ring-list language as Watchlist,
- * with a color-accented holdings band (shares / value / cost / total return).
- * Edit and remove are always visible; company dashboard is a ticker link.
+ * Compact portfolio holding card — ticker badge, name + size, value + day %,
+ * and a thin allocation bar. Edit and remove stay on the card (not a table).
  */
 
 "use client";
 
 import Link from "next/link";
-import { GaugeRing, type GaugeTone } from "@/components/GaugeRing";
 import { isFiniteNumber } from "@/lib/display/format";
 import { changeToneClass } from "@/lib/display/heat-color";
-import { inkBoxClass, inkChipClass, inkToneFromSemantic } from "@/lib/display/ink-tone";
 import type { PositionMetrics } from "@/lib/portfolio/types";
 
 export interface PortfolioHoldingCardProps {
@@ -65,16 +62,11 @@ function compactCurrency(value: number | null) {
   })}`;
 }
 
-function allocationTone(weight: number | null): GaugeTone {
+function allocationBand(weight: number | null): "green" | "amber" | "red" | "neutral" {
   if (!isFiniteNumber(weight)) return "neutral";
   if (weight > 20) return "red";
   if (weight >= 12) return "amber";
   return "green";
-}
-
-function holdingAccent(totalGainLoss: number | null): "up" | "down" | "flat" {
-  if (!isFiniteNumber(totalGainLoss) || totalGainLoss === 0) return "flat";
-  return totalGainLoss > 0 ? "up" : "down";
 }
 
 export function PortfolioHoldingCard({
@@ -105,105 +97,77 @@ export function PortfolioHoldingCard({
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
   const dayChangeClass = changeToneClass(changePercent);
   const closeChangeClass = changeToneClass(closeChangePercent);
-  const moveTone = inkToneFromSemantic(
-    dayChangeClass === "positive"
-      ? "positive"
-      : dayChangeClass === "negative" || dayChangeClass === "negative-mild"
-        ? "negative"
-        : "quiet",
-  );
-
   const allocation = metrics.weight;
-  const accent = holdingAccent(metrics.totalGainLoss);
+  const band = allocationBand(allocation);
   const displayName = companyName?.trim() || ticker;
+  const barWidth = isFiniteNumber(allocation) ? Math.min(100, Math.max(0, allocation)) : 0;
 
   return (
     <article
       id={`portfolio-holding-${ticker}`}
-      className={`wl-ring-row pf-holding-card ${inkBoxClass(moveTone)}${isEditing ? " is-editing" : ""}${focused ? " focused-card" : ""}`}
+      className={`pf-holding-card${isEditing ? " is-editing" : ""}${focused ? " focused-card" : ""}`}
       aria-label={`${displayName} holding`}
     >
-      <div className="wl-ring-row-main">
-        <div className="wl-ring-identity">
-          <Link href={`/companies/${ticker}`} className="pf-holding-company-link">
-            <strong className="wl-ring-ticker">{ticker}</strong>
-            <span className="wl-ring-name">{displayName}</span>
+      <div className="pf-holding-main">
+        <span className="pf-holding-badge">{ticker}</span>
+
+        <div className="pf-holding-copy">
+          <Link href={`/companies/${ticker}`} className="pf-holding-name">
+            {displayName}
           </Link>
+          <span className="pf-holding-meta tnum">
+            {shares.toLocaleString()} sh · {price !== null ? `$${formatPrice(price)}` : "—"}
+            {sessionLabel ? ` · ${sessionLabel}` : ""}
+          </span>
         </div>
 
-        <div className="wl-ring-price">
-          <div className="wl-ring-price-primary">
-            <strong className="wl-ring-last tnum">
-              {price !== null ? `$${formatPrice(price)}` : "—"}
-            </strong>
-            {sessionLabel ? (
-              <span className="ink-chip ink-chip--quiet wl-ring-session-chip">{sessionLabel}</span>
-            ) : null}
-          </div>
-          <span className={`${inkChipClass(moveTone)} wl-ring-day-change tnum`}>
-            {formatPercent(changePercent)}
-          </span>
+        <div className="pf-holding-figures">
+          <strong className="pf-holding-value tnum">{compactCurrency(metrics.marketValue)}</strong>
+          <span className={`pf-holding-day tnum ${dayChangeClass}`}>{formatPercent(changePercent)}</span>
           {hasExtendedSession ? (
-            <span className={`wl-ring-at-close tnum ${closeChangeClass}`}>
-              At close ${formatPrice(closePrice)}
-              {isFiniteNumber(closeChangePercent)
-                ? ` (${formatPercent(closeChangePercent)})`
-                : ""}
+            <span className={`pf-holding-close tnum ${closeChangeClass}`}>
+              Close ${formatPrice(closePrice)}
+              {isFiniteNumber(closeChangePercent) ? ` ${formatPercent(closeChangePercent)}` : ""}
             </span>
           ) : null}
         </div>
+      </div>
 
-        <div className="wl-ring-gauge">
-          <GaugeRing
-            size="sm"
-            value={allocation}
-            label={isFiniteNumber(allocation) ? `${Math.round(allocation)}%` : "—"}
-            sublabel="Alloc"
-            tone={allocationTone(allocation)}
-            ariaLabel={`${ticker} allocation ${isFiniteNumber(allocation) ? `${allocation.toFixed(1)} percent` : "unavailable"}`}
-          />
-        </div>
-
-        <div className="pf-holding-actions">
-          {confirmRemove ? (
-            <>
-              <span className="pf-holding-confirm-label">Remove?</span>
-              <button
-                type="button"
-                className="pf-holding-action pf-holding-action-danger"
-                onClick={() => onConfirmRemove(ticker)}
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                className="pf-holding-action"
-                onClick={onCancelRemove}
-              >
-                No
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                type="button"
-                className="pf-holding-action"
-                onClick={() => onEdit(ticker)}
-                disabled={isEditing}
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                className="pf-holding-action pf-holding-action-danger"
-                onClick={() => onAskRemove(ticker)}
-                disabled={isEditing}
-              >
-                Remove
-              </button>
-            </>
-          )}
-        </div>
+      <div className="pf-holding-actions">
+        {confirmRemove ? (
+          <>
+            <span className="pf-holding-confirm-label">Remove?</span>
+            <button
+              type="button"
+              className="pf-holding-action pf-holding-action-danger"
+              onClick={() => onConfirmRemove(ticker)}
+            >
+              Yes
+            </button>
+            <button type="button" className="pf-holding-action" onClick={onCancelRemove}>
+              No
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="pf-holding-action"
+              onClick={() => onEdit(ticker)}
+              disabled={isEditing}
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              className="pf-holding-action pf-holding-action-danger"
+              onClick={() => onAskRemove(ticker)}
+              disabled={isEditing}
+            >
+              Remove
+            </button>
+          </>
+        )}
       </div>
 
       {isEditing ? (
@@ -244,35 +208,14 @@ export function PortfolioHoldingCard({
           </div>
           {formError ? <p className="pf-holding-edit-error">{formError}</p> : null}
         </form>
-      ) : (
-        <div className={`pf-ring-holding ${accent}`} aria-label="Holding details">
-          <div className="pf-ring-holding-item">
-            <span className="pf-ring-holding-label">Shares</span>
-            <span className="pf-ring-holding-value tnum">{shares.toLocaleString()}</span>
-          </div>
-          <div className="pf-ring-holding-item">
-            <span className="pf-ring-holding-label">Value</span>
-            <span className="pf-ring-holding-value tnum">
-              {compactCurrency(metrics.marketValue)}
-            </span>
-          </div>
-          <div className="pf-ring-holding-item">
-            <span className="pf-ring-holding-label">Cost</span>
-            <span className="pf-ring-holding-value tnum">
-              {compactCurrency(metrics.totalCost)}
-            </span>
-          </div>
-          <div className="pf-ring-holding-item">
-            <span className="pf-ring-holding-label">Total return</span>
-            <span className={`pf-ring-holding-value pf-ring-holding-gl tnum ${accent}`}>
-              {compactCurrency(metrics.totalGainLoss)}
-              {isFiniteNumber(metrics.totalGainLossPercent)
-                ? ` ${formatPercent(metrics.totalGainLossPercent)}`
-                : ""}
-            </span>
-          </div>
-        </div>
-      )}
+      ) : null}
+
+      <div
+        className={`pf-holding-bar is-${band}`}
+        aria-label={`${ticker} allocation ${isFiniteNumber(allocation) ? `${allocation.toFixed(1)} percent` : "unavailable"}`}
+      >
+        <i style={{ width: `${barWidth}%` }} />
+      </div>
     </article>
   );
 }

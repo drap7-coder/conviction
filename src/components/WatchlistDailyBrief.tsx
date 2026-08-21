@@ -261,7 +261,7 @@ export function WatchlistDailyBrief({
   sessionLabel?: string;
   portfolioTickers?: string[];
   watchlistTickers?: string[];
-  section?: "all" | "lead" | "rest";
+  section?: "all" | "lead" | "rest" | "list";
 }) {
   const items = buildWatchlistBriefItems({
     entries,
@@ -289,7 +289,10 @@ export function WatchlistDailyBrief({
   const isLeadSection = section === "lead";
   const showLoading = loading && section !== "rest";
 
-  function renderCard(item: WatchlistBriefItem, index: number, featured = false) {
+  function renderCard(item: WatchlistBriefItem, index: number, featured = false, total = 0) {
+    const rankLabel = total > 0
+      ? `${String(index + 1).padStart(2, "0")}/${String(total).padStart(2, "0")}`
+      : String(index + 1).padStart(2, "0");
     return (
       <Link
         href={`/companies/${encodeURIComponent(item.ticker)}`}
@@ -304,8 +307,8 @@ export function WatchlistDailyBrief({
       >
         <div className="for-you-feed-card-top">
           <div className="for-you-feed-tags">
-            <span className="for-you-feed-rank">{String(index + 1).padStart(2, "0")}</span>
             <span className="for-you-feed-kind">{item.kind}</span>
+            <span className="for-you-feed-rank" aria-label={`Item ${index + 1}${total > 0 ? ` of ${total}` : ""}`}>{rankLabel}</span>
           </div>
           <span className={`for-you-feed-move${item.changePercent !== null && item.changePercent < 0 ? " is-down" : ""}`}>
             {formatMove(item.changePercent)}
@@ -337,6 +340,38 @@ export function WatchlistDailyBrief({
           <em>Open company brief <span aria-hidden="true">→</span></em>
         </footer>
       </Link>
+    );
+  }
+
+  if (section === "list") {
+    if (entries.length === 0) return null;
+    return (
+      <section className="for-you-feed for-you-feed--list" aria-label="Fresh evidence on your watchlist">
+        <div className="wl-evidence-header">
+          <span className="wl-evidence-eyebrow">Evidence</span>
+          <strong className="wl-evidence-title">Fresh on your watchlist</strong>
+        </div>
+        {loading && items.length === 0 ? (
+          <div className="for-you-feed-loading for-you-feed-loading--skeleton" aria-hidden="true">
+            <span className="for-you-feed-skeleton-block for-you-feed-skeleton-pill" />
+            <span className="for-you-feed-skeleton-block for-you-feed-skeleton-title" />
+            <span className="for-you-feed-skeleton-block for-you-feed-skeleton-line" />
+            <span className="for-you-feed-skeleton-block for-you-feed-skeleton-line for-you-feed-skeleton-line--short" />
+          </div>
+        ) : items.length > 0 ? (
+          <div className="for-you-feed-more" aria-label="Watchlist evidence">
+            {items.map((item, index) => renderCard(item, index, false, items.length))}
+          </div>
+        ) : (
+          <div className="for-you-feed-clear">
+            <span aria-hidden="true">✓</span>
+            <div>
+              <strong>Nothing material needs a look.</strong>
+              <p>Your book is quiet — nothing to chase.</p>
+            </div>
+          </div>
+        )}
+      </section>
     );
   }
 
