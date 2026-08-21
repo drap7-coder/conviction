@@ -12385,10 +12385,9 @@ a.signal-block-conclusion-link:hover {
   font-size: clamp(1.1rem, 2.2vw, 1.5rem);
   font-weight: 730;
   letter-spacing: -0.05em;
-  line-height: 1.05;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.12;
+  overflow: visible;
+  white-space: normal;
 }
 
 .product-stage-headline > span {
@@ -12695,8 +12694,7 @@ a.signal-block-conclusion-link:hover {
 
   .product-stage h1,
   .product-stage-headline {
-    max-width: 16ch;
-    font-size: clamp(1.35rem, 7vw, 1.85rem);
+    font-size: clamp(1.2rem, 6vw, 1.55rem);
   }
 
   .product-stage-metrics {
