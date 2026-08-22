@@ -101,6 +101,7 @@ describe("SEO metadata", () => {
     expect(read("src/app/news/page.tsx")).toContain('sr-only');
     expect(read("src/app/not-found.tsx")).toContain("index: false");
     expect(read("src/app/pulse/page.tsx")).toContain('sr-only');
+    expect(read("src/app/smart-money/page.tsx")).toContain('sr-only');
     expect(read("src/app/page.tsx")).toContain("permanentRedirect");
     expect(read("next.config.ts")).toContain('source: "/"');
     expect(read("next.config.ts")).toContain("www.gotconviction.com");

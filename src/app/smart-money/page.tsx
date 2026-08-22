@@ -30,6 +30,7 @@ export default function SmartMoneyPage() {
 
   return (
     <main className="smart-money-page">
+      <h1 className="sr-only">Smart Money</h1>
       <ViewSwitcher
         label="Choose a Smart Money view"
         options={[...SMART_MONEY_VIEWS]}
