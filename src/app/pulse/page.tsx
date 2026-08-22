@@ -7,14 +7,9 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { HeatTile } from "@/components/HeatTile";
 import { HeatmapGrid } from "@/components/HeatmapGrid";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
-import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
-import {
-  themesForHeatmapGroup,
-  type MarketNarrativeTheme,
-  type NarrativeHeatmapGroup,
-} from "@/lib/market/market-narratives";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
+import { pulseHeroCopy } from "@/lib/market/pulse-hero";
 import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 
@@ -40,22 +35,6 @@ type PulseTab = (typeof PULSE_TABS)[number]["id"];
 function fmtPct(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
-
-function regimeDecisionHeadline(label: string | undefined): string {
-  switch (label) {
-    case "Risk-on": return "Risk appetite is broadening.";
-    case "Risk-off": return "Risk is coming out of the market.";
-    case "Defensive rotation": return "Defensives are taking the lead.";
-    case "Growth-led": return "Growth is leading the market.";
-    case "Cyclical rotation": return "Cyclicals are taking the lead.";
-    case "Volatility expansion": return "Volatility is rising beneath a steady market.";
-    case "Volatility compression": return "Volatility is easing while stocks wait.";
-    case "Rates pressure": return "Higher yields are pressuring risk.";
-    case "Mixed Signals": return "The market is sending mixed signals.";
-    case "Insufficient data": return "The market read is still forming.";
-    default: return "Read the market at a glance.";
-  }
 }
 
 function tileSpan(weight: number): number {
@@ -88,25 +67,18 @@ function groupDayStatusLabel(tone: InkTone): string {
 function GlobalMarketsHeatmap({
   markets,
   title,
-  subtitle,
-  narrativeGroup,
-  narratives,
+  subtitle = "",
   uniformTiles = true,
-  showDrivers = true,
   tileSubtitle,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
-  subtitle: string;
-  narrativeGroup: NarrativeHeatmapGroup;
-  narratives: MarketNarrativeTheme[];
+  subtitle?: string;
   uniformTiles?: boolean;
-  showDrivers?: boolean;
   /** Override tile subtitle (default: ticker). */
   tileSubtitle?: (market: PulseGlobalMarket) => string;
 }) {
   if (markets.length === 0) return null;
-  const groupThemes = showDrivers ? themesForHeatmapGroup(narratives, narrativeGroup) : [];
   const dayTone = groupDayTone(markets);
 
   return (
@@ -128,11 +100,6 @@ function GlobalMarketsHeatmap({
         </div>
         {subtitle.trim() ? <p className="market-heatmap-subtitle">{subtitle}</p> : null}
       </div>
-      {showDrivers ? (
-        <div className="stock-heat-footer">
-          <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
-        </div>
-      ) : null}
       <HeatmapGrid
         className={[
           "market-heatmap",
@@ -196,11 +163,15 @@ export default function MarketPulsePage() {
   const marketsByCategory = (category: string) =>
     data?.globalMarkets.filter((market) => market.category === category) ?? [];
   const majorIndexes = marketsByCategory("Major Index");
-  const themeMarkets = marketsByCategory("Themes");
   const commodities = marketsByCategory("Commodity");
   const cryptoMarkets = marketsByCategory("Crypto");
   const internationalMarkets = marketsByCategory("International");
   const industryMarkets = sectorsToMarkets(data?.sectors ?? []);
+  const hero = pulseHeroCopy({
+    themes: data?.marketNarratives.themes,
+    regimeLabel: data?.macroRegime.label,
+    regimeSummary: data?.macroRegime.summary,
+  });
 
   const changeFor = (ticker: string) =>
     data?.globalMarkets.find((market) => market.ticker === ticker)?.changePercent ?? null;
@@ -221,8 +192,8 @@ export default function MarketPulsePage() {
         aria-label="Market regime"
         loading={status === "loading"}
         eyebrow={`Pulse · ${data ? "Live data" : "Market read"} · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
-        headline={regimeDecisionHeadline(data?.macroRegime.label)}
-        summary={data?.macroRegime.summary ?? "See the regime first, then scan the indexes, sectors, and stocks driving the day."}
+        headline={hero.headline}
+        summary={hero.summary}
         metrics={
           <>
             <div className={spyChange !== null && spyChange < 0 ? "is-negative" : ""}>
@@ -265,18 +236,12 @@ export default function MarketPulsePage() {
             <GlobalMarketsHeatmap
               markets={majorIndexes}
               title="Major Indexes"
-              subtitle=""
-              narrativeGroup="Major Index"
-              narratives={data.marketNarratives.themes}
               uniformTiles
             />
             <div id="industries">
               <GlobalMarketsHeatmap
                 markets={industryMarkets}
                 title="Sectors"
-                subtitle=""
-                narrativeGroup="Industries"
-                narratives={data.marketNarratives.themes}
                 uniformTiles
               />
             </div>
@@ -284,40 +249,19 @@ export default function MarketPulsePage() {
             <div className="pulse-more-markets" aria-label="More markets">
               <p className="pulse-more-markets-label">More markets</p>
               <GlobalMarketsHeatmap
-                markets={themeMarkets}
-                title="Themes"
-                subtitle=""
-                narrativeGroup="Themes"
-                narratives={data.marketNarratives.themes}
-                uniformTiles
-                showDrivers={false}
-              />
-              <GlobalMarketsHeatmap
                 markets={commodities}
                 title="Commodities"
-                subtitle=""
-                narrativeGroup="Commodity"
-                narratives={data.marketNarratives.themes}
                 uniformTiles
-                showDrivers={false}
               />
               <GlobalMarketsHeatmap
                 markets={cryptoMarkets}
                 title="Crypto"
-                subtitle=""
-                narrativeGroup="Crypto"
-                narratives={data.marketNarratives.themes}
                 uniformTiles
-                showDrivers={false}
               />
               <GlobalMarketsHeatmap
                 markets={internationalMarkets}
                 title="International"
-                subtitle=""
-                narrativeGroup="International"
-                narratives={data.marketNarratives.themes}
                 uniformTiles
-                showDrivers={false}
               />
             </div>
           </>

@@ -64,6 +64,7 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   USO: etf("USO", "Crude Oil", "Commodity", "Commodities"),
   GLD: etf("GLD", "Gold", "Commodity", "Commodities"),
   SLV: etf("SLV", "Silver", "Commodity", "Commodities"),
+  UNG: etf("UNG", "Natural Gas", "Commodity", "Commodities"),
   DBC: etf("DBC", "Broad Commodities", "Commodity", "Commodities"),
 
   // International country ETFs (six-country Pulse set)
