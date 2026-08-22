@@ -13,17 +13,20 @@ export function pageMetadata({
   description,
   path,
   index = true,
+  absoluteTitle = false,
 }: {
   title: string;
   description: string;
   path: string;
   index?: boolean;
+  /** Skip the “Page · CONVICTION” template — use for the public homepage card. */
+  absoluteTitle?: boolean;
 }): Metadata {
   const url = absoluteUrl(path);
-  const socialTitle = `${title} · ${SITE_NAME}`;
+  const socialTitle = absoluteTitle ? title : `${title} · ${SITE_NAME}`;
 
   return {
-    title,
+    title: absoluteTitle ? { absolute: title } : title,
     description,
     alternates: {
       canonical: path,
