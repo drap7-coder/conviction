@@ -192,6 +192,7 @@ export default function MarketPulsePage() {
         loading={status === "loading"}
         eyebrow={`Pulse · ${data ? "Live data" : "Market read"} · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
         headline={hero.headline}
+        headlineMaxLines={2}
         metrics={
           <>
             <div className={spyChange !== null && spyChange < 0 ? "is-negative" : ""}>
