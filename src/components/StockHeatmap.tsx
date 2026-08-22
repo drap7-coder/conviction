@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { HeatTile } from "@/components/HeatTile";
+import { HeatmapGrid } from "@/components/HeatmapGrid";
 import {
   HEAT_EXTREME_THRESHOLD,
   HEAT_STRONG_THRESHOLD,
@@ -144,7 +145,10 @@ export function StockHeatmap({
     <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
       <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
       {footerSlot}
-      <div className={`stock-heat-grid${uniform ? " stock-heat-grid--uniform" : ""}`}>
+      <HeatmapGrid
+        className={`stock-heat-grid${uniform ? " stock-heat-grid--uniform" : ""}`}
+        count={items.length}
+      >
         {items.map((item) => {
           const span = uniform ? 1 : tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
           return (
@@ -163,7 +167,7 @@ export function StockHeatmap({
             />
           );
         })}
-      </div>
+      </HeatmapGrid>
     </section>
   );
 }
