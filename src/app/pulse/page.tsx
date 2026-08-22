@@ -9,8 +9,6 @@ import { HeatmapGrid } from "@/components/HeatmapGrid";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
-import { pulseHeroCopy } from "@/lib/market/pulse-hero";
-import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
@@ -157,9 +155,6 @@ export default function MarketPulsePage() {
     return () => { cancelled = true; };
   }, []);
 
-  const indicatorMap = new Map((data?.indicators ?? []).map((indicator) => [indicator.ticker, indicator]));
-  const vix = indicatorMap.get("^VIX")?.price ?? null;
-  const tenYear = indicatorMap.get("^TNX")?.price ?? null;
   const marketsByCategory = (category: string) =>
     data?.globalMarkets.filter((market) => market.category === category) ?? [];
   const majorIndexes = marketsByCategory("Major Index");
@@ -167,14 +162,6 @@ export default function MarketPulsePage() {
   const cryptoMarkets = marketsByCategory("Crypto");
   const internationalMarkets = marketsByCategory("International");
   const industryMarkets = sectorsToMarkets(data?.sectors ?? []);
-  const hero = pulseHeroCopy({
-    themes: data?.marketNarratives.themes,
-    regimeLabel: data?.macroRegime.label,
-  });
-
-  const changeFor = (ticker: string) =>
-    data?.globalMarkets.find((market) => market.ticker === ticker)?.changePercent ?? null;
-  const spyChange = changeFor("SPY");
 
   return (
     <main className="markets-page">
@@ -184,31 +171,6 @@ export default function MarketPulsePage() {
         options={[...PULSE_TABS]}
         activeId={activeTab}
         onChange={(id) => setActiveTab(id as PulseTab)}
-      />
-
-      <ProductStage
-        variant="pulse"
-        aria-label="Market regime"
-        loading={status === "loading"}
-        eyebrow={`Pulse · ${data ? "Live data" : "Market read"} · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
-        headline={hero.headline}
-        headlineMaxLines={2}
-        metrics={
-          <>
-            <div className={spyChange !== null && spyChange < 0 ? "is-negative" : ""}>
-              <strong>{fmtPct(spyChange)}</strong>
-              <span>S&amp;P 500</span>
-            </div>
-            <div className={vix !== null && vix >= 25 ? "is-alert" : ""}>
-              <strong>{vix !== null ? vix.toFixed(1) : "—"}</strong>
-              <span>VIX</span>
-            </div>
-            <div>
-              <strong>{tenYear !== null ? `${tenYear.toFixed(2)}%` : "—"}</strong>
-              <span>10Y yield</span>
-            </div>
-          </>
-        }
       />
 
       {status === "loading" ? (

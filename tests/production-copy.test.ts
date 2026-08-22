@@ -101,6 +101,12 @@ describe("production copy and fixture isolation", () => {
     expect(news).not.toContain("Active narratives");
     expect(news).not.toContain("Feed status");
     expect(news).toContain("PulseNewsFeed");
+    const feed = read("src/components/market/PulseNewsFeed.tsx");
+    expect(feed).not.toContain("is-featured");
+    expect(feed).not.toContain("featured=");
+    expect(feed).not.toContain("TypewriterText");
+    const pulse = read("src/app/pulse/page.tsx");
+    expect(pulse).not.toContain("ProductStage");
   });
 
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {

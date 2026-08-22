@@ -56,7 +56,7 @@ describe("pulseHeroCopy", () => {
 });
 
 describe("Pulse heatmap universe", () => {
-  it("keeps even more-markets groups and a headline-only hero", () => {
+  it("keeps even more-markets groups and no page hero", () => {
     const route = read("src/app/api/market/pulse/route.ts");
     const page = read("src/app/pulse/page.tsx");
 
@@ -67,30 +67,13 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain('title="Themes"');
     expect(page).not.toContain("themeMarkets");
     expect(page).not.toContain("MarketNarrativeDriversPanel");
-    expect(page).toContain("pulseHeroCopy");
-    expect(page).toContain("headlineMaxLines={2}");
+    expect(page).not.toContain("ProductStage");
+    expect(page).not.toContain("pulseHeroCopy");
+    expect(page).not.toContain("headlineMaxLines");
     expect(page).not.toContain("hero.summary");
-    const css = read("src/app/globals.css");
-    expect(css).toContain(".product-stage--pulse .product-stage-headline");
-    expect(css).toContain(".typewriter-fit-measure");
-    expect(read("src/components/TypewriterText.tsx")).toContain("fitFontSizeToLines");
-    expect(read("src/components/TypewriterText.tsx")).not.toContain("trimHeadlineToFit");
     expect(page).not.toContain("regimeSummary");
     expect(page).toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');
     expect(page).toContain('title="International"');
-  });
-});
-
-describe("Pulse headline fit", () => {
-  it("shrinks the font instead of ellipsizing the title", () => {
-    const typewriter = read("src/components/TypewriterText.tsx");
-    const agents = read("AGENTS.md");
-    expect(typewriter).toContain("fitFontSizeToLines");
-    expect(typewriter).toContain("const minPx = 8");
-    expect(typewriter).toContain("shrink the font so the full text fits");
-    expect(typewriter).not.toContain("trimHeadlineToFit");
-    expect(agents).toContain("shrinks its font so the full title fits 2 lines");
-    expect(agents).not.toContain("ellipsis after that");
   });
 });
