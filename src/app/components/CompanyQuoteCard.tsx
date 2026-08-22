@@ -145,7 +145,10 @@ export function CompanyQuoteCard({
           )}
           <div className="company-quote-copy">
             <div className="company-quote-ticker-row">
-              <h1 className="company-quote-ticker">{ticker}</h1>
+              <h1 className="company-quote-ticker">
+                {ticker}
+                <span className="sr-only">{` ${companyName}`}</span>
+              </h1>
               <WatchlistTrackControl
                 ticker={ticker}
                 companyName={companyName}

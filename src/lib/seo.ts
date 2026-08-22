@@ -37,14 +37,15 @@ export function pageMetadata({
       description,
       url,
       siteName: SITE_NAME,
-      images: [SITE_OG_IMAGE],
+      locale: "en_US",
+      images: [{ ...SITE_OG_IMAGE, url: absoluteUrl(SITE_OG_IMAGE.url) }],
       type: "website",
     },
     twitter: {
       card: "summary_large_image",
       title: socialTitle,
       description,
-      images: [SITE_OG_IMAGE.url],
+      images: [absoluteUrl(SITE_OG_IMAGE.url)],
     },
   };
 }
@@ -66,11 +67,6 @@ export function siteJsonLd() {
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         publisher: { "@type": "Organization", name: SITE_NAME },
-        potentialAction: {
-          "@type": "SearchAction",
-          target: `${SITE_URL}/companies/{search_term_string}`,
-          "query-input": "required name=search_term_string",
-        },
       },
     ],
   };

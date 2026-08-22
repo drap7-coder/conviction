@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { breadcrumbJsonLd, pageMetadata, siteJsonLd } from "@/lib/seo";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TAGLINE, SITE_TITLE, SITE_URL } from "@/lib/site";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_TAGLINE, SITE_TITLE, SITE_URL } from "@/lib/site";
 import sitemap from "@/app/sitemap";
 import { listMarketInstruments } from "@/lib/market/market-instruments";
 import { SECTORS } from "@/lib/market/industries";
@@ -72,7 +72,7 @@ describe("SEO metadata", () => {
     const site = siteJsonLd();
     expect(JSON.stringify(site)).toContain("Organization");
     expect(JSON.stringify(site)).toContain("WebSite");
-    expect(JSON.stringify(site)).toContain("SearchAction");
+    expect(JSON.stringify(site)).not.toContain("SearchAction");
 
     const crumbs = breadcrumbJsonLd([
       { name: "Pulse", path: "/pulse" },
@@ -100,5 +100,23 @@ describe("SEO metadata", () => {
     expect(read("src/app/portfolio/page.tsx")).toContain('sr-only');
     expect(read("src/app/news/page.tsx")).toContain('sr-only');
     expect(read("src/app/not-found.tsx")).toContain("index: false");
+    expect(read("src/app/pulse/page.tsx")).toContain('sr-only');
+    expect(read("src/app/page.tsx")).toContain("permanentRedirect");
+    expect(read("next.config.ts")).toContain('source: "/"');
+    expect(read("next.config.ts")).toContain("www.gotconviction.com");
+  });
+
+  it("points Open Graph and Twitter images at the public origin", () => {
+    const meta = pageMetadata({
+      title: "News",
+      description: "Stories.",
+      path: "/news",
+    });
+
+    expect(meta.openGraph?.images).toEqual([
+      { ...SITE_OG_IMAGE, url: `${SITE_URL}/conviction-og.png` },
+    ]);
+    expect(meta.twitter?.images).toEqual([`${SITE_URL}/conviction-og.png`]);
+    expect(meta.openGraph?.locale).toBe("en_US");
   });
 });

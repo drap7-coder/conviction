@@ -23,10 +23,12 @@ export async function generateMetadata({
   const upperTicker = ticker.toUpperCase();
   const sector = getSectorByTicker(upperTicker);
   if (!sector) {
-    return {
+    return pageMetadata({
       title: upperTicker,
       description: "Ownership signals for this sector.",
-    };
+      path: `/industries/${encodeURIComponent(upperTicker)}`,
+      index: false,
+    });
   }
 
   const title = `${sector.name} sector (${sector.ticker})`;
@@ -104,7 +106,10 @@ export default async function SectorPage({
               return <div className="logo-badge logo-badge-detail">{upperTicker.charAt(0)}</div>;
             })()}
             <div>
-              <h1 className="detail-ticker">{sector.ticker}</h1>
+              <h1 className="detail-ticker">
+                {sector.ticker}
+                <span className="sr-only">{` ${sector.name} sector`}</span>
+              </h1>
               <p className="detail-name">{sector.name}</p>
             </div>
           </div>

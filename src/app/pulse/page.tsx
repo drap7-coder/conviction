@@ -208,6 +208,7 @@ export default function MarketPulsePage() {
 
   return (
     <main className="markets-page">
+      <h1 className="sr-only">Pulse</h1>
       <ViewSwitcher
         label="Choose a Pulse view"
         options={[...PULSE_TABS]}

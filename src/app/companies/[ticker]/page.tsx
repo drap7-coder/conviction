@@ -73,6 +73,12 @@ export default async function CompanyPage({
     description: supportsSignals
       ? `Decision snapshot and source filings for ${companyName} (${upperTicker}).`
       : `Price, chart, and news for ${companyName} (${upperTicker}).`,
+    mainEntity: {
+      "@type": supportsSignals ? "Corporation" : "InvestmentFund",
+      name: companyName,
+      identifier: upperTicker,
+      url: `${SITE_URL}${path}`,
+    },
   };
   const breadcrumbs = breadcrumbJsonLd([
     { name: "Pulse", path: "/pulse" },
