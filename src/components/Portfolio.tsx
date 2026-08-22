@@ -7,31 +7,26 @@ import {
   computePortfolioMetrics,
   computePositionMetrics,
   computeSectorAllocation,
-  computeRiskFlags,
 } from "@/lib/portfolio/calculations";
 import {
   SAMPLE_PORTFOLIO_BOOKS,
   SAMPLE_BOOK_TARGET_VALUE,
   sizeSampleBookPositions,
-  loadActiveSampleBookId,
-  loadSampleBookPositions,
-  positionsMatchSampleBook,
-  resolveActivePortfolioPositions,
   saveActiveSampleBookId,
   saveSampleBookPositions,
   getSampleBook,
+  sampleBookLargestWeight,
+  sampleBookSleeves,
   type SampleBook,
 } from "@/lib/portfolio/sample-books";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
-import SectorMixBars from "@/components/SectorMixBars";
 import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { PortfolioCheckPanel } from "@/components/PortfolioCheckPanel";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
@@ -39,34 +34,13 @@ import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
+import Link from "next/link";
 
 const PORTFOLIO_TEMPLATE_DEFAULT = "three-fund";
 
-/** Largest single-name target weight for a study template (for the comparison line). */
-function templateLargestWeight(book: SampleBook): number {
-  if (book.weights) {
-    const values = Object.values(book.weights);
-    return values.length ? Math.max(...values) : 0;
-  }
-  return book.tickers.length ? 100 / book.tickers.length : 0;
+function sleeveWeightLabel(value: number): string {
+  return `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
 }
-
-const PORTFOLIO_TABS = [
-  {
-    id: "insights",
-    label: "Insights",
-    tabId: "portfolio-tab-insights",
-    panelId: "portfolio-panel-insights",
-  },
-  {
-    id: "holdings",
-    label: "Holdings",
-    tabId: "portfolio-tab-holdings",
-    panelId: "portfolio-panel-holdings",
-  },
-] as const;
-
-type PortfolioTab = (typeof PORTFOLIO_TABS)[number]["id"];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -252,20 +226,9 @@ export default function Portfolio({
   const [formError, setFormError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<PortfolioTab>(() => {
-    if (typeof window === "undefined") return "insights";
-    try {
-      const stored = sessionStorage.getItem("conviction-portfolio-tab");
-      return stored === "holdings" || stored === "value" ? "holdings" : "insights";
-    } catch {
-      return "insights";
-    }
-  });
-  const [focusTicker, setFocusTicker] = useState<string | null>(null);
   const sampleLoadRef = useRef(0);
   const sampleAbortRef = useRef<AbortController | null>(null);
   const sampleAwaitingQuotesRef = useRef(false);
-  const focusClearRef = useRef<number | null>(null);
 
   // Load personal positions on mount. Study Mode reads templates from the URL,
   // so we no longer resolve a stored sample book into the live positions.
@@ -273,17 +236,8 @@ export default function Portfolio({
     setPositions(loadPositions());
     return () => {
       sampleAbortRef.current?.abort();
-      if (focusClearRef.current) window.clearTimeout(focusClearRef.current);
     };
   }, []);
-
-  useEffect(() => {
-    try {
-      sessionStorage.setItem("conviction-portfolio-tab", activeTab);
-    } catch {
-      // ignore private mode / quota
-    }
-  }, [activeTab]);
 
   useEffect(() => {
     if (!loadingBook || !sampleAwaitingQuotesRef.current || sharedData.loading) return;
@@ -394,13 +348,6 @@ export default function Portfolio({
   }, [sectorAllocation]);
   const hasData = enriched.length > 0;
 
-  // ── Portfolio Intelligence V1 derived data ──
-
-  const riskFlags = useMemo(
-    () => computeRiskFlags(enriched, portfolioMetrics, sectorAllocation),
-    [enriched, portfolioMetrics, sectorAllocation],
-  );
-
   // ── Sorted positions ──
 
   const sortedPositions = useMemo(() => {
@@ -454,7 +401,6 @@ export default function Portfolio({
     [sortedPositions],
   );
 
-  const activeSampleBook = SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === activeBookId) ?? null;
   const stageTone = valueBrief.tone;
 
   const allocationItems = useMemo(() => sortedPositions
@@ -552,20 +498,6 @@ export default function Portfolio({
     refreshSharedQuotes();
     const tickers = positions.map((p) => p.ticker).filter(Boolean);
     void fetchSectorProfiles(Array.from(new Set(tickers)));
-  }
-
-  function reviewPositions(ticker?: string) {
-    const target = ticker?.trim().toUpperCase() || null;
-    setActiveTab("holdings");
-    setFocusTicker(target);
-    window.requestAnimationFrame(() => {
-      const el = target
-        ? document.getElementById(`portfolio-holding-${target}`)
-        : document.getElementById("portfolio-positions");
-      el?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-    if (focusClearRef.current) window.clearTimeout(focusClearRef.current);
-    focusClearRef.current = window.setTimeout(() => setFocusTicker(null), 2200);
   }
 
   function handleClearAll() {
@@ -713,61 +645,11 @@ export default function Portfolio({
     </section>
   );
 
-  const isSampleBook = Boolean(activeSampleBook);
-  const judgmentPanel = !calcFailed ? (
-    <div className={`pf-insights-judgment${isSampleBook ? " is-first" : ""}`}>
-      <PortfolioCheckPanel
-        riskFlags={riskFlags}
-        sampleBook={activeSampleBook}
-        onReviewPositions={reviewPositions}
-      />
-    </div>
-  ) : null;
-  const mixPanel = sectorMixData.length > 0 ? (
-    <section className="pf-section pf-exposure-card pf-insights-mix">
-      <div className="pf-exposure-heading">
-        <div>
-          <span className="pf-section-eyebrow">Portfolio mix</span>
-          <h2>Where your money is</h2>
-        </div>
-        <p>Stocks by sector. Funds by asset-class sleeve.</p>
-      </div>
-      <SectorMixBars sectors={sectorMixData} />
-    </section>
-  ) : null;
   const allocationPanel = !calcFailed ? (
     <div className="pf-insights-allocation">
       <PortfolioAllocationLadder items={allocationItems} />
     </div>
   ) : null;
-
-  const insightsBody = hasData ? (
-    <div className={`pf-insights-flow${isSampleBook ? " is-sample" : ""}`}>
-      {/* Sample books lead with Design; personal books map first, then pressure points. */}
-      {isSampleBook ? judgmentPanel : null}
-      {mixPanel}
-      {allocationPanel}
-      {!isSampleBook ? judgmentPanel : null}
-
-      {calcFailed ? (
-        <div className="empty-state compact">
-          <p>Insights need live prices.</p>
-          <small>Open Holdings and refresh quotes, then come back.</small>
-          <button type="button" className="brief-link" onClick={() => { setActiveTab("holdings"); handleRefresh(); }}>
-            Retry on Holdings →
-          </button>
-        </div>
-      ) : null}
-    </div>
-  ) : (
-    <div className="empty-state">
-      <p>Insights need a portfolio to read.</p>
-      <small>Pick a classic book above to learn the design — or add positions on Holdings.</small>
-      <button type="button" className="brief-link" onClick={() => setActiveTab("holdings")}>
-        Go to Holdings →
-      </button>
-    </div>
-  );
 
   // ── Render ──
 
@@ -779,9 +661,12 @@ export default function Portfolio({
     getSampleBook(templateId)
     ?? getSampleBook(PORTFOLIO_TEMPLATE_DEFAULT)
     ?? SAMPLE_PORTFOLIO_BOOKS[0];
+  const studySleeves = sampleBookSleeves(studyBook)
+    .slice()
+    .sort((a, b) => b.weight - a.weight);
   // Concentration comparison vs the user's real book — only when they have one.
   const studyDelta = positions.length > 0 && valueBrief.largest
-    ? Math.round(valueBrief.largest.weight - templateLargestWeight(studyBook))
+    ? Math.round(valueBrief.largest.weight - sampleBookLargestWeight(studyBook))
     : null;
 
   function goLive() {
@@ -831,9 +716,18 @@ export default function Portfolio({
           </button>
         ))}
       </div>
-      <div className="pf-study-body">
+      <section className="pf-study-book" aria-labelledby="pf-study-title">
         <span className="pf-study-badge">Sample</span>
-        <PortfolioCheckPanel riskFlags={riskFlags} sampleBook={studyBook} />
+        <h2 id="pf-study-title">{studyBook.label}</h2>
+        <p className="pf-study-lede">{studyBook.description}</p>
+        <ol className="pf-study-sleeves">
+          {studySleeves.map((sleeve) => (
+            <li key={sleeve.ticker}>
+              <Link href={`/companies/${sleeve.ticker}`}>{sleeve.ticker}</Link>
+              <b>{sleeveWeightLabel(sleeve.weight)}</b>
+            </li>
+          ))}
+        </ol>
         {studyDelta !== null ? (
           <div className="pf-study-compare">
             <span>Your book vs this template</span>
@@ -844,7 +738,7 @@ export default function Portfolio({
             </strong>
           </div>
         ) : null}
-      </div>
+      </section>
     </div>
   );
 
@@ -1035,7 +929,7 @@ export default function Portfolio({
                         formCost={isEditing ? formCost : ""}
                         formError={isEditing ? formError : null}
                         confirmRemove={removingTicker?.toUpperCase() === ticker}
-                        focused={focusTicker === ticker}
+                        focused={false}
                         onEdit={handleStartEdit}
                         onCancelEdit={handleCancelEdit}
                         onSharesChange={setFormShares}

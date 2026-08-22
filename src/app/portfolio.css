@@ -232,17 +232,70 @@
   text-transform: uppercase;
 }
 
-/* Purple-tint the study strategy card + kicker. */
-.portfolio-page .pf-study .portfolio-insight-card.is-strategy {
-  --accent: var(--sample);
-  border-color: color-mix(in srgb, var(--sample) 28%, var(--border));
+.portfolio-page .pf-study-book {
+  padding: 16px 16px 14px;
+  border: 1px solid color-mix(in srgb, var(--sample) 28%, var(--border));
+  border-radius: 16px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--sample) 12%, var(--card)) 0%, var(--card) 55%),
     var(--card);
 }
 
-.portfolio-page .pf-study .portfolio-insight-kicker {
-  color: var(--sample);
+.portfolio-page .pf-study-book h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.portfolio-page .pf-study-lede {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.portfolio-page .pf-study-sleeves {
+  display: grid;
+  gap: 0;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--divider);
+}
+
+.portfolio-page .pf-study-sleeves li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--divider);
+}
+
+.portfolio-page .pf-study-sleeves a {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.portfolio-page .pf-study-sleeves a:hover,
+.portfolio-page .pf-study-sleeves a:focus-visible {
+  color: var(--accent);
+  outline: none;
+}
+
+.portfolio-page .pf-study-sleeves b {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .portfolio-page .pf-study-compare {
