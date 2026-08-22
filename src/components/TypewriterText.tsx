@@ -58,6 +58,7 @@ export function TypewriterText({
   const [done, setDone] = useState(false);
   const measureRef = useRef<HTMLElement | null>(null);
   const stopRef = useRef(false);
+  const intervalRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!text) {
@@ -80,25 +81,25 @@ export function TypewriterText({
     setDisplayed("");
     setDone(false);
     let i = 0;
-    let interval: number | undefined;
     const timeout = window.setTimeout(() => {
-      interval = window.setInterval(() => {
+      intervalRef.current = window.setInterval(() => {
         if (stopRef.current) {
-          if (interval !== undefined) window.clearInterval(interval);
+          if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
           return;
         }
         i += 1;
-        setDisplayed(text.slice(0, i));
+        const next = text.slice(0, i);
+        setDisplayed((prev) => (stopRef.current ? prev : next));
         if (i >= text.length) {
-          if (interval !== undefined) window.clearInterval(interval);
-          setDone(true);
+          if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
+          if (!stopRef.current) setDone(true);
         }
       }, msPerChar);
     }, startDelay);
 
     return () => {
       window.clearTimeout(timeout);
-      if (interval !== undefined) window.clearInterval(interval);
+      if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
     };
   }, [text, msPerChar, startDelay]);
 
@@ -109,6 +110,7 @@ export function TypewriterText({
     if (countWrappedLines(el) <= maxLines) return;
 
     stopRef.current = true;
+    if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
     const withoutEllipsis = displayed.endsWith("…") ? displayed.slice(0, -1) : displayed;
     const source = displayed.endsWith("…") ? withoutEllipsis : withoutEllipsis.slice(0, -1);
     const next = trimHeadlineToFit(source);
