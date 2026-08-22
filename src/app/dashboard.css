@@ -632,6 +632,34 @@
   line-height: 1.45;
 }
 
+.company-briefing .company-evidence-points {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.company-briefing .company-evidence-points > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.company-briefing .company-evidence-points span {
+  color: var(--on-ink-quiet);
+  font-family: var(--font-mono);
+  font-size: 0.57rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.company-briefing .company-evidence-points p {
+  margin: 0;
+  color: var(--on-ink-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
 .company-briefing .company-driver-module .signal-block-list {
   margin-top: 8px;
   padding-top: 8px;

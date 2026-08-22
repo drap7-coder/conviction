@@ -165,12 +165,20 @@ export function CompanyEvidenceCard({
           eyebrow={signal.eyebrow}
           conclusion={signal.conclusion}
           conclusionHref={signal.conclusionHref}
-          evidence={signal.evidence}
-          whyItMatters={signal.whyItMatters}
           badge={signal.badge}
           source={signal.source}
           dateLabel={signal.dateLabel}
         >
+          <div className="company-evidence-points">
+            <div>
+              <span>Why it matters</span>
+              <p>{signal.evidence}</p>
+            </div>
+            <div>
+              <span>Watch next</span>
+              <p>{signal.whyItMatters}</p>
+            </div>
+          </div>
           {signal.extraHeadlines.length > 0 ? (
             <ol className="signal-block-list" aria-label={`${ticker} related headlines`}>
               {signal.extraHeadlines.map((item) => (

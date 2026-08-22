@@ -155,5 +155,10 @@ describe("company evidence composition", () => {
     expect(watchlist).not.toContain("<WatchlistDailyBrief");
     expect(watchlist).not.toContain("Fresh on your watchlist");
     expect(existsSync(new URL("../src/app/components/CompanyEvidenceCard.tsx", import.meta.url))).toBe(true);
+    const card = read("src/app/components/CompanyEvidenceCard.tsx");
+    expect(card).toContain("Why it matters");
+    expect(card).toContain("Watch next");
+    expect(card).not.toContain("Open company brief");
+    expect(card).toContain("SignalBlock");
   });
 });
