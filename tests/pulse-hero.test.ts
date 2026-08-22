@@ -72,8 +72,9 @@ describe("Pulse heatmap universe", () => {
     expect(page).toContain("headlineMaxLines={2}");
     expect(page).not.toContain("hero.summary");
     const css = read("src/app/globals.css");
-    expect(css).toContain(".product-stage--pulse .product-stage-headline .typewriter-line");
-    expect(css).toContain("max-height: calc(1.12em * 2)");
+    expect(css).toContain(".product-stage--pulse .product-stage-headline");
+    expect(css).toContain("max-height: calc(1.12em * 2 + 0.4em)");
+    expect(read("src/components/TypewriterText.tsx")).toContain("countWrappedLines");
     expect(page).not.toContain("regimeSummary");
     expect(page).toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');

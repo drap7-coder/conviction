@@ -12,6 +12,28 @@ export function trimHeadlineToFit(visible: string): string {
   return `${cut || trimmed}…`;
 }
 
+/** Count wrapped line boxes for the visible text, ignoring the caret. */
+export function countWrappedLines(el: HTMLElement): number {
+  const hidden = el.querySelector("span[aria-hidden='true']");
+  if (!hidden) return 0;
+  let textNode: ChildNode | null = null;
+  for (const node of hidden.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE && (node.textContent || "").length) {
+      textNode = node;
+      break;
+    }
+  }
+  if (!textNode) return 0;
+  const range = document.createRange();
+  range.selectNodeContents(textNode);
+  const tops: number[] = [];
+  for (const rect of range.getClientRects()) {
+    if (rect.height < 1 || rect.width < 1) continue;
+    if (!tops.some((top) => Math.abs(top - rect.top) < 2)) tops.push(rect.top);
+  }
+  return tops.length;
+}
+
 /**
  * Types text on arrival for page-top impact.
  * Replays when `text` changes. Honors prefers-reduced-motion.
@@ -84,8 +106,7 @@ export function TypewriterText({
     if (!maxLines || !displayed) return;
     const el = measureRef.current;
     if (!el) return;
-    // max-height (not line-clamp) so scrollHeight still reports the unclipped box.
-    if (el.scrollHeight <= el.clientHeight + 1) return;
+    if (countWrappedLines(el) <= maxLines) return;
 
     stopRef.current = true;
     const withoutEllipsis = displayed.endsWith("…") ? displayed.slice(0, -1) : displayed;
@@ -103,11 +124,6 @@ export function TypewriterText({
     <Tag
       ref={measureRef as never}
       className={className ? `${className} typewriter-line` : "typewriter-line"}
-      style={
-        maxLines
-          ? { maxHeight: `calc(1.12em * ${maxLines})`, overflow: "hidden" }
-          : undefined
-      }
       aria-label={text}
     >
       <span aria-hidden="true">

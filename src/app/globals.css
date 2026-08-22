@@ -12359,14 +12359,13 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage--pulse .product-stage-headline {
   min-height: calc(1.12em * 2);
+  /* Slack so a 2-line paint is never clipped; JS stops a 3rd line. */
+  max-height: calc(1.12em * 2 + 0.4em);
   overflow: hidden;
 }
 
-/* Cap height — not line-clamp — so the typewriter can measure overflow. */
 .product-stage--pulse .product-stage-headline .typewriter-line {
   display: block;
-  max-height: calc(1.12em * 2);
-  overflow: hidden;
 }
 
 /* ── Skeleton loader (LinkedIn-style: motion only, then type-in) ── */
