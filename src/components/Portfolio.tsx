@@ -34,12 +34,18 @@ import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
+import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import Link from "next/link";
 
 const PORTFOLIO_TEMPLATE_DEFAULT = "three-fund";
 
 function sleeveWeightLabel(value: number): string {
   return `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
+}
+
+function studySignedPct(value: number): string {
+  const rounded = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
+  return `${value > 0 ? "+" : ""}${rounded}%`;
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -661,7 +667,11 @@ export default function Portfolio({
     getSampleBook(templateId)
     ?? getSampleBook(PORTFOLIO_TEMPLATE_DEFAULT)
     ?? SAMPLE_PORTFOLIO_BOOKS[0];
-  const studySleeves = sampleBookSleeves(studyBook)
+  const studyBrief = getStudyBrief(studyBook);
+  const studySleeves = (studyBrief?.sleeves ?? sampleBookSleeves(studyBook).map((sleeve) => ({
+    ...sleeve,
+    role: "",
+  })))
     .slice()
     .sort((a, b) => b.weight - a.weight);
   // Concentration comparison vs the user's real book — only when they have one.
@@ -719,11 +729,51 @@ export default function Portfolio({
       <section className="pf-study-book" aria-labelledby="pf-study-title">
         <span className="pf-study-badge">Sample</span>
         <h2 id="pf-study-title">{studyBook.label}</h2>
-        <p className="pf-study-lede">{studyBook.description}</p>
+        <p className="pf-study-lede">{studyBrief?.principle ?? studyBook.description}</p>
+        {studyBrief ? (
+          <div className="pf-study-machine">
+            <div>
+              <span>How it’s built</span>
+              <p>{studyBrief.design}</p>
+            </div>
+            <div>
+              <span>What breaks it</span>
+              <p>{studyBrief.stress}</p>
+            </div>
+          </div>
+        ) : null}
+        {studyBrief ? (
+          <div className="pf-study-history" aria-label={`${studyBook.label} illustrative history`}>
+            <div className="pf-study-history-heading">
+              <span>Historical performance</span>
+              <p>{studyBrief.performance.periodLabel}</p>
+            </div>
+            <div className="pf-study-history-metrics">
+              <div>
+                <span>Annualized</span>
+                <strong>{studySignedPct(studyBrief.performance.annualizedPct)}</strong>
+              </div>
+              <div className="is-best">
+                <span>Best year · {studyBrief.performance.bestYear.year}</span>
+                <strong>{studySignedPct(studyBrief.performance.bestYear.pct)}</strong>
+              </div>
+              <div className="is-worst">
+                <span>Worst year · {studyBrief.performance.worstYear.year}</span>
+                <strong>{studySignedPct(studyBrief.performance.worstYear.pct)}</strong>
+              </div>
+            </div>
+            <p className="pf-study-history-note">
+              Study figures for learning the design — not a live track record of this book.
+            </p>
+          </div>
+        ) : null}
         <ol className="pf-study-sleeves">
           {studySleeves.map((sleeve) => (
             <li key={sleeve.ticker}>
-              <Link href={`/companies/${sleeve.ticker}`}>{sleeve.ticker}</Link>
+              <div>
+                <Link href={`/companies/${sleeve.ticker}`}>{sleeve.ticker}</Link>
+                {sleeve.role ? <span>{sleeve.role}</span> : null}
+              </div>
               <b>{sleeveWeightLabel(sleeve.weight)}</b>
             </li>
           ))}
