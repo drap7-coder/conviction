@@ -87,6 +87,7 @@ describe("Pulse headline fit", () => {
     const typewriter = read("src/components/TypewriterText.tsx");
     const agents = read("AGENTS.md");
     expect(typewriter).toContain("fitFontSizeToLines");
+    expect(typewriter).toContain("const minPx = 8");
     expect(typewriter).toContain("shrink the font so the full text fits");
     expect(typewriter).not.toContain("trimHeadlineToFit");
     expect(agents).toContain("shrinks its font so the full title fits 2 lines");

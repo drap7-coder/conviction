@@ -36,6 +36,8 @@ export function fitFontSizeToLines(
 ): number {
   const apply = (px: number) => {
     el.style.fontSize = `${px}px`;
+    el.style.lineHeight = "1.12";
+    el.style.letterSpacing = "-0.05em";
   };
 
   apply(maxPx);
@@ -98,7 +100,7 @@ export function TypewriterText({
       measure.style.fontSize = "";
       const maxPx = parseFloat(getComputedStyle(box).fontSize);
       if (!Number.isFinite(maxPx) || maxPx <= 0) return;
-      const minPx = Math.max(10, maxPx * 0.5);
+      const minPx = 8;
       setFontPx(fitFontSizeToLines(measure, maxLines, maxPx, minPx));
     };
 
@@ -155,7 +157,11 @@ export function TypewriterText({
     >
       <span
         aria-hidden="true"
-        style={fontPx != null ? { fontSize: `${fontPx}px` } : undefined}
+        style={
+          fontPx != null
+            ? { fontSize: `${fontPx}px`, lineHeight: 1.12, letterSpacing: "-0.05em" }
+            : undefined
+        }
       >
         {displayed}
         {!done && fitted ? <span className="typewriter-cursor" /> : null}
