@@ -35,13 +35,8 @@ import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
-import Link from "next/link";
 
 const PORTFOLIO_TEMPLATE_DEFAULT = "three-fund";
-
-function sleeveWeightLabel(value: number): string {
-  return `${value.toFixed(value % 1 === 0 ? 0 : 1)}%`;
-}
 
 function studySignedPct(value: number): string {
   const rounded = Number.isInteger(value) ? value.toFixed(0) : value.toFixed(1);
@@ -767,17 +762,17 @@ export default function Portfolio({
             </p>
           </div>
         ) : null}
-        <ol className="pf-study-sleeves">
-          {studySleeves.map((sleeve) => (
-            <li key={sleeve.ticker}>
-              <div>
-                <Link href={`/companies/${sleeve.ticker}`}>{sleeve.ticker}</Link>
-                {sleeve.role ? <span>{sleeve.role}</span> : null}
-              </div>
-              <b>{sleeveWeightLabel(sleeve.weight)}</b>
-            </li>
-          ))}
-        </ol>
+        <div className="pf-study-ladder">
+          <PortfolioAllocationLadder
+            items={studySleeves.map((sleeve) => ({
+              ticker: sleeve.ticker,
+              companyName: sleeve.role || sleeve.ticker,
+              weight: sleeve.weight,
+            }))}
+            eyebrow="Target mix"
+            hint="Template weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration."
+          />
+        </div>
         {studyDelta !== null ? (
           <div className="pf-study-compare">
             <span>Your book vs this template</span>
