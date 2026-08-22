@@ -45,16 +45,12 @@ const GLOBAL_MARKETS = [
   { ticker: "IWM", name: "Russell 2000", weight: 9, category: "Major Index" },
   { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "Major Index" },
   { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "Major Index" },
-  // Style / factor sleeves (dividend, real estate, transports).
-  { ticker: "SCHD", name: "U.S. Dividend 100", weight: 10, category: "Themes" },
-  { ticker: "VNQ", name: "U.S. Real Estate", weight: 8, category: "Themes" },
-  { ticker: "IYT", name: "Transportation", weight: 7, category: "Themes" },
   { ticker: "USO", name: "Crude Oil", weight: 8, category: "Commodity" },
   { ticker: "GLD", name: "Gold", weight: 7, category: "Commodity" },
   { ticker: "SLV", name: "Silver", weight: 5, category: "Commodity" },
+  { ticker: "UNG", name: "Natural Gas", weight: 6, category: "Commodity" },
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
   { ticker: "ETH-USD", name: "Ethereum", weight: 10, category: "Crypto" },
-  { ticker: "SOL-USD", name: "Solana", weight: 8, category: "Crypto" },
   // Keep International to six countries so the heatmap stays scannable.
   { ticker: "EWJ", name: "Japan", weight: 16, category: "International" },
   { ticker: "MCHI", name: "China", weight: 14, category: "International" },

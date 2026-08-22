@@ -40,6 +40,7 @@ describe("validateTicker market instruments", () => {
       { ticker: "TLT", name: "20+ Year Treasury", tag: "Bond", exposure: "Fixed Income" },
       { ticker: "IEF", name: "7–10 Year Treasury", tag: "Bond", exposure: "Fixed Income" },
       { ticker: "GLD", name: "Gold", tag: "Commodity", exposure: "Commodities" },
+      { ticker: "UNG", name: "Natural Gas", tag: "Commodity", exposure: "Commodities" },
       { ticker: "DBC", name: "Broad Commodities", tag: "Commodity", exposure: "Commodities" },
       { ticker: "BND", name: "Total Bond Market", tag: "Bond", exposure: "Fixed Income" },
       { ticker: "VXUS", name: "Total International Stock", tag: "International", exposure: "International Equity" },

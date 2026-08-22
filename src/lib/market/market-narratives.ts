@@ -62,8 +62,9 @@ export const MARKET_NARRATIVE_THEMES: NarrativeThemeConfig[] = [
       { ticker: "USO", label: "Oil" },
       { ticker: "GLD", label: "Gold" },
       { ticker: "SLV", label: "Silver" },
+      { ticker: "UNG", label: "Natural Gas" },
     ],
-    headlinePattern: /oil|crude|opec|energy|gas|gold|silver|commodity/i,
+    headlinePattern: /oil|crude|opec|energy|gas|gold|silver|commodity|natural gas/i,
   },
   {
     id: "crypto-liquidity",
@@ -74,7 +75,6 @@ export const MARKET_NARRATIVE_THEMES: NarrativeThemeConfig[] = [
     assets: [
       { ticker: "BTC-USD", label: "Bitcoin" },
       { ticker: "ETH-USD", label: "Ethereum" },
-      { ticker: "SOL-USD", label: "Solana" },
     ],
     headlinePattern: /bitcoin|ethereum|solana|crypto|stablecoin|digital asset/i,
   },
