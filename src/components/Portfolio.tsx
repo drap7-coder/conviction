@@ -825,8 +825,8 @@ export default function Portfolio({
           metrics={
             <>
               <div>
-                <strong className="tnum">{currency(portfolioMetrics.totalMarketValue)}</strong>
-                <span>Total value</span>
+                <strong className="tnum">{compactCurrency(portfolioMetrics.totalMarketValue)}</strong>
+                <span>Value</span>
               </div>
               <div
                 className={
@@ -837,8 +837,8 @@ export default function Portfolio({
                       : ""
                 }
               >
-                <strong className="tnum">{signedCurrency(portfolioMetrics.dailyChange)}</strong>
-                <span>Today · {percent(portfolioMetrics.dailyChangePercent)}</span>
+                <strong className="tnum">{percent(portfolioMetrics.dailyChangePercent)}</strong>
+                <span>Today</span>
               </div>
               <div className={valueBrief.largest && valueBrief.largest.weight > 20 ? "is-alert" : ""}>
                 <strong className="tnum">
@@ -846,7 +846,7 @@ export default function Portfolio({
                     ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(0)}%`
                     : "—"}
                 </strong>
-                <span>Largest position</span>
+                <span>Largest</span>
               </div>
             </>
           }
