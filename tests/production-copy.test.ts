@@ -31,6 +31,9 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("How it’s built");
     expect(portfolio).toContain("pf-study-ladder");
     expect(portfolio).toContain("PortfolioAllocationLadder");
+    expect(portfolio).toContain("is-avg");
+    expect(portfolio).toContain("is-best");
+    expect(portfolio).toContain("is-worst");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
   });
 
@@ -44,6 +47,16 @@ describe("production copy and fixture isolation", () => {
       expect(source).not.toContain("GitHub");
       expect(source).not.toContain("Neon");
     }
+  });
+
+  it("keeps Study performance ticks on annualized, best, and worst", () => {
+    const css = read("src/app/portfolio.css");
+
+    expect(css).toContain(".pf-study-history-metrics > div::before");
+    expect(css).toContain(".pf-study-history-metrics .is-avg::before");
+    expect(css).toContain(".pf-study-history-metrics .is-best::before");
+    expect(css).toContain(".pf-study-history-metrics .is-worst::before");
+    expect(css).toContain("grid-template-columns: minmax(0, 1fr) auto");
   });
 
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {

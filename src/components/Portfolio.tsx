@@ -45,16 +45,6 @@ function studySignedPct(value: number): string {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function currency(value: number | null): string {
-  if (!isFiniteNumber(value)) return "—";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
 function signedCurrency(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   if (value === 0) return "$0.00";
@@ -744,16 +734,16 @@ export default function Portfolio({
               <p>{studyBrief.performance.periodLabel}</p>
             </div>
             <div className="pf-study-history-metrics">
-              <div>
+              <div className="is-avg">
                 <span>Annualized</span>
                 <strong>{studySignedPct(studyBrief.performance.annualizedPct)}</strong>
               </div>
               <div className="is-best">
-                <span>Best year · {studyBrief.performance.bestYear.year}</span>
+                <span>Best · {studyBrief.performance.bestYear.year}</span>
                 <strong>{studySignedPct(studyBrief.performance.bestYear.pct)}</strong>
               </div>
               <div className="is-worst">
-                <span>Worst year · {studyBrief.performance.worstYear.year}</span>
+                <span>Worst · {studyBrief.performance.worstYear.year}</span>
                 <strong>{studySignedPct(studyBrief.performance.worstYear.pct)}</strong>
               </div>
             </div>
@@ -825,8 +815,8 @@ export default function Portfolio({
           metrics={
             <>
               <div>
-                <strong className="tnum">{currency(portfolioMetrics.totalMarketValue)}</strong>
-                <span>Total value</span>
+                <strong className="tnum">{compactCurrency(portfolioMetrics.totalMarketValue)}</strong>
+                <span>Value</span>
               </div>
               <div
                 className={
@@ -837,8 +827,8 @@ export default function Portfolio({
                       : ""
                 }
               >
-                <strong className="tnum">{signedCurrency(portfolioMetrics.dailyChange)}</strong>
-                <span>Today · {percent(portfolioMetrics.dailyChangePercent)}</span>
+                <strong className="tnum">{percent(portfolioMetrics.dailyChangePercent)}</strong>
+                <span>Today</span>
               </div>
               <div className={valueBrief.largest && valueBrief.largest.weight > 20 ? "is-alert" : ""}>
                 <strong className="tnum">
@@ -846,7 +836,7 @@ export default function Portfolio({
                     ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(0)}%`
                     : "—"}
                 </strong>
-                <span>Largest position</span>
+                <span>Largest</span>
               </div>
             </>
           }
