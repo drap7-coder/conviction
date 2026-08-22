@@ -21,13 +21,14 @@ describe("production copy and fixture isolation", () => {
     expect(existsSync(new URL("../src/app/journal/page.tsx", import.meta.url))).toBe(false);
   });
 
-  it("keeps Live Portfolio as the default, and Study Mode on target weights", () => {
+  it("keeps Live Portfolio as the default, and Study Mode on design briefs", () => {
     const portfolio = read("src/components/Portfolio.tsx");
 
     expect(portfolio).toContain('searchParams.get("mode") === "study" ? "study" : "live"');
     expect(portfolio).toContain("Live Portfolio");
     expect(portfolio).not.toContain("PortfolioCheckPanel");
-    expect(portfolio).toContain("sampleBookSleeves");
+    expect(portfolio).toContain("getStudyBrief");
+    expect(portfolio).toContain("How it’s built");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
   });
 

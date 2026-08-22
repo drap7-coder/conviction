@@ -136,7 +136,7 @@ export function getSampleBook(id: string | null | undefined): SampleBook | null 
   return SAMPLE_PORTFOLIO_BOOKS.find((book) => book.id === id) ?? null;
 }
 
-/** Target sleeves for Study Mode — the book itself, not an essay about the book. */
+/** Target sleeves for Study Mode. Design copy lives in `study-briefs.ts`. */
 export function sampleBookSleeves(book: SampleBook): Array<{ ticker: string; weight: number }> {
   const fallback = book.tickers.length ? 100 / book.tickers.length : 0;
   return book.tickers.map((ticker) => ({
