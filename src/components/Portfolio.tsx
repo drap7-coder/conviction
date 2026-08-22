@@ -744,7 +744,7 @@ export default function Portfolio({
               <p>{studyBrief.performance.periodLabel}</p>
             </div>
             <div className="pf-study-history-metrics">
-              <div>
+              <div className="is-avg">
                 <span>Annualized</span>
                 <strong>{studySignedPct(studyBrief.performance.annualizedPct)}</strong>
               </div>
