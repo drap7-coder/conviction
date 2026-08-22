@@ -20,11 +20,21 @@ export function countWrappedLines(el: HTMLElement): number {
   const range = document.createRange();
   range.selectNodeContents(textNode);
   const tops: number[] = [];
+  let minTop = Infinity;
+  let maxBottom = -Infinity;
   for (const rect of range.getClientRects()) {
     if (rect.height < 1 || rect.width < 1) continue;
+    minTop = Math.min(minTop, rect.top);
+    maxBottom = Math.max(maxBottom, rect.bottom);
     if (!tops.some((top) => Math.abs(top - rect.top) < 2)) tops.push(rect.top);
   }
-  return tops.length;
+  const lineHeight = parseFloat(getComputedStyle(el).lineHeight);
+  const height = Number.isFinite(minTop) ? maxBottom - minTop : 0;
+  const byHeight =
+    Number.isFinite(lineHeight) && lineHeight > 0 && height > 0
+      ? Math.max(1, Math.ceil((height - 0.5) / lineHeight))
+      : 0;
+  return Math.max(tops.length, byHeight);
 }
 
 /** Largest font size in [minPx, maxPx] where `el` still paints in `maxLines`. */
@@ -109,6 +119,14 @@ export function TypewriterText({
     observer.observe(box);
     return () => observer.disconnect();
   }, [text, maxLines]);
+
+  useLayoutEffect(() => {
+    if (!maxLines || !displayed || fontPx == null) return;
+    const inner = boxRef.current?.querySelector(":scope > span[aria-hidden='true']");
+    if (!(inner instanceof HTMLElement)) return;
+    if (countWrappedLines(inner) <= maxLines) return;
+    setFontPx((prev) => (prev == null || prev <= 8 ? prev : Math.max(8, prev - 0.6)));
+  }, [displayed, fontPx, maxLines]);
 
   useEffect(() => {
     if (!text) {
