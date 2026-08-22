@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   buildInstitutionalBrief,
@@ -6,6 +7,8 @@ import {
   groupPoliticalTrades,
 } from "@/lib/market/smart-money-brief";
 import {
+  INSTITUTION_STAGE_IDLE,
+  POLITICIAN_STAGE_IDLE,
   buildInstitutionStageSummary,
   buildPoliticianStageSummary,
 } from "@/lib/market/smart-money-stage";
@@ -147,6 +150,20 @@ describe("Smart Money decision briefs", () => {
 });
 
 describe("Smart Money stage summaries", () => {
+  it("keeps idle heroes tab-specific and out of the shared page chrome", () => {
+    expect(INSTITUTION_STAGE_IDLE.headline).toMatch(/13F/);
+    expect(POLITICIAN_STAGE_IDLE.headline).toMatch(/STOCK Act/);
+    expect(INSTITUTION_STAGE_IDLE.headline).not.toBe(POLITICIAN_STAGE_IDLE.headline);
+
+    const page = readFileSync(new URL("../src/app/smart-money/page.tsx", import.meta.url), "utf8");
+    expect(page).not.toContain("Follow disclosed moves from institutions and lawmakers.");
+    expect(page).not.toContain("SmartMoneyProductStage");
+    expect(readFileSync(new URL("../src/app/components/InvestorBookPanel.tsx", import.meta.url), "utf8"))
+      .toContain("SmartMoneyProductStage");
+    expect(readFileSync(new URL("../src/app/components/PoliticiansMovesPanel.tsx", import.meta.url), "utf8"))
+      .toContain("SmartMoneyProductStage");
+  });
+
   it("summarizes an institutional book with directional counts", () => {
     const book: InstitutionalManagerBook = {
       manager: {
