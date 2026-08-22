@@ -4,9 +4,9 @@ export interface PortfolioAllocationItem {
   ticker: string;
   companyName: string;
   weight: number;
-  marketValue: string;
-  dailyChange: string;
-  dailyChangeValue: number | null;
+  marketValue?: string;
+  dailyChange?: string;
+  dailyChangeValue?: number | null;
 }
 
 function allocationTone(weight: number) {
@@ -17,20 +17,30 @@ function allocationTone(weight: number) {
 
 export function PortfolioAllocationLadder({
   items,
+  eyebrow = "Capital map",
+  title = "Allocation ladder",
+  hint = "Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration.",
 }: {
   items: PortfolioAllocationItem[];
+  eyebrow?: string;
+  title?: string;
+  hint?: string;
 }) {
   if (items.length === 0) return null;
   const visible = items.slice(0, 10);
+  const showValues = items.some((item) => item.marketValue || item.dailyChange);
 
   return (
-    <section className="pf-allocation-ladder" aria-label="Portfolio allocation ladder">
+    <section
+      className={`pf-allocation-ladder${showValues ? "" : " is-weights-only"}`}
+      aria-label="Portfolio allocation ladder"
+    >
       <div className="pf-allocation-heading">
         <div>
-          <span className="pf-section-eyebrow">Capital map</span>
-          <h2>Allocation ladder</h2>
+          <span className="pf-section-eyebrow">{eyebrow}</span>
+          <h2>{title}</h2>
         </div>
-        <p>Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration.</p>
+        <p>{hint}</p>
       </div>
       <div className="pf-allocation-list">
         {visible.map((item, index) => {
@@ -49,10 +59,12 @@ export function PortfolioAllocationLadder({
                 <span style={{ width: `${fill}%` }} />
               </div>
               <strong className="pf-allocation-weight">{item.weight.toFixed(1)}%</strong>
-              <div className="pf-allocation-values">
-                <strong>{item.marketValue}</strong>
-                <span className={item.dailyChangeValue !== null && item.dailyChangeValue < 0 ? "down" : "up"}>{item.dailyChange}</span>
-              </div>
+              {showValues ? (
+                <div className="pf-allocation-values">
+                  <strong>{item.marketValue}</strong>
+                  <span className={item.dailyChangeValue != null && item.dailyChangeValue < 0 ? "down" : "up"}>{item.dailyChange}</span>
+                </div>
+              ) : null}
             </article>
           );
         })}

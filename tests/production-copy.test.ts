@@ -29,6 +29,8 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).not.toContain("PortfolioCheckPanel");
     expect(portfolio).toContain("getStudyBrief");
     expect(portfolio).toContain("How it’s built");
+    expect(portfolio).toContain("pf-study-ladder");
+    expect(portfolio).toContain("PortfolioAllocationLadder");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
   });
 

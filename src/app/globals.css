@@ -8288,6 +8288,10 @@ button.brief-link:focus-visible {
   border-bottom: 1px solid var(--border);
 }
 
+.pf-allocation-ladder.is-weights-only .pf-allocation-row {
+  grid-template-columns: 28px minmax(96px, 0.7fr) minmax(160px, 1.5fr) 58px;
+}
+
 .pf-allocation-row:last-child {
   border-bottom: none;
 }
@@ -8412,6 +8416,10 @@ button.brief-link:focus-visible {
   .pf-allocation-row {
     grid-template-columns: 24px minmax(84px, 0.8fr) minmax(120px, 1.3fr) 54px minmax(78px, auto);
     gap: 9px;
+  }
+
+  .pf-allocation-ladder.is-weights-only .pf-allocation-row {
+    grid-template-columns: 24px minmax(84px, 0.8fr) minmax(120px, 1.3fr) 54px;
   }
 
   .pf-values-controls {
