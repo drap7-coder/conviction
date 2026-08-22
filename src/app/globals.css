@@ -12357,6 +12357,18 @@ a.signal-block-conclusion-link:hover {
   opacity: 1;
 }
 
+.product-stage--pulse .product-stage-headline {
+  min-height: calc(1.12em * 2);
+  overflow: hidden;
+}
+
+/* Cap height — not line-clamp — so the typewriter can measure overflow. */
+.product-stage--pulse .product-stage-headline .typewriter-line {
+  display: block;
+  max-height: calc(1.12em * 2);
+  overflow: hidden;
+}
+
 /* ── Skeleton loader (LinkedIn-style: motion only, then type-in) ── */
 .product-stage--skeleton {
   position: relative;

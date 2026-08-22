@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { trimHeadlineToFit } from "@/components/TypewriterText";
 import { pulseHeroCopy, regimeDecisionHeadline } from "@/lib/market/pulse-hero";
 import type { MarketNarrativeTheme } from "@/lib/market/market-narratives";
 
@@ -68,10 +69,23 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("themeMarkets");
     expect(page).not.toContain("MarketNarrativeDriversPanel");
     expect(page).toContain("pulseHeroCopy");
+    expect(page).toContain("headlineMaxLines={2}");
     expect(page).not.toContain("hero.summary");
+    const css = read("src/app/globals.css");
+    expect(css).toContain(".product-stage--pulse .product-stage-headline .typewriter-line");
+    expect(css).toContain("max-height: calc(1.12em * 2)");
     expect(page).not.toContain("regimeSummary");
     expect(page).toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');
     expect(page).toContain('title="International"');
+  });
+});
+
+describe("trimHeadlineToFit", () => {
+  it("backs up to a word boundary and adds an ellipsis", () => {
+    expect(trimHeadlineToFit("Chip stocks lift the Nasdaq")).toBe("Chip stocks lift the…");
+    expect(trimHeadlineToFit("Chip stocks lift the Nasdaq.")).toBe("Chip stocks lift the…");
+    expect(trimHeadlineToFit("Nasdaq")).toBe("Nasdaq…");
+    expect(trimHeadlineToFit("")).toBe("…");
   });
 });

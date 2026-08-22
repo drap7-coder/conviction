@@ -22,6 +22,8 @@ type ProductStageProps = {
   tone?: ProductStageTone;
   /** If true, headline animates in left-to-right like a terminal/typewriter. */
   typewriterHeadline?: boolean;
+  /** Cap a typed headline to this many painted lines. */
+  headlineMaxLines?: number;
   /** When true, render a skeleton loader (no messaging) instead of copy. */
   loading?: boolean;
   /** Render only the metric strip (no eyebrow/headline/summary copy). */
@@ -47,6 +49,7 @@ function ProductStageView({
   metrics,
   tone,
   typewriterHeadline,
+  headlineMaxLines,
   loading,
   statOnly,
   children,
@@ -143,6 +146,7 @@ function ProductStageView({
               className="product-stage-headline-typewriter"
               msPerChar={26}
               startDelay={70}
+              maxLines={headlineMaxLines}
             />
           ) : (
             <span key={headline}>{headline}</span>
