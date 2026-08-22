@@ -5,6 +5,7 @@ import type { PulseData, PulseGlobalMarket, PulseSector } from "@/app/api/market
 import { isFiniteNumber } from "@/lib/display/format";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { HeatTile } from "@/components/HeatTile";
+import { HeatmapGrid } from "@/components/HeatmapGrid";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import { MarketNarrativeDriversPanel } from "@/components/market/MarketNarrativeDriversPanel";
 import {
@@ -132,12 +133,13 @@ function GlobalMarketsHeatmap({
           <MarketNarrativeDriversPanel themes={groupThemes} groupLabel={title} />
         </div>
       ) : null}
-      <div
+      <HeatmapGrid
         className={[
           "market-heatmap",
           markets.length <= 3 ? "compact" : null,
           uniformTiles && markets.length > 3 ? "market-heatmap--uniform" : null,
         ].filter(Boolean).join(" ")}
+        count={markets.length}
       >
         {markets.map((market) => {
           const span = uniformTiles ? 1 : tileSpan(market.weight);
@@ -157,7 +159,7 @@ function GlobalMarketsHeatmap({
             />
           );
         })}
-      </div>
+      </HeatmapGrid>
     </section>
   );
 }

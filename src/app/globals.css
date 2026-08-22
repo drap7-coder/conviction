@@ -17530,13 +17530,18 @@ a.pulse-news-narrative-title:focus-visible {
 
 @media (max-width: 767px) {
   .stock-heat-grid,
+  .stock-heat-grid--uniform,
   .stock-heat-loading-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .stock-heat-grid > .heat-tile,
   .stock-heat-loading-tile {
     grid-column: span 1 / span 1 !important;
+  }
+
+  .stock-heat-grid.is-collapsed > .heat-tile:nth-child(n + 7) {
+    display: none;
   }
 }
 
@@ -18564,12 +18569,46 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 @media (max-width: 767px) {
   .market-heatmap,
-  .market-heatmap.compact {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .market-heatmap.compact,
+  .market-heatmap--uniform {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .market-heatmap > .heat-tile {
     grid-column: span 1 / span 1 !important;
+  }
+
+  .market-heatmap.is-collapsed > .heat-tile:nth-child(n + 7) {
+    display: none;
+  }
+}
+
+/* Phone-only — desktop heatmaps stay fully expanded. */
+.heat-show-more {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .heat-show-more {
+    display: flex;
+    width: max-content;
+    margin: 12px auto 4px;
+    padding: 8px 13px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .heat-show-more:hover,
+  .heat-show-more:focus-visible {
+    border-color: var(--ink);
+    color: var(--ink);
+    outline: none;
   }
 }
 
@@ -18578,17 +18617,12 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
     padding: 0;
   }
 
-  .heat-tile {
-    height: 7rem;
-    padding: 10px;
-  }
-
   .heat-tile-name {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
   }
 
   .heat-tile-symbol {
-    font-size: 0.58rem;
+    font-size: 0.6rem;
   }
 
   .heat-tile-ticker {
@@ -18596,7 +18630,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   }
 
   .heat-tile-pct {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
   }
 
   .market-index-grid,
