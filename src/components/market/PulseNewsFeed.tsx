@@ -121,12 +121,10 @@ function readBrowserWatchlistTickers(): string[] {
 
 function NarrativeCard({
   theme,
-  featured = false,
   alt = false,
   personal = false,
 }: {
   theme: MarketNarrativeTheme;
-  featured?: boolean;
   alt?: boolean;
   personal?: boolean;
 }) {
@@ -135,7 +133,7 @@ function NarrativeCard({
 
   return (
     <article
-      className={`pulse-news-narrative${featured ? " is-featured" : ""}${alt ? " is-alt" : ""} tone-${theme.marketTone}`}
+      className={`pulse-news-narrative${alt ? " is-alt" : ""} tone-${theme.marketTone}`}
     >
       <div className="pulse-news-narrative-top">
         <span className="pulse-news-narrative-label">{theme.label}</span>
@@ -164,7 +162,7 @@ function NarrativeCard({
       </p>
 
       <div className="pulse-news-assets" aria-label={`${theme.label} market moves`}>
-        {theme.assets.slice(0, featured ? 4 : 3).map((asset) => (
+        {theme.assets.slice(0, 3).map((asset) => (
           <span
             key={asset.ticker}
             className={
@@ -276,7 +274,6 @@ export function PulseNewsFeed({
               <NarrativeCard
                 key={theme.id}
                 theme={theme}
-                featured={index === 0}
                 alt={index === 2}
                 personal={themeIsPersonal(theme)}
               />
