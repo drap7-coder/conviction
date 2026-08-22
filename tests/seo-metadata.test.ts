@@ -14,9 +14,12 @@ function read(path: string) {
 describe("SEO metadata", () => {
   it("keeps the public brand constants", () => {
     expect(SITE_NAME).toBe("CONVICTION");
-    expect(SITE_TAGLINE).toBe("Ownership Signals");
-    expect(SITE_TITLE).toBe("CONVICTION — Ownership Signals");
+    expect(SITE_TAGLINE).toBe("Who’s buying the stocks you follow");
+    expect(SITE_TITLE).toBe("CONVICTION — Who’s buying the stocks you follow");
+    expect(SITE_TITLE).not.toContain("Evidence Detection");
+    expect(SITE_TITLE).not.toContain("Ownership Signals");
     expect(SITE_DESCRIPTION).toContain("institutional ownership");
+    expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
     expect(SITE_URL).toMatch(/^https:\/\//);
     expect(SITE_URL.endsWith("/")).toBe(false);
   });
@@ -119,5 +122,21 @@ describe("SEO metadata", () => {
     ]);
     expect(meta.twitter?.images).toEqual([`${SITE_URL}/conviction-og.png`]);
     expect(meta.openGraph?.locale).toBe("en_US");
+  });
+
+  it("uses the brand title on Pulse so Google and SMS cards are not Pulse · CONVICTION", () => {
+    const meta = pageMetadata({
+      title: SITE_TITLE,
+      description: SITE_DESCRIPTION,
+      path: "/pulse",
+      absoluteTitle: true,
+    });
+
+    expect(meta.title).toEqual({ absolute: SITE_TITLE });
+    expect(meta.openGraph?.title).toBe(SITE_TITLE);
+    expect(meta.twitter?.title).toBe(SITE_TITLE);
+    expect(meta.openGraph?.description).toBe(SITE_DESCRIPTION);
+    expect(read("src/app/pulse/layout.tsx")).toContain("absoluteTitle: true");
+    expect(read("src/app/pulse/layout.tsx")).toContain("SITE_TITLE");
   });
 });
