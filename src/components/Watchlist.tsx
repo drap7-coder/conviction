@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useMemo, useRef, type ReactNode } from "react";
+import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
@@ -10,16 +10,8 @@ import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { shortenCompanyName } from "@/lib/display/company-name";
-import { loadPositions } from "@/lib/portfolio/persist";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { ProductStage } from "@/components/ProductStage";
-import {
-  buildWatchlistBriefItems,
-  WatchlistDailyBrief,
-  type WatchlistNewsSummary,
-  type WatchlistTransition,
-} from "@/components/WatchlistDailyBrief";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -88,10 +80,6 @@ export default function Watchlist({
   const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [briefLoading, setBriefLoading] = useState(false);
-  const [newsByTicker, setNewsByTicker] = useState<Record<string, WatchlistNewsSummary>>({});
-  const [transitions, setTransitions] = useState<WatchlistTransition[]>([]);
-  const [portfolioTickers, setPortfolioTickers] = useState<string[]>([]);
 
   // Add company state
   const [addInput, setAddInput] = useState("");
@@ -168,30 +156,7 @@ export default function Watchlist({
   }, []);
 
   useEffect(() => {
-    const readPortfolioTickers = () => {
-      setPortfolioTickers(Array.from(new Set(
-        loadPositions()
-          .map((position) => position.ticker.trim().toUpperCase())
-          .filter(Boolean),
-      )));
-    };
-    readPortfolioTickers();
-    window.addEventListener("storage", readPortfolioTickers);
-    return () => window.removeEventListener("storage", readPortfolioTickers);
-  }, []);
-
-  const briefingEntries = useMemo(() => {
-    const next = [...entries];
-    const existing = new Set(entries.map((entry) => entry.ticker.toUpperCase()));
-    for (const ticker of portfolioTickers) {
-      if (existing.has(ticker)) continue;
-      next.push({ ticker, companyName: ticker, addedAt: "", status: "active" });
-    }
-    return next;
-  }, [entries, portfolioTickers]);
-
-  useEffect(() => {
-    if (briefingEntries.length === 0) {
+    if (entries.length === 0) {
       setQuotes({});
       return;
     }
@@ -199,7 +164,7 @@ export default function Watchlist({
 
     async function loadQuotes() {
       try {
-        const tickers = briefingEntries.map((entry) => entry.ticker).join(",");
+        const tickers = entries.map((entry) => entry.ticker).join(",");
         const response = await fetch(
           `/api/market/quotes?tickers=${encodeURIComponent(tickers)}`,
           { cache: "no-store" },
@@ -232,55 +197,7 @@ export default function Watchlist({
       window.clearInterval(refreshInterval);
       document.removeEventListener("visibilitychange", refreshVisibleDashboard);
     };
-  }, [briefingEntries]);
-
-  useEffect(() => {
-    if (briefingEntries.length === 0) {
-      setNewsByTicker({});
-      setTransitions([]);
-      setBriefLoading(false);
-      return;
-    }
-
-    let cancelled = false;
-    const controller = new AbortController();
-    const tickers = briefingEntries.map((entry) => entry.ticker.toUpperCase());
-    const chunks: string[][] = [];
-    for (let index = 0; index < tickers.length; index += 10) {
-      chunks.push(tickers.slice(index, index + 10));
-    }
-
-    async function loadBriefingEvidence() {
-      setBriefLoading(true);
-      try {
-        const [newsResults, transitionResult] = await Promise.all([
-          Promise.all(chunks.map((chunk) =>
-            fetchJsonWithTimeout<{ news?: Record<string, WatchlistNewsSummary> }>(
-              `/api/evidence/news-batch?tickers=${encodeURIComponent(chunk.join(","))}`,
-              24_000,
-              controller.signal,
-            ).catch(() => ({ news: {} })),
-          )),
-          fetchJsonWithTimeout<{ transitions?: WatchlistTransition[] }>(
-            "/api/conviction/transitions",
-            8_000,
-            controller.signal,
-          ).catch(() => ({ transitions: [] })),
-        ]);
-        if (cancelled) return;
-        setNewsByTicker(Object.assign({}, ...newsResults.map((result) => result.news ?? {})));
-        setTransitions(transitionResult.transitions ?? []);
-      } finally {
-        if (!cancelled) setBriefLoading(false);
-      }
-    }
-
-    void loadBriefingEvidence();
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
-  }, [briefingEntries]);
+  }, [entries]);
 
   const handleAddValue = async (value?: string) => {
     const input = (value ?? addInput).trim();
@@ -560,61 +477,8 @@ export default function Watchlist({
     </section>
   );
 
-  const quotedEntries = briefingEntries
-    .map((entry) => quotes[entry.ticker])
-    .filter((quote): quote is StockQuote => Boolean(quote));
-  const sessionLabel = quotedEntries
-    .map((quote) => getLivePrice(quote).label)
-    .find((label): label is string => Boolean(label)) ?? "Market session";
-
-  const moveReadings = entries
-    .map((entry) => {
-      const quote = quotes[entry.ticker];
-      const changePercent = quote
-        ? (getLivePrice(quote).changePercent ?? quote.changePercent ?? null)
-        : null;
-      return changePercent === null
-        ? null
-        : { ticker: entry.ticker, changePercent };
-    })
-    .filter((item): item is { ticker: string; changePercent: number } => item !== null);
-  const advancing = moveReadings.filter((item) => item.changePercent > 0.05).length;
-  const declining = moveReadings.filter((item) => item.changePercent < -0.05).length;
-  const attentionItems = useMemo(() => buildWatchlistBriefItems({
-    entries: briefingEntries,
-    quotes,
-    newsByTicker,
-    transitions,
-    portfolioTickers,
-    watchlistTickers: entries.map((entry) => entry.ticker),
-  }), [briefingEntries, entries, newsByTicker, portfolioTickers, quotes, transitions]);
   return (
     <div>
-      <ProductStage
-        variant="watchlist"
-        aria-label="Watchlist standings"
-        eyebrow="Watchlist"
-        headline=""
-        loading={loading || briefLoading}
-        statOnly
-        metrics={
-          <>
-            <div className={attentionItems.length > 0 ? "is-alert" : undefined}>
-              <strong>{briefLoading || loading ? "—" : attentionItems.length}</strong>
-              <span>Updates</span>
-            </div>
-            <div className="is-positive">
-              <strong>{loading ? "—" : advancing}</strong>
-              <span>Higher</span>
-            </div>
-            <div className="is-negative">
-              <strong>{loading ? "—" : declining}</strong>
-              <span>Lower</span>
-            </div>
-          </>
-        }
-      />
-
       {loading ? (
         <PageLoadingMotion
           label="Loading watchlist"
@@ -674,18 +538,6 @@ export default function Watchlist({
           footer={children}
         />
       ) : null}
-
-      <WatchlistDailyBrief
-        entries={briefingEntries}
-        quotes={quotes}
-        newsByTicker={newsByTicker}
-        transitions={transitions}
-        loading={loading || briefLoading}
-        sessionLabel={sessionLabel}
-        portfolioTickers={portfolioTickers}
-        watchlistTickers={entries.map((entry) => entry.ticker)}
-        section="list"
-      />
 
       {composeBar}
 
