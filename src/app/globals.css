@@ -477,37 +477,20 @@ details > summary::before {
   font-family: var(--font-mono);
 }
 
-.market-tape-heading {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  padding: 7px 12px 7px 2px;
-  color: var(--quiet);
-  font-size: 0.54rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
 .market-tape-track {
   display: flex;
   align-items: stretch;
   flex: 1 1 auto;
   min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.market-tape-track::-webkit-scrollbar {
-  display: none;
 }
 
 .market-tape-item {
   display: inline-flex;
   align-items: center;
-  flex: 1 0 auto;
+  justify-content: center;
+  flex: 1 1 0;
   gap: 6px;
-  min-width: max-content;
+  min-width: 0;
   padding: 7px 10px;
   border-left: 1px solid var(--border);
   color: var(--ink);
@@ -516,6 +499,10 @@ details > summary::before {
   text-decoration: none;
   white-space: nowrap;
   animation: market-tape-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.market-tape-item:first-child {
+  border-left: 0;
 }
 
 @keyframes market-tape-enter {
@@ -554,37 +541,6 @@ a.market-tape-item:focus-visible {
 .market-tape-change.is-up { color: var(--green); }
 .market-tape-change.is-down { color: var(--red); }
 
-.market-tape-group-label {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  padding: 7px 10px;
-  border-left: 1px solid var(--border);
-  color: var(--accent);
-  font-size: 0.52rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.market-tape-item--trending {
-  flex-grow: 0;
-}
-
-.market-tape-rank {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-size: 0.48rem;
-  font-weight: 800;
-}
-
 .market-tape-item.is-flashing.is-up {
   animation: market-tape-flash-up 900ms ease-out;
 }
@@ -614,10 +570,6 @@ a.market-tape-item:focus-visible {
   .market-tape {
     margin-inline: -4px;
     padding-inline: 4px;
-  }
-
-  .market-tape-heading {
-    padding-right: 8px;
   }
 
   .market-tape-name {

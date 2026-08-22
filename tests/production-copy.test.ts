@@ -62,6 +62,19 @@ describe("production copy and fixture isolation", () => {
     expect(css).not.toContain("overflow-wrap: anywhere");
   });
 
+  it("keeps the workspace tape to the three main indexes with no Markets label", () => {
+    const tape = read("src/components/MarketTape.tsx");
+
+    expect(tape).toContain('ticker: "SPY"');
+    expect(tape).toContain('ticker: "QQQ"');
+    expect(tape).toContain('ticker: "DIA"');
+    expect(tape).not.toContain("Markets");
+    expect(tape).not.toContain("Trending now");
+    expect(tape).not.toContain("^VIX");
+    expect(tape).not.toContain("^TNX");
+    expect(tape).toContain('aria-label="Major indexes"');
+  });
+
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {
     const css = read("src/app/globals.css");
 
