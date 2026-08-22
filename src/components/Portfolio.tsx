@@ -45,16 +45,6 @@ function studySignedPct(value: number): string {
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function currency(value: number | null): string {
-  if (!isFiniteNumber(value)) return "—";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
 function signedCurrency(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
   if (value === 0) return "$0.00";
