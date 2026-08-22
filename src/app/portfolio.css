@@ -439,25 +439,35 @@
   }
 
   .portfolio-page .pf-study-history-metrics {
+    grid-template-columns: 1fr;
     gap: 6px;
   }
 
   .portfolio-page .pf-study-history-metrics > div {
-    padding: 12px 8px 9px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px 10px 14px;
   }
 
   .portfolio-page .pf-study-history-metrics > div::before {
-    left: 7px;
-    right: 7px;
+    top: 8px;
+    bottom: 8px;
+    left: 0;
+    right: auto;
+    width: 3px;
+    height: auto;
+    border-radius: 0 2px 2px 0;
   }
 
   .portfolio-page .pf-study-history-metrics span {
-    font-size: 0.5rem;
-    letter-spacing: 0.04em;
+    font-size: 0.58rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
   }
 
   .portfolio-page .pf-study-history-metrics strong {
-    font-size: 0.92rem;
+    font-size: 1rem;
   }
 
   .portfolio-page .pf-study-book .pf-allocation-heading {

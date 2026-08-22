@@ -56,6 +56,7 @@ describe("production copy and fixture isolation", () => {
     expect(css).toContain(".pf-study-history-metrics .is-avg::before");
     expect(css).toContain(".pf-study-history-metrics .is-best::before");
     expect(css).toContain(".pf-study-history-metrics .is-worst::before");
+    expect(css).toContain("grid-template-columns: minmax(0, 1fr) auto");
   });
 
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {
