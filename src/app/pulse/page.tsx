@@ -170,7 +170,6 @@ export default function MarketPulsePage() {
   const hero = pulseHeroCopy({
     themes: data?.marketNarratives.themes,
     regimeLabel: data?.macroRegime.label,
-    regimeSummary: data?.macroRegime.summary,
   });
 
   const changeFor = (ticker: string) =>
@@ -193,7 +192,6 @@ export default function MarketPulsePage() {
         loading={status === "loading"}
         eyebrow={`Pulse · ${data ? "Live data" : "Market read"} · ${data?.sessionLabel ?? (status === "loading" ? "Reading market" : "Temporarily unavailable")}`}
         headline={hero.headline}
-        summary={hero.summary}
         metrics={
           <>
             <div className={spyChange !== null && spyChange < 0 ? "is-negative" : ""}>

@@ -3,9 +3,6 @@ import {
   type MarketNarrativeTheme,
 } from "@/lib/market/market-narratives";
 
-const FALLBACK_SUMMARY =
-  "See the regime first, then scan the indexes, sectors, and stocks driving the day.";
-
 export function regimeDecisionHeadline(label: string | undefined): string {
   switch (label) {
     case "Risk-on": return "Risk appetite is broadening.";
@@ -23,26 +20,22 @@ export function regimeDecisionHeadline(label: string | undefined): string {
 }
 
 /**
- * Pulse hero uses the Major Indexes narrative card (the line that used to
- * sit under that heatmap) and falls back to the regime read.
+ * Pulse hero is one headline: the Major Indexes story title.
+ * No “leads the tape; DIA is +1%” clause and no second summary line.
  */
 export function pulseHeroCopy({
   themes,
   regimeLabel,
-  regimeSummary,
 }: {
   themes?: MarketNarrativeTheme[];
   regimeLabel?: string;
-  regimeSummary?: string;
-}): { headline: string; summary: string } {
+}): { headline: string } {
   const indexTheme = themes
     ? themesForHeatmapGroup(themes, "Major Index")[0]
     : undefined;
   const newsTitle = indexTheme?.headline?.title?.trim() || "";
-  const narrative = indexTheme?.summary?.trim() || "";
 
   return {
-    headline: narrative || regimeDecisionHeadline(regimeLabel),
-    summary: newsTitle || regimeSummary || FALLBACK_SUMMARY,
+    headline: newsTitle || regimeDecisionHeadline(regimeLabel),
   };
 }
