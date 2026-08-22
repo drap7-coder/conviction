@@ -1010,6 +1010,23 @@ a.market-tape-item:focus-visible {
   vertical-align: text-bottom;
 }
 
+.typewriter-line {
+  position: relative;
+}
+
+.typewriter-fit-measure {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+  height: auto;
+  overflow: visible;
+  white-space: normal;
+}
+
 @keyframes blink-cursor {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -12359,9 +12376,6 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage--pulse .product-stage-headline {
   min-height: calc(1.12em * 2);
-  /* Slack so a 2-line paint is never clipped; JS stops a 3rd line. */
-  max-height: calc(1.12em * 2 + 0.4em);
-  overflow: hidden;
 }
 
 .product-stage--pulse .product-stage-headline .typewriter-line {
