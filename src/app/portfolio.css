@@ -5,6 +5,10 @@
 
 .portfolio-page {
   /* Full-bleed the dark canvas to the shell gutters so there is no light frame. */
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  max-width: 100%;
   margin-inline: calc(-1 * var(--page-gutter-mobile));
   padding: 14px var(--page-gutter-mobile) 24px;
 }
@@ -187,6 +191,8 @@
 .portfolio-page .pf-study-chips {
   display: flex;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
   overflow-x: auto;
   padding: 2px 0 10px;
   scrollbar-width: none;
@@ -252,10 +258,12 @@
 
 .portfolio-page .pf-study-lede {
   margin: 6px 0 0;
+  overflow-wrap: break-word;
   color: var(--muted);
   font-family: var(--font-sans);
   font-size: 0.92rem;
   line-height: 1.45;
+  white-space: normal;
 }
 
 .portfolio-page .pf-study-machine {
@@ -285,11 +293,12 @@
 
 .portfolio-page .pf-study-machine p {
   margin: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 0.86rem;
   line-height: 1.45;
+  white-space: normal;
 }
 
 .portfolio-page .pf-study-history {
@@ -330,7 +339,7 @@
   display: grid;
   gap: 6px;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 14px 12px 11px;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -361,6 +370,7 @@
 }
 
 .portfolio-page .pf-study-history-metrics span {
+  min-width: 0;
   overflow: hidden;
   color: var(--quiet);
   font-family: var(--font-mono);
@@ -385,10 +395,12 @@
 
 .portfolio-page .pf-study-history-note {
   margin: 0;
+  overflow-wrap: break-word;
   color: var(--quiet);
   font-family: var(--font-sans);
   font-size: 0.72rem;
   line-height: 1.4;
+  white-space: normal;
 }
 
 .portfolio-page .pf-study-ladder {
@@ -444,8 +456,10 @@
   }
 
   .portfolio-page .pf-study-history-metrics > div {
+    display: flex;
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     padding: 10px 12px 10px 14px;
   }
@@ -461,13 +475,17 @@
   }
 
   .portfolio-page .pf-study-history-metrics span {
+    flex: 1 1 auto;
     font-size: 0.58rem;
     letter-spacing: 0.05em;
     white-space: nowrap;
   }
 
   .portfolio-page .pf-study-history-metrics strong {
+    flex: 0 0 auto;
+    overflow: visible;
     font-size: 1rem;
+    white-space: nowrap;
   }
 
   .portfolio-page .pf-study-book .pf-allocation-heading {
@@ -531,6 +549,33 @@
 
   .portfolio-page .pf-capital-map .pf-allocation-heading p {
     text-align: left;
+  }
+
+  .portfolio-page .pf-capital-map .pf-allocation-row {
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 8px 10px;
+  }
+
+  .portfolio-page .pf-capital-map .pf-allocation-rank,
+  .portfolio-page .pf-capital-map .pf-allocation-values {
+    display: none;
+  }
+
+  .portfolio-page .pf-capital-map .pf-allocation-gauge {
+    order: 3;
+    grid-column: 1 / -1;
+  }
+
+  .portfolio-page .pf-capital-map .pf-allocation-company span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .portfolio-page .pf-holding-main,
+  .portfolio-page .pf-holding-figures {
+    min-width: 0;
   }
 }
 
