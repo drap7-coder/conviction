@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { TypewriterText } from "@/components/TypewriterText";
 import { loadPositions } from "@/lib/portfolio/persist";
 import type {
   MarketNarrativeHeadline,
@@ -48,6 +49,19 @@ function formatMove(value: number | null): string {
 
 function primaryHeadline(theme: MarketNarrativeTheme): MarketNarrativeHeadline | null {
   return theme.headline ?? theme.headlines[0] ?? null;
+}
+
+function FeaturedHeadline({ title }: { title: string }) {
+  return (
+    <TypewriterText
+      text={title}
+      as="span"
+      className="pulse-news-narrative-title-typewriter"
+      msPerChar={26}
+      startDelay={70}
+      maxLines={2}
+    />
+  );
 }
 
 function publisherLabel(headline: MarketNarrativeHeadline): string {
@@ -151,10 +165,12 @@ function NarrativeCard({
           target="_blank"
           rel="noopener noreferrer"
         >
-          {headline.title}
+          {featured ? <FeaturedHeadline title={headline.title} /> : headline.title}
         </a>
       ) : (
-        <h3 className="pulse-news-narrative-title">{headline.title}</h3>
+        <h3 className="pulse-news-narrative-title">
+          {featured ? <FeaturedHeadline title={headline.title} /> : headline.title}
+        </h3>
       )}
 
       <p className="pulse-news-narrative-summary">{theme.summary}</p>

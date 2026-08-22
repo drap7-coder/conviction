@@ -16303,13 +16303,18 @@ button.portfolio-check-item:focus-visible {
 }
 
 .pulse-news-narrative.is-featured .pulse-news-narrative-title {
-  max-width: 16ch;
+  max-width: 100%;
+  min-height: calc(1.02em * 2);
   margin-top: auto;
   color: #ffffff;
   font-size: clamp(1.7rem, 4vw, 2.75rem);
   font-weight: 720;
   letter-spacing: -0.055em;
   line-height: 1.02;
+}
+
+.pulse-news-narrative.is-featured .pulse-news-narrative-title .typewriter-line {
+  display: block;
 }
 
 a.pulse-news-narrative-title:hover,

@@ -101,6 +101,15 @@ describe("production copy and fixture isolation", () => {
     expect(news).not.toContain("Active narratives");
     expect(news).not.toContain("Feed status");
     expect(news).toContain("PulseNewsFeed");
+    const feed = read("src/components/market/PulseNewsFeed.tsx");
+    expect(feed).toContain("FeaturedHeadline");
+    expect(feed).toContain("maxLines={2}");
+    expect(feed).toContain("TypewriterText");
+    const css = read("src/app/globals.css");
+    expect(css).toContain(".pulse-news-narrative.is-featured .pulse-news-narrative-title");
+    expect(css).toContain("min-height: calc(1.02em * 2)");
+    expect(css).toContain("max-width: 100%");
+    expect(css).not.toContain("max-width: 16ch");
   });
 
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {
