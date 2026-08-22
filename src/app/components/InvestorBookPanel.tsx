@@ -180,15 +180,17 @@ export function InvestorBookPanel({
   const insight = book
     ? buildInstitutionStageSummary(book)
     : INSTITUTION_STAGE_IDLE;
-  const stageLoading = (status === "loading" || status === "idle") && !book;
 
   return (
-    <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
+    <section
+      className="investor-book-panel smart-money-panel"
+      aria-label="Investor portfolio lenses"
+      aria-busy={(status === "loading" || status === "idle") && !book || undefined}
+    >
       <SmartMoneyProductStage
         aria-label="Institutional 13F overview"
         eyebrow={book ? `Smart Money · ${book.manager.displayName} · 13F` : "Smart Money · Institutions"}
         summary={insight}
-        loading={stageLoading}
       />
 
       <div className="smart-money-control-row">

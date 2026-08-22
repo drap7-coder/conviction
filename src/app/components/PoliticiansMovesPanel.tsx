@@ -195,7 +195,6 @@ export function PoliticiansMovesPanel({
         aria-label="Congressional disclosure overview"
         eyebrow="Smart Money · Politicians · STOCK Act"
         summary={insight}
-        loading={stageLoading}
       />
       {disclosureNote}
 
