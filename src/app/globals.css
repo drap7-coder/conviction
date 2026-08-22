@@ -12063,12 +12063,19 @@ a.signal-block-conclusion-link:hover {
 
 .portfolio-page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
-.portfolio-page .pf {
+.portfolio-page .pf,
+.portfolio-page .pf-study {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .portfolio-page .view-switch {
