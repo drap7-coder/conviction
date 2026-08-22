@@ -3,14 +3,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  SmartMoneyInsightCard,
-  SmartMoneyInsightLoadingCard,
-} from "@/app/components/SmartMoneyInsightCard";
-import {
   classifyClientError,
   fetchJsonWithTimeout,
   type EvidenceStatus,
 } from "@/app/components/evidence-request";
+import { SmartMoneyProductStage } from "@/components/SmartMoneyProductStage";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import { INSTITUTIONAL_MANAGERS } from "@/lib/sec/institutional-managers";
 import { fmtCompactCurrency } from "@/lib/display/format";
@@ -20,6 +17,7 @@ import type {
 } from "@/lib/sec/institutional";
 import { inkChipClass } from "@/lib/display/ink-tone";
 import {
+  INSTITUTION_STAGE_IDLE,
   buildInstitutionStageSummary,
 } from "@/lib/market/smart-money-stage";
 
@@ -129,8 +127,6 @@ export function InvestorBookPanel({
   const [requestKey, setRequestKey] = useState(0);
   const [positionFilter, setPositionFilter] = useState<PositionFilter>("changes");
 
-  const selected = MANAGER_OPTIONS.find((manager) => manager.cik === selectedCik) ?? MANAGER_OPTIONS[0];
-
   useEffect(() => {
     if (!selectedCik) return;
     let cancelled = false;
@@ -183,10 +179,18 @@ export function InvestorBookPanel({
 
   const insight = book
     ? buildInstitutionStageSummary(book)
-    : null;
+    : INSTITUTION_STAGE_IDLE;
+  const stageLoading = (status === "loading" || status === "idle") && !book;
 
   return (
     <section className="investor-book-panel smart-money-panel" aria-label="Investor portfolio lenses">
+      <SmartMoneyProductStage
+        aria-label="Institutional 13F overview"
+        eyebrow={book ? `Smart Money · ${book.manager.displayName} · 13F` : "Smart Money · Institutions"}
+        summary={insight}
+        loading={stageLoading}
+      />
+
       <div className="smart-money-control-row">
         <label className="investor-manager-picker">
           <span>Selected manager</span>
@@ -228,18 +232,6 @@ export function InvestorBookPanel({
         13F holdings are quarter-end snapshots and can arrive up to 45 days later.
         {book ? <> Holdings {formatDate(book.filingQuarter)} · filed {formatDate(book.filingDate)}.</> : null}
       </p>
-
-      {insight ? (
-        <SmartMoneyInsightCard
-          eyebrow={`${book?.manager.displayName ?? "Selected manager"} filing read`}
-          summary={insight}
-          updating={status === "loading"}
-        />
-      ) : null}
-
-      {!insight && (status === "loading" || status === "idle") ? (
-        <SmartMoneyInsightLoadingCard label={`Reading ${selected?.displayName ?? "investor"} 13F`} />
-      ) : null}
 
       {status === "error" || status === "timeout" || status === "empty" ? (
         <div className="empty-state compact">

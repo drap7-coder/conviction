@@ -4,7 +4,6 @@ import { useState } from "react";
 import { InvestorBookPanel } from "@/app/components/InvestorBookPanel";
 import { PoliticiansMovesPanel } from "@/app/components/PoliticiansMovesPanel";
 import { useWatchlistTracking } from "@/app/components/use-watchlist-tracking";
-import { ProductStage } from "@/components/ProductStage";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const SMART_MONEY_VIEWS = [
@@ -36,30 +35,6 @@ export default function SmartMoneyPage() {
         options={[...SMART_MONEY_VIEWS]}
         activeId={activeView}
         onChange={(id) => setActiveView(id as SmartMoneyView)}
-      />
-
-      <ProductStage
-        variant="smart-money"
-        aria-label="Smart Money overview"
-        eyebrow="Smart Money · Disclosed ownership"
-        headline="Follow disclosed moves from institutions and lawmakers."
-        summary="Compare quarterly holdings and reported trades. Use the evidence as a lead—not a live signal."
-        metrics={
-          <>
-            <div>
-              <strong>13F</strong>
-              <span>Institutions</span>
-            </div>
-            <div>
-              <strong>STOCK Act</strong>
-              <span>Lawmakers</span>
-            </div>
-            <div>
-              <strong>Filed</strong>
-              <span>Evidence basis</span>
-            </div>
-          </>
-        }
       />
 
       <div

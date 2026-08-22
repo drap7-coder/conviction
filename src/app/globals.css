@@ -12218,10 +12218,8 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--smart-money {
-  --stage-accent: #9fb8ff;
-  --stage-glow: rgba(114, 145, 255, 0.17);
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 0.34fr);
-  border-radius: 14px;
+  --stage-accent: var(--accent);
+  --stage-glow: var(--accent-dim);
 }
 
 .product-stage--smart-money.tone-positive {
@@ -12237,51 +12235,6 @@ a.signal-block-conclusion-link:hover {
 .product-stage--smart-money.tone-watch {
   --stage-accent: var(--amber);
   --stage-glow: var(--amber-dim);
-}
-
-.product-stage--smart-money .product-stage-headline {
-  max-width: 34ch;
-  font-size: clamp(1.05rem, 2vw, 1.35rem);
-}
-
-.product-stage--smart-money .product-stage-metrics {
-  border-radius: 10px;
-  background: var(--card-soft);
-}
-
-.product-stage--smart-money .product-stage-metrics > div {
-  gap: 3px;
-  padding: 8px;
-}
-
-/* Match the accent tick to this variant's tighter 8px inset. */
-.product-stage--smart-money .product-stage-metrics > div::before {
-  left: 8px;
-}
-
-.product-stage--smart-money .product-stage-metrics .is-positive {
-  background: var(--accent-dim);
-}
-
-.product-stage--smart-money .product-stage-metrics .is-negative {
-  background: var(--red-dim);
-}
-
-.product-stage--smart-money .product-stage-metrics .is-alert {
-  background: var(--amber-dim);
-}
-
-.product-stage--smart-money .product-stage-metrics strong {
-  font-size: clamp(0.84rem, 1.5vw, 1rem);
-}
-
-.product-stage--smart-money .product-stage-metrics span {
-  overflow: visible;
-  font-size: 0.48rem;
-  letter-spacing: 0.04em;
-  line-height: 1.25;
-  text-overflow: clip;
-  white-space: normal;
 }
 
 .product-stage--portfolio .product-stage-metrics > div {
@@ -12689,10 +12642,6 @@ a.signal-block-conclusion-link:hover {
     gap: 12px;
     padding: var(--stage-pad-block) var(--stage-pad-inline);
     border-radius: 14px;
-  }
-
-  .product-stage--smart-money {
-    gap: 11px;
   }
 
   .product-stage h1,

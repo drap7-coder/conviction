@@ -2,11 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import {
-  SmartMoneyInsightCard,
-  SmartMoneyInsightLoadingCard,
-} from "@/app/components/SmartMoneyInsightCard";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
+import { SmartMoneyProductStage } from "@/components/SmartMoneyProductStage";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import type { PoliticalTrade } from "@/lib/political-trades";
 import {
@@ -15,6 +12,7 @@ import {
   type PoliticalTradeGroup,
 } from "@/lib/market/smart-money-brief";
 import {
+  POLITICIAN_STAGE_IDLE,
   buildPoliticianStageSummary,
 } from "@/lib/market/smart-money-stage";
 
@@ -181,7 +179,8 @@ export function PoliticiansMovesPanel({
 
   const insight = status === "success"
     ? buildPoliticianStageSummary(trades)
-    : null;
+    : POLITICIAN_STAGE_IDLE;
+  const stageLoading = status === "loading" || status === "idle";
 
   const disclosureNote = (
     <p className="smart-money-disclosure-note">
@@ -190,35 +189,27 @@ export function PoliticiansMovesPanel({
     </p>
   );
 
-  if (status === "loading" || status === "idle") {
-    return (
-      <section className="investor-moves-panel smart-money-panel" aria-label="Political trades" aria-busy="true">
-        {disclosureNote}
-        <SmartMoneyInsightLoadingCard label="Reading congressional disclosures" />
-      </section>
-    );
-  }
+  return (
+    <section className="investor-moves-panel smart-money-panel" aria-label="Political trades" aria-busy={stageLoading || undefined}>
+      <SmartMoneyProductStage
+        aria-label="Congressional disclosure overview"
+        eyebrow="Smart Money · Politicians · STOCK Act"
+        summary={insight}
+        loading={stageLoading}
+      />
+      {disclosureNote}
 
-  if (status === "error" || status === "timeout" || status === "empty") {
-    return (
-      <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
-        {disclosureNote}
+      {status === "error" || status === "timeout" || status === "empty" ? (
         <div className="empty-state compact">
           <p>No STOCK Act filings are available right now.</p>
           <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
             Retry
           </button>
         </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="investor-moves-panel smart-money-panel" aria-label="Political trades">
-      {disclosureNote}
-      {insight ? (
-        <SmartMoneyInsightCard eyebrow="Congressional disclosure read" summary={insight} />
       ) : null}
+
+      {status === "success" ? (
+        <>
       <div className="investor-filter-row" role="group" aria-label="Filter by trade direction">
         <button
           type="button"
@@ -278,6 +269,8 @@ export function PoliticiansMovesPanel({
       <p className="investor-moves-disclaimer">
         Filings can lag the trade. Amounts are ranges, not exact sizes.
       </p>
+        </>
+      ) : null}
     </section>
   );
 }

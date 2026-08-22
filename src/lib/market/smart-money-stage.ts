@@ -17,6 +17,30 @@ export interface SmartMoneyStageSummary {
   metrics: SmartMoneyStageMetric[];
 }
 
+/** First-paint / empty hero — Institutions tab only. */
+export const INSTITUTION_STAGE_IDLE: SmartMoneyStageSummary = {
+  headline: "Read a disclosed 13F book.",
+  summary: "Quarter-end holdings, filed up to 45 days late. A lead — not a live portfolio.",
+  tone: "neutral",
+  metrics: [
+    { label: "Source", value: "13F" },
+    { label: "Books", value: "Lagged" },
+    { label: "Max lag", value: "45d", tone: "alert" },
+  ],
+};
+
+/** First-paint / empty hero — Politicians tab only. */
+export const POLITICIAN_STAGE_IDLE: SmartMoneyStageSummary = {
+  headline: "Read the latest STOCK Act tape.",
+  summary: "Reported trades can land after the transaction. Check the lag before you lean on size.",
+  tone: "neutral",
+  metrics: [
+    { label: "Source", value: "STOCK Act" },
+    { label: "Tape", value: "Reported" },
+    { label: "Timing", value: "Lagged", tone: "alert" },
+  ],
+};
+
 function formatFilingDate(value: string | null | undefined): string {
   if (!value) return "date unavailable";
   return new Intl.DateTimeFormat("en-US", {
