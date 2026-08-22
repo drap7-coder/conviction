@@ -151,9 +151,13 @@ describe("company evidence composition", () => {
     expect(companyPage).toContain("CompanyEvidenceCard");
     expect(companyPage).not.toContain("MaterialNewsCard");
     expect(sectorPage).toContain("MaterialNewsCard");
-    expect(watchlist).toContain("buildWatchlistBriefItems");
+    expect(watchlist).not.toContain("buildWatchlistBriefItems");
+    expect(watchlist).not.toContain("ProductStage");
     expect(watchlist).not.toContain("<WatchlistDailyBrief");
     expect(watchlist).not.toContain("Fresh on your watchlist");
+    expect(watchlist).not.toContain(">Updates<");
+    expect(watchlist).not.toContain(">Higher<");
+    expect(watchlist).not.toContain(">Lower<");
     expect(existsSync(new URL("../src/app/components/CompanyEvidenceCard.tsx", import.meta.url))).toBe(true);
     const card = read("src/app/components/CompanyEvidenceCard.tsx");
     expect(card).toContain("Why it matters");

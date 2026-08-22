@@ -84,7 +84,11 @@ describe("production copy and fixture isolation", () => {
     expect(companyPage).not.toContain("MaterialNewsCard");
     expect(watchlist).not.toContain("<WatchlistDailyBrief");
     expect(watchlist).not.toContain("Fresh on your watchlist");
-    expect(watchlist).toContain("buildWatchlistBriefItems");
+    expect(watchlist).not.toContain("buildWatchlistBriefItems");
+    expect(watchlist).not.toContain("ProductStage");
+    expect(watchlist).not.toContain(">Updates<");
+    expect(watchlist).not.toContain(">Higher<");
+    expect(watchlist).not.toContain(">Lower<");
     expect(sectorPage).toContain("MaterialNewsCard");
   });
 
