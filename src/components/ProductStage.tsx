@@ -22,7 +22,7 @@ type ProductStageProps = {
   tone?: ProductStageTone;
   /** If true, headline animates in left-to-right like a terminal/typewriter. */
   typewriterHeadline?: boolean;
-  /** Cap a typed headline to this many painted lines. */
+  /** Shrink the typed headline so the full title paints in this many lines. */
   headlineMaxLines?: number;
   /** When true, render a skeleton loader (no messaging) instead of copy. */
   loading?: boolean;

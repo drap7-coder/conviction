@@ -1,6 +1,5 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { trimHeadlineToFit } from "@/components/TypewriterText";
 import { pulseHeroCopy, regimeDecisionHeadline } from "@/lib/market/pulse-hero";
 import type { MarketNarrativeTheme } from "@/lib/market/market-narratives";
 
@@ -73,8 +72,9 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("hero.summary");
     const css = read("src/app/globals.css");
     expect(css).toContain(".product-stage--pulse .product-stage-headline");
-    expect(css).toContain("max-height: calc(1.12em * 2 + 0.4em)");
-    expect(read("src/components/TypewriterText.tsx")).toContain("countWrappedLines");
+    expect(css).toContain(".typewriter-fit-measure");
+    expect(read("src/components/TypewriterText.tsx")).toContain("fitFontSizeToLines");
+    expect(read("src/components/TypewriterText.tsx")).not.toContain("trimHeadlineToFit");
     expect(page).not.toContain("regimeSummary");
     expect(page).toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');
@@ -82,11 +82,14 @@ describe("Pulse heatmap universe", () => {
   });
 });
 
-describe("trimHeadlineToFit", () => {
-  it("backs up to a word boundary and adds an ellipsis", () => {
-    expect(trimHeadlineToFit("Chip stocks lift the Nasdaq")).toBe("Chip stocks lift the…");
-    expect(trimHeadlineToFit("Chip stocks lift the Nasdaq.")).toBe("Chip stocks lift the…");
-    expect(trimHeadlineToFit("Nasdaq")).toBe("Nasdaq…");
-    expect(trimHeadlineToFit("")).toBe("…");
+describe("Pulse headline fit", () => {
+  it("shrinks the font instead of ellipsizing the title", () => {
+    const typewriter = read("src/components/TypewriterText.tsx");
+    const agents = read("AGENTS.md");
+    expect(typewriter).toContain("fitFontSizeToLines");
+    expect(typewriter).toContain("shrink the font so the full text fits");
+    expect(typewriter).not.toContain("trimHeadlineToFit");
+    expect(agents).toContain("shrinks its font so the full title fits 2 lines");
+    expect(agents).not.toContain("ellipsis after that");
   });
 });

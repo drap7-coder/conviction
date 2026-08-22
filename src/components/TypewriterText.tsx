@@ -4,25 +4,18 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 type TypewriterTag = "h1" | "h2" | "span";
 
-/** Back up to a word boundary and add an ellipsis when a typed headline overflows. */
-export function trimHeadlineToFit(visible: string): string {
-  const trimmed = visible.trimEnd();
-  if (!trimmed) return "…";
-  const cut = trimmed.replace(/\s+\S+$/u, "").replace(/[\s.,;:!?—–-]+$/u, "");
-  return `${cut || trimmed}…`;
-}
-
-/** Count wrapped line boxes for the visible text, ignoring the caret. */
+/** Count wrapped line boxes for the first text node under `el`. */
 export function countWrappedLines(el: HTMLElement): number {
-  const hidden = el.querySelector("span[aria-hidden='true']");
-  if (!hidden) return 0;
-  let textNode: ChildNode | null = null;
-  for (const node of hidden.childNodes) {
-    if (node.nodeType === Node.TEXT_NODE && (node.textContent || "").length) {
+  let textNode: Node | null = null;
+  const walk = (node: Node) => {
+    if (textNode) return;
+    if (node.nodeType === Node.TEXT_NODE && (node.textContent || "").trim()) {
       textNode = node;
-      break;
+      return;
     }
-  }
+    node.childNodes.forEach(walk);
+  };
+  walk(el);
   if (!textNode) return 0;
   const range = document.createRange();
   range.selectNodeContents(textNode);
@@ -34,10 +27,41 @@ export function countWrappedLines(el: HTMLElement): number {
   return tops.length;
 }
 
+/** Largest font size in [minPx, maxPx] where `el` still paints in `maxLines`. */
+export function fitFontSizeToLines(
+  el: HTMLElement,
+  maxLines: number,
+  maxPx: number,
+  minPx: number,
+): number {
+  const apply = (px: number) => {
+    el.style.fontSize = `${px}px`;
+  };
+
+  apply(maxPx);
+  if (countWrappedLines(el) <= maxLines) return maxPx;
+
+  let lo = minPx;
+  let hi = maxPx;
+  let best = minPx;
+  for (let i = 0; i < 18; i++) {
+    const mid = (lo + hi) / 2;
+    apply(mid);
+    if (countWrappedLines(el) <= maxLines) {
+      best = mid;
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+  }
+  apply(best);
+  return best;
+}
+
 /**
  * Types text on arrival for page-top impact.
  * Replays when `text` changes. Honors prefers-reduced-motion.
- * When `maxLines` is set, stop typing once the painted box would grow past that.
+ * When `maxLines` is set, shrink the font so the full text fits that many lines.
  */
 export function TypewriterText({
   text,
@@ -56,9 +80,33 @@ export function TypewriterText({
 }) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
-  const measureRef = useRef<HTMLElement | null>(null);
-  const stopRef = useRef(false);
-  const intervalRef = useRef<number | undefined>(undefined);
+  const [fontPx, setFontPx] = useState<number | null>(null);
+  const boxRef = useRef<HTMLElement | null>(null);
+  const measureRef = useRef<HTMLSpanElement | null>(null);
+  const fitted = !maxLines || fontPx != null;
+
+  useLayoutEffect(() => {
+    if (!maxLines) return;
+    const box = boxRef.current;
+    const measure = measureRef.current;
+    if (!box || !measure || !text) {
+      setFontPx(null);
+      return;
+    }
+
+    const fit = () => {
+      measure.style.fontSize = "";
+      const maxPx = parseFloat(getComputedStyle(box).fontSize);
+      if (!Number.isFinite(maxPx) || maxPx <= 0) return;
+      const minPx = Math.max(10, maxPx * 0.5);
+      setFontPx(fitFontSizeToLines(measure, maxLines, maxPx, minPx));
+    };
+
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [text, maxLines]);
 
   useEffect(() => {
     if (!text) {
@@ -66,6 +114,7 @@ export function TypewriterText({
       setDone(true);
       return;
     }
+    if (!fitted) return;
 
     const reduced =
       typeof window !== "undefined" &&
@@ -77,61 +126,45 @@ export function TypewriterText({
       return;
     }
 
-    stopRef.current = false;
     setDisplayed("");
     setDone(false);
     let i = 0;
+    let interval: number | undefined;
     const timeout = window.setTimeout(() => {
-      intervalRef.current = window.setInterval(() => {
-        if (stopRef.current) {
-          if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
-          return;
-        }
+      interval = window.setInterval(() => {
         i += 1;
-        const next = text.slice(0, i);
-        setDisplayed((prev) => (stopRef.current ? prev : next));
+        setDisplayed(text.slice(0, i));
         if (i >= text.length) {
-          if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
-          if (!stopRef.current) setDone(true);
+          if (interval !== undefined) window.clearInterval(interval);
+          setDone(true);
         }
       }, msPerChar);
     }, startDelay);
 
     return () => {
       window.clearTimeout(timeout);
-      if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
+      if (interval !== undefined) window.clearInterval(interval);
     };
-  }, [text, msPerChar, startDelay]);
-
-  useLayoutEffect(() => {
-    if (!maxLines || !displayed) return;
-    const el = measureRef.current;
-    if (!el) return;
-    if (countWrappedLines(el) <= maxLines) return;
-
-    stopRef.current = true;
-    if (intervalRef.current !== undefined) window.clearInterval(intervalRef.current);
-    const withoutEllipsis = displayed.endsWith("…") ? displayed.slice(0, -1) : displayed;
-    const source = displayed.endsWith("…") ? withoutEllipsis : withoutEllipsis.slice(0, -1);
-    const next = trimHeadlineToFit(source);
-    if (next === displayed) {
-      setDone(true);
-      return;
-    }
-    setDisplayed(next);
-    setDone(true);
-  }, [displayed, maxLines]);
+  }, [text, msPerChar, startDelay, fitted]);
 
   return (
     <Tag
-      ref={measureRef as never}
+      ref={boxRef as never}
       className={className ? `${className} typewriter-line` : "typewriter-line"}
       aria-label={text}
     >
-      <span aria-hidden="true">
+      <span
+        aria-hidden="true"
+        style={fontPx != null ? { fontSize: `${fontPx}px` } : undefined}
+      >
         {displayed}
-        {!done ? <span className="typewriter-cursor" /> : null}
+        {!done && fitted ? <span className="typewriter-cursor" /> : null}
       </span>
+      {maxLines ? (
+        <span ref={measureRef} className="typewriter-fit-measure" aria-hidden="true">
+          {text}
+        </span>
+      ) : null}
     </Tag>
   );
 }
