@@ -52,6 +52,7 @@ export default function NewsPage() {
 
   return (
     <main className="markets-page news-page">
+      <h1 className="sr-only">News</h1>
       <ProductStage
         variant="news"
         aria-label="News intelligence"

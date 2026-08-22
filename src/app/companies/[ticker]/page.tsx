@@ -12,7 +12,8 @@ import { getMarketInstrument, listMarketInstruments } from "@/lib/market/market-
 import { getSectorByTicker, getSectorForCompany } from "@/lib/market/industries";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { Metadata } from "next";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import "@/app/dashboard.css";
 
 export async function generateStaticParams() {
@@ -37,19 +38,11 @@ export async function generateMetadata({
     ? `Decision snapshot, catalyst, and source filings for ${companyName} (${upperTicker}).`
     : `Price, chart, and news for ${companyName} (${upperTicker}).`;
 
-  return {
+  return pageMetadata({
     title,
     description,
-    alternates: {
-      canonical: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
-    },
-    openGraph: {
-      title: `${title} · CONVICTION`,
-      description,
-      url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
-      siteName: "CONVICTION",
-    },
-  };
+    path: `/companies/${encodeURIComponent(upperTicker)}`,
+  });
 }
 
 export default async function CompanyPage({
@@ -71,23 +64,33 @@ export default async function CompanyPage({
     ? (sector?.name ?? null)
     : (marketInstrument?.tag ?? "Market");
 
+  const path = `/companies/${encodeURIComponent(upperTicker)}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${companyName} (${upperTicker}) · CONVICTION`,
-    url: `${SITE_URL}/companies/${encodeURIComponent(upperTicker)}`,
+    name: `${companyName} (${upperTicker}) · ${SITE_NAME}`,
+    url: `${SITE_URL}${path}`,
     description: supportsSignals
       ? `Decision snapshot and source filings for ${companyName} (${upperTicker}).`
       : `Price, chart, and news for ${companyName} (${upperTicker}).`,
   };
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: "Pulse", path: "/pulse" },
+    { name: companyName, path },
+  ]);
 
   return (
-    <div className="company-detail-page">
+    <main className="company-detail-page">
       <script
         type="application/ld+json"
         suppressHydrationWarning
         // Safe: server-side JSON literal for structured data.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
 
       <div className="detail-nav">
@@ -134,6 +137,6 @@ export default async function CompanyPage({
           </>
         }
       />
-    </div>
+    </main>
   );
 }
