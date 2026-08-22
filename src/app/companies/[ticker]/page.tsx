@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompanyQuoteCard } from "@/app/components/CompanyQuoteCard";
 import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
-import { MaterialNewsCard } from "@/app/components/MaterialNewsCard";
+import { CompanyEvidenceCard } from "@/app/components/CompanyEvidenceCard";
 import { RelatedCompanies } from "@/app/components/RelatedCompanies";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
 import { CompanyDecisionBrief } from "@/app/components/CompanyDecisionBrief";
@@ -129,7 +129,7 @@ export default async function CompanyPage({
               </section>
             )}
             <div className="company-catalyst-stack">
-              <MaterialNewsCard
+              <CompanyEvidenceCard
                 key={upperTicker}
                 ticker={upperTicker}
                 companyName={companyName}

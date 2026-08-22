@@ -626,7 +626,8 @@
   text-underline-offset: 0.12em;
 }
 
-.company-briefing .company-driver-module .signal-block-evidence {
+.company-briefing .company-driver-module .signal-block-evidence,
+.company-briefing .company-driver-module .signal-block-why {
   font-size: 0.84rem;
   line-height: 1.45;
 }

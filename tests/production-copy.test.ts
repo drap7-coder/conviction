@@ -75,6 +75,19 @@ describe("production copy and fixture isolation", () => {
     expect(tape).toContain('aria-label="Major indexes"');
   });
 
+  it("moves watchlist evidence into the company dashboard catalyst slot", () => {
+    const companyPage = read("src/app/companies/[ticker]/page.tsx");
+    const watchlist = read("src/components/Watchlist.tsx");
+    const sectorPage = read("src/app/industries/[ticker]/page.tsx");
+
+    expect(companyPage).toContain("CompanyEvidenceCard");
+    expect(companyPage).not.toContain("MaterialNewsCard");
+    expect(watchlist).not.toContain("<WatchlistDailyBrief");
+    expect(watchlist).not.toContain("Fresh on your watchlist");
+    expect(watchlist).toContain("buildWatchlistBriefItems");
+    expect(sectorPage).toContain("MaterialNewsCard");
+  });
+
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {
     const css = read("src/app/globals.css");
 

@@ -16,7 +16,6 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { ProductStage } from "@/components/ProductStage";
 import {
   buildWatchlistBriefItems,
-  WatchlistDailyBrief,
   type WatchlistNewsSummary,
   type WatchlistTransition,
 } from "@/components/WatchlistDailyBrief";
@@ -560,13 +559,6 @@ export default function Watchlist({
     </section>
   );
 
-  const quotedEntries = briefingEntries
-    .map((entry) => quotes[entry.ticker])
-    .filter((quote): quote is StockQuote => Boolean(quote));
-  const sessionLabel = quotedEntries
-    .map((quote) => getLivePrice(quote).label)
-    .find((label): label is string => Boolean(label)) ?? "Market session";
-
   const moveReadings = entries
     .map((entry) => {
       const quote = quotes[entry.ticker];
@@ -674,18 +666,6 @@ export default function Watchlist({
           footer={children}
         />
       ) : null}
-
-      <WatchlistDailyBrief
-        entries={briefingEntries}
-        quotes={quotes}
-        newsByTicker={newsByTicker}
-        transitions={transitions}
-        loading={loading || briefLoading}
-        sessionLabel={sessionLabel}
-        portfolioTickers={portfolioTickers}
-        watchlistTickers={entries.map((entry) => entry.ticker)}
-        section="list"
-      />
 
       {composeBar}
 
