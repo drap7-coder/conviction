@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { ProductStage } from "@/components/ProductStage";
 import { PulseNewsFeed } from "@/components/market/PulseNewsFeed";
 import type { MarketNarrativePulse } from "@/lib/market/market-narratives";
-import { buildNewsPageBrief } from "@/lib/market/news-brief";
 
 interface NewsResponse {
   marketNarratives: MarketNarrativePulse;
@@ -43,40 +41,9 @@ export default function NewsPage() {
     };
   }, []);
 
-  const brief = useMemo(
-    () => data
-      ? buildNewsPageBrief(data.marketNarratives.themes, data.marketNarratives.status)
-      : null,
-    [data],
-  );
-
   return (
     <main className="markets-page news-page">
       <h1 className="sr-only">News</h1>
-      <ProductStage
-        variant="news"
-        aria-label="News intelligence"
-        loading={status === "loading"}
-        eyebrow="News"
-        headline=""
-        statOnly
-        metrics={
-          <>
-            <div>
-              <strong>{brief?.storyCount ?? "—"}</strong>
-              <span>Recent stories</span>
-            </div>
-            <div className={brief && brief.activeNarratives > 0 ? "is-alert" : undefined}>
-              <strong>{brief?.activeNarratives ?? "—"}</strong>
-              <span>Active narratives</span>
-            </div>
-            <div>
-              <strong>{brief?.statusLabel ?? "—"}</strong>
-              <span>Feed status</span>
-            </div>
-          </>
-        }
-      />
 
       {status === "loading" ? (
         <PageLoadingMotion
@@ -87,7 +54,7 @@ export default function NewsPage() {
           speed="slow"
         />
       ) : null}
-      {status === "error" || (status === "success" && (!data || !brief)) ? (
+      {status === "error" || (status === "success" && !data) ? (
         <div className="market-empty">News intelligence is temporarily unavailable.</div>
       ) : null}
 

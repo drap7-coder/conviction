@@ -92,6 +92,17 @@ describe("production copy and fixture isolation", () => {
     expect(sectorPage).toContain("MaterialNewsCard");
   });
 
+  it("drops the News ProductStage count strip", () => {
+    const news = read("src/app/news/page.tsx");
+
+    expect(news).not.toContain("ProductStage");
+    expect(news).not.toContain("buildNewsPageBrief");
+    expect(news).not.toContain("Recent stories");
+    expect(news).not.toContain("Active narratives");
+    expect(news).not.toContain("Feed status");
+    expect(news).toContain("PulseNewsFeed");
+  });
+
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {
     const css = read("src/app/globals.css");
 
