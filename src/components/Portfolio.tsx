@@ -749,11 +749,11 @@ export default function Portfolio({
                 <strong>{studySignedPct(studyBrief.performance.annualizedPct)}</strong>
               </div>
               <div className="is-best">
-                <span>Best year · {studyBrief.performance.bestYear.year}</span>
+                <span>Best · {studyBrief.performance.bestYear.year}</span>
                 <strong>{studySignedPct(studyBrief.performance.bestYear.pct)}</strong>
               </div>
               <div className="is-worst">
-                <span>Worst year · {studyBrief.performance.worstYear.year}</span>
+                <span>Worst · {studyBrief.performance.worstYear.year}</span>
                 <strong>{studySignedPct(studyBrief.performance.worstYear.pct)}</strong>
               </div>
             </div>

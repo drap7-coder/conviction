@@ -285,6 +285,7 @@
 
 .portfolio-page .pf-study-machine p {
   margin: 0;
+  overflow-wrap: anywhere;
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 0.86rem;
@@ -328,6 +329,7 @@
   position: relative;
   display: grid;
   gap: 6px;
+  min-width: 0;
   overflow: hidden;
   padding: 14px 12px 11px;
   border: 1px solid var(--border);
@@ -339,9 +341,9 @@
   content: "";
   position: absolute;
   top: 0;
-  left: 12px;
-  right: 12px;
-  height: 2px;
+  left: 10px;
+  right: 10px;
+  height: 3px;
   border-radius: 0 0 2px 2px;
   background: color-mix(in srgb, var(--sample) 70%, transparent);
 }
@@ -359,12 +361,15 @@
 }
 
 .portfolio-page .pf-study-history-metrics span {
+  overflow: hidden;
   color: var(--quiet);
   font-family: var(--font-mono);
   font-size: 0.56rem;
   font-weight: 700;
   letter-spacing: 0.06em;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .portfolio-page .pf-study-history-metrics strong {
