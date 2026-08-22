@@ -29,7 +29,8 @@ export default function SmartMoneyPage() {
   const { trackedTickers, addingTicker, addToWatchlist } = useWatchlistTracking();
 
   return (
-    <div className="smart-money-page">
+    <main className="smart-money-page">
+      <h1 className="sr-only">Smart Money</h1>
       <ViewSwitcher
         label="Choose a Smart Money view"
         options={[...SMART_MONEY_VIEWS]}
@@ -90,6 +91,6 @@ export default function SmartMoneyPage() {
           />
         ) : null}
       </div>
-    </div>
+    </main>
   );
 }

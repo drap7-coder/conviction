@@ -1,16 +1,15 @@
 import { redirect } from "next/navigation";
 import MyListShell from "@/components/MyListShell";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import "@/app/watchlist.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Watchlist",
   description:
     "Track the stocks you follow — quotes, ownership moves, and a path into each company dashboard.",
-  alternates: {
-    canonical: "/watchlist",
-  },
-};
+  path: "/watchlist",
+});
 
 export default async function WatchlistPage({
   searchParams,
@@ -25,8 +24,9 @@ export default async function WatchlistPage({
   }
 
   return (
-    <div className="watchlist-page">
+    <main className="watchlist-page">
+      <h1 className="sr-only">Watchlist</h1>
       <MyListShell />
-    </div>
+    </main>
   );
 }

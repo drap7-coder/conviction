@@ -1,8 +1,39 @@
 import type { NextConfig } from "next";
 
+const CANONICAL_ORIGIN = "https://www.gotconviction.com";
+
 const nextConfig: NextConfig = {
   async redirects() {
     return [
+      {
+        source: "/",
+        has: [{ type: "host", value: "gotconviction.com" }],
+        destination: `${CANONICAL_ORIGIN}/pulse`,
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "conviction-orpin.vercel.app" }],
+        destination: `${CANONICAL_ORIGIN}/pulse`,
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "gotconviction.com" }],
+        destination: `${CANONICAL_ORIGIN}/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "conviction-orpin.vercel.app" }],
+        destination: `${CANONICAL_ORIGIN}/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/",
+        destination: "/pulse",
+        permanent: true,
+      },
       {
         source: "/rising",
         destination: "/pulse",

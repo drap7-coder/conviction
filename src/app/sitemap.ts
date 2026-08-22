@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SECTORS } from "@/lib/market/industries";
+import { listMarketInstruments } from "@/lib/market/market-instruments";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { SITE_URL } from "@/lib/site";
 
@@ -31,6 +32,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "hourly",
       priority: 0.9,
     },
+    {
+      url: `${SITE_URL}/portfolio`,
+      lastModified: now,
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
   ];
 
   const sectorRoutes: MetadataRoute.Sitemap = SECTORS.map((sector) => ({
@@ -40,12 +47,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  const companyRoutes: MetadataRoute.Sitemap = SEED_WATCHLIST.map((entry) => ({
-    url: `${SITE_URL}/companies/${entry.ticker}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.6,
-  }));
+  const companyTickers = new Set([
+    ...SEED_WATCHLIST.map((entry) => entry.ticker.toUpperCase()),
+    ...listMarketInstruments().map((entry) => entry.ticker.toUpperCase()),
+  ]);
+
+  const companyRoutes: MetadataRoute.Sitemap = [...companyTickers]
+    .sort()
+    .map((ticker) => ({
+      url: `${SITE_URL}/companies/${encodeURIComponent(ticker)}`,
+      lastModified: now,
+      changeFrequency: "daily" as const,
+      priority: 0.6,
+    }));
 
   return [...staticRoutes, ...sectorRoutes, ...companyRoutes];
 }

@@ -9,9 +9,11 @@ import AnimatedTitle from "@/components/AnimatedTitle";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
+  SITE_OG_IMAGE,
   SITE_TITLE,
   SITE_URL,
 } from "@/lib/site";
+import { siteJsonLd } from "@/lib/seo";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -35,6 +37,14 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
+  category: "finance",
+  robots: {
+    index: true,
+    follow: true,
+  },
+  alternates: {
+    canonical: "/pulse",
+  },
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
@@ -42,23 +52,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    url: SITE_URL,
+    url: `${SITE_URL}/pulse`,
     siteName: SITE_NAME,
-    images: [
-      {
-        url: "/conviction-og.png",
-        width: 1200,
-        height: 630,
-        alt: "CONVICTION pixel bull logo",
-      },
-    ],
+    images: [SITE_OG_IMAGE],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    images: ["/conviction-og.png"],
+    images: [SITE_OG_IMAGE.url],
   },
 };
 
@@ -78,6 +81,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
       <body>
+        <script
+          type="application/ld+json"
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd()) }}
+        />
         <div className="app-shell">
           <header className="app-header">
             <div className="header-brand-row">

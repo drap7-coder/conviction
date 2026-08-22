@@ -6,7 +6,8 @@ import { CompanyDashboard, DashboardCard } from "@/app/components/company-dashbo
 import { getSectorByTicker, SECTORS } from "@/lib/market/industries";
 import { getSectorColors } from "@/lib/market/logos";
 import type { Metadata } from "next";
-import { SITE_URL } from "@/lib/site";
+import { SITE_NAME, SITE_URL } from "@/lib/site";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import "@/app/dashboard.css";
 
 export function generateStaticParams() {
@@ -22,28 +23,22 @@ export async function generateMetadata({
   const upperTicker = ticker.toUpperCase();
   const sector = getSectorByTicker(upperTicker);
   if (!sector) {
-    return {
+    return pageMetadata({
       title: upperTicker,
       description: "Ownership signals for this sector.",
-    };
+      path: `/industries/${encodeURIComponent(upperTicker)}`,
+      index: false,
+    });
   }
 
-  const title = `${sector.name} (${sector.ticker})`;
+  const title = `${sector.name} sector (${sector.ticker})`;
   const description = `Ownership signals and market context for the ${sector.name} sector (${sector.ticker}).`;
 
-  return {
+  return pageMetadata({
     title,
     description,
-    alternates: {
-      canonical: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
-    },
-    openGraph: {
-      title: `${title} · CONVICTION`,
-      description,
-      url: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
-      siteName: "CONVICTION",
-    },
-  };
+    path: `/industries/${encodeURIComponent(upperTicker)}`,
+  });
 }
 
 export default async function SectorPage({
@@ -56,20 +51,30 @@ export default async function SectorPage({
   const sector = getSectorByTicker(upperTicker);
   if (!sector) notFound();
 
+  const path = `/industries/${encodeURIComponent(upperTicker)}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    name: `${sector.name} (${sector.ticker}) · CONVICTION`,
-    url: `${SITE_URL}/industries/${encodeURIComponent(upperTicker)}`,
+    name: `${sector.name} sector (${sector.ticker}) · ${SITE_NAME}`,
+    url: `${SITE_URL}${path}`,
     description: `Ownership signals for the ${sector.name} sector (${sector.ticker}).`,
   };
+  const breadcrumbs = breadcrumbJsonLd([
+    { name: "Pulse", path: "/pulse" },
+    { name: `${sector.name} sector`, path },
+  ]);
 
   return (
-    <div>
+    <main>
       <script
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbs) }}
       />
       <div className="detail-header">
         <div className="detail-nav">
@@ -101,7 +106,10 @@ export default async function SectorPage({
               return <div className="logo-badge logo-badge-detail">{upperTicker.charAt(0)}</div>;
             })()}
             <div>
-              <h1 className="detail-ticker">{sector.ticker}</h1>
+              <h1 className="detail-ticker">
+                {sector.ticker}
+                <span className="sr-only">{` ${sector.name} sector`}</span>
+              </h1>
               <p className="detail-name">{sector.name}</p>
             </div>
           </div>
@@ -117,6 +125,6 @@ export default async function SectorPage({
           <MaterialNewsCard key={upperTicker} ticker={upperTicker} />
         </DashboardCard>
       </CompanyDashboard>
-    </div>
+    </main>
   );
 }

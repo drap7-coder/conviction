@@ -104,6 +104,42 @@
   font-feature-settings: "tnum" 1;
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.not-found-page {
+  display: grid;
+  gap: 12px;
+  padding: 48px 8px 32px;
+}
+
+.not-found-page h1 {
+  color: var(--ink);
+  font-size: 1.6rem;
+  letter-spacing: -0.04em;
+}
+
+.not-found-page p {
+  color: var(--muted);
+}
+
+.not-found-page a {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 /* ── Document ── */
 
 html, body {
