@@ -606,6 +606,129 @@
 .portfolio-page .pf-study-compare strong.is-alert { color: var(--red); }
 .portfolio-page .pf-study-compare strong.is-positive { color: var(--green); }
 
+.portfolio-page .pf-study-moves {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--divider);
+}
+
+.portfolio-page .pf-study-moves > span {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.portfolio-page .pf-study-moves ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portfolio-page .pf-study-moves li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+}
+
+.portfolio-page .pf-study-moves strong {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.portfolio-page .pf-study-moves em {
+  color: var(--quiet);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-style: normal;
+}
+
+/* Live hero: Fit + Reliance + posture moves (same ProductStage, no second hero) */
+.portfolio-page .pf-fit-board {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.portfolio-page .product-stage p.pf-fit-runner {
+  max-width: none;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.02em;
+}
+
+.portfolio-page .pf-posture {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.portfolio-page .pf-posture-chip {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card-soft);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.portfolio-page .pf-posture-chip.is-active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.portfolio-page .pf-moves {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portfolio-page .pf-move {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+
+.portfolio-page .pf-move-action {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.portfolio-page .pf-move-why {
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.7rem;
+}
+
+.portfolio-page .product-stage p.pf-fit-hedge {
+  max-width: none;
+  margin: 2px 0 0;
+  color: var(--quiet);
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
 /* ── Book vs Benchmark ── */
 .portfolio-page .pf-benchmark {
   margin: 0 0 14px;

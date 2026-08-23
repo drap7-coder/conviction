@@ -3,7 +3,10 @@
  * No database, no watchlist dependency, no authentication.
  */
 
+import { isBookPosture, type BookPosture } from "@/lib/portfolio/fit";
+
 const STORAGE_KEY = "conviction-portfolio-positions";
+const POSTURE_KEY = "conviction-portfolio-posture";
 const MAX_POSITIONS = 50;
 
 export interface PersistedPosition {
@@ -66,5 +69,26 @@ export function clearPositions(): void {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
     // ignore
+  }
+}
+
+/** Last posture the user picked. Null means default from Fit. */
+export function loadPostureOverride(): BookPosture | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(POSTURE_KEY);
+    return isBookPosture(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+export function savePostureOverride(posture: BookPosture | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (!posture) localStorage.removeItem(POSTURE_KEY);
+    else localStorage.setItem(POSTURE_KEY, posture);
+  } catch {
+    // ignore quota / private mode
   }
 }
