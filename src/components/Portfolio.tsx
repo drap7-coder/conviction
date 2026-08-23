@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   loadPositions,
-  loadPostureOverride,
+  loadRiskProfileOverride,
   savePositions,
-  savePostureOverride,
+  saveRiskProfileOverride,
   type PersistedPosition,
 } from "@/lib/portfolio/persist";
 import {
@@ -42,10 +42,12 @@ import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import {
-  BOOK_POSTURES,
-  POSTURE_LABELS,
-  targetBookForPosture,
-  type BookPosture,
+  RISK_PROFILE_BLURBS,
+  RISK_PROFILE_LABELS,
+  RISK_PROFILE_QUESTION,
+  RISK_PROFILES,
+  targetBookForProfile,
+  type RiskProfile,
 } from "@/lib/portfolio/fit";
 import { generateSleeveMoves } from "@/lib/portfolio/sleeve-moves";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
@@ -258,7 +260,7 @@ export default function Portfolio({
   const [formError, setFormError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
-  const [postureOverride, setPostureOverride] = useState<BookPosture | null>(null);
+  const [profileOverride, setProfileOverride] = useState<RiskProfile | null>(null);
   const sampleLoadRef = useRef(0);
   const sampleAbortRef = useRef<AbortController | null>(null);
   const sampleAwaitingQuotesRef = useRef(false);
@@ -267,7 +269,7 @@ export default function Portfolio({
   // so we no longer resolve a stored sample book into the live positions.
   useEffect(() => {
     setPositions(loadPositions());
-    setPostureOverride(loadPostureOverride());
+    setProfileOverride(loadRiskProfileOverride());
     return () => {
       sampleAbortRef.current?.abort();
     };
@@ -685,13 +687,13 @@ export default function Portfolio({
   const stageHeadline = valueBrief.headline;
   const stageSummary = valueBrief.summary;
   const stageEyebrow = `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}`;
-  const posture = postureOverride ?? valueBrief.fit.defaultPosture ?? "balance";
-  const postureTarget = targetBookForPosture(posture, valueBrief.fit.rankings);
-  const sleeveMoves = generateSleeveMoves(bookHoldings, postureTarget);
+  const profile = profileOverride ?? valueBrief.fit.defaultProfile ?? "growth-income";
+  const profileTarget = targetBookForProfile(profile, valueBrief.fit.rankings);
+  const sleeveMoves = generateSleeveMoves(bookHoldings, profileTarget, undefined, profile);
 
-  function pickPosture(next: BookPosture) {
-    setPostureOverride(next);
-    savePostureOverride(next);
+  function pickProfile(next: RiskProfile) {
+    setProfileOverride(next);
+    saveRiskProfileOverride(next);
   }
 
   const studyBook =
@@ -906,35 +908,42 @@ export default function Portfolio({
           <div className="pf-fit-board">
             {valueBrief.fit.runnerUp ? (
               <p className="pf-fit-runner">
-                Also near {valueBrief.fit.runnerUp.label} · {valueBrief.fit.runnerUp.score}
+                Also close to {valueBrief.fit.runnerUp.label}
               </p>
             ) : null}
-            <div className="pf-posture" role="tablist" aria-label="Portfolio posture">
-              {BOOK_POSTURES.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  role="tab"
-                  aria-selected={posture === item}
-                  className={`pf-posture-chip${posture === item ? " is-active" : ""}`}
-                  onClick={() => pickPosture(item)}
-                >
-                  {POSTURE_LABELS[item]}
-                </button>
-              ))}
-            </div>
-            {sleeveMoves.length > 0 ? (
-              <ul className="pf-moves" aria-label="Sleeve moves">
-                {sleeveMoves.map((move) => (
-                  <li key={`${move.action}-${move.ticker}`} className="pf-move">
-                    <strong className="pf-move-action">{move.label}</strong>
-                    <span className="pf-move-why">{move.why}</span>
-                  </li>
+            <fieldset className="pf-risk">
+              <legend className="pf-risk-q">{RISK_PROFILE_QUESTION}</legend>
+              <div className="pf-profile" role="radiogroup" aria-label={RISK_PROFILE_QUESTION}>
+                {RISK_PROFILES.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    role="radio"
+                    aria-checked={profile === item}
+                    className={`pf-profile-option${profile === item ? " is-active" : ""}`}
+                    onClick={() => pickProfile(item)}
+                  >
+                    <strong>{RISK_PROFILE_LABELS[item]}</strong>
+                    <span>{RISK_PROFILE_BLURBS[item]}</span>
+                  </button>
                 ))}
-              </ul>
-            ) : null}
+              </div>
+              {sleeveMoves.length > 0 ? (
+                <>
+                  <p className="pf-moves-lead">Then here are the moves for {RISK_PROFILE_LABELS[profile]}.</p>
+                  <ul className="pf-moves" aria-label={`Moves for ${RISK_PROFILE_LABELS[profile]}`}>
+                    {sleeveMoves.map((move) => (
+                      <li key={`${move.action}-${move.ticker}`} className="pf-move">
+                        <strong className="pf-move-action">{move.label}</strong>
+                        <span className="pf-move-why">{move.why}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </fieldset>
             <p className="pf-fit-hedge">
-              Fit and Reliance describe this book — not a recommendation to trade.
+              This describes your book. It is not advice to trade.
             </p>
           </div>
           <div className="product-stage-actions">

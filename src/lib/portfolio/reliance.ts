@@ -6,11 +6,7 @@
  * Not Conviction Score (per-ticker). Not resilience. Not inverted into a health grade.
  */
 
-import {
-  rankedHoldings,
-  shortExposureLabel,
-  type BookHolding,
-} from "@/lib/portfolio/sleeves";
+import { rankedHoldings, type BookHolding } from "@/lib/portfolio/sleeves";
 
 export type RelianceTone = "balanced" | "watch" | "concentrated" | "neutral";
 
@@ -33,7 +29,7 @@ export function computeReliance(holdings: BookHolding[]): RelianceResult {
       largestSleeve: null,
       topThreeWeight: 0,
       line: "Reliance —",
-      summary: "Weights resolve when quotes land.",
+      summary: "Prices are still landing.",
       tone: "neutral",
     };
   }
@@ -57,12 +53,11 @@ export function computeReliance(holdings: BookHolding[]): RelianceResult {
     elevated: ranked.some((row) => row.weight > 12),
   });
 
-  const sleeveBit = largestSleeve
-    ? ` · ${shortExposureLabel(largestSleeve.label)} ${largestSleeve.weight.toFixed(0)}%`
-    : "";
-  const line = `Reliance ${score} · ${largest.ticker} ${largest.weight.toFixed(0)}%${sleeveBit}`;
-  const swing = `A 20% move swings the book ~${(largest.weight * 0.2).toFixed(1)}%.`;
   const tone: RelianceTone = score >= 70 ? "concentrated" : score >= 45 ? "watch" : "balanced";
+  const line = relianceSentence(tone, largest.ticker, score);
+  const swingPts = largest.weight * 0.2;
+  const swing = Number.isInteger(swingPts) ? swingPts.toFixed(0) : swingPts.toFixed(1);
+  const swingLine = `If ${largest.ticker} moves 20%, the book moves about ${swing}%.`;
 
   return {
     score,
@@ -70,7 +65,7 @@ export function computeReliance(holdings: BookHolding[]): RelianceResult {
     largestSleeve,
     topThreeWeight,
     line,
-    summary: `${line}. ${swing}`,
+    summary: `${line} ${swingLine}`,
     tone,
   };
 }
@@ -96,6 +91,13 @@ export function relianceScore(input: {
   return clamp(0, 100, Math.round(
     namePts + nameOver + elevatedPts + sectorPts + sectorOver + clusterPts + clusterOver,
   ));
+}
+
+function relianceSentence(tone: RelianceTone, ticker: string, score: number): string {
+  const tail = `Reliance ${score}.`;
+  if (tone === "concentrated") return `A lot rides on ${ticker}. ${tail}`;
+  if (tone === "watch") return `${ticker} is a large piece of the book. ${tail}`;
+  return `The book is spread out. ${tail}`;
 }
 
 function clamp(min: number, max: number, value: number): number {

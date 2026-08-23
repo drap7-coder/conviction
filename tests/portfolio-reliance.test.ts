@@ -7,7 +7,7 @@ describe("computeReliance", () => {
     expect(result.score).toBe(0);
     expect(result.largest).toBeNull();
     expect(result.tone).toBe("neutral");
-    expect(result.summary).toBe("Weights resolve when quotes land.");
+    expect(result.summary).toBe("Prices are still landing.");
     expect(result.line).not.toMatch(/resilien|healthy|conviction score/i);
   });
 
@@ -16,8 +16,8 @@ describe("computeReliance", () => {
     expect(result.score).toBeGreaterThanOrEqual(85);
     expect(result.score).toBeLessThanOrEqual(100);
     expect(result.largest).toEqual({ ticker: "NVDA", weight: 100 });
-    expect(result.line).toMatch(/Reliance \d+ · NVDA 100% · Tech 100%/);
-    expect(result.summary).toContain("A 20% move swings the book ~20.0%.");
+    expect(result.line).toBe(`A lot rides on NVDA. Reliance ${result.score}.`);
+    expect(result.summary).toContain("If NVDA moves 20%, the book moves about 20%.");
     expect(result.tone).toBe("concentrated");
   });
 
@@ -34,8 +34,9 @@ describe("computeReliance", () => {
     ]);
     expect(result.largest?.ticker).toBe("NVDA");
     expect(result.largestSleeve).toEqual({ label: "Technology", weight: 61 });
-    expect(result.line).toBe(`Reliance ${result.score} · NVDA 28% · Tech 61%`);
+    expect(result.line).toBe(`A lot rides on NVDA. Reliance ${result.score}.`);
     expect(result.summary).toContain("5.6%");
+    expect(result.summary).toMatch(/^A lot rides on NVDA\./);
     expect(result.score).toBeGreaterThanOrEqual(70);
     expect(result.score).toBeLessThanOrEqual(80);
     expect(result.tone).toBe("concentrated");
@@ -47,8 +48,8 @@ describe("computeReliance", () => {
       { ticker: "BND", weight: 40, exposure: "Fixed Income" },
     ]);
     expect(result.score).toBeGreaterThan(50);
-    expect(result.line).toMatch(/Reliance \d+ · VTI 60% · U\.S\. eq\. 60%/);
-    expect(result.summary).toContain("A 20% move swings the book ~12.0%.");
+    expect(result.line).toBe(`A lot rides on VTI. Reliance ${result.score}.`);
+    expect(result.summary).toContain("If VTI moves 20%, the book moves about 12%.");
   });
 
   it("scores an equal-weight growth-like book lower than a single-name book", () => {
