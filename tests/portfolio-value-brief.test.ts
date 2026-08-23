@@ -2,20 +2,25 @@ import { describe, expect, it } from "vitest";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 
 describe("portfolio value brief", () => {
-  it("calls out a single binding concentration", () => {
+  it("leads with Fit and Reliance instead of runs-the-book copy", () => {
     const brief = buildPortfolioValueBrief([
-      { ticker: "NVDA", weight: 28 },
-      { ticker: "MSFT", weight: 18 },
-      { ticker: "GOOG", weight: 14 },
-      { ticker: "AMZN", weight: 10 },
+      { ticker: "NVDA", weight: 28, exposure: "Technology" },
+      { ticker: "MSFT", weight: 18, exposure: "Technology" },
+      { ticker: "GOOG", weight: 15, exposure: "Technology" },
+      { ticker: "AMZN", weight: 10, exposure: "Consumer Discretionary" },
     ]);
 
-    expect(brief.tone).toBe("concentrated");
-    expect(brief.headline).toContain("NVDA");
+    expect(brief.headline).toMatch(/^Closest to /);
+    expect(brief.headline).not.toMatch(/runs the book/i);
+    expect(brief.summary).toMatch(/Reliance \d+ · NVDA 28%/);
     expect(brief.summary).toContain("5.6%");
+    expect(brief.tone).toBe("concentrated");
+    expect(brief.largest).toEqual({ ticker: "NVDA", weight: 28 });
+    expect(brief.fit.primary).toBeTruthy();
+    expect(brief.reliance.score).toBeGreaterThan(0);
   });
 
-  it("distinguishes top-three concentration without an oversized single holding", () => {
+  it("does not say the top three run the book", () => {
     const brief = buildPortfolioValueBrief([
       { ticker: "AAA", weight: 21 },
       { ticker: "BBB", weight: 20 },
@@ -23,12 +28,13 @@ describe("portfolio value brief", () => {
       { ticker: "DDD", weight: 15 },
     ]);
 
-    expect(brief.tone).toBe("watch");
-    expect(brief.headline).toContain("Top three");
+    expect(brief.headline).toMatch(/^Closest to /);
+    expect(brief.headline).not.toMatch(/Top three run the book/i);
+    expect(brief.summary).toMatch(/^Reliance /);
     expect(brief.topThreeWeight).toBe(61);
   });
 
-  it("recognizes an evenly sized book", () => {
+  it("still recognizes an evenly sized book without calling it a manager", () => {
     const brief = buildPortfolioValueBrief([
       { ticker: "AAA", weight: 10 },
       { ticker: "BBB", weight: 10 },
@@ -38,7 +44,9 @@ describe("portfolio value brief", () => {
       { ticker: "FFF", weight: 10 },
     ]);
 
-    expect(brief.tone).toBe("balanced");
-    expect(brief.headline).toContain("balanced");
+    expect(brief.headline).toMatch(/^Closest to /);
+    expect(brief.headline).not.toMatch(/runs the book/i);
+    expect(brief.summary).toMatch(/Reliance /);
+    expect(brief.largest?.weight).toBe(10);
   });
 });
