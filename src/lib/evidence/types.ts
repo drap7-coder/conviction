@@ -46,6 +46,7 @@ export interface EvidenceEvent {
     insiderName?: string;
     insiderRole?: string | null;
     publisher?: string;
+    imageUrl?: string | null;
     transactionClass?: string;
     transactionType?: string;
     shares?: number;
