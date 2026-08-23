@@ -1,8 +1,12 @@
 /**
- * Concrete sleeve moves toward a Study template.
- * Labels only — ticker, delta, ~6-word why. Not advice prose.
+ * Concrete moves toward a Study template.
+ * Visible labels stay plain — ticker + verb. Why is everyday English.
+ *
+ * Aggressive Growth uses the Growth book but accepts concentration
+ * (35% mark, no equal-weight trims). Other profiles use the 20% mark.
  */
 
+import type { RiskProfile } from "@/lib/portfolio/fit";
 import { sampleBookSleeves, type SampleBook } from "@/lib/portfolio/sample-books";
 import { rankedHoldings, type BookHolding } from "@/lib/portfolio/sleeves";
 
@@ -17,18 +21,36 @@ export type SleeveMove = {
 };
 
 const CONCENTRATION_MARK = 20;
+const AGGRESSIVE_MARK = 35;
 const MIN_GAP = 5;
 const MIN_TRIM = 3;
+
+const ADD_NAMES: Record<string, string> = {
+  BND: "bonds",
+  IEF: "bonds",
+  TLT: "long bonds",
+  VXUS: "international",
+  GLD: "gold",
+  SGOV: "cash",
+  DBC: "commodities",
+  VTI: "U.S. stocks",
+};
+
+const GROWTH_NAMES = new Set([
+  "AAPL", "MSFT", "NVDA", "AMZN", "GOOG", "GOOGL", "META", "AVGO", "NFLX", "CRM", "COST", "TSLA",
+]);
 
 export function generateSleeveMoves(
   holdings: BookHolding[],
   target: SampleBook,
   limit = { min: 2, max: 4 },
+  profile?: RiskProfile,
 ): SleeveMove[] {
   const ranked = rankedHoldings(holdings);
   if (ranked.length === 0) return [];
 
-  const toward = target.label;
+  const aggressive = profile === "aggressive-growth";
+  const mark = aggressive ? AGGRESSIVE_MARK : CONCENTRATION_MARK;
   const targetSleeves = sampleBookSleeves(target);
   const targetMap = new Map(targetSleeves.map((sleeve) => [sleeve.ticker.toUpperCase(), sleeve.weight]));
   const currentMap = new Map(ranked.map((row) => [row.ticker, row.weight]));
@@ -43,43 +65,44 @@ export function generateSleeveMoves(
 
     if (onTarget) continue;
 
-    // 20% mark applies when the name is not supposed to be that large.
-    // Template sleeves that *target* 20%+ (VTI in 60/40) are not trimmed for size.
-    if (row.weight > CONCENTRATION_MARK && (targetWeight == null || targetWeight < CONCENTRATION_MARK)) {
-      const delta = Math.round(row.weight - CONCENTRATION_MARK);
+    if (row.weight > mark && (targetWeight == null || targetWeight < mark)) {
+      const delta = Math.round(row.weight - mark);
       if (delta >= MIN_TRIM) {
         trims.push({
           ticker: row.ticker,
           action: "trim",
           deltaPt: -delta,
-          label: `Trim ${row.ticker} −${delta}pt`,
-          why: "over 20% concentration mark",
+          label: `Trim ${row.ticker}`,
+          why: aggressive
+            ? "it’s a very large piece of the book"
+            : `it’s more than ${CONCENTRATION_MARK}% of the book`,
         });
         continue;
       }
     }
 
-    if (targetWeight != null && row.weight - targetWeight >= MIN_GAP) {
+    if (!aggressive && targetWeight != null && row.weight - targetWeight >= MIN_GAP) {
       const delta = Math.round(row.weight - targetWeight);
       trims.push({
         ticker: row.ticker,
         action: "trim",
         deltaPt: -delta,
-        label: `Trim ${row.ticker} −${delta}pt`,
-        why: `overweight vs ${toward}`,
+        label: `Trim ${row.ticker}`,
+        why: "it’s more than this profile wants",
       });
       continue;
     }
 
     if (targetWeight == null && row.weight >= 12) {
+      if (aggressive && isGrowthName(row.ticker, row.exposure)) continue;
       const delta = Math.round(Math.min(row.weight, Math.max(8, row.weight * 0.4)));
       if (delta >= MIN_TRIM) {
         trims.push({
           ticker: row.ticker,
           action: "trim",
           deltaPt: -delta,
-          label: `Trim ${row.ticker} −${delta}pt`,
-          why: `not a ${toward} sleeve`,
+          label: `Trim ${row.ticker}`,
+          why: "this profile doesn’t use it",
         });
       }
     }
@@ -93,14 +116,16 @@ export function generateSleeveMoves(
     .filter((sleeve) => sleeve.gap >= MIN_GAP)
     .sort((a, b) => b.gap - a.gap);
 
-  for (const sleeve of addCandidates) {
+  const addCap = aggressive ? (ranked.length <= 2 ? 2 : 1) : addCandidates.length;
+
+  for (const sleeve of addCandidates.slice(0, addCap)) {
     const delta = Math.round(sleeve.gap);
     adds.push({
       ticker: sleeve.ticker,
       action: "add",
       deltaPt: delta,
-      label: `Add ${sleeve.ticker} +${delta}pt toward ${toward}`,
-      why: sleeve.current <= 0 ? missingWhy(sleeve.ticker, toward) : `toward ${toward} weight`,
+      label: addLabel(sleeve.ticker),
+      why: sleeve.current <= 0 ? missingWhy(sleeve.ticker) : "this profile wants more of it",
     });
   }
 
@@ -113,7 +138,7 @@ export function generateSleeveMoves(
         action: "keep",
         deltaPt: 0,
         label: `Keep ${sleeve.ticker}`,
-        why: "already at target weight",
+        why: "already the size this profile wants",
       });
     }
   }
@@ -127,7 +152,6 @@ export function generateSleeveMoves(
     picked.push(move);
   };
 
-  // At most two trims so add/keep sleeves still surface (2–4 total).
   trims.slice(0, 2).forEach(take);
   adds.forEach(take);
   keeps.forEach(take);
@@ -142,7 +166,7 @@ export function generateSleeveMoves(
         action: "keep",
         deltaPt: 0,
         label: `Keep ${row.ticker}`,
-        why: "core sleeve in this book",
+        why: "already a core holding",
       });
     }
   }
@@ -150,12 +174,24 @@ export function generateSleeveMoves(
   return picked.slice(0, limit.max);
 }
 
-function missingWhy(ticker: string, toward: string): string {
-  if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return `missing ${toward} ballast`;
-  if (ticker === "VXUS") return "missing international sleeve";
-  if (ticker === "GLD") return "missing gold sleeve";
-  if (ticker === "SGOV") return "missing cash sleeve";
-  if (ticker === "DBC") return "missing commodity sleeve";
-  if (ticker === "VTI") return "missing U.S. equity sleeve";
-  return `missing ${toward} sleeve`;
+function isGrowthName(ticker: string, exposure: string | null): boolean {
+  if (GROWTH_NAMES.has(ticker)) return true;
+  return exposure === "Technology"
+    || exposure === "Communication Services"
+    || exposure === "Consumer Discretionary";
+}
+
+function addLabel(ticker: string): string {
+  const name = ADD_NAMES[ticker];
+  return name ? `Add ${name} (${ticker})` : `Add ${ticker}`;
+}
+
+function missingWhy(ticker: string): string {
+  if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return "the book has no bonds";
+  if (ticker === "VXUS") return "the book has no international stocks";
+  if (ticker === "GLD") return "the book has no gold";
+  if (ticker === "SGOV") return "the book has no cash";
+  if (ticker === "DBC") return "the book has no commodities";
+  if (ticker === "VTI") return "the book has no broad U.S. stocks";
+  return `the book is missing ${ticker}`;
 }

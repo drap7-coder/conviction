@@ -3,10 +3,10 @@
  * No database, no watchlist dependency, no authentication.
  */
 
-import { isBookPosture, type BookPosture } from "@/lib/portfolio/fit";
+import { isRiskProfile, type RiskProfile } from "@/lib/portfolio/fit";
 
 const STORAGE_KEY = "conviction-portfolio-positions";
-const POSTURE_KEY = "conviction-portfolio-posture";
+const PROFILE_KEY = "conviction-portfolio-risk-profile";
 const MAX_POSITIONS = 50;
 
 export interface PersistedPosition {
@@ -72,22 +72,22 @@ export function clearPositions(): void {
   }
 }
 
-/** Last posture the user picked. Null means default from Fit. */
-export function loadPostureOverride(): BookPosture | null {
+/** Last risk profile the user picked. Null means default from Fit. */
+export function loadRiskProfileOverride(): RiskProfile | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(POSTURE_KEY);
-    return isBookPosture(raw) ? raw : null;
+    const raw = localStorage.getItem(PROFILE_KEY);
+    return isRiskProfile(raw) ? raw : null;
   } catch {
     return null;
   }
 }
 
-export function savePostureOverride(posture: BookPosture | null): void {
+export function saveRiskProfileOverride(profile: RiskProfile | null): void {
   if (typeof window === "undefined") return;
   try {
-    if (!posture) localStorage.removeItem(POSTURE_KEY);
-    else localStorage.setItem(POSTURE_KEY, posture);
+    if (!profile) localStorage.removeItem(PROFILE_KEY);
+    else localStorage.setItem(PROFILE_KEY, profile);
   } catch {
     // ignore quota / private mode
   }

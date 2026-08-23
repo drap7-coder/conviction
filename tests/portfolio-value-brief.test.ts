@@ -10,9 +10,10 @@ describe("portfolio value brief", () => {
       { ticker: "AMZN", weight: 10, exposure: "Consumer Discretionary" },
     ]);
 
-    expect(brief.headline).toMatch(/^Closest to /);
+    expect(brief.headline).toMatch(/^This book looks like /);
+    expect(brief.headline).not.toMatch(/Closest to | · \d+$/);
     expect(brief.headline).not.toMatch(/runs the book/i);
-    expect(brief.summary).toMatch(/Reliance \d+ · NVDA 28%/);
+    expect(brief.summary).toMatch(/^A lot rides on NVDA\. Reliance \d+\./);
     expect(brief.summary).toContain("5.6%");
     expect(brief.tone).toBe("concentrated");
     expect(brief.largest).toEqual({ ticker: "NVDA", weight: 28 });
@@ -28,9 +29,10 @@ describe("portfolio value brief", () => {
       { ticker: "DDD", weight: 15 },
     ]);
 
-    expect(brief.headline).toMatch(/^Closest to /);
+    expect(brief.headline).toMatch(/^This book looks like /);
     expect(brief.headline).not.toMatch(/Top three run the book/i);
-    expect(brief.summary).toMatch(/^Reliance /);
+    expect(brief.summary).not.toMatch(/^Reliance /);
+    expect(brief.summary).toMatch(/Reliance \d+\./);
     expect(brief.topThreeWeight).toBe(61);
   });
 
@@ -44,9 +46,9 @@ describe("portfolio value brief", () => {
       { ticker: "FFF", weight: 10 },
     ]);
 
-    expect(brief.headline).toMatch(/^Closest to /);
+    expect(brief.headline).toMatch(/^This book looks like /);
     expect(brief.headline).not.toMatch(/runs the book/i);
-    expect(brief.summary).toMatch(/Reliance /);
+    expect(brief.summary).toMatch(/^The book is spread out\. Reliance \d+\./);
     expect(brief.largest?.weight).toBe(10);
   });
 });
