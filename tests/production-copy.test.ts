@@ -82,8 +82,12 @@ describe("production copy and fixture isolation", () => {
     expect(tape).not.toContain("Trending now");
     expect(tape).not.toContain("^VIX");
     expect(tape).not.toContain("^TNX");
-    expect(css).toContain("market-tape-scroll");
+    expect(css).toContain("animation: market-tape-scroll 20s linear infinite");
+    expect(css).toContain(".market-tape:hover .market-tape-track");
     expect(css).toContain("animation-play-state: paused");
+    expect(css).not.toContain(".market-tape:focus-within .market-tape-track");
+    expect(css).toContain("@media (prefers-reduced-motion: no-preference)");
+    expect(css).toContain("animation-iteration-count: infinite !important");
   });
 
   it("moves watchlist evidence into the company dashboard catalyst slot", () => {

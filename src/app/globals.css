@@ -518,11 +518,10 @@ details > summary::before {
   display: flex;
   align-items: stretch;
   width: max-content;
-  animation: market-tape-scroll 36s linear infinite;
+  animation: market-tape-scroll 20s linear infinite;
 }
 
-.market-tape:hover .market-tape-track,
-.market-tape:focus-within .market-tape-track {
+.market-tape:hover .market-tape-track {
   animation-play-state: paused;
 }
 
@@ -612,7 +611,7 @@ a.market-tape-item:focus-visible {
   }
 
   .market-tape-track {
-    animation-duration: 28s;
+    animation-duration: 16s;
   }
 }
 
@@ -1052,6 +1051,21 @@ a.market-tape-item:focus-visible {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Keep the header tape scrolling when motion is allowed. The * nuke above
+   would otherwise freeze `market-tape-scroll` if that media query matches. */
+@media (prefers-reduced-motion: no-preference) {
+  .market-tape-track {
+    animation-duration: 20s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (max-width: 640px) {
+  .market-tape-track {
+    animation-duration: 16s !important;
   }
 }
 
