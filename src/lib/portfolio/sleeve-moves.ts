@@ -157,5 +157,5 @@ function missingWhy(ticker: string, toward: string): string {
   if (ticker === "SGOV") return "missing cash sleeve";
   if (ticker === "DBC") return "missing commodity sleeve";
   if (ticker === "VTI") return "missing U.S. equity sleeve";
-  return `toward ${toward}`;
+  return `missing ${toward} sleeve`;
 }
