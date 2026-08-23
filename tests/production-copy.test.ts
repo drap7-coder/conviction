@@ -62,17 +62,32 @@ describe("production copy and fixture isolation", () => {
     expect(css).not.toContain("overflow-wrap: anywhere");
   });
 
-  it("keeps the workspace tape to the three main indexes with no Markets label", () => {
+  it("keeps the workspace tape as a scrolling symbol-and-percent strip", () => {
     const tape = read("src/components/MarketTape.tsx");
+    const css = read("src/app/globals.css");
 
+    expect(tape).toContain('ticker: "DIA"');
     expect(tape).toContain('ticker: "SPY"');
     expect(tape).toContain('ticker: "QQQ"');
-    expect(tape).toContain('ticker: "DIA"');
+    expect(tape).toContain('ticker: "GLD"');
+    expect(tape).toContain('ticker: "BTC-USD"');
+    expect(tape).toContain('symbol: "BTC"');
+    expect(tape).toContain("TRENDING_LIMIT");
+    expect(tape).toContain("/api/market/trending");
+    expect(tape).toContain('aria-label="Market tape"');
+    expect(tape).toContain("inert={hidden || undefined}");
+    expect(tape).not.toContain("formatValue");
+    expect(tape).not.toContain("market-tape-name");
     expect(tape).not.toContain("Markets");
     expect(tape).not.toContain("Trending now");
     expect(tape).not.toContain("^VIX");
     expect(tape).not.toContain("^TNX");
-    expect(tape).toContain('aria-label="Major indexes"');
+    expect(css).toContain("animation: market-tape-scroll 20s linear infinite");
+    expect(css).toContain(".market-tape:hover .market-tape-track");
+    expect(css).toContain("animation-play-state: paused");
+    expect(css).not.toContain(".market-tape:focus-within .market-tape-track");
+    expect(css).toContain("@media (prefers-reduced-motion: no-preference)");
+    expect(css).toContain("animation-iteration-count: infinite !important");
   });
 
   it("moves watchlist evidence into the company dashboard catalyst slot", () => {
