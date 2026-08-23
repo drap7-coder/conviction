@@ -16,7 +16,7 @@ export interface PortfolioValueBrief {
   reliance: RelianceResult;
 }
 
-/** Live hero copy: Fit first, then Reliance, in plain sentences. Never "runs the book." */
+/** Live hero copy: Fit first, then Reliance. Short. Never "runs the book." */
 export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): PortfolioValueBrief {
   const fit = classifyFit(holdings);
   const reliance = computeReliance(holdings);

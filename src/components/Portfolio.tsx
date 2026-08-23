@@ -42,10 +42,11 @@ import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import {
-  RISK_PROFILE_BLURBS,
+  FIT_HEDGE,
   RISK_PROFILE_LABELS,
   RISK_PROFILE_QUESTION,
   RISK_PROFILES,
+  riskProfileMovesLead,
   targetBookForProfile,
   type RiskProfile,
 } from "@/lib/portfolio/fit";
@@ -923,15 +924,14 @@ export default function Portfolio({
                     className={`pf-profile-option${profile === item ? " is-active" : ""}`}
                     onClick={() => pickProfile(item)}
                   >
-                    <strong>{RISK_PROFILE_LABELS[item]}</strong>
-                    <span>{RISK_PROFILE_BLURBS[item]}</span>
+                    {RISK_PROFILE_LABELS[item]}
                   </button>
                 ))}
               </div>
               {sleeveMoves.length > 0 ? (
                 <>
-                  <p className="pf-moves-lead">Then here are the moves for {RISK_PROFILE_LABELS[profile]}.</p>
-                  <ul className="pf-moves" aria-label={`Moves for ${RISK_PROFILE_LABELS[profile]}`}>
+                  <p className="pf-moves-lead">{riskProfileMovesLead(profile)}</p>
+                  <ul className="pf-moves" aria-label={riskProfileMovesLead(profile)}>
                     {sleeveMoves.map((move) => (
                       <li key={`${move.action}-${move.ticker}`} className="pf-move">
                         <strong className="pf-move-action">{move.label}</strong>
@@ -943,7 +943,7 @@ export default function Portfolio({
               ) : null}
             </fieldset>
             <p className="pf-fit-hedge">
-              This describes your book. It is not advice to trade.
+              {FIT_HEDGE}
             </p>
           </div>
           <div className="product-stage-actions">

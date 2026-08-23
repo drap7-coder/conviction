@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   classifyFit,
+  FIT_HEDGE,
   PROFILE_TARGET_IDS,
   RISK_PROFILE_BLURBS,
   RISK_PROFILE_LABELS,
   RISK_PROFILE_QUESTION,
   RISK_PROFILES,
   RUNNER_UP_MARGIN,
+  riskProfileMovesLead,
   targetBookForProfile,
 } from "@/lib/portfolio/fit";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
@@ -44,7 +46,7 @@ describe("classifyFit", () => {
     expect(fit.primary?.id).toBe("growth");
     expect(fit.primary?.label).toBe("Growth");
     expect(fit.primary?.profile).toBe("growth");
-    expect(fit.headline).toBe("This book looks like Growth");
+    expect(fit.headline).toBe("Looks like Growth.");
     expect(fit.headline).not.toMatch(/ · \d+$/);
     expect(fit.headline).not.toMatch(/runs the book/i);
     expect(fit.defaultProfile).toBe("aggressive-growth");
@@ -56,7 +58,7 @@ describe("classifyFit", () => {
     expect(fit.primary?.label).toBe("60/40");
     expect(fit.primary?.score).toBeGreaterThanOrEqual(95);
     expect(fit.defaultProfile).toBe("growth-income");
-    expect(fit.headline).toBe("This book looks like 60/40");
+    expect(fit.headline).toBe("Looks like 60/40.");
   });
 
   it("classifies a diversified mega-cap book as Growth, not Aggressive Growth", () => {
@@ -106,7 +108,10 @@ describe("classifyFit", () => {
       income: "Income",
     });
     expect(RISK_PROFILE_BLURBS["aggressive-growth"]).toMatch(/drawdowns/i);
-    expect(RISK_PROFILE_QUESTION).toBe("What’s your risk profile?");
+    expect(RISK_PROFILE_QUESTION).toBe("Risk profile");
+    expect(riskProfileMovesLead("defensive")).toBe("If you mean Defensive");
+    expect(riskProfileMovesLead("growth-income")).toBe("If you mean Growth + Income");
+    expect(FIT_HEDGE).toBe("A description of this book. Not a trade.");
     expect(PROFILE_TARGET_IDS["aggressive-growth"]).toEqual(["growth"]);
     expect(PROFILE_TARGET_IDS.growth).toEqual(["growth"]);
     expect(PROFILE_TARGET_IDS["growth-income"]).toEqual(["sixty-forty", "three-fund", "dividend"]);

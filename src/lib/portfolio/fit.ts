@@ -55,8 +55,15 @@ export const RISK_PROFILE_BLURBS: Record<RiskProfile, string> = {
   income: "Yield first. Aristocrats and fixed income. Low vol.",
 };
 
-/** Live hero question — five brokerage buckets, not a mindset quiz. */
-export const RISK_PROFILE_QUESTION = "What’s your risk profile?";
+/** Live hero field — quiet ticket label. The five choices are the product. */
+export const RISK_PROFILE_QUESTION = "Risk profile";
+
+/** Moves are conditional on the stated profile. Not a second copy of the chip. */
+export function riskProfileMovesLead(profile: RiskProfile): string {
+  return `If you mean ${RISK_PROFILE_LABELS[profile]}`;
+}
+
+export const FIT_HEDGE = "A description of this book. Not a trade.";
 
 /**
  * Profile → existing Study templates used as move targets.
@@ -158,7 +165,7 @@ export function classifyFit(holdings: BookHolding[]): FitResult {
   return {
     primary,
     runnerUp,
-    headline: primary ? `This book looks like ${primary.label}` : "Waiting on prices.",
+    headline: primary ? `Looks like ${primary.label}.` : "Waiting on prices.",
     defaultProfile: primary ? defaultProfileFromFit(primary, ranked) : null,
     rankings,
   };

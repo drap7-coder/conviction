@@ -16,8 +16,8 @@ describe("computeReliance", () => {
     expect(result.score).toBeGreaterThanOrEqual(85);
     expect(result.score).toBeLessThanOrEqual(100);
     expect(result.largest).toEqual({ ticker: "NVDA", weight: 100 });
-    expect(result.line).toBe(`A lot rides on NVDA. Reliance ${result.score}.`);
-    expect(result.summary).toContain("If NVDA moves 20%, the book moves about 20%.");
+    expect(result.line).toBe("NVDA has to be right.");
+    expect(result.summary).toBe("NVDA has to be right.");
     expect(result.tone).toBe("concentrated");
   });
 
@@ -34,9 +34,9 @@ describe("computeReliance", () => {
     ]);
     expect(result.largest?.ticker).toBe("NVDA");
     expect(result.largestSleeve).toEqual({ label: "Technology", weight: 61 });
-    expect(result.line).toBe(`A lot rides on NVDA. Reliance ${result.score}.`);
-    expect(result.summary).toContain("5.6%");
-    expect(result.summary).toMatch(/^A lot rides on NVDA\./);
+    expect(result.line).toBe("NVDA has to be right.");
+    expect(result.summary).toBe("NVDA has to be right.");
+    expect(result.summary).not.toContain("5.6%");
     expect(result.score).toBeGreaterThanOrEqual(70);
     expect(result.score).toBeLessThanOrEqual(80);
     expect(result.tone).toBe("concentrated");
@@ -48,8 +48,8 @@ describe("computeReliance", () => {
       { ticker: "BND", weight: 40, exposure: "Fixed Income" },
     ]);
     expect(result.score).toBeGreaterThan(50);
-    expect(result.line).toBe(`A lot rides on VTI. Reliance ${result.score}.`);
-    expect(result.summary).toContain("If VTI moves 20%, the book moves about 12%.");
+    expect(result.line).toBe("VTI has to be right.");
+    expect(result.summary).toBe("VTI has to be right.");
   });
 
   it("scores an equal-weight growth-like book lower than a single-name book", () => {
