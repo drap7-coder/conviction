@@ -114,11 +114,12 @@ function firstDescriptionImage(description: string): string | null {
   return isHttpUrl(url) ? url : null;
 }
 
-/** Yahoo often uses media:content; also honor enclosure, media:thumbnail, and description <img>. */
+/** Yahoo often uses media:content; also honor enclosure, thumbnail, and description <img>. */
 function extractRssImageUrl(block: string, description: string): string | null {
   return pickImageFromTags(block, "media:content")
     ?? pickImageFromTags(block, "enclosure")
     ?? pickImageFromTags(block, "media:thumbnail")
+    ?? pickImageFromTags(block, "thumbnail")
     ?? firstDescriptionImage(description);
 }
 

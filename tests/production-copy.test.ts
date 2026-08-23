@@ -126,8 +126,10 @@ describe("production copy and fixture isolation", () => {
     expect(feed).not.toContain(">Headlines<");
     const newsCss = read("src/app/globals.css");
     expect(newsCss).toContain(".pulse-news-narrative.is-featured");
+    expect(newsCss).toContain("grid-column: 1 / -1");
     expect(newsCss).toContain(".pulse-news-hero-media");
     expect(newsCss).toContain("aspect-ratio: 16 / 9");
+    expect(newsCss).toContain("@media (min-width: 768px)");
     const narratives = read("src/lib/market/market-narratives.ts");
     expect(narratives).toContain("imageUrl?: string | null");
     expect(narratives).toContain("imageUrl: item.metadata?.imageUrl ?? null");

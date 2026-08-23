@@ -69,6 +69,16 @@ describe("RSS news metadata", () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(thumbXml, { status: 200 })));
     expect((await fetchRssNews("BTC-USD", 1))[0]?.metadata?.imageUrl).toBe("https://media.example.com/btc-thumb.webp");
 
+    const plainThumbXml = `
+      <rss><channel><item>
+        <title>Silver climbs</title>
+        <link>https://example.com/silver</link>
+        <thumbnail url="https://media.example.com/silver.jpg" />
+      </item></channel></rss>
+    `;
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(plainThumbXml, { status: 200 })));
+    expect((await fetchRssNews("SLV", 1))[0]?.metadata?.imageUrl).toBe("https://media.example.com/silver.jpg");
+
     const descXml = `
       <rss><channel><item>
         <title>Tariffs widen</title>
