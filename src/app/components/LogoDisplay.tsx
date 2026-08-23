@@ -1,7 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { getLogoUrl, getSectorColors } from "@/lib/market/logos";
+
+const LOGO_PX = {
+  card: 22,
+  badge: 20,
+  detail: 36,
+} as const;
 
 interface LogoDisplayProps {
   ticker: string;
@@ -50,12 +57,13 @@ export function LogoDisplay({ ticker, size = "card" }: LogoDisplayProps) {
   // Companies with known domains get a favicon
   if (logoUrl && !hasError) {
     return (
-      <img
+      <Image
         src={logoUrl}
         alt=""
+        width={LOGO_PX[size]}
+        height={LOGO_PX[size]}
         className={`card-logo card-logo-${size}`}
         onError={() => setHasError(true)}
-        loading="lazy"
       />
     );
   }
