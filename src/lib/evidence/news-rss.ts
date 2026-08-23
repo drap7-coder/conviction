@@ -15,6 +15,7 @@ interface RssItem {
   description: string;
   pubDate: string;
   source: string;
+  imageUrl: string | null;
 }
 
 /**
@@ -44,11 +45,81 @@ function parseRssXml(xml: string): RssItem[] {
         description: description ?? "",
         pubDate: pubDate ?? "",
         source: source ?? "",
+        imageUrl: extractRssImageUrl(block, description ?? ""),
       });
     }
   }
 
   return items;
+}
+
+function decodeXmlEntities(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
+function extractAttr(attrs: string, name: string): string | null {
+  const match = new RegExp(`\\b${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`, "i").exec(attrs);
+  const raw = match?.[1] ?? match?.[2] ?? null;
+  return raw ? decodeXmlEntities(raw).trim() : null;
+}
+
+function isHttpUrl(value: string | null | undefined): value is string {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function looksLikeImage(url: string, type: string | null, medium: string | null): boolean {
+  if (medium && medium.toLowerCase() === "image") return true;
+  if (type && type.toLowerCase().startsWith("image/")) return true;
+  if (type || (medium && medium.toLowerCase() !== "image")) return false;
+  return /\.(avif|gif|jpe?g|png|webp)(?:$|[?#])/i.test(url)
+    || /(?:yimg|zenfs|media|img|image|photo)/i.test(url);
+}
+
+function pickImageFromTags(block: string, tag: string): string | null {
+  const regex = new RegExp(`<${tag}\\b([^>]*)(?:\\/>|>)`, "gi");
+  let best: { url: string; area: number } | null = null;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(block)) !== null) {
+    const attrs = match[1];
+    const url = extractAttr(attrs, "url");
+    const type = extractAttr(attrs, "type");
+    const medium = extractAttr(attrs, "medium");
+    if (!isHttpUrl(url) || !looksLikeImage(url, type, medium)) continue;
+
+    const width = Number(extractAttr(attrs, "width") ?? 0);
+    const height = Number(extractAttr(attrs, "height") ?? 0);
+    const area = (Number.isFinite(width) ? width : 0) * (Number.isFinite(height) ? height : 0);
+    if (!best || area > best.area) best = { url, area };
+  }
+
+  return best?.url ?? null;
+}
+
+function firstDescriptionImage(description: string): string | null {
+  const match = /<img\b[^>]*\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)')/i.exec(description);
+  const raw = match?.[1] ?? match?.[2] ?? null;
+  const url = raw ? decodeXmlEntities(raw).trim() : null;
+  return isHttpUrl(url) ? url : null;
+}
+
+/** Yahoo often uses media:content; also honor enclosure, media:thumbnail, and description <img>. */
+function extractRssImageUrl(block: string, description: string): string | null {
+  return pickImageFromTags(block, "media:content")
+    ?? pickImageFromTags(block, "enclosure")
+    ?? pickImageFromTags(block, "media:thumbnail")
+    ?? firstDescriptionImage(description);
 }
 
 function extractTag(xml: string, tag: string): string | null {
@@ -153,6 +224,7 @@ function itemsToEvents(
       aiExplanation: `Sourced RSS headline from ${sourceLabel}.`,
       metadata: {
         publisher,
+        imageUrl: item.imageUrl,
         transactionClass: sourceLabel,
       },
     });
