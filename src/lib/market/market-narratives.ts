@@ -117,6 +117,7 @@ export interface MarketNarrativeHeadline {
   url: string | null;
   date: string;
   publisher?: string | null;
+  imageUrl?: string | null;
 }
 
 export interface MarketNarrativeTheme {
@@ -251,13 +252,14 @@ function toNarrativeHeadline(item: {
   title: string;
   sourceUrl?: string | null;
   date: string;
-  metadata?: { publisher?: string };
+  metadata?: { publisher?: string; imageUrl?: string | null };
 }): MarketNarrativeHeadline {
   return {
     title: item.title,
     url: item.sourceUrl ?? null,
     date: item.date,
     publisher: item.metadata?.publisher ?? null,
+    imageUrl: item.metadata?.imageUrl ?? null,
   };
 }
 

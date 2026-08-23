@@ -55,6 +55,17 @@ function publisherLabel(headline: MarketNarrativeHeadline): string {
   return headline.publisher?.trim() || "Market source";
 }
 
+function headlineImageUrl(value: string | null | undefined): string | null {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
 function editorialThemeScore(theme: MarketNarrativeTheme): number {
   const headline = primaryHeadline(theme);
   if (!headline) return theme.score - 100;
@@ -125,18 +136,21 @@ function NarrativeCard({
   theme,
   alt = false,
   personal = false,
+  featured = false,
 }: {
   theme: MarketNarrativeTheme;
   alt?: boolean;
   personal?: boolean;
+  featured?: boolean;
 }) {
   const headline = primaryHeadline(theme);
+  const [imageFailed, setImageFailed] = useState(false);
   if (!headline) return null;
 
-  return (
-    <article
-      className={`pulse-news-narrative${alt ? " is-alt" : ""} tone-${theme.marketTone}`}
-    >
+  const imageUrl = featured ? headlineImageUrl(headline.imageUrl) : null;
+  const showImage = Boolean(imageUrl) && !imageFailed;
+  const copy = (
+    <>
       <div className="pulse-news-narrative-top">
         <span className="pulse-news-narrative-label">{theme.label}</span>
         <div className="pulse-news-narrative-tags">
@@ -187,6 +201,30 @@ function NarrativeCard({
         <time dateTime={headline.date}>{formatTime(headline.date)}</time>
         {headline.url ? <span aria-hidden="true">Read ↗</span> : null}
       </footer>
+    </>
+  );
+
+  return (
+    <article
+      className={[
+        "pulse-news-narrative",
+        alt ? "is-alt" : "",
+        featured ? "is-featured" : "",
+        showImage ? "has-media" : "",
+        `tone-${theme.marketTone}`,
+      ].filter(Boolean).join(" ")}
+    >
+      {showImage ? (
+        <div className="pulse-news-hero-media">
+          <img
+            src={imageUrl!}
+            alt=""
+            onError={() => setImageFailed(true)}
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      ) : null}
+      {featured ? <div className="pulse-news-hero-copy">{copy}</div> : copy}
     </article>
   );
 }
@@ -339,6 +377,7 @@ export function PulseNewsFeed({
               theme={theme}
               alt={index % 2 === 1}
               personal={themeIsPersonal(theme)}
+              featured={index === 0}
             />
           ))
           : null}
