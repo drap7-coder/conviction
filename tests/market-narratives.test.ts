@@ -143,6 +143,23 @@ describe("narrativeSummary", () => {
 });
 
 describe("hydrateThemePrimaryImages", () => {
+  it("drops a publisher default logo and looks up og:image instead", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      `<meta property="og:image" content="https://s.yimg.com/os/real-photo.jpg" />`,
+      { status: 200, headers: { "content-type": "text/html" } },
+    )));
+    const theme = themeFixture({
+      headline: {
+        title: "Bitcoin rally",
+        url: "https://finance.yahoo.com/news/btc.html",
+        date: "2026-08-23T12:00:00.000Z",
+        imageUrl: "https://s.yimg.com/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+      },
+    });
+    const [hydrated] = await hydrateThemePrimaryImages([theme]);
+    expect(hydrated.headline?.imageUrl).toBe("https://s.yimg.com/os/real-photo.jpg");
+  });
+
   it("keeps an in-feed image and does not fetch og:image", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
