@@ -105,6 +105,9 @@ describe("production copy and fixture isolation", () => {
     expect(feed).not.toContain("is-featured");
     expect(feed).not.toContain("featured=");
     expect(feed).not.toContain("TypewriterText");
+    expect(feed).toContain("HeadlineCard");
+    expect(feed).not.toContain("pulse-news-row");
+    expect(feed).not.toContain(">Headlines<");
     const pulse = read("src/app/pulse/page.tsx");
     expect(pulse).not.toContain("ProductStage");
   });
