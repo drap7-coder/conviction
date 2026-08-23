@@ -44,6 +44,7 @@ describe("production copy and fixture isolation", () => {
     const css = read("src/app/portfolio.css");
     const profileBlock = css.slice(css.indexOf(".pf-profile-option"), css.indexOf(".pf-moves-lead"));
     expect(profileBlock).toContain("white-space: nowrap");
+    expect(profileBlock).toContain("border-radius: 999px");
     expect(profileBlock).toContain(".pf-profile-option.is-active");
     expect(profileBlock).not.toContain("text-overflow: ellipsis");
   });
