@@ -1,6 +1,7 @@
 import { auth } from "../../auth";
+import { isAuthConfigured } from "@/lib/auth-readiness";
 
 export async function getOptionalSession() {
-  if (!process.env.AUTH_SECRET) return null;
+  if (!isAuthConfigured()) return null;
   return auth();
 }

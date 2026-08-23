@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
+import { AccountControls } from "@/components/AccountControls";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
 import { MarketTape } from "@/components/MarketTape";
 import AnimatedTitle from "@/components/AnimatedTitle";
@@ -102,6 +103,7 @@ export default function RootLayout({
               <div className="header-search">
                 <GlobalSearchPill />
               </div>
+              <AccountControls />
             </div>
           </header>
           <MarketTape />

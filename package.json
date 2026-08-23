@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:migrate:auth": "psql \"$DATABASE_URL\" -f migrations/001_auth_user_watchlists.sql"
   },
   "dependencies": {
     "@auth/neon-adapter": "^1.11.2",

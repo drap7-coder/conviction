@@ -76,7 +76,6 @@ export default function Watchlist({
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [authenticated, setAuthenticated] = useState(false);
   const [authConfigured, setAuthConfigured] = useState(false);
-  const [accountLabel, setAccountLabel] = useState<string | null>(null);
   const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,7 +139,6 @@ export default function Watchlist({
       if (!isAuthenticated) writeBrowserWatchlist(nextEntries);
       setAuthenticated(isAuthenticated);
       setAuthConfigured(Boolean(data.authConfigured));
-      setAccountLabel(data.user?.name ?? data.user?.email ?? null);
       setPersistence(data.persistence ?? (isAuthenticated ? "neon" : "browser"));
     } catch {
       if (!browserEntries) {
@@ -570,7 +568,6 @@ export default function Watchlist({
       <GuestModeBanner
         authenticated={authenticated}
         authConfigured={authConfigured}
-        accountLabel={accountLabel}
       />
     </div>
   );

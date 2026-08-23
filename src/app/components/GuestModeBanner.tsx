@@ -1,20 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { signIn } from "next-auth/react";
 
 const DISMISS_KEY = "conviction:guest-banner-dismissed";
 
 export function GuestModeBanner({
   authenticated,
   authConfigured,
-  accountLabel,
 }: {
   authenticated: boolean;
   authConfigured: boolean;
-  accountLabel: string | null;
 }) {
   const [mounted, setMounted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -24,6 +25,12 @@ export function GuestModeBanner({
       }
     } catch {
       // localStorage unavailable; show banner
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get("error");
+    if (authError) {
+      setError("Sign in didn’t complete. Try again.");
     }
   }, []);
 
@@ -38,16 +45,35 @@ export function GuestModeBanner({
     }
   }
 
+  async function handleSignIn() {
+    if (!authConfigured || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await signIn("github", { callbackUrl: "/watchlist" });
+    } catch {
+      setError("Sign in didn’t complete. Try again.");
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="guest-banner ink-box ink-box--quiet" role="status">
       <span className="guest-banner-text">
-        Browsing as guest — sign in to save your watchlist across devices.
+        {error
+          ? error
+          : "Browsing as guest — sign in to save your watchlist across devices."}
       </span>
       <div className="guest-banner-actions">
         {authConfigured ? (
-          <a className="guest-banner-link" href="/api/auth/signin/github">
-            Sign in
-          </a>
+          <button
+            type="button"
+            className="guest-banner-link"
+            onClick={() => void handleSignIn()}
+            disabled={busy}
+          >
+            {busy ? "Signing in…" : "Sign in with GitHub"}
+          </button>
         ) : (
           <span className="guest-banner-link disabled" aria-disabled="true">
             Sign in coming soon
