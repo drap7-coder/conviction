@@ -26,6 +26,29 @@ describe("mobile heatmaps", () => {
     expect(css).toContain(".heat-show-more");
   });
 
+  it("re-asserts Pulse auto-fill after the 6-col market-heatmap rule", () => {
+    const css = read("src/app/globals.css");
+    const page = read("src/app/pulse/page.tsx");
+    const sixCol = css.indexOf(
+      ".market-heatmap {\n  display: grid;\n  grid-template-columns: repeat(6, minmax(0, 1fr));",
+    );
+    const pulseUniform = css.indexOf(".pulse-page .market-heatmap--uniform");
+    const phoneTwoCol = css.indexOf(
+      ".market-heatmap,\n  .market-heatmap.compact,\n  .market-heatmap--uniform {\n    grid-template-columns: repeat(2, minmax(0, 1fr));",
+    );
+
+    expect(page).toContain('className="markets-page pulse-page"');
+    expect(page).toContain('uniformTiles ? "market-heatmap--uniform"');
+    expect(page).not.toContain("uniformTiles && markets.length > 3");
+    expect(sixCol).toBeGreaterThan(-1);
+    expect(pulseUniform).toBeGreaterThan(sixCol);
+    expect(phoneTwoCol).toBeGreaterThan(pulseUniform);
+    expect(css).toContain("repeat(auto-fill, minmax(150px, 1fr))");
+    expect(css).toContain(".pulse-more-markets {\n  display: grid;\n  grid-template-columns: minmax(0, 1fr);");
+    expect(css).toContain("grid-template-columns: repeat(2, minmax(0, 1fr));");
+    expect(css).toContain(".pulse-more-markets > * {\n  min-width: 0;");
+  });
+
   it("wires Show more through the shared heatmap shells", () => {
     const stock = read("src/components/StockHeatmap.tsx");
     const pulse = read("src/app/pulse/page.tsx");

@@ -101,8 +101,7 @@ function GlobalMarketsHeatmap({
       <HeatmapGrid
         className={[
           "market-heatmap",
-          markets.length <= 3 ? "compact" : null,
-          uniformTiles && markets.length > 3 ? "market-heatmap--uniform" : null,
+          uniformTiles ? "market-heatmap--uniform" : markets.length <= 3 ? "compact" : null,
         ].filter(Boolean).join(" ")}
         count={markets.length}
       >
@@ -164,7 +163,7 @@ export default function MarketPulsePage() {
   const industryMarkets = sectorsToMarkets(data?.sectors ?? []);
 
   return (
-    <main className="markets-page">
+    <main className="markets-page pulse-page">
       <h1 className="sr-only">Pulse</h1>
       <ViewSwitcher
         label="Choose a Pulse view"
