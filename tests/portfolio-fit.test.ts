@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { classifyFit, RUNNER_UP_MARGIN, targetBookForPosture } from "@/lib/portfolio/fit";
+import { BOOK_POSTURES, classifyFit, POSTURE_LABELS, RISK_PROFILE_QUESTION, RUNNER_UP_MARGIN, targetBookForPosture } from "@/lib/portfolio/fit";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
 
 const sixtyForty: BookHolding[] = [
@@ -35,7 +35,7 @@ describe("classifyFit", () => {
     expect(fit.primary?.id).toBe("growth");
     expect(fit.primary?.label).toBe("Growth");
     expect(fit.primary?.posture).toBe("grow");
-    expect(fit.headline).toBe(`Closest to Growth · ${fit.primary?.score}`);
+    expect(fit.headline).toBe("This book looks like Growth");
     expect(fit.headline).not.toMatch(/runs the book/i);
     expect(fit.defaultPosture).toBe("grow");
   });
@@ -46,7 +46,7 @@ describe("classifyFit", () => {
     expect(fit.primary?.label).toBe("60/40");
     expect(fit.primary?.score).toBeGreaterThanOrEqual(95);
     expect(fit.defaultPosture).toBe("balance");
-    expect(fit.headline).toMatch(/^Closest to 60\/40 · /);
+    expect(fit.headline).toBe("This book looks like 60/40");
   });
 
   it("classifies a growth-like mega-cap book as Growth", () => {
@@ -79,7 +79,17 @@ describe("classifyFit", () => {
     }
   });
 
-  it("picks Permanent or All-Weather as the Preserve target from Fit rankings", () => {
+  it("asks for one of three risk profiles: Protect, Balance, Grow", () => {
+    expect(BOOK_POSTURES).toHaveLength(3);
+    expect(POSTURE_LABELS).toEqual({
+      preserve: "Protect",
+      balance: "Balance",
+      grow: "Grow",
+    });
+    expect(RISK_PROFILE_QUESTION).toBe("What’s your risk profile?");
+  });
+
+  it("picks Permanent or All-Weather as the Protect target from Fit rankings", () => {
     const fit = classifyFit([
       { ticker: "VTI", weight: 25, exposure: "U.S. Equity" },
       { ticker: "TLT", weight: 25, exposure: "Fixed Income" },

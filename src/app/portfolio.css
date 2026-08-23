@@ -438,6 +438,17 @@
     padding: 8px 10px;
   }
 
+  .portfolio-page .pf-posture {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .portfolio-page .pf-posture-chip {
+    text-align: center;
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
   .portfolio-page .pf-study-book {
     padding: 14px 12px 12px;
   }
@@ -651,7 +662,7 @@
   font-style: normal;
 }
 
-/* Live hero: Fit + Reliance + posture moves (same ProductStage, no second hero) */
+/* Live hero: Fit + Reliance + risk-profile question + moves (same ProductStage) */
 .portfolio-page .pf-fit-board {
   display: grid;
   gap: 10px;
@@ -662,26 +673,45 @@
   max-width: none;
   margin: 0;
   color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.02em;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+}
+
+.portfolio-page .pf-risk {
+  display: grid;
+  gap: 10px;
+  margin: 2px 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.portfolio-page .pf-risk-q {
+  display: block;
+  width: 100%;
+  padding: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
 }
 
 .portfolio-page .pf-posture {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .portfolio-page .pf-posture-chip {
-  padding: 5px 12px;
+  padding: 8px 16px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--card-soft);
   color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 650;
   cursor: pointer;
 }
 
@@ -689,6 +719,13 @@
   background: var(--accent-dim);
   border-color: var(--accent);
   color: var(--ink);
+}
+
+.portfolio-page .pf-moves-lead {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
 }
 
 .portfolio-page .pf-moves {

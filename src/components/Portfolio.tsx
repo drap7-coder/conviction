@@ -44,6 +44,7 @@ import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import {
   BOOK_POSTURES,
   POSTURE_LABELS,
+  RISK_PROFILE_QUESTION,
   targetBookForPosture,
   type BookPosture,
 } from "@/lib/portfolio/fit";
@@ -906,35 +907,41 @@ export default function Portfolio({
           <div className="pf-fit-board">
             {valueBrief.fit.runnerUp ? (
               <p className="pf-fit-runner">
-                Also near {valueBrief.fit.runnerUp.label} · {valueBrief.fit.runnerUp.score}
+                Also close to {valueBrief.fit.runnerUp.label}
               </p>
             ) : null}
-            <div className="pf-posture" role="tablist" aria-label="Portfolio posture">
-              {BOOK_POSTURES.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  role="tab"
-                  aria-selected={posture === item}
-                  className={`pf-posture-chip${posture === item ? " is-active" : ""}`}
-                  onClick={() => pickPosture(item)}
-                >
-                  {POSTURE_LABELS[item]}
-                </button>
-              ))}
-            </div>
-            {sleeveMoves.length > 0 ? (
-              <ul className="pf-moves" aria-label="Sleeve moves">
-                {sleeveMoves.map((move) => (
-                  <li key={`${move.action}-${move.ticker}`} className="pf-move">
-                    <strong className="pf-move-action">{move.label}</strong>
-                    <span className="pf-move-why">{move.why}</span>
-                  </li>
+            <fieldset className="pf-risk">
+              <legend className="pf-risk-q">{RISK_PROFILE_QUESTION}</legend>
+              <div className="pf-posture" role="radiogroup" aria-label={RISK_PROFILE_QUESTION}>
+                {BOOK_POSTURES.map((item) => (
+                  <button
+                    key={item}
+                    type="button"
+                    role="radio"
+                    aria-checked={posture === item}
+                    className={`pf-posture-chip${posture === item ? " is-active" : ""}`}
+                    onClick={() => pickPosture(item)}
+                  >
+                    {POSTURE_LABELS[item]}
+                  </button>
                 ))}
-              </ul>
-            ) : null}
+              </div>
+              {sleeveMoves.length > 0 ? (
+                <>
+                  <p className="pf-moves-lead">Then here are the moves for {POSTURE_LABELS[posture]}.</p>
+                  <ul className="pf-moves" aria-label={`Moves for ${POSTURE_LABELS[posture]}`}>
+                    {sleeveMoves.map((move) => (
+                      <li key={`${move.action}-${move.ticker}`} className="pf-move">
+                        <strong className="pf-move-action">{move.label}</strong>
+                        <span className="pf-move-why">{move.why}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
+            </fieldset>
             <p className="pf-fit-hedge">
-              Fit and Reliance describe this book — not a recommendation to trade.
+              This describes your book. It is not advice to trade.
             </p>
           </div>
           <div className="product-stage-actions">

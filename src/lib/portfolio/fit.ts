@@ -25,10 +25,13 @@ export type BookPosture = "preserve" | "balance" | "grow";
 export const BOOK_POSTURES: BookPosture[] = ["preserve", "balance", "grow"];
 
 export const POSTURE_LABELS: Record<BookPosture, string> = {
-  preserve: "Preserve",
+  preserve: "Protect",
   balance: "Balance",
   grow: "Grow",
 };
+
+/** Live hero question — three choices, not a filter strip. */
+export const RISK_PROFILE_QUESTION = "What’s your risk profile?";
 
 /** Posture → templates used as move targets. Dividend / Dogs default Grow but are not extra postures. */
 export const POSTURE_TARGET_IDS: Record<BookPosture, readonly string[]> = {
@@ -116,7 +119,7 @@ export function classifyFit(holdings: BookHolding[]): FitResult {
   return {
     primary,
     runnerUp,
-    headline: primary ? `Closest to ${primary.label} · ${primary.score}` : "Waiting on prices.",
+    headline: primary ? `This book looks like ${primary.label}` : "Waiting on prices.",
     defaultPosture: primary?.posture ?? null,
     rankings,
   };
