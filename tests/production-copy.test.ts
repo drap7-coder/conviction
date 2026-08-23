@@ -120,6 +120,7 @@ describe("production copy and fixture isolation", () => {
     expect(feed).toContain("is-featured");
     expect(feed).toContain("featured={index === 0}");
     expect(feed).toContain("headline.imageUrl");
+    expect(feed).toContain("next/image");
     expect(feed).not.toContain("TypewriterText");
     expect(feed).toContain("HeadlineCard");
     expect(feed).not.toContain("pulse-news-row");

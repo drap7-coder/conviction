@@ -1,12 +1,42 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   MARKET_NARRATIVE_THEMES,
+  hydrateThemePrimaryImages,
   narrativeSummary,
   scoreNarrative,
   themesForHeatmapGroup,
   type MarketNarrativeTheme,
   type NarrativeScore,
 } from "@/lib/market/market-narratives";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+function themeFixture(overrides: Partial<MarketNarrativeTheme> = {}): MarketNarrativeTheme {
+  const headline = overrides.headline ?? {
+    title: "Nvidia books another AI order",
+    url: "https://finance.yahoo.com/news/nvidia.html",
+    date: "2026-08-23T12:00:00.000Z",
+    publisher: "Yahoo Finance",
+    imageUrl: null,
+  };
+  return {
+    id: "ai-compute",
+    label: "AI + Compute",
+    heatmapGroup: "Major Index",
+    heat: "building",
+    marketTone: "positive",
+    score: 80,
+    velocity: 2,
+    summary: "test",
+    headline,
+    headlines: overrides.headlines ?? [headline],
+    newsTicker: "NVDA",
+    assets: [],
+    ...overrides,
+  };
+}
 
 describe("MARKET_NARRATIVE_THEMES heatmap mapping", () => {
   it("assigns each theme to a Pulse heatmap group", () => {
@@ -109,5 +139,70 @@ describe("narrativeSummary", () => {
       expect(summary.toLowerCase()).not.toMatch(/conversation|chatter|bluesky|twitter|stocktwits/);
       expect(summary).toContain("QQQ");
     }
+  });
+});
+
+describe("hydrateThemePrimaryImages", () => {
+  it("keeps an in-feed image and does not fetch og:image", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const theme = themeFixture({
+      headline: {
+        title: "Oil jumps",
+        url: "https://example.com/oil",
+        date: "2026-08-23T12:00:00.000Z",
+        imageUrl: "https://media.example.com/oil.png",
+      },
+    });
+
+    const [hydrated] = await hydrateThemePrimaryImages([theme]);
+    expect(hydrated.headline?.imageUrl).toBe("https://media.example.com/oil.png");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("fills a missing hero image from the article og:image", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(
+      `<meta property="og:image" content="https://s.yimg.com/os/hero.jpg" />`,
+      { status: 200, headers: { "content-type": "text/html" } },
+    )));
+
+    const [hydrated] = await hydrateThemePrimaryImages([themeFixture()]);
+    expect(hydrated.headline?.imageUrl).toBe("https://s.yimg.com/os/hero.jpg");
+  });
+
+  it("uses a same-story non-Google URL when the lead is a Google News wrapper", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("finance.yahoo.com/news/same-story")) {
+        return new Response(
+          `<meta property="og:image" content="https://s.yimg.com/os/same-story.jpg" />`,
+          { status: 200, headers: { "content-type": "text/html" } },
+        );
+      }
+      throw new Error(`should not fetch ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const googleLead = {
+      title: "Nvidia expands its AI infrastructure push",
+      url: "https://news.google.com/rss/articles/CBMiEXAMPLE?oc=5",
+      date: "2026-08-23T12:00:00.000Z",
+      publisher: "Reuters",
+      imageUrl: null,
+    };
+    const yahooSibling = {
+      title: "Nvidia expands its AI infrastructure push - Yahoo Finance",
+      url: "https://finance.yahoo.com/news/same-story.html",
+      date: "2026-08-23T11:00:00.000Z",
+      publisher: "Yahoo Finance",
+      imageUrl: null,
+    };
+    const [hydrated] = await hydrateThemePrimaryImages([
+      themeFixture({ headline: googleLead, headlines: [googleLead, yahooSibling], score: 90 }),
+    ]);
+
+    expect(hydrated.headline?.imageUrl).toBe("https://s.yimg.com/os/same-story.jpg");
+    expect(hydrated.headline?.url).toBe(googleLead.url);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("finance.yahoo.com/news/same-story");
   });
 });

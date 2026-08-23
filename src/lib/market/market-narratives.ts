@@ -1,3 +1,9 @@
+import {
+  isGoogleNewsUrl,
+  isHttpUrl,
+  isUsableArticleImage,
+  resolveArticleImageUrl,
+} from "@/lib/evidence/article-image";
 import { fetchGoogleNewsRss, fetchRssNews } from "@/lib/evidence/news-rss";
 
 const CACHE_SECONDS = 5 * 60;
@@ -394,6 +400,71 @@ async function fetchTheme(
   };
 }
 
+function candidateImageUrls(
+  primary: MarketNarrativeHeadline,
+  headlines: MarketNarrativeHeadline[],
+): string[] {
+  const urls: string[] = [];
+  const add = (url: string | null | undefined) => {
+    if (url && isHttpUrl(url) && !urls.includes(url)) urls.push(url);
+  };
+  for (const headline of [primary, ...headlines]) {
+    const sameStory = headline === primary
+      || headlineSimilarity(headline.title, primary.title) >= 0.72;
+    if (sameStory && headline.url && !isGoogleNewsUrl(headline.url)) add(headline.url);
+  }
+  add(primary.url);
+  return urls;
+}
+
+async function hydratePrimaryHeadline(
+  primary: MarketNarrativeHeadline,
+  headlines: MarketNarrativeHeadline[],
+  allowUnwrap: boolean,
+): Promise<MarketNarrativeHeadline> {
+  if (primary.imageUrl && isUsableArticleImage(primary.imageUrl)) return primary;
+
+  for (const url of candidateImageUrls(primary, headlines)) {
+    const imageUrl = await resolveArticleImageUrl(url, {
+      unwrapGoogle: allowUnwrap && isGoogleNewsUrl(url),
+    });
+    if (imageUrl) return { ...primary, imageUrl };
+  }
+  return primary;
+}
+
+/** Attach og:image to each theme's primary headline without refetching the rest of the feed. */
+export async function hydrateThemePrimaryImages(
+  themes: MarketNarrativeTheme[],
+): Promise<MarketNarrativeTheme[]> {
+  const unwrapBudget = new Set(
+    [...themes]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 2)
+      .map((theme) => theme.id),
+  );
+
+  return Promise.all(themes.map(async (theme) => {
+    const primary = theme.headline ?? theme.headlines[0] ?? null;
+    if (!primary) return theme;
+    const hydrated = await hydratePrimaryHeadline(
+      primary,
+      theme.headlines,
+      unwrapBudget.has(theme.id),
+    );
+    if (hydrated.imageUrl === primary.imageUrl) return theme;
+    return {
+      ...theme,
+      headline: hydrated,
+      headlines: theme.headlines.map((headline) => (
+        headline.title === primary.title && headline.url === primary.url
+          ? hydrated
+          : headline
+      )),
+    };
+  }));
+}
+
 export async function fetchMarketNarrativePulse(
   assetMoves: Map<string, number | null>,
   now = new Date(),
@@ -407,10 +478,12 @@ export async function fetchMarketNarrativePulse(
     }));
     return fetchTheme(config, assets, bucketedNow);
   }));
-  const themes = settled
-    .filter((result): result is PromiseFulfilledResult<MarketNarrativeTheme> => result.status === "fulfilled")
-    .map((result) => result.value)
-    .sort((a, b) => b.score - a.score);
+  const themes = await hydrateThemePrimaryImages(
+    settled
+      .filter((result): result is PromiseFulfilledResult<MarketNarrativeTheme> => result.status === "fulfilled")
+      .map((result) => result.value)
+      .sort((a, b) => b.score - a.score),
+  );
   const failures = settled.length - themes.length;
 
   return {

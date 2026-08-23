@@ -3,6 +3,23 @@ import type { NextConfig } from "next";
 const CANONICAL_ORIGIN = "https://www.gotconviction.com";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**.yimg.com" },
+      { protocol: "https", hostname: "**.yahoo.com" },
+      { protocol: "https", hostname: "**.googleusercontent.com" },
+      { protocol: "https", hostname: "**.wsj.net" },
+      { protocol: "https", hostname: "**.reuters.com" },
+      { protocol: "https", hostname: "**.reutersmedia.net" },
+      { protocol: "https", hostname: "**.cnbcfm.com" },
+      { protocol: "https", hostname: "**.nbcnews.com" },
+      { protocol: "https", hostname: "**.bloomberg.com" },
+      { protocol: "https", hostname: "**.ft.com" },
+      { protocol: "https", hostname: "**.cloudfront.net" },
+      { protocol: "https", hostname: "**.wp.com" },
+      { protocol: "https", hostname: "**" },
+    ],
+  },
   async redirects() {
     return [
       {

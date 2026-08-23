@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { loadPositions } from "@/lib/portfolio/persist";
 import type {
@@ -216,9 +217,11 @@ function NarrativeCard({
     >
       {showImage ? (
         <div className="pulse-news-hero-media">
-          <img
+          <Image
             src={imageUrl!}
             alt=""
+            fill
+            sizes="(max-width: 767px) 100vw, 50vw"
             onError={() => setImageFailed(true)}
             referrerPolicy="no-referrer"
           />

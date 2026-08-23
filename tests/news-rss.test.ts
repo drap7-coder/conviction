@@ -88,6 +88,29 @@ describe("RSS news metadata", () => {
     `;
     vi.stubGlobal("fetch", vi.fn(async () => new Response(descXml, { status: 200 })));
     expect((await fetchRssNews("MCHI", 1))[0]?.metadata?.imageUrl).toBe("https://media.example.com/trade.jpg?w=800&h=450");
+
+    const itunesXml = `
+      <rss><channel><item>
+        <title>Fed holds</title>
+        <link>https://example.com/fed-audio</link>
+        <itunes:image href="https://media.example.com/fed-cover.jpg" />
+      </item></channel></rss>
+    `;
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(itunesXml, { status: 200 })));
+    expect((await fetchRssNews("TLT", 1))[0]?.metadata?.imageUrl).toBe("https://media.example.com/fed-cover.jpg");
+
+    const groupXml = `
+      <rss><channel><item>
+        <title>Chips rally</title>
+        <link>https://example.com/chips</link>
+        <media:group>
+          <media:content url="https://media.example.com/chips-hero.jpg" medium="image" width="1200" height="675" />
+          <media:thumbnail url="https://media.example.com/chips-thumb.jpg" width="80" height="80" />
+        </media:group>
+      </item></channel></rss>
+    `;
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(groupXml, { status: 200 })));
+    expect((await fetchRssNews("NVDA", 1))[0]?.metadata?.imageUrl).toBe("https://media.example.com/chips-hero.jpg");
   });
 
   it("omits imageUrl when the feed has no usable photo", async () => {

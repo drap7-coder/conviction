@@ -93,7 +93,7 @@ function pickImageFromTags(block: string, tag: string): string | null {
 
   while ((match = regex.exec(block)) !== null) {
     const attrs = match[1];
-    const url = extractAttr(attrs, "url");
+    const url = extractAttr(attrs, "url") ?? extractAttr(attrs, "href");
     const type = extractAttr(attrs, "type");
     const medium = extractAttr(attrs, "medium");
     if (!isHttpUrl(url) || !looksLikeImage(url, type, medium)) continue;
@@ -114,12 +114,13 @@ function firstDescriptionImage(description: string): string | null {
   return isHttpUrl(url) ? url : null;
 }
 
-/** Yahoo often uses media:content; also honor enclosure, thumbnail, and description <img>. */
-function extractRssImageUrl(block: string, description: string): string | null {
+/** Yahoo often uses media:content; also honor enclosure, thumbnail, itunes, and description <img>. */
+export function extractRssImageUrl(block: string, description: string): string | null {
   return pickImageFromTags(block, "media:content")
     ?? pickImageFromTags(block, "enclosure")
     ?? pickImageFromTags(block, "media:thumbnail")
     ?? pickImageFromTags(block, "thumbnail")
+    ?? pickImageFromTags(block, "itunes:image")
     ?? firstDescriptionImage(description);
 }
 
