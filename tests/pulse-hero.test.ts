@@ -75,5 +75,14 @@ describe("Pulse heatmap universe", () => {
     expect(page).toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');
     expect(page).toContain('title="International"');
+    expect(page).toContain("MarketMovesPanel");
+  });
+
+  it("does not treat Trending as a watchlist chip editor", () => {
+    const panel = read("src/components/market/MarketMovesPanel.tsx");
+
+    expect(panel).toContain('title="Active names"');
+    expect(panel).not.toContain("TrendingManageChips");
+    expect(panel).not.toContain("wl-manage-row");
   });
 });
