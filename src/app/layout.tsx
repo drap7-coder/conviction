@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import Image from "next/image";
 import Link from "next/link";
 import "./globals.css";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
@@ -90,12 +91,15 @@ export default function RootLayout({
           <header className="app-header">
             <div className="header-brand-row">
               <Link className="app-brand" href="/pulse" aria-label="CONVICTION home">
-                <img
-                  alt=""
-                  aria-hidden="true"
-                  className="app-logo"
-                  src="/conviction-bull.png"
-                />
+                <span className="app-logo" aria-hidden="true">
+                  <Image
+                    src="/conviction-bull.png"
+                    alt=""
+                    fill
+                    sizes="64px"
+                    preload
+                  />
+                </span>
                 <AnimatedTitle />
               </Link>
               <DesktopNav />

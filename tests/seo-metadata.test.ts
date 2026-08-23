@@ -108,6 +108,28 @@ describe("SEO metadata", () => {
     expect(read("src/app/page.tsx")).toContain("permanentRedirect");
     expect(read("next.config.ts")).toContain('source: "/"');
     expect(read("next.config.ts")).toContain("www.gotconviction.com");
+    expect(read("src/app/news/layout.tsx")).not.toContain("wire");
+    expect(read("src/app/news/layout.tsx")).not.toContain("Brief for the few");
+    expect(read("src/app/industries/[ticker]/page.tsx")).not.toContain("Ownership signals");
+  });
+
+  it("optimizes public images through next/image", () => {
+    const config = read("next.config.ts");
+    const layout = read("src/app/layout.tsx");
+    const logos = read("src/app/components/LogoDisplay.tsx");
+    const quote = read("src/app/components/CompanyQuoteCard.tsx");
+
+    expect(config).toContain("remotePatterns");
+    expect(config).toContain("www.google.com");
+    expect(config).toContain("/s2/favicons");
+    expect(layout).toContain('from "next/image"');
+    expect(layout).toContain('src="/conviction-bull.png"');
+    expect(layout).not.toContain("<img");
+    expect(logos).toContain('from "next/image"');
+    expect(logos).not.toContain("<img");
+    expect(quote).toContain('from "next/image"');
+    expect(quote).toContain("alt={`${companyName} logo`}");
+    expect(quote).not.toContain("<img");
   });
 
   it("points Open Graph and Twitter images at the public origin", () => {

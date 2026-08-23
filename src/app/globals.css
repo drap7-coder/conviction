@@ -978,10 +978,16 @@ a.market-tape-item:focus-visible {
 }
 
 .app-logo {
+  position: relative;
+  display: block;
+  flex-shrink: 0;
   width: 64px;
   height: 58px;
-  object-fit: contain;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14));
+}
+
+.app-logo img {
+  object-fit: contain;
 }
 
 .app-title {

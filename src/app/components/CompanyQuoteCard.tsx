@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { SectorProfile } from "@/lib/market/sector-profile";
@@ -137,7 +138,13 @@ export function CompanyQuoteCard({
       <header className="company-quote-top">
         <div className="company-quote-identity">
           {logoUrl ? (
-            <img src={logoUrl} alt="" className="company-quote-logo" />
+            <Image
+              src={logoUrl}
+              alt={`${companyName} logo`}
+              width={36}
+              height={36}
+              className="company-quote-logo"
+            />
           ) : (
             <div className="logo-badge logo-badge-detail" aria-hidden="true">
               {ticker.charAt(0)}

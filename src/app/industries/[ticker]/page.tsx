@@ -25,14 +25,14 @@ export async function generateMetadata({
   if (!sector) {
     return pageMetadata({
       title: upperTicker,
-      description: "Ownership signals for this sector.",
+      description: "This sector page is unavailable.",
       path: `/industries/${encodeURIComponent(upperTicker)}`,
       index: false,
     });
   }
 
   const title = `${sector.name} sector (${sector.ticker})`;
-  const description = `Ownership signals and market context for the ${sector.name} sector (${sector.ticker}).`;
+  const description = `Market context and news for the ${sector.name} sector (${sector.ticker}).`;
 
   return pageMetadata({
     title,
@@ -57,7 +57,7 @@ export default async function SectorPage({
     "@type": "WebPage",
     name: `${sector.name} sector (${sector.ticker}) · ${SITE_NAME}`,
     url: `${SITE_URL}${path}`,
-    description: `Ownership signals for the ${sector.name} sector (${sector.ticker}).`,
+    description: `Market context and news for the ${sector.name} sector (${sector.ticker}).`,
   };
   const breadcrumbs = breadcrumbJsonLd([
     { name: "Pulse", path: "/pulse" },
