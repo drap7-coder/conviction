@@ -112,6 +112,20 @@ describe("production copy and fixture isolation", () => {
     expect(pulse).not.toContain("ProductStage");
   });
 
+  it("keeps Pulse Trending as a heatmap, not a watchlist chip editor", () => {
+    const panel = read("src/components/market/MarketMovesPanel.tsx");
+    const pulse = read("src/app/pulse/page.tsx");
+
+    expect(pulse).toContain("MarketMovesPanel");
+    expect(panel).toContain("StockHeatmap");
+    expect(panel).toContain('title="Active names"');
+    expect(panel).not.toContain("TrendingManageChips");
+    expect(panel).not.toContain("wl-manage-row");
+    expect(panel).not.toContain("handleAddTrending");
+    expect(panel).not.toContain("handleRemoveTrending");
+    expect(panel).not.toContain("/api/watchlist");
+  });
+
   it("keeps the mobile add-company composer from forcing horizontal overflow", () => {
     const css = read("src/app/globals.css");
 
