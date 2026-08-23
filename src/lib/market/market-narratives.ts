@@ -422,7 +422,10 @@ async function hydratePrimaryHeadline(
   headlines: MarketNarrativeHeadline[],
   allowUnwrap: boolean,
 ): Promise<MarketNarrativeHeadline> {
-  if (primary.imageUrl && isUsableArticleImage(primary.imageUrl)) return primary;
+  if (primary.imageUrl && !isUsableArticleImage(primary.imageUrl)) {
+    primary = { ...primary, imageUrl: null };
+  }
+  if (primary.imageUrl) return primary;
 
   for (const url of candidateImageUrls(primary, headlines)) {
     const imageUrl = await resolveArticleImageUrl(url, {

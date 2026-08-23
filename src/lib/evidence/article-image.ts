@@ -43,7 +43,9 @@ export function isUsableArticleImage(url: string): boolean {
     if (host.endsWith("googleusercontent.com") && /s0-w300|gn_logo|google-news/.test(href)) {
       return false;
     }
-    if (/\b(1x1|pixel\.gif|spacer\.gif|tracking)\b/.test(href)) return false;
+    if (/\b(1x1|pixel\.gif|spacer\.gif|tracking|default-logo|og-default|placeholder|no-image)\b/.test(href)) {
+      return false;
+    }
     return true;
   } catch {
     return false;

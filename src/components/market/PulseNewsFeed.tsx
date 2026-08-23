@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { isUsableArticleImage } from "@/lib/evidence/article-image";
 import { loadPositions } from "@/lib/portfolio/persist";
 import type {
   MarketNarrativeHeadline,
@@ -57,11 +58,9 @@ function publisherLabel(headline: MarketNarrativeHeadline): string {
 }
 
 function headlineImageUrl(value: string | null | undefined): string | null {
-  if (!value) return null;
+  if (!value || !isUsableArticleImage(value)) return null;
   try {
-    const url = new URL(value);
-    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
-    return url.toString();
+    return new URL(value).toString();
   } catch {
     return null;
   }
@@ -83,8 +82,9 @@ function editorialThemeScore(theme: MarketNarrativeTheme): number {
   const fillerPenalty = /sector update|stocks? moving|whale activity|millionaire maker|stock to buy|before you buy|moomoo/i.test(headline.title)
     ? 12
     : 0;
+  const imageBoost = headlineImageUrl(headline.imageUrl) ? 10 : 0;
 
-  return theme.score + publisherBoost + freshness - fillerPenalty;
+  return theme.score + publisherBoost + freshness + imageBoost - fillerPenalty;
 }
 
 function buildMoreFeed(themes: MarketNarrativeTheme[], filter: ThemeFilter): FeedItem[] {

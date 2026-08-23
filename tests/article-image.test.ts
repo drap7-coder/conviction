@@ -29,6 +29,12 @@ describe("extractOpenGraphImage", () => {
     expect(isUsableArticleImage(splash)).toBe(false);
     expect(extractOpenGraphImage(`<meta property="og:image" content="${splash}" />`)).toBeNull();
   });
+
+  it("rejects publisher default logos", () => {
+    expect(isUsableArticleImage(
+      "https://s.yimg.com/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+    )).toBe(false);
+  });
 });
 
 describe("resolveArticleImageUrl", () => {
