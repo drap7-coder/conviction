@@ -177,7 +177,27 @@
   background: var(--divider);
 }
 
-/* Flatten the ladder's own card chrome inside the Capital Map. */
+/* Nested in the Live hero: same map, no second card chrome. */
+.portfolio-page .product-stage .pf-capital-map {
+  margin: 2px 0 0;
+  padding: 12px 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.portfolio-page .product-stage .pf-capital-map-head {
+  margin-bottom: 8px;
+}
+
+.portfolio-page .product-stage .pf-capital-map-head h2 {
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--muted);
+}
+
 .portfolio-page .pf-capital-map .pf-allocation-ladder {
   margin: 0;
   padding: 0;
