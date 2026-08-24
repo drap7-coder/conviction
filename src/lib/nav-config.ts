@@ -63,12 +63,12 @@ export const navPages: NavPage[] = [
     blurb: "Edit your watchlist and portfolio in one place.",
   },
   {
-    href: "/api/auth/signin",
+    href: "/signin",
     label: "Sign in",
     icon: LogIn,
     tone: "blue",
     group: "account",
-    blurb: "Use Google to sync your data across devices.",
+    blurb: "Continue with Google. Your first sign-in creates the account.",
   },
 ];
 

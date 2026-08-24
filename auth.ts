@@ -6,6 +6,7 @@ import { getPool, isDatabaseConfigured } from "@/lib/db";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: isDatabaseConfigured() ? NeonAdapter(getPool()) : undefined,
   providers: [Google],
+  pages: { signIn: "/signin" },
   session: { strategy: isDatabaseConfigured() ? "database" : "jwt" },
   callbacks: {
     jwt({ token, user }) {
