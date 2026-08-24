@@ -654,7 +654,7 @@
 /* Live hero: Fit + Reliance + risk-profile ask + moves (same ProductStage) */
 .portfolio-page .pf-fit-board {
   display: grid;
-  gap: 14px;
+  gap: 12px;
   margin-top: 10px;
 }
 
@@ -663,13 +663,13 @@
   margin: 0;
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   letter-spacing: 0.02em;
 }
 
 .portfolio-page .pf-risk {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   border: 0;
@@ -684,7 +684,7 @@
   padding: 0;
   color: var(--quiet);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 500;
   letter-spacing: 0.06em;
   line-height: 1.3;
@@ -692,9 +692,16 @@
 
 .portfolio-page .pf-profile {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.portfolio-page .pf-profile::-webkit-scrollbar {
+  display: none;
 }
 
 .portfolio-page .pf-profile-option {
@@ -725,35 +732,40 @@
 
 .portfolio-page .pf-moves-block {
   display: grid;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 
 .portfolio-page .pf-moves-lead {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   margin: 0;
 }
 
-.portfolio-page .pf-moves-delta,
+.portfolio-page .pf-moves-delta {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: -0.02em;
+}
+
 .portfolio-page .pf-moves-subhead {
   margin: 0;
   color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-}
-
-.portfolio-page .pf-moves-subhead {
-  color: var(--muted);
   font-family: var(--font-sans);
-  letter-spacing: -0.01em;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  line-height: 1.35;
 }
 
 .portfolio-page .pf-moves {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -761,36 +773,54 @@
 
 .portfolio-page .pf-move {
   display: grid;
-  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr);
-  align-items: baseline;
-  gap: 10px 16px;
+  gap: 3px;
+  min-width: 0;
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+}
+
+.portfolio-page .pf-move.is-trim {
+  border-left-color: color-mix(in srgb, var(--red) 55%, var(--border));
+}
+
+.portfolio-page .pf-move.is-add {
+  border-left-color: color-mix(in srgb, var(--accent) 55%, var(--border));
 }
 
 .portfolio-page .pf-move-action {
   display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.76rem;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
   font-weight: 500;
+  line-height: 1.25;
   white-space: nowrap;
 }
 
-.portfolio-page .pf-move.is-add .pf-move-action {
+.portfolio-page .pf-move-verb {
+  color: var(--quiet);
   font-weight: 500;
+}
+
+.portfolio-page .pf-move-focus {
+  color: var(--ink);
+  font-weight: 650;
 }
 
 .portfolio-page .pf-move-ticker {
   display: inline-flex;
   align-items: center;
+  margin-left: 2px;
   padding: 1px 6px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: color-mix(in srgb, var(--card) 70%, transparent);
   color: var(--quiet);
   font-family: var(--font-mono);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 500;
   letter-spacing: 0.04em;
 }
@@ -798,20 +828,26 @@
 .portfolio-page .pf-move-why {
   color: var(--muted);
   font-family: var(--font-sans);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 400;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .portfolio-page .pf-moves-block .pf-fit-hedge,
 .portfolio-page .product-stage p.pf-fit-hedge {
   max-width: none;
-  margin: 2px 0 0;
+  margin: 0;
   color: var(--quiet);
   font-family: var(--font-sans);
   font-size: 0.62rem;
   font-style: normal;
   line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .portfolio-page .pf-moves-delta {
+    font-size: 0.74rem;
+  }
 }
 
 /* ── Book vs Benchmark ── */

@@ -41,6 +41,11 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("FIT_HEDGE");
     expect(portfolio).toContain("pf-moves-block");
     expect(portfolio).toContain("pf-move-ticker");
+    expect(portfolio).toContain("moveVerb");
+    expect(portfolio).toContain("moveFocus");
+    expect(portfolio).toContain("visibleCompareMoves");
+    expect(portfolio).toContain("pf-move-verb");
+    expect(portfolio).toContain("pf-move-focus");
     expect(portfolio).not.toContain("riskProfileMovesLead");
     expect(portfolio).not.toContain("If you mean");
     expect(portfolio).not.toContain("RISK_PROFILE_BLURBS");
@@ -52,6 +57,9 @@ describe("production copy and fixture isolation", () => {
     expect(profileBlock).toContain("border-radius: 999px");
     expect(profileBlock).toContain(".pf-profile-option.is-active");
     expect(profileBlock).not.toContain("text-overflow: ellipsis");
+    expect(css).toContain(".pf-move-verb");
+    expect(css).toContain(".pf-move-focus");
+    expect(css).toContain("@media (max-width: 640px)");
   });
 
   it("does not render setup instructions in the guest watchlist experience", () => {

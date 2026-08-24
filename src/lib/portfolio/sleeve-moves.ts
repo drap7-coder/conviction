@@ -1,11 +1,13 @@
 /**
  * Concrete moves toward a Study template.
- * Label is verb + ticker. Why is a principle applied to this book.
+ * Trim names an existing holding. Add fills a missing category with a
+ * representative ETF — never an individual common stock as a buy.
  *
  * Aggressive Growth uses the Growth book but accepts concentration
  * (35% mark, no equal-weight trims). Other profiles use the 20% mark.
  */
 
+import { getMarketInstrument } from "@/lib/market/market-instruments";
 import type { RiskProfile } from "@/lib/portfolio/fit";
 import { sampleBookSleeves, type SampleBook } from "@/lib/portfolio/sample-books";
 import { rankedHoldings, type BookHolding } from "@/lib/portfolio/sleeves";
@@ -21,6 +23,11 @@ export type SleeveMove = {
   /** Missing-sleeve category for Add rows. Trim/Keep leave this unset. */
   category?: string;
 };
+
+/** Add instrument for growth-book gaps (AAPL / MSFT / … → one category). */
+const GROWTH_ADD_ETF = "QQQ";
+/** Add instrument for dividend / Dogs gaps (JNJ / VZ / … → one category). */
+const YIELD_ADD_ETF = "SCHD";
 
 const CONCENTRATION_MARK = 20;
 const AGGRESSIVE_MARK = 35;
@@ -97,11 +104,7 @@ export function generateSleeveMoves(
     }
   }
 
-  const addCandidates = targetSleeves
-    .map((sleeve) => {
-      const current = currentMap.get(sleeve.ticker) ?? 0;
-      return { ...sleeve, current, gap: sleeve.weight - current };
-    })
+  const addCandidates = collapsedAddSleeves(targetSleeves, ranked)
     .filter((sleeve) => sleeve.gap >= MIN_GAP)
     .sort((a, b) => b.gap - a.gap);
 
@@ -109,15 +112,13 @@ export function generateSleeveMoves(
 
   for (const sleeve of addCandidates.slice(0, addCap)) {
     const delta = Math.round(sleeve.gap);
-    const category = addCategory(sleeve.ticker);
+    const category = sleeve.category;
     adds.push({
       ticker: sleeve.ticker,
       action: "add",
       deltaPt: delta,
       label: `Add ${category}`,
-      why: sleeve.current <= 0
-        ? missingWhy(sleeve.ticker)
-        : `${sleeve.ticker} is ${pct(sleeve.current)}. This profile wants ${pct(sleeve.weight)}.`,
+      why: sleeve.current <= 0 ? missingWhy(sleeve.ticker) : lightWhy(sleeve.ticker),
       category,
     });
   }
@@ -167,6 +168,78 @@ export function generateSleeveMoves(
   return picked.slice(0, limit.max);
 }
 
+/** Recs shown under “what would need to change.” Drop Keep when Trim/Add exist. */
+export function visibleCompareMoves(moves: SleeveMove[]): SleeveMove[] {
+  const changing = moves.filter((move) => move.action !== "keep");
+  return changing.length > 0 ? changing : moves;
+}
+
+export function moveVerb(action: SleeveMoveAction): string {
+  if (action === "trim") return "Trim";
+  if (action === "add") return "Add";
+  return "Keep";
+}
+
+/** Bold scan target: holding ticker on Trim/Keep, category on Add. */
+export function moveFocus(move: SleeveMove): string {
+  if (move.action === "add") return move.category ?? addCategory(move.ticker);
+  return move.ticker;
+}
+
+export function isAddEtf(ticker: string): boolean {
+  return getMarketInstrument(ticker)?.kind === "etf";
+}
+
+/**
+ * Stock sleeves from Growth / Dividend / Dogs collapse onto one ETF each.
+ * Study ETFs (VTI, TLT, BND, …) stay themselves.
+ */
+function representativeAdd(ticker: string): { ticker: string; category: string } {
+  const category = addCategory(ticker);
+  if (isAddEtf(ticker)) return { ticker, category };
+  if (category === "growth") return { ticker: GROWTH_ADD_ETF, category: "growth" };
+  return { ticker: YIELD_ADD_ETF, category: "yield" };
+}
+
+function collapsedAddSleeves(
+  targetSleeves: Array<{ ticker: string; weight: number }>,
+  ranked: Array<{ ticker: string; weight: number }>,
+): Array<{ ticker: string; category: string; current: number; weight: number; gap: number }> {
+  const grouped = new Map<string, { ticker: string; category: string; weight: number }>();
+
+  for (const sleeve of targetSleeves) {
+    const instrument = representativeAdd(sleeve.ticker);
+    const existing = grouped.get(instrument.ticker);
+    if (existing) {
+      existing.weight += sleeve.weight;
+    } else {
+      grouped.set(instrument.ticker, { ...instrument, weight: sleeve.weight });
+    }
+  }
+
+  return [...grouped.values()].map((sleeve) => {
+    const current = categoryHeldWeight(sleeve.ticker, sleeve.category, ranked);
+    return { ...sleeve, current, gap: sleeve.weight - current };
+  });
+}
+
+function categoryHeldWeight(
+  representativeTicker: string,
+  category: string,
+  ranked: Array<{ ticker: string; weight: number }>,
+): number {
+  let sum = 0;
+  for (const row of ranked) {
+    if (row.ticker === representativeTicker) {
+      sum += row.weight;
+      continue;
+    }
+    if (isAddEtf(row.ticker)) continue;
+    if (addCategory(row.ticker) === category) sum += row.weight;
+  }
+  return sum;
+}
+
 function isGrowthName(ticker: string, exposure: string | null): boolean {
   if (GROWTH_NAMES.has(ticker)) return true;
   return exposure === "Technology"
@@ -183,11 +256,13 @@ function concentrationWhy(ticker: string, weight: number, aggressive: boolean): 
 
 function addCategory(ticker: string): string {
   if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return "ballast";
-  if (ticker === "VTI") return "U.S. equity";
+  if (ticker === "VTI" || ticker === "SPY") return "core";
+  if (ticker === "QQQ") return "growth";
   if (ticker === "VXUS") return "international";
   if (ticker === "GLD") return "gold";
   if (ticker === "SGOV") return "cash";
   if (ticker === "DBC") return "commodities";
+  if (ticker === "SCHD" || ticker === "VNQ") return "yield";
   if (GROWTH_NAMES.has(ticker)) return "growth";
   return "yield";
 }
@@ -199,8 +274,25 @@ function missingWhy(ticker: string): string {
   if (ticker === "GLD") return "The book has no gold.";
   if (ticker === "SGOV") return "The book has no cash.";
   if (ticker === "DBC") return "The book has no commodities.";
-  if (ticker === "VTI") return "The book has no broad U.S. equity.";
+  if (ticker === "VTI" || ticker === "SPY") return "The book has no broad market.";
+  if (ticker === "QQQ") return "The book has no growth.";
+  if (ticker === "SCHD") return "The book has no yield.";
+  if (ticker === "VNQ") return "The book has no real estate.";
   return `The book is missing ${ticker}.`;
+}
+
+function lightWhy(ticker: string): string {
+  if (ticker === "TLT" || ticker === "IEF") return "Rates are light versus this profile.";
+  if (ticker === "BND") return "Ballast is light versus this profile.";
+  if (ticker === "VXUS") return "International is light versus this profile.";
+  if (ticker === "GLD") return "Gold is light versus this profile.";
+  if (ticker === "SGOV") return "Cash is light versus this profile.";
+  if (ticker === "DBC") return "Commodities are light versus this profile.";
+  if (ticker === "VTI" || ticker === "SPY") return "Broad market is light versus this profile.";
+  if (ticker === "QQQ") return "Growth is light versus this profile.";
+  if (ticker === "SCHD") return "Yield is light versus this profile.";
+  if (ticker === "VNQ") return "Real estate is light versus this profile.";
+  return "This sleeve is light versus this profile.";
 }
 
 function pct(weight: number): string {
