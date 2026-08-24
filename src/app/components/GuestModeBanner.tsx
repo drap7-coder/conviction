@@ -45,7 +45,7 @@ export function GuestModeBanner({
       </span>
       <div className="guest-banner-actions">
         {authConfigured ? (
-          <a className="guest-banner-link" href="/api/auth/signin/github">
+          <a className="guest-banner-link" href="/api/auth/signin">
             Sign in
           </a>
         ) : (
