@@ -2,7 +2,16 @@ import type { NextConfig } from "next";
 
 const CANONICAL_ORIGIN = "https://www.gotconviction.com";
 
+/** Vercel SHA at build time. Visible in the footer only with `?debug=1`. */
+const NEXT_PUBLIC_BUILD_ID =
+  process.env.NEXT_PUBLIC_BUILD_ID ||
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  "dev";
+
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_BUILD_ID,
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.yimg.com" },

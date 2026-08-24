@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { BuildDebugMarker } from "@/components/BuildDebugMarker";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
 import { MarketTape } from "@/components/MarketTape";
@@ -14,6 +16,7 @@ import {
   SITE_URL,
 } from "@/lib/site";
 import { siteJsonLd } from "@/lib/seo";
+import { resolvePublicBuildId } from "@/lib/build-id";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -106,6 +109,9 @@ export default function RootLayout({
           </header>
           <MarketTape />
           {children}
+          <Suspense fallback={null}>
+            <BuildDebugMarker buildId={resolvePublicBuildId()} />
+          </Suspense>
         </div>
         <MobileTabBar />
       </body>
