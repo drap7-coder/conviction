@@ -21,7 +21,7 @@ export const SITE_NAME = "CONVICTION";
 export const SITE_TAGLINE = "Who’s buying the stocks you follow";
 export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const SITE_DESCRIPTION =
-  "Track institutional ownership, insider filings, and what’s driving the move — on your watchlist and across the market.";
+  "Follow the stocks you care about. See what institutions, insiders, and politicians are buying and selling — and what changed today.";
 
 export const SITE_OG_IMAGE = {
   url: "/conviction-og.png",

@@ -6,8 +6,7 @@ import "@/app/watchlist.css";
 
 export const metadata: Metadata = pageMetadata({
   title: "Watchlist",
-  description:
-    "Track the stocks you follow — quotes, ownership moves, and a path into each company dashboard.",
+  description: "See today’s moves and what changed for the stocks you follow.",
   path: "/watchlist",
 });
 

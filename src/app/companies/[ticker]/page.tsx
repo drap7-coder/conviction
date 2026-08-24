@@ -35,7 +35,7 @@ export async function generateMetadata({
 
   const title = `${companyName} (${upperTicker})`;
   const description = supportsSignals
-    ? `Decision snapshot, catalyst, and source filings for ${companyName} (${upperTicker}).`
+    ? `See today’s move, what changed, and the source filings for ${companyName} (${upperTicker}).`
     : `Price, chart, and news for ${companyName} (${upperTicker}).`;
 
   return pageMetadata({
@@ -71,7 +71,7 @@ export default async function CompanyPage({
     name: `${companyName} (${upperTicker}) · ${SITE_NAME}`,
     url: `${SITE_URL}${path}`,
     description: supportsSignals
-      ? `Decision snapshot and source filings for ${companyName} (${upperTicker}).`
+      ? `Today’s move, what changed, and source filings for ${companyName} (${upperTicker}).`
       : `Price, chart, and news for ${companyName} (${upperTicker}).`,
     mainEntity: {
       "@type": supportsSignals ? "Corporation" : "InvestmentFund",

@@ -1,6 +1,6 @@
-# CONVICTION — Ownership Signals
+# CONVICTION — Who’s buying the stocks you follow
 
-Track institutional ownership, insider filings, and what’s driving the move — on your watchlist and across the market.
+Follow the stocks you care about. See what institutions, insiders, and politicians are buying and selling — and what changed today.
 
 ## Getting Started
 

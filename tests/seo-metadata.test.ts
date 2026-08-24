@@ -18,8 +18,9 @@ describe("SEO metadata", () => {
     expect(SITE_TITLE).toBe("CONVICTION — Who’s buying the stocks you follow");
     expect(SITE_TITLE).not.toContain("Evidence Detection");
     expect(SITE_TITLE).not.toContain("Ownership Signals");
-    expect(SITE_DESCRIPTION).toContain("institutional ownership");
+    expect(SITE_DESCRIPTION).toContain("institutions, insiders, and politicians");
     expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
+    expect(SITE_DESCRIPTION).not.toContain("Ownership Signals");
     expect(SITE_URL).toMatch(/^https:\/\//);
     expect(SITE_URL.endsWith("/")).toBe(false);
   });
@@ -76,6 +77,12 @@ describe("SEO metadata", () => {
     expect(JSON.stringify(site)).toContain("Organization");
     expect(JSON.stringify(site)).toContain("WebSite");
     expect(JSON.stringify(site)).not.toContain("SearchAction");
+    expect(site["@graph"][1]).toMatchObject({
+      "@type": "WebSite",
+      name: SITE_NAME,
+      alternateName: "Conviction",
+      url: SITE_URL,
+    });
 
     const crumbs = breadcrumbJsonLd([
       { name: "Pulse", path: "/pulse" },
@@ -108,6 +115,7 @@ describe("SEO metadata", () => {
     expect(read("src/app/page.tsx")).toContain("permanentRedirect");
     expect(read("next.config.ts")).toContain('source: "/"');
     expect(read("next.config.ts")).toContain("www.gotconviction.com");
+    expect(read("src/app/industries/[ticker]/page.tsx")).not.toContain("Ownership signals");
   });
 
   it("points Open Graph and Twitter images at the public origin", () => {

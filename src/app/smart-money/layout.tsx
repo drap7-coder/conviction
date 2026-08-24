@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Smart Money",
   description:
-    "Open filed 13F books for Berkshire, Pershing Square, Third Point, and peers — plus STOCK Act political disclosures. Lagged evidence, not live portfolios.",
+    "See recent filings from leading investors and members of Congress — what they bought, sold, and still hold.",
   path: "/smart-money",
 });
 

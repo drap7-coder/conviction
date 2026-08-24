@@ -3,7 +3,6 @@ import {
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_OG_IMAGE,
-  SITE_TITLE,
   SITE_URL,
   absoluteUrl,
 } from "@/lib/site";
@@ -66,7 +65,8 @@ export function siteJsonLd() {
       },
       {
         "@type": "WebSite",
-        name: SITE_TITLE,
+        name: SITE_NAME,
+        alternateName: "Conviction",
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         publisher: { "@type": "Organization", name: SITE_NAME },

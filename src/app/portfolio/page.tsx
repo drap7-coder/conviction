@@ -16,7 +16,7 @@ export async function generateMetadata({
   return pageMetadata({
     title: "Portfolio",
     description:
-      "Your book — live value, exposure mix, and holdings with ownership context.",
+      "See what you own, where your money is concentrated, and how your portfolio is moving today.",
     path: "/portfolio",
     index: mode !== "study",
   });
