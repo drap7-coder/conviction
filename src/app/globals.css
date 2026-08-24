@@ -6507,7 +6507,9 @@ a.market-tape-item:focus-visible {
 
 .company-quote-change-chip {
   display: inline-flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 0.28em;
+  flex-shrink: 0;
   padding: 4px 9px;
   border-radius: 999px;
   border: 1px solid var(--on-ink-border);
@@ -6516,6 +6518,12 @@ a.market-tape-item:focus-visible {
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+
+.company-quote-change-pct {
+  font-weight: 550;
+  letter-spacing: -0.01em;
+  opacity: 0.68;
 }
 
 .company-quote-change-chip.up {
@@ -6630,10 +6638,18 @@ a.market-tape-item:focus-visible {
 }
 
 .company-quote-close-change {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28em;
   font-size: 0.78rem;
   font-weight: 780;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+.company-quote-close-pct {
+  font-weight: 600;
+  opacity: 0.7;
 }
 
 .company-quote-close.up .company-quote-close-change {
@@ -6819,6 +6835,11 @@ a.market-tape-item:focus-visible {
 
   .company-quote-change {
     font-size: 0.8rem;
+  }
+
+  .company-quote-change-chip {
+    padding: 3px 8px;
+    font-size: 0.78rem;
   }
 
   .company-quote-chart-surface {
