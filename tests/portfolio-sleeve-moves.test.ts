@@ -9,7 +9,14 @@ const threeFund = getSampleBook("three-fund")!;
 const growth = getSampleBook("growth")!;
 
 function expectPlainMoveCopy(moves: ReturnType<typeof generateSleeveMoves>) {
-  expect(moves.every((move) => /^(Trim|Add|Keep) [A-Z0-9.-]+$/.test(move.label))).toBe(true);
+  expect(moves.every((move) => {
+    if (move.action === "add") {
+      return /^Add /.test(move.label)
+        && Boolean(move.category)
+        && !move.label.includes(move.ticker);
+    }
+    return /^(Trim|Keep) [A-Z0-9.-]+$/.test(move.label) && move.category == null;
+  })).toBe(true);
   expect(moves.every((move) => !/sleeve|toward |\d+pt|bonds \(/i.test(move.label))).toBe(true);
   expect(moves.every((move) => !/sleeve|toward |\d+pt|more than 20%/i.test(move.why))).toBe(true);
 }
@@ -73,18 +80,21 @@ describe("generateSleeveMoves", () => {
     });
     const add = moves.find((move) => move.ticker === "VTI" || move.ticker === "BND" || move.ticker === "VXUS");
     expect(add?.action).toBe("add");
-    expect(add?.label).toMatch(/^Add [A-Z]/);
+    expect(add?.label).toMatch(/^Add /);
     expect(add?.label).not.toMatch(/toward |bonds \(|U\.S\. stocks/);
     if (add?.ticker === "BND") {
-      expect(add.label).toBe("Add BND");
+      expect(add.label).toBe("Add ballast");
+      expect(add.category).toBe("ballast");
       expect(add.why).toBe("The book has no ballast.");
     }
     if (add?.ticker === "VTI") {
-      expect(add.label).toBe("Add VTI");
+      expect(add.label).toBe("Add U.S. equity");
+      expect(add.category).toBe("U.S. equity");
       expect(add.why).toBe("The book has no broad U.S. equity.");
     }
     if (add?.ticker === "VXUS") {
-      expect(add.label).toBe("Add VXUS");
+      expect(add.label).toBe("Add international");
+      expect(add.category).toBe("international");
       expect(add.why).toBe("The book has no international.");
     }
     expectPlainMoveCopy(moves);
@@ -131,10 +141,31 @@ describe("generateSleeveMoves", () => {
     expect(aggressive.some((move) => move.ticker === "MSFT" && move.action === "trim")).toBe(false);
     expect(income.some((move) => (
       (move.ticker === "MSFT" && move.action === "trim")
-      || move.label === "Add BND"
+      || move.label === "Add ballast"
     ))).toBe(true);
     expect(aggressive.map((move) => move.label).join("|")).not.toBe(income.map((move) => move.label).join("|"));
     expectPlainMoveCopy(aggressive);
     expectPlainMoveCopy(income);
+  });
+
+  it("frames Defensive adds as a category plus representative ETF", () => {
+    const holdings: BookHolding[] = [{ ticker: "NVDA", weight: 100, exposure: "Technology" }];
+    const fit = classifyFit(holdings);
+    const target = targetBookForProfile("defensive", fit.rankings);
+    const moves = generateSleeveMoves(holdings, target, undefined, "defensive");
+    const add = moves.find((move) => move.action === "add" && (move.ticker === "TLT" || move.ticker === "IEF"));
+    expect(add).toMatchObject({
+      action: "add",
+      label: "Add ballast",
+      category: "ballast",
+    });
+    if (add?.ticker === "TLT" || add?.ticker === "IEF") {
+      expect(add.why).toBe("The book has no rates exposure.");
+    }
+    expect(moves.find((move) => move.action === "trim")).toMatchObject({
+      ticker: "NVDA",
+      label: "Trim NVDA",
+    });
+    expectPlainMoveCopy(moves);
   });
 });

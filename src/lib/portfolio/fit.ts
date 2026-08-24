@@ -58,9 +58,18 @@ export const RISK_PROFILE_BLURBS: Record<RiskProfile, string> = {
 /** Live hero field — quiet ticket label. The five choices are the product. */
 export const RISK_PROFILE_QUESTION = "Risk profile";
 
-/** Moves are conditional on the stated profile. Not a second copy of the chip. */
-export function riskProfileMovesLead(profile: RiskProfile): string {
-  return `If you mean ${RISK_PROFILE_LABELS[profile]}`;
+/** Pills are a comparison target, not a second diagnosis. */
+export const COMPARE_AGAINST_LABEL = "Compare against →";
+
+/** Line 2 under the Fit → selected header. */
+export const RISK_PROFILE_MOVES_SUBHEAD = "Here's what would need to change:";
+
+/**
+ * Delta header line 1. `currentLabel` is the auto-diagnosed Fit label
+ * (Growth, 60/40, …). `selected` is the active comparison pill.
+ */
+export function riskProfileDeltaLead(currentLabel: string, selected: RiskProfile): string {
+  return `${currentLabel} → ${RISK_PROFILE_LABELS[selected]}`;
 }
 
 export const FIT_HEDGE = "A description of this book. Not a trade.";

@@ -18,6 +18,8 @@ export type SleeveMove = {
   deltaPt: number;
   label: string;
   why: string;
+  /** Missing-sleeve category for Add rows. Trim/Keep leave this unset. */
+  category?: string;
 };
 
 const CONCENTRATION_MARK = 20;
@@ -107,14 +109,16 @@ export function generateSleeveMoves(
 
   for (const sleeve of addCandidates.slice(0, addCap)) {
     const delta = Math.round(sleeve.gap);
+    const category = addCategory(sleeve.ticker);
     adds.push({
       ticker: sleeve.ticker,
       action: "add",
       deltaPt: delta,
-      label: `Add ${sleeve.ticker}`,
+      label: `Add ${category}`,
       why: sleeve.current <= 0
         ? missingWhy(sleeve.ticker)
         : `${sleeve.ticker} is ${pct(sleeve.current)}. This profile wants ${pct(sleeve.weight)}.`,
+      category,
     });
   }
 
@@ -177,8 +181,20 @@ function concentrationWhy(ticker: string, weight: number, aggressive: boolean): 
     : `${head} One name is the risk.`;
 }
 
+function addCategory(ticker: string): string {
+  if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return "ballast";
+  if (ticker === "VTI") return "U.S. equity";
+  if (ticker === "VXUS") return "international";
+  if (ticker === "GLD") return "gold";
+  if (ticker === "SGOV") return "cash";
+  if (ticker === "DBC") return "commodities";
+  if (GROWTH_NAMES.has(ticker)) return "growth";
+  return "yield";
+}
+
 function missingWhy(ticker: string): string {
-  if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return "The book has no ballast.";
+  if (ticker === "TLT" || ticker === "IEF") return "The book has no rates exposure.";
+  if (ticker === "BND") return "The book has no ballast.";
   if (ticker === "VXUS") return "The book has no international.";
   if (ticker === "GLD") return "The book has no gold.";
   if (ticker === "SGOV") return "The book has no cash.";
