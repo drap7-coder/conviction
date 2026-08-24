@@ -39,6 +39,10 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("pf-live-machine");
     expect(portfolio).toContain("How it’s built");
     expect(portfolio).toContain("What has to go right");
+    const liveHero = portfolio.slice(portfolio.indexOf("pf-fit-board"));
+    expect(liveHero.indexOf("{capitalMapCard}")).toBeGreaterThan(liveHero.indexOf("What has to go right"));
+    expect(liveHero.indexOf("{capitalMapCard}")).toBeLessThan(liveHero.indexOf("{COMPARE_AGAINST_LABEL}"));
+    expect(liveHero.indexOf("{capitalMapCard}")).toBeLessThan(liveHero.indexOf("PortfolioBenchmarkChart"));
     expect(portfolio).not.toContain("Also close to");
     expect(portfolio).toContain("typewriterHeadline={false}");
     expect(portfolio).toContain("investorFitLabel");

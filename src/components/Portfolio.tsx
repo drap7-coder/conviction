@@ -925,6 +925,7 @@ export default function Portfolio({
                 <p>{valueBrief.stake}</p>
               </div>
             </div>
+            {capitalMapCard}
             <fieldset className="pf-risk">
               <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
               <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
@@ -990,8 +991,6 @@ export default function Portfolio({
           positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
         />
       ) : null}
-
-      {capitalMapCard}
 
       {hasData ? (
       <div id="portfolio-panel-holdings" className="pf-value-view" aria-label="Portfolio holdings">
