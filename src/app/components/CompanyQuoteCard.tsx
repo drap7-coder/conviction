@@ -189,10 +189,12 @@ export function CompanyQuoteCard({
               </div>
               {changeText ? (
                 <span className={`company-quote-change ${direction}`}>
-                  <span className={`company-quote-change-chip tnum ${direction}`}>
+                  <span
+                    className={`company-quote-change-chip tnum ${direction}`}
+                    aria-label={`${changeText.dollars} (${changeText.percent})`}
+                  >
                     {changeText.dollars}
-                    <span aria-hidden="true"> · </span>
-                    {changeText.percent}
+                    <span className="company-quote-change-pct">({changeText.percent})</span>
                   </span>
                   {live.label ? (
                     <span
@@ -228,8 +230,7 @@ export function CompanyQuoteCard({
                   {regularChangeText ? (
                     <strong className="company-quote-close-change">
                       {regularChangeText.dollars}
-                      <span aria-hidden="true"> · </span>
-                      {regularChangeText.percent}
+                      <span className="company-quote-close-pct">({regularChangeText.percent})</span>
                     </strong>
                   ) : null}
                 </span>
