@@ -858,6 +858,9 @@ a.market-tape-item:focus-visible {
 .bottom-tab-item.tone-violet,
 .desktop-nav-item.tone-violet { --tab-accent: #7950f2; }
 
+.bottom-tab-item.tone-ink,
+.desktop-nav-item.tone-ink { --tab-accent: var(--muted); }
+
 .bottom-tab-icon {
   display: grid;
   width: 34px;
@@ -923,6 +926,14 @@ a.market-tape-item:focus-visible {
   white-space: nowrap;
 }
 
+button.bottom-tab-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
 /* ── Desktop Nav ── */
 
 .desktop-nav {
@@ -966,6 +977,189 @@ a.market-tape-item:focus-visible {
 .desktop-nav-label {
   font-size: 0.82rem;
   font-weight: 600;
+}
+
+.desktop-nav-menu {
+  position: relative;
+}
+
+.desktop-nav-item.tone-ink {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.site-menu-root {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--ticker-z) + 8);
+  pointer-events: none;
+}
+
+.site-menu-root--sheet {
+  bottom: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
+}
+
+.site-menu-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.site-menu {
+  pointer-events: auto;
+  display: grid;
+  gap: 16px;
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+
+.site-menu-root--sheet .site-menu {
+  position: absolute;
+  right: 10px;
+  bottom: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom) + 8px);
+  left: 10px;
+  max-height: min(72vh, 560px);
+  padding: 16px 14px 14px;
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.site-menu-root--header {
+  position: absolute;
+  inset: auto 0 auto auto;
+  top: calc(100% + 8px);
+  width: min(360px, 86vw);
+  z-index: calc(var(--ticker-z) + 8);
+}
+
+.site-menu-root--header .site-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+}
+
+.site-menu-root--header .site-menu {
+  position: relative;
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.site-menu-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.site-menu-head h2 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quiet);
+}
+
+.site-menu-close {
+  border: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.site-menu-close:hover,
+.site-menu-close:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+
+.site-menu-group h3 {
+  margin: 0 0 8px;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.site-menu-group ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-menu-link {
+  --tab-accent: var(--accent);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px;
+  border-radius: 12px;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-menu-link.tone-teal { --tab-accent: #0f9f8f; }
+.site-menu-link.tone-blue { --tab-accent: #4263eb; }
+.site-menu-link.tone-amber { --tab-accent: #d97706; }
+.site-menu-link.tone-rose { --tab-accent: #e64980; }
+.site-menu-link.tone-violet { --tab-accent: #7950f2; }
+
+.site-menu-link:hover,
+.site-menu-link:focus-visible {
+  background: color-mix(in srgb, var(--tab-accent) 8%, var(--surface));
+  outline: none;
+}
+
+.site-menu-link.is-active {
+  background: color-mix(in srgb, var(--tab-accent) 12%, transparent);
+}
+
+.site-menu-link-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--tab-accent) 18%, transparent);
+  background: color-mix(in srgb, var(--tab-accent) 10%, transparent);
+  color: var(--tab-accent);
+}
+
+.site-menu-link strong {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 680;
+  letter-spacing: -0.02em;
+}
+
+.site-menu-link small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .header-actions {
