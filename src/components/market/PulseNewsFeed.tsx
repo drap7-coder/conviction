@@ -2,12 +2,18 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { isUsableArticleImage } from "@/lib/evidence/article-image";
 import { loadPositions } from "@/lib/portfolio/persist";
 import type {
   MarketNarrativeHeadline,
   MarketNarrativeTheme,
 } from "@/lib/market/market-narratives";
+import {
+  editorialThemeScore,
+  orderNewsBriefThemes,
+  pickHeroHeadline,
+  primaryHeadline,
+  usableHeadlineImage,
+} from "@/lib/market/news-hero";
 
 type ThemeFilter = "all" | string;
 
@@ -49,42 +55,8 @@ function formatMove(value: number | null): string {
   return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
 }
 
-function primaryHeadline(theme: MarketNarrativeTheme): MarketNarrativeHeadline | null {
-  return theme.headline ?? theme.headlines[0] ?? null;
-}
-
 function publisherLabel(headline: MarketNarrativeHeadline): string {
   return headline.publisher?.trim() || "Market source";
-}
-
-function headlineImageUrl(value: string | null | undefined): string | null {
-  if (!value || !isUsableArticleImage(value)) return null;
-  try {
-    return new URL(value).toString();
-  } catch {
-    return null;
-  }
-}
-
-function editorialThemeScore(theme: MarketNarrativeTheme): number {
-  const headline = primaryHeadline(theme);
-  if (!headline) return theme.score - 100;
-
-  const publisher = headline.publisher?.toLowerCase() ?? "";
-  const publisherBoost = /reuters|associated press|ap news|bloomberg|financial times|wall street journal/.test(publisher)
-    ? 12
-    : /cnbc|yahoo finance|marketwatch|barron|fortune|business insider/.test(publisher)
-      ? 6
-      : 2;
-  const ageMs = Date.now() - new Date(headline.date).getTime();
-  const ageDays = Number.isFinite(ageMs) ? Math.max(0, ageMs / 86_400_000) : 30;
-  const freshness = ageDays <= 1 ? 8 : ageDays <= 2 ? 4 : ageDays <= 7 ? -8 : -28;
-  const fillerPenalty = /sector update|stocks? moving|whale activity|millionaire maker|stock to buy|before you buy|moomoo/i.test(headline.title)
-    ? 12
-    : 0;
-  const imageBoost = headlineImageUrl(headline.imageUrl) ? 10 : 0;
-
-  return theme.score + publisherBoost + freshness + imageBoost - fillerPenalty;
 }
 
 function buildMoreFeed(themes: MarketNarrativeTheme[], filter: ThemeFilter): FeedItem[] {
@@ -144,17 +116,18 @@ function NarrativeCard({
   personal?: boolean;
   featured?: boolean;
 }) {
-  const headline = primaryHeadline(theme);
+  const headline = featured ? pickHeroHeadline(theme) : primaryHeadline(theme);
   const [imageFailed, setImageFailed] = useState(false);
   if (!headline) return null;
 
-  const imageUrl = featured ? headlineImageUrl(headline.imageUrl) : null;
+  const imageUrl = featured ? usableHeadlineImage(headline.imageUrl) : null;
   const showImage = Boolean(imageUrl) && !imageFailed;
   const copy = (
     <>
       <div className="pulse-news-narrative-top">
         <span className="pulse-news-narrative-label">{theme.label}</span>
         <div className="pulse-news-narrative-tags">
+          {featured ? <span className="pulse-news-lead-chip">Lead</span> : null}
           {personal ? <span className="pulse-news-personal-chip">For you</span> : null}
         </div>
       </div>
@@ -221,7 +194,7 @@ function NarrativeCard({
             src={imageUrl!}
             alt=""
             fill
-            sizes="(max-width: 767px) 100vw, 50vw"
+            sizes="(max-width: 767px) 100vw, 58vw"
             onError={() => setImageFailed(true)}
             referrerPolicy="no-referrer"
           />
@@ -288,9 +261,9 @@ export function PulseNewsFeed({
     [themes],
   );
   const visibleThemes = useMemo(
-    () => activeTheme === "all"
-      ? rankedThemes
-      : rankedThemes.filter((theme) => theme.id === activeTheme),
+    () => orderNewsBriefThemes(
+      activeTheme === "all" ? rankedThemes : rankedThemes.filter((theme) => theme.id === activeTheme),
+    ),
     [rankedThemes, activeTheme],
   );
   const moreItems = useMemo(

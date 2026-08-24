@@ -143,6 +143,33 @@ describe("narrativeSummary", () => {
 });
 
 describe("hydrateThemePrimaryImages", () => {
+  it("copies a same-story sibling RSS image onto the lead without fetching", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const lead = {
+      title: "Oil falls as US prepares new Iran sanctions",
+      url: "https://news.google.com/rss/articles/oil",
+      date: "2026-08-23T12:00:00.000Z",
+      publisher: "Reuters",
+      imageUrl: null,
+    };
+    const sibling = {
+      title: "Oil falls as the US prepares new Iran sanctions",
+      url: "https://finance.yahoo.com/news/oil.html",
+      date: "2026-08-23T11:00:00.000Z",
+      publisher: "Yahoo Finance",
+      imageUrl: "https://s.yimg.com/os/oil.jpg",
+    };
+
+    const [hydrated] = await hydrateThemePrimaryImages([
+      themeFixture({ headline: lead, headlines: [lead, sibling], score: 90 }),
+    ]);
+
+    expect(hydrated.headline?.title).toBe(lead.title);
+    expect(hydrated.headline?.imageUrl).toBe(sibling.imageUrl);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("keeps an in-feed image and does not fetch og:image", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);

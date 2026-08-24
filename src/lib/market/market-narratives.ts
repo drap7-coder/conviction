@@ -400,6 +400,25 @@ async function fetchTheme(
   };
 }
 
+const SAME_STORY_IMAGE_THRESHOLD = 0.5;
+
+function isSameStoryHeadline(a: MarketNarrativeHeadline, b: MarketNarrativeHeadline): boolean {
+  return a === b
+    || a.title.trim().toLowerCase() === b.title.trim().toLowerCase()
+    || headlineSimilarity(a.title, b.title) >= SAME_STORY_IMAGE_THRESHOLD;
+}
+
+function siblingArticleImage(
+  primary: MarketNarrativeHeadline,
+  headlines: MarketNarrativeHeadline[],
+): string | null {
+  for (const headline of [primary, ...headlines]) {
+    if (!isSameStoryHeadline(headline, primary)) continue;
+    if (headline.imageUrl && isUsableArticleImage(headline.imageUrl)) return headline.imageUrl;
+  }
+  return null;
+}
+
 function candidateImageUrls(
   primary: MarketNarrativeHeadline,
   headlines: MarketNarrativeHeadline[],
@@ -409,9 +428,9 @@ function candidateImageUrls(
     if (url && isHttpUrl(url) && !urls.includes(url)) urls.push(url);
   };
   for (const headline of [primary, ...headlines]) {
-    const sameStory = headline === primary
-      || headlineSimilarity(headline.title, primary.title) >= 0.72;
-    if (sameStory && headline.url && !isGoogleNewsUrl(headline.url)) add(headline.url);
+    if (isSameStoryHeadline(headline, primary) && headline.url && !isGoogleNewsUrl(headline.url)) {
+      add(headline.url);
+    }
   }
   add(primary.url);
   return urls;
@@ -424,6 +443,10 @@ async function hydratePrimaryHeadline(
 ): Promise<MarketNarrativeHeadline> {
   if (primary.imageUrl && !isUsableArticleImage(primary.imageUrl)) {
     primary = { ...primary, imageUrl: null };
+  }
+  if (!primary.imageUrl) {
+    const siblingImage = siblingArticleImage(primary, headlines);
+    if (siblingImage) return { ...primary, imageUrl: siblingImage };
   }
   if (primary.imageUrl) return primary;
 
