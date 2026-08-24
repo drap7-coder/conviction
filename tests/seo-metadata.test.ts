@@ -14,11 +14,12 @@ function read(path: string) {
 describe("SEO metadata", () => {
   it("keeps the public brand constants", () => {
     expect(SITE_NAME).toBe("CONVICTION");
-    expect(SITE_TAGLINE).toBe("Who’s buying the stocks you follow");
-    expect(SITE_TITLE).toBe("CONVICTION — Who’s buying the stocks you follow");
+    expect(SITE_TAGLINE).toBe("The stock market, organized around you");
+    expect(SITE_TITLE).toBe("CONVICTION — The stock market, organized around you");
     expect(SITE_TITLE).not.toContain("Evidence Detection");
     expect(SITE_TITLE).not.toContain("Ownership Signals");
-    expect(SITE_DESCRIPTION).toContain("institutions, insiders, and politicians");
+    expect(SITE_DESCRIPTION).toContain("stock market");
+    expect(SITE_DESCRIPTION).toContain("watchlist, portfolio, news");
     expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
     expect(SITE_DESCRIPTION).not.toContain("Ownership Signals");
     expect(SITE_URL).toMatch(/^https:\/\//);

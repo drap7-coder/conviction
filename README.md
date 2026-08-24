@@ -1,6 +1,6 @@
-# CONVICTION — Who’s buying the stocks you follow
+# CONVICTION — The stock market, organized around you
 
-Follow the stocks you care about. See what institutions, insiders, and politicians are buying and selling — and what changed today.
+Track the stock market, your watchlist, portfolio, news, and notable investor activity — all in one place.
 
 ## Getting Started
 

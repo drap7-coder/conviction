@@ -13,15 +13,12 @@ export const SITE_URL = normalizeOrigin(
   process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.gotconviction.com",
 );
 
-/**
- * Public search / share copy. Do not use “Evidence Detection” — it reads
- * like a compliance product. Keep the line about who is buying and selling.
- */
+/** Public search / share copy. Lead with the product category, not a feature. */
 export const SITE_NAME = "CONVICTION";
-export const SITE_TAGLINE = "Who’s buying the stocks you follow";
+export const SITE_TAGLINE = "The stock market, organized around you";
 export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const SITE_DESCRIPTION =
-  "Follow the stocks you care about. See what institutions, insiders, and politicians are buying and selling — and what changed today.";
+  "Track the stock market, your watchlist, portfolio, news, and notable investor activity — all in one place.";
 
 export const SITE_OG_IMAGE = {
   url: "/conviction-og.png",
