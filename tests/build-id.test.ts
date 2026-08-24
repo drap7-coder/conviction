@@ -46,5 +46,7 @@ describe("build id", () => {
 
     const marker = read("src/components/BuildDebugMarker.tsx");
     expect(marker).toContain('searchParams.get("debug")');
+    expect(marker).toContain("buildId");
+    expect(read("src/app/layout.tsx")).toContain("resolvePublicBuildId()");
   });
 });

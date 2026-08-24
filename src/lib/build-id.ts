@@ -4,7 +4,10 @@
  * `NEXT_PUBLIC_BUILD_ID` at build time so the client can show the SHA.
  */
 export function resolvePublicBuildId(
-  env: Record<string, string | undefined> = process.env,
+  env: Record<string, string | undefined> = {
+    NEXT_PUBLIC_BUILD_ID: process.env.NEXT_PUBLIC_BUILD_ID,
+    VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA,
+  },
 ): string {
   const explicit = env.NEXT_PUBLIC_BUILD_ID?.trim();
   if (explicit) return explicit;

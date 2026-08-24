@@ -16,6 +16,7 @@ import {
   SITE_URL,
 } from "@/lib/site";
 import { siteJsonLd } from "@/lib/seo";
+import { resolvePublicBuildId } from "@/lib/build-id";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
@@ -109,7 +110,7 @@ export default function RootLayout({
           <MarketTape />
           {children}
           <Suspense fallback={null}>
-            <BuildDebugMarker />
+            <BuildDebugMarker buildId={resolvePublicBuildId()} />
           </Suspense>
         </div>
         <MobileTabBar />
