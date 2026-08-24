@@ -9,8 +9,9 @@ const threeFund = getSampleBook("three-fund")!;
 const growth = getSampleBook("growth")!;
 
 function expectPlainMoveCopy(moves: ReturnType<typeof generateSleeveMoves>) {
-  expect(moves.every((move) => !/sleeve|toward |\d+pt/i.test(move.label))).toBe(true);
-  expect(moves.every((move) => !/sleeve|toward |\d+pt/i.test(move.why))).toBe(true);
+  expect(moves.every((move) => /^(Trim|Add|Keep) [A-Z0-9.-]+$/.test(move.label))).toBe(true);
+  expect(moves.every((move) => !/sleeve|toward |\d+pt|bonds \(/i.test(move.label))).toBe(true);
+  expect(moves.every((move) => !/sleeve|toward |\d+pt|more than 20%/i.test(move.why))).toBe(true);
 }
 
 describe("generateSleeveMoves", () => {
@@ -30,7 +31,7 @@ describe("generateSleeveMoves", () => {
       ticker: "NVDA",
       action: "trim",
       label: "Trim NVDA",
-      why: "it’s more than 20% of the book",
+      why: "NVDA is 100% of the book. One name is the risk.",
     });
     expect(moves.some((move) => move.action === "add")).toBe(true);
     expectPlainMoveCopy(moves);
@@ -48,7 +49,7 @@ describe("generateSleeveMoves", () => {
       "Keep VTI",
       "Keep BND",
     ]));
-    expect(moves.filter((move) => move.action === "keep").every((move) => move.why === "already the size this profile wants")).toBe(true);
+    expect(moves.filter((move) => move.action === "keep").every((move) => move.why.endsWith("is already the size."))).toBe(true);
     expectPlainMoveCopy(moves);
   });
 
@@ -68,15 +69,24 @@ describe("generateSleeveMoves", () => {
       ticker: "NVDA",
       action: "trim",
       label: "Trim NVDA",
-      why: "it’s more than 20% of the book",
+      why: "NVDA is 28% of the book. One name is the risk.",
     });
     const add = moves.find((move) => move.ticker === "VTI" || move.ticker === "BND" || move.ticker === "VXUS");
     expect(add?.action).toBe("add");
-    expect(add?.label).toMatch(/^Add /);
-    expect(add?.label).not.toMatch(/toward /);
-    if (add?.ticker === "BND") expect(add.label).toBe("Add bonds (BND)");
-    if (add?.ticker === "VTI") expect(add.label).toBe("Add U.S. stocks (VTI)");
-    if (add?.ticker === "VXUS") expect(add.label).toBe("Add international (VXUS)");
+    expect(add?.label).toMatch(/^Add [A-Z]/);
+    expect(add?.label).not.toMatch(/toward |bonds \(|U\.S\. stocks/);
+    if (add?.ticker === "BND") {
+      expect(add.label).toBe("Add BND");
+      expect(add.why).toBe("The book has no ballast.");
+    }
+    if (add?.ticker === "VTI") {
+      expect(add.label).toBe("Add VTI");
+      expect(add.why).toBe("The book has no broad U.S. equity.");
+    }
+    if (add?.ticker === "VXUS") {
+      expect(add.label).toBe("Add VXUS");
+      expect(add.why).toBe("The book has no international.");
+    }
     expectPlainMoveCopy(moves);
   });
 
@@ -121,7 +131,7 @@ describe("generateSleeveMoves", () => {
     expect(aggressive.some((move) => move.ticker === "MSFT" && move.action === "trim")).toBe(false);
     expect(income.some((move) => (
       (move.ticker === "MSFT" && move.action === "trim")
-      || move.label === "Add bonds (BND)"
+      || move.label === "Add BND"
     ))).toBe(true);
     expect(aggressive.map((move) => move.label).join("|")).not.toBe(income.map((move) => move.label).join("|"));
     expectPlainMoveCopy(aggressive);

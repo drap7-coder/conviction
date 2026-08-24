@@ -651,11 +651,11 @@
   font-style: normal;
 }
 
-/* Live hero: Fit + Reliance + posture moves (same ProductStage, no second hero) */
+/* Live hero: Fit + Reliance + risk-profile ask + moves (same ProductStage) */
 .portfolio-page .pf-fit-board {
   display: grid;
-  gap: 10px;
-  margin-top: 6px;
+  gap: 14px;
+  margin-top: 10px;
 }
 
 .portfolio-page .product-stage p.pf-fit-runner {
@@ -669,8 +669,8 @@
 
 .portfolio-page .pf-risk {
   display: grid;
-  gap: 10px;
-  margin: 2px 0 0;
+  gap: 8px;
+  margin: 0;
   padding: 0;
   border: 0;
   min-width: 0;
@@ -678,99 +678,97 @@
 
 .portfolio-page .pf-risk-q {
   display: block;
-  width: 100%;
+  float: none;
+  width: auto;
+  margin: 0;
   padding: 0;
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: 0.92rem;
-  font-weight: 650;
-  letter-spacing: -0.015em;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
 }
 
 .portfolio-page .pf-profile {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
 }
 
 .portfolio-page .pf-profile-option {
-  display: grid;
-  gap: 2px;
-  padding: 8px 12px;
+  display: inline-flex;
+  align-items: center;
+  width: auto;
+  margin: 0;
+  padding: 7px 12px;
   border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--card-soft);
-  color: var(--ink);
-  text-align: left;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card) 82%, transparent);
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 550;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+  text-align: center;
+  white-space: nowrap;
   cursor: pointer;
 }
 
-.portfolio-page .pf-profile-option strong {
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 650;
-}
-
-.portfolio-page .pf-profile-option span {
-  color: var(--muted);
-  font-family: var(--font-sans);
-  font-size: 0.68rem;
-  line-height: 1.35;
-}
-
 .portfolio-page .pf-profile-option.is-active {
-  background: var(--accent-dim);
-  border-color: var(--accent);
-}
-
-@media (min-width: 640px) {
-  .portfolio-page .pf-profile {
-    grid-template-columns: 1fr 1fr;
-  }
+  border-color: color-mix(in srgb, var(--ink) 28%, var(--border));
+  background: var(--ink);
+  color: var(--bg);
 }
 
 .portfolio-page .pf-moves-lead {
-  margin: 2px 0 0;
-  color: var(--muted);
-  font-family: var(--font-sans);
-  font-size: 0.74rem;
+  margin: 6px 0 0;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
 .portfolio-page .pf-moves {
   display: grid;
-  gap: 5px;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .portfolio-page .pf-move {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(5.5rem, auto) minmax(0, 1fr);
   align-items: baseline;
-  gap: 4px 12px;
+  gap: 10px 16px;
 }
 
 .portfolio-page .pf-move-action {
   color: var(--ink);
   font-family: var(--font-mono);
-  font-size: 0.78rem;
-  font-weight: 650;
+  font-size: 0.76rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .portfolio-page .pf-move-why {
   color: var(--muted);
   font-family: var(--font-sans);
-  font-size: 0.7rem;
+  font-size: 0.76rem;
+  font-weight: 400;
+  line-height: 1.35;
 }
 
 .portfolio-page .product-stage p.pf-fit-hedge {
   max-width: none;
-  margin: 2px 0 0;
+  margin: 0;
   color: var(--quiet);
   font-family: var(--font-sans);
   font-size: 0.62rem;
-  font-style: italic;
+  font-style: normal;
   line-height: 1.4;
 }
 

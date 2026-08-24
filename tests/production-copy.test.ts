@@ -35,6 +35,18 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("is-best");
     expect(portfolio).toContain("is-worst");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
+    expect(portfolio).toContain("RISK_PROFILE_QUESTION");
+    expect(portfolio).toContain("riskProfileMovesLead");
+    expect(portfolio).toContain("FIT_HEDGE");
+    expect(portfolio).not.toContain("RISK_PROFILE_BLURBS");
+    expect(portfolio).not.toContain("Then here are the moves");
+    expect(portfolio).not.toContain("What’s your risk profile");
+    const css = read("src/app/portfolio.css");
+    const profileBlock = css.slice(css.indexOf(".pf-profile-option"), css.indexOf(".pf-moves-lead"));
+    expect(profileBlock).toContain("white-space: nowrap");
+    expect(profileBlock).toContain("border-radius: 999px");
+    expect(profileBlock).toContain(".pf-profile-option.is-active");
+    expect(profileBlock).not.toContain("text-overflow: ellipsis");
   });
 
   it("does not render setup instructions in the guest watchlist experience", () => {

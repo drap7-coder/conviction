@@ -1,6 +1,6 @@
 /**
  * Concrete moves toward a Study template.
- * Visible labels stay plain — ticker + verb. Why is everyday English.
+ * Label is verb + ticker. Why is a principle applied to this book.
  *
  * Aggressive Growth uses the Growth book but accepts concentration
  * (35% mark, no equal-weight trims). Other profiles use the 20% mark.
@@ -24,17 +24,6 @@ const CONCENTRATION_MARK = 20;
 const AGGRESSIVE_MARK = 35;
 const MIN_GAP = 5;
 const MIN_TRIM = 3;
-
-const ADD_NAMES: Record<string, string> = {
-  BND: "bonds",
-  IEF: "bonds",
-  TLT: "long bonds",
-  VXUS: "international",
-  GLD: "gold",
-  SGOV: "cash",
-  DBC: "commodities",
-  VTI: "U.S. stocks",
-};
 
 const GROWTH_NAMES = new Set([
   "AAPL", "MSFT", "NVDA", "AMZN", "GOOG", "GOOGL", "META", "AVGO", "NFLX", "CRM", "COST", "TSLA",
@@ -73,9 +62,7 @@ export function generateSleeveMoves(
           action: "trim",
           deltaPt: -delta,
           label: `Trim ${row.ticker}`,
-          why: aggressive
-            ? "it’s a very large piece of the book"
-            : `it’s more than ${CONCENTRATION_MARK}% of the book`,
+          why: concentrationWhy(row.ticker, row.weight, aggressive),
         });
         continue;
       }
@@ -88,7 +75,7 @@ export function generateSleeveMoves(
         action: "trim",
         deltaPt: -delta,
         label: `Trim ${row.ticker}`,
-        why: "it’s more than this profile wants",
+        why: `${row.ticker} is ${pct(row.weight)}. Larger than needed.`,
       });
       continue;
     }
@@ -102,7 +89,7 @@ export function generateSleeveMoves(
           action: "trim",
           deltaPt: -delta,
           label: `Trim ${row.ticker}`,
-          why: "this profile doesn’t use it",
+          why: `${row.ticker} is ${pct(row.weight)}. This profile does not need it.`,
         });
       }
     }
@@ -124,8 +111,10 @@ export function generateSleeveMoves(
       ticker: sleeve.ticker,
       action: "add",
       deltaPt: delta,
-      label: addLabel(sleeve.ticker),
-      why: sleeve.current <= 0 ? missingWhy(sleeve.ticker) : "this profile wants more of it",
+      label: `Add ${sleeve.ticker}`,
+      why: sleeve.current <= 0
+        ? missingWhy(sleeve.ticker)
+        : `${sleeve.ticker} is ${pct(sleeve.current)}. This profile wants ${pct(sleeve.weight)}.`,
     });
   }
 
@@ -138,7 +127,7 @@ export function generateSleeveMoves(
         action: "keep",
         deltaPt: 0,
         label: `Keep ${sleeve.ticker}`,
-        why: "already the size this profile wants",
+        why: `${sleeve.ticker} is already the size.`,
       });
     }
   }
@@ -166,7 +155,7 @@ export function generateSleeveMoves(
         action: "keep",
         deltaPt: 0,
         label: `Keep ${row.ticker}`,
-        why: "already a core holding",
+        why: `${row.ticker} is already core.`,
       });
     }
   }
@@ -181,17 +170,23 @@ function isGrowthName(ticker: string, exposure: string | null): boolean {
     || exposure === "Consumer Discretionary";
 }
 
-function addLabel(ticker: string): string {
-  const name = ADD_NAMES[ticker];
-  return name ? `Add ${name} (${ticker})` : `Add ${ticker}`;
+function concentrationWhy(ticker: string, weight: number, aggressive: boolean): string {
+  const head = `${ticker} is ${pct(weight)} of the book.`;
+  return aggressive
+    ? `${head} Even this profile has a limit.`
+    : `${head} One name is the risk.`;
 }
 
 function missingWhy(ticker: string): string {
-  if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return "the book has no bonds";
-  if (ticker === "VXUS") return "the book has no international stocks";
-  if (ticker === "GLD") return "the book has no gold";
-  if (ticker === "SGOV") return "the book has no cash";
-  if (ticker === "DBC") return "the book has no commodities";
-  if (ticker === "VTI") return "the book has no broad U.S. stocks";
-  return `the book is missing ${ticker}`;
+  if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return "The book has no ballast.";
+  if (ticker === "VXUS") return "The book has no international.";
+  if (ticker === "GLD") return "The book has no gold.";
+  if (ticker === "SGOV") return "The book has no cash.";
+  if (ticker === "DBC") return "The book has no commodities.";
+  if (ticker === "VTI") return "The book has no broad U.S. equity.";
+  return `The book is missing ${ticker}.`;
+}
+
+function pct(weight: number): string {
+  return `${Math.round(weight)}%`;
 }

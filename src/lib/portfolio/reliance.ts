@@ -54,10 +54,7 @@ export function computeReliance(holdings: BookHolding[]): RelianceResult {
   });
 
   const tone: RelianceTone = score >= 70 ? "concentrated" : score >= 45 ? "watch" : "balanced";
-  const line = relianceSentence(tone, largest.ticker, score);
-  const swingPts = largest.weight * 0.2;
-  const swing = Number.isInteger(swingPts) ? swingPts.toFixed(0) : swingPts.toFixed(1);
-  const swingLine = `If ${largest.ticker} moves 20%, the book moves about ${swing}%.`;
+  const line = relianceSentence(tone, largest.ticker);
 
   return {
     score,
@@ -65,7 +62,7 @@ export function computeReliance(holdings: BookHolding[]): RelianceResult {
     largestSleeve,
     topThreeWeight,
     line,
-    summary: `${line} ${swingLine}`,
+    summary: line,
     tone,
   };
 }
@@ -93,11 +90,10 @@ export function relianceScore(input: {
   ));
 }
 
-function relianceSentence(tone: RelianceTone, ticker: string, score: number): string {
-  const tail = `Reliance ${score}.`;
-  if (tone === "concentrated") return `A lot rides on ${ticker}. ${tail}`;
-  if (tone === "watch") return `${ticker} is a large piece of the book. ${tail}`;
-  return `The book is spread out. ${tail}`;
+function relianceSentence(tone: RelianceTone, ticker: string): string {
+  if (tone === "concentrated") return `${ticker} has to be right.`;
+  if (tone === "watch") return `${ticker} is a large piece.`;
+  return "The book is spread out.";
 }
 
 function clamp(min: number, max: number, value: number): number {
