@@ -87,27 +87,40 @@ describe("Pulse heatmap universe", () => {
     expect(panel).not.toContain("wl-manage-row");
   });
 
-  it("renders Indexes as gauges then a compact scoreboard, with commodities as the same rows", () => {
+  it("renders one scrolling view ordered Indexes, Trending, Commodities, then Sectors", () => {
     const page = read("src/app/pulse/page.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
-    const indexesStart = page.indexOf("<PulseMacroGauges");
+    const gaugesStart = page.indexOf("<PulseMacroGauges");
+    const indexesStart = page.indexOf("<IndexScoreboard");
+    const trendingStart = page.indexOf('id="market-moves"');
+    const commoditiesStart = page.indexOf("<CommodityScoreboard");
+    const sectorsStart = page.indexOf('id="industries"');
+    const moreMarketsStart = page.indexOf('className="pulse-more-markets"');
     const indexesBlock = page.slice(
-      indexesStart,
-      page.indexOf('id="industries"'),
+      gaugesStart,
+      trendingStart,
     );
     const sectorsBlock = page.slice(
       page.indexOf('title="Sectors"'),
-      page.indexOf('className="pulse-more-markets"'),
+      moreMarketsStart,
     );
     const moreMarketsBlock = page.slice(
-      page.indexOf('className="pulse-more-markets"'),
-      page.indexOf('id="pulse-panel-trending"'),
+      moreMarketsStart,
     );
 
+    expect(gaugesStart).toBeGreaterThan(-1);
     expect(indexesStart).toBeGreaterThan(-1);
-    expect(indexesStart).toBeLessThan(page.indexOf("<IndexScoreboard"));
+    expect(gaugesStart).toBeLessThan(indexesStart);
+    expect(indexesStart).toBeLessThan(trendingStart);
+    expect(trendingStart).toBeLessThan(commoditiesStart);
+    expect(commoditiesStart).toBeLessThan(sectorsStart);
+    expect(sectorsStart).toBeLessThan(moreMarketsStart);
+    expect(page).not.toContain("ViewSwitcher");
+    expect(page).not.toContain("PULSE_TABS");
+    expect(page).not.toContain('role="tabpanel"');
+    expect(page).not.toContain("pulse-panel-trending");
     expect(page).toContain("PulseMacroGauges");
     expect(page).toContain("IndexScoreboard");
     expect(page).toContain("CommodityScoreboard");
@@ -127,7 +140,7 @@ describe("Pulse heatmap universe", () => {
     expect(sectorsBlock).toContain("sessionLabel={data.sessionLabel}");
     expect(page).toContain('className="stock-heat-session ink-chip ink-chip--amber"');
     expect(moreMarketsBlock).not.toContain("sessionLabel");
-    expect(moreMarketsBlock).toContain("CommodityScoreboard");
+    expect(moreMarketsBlock).not.toContain("CommodityScoreboard");
     expect(moreMarketsBlock).not.toContain('title="Commodities"');
     expect(moreMarketsBlock).toContain('title="Crypto"');
   });
