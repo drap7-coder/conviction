@@ -44,6 +44,10 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("moveVerb");
     expect(portfolio).toContain("moveFocus");
     expect(portfolio).toContain("visibleCompareMoves");
+    expect(portfolio).toContain('metricsPlacement="above"');
+    expect(portfolio).toContain('className="is-lead"');
+    expect(read("src/components/ProductStage.tsx")).toContain('metricsPlacement');
+    expect(read("src/app/globals.css")).toContain("product-stage--metrics-above");
     expect(portfolio).toContain("pf-move-verb");
     expect(portfolio).toContain("pf-move-focus");
     expect(portfolio).not.toContain("riskProfileMovesLead");

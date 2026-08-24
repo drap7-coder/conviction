@@ -882,9 +882,10 @@ export default function Portfolio({
           eyebrow={stageEyebrow}
           headline={stageHeadline}
           summary={stageSummary}
+          metricsPlacement="above"
           metrics={
             <>
-              <div>
+              <div className="is-lead">
                 <strong className="tnum">{compactCurrency(portfolioMetrics.totalMarketValue)}</strong>
                 <span>Value</span>
               </div>

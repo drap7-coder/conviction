@@ -19,6 +19,8 @@ type ProductStageProps = {
   headline: string;
   summary?: ReactNode;
   metrics?: ReactNode;
+  /** `above` puts the stat strip over the headline (Portfolio). Default stays a side column. */
+  metricsPlacement?: "aside" | "above";
   tone?: ProductStageTone;
   /** If true, headline animates in left-to-right like a terminal/typewriter. */
   typewriterHeadline?: boolean;
@@ -47,6 +49,7 @@ function ProductStageView({
   headline,
   summary,
   metrics,
+  metricsPlacement = "aside",
   tone,
   typewriterHeadline,
   headlineMaxLines,
@@ -56,8 +59,19 @@ function ProductStageView({
   "aria-label": ariaLabel,
 }: ProductStageProps) {
   const hasMetrics = Boolean(metrics);
+  const metricsAbove = metricsPlacement === "above" && hasMetrics;
   const toneClass = tone && tone !== "neutral" ? ` tone-${tone}` : "";
   const useTypewriter = typewriterHeadline ?? true;
+  const stageClass = `product-stage product-stage--${variant}${hasMetrics ? " has-metrics" : " is-copy-only"}${metricsAbove ? " product-stage--metrics-above" : ""}${toneClass}`;
+
+  const metricsEl = hasMetrics ? (
+    <div
+      className={`product-stage-metrics${loading ? " product-stage-metrics--skeleton" : ""}`}
+      aria-label="Key readings"
+    >
+      {metrics}
+    </div>
+  ) : null;
 
   if (statOnly) {
     return (
@@ -93,51 +107,51 @@ function ProductStageView({
     );
   }
 
+  const metricsSkeleton = hasMetrics ? (
+    <div className="product-stage-metrics product-stage-metrics--skeleton" aria-hidden="true">
+      <div>
+        <span className="product-stage-skeleton product-stage-skeleton-strong" />
+        <span className="product-stage-skeleton product-stage-skeleton-small" />
+      </div>
+      <div>
+        <span className="product-stage-skeleton product-stage-skeleton-strong" />
+        <span className="product-stage-skeleton product-stage-skeleton-small" />
+      </div>
+      <div>
+        <span className="product-stage-skeleton product-stage-skeleton-strong" />
+        <span className="product-stage-skeleton product-stage-skeleton-small" />
+      </div>
+    </div>
+  ) : null;
+
   if (loading) {
     return (
       <section
-        className={`product-stage product-stage--${variant} product-stage--skeleton${hasMetrics ? " has-metrics" : " is-copy-only"}${toneClass}`}
+        className={`${stageClass} product-stage--skeleton`}
         aria-label={ariaLabel}
         aria-busy="true"
       >
         <div className="product-stage-copy" aria-hidden="true">
           <span className="product-stage-skeleton product-stage-skeleton-eyebrow" />
+          {metricsAbove ? metricsSkeleton : null}
           <h1 className="product-stage-skeleton-headline" aria-hidden="true">
             <span className="product-stage-skeleton product-stage-skeleton-line product-stage-skeleton-headline-line" />
           </h1>
           {summary ? <div className="product-stage-skeleton product-stage-skeleton-summary" /> : null}
         </div>
-
-        {hasMetrics ? (
-          <div className="product-stage-metrics product-stage-metrics--skeleton" aria-hidden="true">
-            <div>
-              <span className="product-stage-skeleton product-stage-skeleton-strong" />
-              <span className="product-stage-skeleton product-stage-skeleton-small" />
-            </div>
-            <div>
-              <span className="product-stage-skeleton product-stage-skeleton-strong" />
-              <span className="product-stage-skeleton product-stage-skeleton-small" />
-            </div>
-            <div>
-              <span className="product-stage-skeleton product-stage-skeleton-strong" />
-              <span className="product-stage-skeleton product-stage-skeleton-small" />
-            </div>
-          </div>
-        ) : null}
+        {metricsAbove ? null : metricsSkeleton}
       </section>
     );
   }
 
   return (
-    <section
-      className={`product-stage product-stage--${variant}${hasMetrics ? " has-metrics" : " is-copy-only"}${toneClass}`}
-      aria-label={ariaLabel}
-    >
+    <section className={stageClass} aria-label={ariaLabel}>
       <div className="product-stage-copy">
         <span className="product-stage-eyebrow">
           <i aria-hidden="true" />
           {eyebrow}
         </span>
+        {metricsAbove ? metricsEl : null}
         <h1 className="product-stage-headline" aria-live="polite">
           {useTypewriter ? (
             <TypewriterText
@@ -155,11 +169,7 @@ function ProductStageView({
         {summary ? <p>{summary}</p> : null}
         {children}
       </div>
-      {hasMetrics ? (
-        <div className="product-stage-metrics" aria-label="Key readings">
-          {metrics}
-        </div>
-      ) : null}
+      {metricsAbove ? null : metricsEl}
     </section>
   );
 }

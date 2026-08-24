@@ -655,7 +655,9 @@
 .portfolio-page .pf-fit-board {
   display: grid;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .portfolio-page .product-stage p.pf-fit-runner {
