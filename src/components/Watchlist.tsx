@@ -547,12 +547,6 @@ export default function Watchlist({
 
   return (
     <div>
-      <div className="data-page-actions">
-        <Link href="/manage#watchlist" className="data-edit-pill">
-          Edit watchlist
-        </Link>
-      </div>
-
       {loading ? (
         <PageLoadingMotion
           label="Loading watchlist"
@@ -577,6 +571,11 @@ export default function Watchlist({
         <StockHeatmap
           title="Today’s move"
           subtitle=""
+          headerAction={(
+            <Link href="/manage#watchlist" className="data-edit-pill">
+              Edit watchlist
+            </Link>
+          )}
           loading={loading}
           showStatusDot={false}
           showPrice

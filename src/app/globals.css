@@ -8366,9 +8366,17 @@ button.brief-link:focus-visible {
   gap: 20px;
 }
 
-.pf-values-positions-header > div {
+.pf-values-positions-heading {
   display: grid;
   gap: 4px;
+}
+
+.pf-values-positions-header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
 }
 
 .pf-values-positions-header .pf-section-eyebrow {
@@ -8405,6 +8413,15 @@ button.brief-link:focus-visible {
   font-weight: 750;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+.pf-values-positions .data-edit-pill {
+  min-height: 30px;
+  padding: 6px 10px;
+  border-color: color-mix(in srgb, var(--on-ink-accent) 34%, var(--on-ink-border));
+  background: color-mix(in srgb, var(--on-ink-accent) 9%, transparent);
+  color: var(--on-ink);
+  font-size: 0.65rem;
 }
 
 .pf-values-controls {
@@ -9691,6 +9708,11 @@ button.brief-link:focus-visible {
     align-items: flex-start;
     flex-direction: column;
     gap: 10px;
+  }
+
+  .pf-values-positions-header-actions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .pf-values-positions-footer {
@@ -17341,6 +17363,20 @@ a.pulse-news-narrative-title:focus-visible {
   gap: 10px;
   flex-wrap: wrap;
   margin: 0;
+}
+
+.stock-heat-heading-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.stock-heat-heading-actions .data-edit-pill {
+  min-height: 28px;
+  padding: 5px 10px;
+  font-size: 0.65rem;
 }
 
 .stock-heat-title,

@@ -32,6 +32,10 @@ describe("data management workspace", () => {
     expect(portfolio).not.toContain("handleClearAll");
     expect(holdingCard).not.toContain("pf-holding-actions");
     expect(holdingCard).not.toContain("onConfirmRemove");
+    expect(watchlist).toContain("headerAction={(");
+    expect(watchlist).not.toContain('className="data-page-actions"');
+    expect(portfolio).toContain('className="pf-values-positions-header-actions"');
+    expect(portfolio).not.toContain('className="data-page-actions"');
   });
 
   it("uses the shared portfolio sync client and confirms destructive bulk clearing", () => {

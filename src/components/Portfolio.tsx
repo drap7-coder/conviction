@@ -690,12 +690,6 @@ export default function Portfolio() {
 
   return (
     <div className="pf">
-      <div className="data-page-actions">
-        <Link href="/manage#portfolio" className="data-edit-pill">
-          Edit portfolio
-        </Link>
-      </div>
-
       <div className="pf-mode-switch" role="tablist" aria-label="Portfolio mode">
         <button
           type="button"
@@ -882,13 +876,18 @@ export default function Portfolio() {
 
                 <section className="pf-values-positions" id="portfolio-positions" aria-label="Portfolio holdings">
                   <header className="pf-values-positions-header">
-                    <div>
+                    <div className="pf-values-positions-heading">
                       <span className="pf-section-eyebrow">Holdings</span>
                       <h2>Where the value lives</h2>
                     </div>
-                    <span className="pf-values-position-count">
-                      {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
-                    </span>
+                    <div className="pf-values-positions-header-actions">
+                      <span className="pf-values-position-count">
+                        {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
+                      </span>
+                      <Link href="/manage#portfolio" className="data-edit-pill">
+                        Edit portfolio
+                      </Link>
+                    </div>
                   </header>
 
                   <div className="pf-values-controls">
@@ -937,12 +936,6 @@ export default function Portfolio() {
                   })}
                   </div>
 
-                  {positions.length > 0 && (
-                    <footer className="pf-values-positions-footer">
-                      <span>Keep the live view focused on the book.</span>
-                      <Link href="/manage#portfolio" className="data-edit-pill">Edit portfolio</Link>
-                    </footer>
-                  )}
                 </section>
               </>
             ) : null}

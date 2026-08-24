@@ -33,6 +33,8 @@ interface StockHeatmapProps {
   subtitle: string;
   items: StockHeatmapItem[];
   loading?: boolean;
+  /** Optional control aligned with the title inside the panel header. */
+  headerAction?: ReactNode;
   /** Live session chip — "Pre-Market" / "After Hours" when extended hours are active */
   sessionLabel?: string | null;
   /** Context feed nested under the tiles (e.g. What’s changing). */
@@ -68,22 +70,29 @@ function HeatmapCopy({
   title,
   subtitle,
   sessionLabel,
+  headerAction,
   showLegend = false,
 }: {
   title: string;
   subtitle: string;
   sessionLabel?: string | null;
+  headerAction?: ReactNode;
   showLegend?: boolean;
 }) {
   return (
     <div className="stock-heat-copy">
       <div className="stock-heat-heading">
         <h2 className="stock-heat-title">{title}</h2>
-        {sessionLabel ? (
-          <span className="stock-heat-session ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
-            <i className="stock-heat-session-dot" aria-hidden="true" />
-            {sessionLabel}
-          </span>
+        {sessionLabel || headerAction ? (
+          <div className="stock-heat-heading-actions">
+            {sessionLabel ? (
+              <span className="stock-heat-session ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
+                <i className="stock-heat-session-dot" aria-hidden="true" />
+                {sessionLabel}
+              </span>
+            ) : null}
+            {headerAction}
+          </div>
         ) : null}
       </div>
       {subtitle.trim() ? <p className="stock-heat-subtitle">{subtitle}</p> : null}
@@ -107,6 +116,7 @@ export function StockHeatmap({
   subtitle,
   items,
   loading = false,
+  headerAction = null,
   sessionLabel = null,
   footer = null,
   liveCards = true,
@@ -121,7 +131,7 @@ export function StockHeatmap({
   if (loading && items.length === 0) {
     return (
       <section className="stock-heat-panel stock-heat-loading" aria-label={title} aria-description={subtitle} aria-busy="true">
-        <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
+        <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} headerAction={headerAction} />
         {footerSlot}
         <div className="stock-heat-loading-grid" aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => <span key={index} className="stock-heat-loading-tile" />)}
@@ -133,7 +143,7 @@ export function StockHeatmap({
     if (!footerSlot) return null;
     return (
       <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
-        <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
+        <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} headerAction={headerAction} />
         {footerSlot}
       </section>
     );
@@ -143,7 +153,7 @@ export function StockHeatmap({
 
   return (
     <section className="stock-heat-panel" aria-label={title} aria-description={subtitle}>
-      <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} />
+      <HeatmapCopy title={title} subtitle={subtitle} sessionLabel={sessionLabel} headerAction={headerAction} />
       {footerSlot}
       <HeatmapGrid
         className={`stock-heat-grid${uniform ? " stock-heat-grid--uniform" : ""}`}
