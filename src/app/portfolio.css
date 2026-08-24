@@ -177,7 +177,6 @@
   background: var(--divider);
 }
 
-/* Flatten the ladder's own card chrome inside the Capital Map. */
 /* Nested in the Live hero: same map, no second card chrome. */
 .portfolio-page .product-stage .pf-capital-map {
   margin: 2px 0 0;
@@ -198,6 +197,8 @@
   letter-spacing: -0.02em;
   color: var(--muted);
 }
+
+.portfolio-page .pf-capital-map .pf-allocation-ladder {
   margin: 0;
   padding: 0;
   border: 0;
