@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { classifyFit, RISK_PROFILE_LABELS, RISK_PROFILES, targetBookForProfile } from "@/lib/portfolio/fit";
-import { generateSleeveMoves } from "@/lib/portfolio/sleeve-moves";
+import { generateSleeveMoves, isAddEtf, moveFocus, moveVerb } from "@/lib/portfolio/sleeve-moves";
 import { getSampleBook } from "@/lib/portfolio/sample-books";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
 
@@ -13,10 +13,16 @@ function expectPlainMoveCopy(moves: ReturnType<typeof generateSleeveMoves>) {
     if (move.action === "add") {
       return /^Add /.test(move.label)
         && Boolean(move.category)
-        && !move.label.includes(move.ticker);
+        && !move.label.includes(move.ticker)
+        && isAddEtf(move.ticker)
+        && moveFocus(move) === move.category
+        && moveVerb(move.action) === "Add";
     }
-    return /^(Trim|Keep) [A-Z0-9.-]+$/.test(move.label) && move.category == null;
+    return /^(Trim|Keep) [A-Z0-9.-]+$/.test(move.label)
+      && move.category == null
+      && moveFocus(move) === move.ticker;
   })).toBe(true);
+  expect(moves.filter((move) => move.action === "add").every((move) => isAddEtf(move.ticker))).toBe(true);
   expect(moves.every((move) => !/sleeve|toward |\d+pt|bonds \(/i.test(move.label))).toBe(true);
   expect(moves.every((move) => !/sleeve|toward |\d+pt|more than 20%/i.test(move.why))).toBe(true);
 }
@@ -114,7 +120,10 @@ describe("generateSleeveMoves", () => {
     expect(targetBookForProfile("growth", fit.rankings).id).toBe("growth");
     expect(targetBookForProfile("income", fit.rankings).id).toMatch(/dividend|dogs-of-the-dow|permanent/);
     const moves = generateSleeveMoves(holdings, growth, undefined, "growth");
-    expect(moves.some((move) => move.ticker === "AAPL" || move.action === "trim" || move.action === "add")).toBe(true);
+    expect(moves.some((move) => move.action === "trim" || move.action === "add")).toBe(true);
+    expect(moves.filter((move) => move.action === "add").every((move) => (
+      isAddEtf(move.ticker) && !["AAPL", "MSFT", "JNJ", "GEV", "TSLA"].includes(move.ticker)
+    ))).toBe(true);
     expect(moves.length).toBeGreaterThanOrEqual(2);
     expect(moves.length).toBeLessThanOrEqual(4);
     expect(RISK_PROFILES).toHaveLength(5);
@@ -166,6 +175,62 @@ describe("generateSleeveMoves", () => {
       ticker: "NVDA",
       label: "Trim NVDA",
     });
+    expectPlainMoveCopy(moves);
+  });
+
+  it("does not recommend individual stocks as Growth adds — QQQ stands in", () => {
+    const holdings: BookHolding[] = [
+      { ticker: "JNJ", weight: 40, exposure: "Health Care" },
+      { ticker: "PG", weight: 30, exposure: "Consumer Staples" },
+      { ticker: "KO", weight: 30, exposure: "Consumer Staples" },
+    ];
+    const fit = classifyFit(holdings);
+    const target = targetBookForProfile("growth", fit.rankings);
+    const moves = generateSleeveMoves(holdings, target, undefined, "growth");
+    const add = moves.find((move) => move.action === "add");
+    expect(add).toMatchObject({
+      ticker: "QQQ",
+      action: "add",
+      label: "Add growth",
+      category: "growth",
+      why: "The book has no growth.",
+    });
+    expect(moves.some((move) => move.action === "add" && !isAddEtf(move.ticker))).toBe(false);
+    expect(moves.some((move) => ["AAPL", "MSFT", "NVDA", "TSLA", "GEV"].includes(move.ticker) && move.action === "add")).toBe(false);
+    expectPlainMoveCopy(moves);
+  });
+
+  it("does not add mega-caps to a concentrated growth book that already has the category", () => {
+    const holdings: BookHolding[] = [{ ticker: "NVDA", weight: 100, exposure: "Technology" }];
+    const fit = classifyFit(holdings);
+    const target = targetBookForProfile("growth", fit.rankings);
+    const moves = generateSleeveMoves(holdings, target, undefined, "growth");
+    expect(moves.find((move) => move.action === "trim")).toMatchObject({
+      ticker: "NVDA",
+      label: "Trim NVDA",
+    });
+    expect(moves.some((move) => move.action === "add" && move.ticker === "QQQ")).toBe(false);
+    expect(moves.some((move) => move.action === "add" && !isAddEtf(move.ticker))).toBe(false);
+    expect(moves.some((move) => ["AAPL", "MSFT", "AMZN", "GOOG", "META"].includes(move.ticker) && move.action === "add")).toBe(false);
+    expectPlainMoveCopy(moves);
+  });
+
+  it("frames Income adds as yield plus SCHD, not a dividend stock pick", () => {
+    const holdings: BookHolding[] = [{ ticker: "NVDA", weight: 100, exposure: "Technology" }];
+    const fit = classifyFit(holdings);
+    const target = targetBookForProfile("income", fit.rankings);
+    const moves = generateSleeveMoves(holdings, target, undefined, "income");
+    const add = moves.find((move) => move.action === "add");
+    expect(add).toBeTruthy();
+    expect(isAddEtf(add!.ticker)).toBe(true);
+    expect(["JNJ", "PG", "KO", "VZ", "IBM", "DOW", "NVDA", "TSLA"]).not.toContain(add!.ticker);
+    if (add?.ticker === "SCHD") {
+      expect(add).toMatchObject({
+        label: "Add yield",
+        category: "yield",
+        why: "The book has no yield.",
+      });
+    }
     expectPlainMoveCopy(moves);
   });
 });

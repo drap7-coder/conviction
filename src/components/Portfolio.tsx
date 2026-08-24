@@ -51,7 +51,7 @@ import {
   targetBookForProfile,
   type RiskProfile,
 } from "@/lib/portfolio/fit";
-import { generateSleeveMoves } from "@/lib/portfolio/sleeve-moves";
+import { generateSleeveMoves, moveFocus, moveVerb } from "@/lib/portfolio/sleeve-moves";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
 
 const PORTFOLIO_TEMPLATE_DEFAULT = "three-fund";
@@ -941,16 +941,15 @@ export default function Portfolio({
                     {sleeveMoves.map((move) => (
                       <li
                         key={`${move.action}-${move.ticker}`}
-                        className={`pf-move${move.action === "add" ? " is-add" : ""}`}
+                        className={`pf-move is-${move.action}`}
                       >
-                        {move.action === "add" ? (
-                          <span className="pf-move-action">
-                            {move.label}
+                        <span className="pf-move-action">
+                          <span className="pf-move-verb">{moveVerb(move.action)}</span>
+                          <strong className="pf-move-focus">{moveFocus(move)}</strong>
+                          {move.action === "add" ? (
                             <span className="pf-move-ticker">{move.ticker}</span>
-                          </span>
-                        ) : (
-                          <strong className="pf-move-action">{move.label}</strong>
-                        )}
+                          ) : null}
+                        </span>
                         <span className="pf-move-why">{move.why}</span>
                       </li>
                     ))}
