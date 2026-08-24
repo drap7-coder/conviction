@@ -143,6 +143,15 @@ describe("production copy and fixture isolation", () => {
     expect(feed).not.toContain("pulse-news-row");
     expect(feed).not.toContain(">Headlines<");
     const newsCss = read("src/app/globals.css");
+    const filterBlock = newsCss.slice(
+      newsCss.indexOf(".pulse-news-filters button"),
+      newsCss.indexOf(".pulse-news-stream"),
+    );
+    expect(filterBlock).toContain(".pulse-news-filters button.is-active");
+    expect(filterBlock).toContain("background: var(--accent-dim)");
+    expect(filterBlock).toContain("color: var(--ink)");
+    expect(filterBlock).not.toContain("background: var(--ink)");
+    expect(filterBlock).not.toContain("#ffffff");
     expect(newsCss).toContain(".pulse-news-narrative.is-featured");
     expect(newsCss).toContain("grid-column: 1 / -1");
     expect(newsCss).toContain(".pulse-news-hero-media");

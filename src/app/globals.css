@@ -16505,11 +16505,16 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-news-filters button:hover,
-.pulse-news-filters button:focus-visible,
+.pulse-news-filters button:focus-visible {
+  border-color: var(--border-active);
+  color: var(--ink);
+  outline: none;
+}
+
 .pulse-news-filters button.is-active {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: #ffffff;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  background: var(--accent-dim);
+  color: var(--ink);
   outline: none;
 }
 
