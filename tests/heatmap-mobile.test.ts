@@ -34,7 +34,7 @@ describe("mobile heatmaps", () => {
     );
     const pulseUniform = css.indexOf(".pulse-page .market-heatmap--uniform");
     const phoneTwoCol = css.indexOf(
-      ".market-heatmap,\n  .market-heatmap.compact,\n  .market-heatmap--uniform {\n    grid-template-columns: repeat(2, minmax(0, 1fr));",
+      ".pulse-page .market-heatmap,\n  .pulse-page .market-heatmap.compact,\n  .pulse-page .market-heatmap--uniform {\n    grid-template-columns: repeat(2, minmax(0, 1fr));",
     );
 
     expect(page).toContain('className="markets-page pulse-page"');

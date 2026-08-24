@@ -18188,8 +18188,8 @@ a.pulse-news-narrative-title:focus-visible {
  * Pulse heatmaps: `.market-heatmap` above resets columns to 6 tracks and
  * beats the earlier `--uniform` auto-fill (same specificity). Re-assert
  * the 150px floor here so Indexes / More markets tiles cannot crush to
- * ~60px inside half-width cards. Phone 2-col (max-width: 767px) must
- * stay later in this file so it still wins on small viewports.
+ * ~60px inside half-width cards. The phone rule below repeats these
+ * Pulse-qualified selectors so its 2-col layout also wins by specificity.
  */
 .pulse-page .market-heatmap,
 .pulse-page .market-heatmap.compact,
@@ -19076,7 +19076,10 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 @media (max-width: 767px) {
   .market-heatmap,
   .market-heatmap.compact,
-  .market-heatmap--uniform {
+  .market-heatmap--uniform,
+  .pulse-page .market-heatmap,
+  .pulse-page .market-heatmap.compact,
+  .pulse-page .market-heatmap--uniform {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
