@@ -12348,6 +12348,69 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: var(--red-dim);
 }
 
+/* Live book: Value / Today / Largest sit above the Fit line, full width. */
+.product-stage--portfolio.product-stage--metrics-above {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 0;
+  padding: 14px 16px 16px;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-copy {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics {
+  align-self: stretch;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead strong {
+  font-size: clamp(1.35rem, 3vw, 1.85rem);
+  letter-spacing: -0.06em;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-headline {
+  margin-top: 4px;
+  font-family: var(--font-sans);
+  font-size: clamp(1.25rem, 2.6vw, 1.45rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-copy > p {
+  max-width: 36rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-actions {
+  margin-top: 2px;
+}
+
+@media (max-width: 640px) {
+  .product-stage--portfolio.product-stage--metrics-above {
+    padding: 12px 12px 14px;
+  }
+
+  .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
+    grid-column: 1 / -1;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead + div {
+    border-left: 0;
+  }
+}
+
 /* Stat-only stage: a compact metric strip (no headline/summary copy). */
 .product-stage--stat-only {
   grid-template-columns: 1fr;

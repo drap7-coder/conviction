@@ -654,17 +654,50 @@
 /* Live hero: Fit + Reliance + risk-profile ask + moves (same ProductStage) */
 .portfolio-page .pf-fit-board {
   display: grid;
-  gap: 12px;
-  margin-top: 10px;
+  gap: 14px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 
-.portfolio-page .product-stage p.pf-fit-runner {
-  max-width: none;
-  margin: 0;
-  color: var(--muted);
+.portfolio-page .pf-live-machine {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.portfolio-page .pf-live-machine > div {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card-soft);
+}
+
+.portfolio-page .pf-live-machine span {
+  color: var(--quiet);
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.02em;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portfolio-page .pf-live-machine p {
+  margin: 0;
+  overflow-wrap: break-word;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  white-space: normal;
+}
+
+@media (max-width: 640px) {
+  .portfolio-page .pf-live-machine {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .portfolio-page .pf-risk {

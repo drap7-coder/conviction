@@ -72,6 +72,27 @@ export function riskProfileDeltaLead(currentLabel: string, selected: RiskProfile
   return `${currentLabel} → ${RISK_PROFILE_LABELS[selected]}`;
 }
 
+/** Short job of the book — not a Study template name. */
+export function investorHeadlineFromProfile(profile: RiskProfile | null): string {
+  if (!profile) return "Waiting on prices.";
+  if (profile === "defensive") return "This book is built to hold.";
+  if (profile === "income") return "This book is built for income.";
+  if (profile === "growth-income") return "This book balances growth and ballast.";
+  return "This book is built to grow.";
+}
+
+/** Delta-header noun. Never “Dogs of the Dow” / “60/40”. */
+export function investorFitLabel(
+  primary: FitCandidate | null,
+  profile: RiskProfile | null,
+): string {
+  const id = primary?.id;
+  if (id === "all-weather" || id === "permanent" || profile === "defensive") return "Defensive";
+  if (id === "dividend" || id === "dogs-of-the-dow" || profile === "income") return "Income";
+  if (id === "sixty-forty" || id === "three-fund" || profile === "growth-income") return "Balanced";
+  return "Growth";
+}
+
 export const FIT_HEDGE = "A description of this book. Not a trade.";
 
 /**
@@ -170,12 +191,13 @@ export function classifyFit(holdings: BookHolding[]): FitResult {
     primary && second && primary.score - second.score <= RUNNER_UP_MARGIN
       ? second
       : null;
+  const defaultProfile = primary ? defaultProfileFromFit(primary, ranked) : null;
 
   return {
     primary,
     runnerUp,
-    headline: primary ? `Looks like ${primary.label}.` : "Waiting on prices.",
-    defaultProfile: primary ? defaultProfileFromFit(primary, ranked) : null,
+    headline: investorHeadlineFromProfile(defaultProfile),
+    defaultProfile,
     rankings,
   };
 }

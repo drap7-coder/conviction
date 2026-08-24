@@ -10,6 +10,8 @@ import {
   RISK_PROFILE_QUESTION,
   RISK_PROFILES,
   RUNNER_UP_MARGIN,
+  investorFitLabel,
+  investorHeadlineFromProfile,
   riskProfileDeltaLead,
   targetBookForProfile,
 } from "@/lib/portfolio/fit";
@@ -48,7 +50,7 @@ describe("classifyFit", () => {
     expect(fit.primary?.id).toBe("growth");
     expect(fit.primary?.label).toBe("Growth");
     expect(fit.primary?.profile).toBe("growth");
-    expect(fit.headline).toBe("Looks like Growth.");
+    expect(fit.headline).toBe("This book is built to grow.");
     expect(fit.headline).not.toMatch(/ · \d+$/);
     expect(fit.headline).not.toMatch(/runs the book/i);
     expect(fit.defaultProfile).toBe("aggressive-growth");
@@ -60,7 +62,7 @@ describe("classifyFit", () => {
     expect(fit.primary?.label).toBe("60/40");
     expect(fit.primary?.score).toBeGreaterThanOrEqual(95);
     expect(fit.defaultProfile).toBe("growth-income");
-    expect(fit.headline).toBe("Looks like 60/40.");
+    expect(fit.headline).toBe("This book balances growth and ballast.");
   });
 
   it("classifies a diversified mega-cap book as Growth, not Aggressive Growth", () => {
@@ -113,7 +115,10 @@ describe("classifyFit", () => {
     expect(RISK_PROFILE_QUESTION).toBe("Risk profile");
     expect(COMPARE_AGAINST_LABEL).toBe("Compare against →");
     expect(riskProfileDeltaLead("Growth", "defensive")).toBe("Growth → Defensive");
-    expect(riskProfileDeltaLead("60/40", "growth-income")).toBe("60/40 → Growth + Income");
+    expect(investorHeadlineFromProfile("growth")).toBe("This book is built to grow.");
+    expect(investorHeadlineFromProfile("growth-income")).toBe("This book balances growth and ballast.");
+    expect(investorFitLabel(classifyFit(sixtyForty).primary, "growth-income")).toBe("Balanced");
+    expect(investorFitLabel(classifyFit(sixtyForty).primary, "growth-income")).not.toMatch(/60\/40|Dogs/);
     expect(RISK_PROFILE_MOVES_SUBHEAD).toBe("Here's what would need to change:");
     expect(FIT_HEDGE).toBe("A description of this book. Not a trade.");
     expect(PROFILE_TARGET_IDS["aggressive-growth"]).toEqual(["growth"]);
