@@ -19,7 +19,7 @@ FMP_API_KEY=your_key_here
 ## Product surfaces
 
 - **Watchlist / Portfolio** — Companies and holdings you follow
-- **Pulse** — Indexes, sectors, and trending heatmaps
+- **Pulse** — Indexes, trending, commodities, and sectors
 - **Smart Money** — Institutional 13F moves and political disclosures
 
 ## Data Sources (V1)
