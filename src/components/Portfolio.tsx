@@ -51,7 +51,7 @@ import {
   targetBookForProfile,
   type RiskProfile,
 } from "@/lib/portfolio/fit";
-import { generateSleeveMoves, moveFocus, moveVerb } from "@/lib/portfolio/sleeve-moves";
+import { generateSleeveMoves, moveFocus, moveVerb, visibleCompareMoves } from "@/lib/portfolio/sleeve-moves";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
 
 const PORTFOLIO_TEMPLATE_DEFAULT = "three-fund";
@@ -691,7 +691,9 @@ export default function Portfolio({
   const stageEyebrow = `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}`;
   const profile = profileOverride ?? valueBrief.fit.defaultProfile ?? "growth-income";
   const profileTarget = targetBookForProfile(profile, valueBrief.fit.rankings);
-  const sleeveMoves = generateSleeveMoves(bookHoldings, profileTarget, undefined, profile);
+  const sleeveMoves = visibleCompareMoves(
+    generateSleeveMoves(bookHoldings, profileTarget, undefined, profile),
+  );
   const currentFitLabel = valueBrief.fit.primary?.label ?? RISK_PROFILE_LABELS[profile];
   const movesLead = riskProfileDeltaLead(currentFitLabel, profile);
 

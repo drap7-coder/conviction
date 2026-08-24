@@ -43,6 +43,7 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("pf-move-ticker");
     expect(portfolio).toContain("moveVerb");
     expect(portfolio).toContain("moveFocus");
+    expect(portfolio).toContain("visibleCompareMoves");
     expect(portfolio).toContain("pf-move-verb");
     expect(portfolio).toContain("pf-move-focus");
     expect(portfolio).not.toContain("riskProfileMovesLead");

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { classifyFit, RISK_PROFILE_LABELS, RISK_PROFILES, targetBookForProfile } from "@/lib/portfolio/fit";
-import { generateSleeveMoves, isAddEtf, moveFocus, moveVerb } from "@/lib/portfolio/sleeve-moves";
+import { generateSleeveMoves, isAddEtf, moveFocus, moveVerb, visibleCompareMoves } from "@/lib/portfolio/sleeve-moves";
 import { getSampleBook } from "@/lib/portfolio/sample-books";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
 
@@ -94,9 +94,9 @@ describe("generateSleeveMoves", () => {
       expect(add.why).toBe("The book has no ballast.");
     }
     if (add?.ticker === "VTI") {
-      expect(add.label).toBe("Add U.S. equity");
-      expect(add.category).toBe("U.S. equity");
-      expect(add.why).toBe("The book has no broad U.S. equity.");
+      expect(add.label).toBe("Add core");
+      expect(add.category).toBe("core");
+      expect(add.why).toBe("The book has no broad market.");
     }
     if (add?.ticker === "VXUS") {
       expect(add.label).toBe("Add international");
@@ -232,5 +232,29 @@ describe("generateSleeveMoves", () => {
       });
     }
     expectPlainMoveCopy(moves);
+  });
+
+  it("hides Keep rows once a Trim or Add exists, and never names the add ETF in the why", () => {
+    const holdings: BookHolding[] = [{ ticker: "NVDA", weight: 100, exposure: "Technology" }];
+    const fit = classifyFit(holdings);
+    const target = targetBookForProfile("defensive", fit.rankings);
+    const moves = generateSleeveMoves(holdings, target, undefined, "defensive");
+    const visible = visibleCompareMoves(moves);
+    expect(visible.some((move) => move.action === "keep")).toBe(false);
+    expect(visible.some((move) => move.action === "trim" || move.action === "add")).toBe(true);
+    for (const move of visible.filter((item) => item.action === "add")) {
+      expect(move.why).not.toContain(move.ticker);
+    }
+
+    const matched = generateSleeveMoves(
+      [
+        { ticker: "VTI", weight: 60, exposure: "U.S. Equity" },
+        { ticker: "BND", weight: 40, exposure: "Fixed Income" },
+      ],
+      sixtyForty,
+      undefined,
+      "growth-income",
+    );
+    expect(visibleCompareMoves(matched).every((move) => move.action === "keep")).toBe(true);
   });
 });

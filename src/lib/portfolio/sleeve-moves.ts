@@ -118,9 +118,7 @@ export function generateSleeveMoves(
       action: "add",
       deltaPt: delta,
       label: `Add ${category}`,
-      why: sleeve.current <= 0
-        ? missingWhy(sleeve.ticker)
-        : `${sleeve.ticker} is ${pct(sleeve.current)}. This profile wants ${pct(sleeve.weight)}.`,
+      why: sleeve.current <= 0 ? missingWhy(sleeve.ticker) : lightWhy(sleeve.ticker),
       category,
     });
   }
@@ -168,6 +166,12 @@ export function generateSleeveMoves(
   }
 
   return picked.slice(0, limit.max);
+}
+
+/** Recs shown under “what would need to change.” Drop Keep when Trim/Add exist. */
+export function visibleCompareMoves(moves: SleeveMove[]): SleeveMove[] {
+  const changing = moves.filter((move) => move.action !== "keep");
+  return changing.length > 0 ? changing : moves;
 }
 
 export function moveVerb(action: SleeveMoveAction): string {
@@ -252,7 +256,7 @@ function concentrationWhy(ticker: string, weight: number, aggressive: boolean): 
 
 function addCategory(ticker: string): string {
   if (ticker === "BND" || ticker === "TLT" || ticker === "IEF") return "ballast";
-  if (ticker === "VTI" || ticker === "SPY") return "U.S. equity";
+  if (ticker === "VTI" || ticker === "SPY") return "core";
   if (ticker === "QQQ") return "growth";
   if (ticker === "VXUS") return "international";
   if (ticker === "GLD") return "gold";
@@ -270,11 +274,25 @@ function missingWhy(ticker: string): string {
   if (ticker === "GLD") return "The book has no gold.";
   if (ticker === "SGOV") return "The book has no cash.";
   if (ticker === "DBC") return "The book has no commodities.";
-  if (ticker === "VTI" || ticker === "SPY") return "The book has no broad U.S. equity.";
+  if (ticker === "VTI" || ticker === "SPY") return "The book has no broad market.";
   if (ticker === "QQQ") return "The book has no growth.";
   if (ticker === "SCHD") return "The book has no yield.";
   if (ticker === "VNQ") return "The book has no real estate.";
   return `The book is missing ${ticker}.`;
+}
+
+function lightWhy(ticker: string): string {
+  if (ticker === "TLT" || ticker === "IEF") return "Rates are light versus this profile.";
+  if (ticker === "BND") return "Ballast is light versus this profile.";
+  if (ticker === "VXUS") return "International is light versus this profile.";
+  if (ticker === "GLD") return "Gold is light versus this profile.";
+  if (ticker === "SGOV") return "Cash is light versus this profile.";
+  if (ticker === "DBC") return "Commodities are light versus this profile.";
+  if (ticker === "VTI" || ticker === "SPY") return "Broad market is light versus this profile.";
+  if (ticker === "QQQ") return "Growth is light versus this profile.";
+  if (ticker === "SCHD") return "Yield is light versus this profile.";
+  if (ticker === "VNQ") return "Real estate is light versus this profile.";
+  return "This sleeve is light versus this profile.";
 }
 
 function pct(weight: number): string {
