@@ -1,4 +1,4 @@
-import { List, Briefcase, BarChart3, Landmark, LogIn, Newspaper, type LucideIcon } from "lucide-react";
+import { List, Briefcase, BarChart3, Landmark, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
 export type NavGroup = "daily" | "more" | "account";
@@ -55,6 +55,14 @@ export const navPages: NavPage[] = [
     blurb: "Institution filings and political trades.",
   },
   {
+    href: "/manage",
+    label: "Manage",
+    icon: SlidersHorizontal,
+    tone: "teal",
+    group: "account",
+    blurb: "Edit your watchlist and portfolio in one place.",
+  },
+  {
     href: "/api/auth/signin",
     label: "Sign in",
     icon: LogIn,
@@ -81,5 +89,5 @@ export function isOverflowNavPath(pathname: string): boolean {
 export const menuGroups: Array<{ id: NavGroup; label: string; pages: NavPage[] }> = [
   { id: "daily", label: "Daily", pages: primaryNavTabs },
   { id: "more", label: "More", pages: navPages.filter((page) => page.group === "more") },
-  { id: "account", label: "Account", pages: navPages.filter((page) => page.group === "account") },
+  { id: "account", label: "Your data", pages: navPages.filter((page) => page.group === "account") },
 ];

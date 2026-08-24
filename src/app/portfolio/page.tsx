@@ -28,7 +28,7 @@ export default function PortfolioPage() {
       <h1 className="sr-only">Portfolio</h1>
       <Suspense fallback={null}>
         <PortfolioDataProvider>
-          <Portfolio composeFirst />
+          <Portfolio />
         </PortfolioDataProvider>
       </Suspense>
     </main>

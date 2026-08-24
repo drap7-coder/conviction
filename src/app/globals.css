@@ -1162,6 +1162,38 @@ button.bottom-tab-item {
   line-height: 1.35;
 }
 
+.data-page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.data-edit-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 7px 13px;
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 9%, var(--card));
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.data-edit-pill:hover,
+.data-edit-pill:focus-visible {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, var(--card));
+  outline: none;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -17709,101 +17741,6 @@ a.pulse-news-narrative-title:focus-visible {
 .market-heatmap--uniform {
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   grid-auto-flow: row;
-}
-
-/* Compact watchlist manage strip under heatmap (replaces ring list) */
-.wl-manage-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 14px;
-  margin: 0 0 18px;
-}
-
-.wl-manage-label {
-  font-family: var(--font-mono);
-  font-size: 0.62rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--quiet);
-}
-
-.wl-manage-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.wl-manage-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px 4px 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 650;
-  color: var(--ink);
-}
-
-.wl-manage-chip a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.wl-manage-chip a:hover {
-  text-decoration: underline;
-}
-
-.wl-manage-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.4rem;
-  height: 1.4rem;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--quiet);
-  font-size: 1rem;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.wl-manage-remove:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-  color: var(--ink);
-}
-
-.wl-manage-remove:disabled,
-.wl-manage-add:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-
-.wl-manage-add {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.4rem;
-  height: 1.4rem;
-  padding: 0;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--quiet);
-  font-size: 0.95rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.wl-manage-add:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
-  color: var(--ink);
 }
 
 /* Watchlist heatmaps: narrative/context keeps inset spacing. */

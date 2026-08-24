@@ -69,8 +69,10 @@ function highlightMatch(text: string, query: string) {
 
 export default function Watchlist({
   children,
+  mode = "view",
 }: {
   children?: ReactNode;
+  mode?: "view" | "manage";
 }) {
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
@@ -156,6 +158,10 @@ export default function Watchlist({
   }, []);
 
   useEffect(() => {
+    if (mode === "manage") {
+      setQuotes({});
+      return;
+    }
     if (entries.length === 0) {
       setQuotes({});
       return;
@@ -197,7 +203,7 @@ export default function Watchlist({
       window.clearInterval(refreshInterval);
       document.removeEventListener("visibilitychange", refreshVisibleDashboard);
     };
-  }, [entries]);
+  }, [entries, mode]);
 
   const handleAddValue = async (value?: string) => {
     const input = (value ?? addInput).trim();
@@ -394,6 +400,7 @@ export default function Watchlist({
 
   // Shortcut: press K to focus Track compose.
   useEffect(() => {
+    if (mode !== "manage") return;
     const handleKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (
@@ -411,7 +418,7 @@ export default function Watchlist({
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [mode]);
 
   const composeBar = (
     <section className="list-compose ink-panel" aria-label="Track a company">
@@ -477,8 +484,75 @@ export default function Watchlist({
     </section>
   );
 
+  if (mode === "manage") {
+    return (
+      <section id="watchlist" className="data-manager-section" aria-labelledby="manage-watchlist-title">
+        <header className="data-manager-section-head">
+          <div>
+            <span className="data-manager-eyebrow">Watchlist</span>
+            <h2 id="manage-watchlist-title">Names you follow</h2>
+          </div>
+          <span className="data-manager-count">
+            {entries.length} symbol{entries.length === 1 ? "" : "s"}
+          </span>
+        </header>
+
+        {composeBar}
+
+        {loading ? (
+          <PageLoadingMotion
+            label="Loading watchlist"
+            compact
+            showLabel={false}
+            showSubtitle={false}
+            speed="slow"
+          />
+        ) : entries.length > 0 ? (
+          <div className="data-manager-list" aria-label="Watchlist names">
+            {entries.map((entry) => (
+              <div key={entry.ticker} className="data-manager-row">
+                <div className="data-manager-row-copy">
+                  <Link href={`/companies/${encodeURIComponent(entry.ticker)}`} className="data-manager-ticker">
+                    {entry.ticker}
+                  </Link>
+                  <span>{entry.companyName}</span>
+                </div>
+                <button
+                  type="button"
+                  className="data-manager-action is-danger"
+                  onClick={() => void handleRemove(entry.ticker)}
+                  disabled={removing === entry.ticker}
+                  aria-label={`Remove ${entry.ticker} from watchlist`}
+                >
+                  {removing === entry.ticker ? "Removing…" : "Remove"}
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="data-manager-empty">
+            <strong>No watchlist names yet.</strong>
+            <span>Use the field above to track your first company.</span>
+          </div>
+        )}
+
+        <GuestModeBanner
+          authenticated={authenticated}
+          authConfigured={authConfigured}
+          accountLabel={accountLabel}
+        />
+      </section>
+    );
+  }
+
   return (
     <div>
+      <div className="data-page-actions">
+        <Link href="/manage#watchlist" className="data-edit-pill">
+          Edit watchlist
+        </Link>
+      </div>
+
       {loading ? (
         <PageLoadingMotion
           label="Loading watchlist"
@@ -491,10 +565,10 @@ export default function Watchlist({
 
       {!loading && entries.length === 0 ? (
         <div className="empty-state">
-          <p>Add companies you care about.</p>
-          <small>Track names below, then tap a heatmap tile to open the company dashboard.</small>
-          <Link href="/pulse" className="brief-link">
-            Browse market moves →
+          <p>Your watchlist is empty.</p>
+          <small>Add companies from the Manage page, then return here for the daily view.</small>
+          <Link href="/manage#watchlist" className="brief-link">
+            Add watchlist names →
           </Link>
         </div>
       ) : null}
@@ -539,39 +613,6 @@ export default function Watchlist({
         />
       ) : null}
 
-      {composeBar}
-
-      {!loading && entries.length > 0 ? (
-        <div className="wl-manage-row" aria-label="Manage watchlist names">
-          <span className="wl-manage-label">
-            {entries.length} symbol{entries.length === 1 ? "" : "s"}
-          </span>
-          <div className="wl-manage-chips">
-            {entries.map((entry) => (
-              <span key={entry.ticker} className="wl-manage-chip">
-                <Link href={`/companies/${encodeURIComponent(entry.ticker)}`}>
-                  {entry.ticker}
-                </Link>
-                <button
-                  type="button"
-                  className="wl-manage-remove"
-                  onClick={() => void handleRemove(entry.ticker)}
-                  disabled={removing === entry.ticker}
-                  aria-label={`Remove ${entry.ticker} from watchlist`}
-                >
-                  {removing === entry.ticker ? "…" : "×"}
-                </button>
-              </span>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
-      <GuestModeBanner
-        authenticated={authenticated}
-        authConfigured={authConfigured}
-        accountLabel={accountLabel}
-      />
     </div>
   );
 }

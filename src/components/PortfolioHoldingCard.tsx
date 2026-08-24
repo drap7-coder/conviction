@@ -1,6 +1,6 @@
 /**
- * Compact portfolio holding card — ticker badge, name + size, value + day %,
- * and a thin allocation bar. Edit and remove stay on the card (not a table).
+ * Compact read-only portfolio holding card — ticker badge, name + size,
+ * value + day %, and a thin allocation bar.
  */
 
 "use client";
@@ -23,20 +23,7 @@ export interface PortfolioHoldingCardProps {
   closeChangePercent: number | null;
   shares: number;
   metrics: PositionMetrics;
-  isEditing?: boolean;
-  formShares?: string;
-  formCost?: string;
-  formError?: string | null;
-  confirmRemove?: boolean;
   focused?: boolean;
-  onEdit: (ticker: string) => void;
-  onCancelEdit: () => void;
-  onSharesChange: (value: string) => void;
-  onCostChange: (value: string) => void;
-  onSaveEdit: () => void;
-  onAskRemove: (ticker: string) => void;
-  onCancelRemove: () => void;
-  onConfirmRemove: (ticker: string) => void;
 }
 
 function formatPrice(value: number | null) {
@@ -79,20 +66,7 @@ export function PortfolioHoldingCard({
   closeChangePercent,
   shares,
   metrics,
-  isEditing = false,
-  formShares = "",
-  formCost = "",
-  formError = null,
-  confirmRemove = false,
   focused = false,
-  onEdit,
-  onCancelEdit,
-  onSharesChange,
-  onCostChange,
-  onSaveEdit,
-  onAskRemove,
-  onCancelRemove,
-  onConfirmRemove,
 }: PortfolioHoldingCardProps) {
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
   const dayChangeClass = changeToneClass(changePercent);
@@ -105,7 +79,7 @@ export function PortfolioHoldingCard({
   return (
     <article
       id={`portfolio-holding-${ticker}`}
-      className={`pf-holding-card${isEditing ? " is-editing" : ""}${focused ? " focused-card" : ""}`}
+      className={`pf-holding-card${focused ? " focused-card" : ""}`}
       aria-label={`${displayName} holding`}
     >
       <div className="pf-holding-main">
@@ -132,83 +106,6 @@ export function PortfolioHoldingCard({
           ) : null}
         </div>
       </div>
-
-      <div className="pf-holding-actions">
-        {confirmRemove ? (
-          <>
-            <span className="pf-holding-confirm-label">Remove?</span>
-            <button
-              type="button"
-              className="pf-holding-action pf-holding-action-danger"
-              onClick={() => onConfirmRemove(ticker)}
-            >
-              Yes
-            </button>
-            <button type="button" className="pf-holding-action" onClick={onCancelRemove}>
-              No
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              className="pf-holding-action"
-              onClick={() => onEdit(ticker)}
-              disabled={isEditing}
-            >
-              Edit
-            </button>
-            <button
-              type="button"
-              className="pf-holding-action pf-holding-action-danger"
-              onClick={() => onAskRemove(ticker)}
-              disabled={isEditing}
-            >
-              Remove
-            </button>
-          </>
-        )}
-      </div>
-
-      {isEditing ? (
-        <form
-          className="pf-holding-edit"
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSaveEdit();
-          }}
-        >
-          <label className="pf-holding-edit-field">
-            <span>Shares</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={formShares}
-              onChange={(e) => onSharesChange(e.target.value)}
-              autoFocus
-            />
-          </label>
-          <label className="pf-holding-edit-field">
-            <span>Avg cost</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={formCost}
-              onChange={(e) => onCostChange(e.target.value)}
-              placeholder="optional"
-            />
-          </label>
-          <div className="pf-holding-edit-actions">
-            <button type="submit" className="pf-holding-save">
-              Save
-            </button>
-            <button type="button" className="pf-holding-action" onClick={onCancelEdit}>
-              Cancel
-            </button>
-          </div>
-          {formError ? <p className="pf-holding-edit-error">{formError}</p> : null}
-        </form>
-      ) : null}
 
       <div
         className={`pf-holding-bar is-${band}`}

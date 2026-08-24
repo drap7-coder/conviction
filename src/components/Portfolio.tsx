@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
   loadPositions,
   loadRiskProfileOverride,
-  savePositions,
   saveRiskProfileOverride,
   type PersistedPosition,
 } from "@/lib/portfolio/persist";
@@ -31,7 +31,6 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
-import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
@@ -233,12 +232,7 @@ function SampleBooksSwitcher({
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
-export default function Portfolio({
-  composeFirst = false,
-}: {
-  /** Render Add position above holdings (My List). */
-  composeFirst?: boolean;
-}) {
+export default function Portfolio() {
   const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -251,18 +245,10 @@ export default function Portfolio({
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, PortfolioProfile>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAddForm, setShowAddForm] = useState(false);
   const [sort, setSort] = useState<SortState>({ key: "value", dir: "desc" });
   // Track whether data has ever loaded successfully (for data-quality states)
   const [quotesEverLoaded, setQuotesEverLoaded] = useState(false);
 
-  // ── Add form state ──
-  const [formTicker, setFormTicker] = useState("");
-  const [formShares, setFormShares] = useState("");
-  const [formCost, setFormCost] = useState("");
-  const [formError, setFormError] = useState<string | null>(null);
-  const [editingTicker, setEditingTicker] = useState<string | null>(null);
-  const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [profileOverride, setProfileOverride] = useState<RiskProfile | null>(null);
   const sampleLoadRef = useRef(0);
   const sampleAbortRef = useRef<AbortController | null>(null);
@@ -463,82 +449,10 @@ export default function Portfolio({
 
   // ── Handlers ──
 
-  function savePositionFromForm() {
-    setFormError(null);
-
-    const ticker = (editingTicker ?? formTicker).trim().toUpperCase();
-    if (!ticker) {
-      setFormError("Enter a valid ticker symbol");
-      return false;
-    }
-    // New adds stay simple tickers; edits keep whatever is already in the book (e.g. BTC-USD).
-    if (!editingTicker && !/^[A-Z]{1,5}$/.test(ticker)) {
-      setFormError("Enter a valid ticker symbol (1–5 letters)");
-      return false;
-    }
-
-    const shares = parseFloat(formShares);
-    if (isNaN(shares) || shares <= 0) {
-      setFormError("Enter a valid number of shares");
-      return false;
-    }
-
-    const cost = formCost.trim() ? parseFloat(formCost) : undefined;
-    if (cost !== undefined && (isNaN(cost) || cost <= 0)) {
-      setFormError("Enter a valid average cost");
-      return false;
-    }
-
-    const updated = [...positions];
-    const existingIndex = updated.findIndex((position) => position.ticker.toUpperCase() === ticker);
-    const nextPosition = { ticker, shares, averageCost: cost };
-    if (existingIndex >= 0) updated[existingIndex] = nextPosition;
-    else updated.push(nextPosition);
-    savePositions(updated);
-    setPositions(updated);
-    clearActiveBook();
-    notifyPortfolioChanged();
-    setFormTicker("");
-    setFormShares("");
-    setFormCost("");
-    setEditingTicker(null);
-    setRemovingTicker(null);
-    setShowAddForm(false);
-    return true;
-  }
-
-  function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    savePositionFromForm();
-  }
-
-  function handleRemove(ticker: string) {
-    const updated = positions.filter((position) => position.ticker.toUpperCase() !== ticker.toUpperCase());
-    savePositions(updated);
-    setPositions(updated);
-    clearActiveBook();
-    setRemovingTicker(null);
-    if (editingTicker?.toUpperCase() === ticker.toUpperCase()) {
-      setEditingTicker(null);
-      setFormTicker("");
-      setFormShares("");
-      setFormCost("");
-      setFormError(null);
-    }
-    notifyPortfolioChanged();
-  }
-
   function handleRefresh() {
     refreshSharedQuotes();
     const tickers = positions.map((p) => p.ticker).filter(Boolean);
     void fetchSectorProfiles(Array.from(new Set(tickers)));
-  }
-
-  function handleClearAll() {
-    savePositions([]);
-    setPositions([]);
-    clearActiveBook();
-    notifyPortfolioChanged();
   }
 
   async function handleLoadSample(book: SampleBook) {
@@ -550,9 +464,6 @@ export default function Portfolio({
     sampleAwaitingQuotesRef.current = false;
     setLoadingBook(true);
     setError(null);
-    setShowAddForm(false);
-    setEditingTicker(null);
-    setFormError(null);
     setActiveBookId(book.id);
     saveActiveSampleBookId(book.id);
 
@@ -591,28 +502,6 @@ export default function Portfolio({
     notifyPortfolioChanged();
   }
 
-  function handleStartEdit(ticker: string) {
-    const pos = positions.find((p) => p.ticker.toUpperCase() === ticker.toUpperCase());
-    if (!pos) return;
-    setFormTicker(pos.ticker);
-    setFormShares(String(pos.shares));
-    setFormCost(pos.averageCost != null ? String(pos.averageCost) : "");
-    setEditingTicker(ticker);
-    setRemovingTicker(null);
-    setFormError(null);
-    // Keep Add compose closed — edit happens inline on the holding card.
-    setShowAddForm(false);
-  }
-
-  function handleCancelEdit() {
-    setEditingTicker(null);
-    setFormTicker("");
-    setFormShares("");
-    setFormCost("");
-    setFormError(null);
-    setShowAddForm(false);
-  }
-
   function toggleSort(key: SortKey) {
     setSort((prev) => ({
       key,
@@ -624,60 +513,6 @@ export default function Portfolio({
     if (sort.key !== key) return "";
     return sort.dir === "desc" ? " ↓" : " ↑";
   }
-
-  // Keep Add collapsed when empty so sample books stay above the fold.
-  // Open only when editing an existing position.
-  // Edit is inline on the holding card; compose is only for adding.
-  const composeExpanded = !editingTicker && showAddForm;
-
-  function toggleCompose() {
-    if (editingTicker) handleCancelEdit();
-    setShowAddForm((open) => !open);
-  }
-
-  const composeBar = (
-    <section
-      className={`list-compose ink-panel ${composeExpanded ? "is-open" : "is-collapsed"}`}
-      aria-label="Add a position"
-    >
-      <button
-        type="button"
-        className="list-compose-toggle"
-        aria-expanded={composeExpanded}
-        aria-controls="portfolio-add-form"
-        onClick={toggleCompose}
-      >
-        <div className="list-compose-copy">
-          <strong className="list-compose-title">Add a position</strong>
-        </div>
-        <span className="list-compose-chevron" aria-hidden="true" />
-      </button>
-      {composeExpanded ? (
-        <>
-          <div id="portfolio-add-form" className="pf-add-form-wrap list-compose-fields">
-            <AddForm
-              editingTicker={null}
-              formTicker={formTicker}
-              formShares={formShares}
-              formCost={formCost}
-              formError={formError}
-              onTickerChange={setFormTicker}
-              onSharesChange={setFormShares}
-              onCostChange={setFormCost}
-              onSubmit={handleAdd}
-              onCancel={() => {
-                setShowAddForm(false);
-                setFormTicker("");
-                setFormShares("");
-                setFormCost("");
-                setFormError(null);
-              }}
-            />
-          </div>
-        </>
-      ) : null}
-    </section>
-  );
 
   const allocationPanel = !calcFailed ? (
     <div className="pf-insights-allocation">
@@ -850,6 +685,12 @@ export default function Portfolio({
 
   return (
     <div className="pf">
+      <div className="data-page-actions">
+        <Link href="/manage#portfolio" className="data-edit-pill">
+          Edit portfolio
+        </Link>
+      </div>
+
       <div className="pf-mode-switch" role="tablist" aria-label="Portfolio mode">
         <button
           type="button"
@@ -978,8 +819,10 @@ export default function Portfolio({
         </ProductStage>
       ) : (
         <div className="pf-empty-prompt">
-          <p>No positions yet — add holdings or explore a template.</p>
-          {composeBar}
+          <p>No positions yet — build your portfolio or explore a template.</p>
+          <Link href="/manage#portfolio" className="brief-link">
+            Add portfolio holdings <span aria-hidden="true">→</span>
+          </Link>
           <button type="button" className="brief-link" onClick={() => goStudy()}>
             Explore a template <span aria-hidden="true">→</span>
           </button>
@@ -1032,7 +875,6 @@ export default function Portfolio({
                   </div>
                 ) : null}
 
-                {composeBar}
                 <section className="pf-values-positions" id="portfolio-positions" aria-label="Portfolio holdings">
                   <header className="pf-values-positions-header">
                     <div>
@@ -1072,8 +914,6 @@ export default function Portfolio({
                     const ticker = pos.companyId.toUpperCase();
                     const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
                     const live = quote ? getLivePrice(quote) : null;
-                    const isEditing = editingTicker?.toUpperCase() === ticker;
-
                     return (
                       <PortfolioHoldingCard
                         key={ticker}
@@ -1086,25 +926,7 @@ export default function Portfolio({
                         closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
                         shares={pos.shares}
                         metrics={metrics}
-                        isEditing={isEditing}
-                        formShares={isEditing ? formShares : ""}
-                        formCost={isEditing ? formCost : ""}
-                        formError={isEditing ? formError : null}
-                        confirmRemove={removingTicker?.toUpperCase() === ticker}
                         focused={false}
-                        onEdit={handleStartEdit}
-                        onCancelEdit={handleCancelEdit}
-                        onSharesChange={setFormShares}
-                        onCostChange={setFormCost}
-                        onSaveEdit={() => {
-                          savePositionFromForm();
-                        }}
-                        onAskRemove={(symbol) => {
-                          setRemovingTicker(symbol);
-                          if (editingTicker) handleCancelEdit();
-                        }}
-                        onCancelRemove={() => setRemovingTicker(null)}
-                        onConfirmRemove={handleRemove}
                       />
                     );
                   })}
@@ -1112,8 +934,8 @@ export default function Portfolio({
 
                   {positions.length > 0 && (
                     <footer className="pf-values-positions-footer">
-                      <span>Edit or remove a holding from its card.</span>
-                      <button className="pf-clear-btn" onClick={handleClearAll}>Clear portfolio</button>
+                      <span>Keep the live view focused on the book.</span>
+                      <Link href="/manage#portfolio" className="data-edit-pill">Edit portfolio</Link>
                     </footer>
                   )}
                 </section>
@@ -1124,216 +946,5 @@ export default function Portfolio({
       </>
       )}
     </div>
-  );
-}
-
-// ── Add Form Sub-component ──────────────────────────────────────────────────
-
-function highlightMatch(text: string, query: string) {
-  const q = query.trim();
-  if (!q) return text;
-  const idx = text.toLowerCase().indexOf(q.toLowerCase());
-  if (idx === -1) return text;
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark className="ticker-suggestion-match">{text.slice(idx, idx + q.length)}</mark>
-      {text.slice(idx + q.length)}
-    </>
-  );
-}
-
-function AddForm({
-  editingTicker,
-  formTicker,
-  formShares,
-  formCost,
-  formError,
-  onTickerChange,
-  onSharesChange,
-  onCostChange,
-  onSubmit,
-  onCancel,
-}: {
-  editingTicker: string | null;
-  formTicker: string;
-  formShares: string;
-  formCost: string;
-  formError: string | null;
-  onTickerChange: (v: string) => void;
-  onSharesChange: (v: string) => void;
-  onCostChange: (v: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
-  onCancel: () => void;
-}) {
-  // Type-ahead state
-  const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [activeSuggestion, setActiveSuggestion] = useState(-1);
-  const [suggestStatus, setSuggestStatus] = useState<"idle" | "results" | "empty">("idle");
-  const suggestCacheRef = useRef<Map<string, CompanySuggestion[]>>(new Map());
-  const suggestDebounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  const applySuggestions = (next: CompanySuggestion[]) => {
-    setSuggestions(next);
-    setSuggestStatus(next.length > 0 ? "results" : "empty");
-    setShowSuggestions(true);
-    setActiveSuggestion(-1);
-  };
-
-  // Debounced type-ahead search
-  useEffect(() => {
-    const query = formTicker.trim();
-    if (query.length < 1 || editingTicker != null) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setActiveSuggestion(-1);
-      setSuggestStatus("idle");
-      return;
-    }
-
-    const cacheKey = query.toLowerCase();
-    const cached = suggestCacheRef.current.get(cacheKey);
-    if (cached) {
-      applySuggestions(cached);
-      return;
-    }
-
-    if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
-    const controller = new AbortController();
-    suggestDebounceRef.current = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `/api/companies/search?q=${encodeURIComponent(query)}`,
-          { signal: controller.signal },
-        );
-        if (!res.ok) return;
-        const data = (await res.json()) as { suggestions?: CompanySuggestion[] };
-        const next = data.suggestions ?? [];
-        suggestCacheRef.current.set(cacheKey, next);
-        applySuggestions(next);
-      } catch {
-        // Type-ahead is best-effort
-      }
-    }, 150);
-
-    return () => {
-      controller.abort();
-      if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
-    };
-  }, [formTicker, editingTicker]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (showSuggestions && e.key === "Escape") {
-      e.preventDefault();
-      setShowSuggestions(false);
-      return;
-    }
-    if (showSuggestions && suggestions.length > 0) {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setActiveSuggestion((i) => Math.min(i + 1, suggestions.length - 1));
-        return;
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setActiveSuggestion((i) => Math.max(i - 1, 0));
-        return;
-      }
-      if (e.key === "Enter" && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
-        e.preventDefault();
-        const s = suggestions[activeSuggestion];
-        setShowSuggestions(false);
-        setSuggestions([]);
-        setActiveSuggestion(-1);
-        setSuggestStatus("idle");
-        onTickerChange(s.ticker);
-        return;
-      }
-    }
-  };
-
-  return (
-    <form className="pf-add-form list-compose-form" onSubmit={onSubmit}>
-      <div className="pf-add-field" style={{ position: "relative" }}>
-        <label className="pf-add-label">Ticker</label>
-        <input
-          className="pf-add-input"
-          type="text"
-          placeholder="AAPL"
-          value={formTicker}
-          onChange={(e) => onTickerChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-          onBlur={() => { window.setTimeout(() => setShowSuggestions(false), 120); }}
-          autoComplete="off"
-          spellCheck={false}
-          maxLength={5}
-          disabled={editingTicker != null}
-          role="combobox"
-          aria-expanded={showSuggestions}
-          aria-autocomplete="list"
-        />
-        {showSuggestions && suggestStatus === "results" && suggestions.length > 0 ? (
-          <ul className="ticker-suggestions" role="listbox">
-            {suggestions.map((s, i) => (
-              <li
-                key={`${s.ticker}-${s.cik}`}
-                role="option"
-                aria-selected={i === activeSuggestion}
-                className={`ticker-suggestion ${i === activeSuggestion ? "active" : ""}`}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  setShowSuggestions(false);
-                  setSuggestions([]);
-                  setActiveSuggestion(-1);
-                  setSuggestStatus("idle");
-                  onTickerChange(s.ticker);
-                }}
-                onMouseEnter={() => setActiveSuggestion(i)}
-              >
-                <span className="ticker-suggestion-ticker">{highlightMatch(s.ticker, formTicker)}</span>
-                <span className="ticker-suggestion-name">{highlightMatch(s.name, formTicker)}</span>
-              </li>
-            ))}
-          </ul>
-        ) : showSuggestions && suggestStatus === "empty" ? (
-          <div className="ticker-suggestions ticker-suggestions-empty">
-            No matches
-          </div>
-        ) : null}
-      </div>
-      <div className="pf-add-field">
-        <label className="pf-add-label">Shares</label>
-        <input
-          className="pf-add-input"
-          type="number"
-          placeholder="10"
-          min="0"
-          step="any"
-          value={formShares}
-          onChange={(e) => onSharesChange(e.target.value)}
-        />
-      </div>
-      <div className="pf-add-field">
-        <label className="pf-add-label">Avg Cost</label>
-        <input
-          className="pf-add-input"
-          type="number"
-          placeholder="150.00"
-          min="0"
-          step="any"
-          value={formCost}
-          onChange={(e) => onCostChange(e.target.value)}
-        />
-      </div>
-      <div className="pf-add-actions">
-        <button type="submit" className="pf-add-btn">
-          {editingTicker ? "Update" : "Add"}
-        </button>
-        <button type="button" className="pf-add-cancel" onClick={onCancel}>Cancel</button>
-      </div>
-      {formError && <p className="pf-add-error">{formError}</p>}
-    </form>
   );
 }
