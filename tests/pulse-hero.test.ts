@@ -72,7 +72,8 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("headlineMaxLines");
     expect(page).not.toContain("hero.summary");
     expect(page).not.toContain("regimeSummary");
-    expect(page).toContain('title="Commodities"');
+    expect(page).toContain("CommodityScoreboard");
+    expect(page).not.toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');
     expect(page).toContain('title="International"');
     expect(page).toContain("MarketMovesPanel");
@@ -86,12 +87,14 @@ describe("Pulse heatmap universe", () => {
     expect(panel).not.toContain("wl-manage-row");
   });
 
-  it("renders Indexes as a compact scoreboard, not heatmap tiles", () => {
+  it("renders Indexes as gauges then a compact scoreboard, with commodities as the same rows", () => {
     const page = read("src/app/pulse/page.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
+    const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
+    const indexesStart = page.indexOf("<PulseMacroGauges");
     const indexesBlock = page.slice(
-      page.indexOf("<IndexScoreboard"),
+      indexesStart,
       page.indexOf('id="industries"'),
     );
     const sectorsBlock = page.slice(
@@ -103,18 +106,29 @@ describe("Pulse heatmap universe", () => {
       page.indexOf('id="pulse-panel-trending"'),
     );
 
+    expect(indexesStart).toBeGreaterThan(-1);
+    expect(indexesStart).toBeLessThan(page.indexOf("<IndexScoreboard"));
+    expect(page).toContain("PulseMacroGauges");
     expect(page).toContain("IndexScoreboard");
+    expect(page).toContain("CommodityScoreboard");
     expect(indexesBlock).toContain("sessionLabel={data.sessionLabel}");
     expect(indexesBlock).not.toContain("HeatTile");
     expect(indexesBlock).not.toContain("HeatmapGrid");
+    expect(indexesBlock).not.toContain("ProductStage");
+    expect(gauges).toContain("pulse-gauge-grid");
+    expect(gauges).not.toContain("ProductStage");
     expect(board).toContain("pulse-index-row");
     expect(board).toContain("pulse-index-session");
+    expect(board).toContain('title="Commodities"');
     expect(board).not.toContain("stock-heat-session");
     expect(board).not.toContain("HeatTile");
     expect(css).toContain(".pulse-index-row");
+    expect(css).toContain(".pulse-gauge-grid");
     expect(sectorsBlock).toContain("sessionLabel={data.sessionLabel}");
     expect(page).toContain('className="stock-heat-session ink-chip ink-chip--amber"');
     expect(moreMarketsBlock).not.toContain("sessionLabel");
-    expect(moreMarketsBlock).toContain('title="Commodities"');
+    expect(moreMarketsBlock).toContain("CommodityScoreboard");
+    expect(moreMarketsBlock).not.toContain('title="Commodities"');
+    expect(moreMarketsBlock).toContain('title="Crypto"');
   });
 });

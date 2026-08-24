@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
-import { INDEX_SCOREBOARD, scoreboardIndexes } from "@/lib/market/index-scoreboard";
+import {
+  COMMODITY_SCOREBOARD,
+  INDEX_SCOREBOARD,
+  scoreboardCommodities,
+  scoreboardIndexes,
+} from "@/lib/market/index-scoreboard";
 
 function market(overrides: Partial<PulseGlobalMarket>): PulseGlobalMarket {
   return {
@@ -30,5 +35,21 @@ describe("index scoreboard", () => {
     expect(rows.map((row) => row.ticker)).toEqual(["DIA", "SPY", "QQQ", "IWM"]);
     expect(rows[0]?.name).toBe("Dow Jones");
     expect(rows.some((row) => row.ticker === "MDY" || row.ticker === "RSP")).toBe(false);
+  });
+});
+
+describe("commodity scoreboard", () => {
+  it("keeps oil, gold, silver, and gas in definition order", () => {
+    expect(COMMODITY_SCOREBOARD.map((entry) => entry.ticker)).toEqual(["USO", "GLD", "SLV", "UNG"]);
+    const rows = scoreboardCommodities([
+      market({ ticker: "SLV", name: "iShares Silver Trust", category: "Commodity" }),
+      market({ ticker: "UNG", name: "United States Natural Gas", category: "Commodity" }),
+      market({ ticker: "GLD", name: "SPDR Gold Shares", category: "Commodity" }),
+      market({ ticker: "USO", name: "United States Oil", category: "Commodity" }),
+    ]);
+
+    expect(rows.map((row) => row.ticker)).toEqual(["USO", "GLD", "SLV", "UNG"]);
+    expect(rows[0]?.name).toBe("Crude Oil");
+    expect(rows[1]?.name).toBe("Gold");
   });
 });

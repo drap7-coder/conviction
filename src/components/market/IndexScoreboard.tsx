@@ -11,7 +11,10 @@ import {
   sparklineToneFromChange,
 } from "@/lib/display/sparkline";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
-import { scoreboardIndexes } from "@/lib/market/index-scoreboard";
+import {
+  scoreboardCommodities,
+  scoreboardIndexes,
+} from "@/lib/market/index-scoreboard";
 import type { InkTone } from "@/lib/display/ink-tone";
 
 function fmtPct(value: number | null): string {
@@ -75,21 +78,22 @@ function IndexSpark({
   );
 }
 
-export function IndexScoreboard({
-  markets,
+export function MarketScoreboard({
+  title,
+  rows,
   sessionLabel = null,
 }: {
-  markets: PulseGlobalMarket[];
+  title: string;
+  rows: PulseGlobalMarket[];
   sessionLabel?: string | null;
 }) {
-  const rows = scoreboardIndexes(markets);
   if (rows.length === 0) return null;
   const dayTone = groupDayTone(rows);
 
   return (
     <section
       className="market-heatmap-shell pulse-index-board"
-      aria-label="Major Indexes scoreboard"
+      aria-label={`${title} scoreboard`}
     >
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
@@ -99,7 +103,7 @@ export function IndexScoreboard({
               aria-label={groupDayStatusLabel(dayTone)}
               title={groupDayStatusLabel(dayTone)}
             />
-            Major Indexes
+            {title}
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>
                 <i className="pulse-index-session-dot" aria-hidden="true" />
@@ -148,4 +152,28 @@ export function IndexScoreboard({
       </ol>
     </section>
   );
+}
+
+export function IndexScoreboard({
+  markets,
+  sessionLabel = null,
+}: {
+  markets: PulseGlobalMarket[];
+  sessionLabel?: string | null;
+}) {
+  return (
+    <MarketScoreboard
+      title="Major Indexes"
+      rows={scoreboardIndexes(markets)}
+      sessionLabel={sessionLabel}
+    />
+  );
+}
+
+export function CommodityScoreboard({
+  markets,
+}: {
+  markets: PulseGlobalMarket[];
+}) {
+  return <MarketScoreboard title="Commodities" rows={scoreboardCommodities(markets)} />;
 }

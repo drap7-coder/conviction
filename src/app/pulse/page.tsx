@@ -9,7 +9,8 @@ import { HeatmapGrid } from "@/components/HeatmapGrid";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
-import { IndexScoreboard } from "@/components/market/IndexScoreboard";
+import { CommodityScoreboard, IndexScoreboard } from "@/components/market/IndexScoreboard";
+import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
@@ -203,6 +204,7 @@ export default function MarketPulsePage() {
       >
         {activeTab === "indexes" && data ? (
           <>
+            <PulseMacroGauges indicators={data.indicators} />
             <IndexScoreboard
               markets={majorIndexes}
               sessionLabel={data.sessionLabel}
@@ -218,11 +220,7 @@ export default function MarketPulsePage() {
 
             <div className="pulse-more-markets" aria-label="More markets">
               <p className="pulse-more-markets-label">More markets</p>
-              <GlobalMarketsHeatmap
-                markets={commodities}
-                title="Commodities"
-                uniformTiles
-              />
+              <CommodityScoreboard markets={commodities} />
               <GlobalMarketsHeatmap
                 markets={cryptoMarkets}
                 title="Crypto"

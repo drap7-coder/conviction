@@ -8,10 +8,28 @@ export const INDEX_SCOREBOARD: Array<{ ticker: string; name: string }> = [
   { ticker: "IWM", name: "Russell 2000" },
 ];
 
-export function scoreboardIndexes(markets: PulseGlobalMarket[]): PulseGlobalMarket[] {
+export const COMMODITY_SCOREBOARD: Array<{ ticker: string; name: string }> = [
+  { ticker: "USO", name: "Crude Oil" },
+  { ticker: "GLD", name: "Gold" },
+  { ticker: "SLV", name: "Silver" },
+  { ticker: "UNG", name: "Natural Gas" },
+];
+
+function pickScoreboard(
+  markets: PulseGlobalMarket[],
+  entries: Array<{ ticker: string; name: string }>,
+): PulseGlobalMarket[] {
   const byTicker = new Map(markets.map((market) => [market.ticker.toUpperCase(), market]));
-  return INDEX_SCOREBOARD.flatMap((entry) => {
+  return entries.flatMap((entry) => {
     const market = byTicker.get(entry.ticker);
     return market ? [{ ...market, name: entry.name }] : [];
   });
+}
+
+export function scoreboardIndexes(markets: PulseGlobalMarket[]): PulseGlobalMarket[] {
+  return pickScoreboard(markets, INDEX_SCOREBOARD);
+}
+
+export function scoreboardCommodities(markets: PulseGlobalMarket[]): PulseGlobalMarket[] {
+  return pickScoreboard(markets, COMMODITY_SCOREBOARD);
 }

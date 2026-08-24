@@ -17367,6 +17367,115 @@ a.pulse-news-narrative-title:focus-visible {
   background: var(--border-active);
 }
 
+.pulse-gauge-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 var(--section-gap);
+}
+
+.pulse-gauge-card {
+  min-width: 0;
+  padding: 10px 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.pulse-gauge-kicker {
+  margin: 0 0 2px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pulse-gauge-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 86px;
+}
+
+.pulse-gauge-arc {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 92px;
+}
+
+.pulse-gauge-fill--vix {
+  stroke: var(--amber);
+}
+
+.pulse-gauge-fill--yield {
+  stroke: var(--accent);
+}
+
+.pulse-gauge-readout {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  transform: translate(-50%, -42%);
+}
+
+.pulse-gauge-readout strong {
+  color: var(--ink);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.pulse-gauge-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.6rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.52rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.pulse-gauge-pill--calm,
+.pulse-gauge-pill--steady {
+  color: var(--green);
+  background: var(--green-dim);
+}
+
+.pulse-gauge-pill--elevated {
+  color: var(--amber);
+  background: var(--amber-dim);
+}
+
+.pulse-gauge-pill--stress {
+  color: var(--red);
+  background: var(--red-dim);
+}
+
+.pulse-gauge-pill--quiet {
+  color: var(--muted);
+  background: var(--card-soft);
+}
+
+.pulse-gauge-caption {
+  margin: 2px 0 0;
+  color: var(--quiet);
+  font-size: 0.62rem;
+  line-height: 1.3;
+  text-align: center;
+}
+
 .pulse-index-board {
   overflow: hidden;
 }
@@ -17488,6 +17597,14 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 @media (max-width: 430px) {
+  .pulse-gauge-grid {
+    gap: 8px;
+  }
+
+  .pulse-gauge-readout strong {
+    font-size: 1.18rem;
+  }
+
   .pulse-index-row {
     grid-template-columns: minmax(0, 1fr) 48px auto;
     gap: 8px;
@@ -18590,8 +18707,8 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
     grid-column: 1 / -1;
   }
 
-  /* International (6 tiles) keeps the full card; Commodities + Crypto pair. */
-  .pulse-more-markets > .market-heatmap-shell:last-child {
+  /* Commodities scoreboard is full-width; Crypto + International pair. */
+  .pulse-more-markets > .pulse-index-board {
     grid-column: 1 / -1;
   }
 }
