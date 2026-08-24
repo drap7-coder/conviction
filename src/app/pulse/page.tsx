@@ -68,6 +68,7 @@ function GlobalMarketsHeatmap({
   subtitle = "",
   uniformTiles = true,
   tileSubtitle,
+  sessionLabel = null,
 }: {
   markets: PulseGlobalMarket[];
   title: string;
@@ -75,6 +76,8 @@ function GlobalMarketsHeatmap({
   uniformTiles?: boolean;
   /** Override tile subtitle (default: ticker). */
   tileSubtitle?: (market: PulseGlobalMarket) => string;
+  /** Watchlist/Trending session chip — Pre-Market / After Hours when extended hours are live. */
+  sessionLabel?: string | null;
 }) {
   if (markets.length === 0) return null;
   const dayTone = groupDayTone(markets);
@@ -95,6 +98,12 @@ function GlobalMarketsHeatmap({
             />
             {title}
           </h2>
+          {sessionLabel ? (
+            <span className="stock-heat-session ink-chip ink-chip--amber" aria-label={`${sessionLabel} session`}>
+              <i className="stock-heat-session-dot" aria-hidden="true" />
+              {sessionLabel}
+            </span>
+          ) : null}
         </div>
         {subtitle.trim() ? <p className="market-heatmap-subtitle">{subtitle}</p> : null}
       </div>
@@ -197,12 +206,14 @@ export default function MarketPulsePage() {
               markets={majorIndexes}
               title="Major Indexes"
               uniformTiles
+              sessionLabel={data.sessionLabel}
             />
             <div id="industries">
               <GlobalMarketsHeatmap
                 markets={industryMarkets}
                 title="Sectors"
                 uniformTiles
+                sessionLabel={data.sessionLabel}
               />
             </div>
 
