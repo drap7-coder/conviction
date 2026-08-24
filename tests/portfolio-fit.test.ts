@@ -5,10 +5,12 @@ import {
   PROFILE_TARGET_IDS,
   RISK_PROFILE_BLURBS,
   RISK_PROFILE_LABELS,
+  COMPARE_AGAINST_LABEL,
+  RISK_PROFILE_MOVES_SUBHEAD,
   RISK_PROFILE_QUESTION,
   RISK_PROFILES,
   RUNNER_UP_MARGIN,
-  riskProfileMovesLead,
+  riskProfileDeltaLead,
   targetBookForProfile,
 } from "@/lib/portfolio/fit";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
@@ -109,8 +111,10 @@ describe("classifyFit", () => {
     });
     expect(RISK_PROFILE_BLURBS["aggressive-growth"]).toMatch(/drawdowns/i);
     expect(RISK_PROFILE_QUESTION).toBe("Risk profile");
-    expect(riskProfileMovesLead("defensive")).toBe("If you mean Defensive");
-    expect(riskProfileMovesLead("growth-income")).toBe("If you mean Growth + Income");
+    expect(COMPARE_AGAINST_LABEL).toBe("Compare against →");
+    expect(riskProfileDeltaLead("Growth", "defensive")).toBe("Growth → Defensive");
+    expect(riskProfileDeltaLead("60/40", "growth-income")).toBe("60/40 → Growth + Income");
+    expect(RISK_PROFILE_MOVES_SUBHEAD).toBe("Here's what would need to change:");
     expect(FIT_HEDGE).toBe("A description of this book. Not a trade.");
     expect(PROFILE_TARGET_IDS["aggressive-growth"]).toEqual(["growth"]);
     expect(PROFILE_TARGET_IDS.growth).toEqual(["growth"]);

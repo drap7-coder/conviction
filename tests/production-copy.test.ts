@@ -35,9 +35,14 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("is-best");
     expect(portfolio).toContain("is-worst");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
-    expect(portfolio).toContain("RISK_PROFILE_QUESTION");
-    expect(portfolio).toContain("riskProfileMovesLead");
+    expect(portfolio).toContain("COMPARE_AGAINST_LABEL");
+    expect(portfolio).toContain("riskProfileDeltaLead");
+    expect(portfolio).toContain("RISK_PROFILE_MOVES_SUBHEAD");
     expect(portfolio).toContain("FIT_HEDGE");
+    expect(portfolio).toContain("pf-moves-block");
+    expect(portfolio).toContain("pf-move-ticker");
+    expect(portfolio).not.toContain("riskProfileMovesLead");
+    expect(portfolio).not.toContain("If you mean");
     expect(portfolio).not.toContain("RISK_PROFILE_BLURBS");
     expect(portfolio).not.toContain("Then here are the moves");
     expect(portfolio).not.toContain("What’s your risk profile");

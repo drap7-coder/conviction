@@ -42,11 +42,12 @@ import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import {
+  COMPARE_AGAINST_LABEL,
   FIT_HEDGE,
   RISK_PROFILE_LABELS,
-  RISK_PROFILE_QUESTION,
+  RISK_PROFILE_MOVES_SUBHEAD,
   RISK_PROFILES,
-  riskProfileMovesLead,
+  riskProfileDeltaLead,
   targetBookForProfile,
   type RiskProfile,
 } from "@/lib/portfolio/fit";
@@ -691,6 +692,8 @@ export default function Portfolio({
   const profile = profileOverride ?? valueBrief.fit.defaultProfile ?? "growth-income";
   const profileTarget = targetBookForProfile(profile, valueBrief.fit.rankings);
   const sleeveMoves = generateSleeveMoves(bookHoldings, profileTarget, undefined, profile);
+  const currentFitLabel = valueBrief.fit.primary?.label ?? RISK_PROFILE_LABELS[profile];
+  const movesLead = riskProfileDeltaLead(currentFitLabel, profile);
 
   function pickProfile(next: RiskProfile) {
     setProfileOverride(next);
@@ -913,8 +916,8 @@ export default function Portfolio({
               </p>
             ) : null}
             <fieldset className="pf-risk">
-              <legend className="pf-risk-q">{RISK_PROFILE_QUESTION}</legend>
-              <div className="pf-profile" role="radiogroup" aria-label={RISK_PROFILE_QUESTION}>
+              <legend className="pf-risk-q">{COMPARE_AGAINST_LABEL}</legend>
+              <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
                 {RISK_PROFILES.map((item) => (
                   <button
                     key={item}
@@ -929,22 +932,33 @@ export default function Portfolio({
                 ))}
               </div>
               {sleeveMoves.length > 0 ? (
-                <>
-                  <p className="pf-moves-lead">{riskProfileMovesLead(profile)}</p>
-                  <ul className="pf-moves" aria-label={riskProfileMovesLead(profile)}>
+                <div className="pf-moves-block">
+                  <div className="pf-moves-lead">
+                    <p className="pf-moves-delta">{movesLead}</p>
+                    <p className="pf-moves-subhead">{RISK_PROFILE_MOVES_SUBHEAD}</p>
+                  </div>
+                  <ul className="pf-moves" aria-label={movesLead}>
                     {sleeveMoves.map((move) => (
-                      <li key={`${move.action}-${move.ticker}`} className="pf-move">
-                        <strong className="pf-move-action">{move.label}</strong>
+                      <li
+                        key={`${move.action}-${move.ticker}`}
+                        className={`pf-move${move.action === "add" ? " is-add" : ""}`}
+                      >
+                        {move.action === "add" ? (
+                          <span className="pf-move-action">
+                            {move.label}
+                            <span className="pf-move-ticker">{move.ticker}</span>
+                          </span>
+                        ) : (
+                          <strong className="pf-move-action">{move.label}</strong>
+                        )}
                         <span className="pf-move-why">{move.why}</span>
                       </li>
                     ))}
                   </ul>
-                </>
+                  <p className="pf-fit-hedge">{FIT_HEDGE}</p>
+                </div>
               ) : null}
             </fieldset>
-            <p className="pf-fit-hedge">
-              {FIT_HEDGE}
-            </p>
           </div>
           <div className="product-stage-actions">
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
