@@ -9,6 +9,7 @@ import { HeatmapGrid } from "@/components/HeatmapGrid";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
+import { IndexScoreboard } from "@/components/market/IndexScoreboard";
 import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
@@ -202,10 +203,8 @@ export default function MarketPulsePage() {
       >
         {activeTab === "indexes" && data ? (
           <>
-            <GlobalMarketsHeatmap
+            <IndexScoreboard
               markets={majorIndexes}
-              title="Major Indexes"
-              uniformTiles
               sessionLabel={data.sessionLabel}
             />
             <div id="industries">

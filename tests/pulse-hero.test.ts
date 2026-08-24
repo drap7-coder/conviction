@@ -86,12 +86,12 @@ describe("Pulse heatmap universe", () => {
     expect(panel).not.toContain("wl-manage-row");
   });
 
-  it("shows the Watchlist session chip on Indexes and Sectors, not More markets", () => {
+  it("renders Indexes as a compact scoreboard, not heatmap tiles", () => {
     const page = read("src/app/pulse/page.tsx");
-    const stock = read("src/components/StockHeatmap.tsx");
-    const chipMarkup = 'className="stock-heat-session ink-chip ink-chip--amber"';
+    const board = read("src/components/market/IndexScoreboard.tsx");
+    const css = read("src/app/globals.css");
     const indexesBlock = page.slice(
-      page.indexOf('title="Major Indexes"'),
+      page.indexOf("<IndexScoreboard"),
       page.indexOf('id="industries"'),
     );
     const sectorsBlock = page.slice(
@@ -103,17 +103,18 @@ describe("Pulse heatmap universe", () => {
       page.indexOf('id="pulse-panel-trending"'),
     );
 
-    expect(stock).toContain(chipMarkup);
-    expect(stock).toContain("{sessionLabel ? (");
-    expect(page).toContain("sessionLabel?: string | null");
-    expect(page).toContain("{sessionLabel ? (");
-    expect(page).toContain(chipMarkup);
-    expect(page).toContain("aria-label={`${sessionLabel} session`}");
+    expect(page).toContain("IndexScoreboard");
     expect(indexesBlock).toContain("sessionLabel={data.sessionLabel}");
+    expect(indexesBlock).not.toContain("HeatTile");
+    expect(indexesBlock).not.toContain("HeatmapGrid");
+    expect(board).toContain("pulse-index-row");
+    expect(board).toContain("pulse-index-session");
+    expect(board).not.toContain("stock-heat-session");
+    expect(board).not.toContain("HeatTile");
+    expect(css).toContain(".pulse-index-row");
     expect(sectorsBlock).toContain("sessionLabel={data.sessionLabel}");
+    expect(page).toContain('className="stock-heat-session ink-chip ink-chip--amber"');
     expect(moreMarketsBlock).not.toContain("sessionLabel");
     expect(moreMarketsBlock).toContain('title="Commodities"');
-    expect(moreMarketsBlock).toContain('title="Crypto"');
-    expect(moreMarketsBlock).toContain('title="International"');
   });
 });
