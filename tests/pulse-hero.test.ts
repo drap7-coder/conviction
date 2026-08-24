@@ -85,4 +85,35 @@ describe("Pulse heatmap universe", () => {
     expect(panel).not.toContain("TrendingManageChips");
     expect(panel).not.toContain("wl-manage-row");
   });
+
+  it("shows the Watchlist session chip on Indexes and Sectors, not More markets", () => {
+    const page = read("src/app/pulse/page.tsx");
+    const stock = read("src/components/StockHeatmap.tsx");
+    const chipMarkup = 'className="stock-heat-session ink-chip ink-chip--amber"';
+    const indexesBlock = page.slice(
+      page.indexOf('title="Major Indexes"'),
+      page.indexOf('id="industries"'),
+    );
+    const sectorsBlock = page.slice(
+      page.indexOf('title="Sectors"'),
+      page.indexOf('className="pulse-more-markets"'),
+    );
+    const moreMarketsBlock = page.slice(
+      page.indexOf('className="pulse-more-markets"'),
+      page.indexOf('id="pulse-panel-trending"'),
+    );
+
+    expect(stock).toContain(chipMarkup);
+    expect(stock).toContain("{sessionLabel ? (");
+    expect(page).toContain("sessionLabel?: string | null");
+    expect(page).toContain("{sessionLabel ? (");
+    expect(page).toContain(chipMarkup);
+    expect(page).toContain("aria-label={`${sessionLabel} session`}");
+    expect(indexesBlock).toContain("sessionLabel={data.sessionLabel}");
+    expect(sectorsBlock).toContain("sessionLabel={data.sessionLabel}");
+    expect(moreMarketsBlock).not.toContain("sessionLabel");
+    expect(moreMarketsBlock).toContain('title="Commodities"');
+    expect(moreMarketsBlock).toContain('title="Crypto"');
+    expect(moreMarketsBlock).toContain('title="International"');
+  });
 });
