@@ -75,7 +75,7 @@ describe("Pulse heatmap universe", () => {
     expect(page).toContain("CommodityScoreboard");
     expect(page).not.toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');
-    expect(page).toContain('title="International"');
+    expect(page).toContain('title="International Indexes"');
     expect(page).toContain("MarketMovesPanel");
     expect(page).not.toContain("ViewSwitcher");
     expect(page).not.toContain("PULSE_TABS");
@@ -147,5 +147,7 @@ describe("Pulse heatmap universe", () => {
     expect(moreMarketsBlock).not.toContain("CommodityScoreboard");
     expect(moreMarketsBlock).not.toContain('title="Commodities"');
     expect(moreMarketsBlock).toContain('title="Crypto"');
+    expect(moreMarketsBlock).toContain("<MarketScoreboard");
+    expect(moreMarketsBlock).toContain('title="International Indexes"');
   });
 });

@@ -47,6 +47,8 @@ describe("data management workspace", () => {
     expect(manager).toContain("Clear every holding?");
     expect(manager).toContain("Portfolio holdings are stored in this browser.");
     expect(manager).toContain("Portfolio holdings are synced privately in Neon.");
+    expect(manager).toContain('fetch("/api/portfolio/resolve"');
+    expect(manager).toContain("Ticker or company");
   });
 
   it("keeps the manager usable on narrow screens", () => {

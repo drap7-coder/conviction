@@ -9,7 +9,11 @@ import { HeatmapGrid } from "@/components/HeatmapGrid";
 import { MarketMovesPanel } from "@/components/market/MarketMovesPanel";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
-import { CommodityScoreboard, IndexScoreboard } from "@/components/market/IndexScoreboard";
+import {
+  CommodityScoreboard,
+  IndexScoreboard,
+  MarketScoreboard,
+} from "@/components/market/IndexScoreboard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
@@ -198,10 +202,9 @@ export default function MarketPulsePage() {
               title="Crypto"
               uniformTiles
             />
-            <GlobalMarketsHeatmap
-              markets={internationalMarkets}
-              title="International"
-              uniformTiles
+            <MarketScoreboard
+              title="International Indexes"
+              rows={internationalMarkets}
             />
           </div>
         </>

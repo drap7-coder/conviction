@@ -46,6 +46,7 @@ export function PortfolioManager() {
   const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resolving, setResolving] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
   const [ticker, setTicker] = useState("");
   const [shares, setShares] = useState("");
@@ -95,23 +96,50 @@ export function PortfolioManager() {
 
   async function handleAdd(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const result = parsePosition(ticker, shares, cost);
+    const result = parsePosition(ticker, shares, cost, true);
     if (!result.position) {
       setAddError(result.error);
       return;
     }
 
-    const next = [...positions];
-    const existingIndex = next.findIndex(
-      (position) => position.ticker.toUpperCase() === result.position?.ticker,
-    );
-    if (existingIndex >= 0) next[existingIndex] = result.position;
-    else next.push(result.position);
-    if (!await persist(next)) return;
-    setTicker("");
-    setShares("");
-    setCost("");
+    setResolving(true);
     setAddError(null);
+    try {
+      const response = await fetch("/api/portfolio/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ input: ticker }),
+      });
+      const resolution = await response.json().catch(() => ({})) as {
+        success?: boolean;
+        ticker?: string;
+        error?: string;
+      };
+      if (!response.ok || !resolution.success || !resolution.ticker) {
+        setAddError(resolution.error ?? "Could not resolve that ticker or company.");
+        return;
+      }
+
+      const position = {
+        ...result.position,
+        ticker: resolution.ticker.toUpperCase(),
+      };
+      const next = [...positions];
+      const existingIndex = next.findIndex(
+        (existing) => existing.ticker.toUpperCase() === position.ticker,
+      );
+      if (existingIndex >= 0) next[existingIndex] = position;
+      else next.push(position);
+      if (!await persist(next)) return;
+      setTicker("");
+      setShares("");
+      setCost("");
+      setAddError(null);
+    } catch {
+      setAddError("Could not add the holding. Check your connection and try again.");
+    } finally {
+      setResolving(false);
+    }
   }
 
   function startEdit(position: PersistedPosition) {
@@ -173,11 +201,11 @@ export function PortfolioManager() {
 
       <form className="data-manager-form" onSubmit={handleAdd} aria-label="Add a portfolio holding">
         <label>
-          <span>Ticker</span>
+          <span>Ticker or company</span>
           <input
             value={ticker}
-            onChange={(event) => setTicker(event.target.value.toUpperCase())}
-            placeholder="AAPL"
+            onChange={(event) => setTicker(event.target.value)}
+            placeholder="AAPL or Apple"
             autoCapitalize="characters"
             autoComplete="off"
           />
@@ -206,7 +234,9 @@ export function PortfolioManager() {
             placeholder="150.00"
           />
         </label>
-        <button type="submit" className="data-manager-primary" disabled={saving}>Add holding</button>
+        <button type="submit" className="data-manager-primary" disabled={saving || resolving}>
+          {resolving ? "Adding…" : "Add holding"}
+        </button>
         {addError ? <p className="data-manager-error" role="alert">{addError}</p> : null}
       </form>
 
