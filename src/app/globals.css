@@ -482,6 +482,16 @@ details > summary::before {
   }
 }
 
+.app-build-debug {
+  margin-top: 18px;
+  padding: 0 0 4px;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-align: right;
+}
+
 .app-header {
   /* Stick under the scrollport top — StockTwits-style chrome that stays put. */
   position: sticky;

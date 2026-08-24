@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
+import { BuildDebugMarker } from "@/components/BuildDebugMarker";
 import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
 import { MarketTape } from "@/components/MarketTape";
@@ -106,6 +108,9 @@ export default function RootLayout({
           </header>
           <MarketTape />
           {children}
+          <Suspense fallback={null}>
+            <BuildDebugMarker />
+          </Suspense>
         </div>
         <MobileTabBar />
       </body>
