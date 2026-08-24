@@ -16306,16 +16306,27 @@ button.portfolio-check-item:focus-visible {
 
 .pulse-news-narrative.is-featured {
   grid-column: 1 / -1;
+  padding: 20px;
+  border-color: color-mix(in srgb, var(--ink) 16%, var(--border));
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.09);
+}
+
+.pulse-news-narrative.is-featured.has-media {
+  gap: 16px;
 }
 
 .pulse-news-hero-media {
   position: relative;
   aspect-ratio: 16 / 9;
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) + 2px);
   overflow: hidden;
   min-width: 0;
   max-width: 100%;
   background: var(--card-inset);
+}
+
+.pulse-news-narrative.is-featured.has-media .pulse-news-hero-media {
+  min-height: 220px;
 }
 
 .pulse-news-hero-media img {
@@ -16329,20 +16340,32 @@ button.portfolio-check-item:focus-visible {
 .pulse-news-hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
 .pulse-news-narrative.is-featured .pulse-news-narrative-title {
-  font-size: clamp(1.12rem, 2.4vw, 1.5rem);
+  font-size: clamp(1.28rem, 2.9vw, 1.85rem);
+  letter-spacing: -0.042em;
+  line-height: 1.12;
 }
 
 @media (min-width: 768px) {
   .pulse-news-narrative.is-featured.has-media {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 24px;
-    align-items: start;
+    grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+    gap: 28px;
+    align-items: stretch;
+    padding: 22px;
+  }
+
+  .pulse-news-narrative.is-featured.has-media .pulse-news-hero-media {
+    min-height: 280px;
+    height: 100%;
+  }
+
+  .pulse-news-narrative.is-featured.has-media .pulse-news-hero-copy {
+    justify-content: center;
   }
 }
 
@@ -16379,6 +16402,7 @@ button.portfolio-check-item:focus-visible {
   flex-wrap: wrap;
 }
 
+.pulse-news-lead-chip,
 .pulse-news-attention,
 .pulse-news-personal-chip {
   display: inline-flex;
@@ -16405,6 +16429,11 @@ button.portfolio-check-item:focus-visible {
 .pulse-news-personal-chip {
   background: var(--accent-dim);
   color: var(--accent);
+}
+
+.pulse-news-lead-chip {
+  background: var(--ink);
+  color: var(--bg);
 }
 
 .pulse-news-narrative-title {
