@@ -11,26 +11,8 @@ import type { InkTone } from "@/lib/display/ink-tone";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { CommodityScoreboard, IndexScoreboard } from "@/components/market/IndexScoreboard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
-import { ViewSwitcher } from "@/components/ViewSwitcher";
 
 const HEATMAP_SPANS = { largeWeight: 15, mediumWeight: 8 };
-
-const PULSE_TABS = [
-  {
-    id: "indexes",
-    label: "Indexes",
-    tabId: "pulse-tab-indexes",
-    panelId: "pulse-panel-indexes",
-  },
-  {
-    id: "trending",
-    label: "Trending",
-    tabId: "pulse-tab-trending",
-    panelId: "pulse-panel-trending",
-  },
-] as const;
-
-type PulseTab = (typeof PULSE_TABS)[number]["id"];
 
 function fmtPct(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
@@ -154,7 +136,6 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
 export default function MarketPulsePage() {
   const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [activeTab, setActiveTab] = useState<PulseTab>("indexes");
 
   useEffect(() => {
     let cancelled = false;
@@ -176,12 +157,6 @@ export default function MarketPulsePage() {
   return (
     <main className="markets-page pulse-page">
       <h1 className="sr-only">Pulse</h1>
-      <ViewSwitcher
-        label="Choose a Pulse view"
-        options={[...PULSE_TABS]}
-        activeId={activeTab}
-        onChange={(id) => setActiveTab(id as PulseTab)}
-      />
 
       {status === "loading" ? (
         <PageLoadingMotion
@@ -196,58 +171,40 @@ export default function MarketPulsePage() {
         <div className="market-empty">Market data is temporarily unavailable.</div>
       ) : null}
 
-      <div
-        id="pulse-panel-indexes"
-        role="tabpanel"
-        aria-labelledby="pulse-tab-indexes"
-        hidden={activeTab !== "indexes"}
-      >
-        {activeTab === "indexes" && data ? (
-          <>
-            <PulseMacroGauges indicators={data.indicators} />
-            <IndexScoreboard
-              markets={majorIndexes}
-              sessionLabel={data.sessionLabel}
-            />
-            <div id="industries">
-              <GlobalMarketsHeatmap
-                markets={industryMarkets}
-                title="Sectors"
-                uniformTiles
-                sessionLabel={data.sessionLabel}
-              />
-            </div>
-
-            <div className="pulse-more-markets" aria-label="More markets">
-              <p className="pulse-more-markets-label">More markets</p>
-              <CommodityScoreboard markets={commodities} />
-              <GlobalMarketsHeatmap
-                markets={cryptoMarkets}
-                title="Crypto"
-                uniformTiles
-              />
-              <GlobalMarketsHeatmap
-                markets={internationalMarkets}
-                title="International"
-                uniformTiles
-              />
-            </div>
-          </>
-        ) : null}
-      </div>
-
-      <div
-        id="pulse-panel-trending"
-        role="tabpanel"
-        aria-labelledby="pulse-tab-trending"
-        hidden={activeTab !== "trending"}
-      >
-        {activeTab === "trending" && data ? (
+      {data ? (
+        <>
+          <PulseMacroGauges indicators={data.indicators} />
+          <IndexScoreboard
+            markets={majorIndexes}
+            sessionLabel={data.sessionLabel}
+          />
           <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
             <MarketMovesPanel showDecisionCard={false} />
           </section>
-        ) : null}
-      </div>
+          <CommodityScoreboard markets={commodities} />
+          <div id="industries">
+            <GlobalMarketsHeatmap
+              markets={industryMarkets}
+              title="Sectors"
+              uniformTiles
+              sessionLabel={data.sessionLabel}
+            />
+          </div>
+          <div className="pulse-more-markets" aria-label="More markets">
+            <p className="pulse-more-markets-label">More markets</p>
+            <GlobalMarketsHeatmap
+              markets={cryptoMarkets}
+              title="Crypto"
+              uniformTiles
+            />
+            <GlobalMarketsHeatmap
+              markets={internationalMarkets}
+              title="International"
+              uniformTiles
+            />
+          </div>
+        </>
+      ) : null}
     </main>
   );
 }

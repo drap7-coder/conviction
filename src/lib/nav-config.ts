@@ -20,7 +20,7 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "amber",
     group: "daily",
-    blurb: "Indexes, sectors, and active names.",
+    blurb: "Indexes, trending names, commodities, and sectors.",
   },
   {
     href: "/watchlist",
