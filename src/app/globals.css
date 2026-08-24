@@ -12373,6 +12373,18 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-headline {
   margin-top: 4px;
+  font-family: var(--font-sans);
+  font-size: clamp(1.25rem, 2.6vw, 1.45rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-copy > p {
+  max-width: 36rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-actions {

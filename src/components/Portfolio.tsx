@@ -47,6 +47,7 @@ import {
   RISK_PROFILE_LABELS,
   RISK_PROFILE_MOVES_SUBHEAD,
   RISK_PROFILES,
+  investorFitLabel,
   riskProfileDeltaLead,
   targetBookForProfile,
   type RiskProfile,
@@ -694,7 +695,7 @@ export default function Portfolio({
   const sleeveMoves = visibleCompareMoves(
     generateSleeveMoves(bookHoldings, profileTarget, undefined, profile),
   );
-  const currentFitLabel = valueBrief.fit.primary?.label ?? RISK_PROFILE_LABELS[profile];
+  const currentFitLabel = investorFitLabel(valueBrief.fit.primary, valueBrief.fit.defaultProfile);
   const movesLead = riskProfileDeltaLead(currentFitLabel, profile);
 
   function pickProfile(next: RiskProfile) {
@@ -882,6 +883,7 @@ export default function Portfolio({
           eyebrow={stageEyebrow}
           headline={stageHeadline}
           summary={stageSummary}
+          typewriterHeadline={false}
           metricsPlacement="above"
           metrics={
             <>
@@ -913,11 +915,16 @@ export default function Portfolio({
           }
         >
           <div className="pf-fit-board">
-            {valueBrief.fit.runnerUp ? (
-              <p className="pf-fit-runner">
-                Also close to {valueBrief.fit.runnerUp.label}
-              </p>
-            ) : null}
+            <div className="pf-live-machine">
+              <div>
+                <span>How it’s built</span>
+                <p>{valueBrief.construction}</p>
+              </div>
+              <div>
+                <span>What has to go right</span>
+                <p>{valueBrief.stake}</p>
+              </div>
+            </div>
             <fieldset className="pf-risk">
               <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
               <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
