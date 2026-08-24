@@ -25,6 +25,7 @@ describe("pulse macro gauges", () => {
   it("classifies VIX 16.4 as CALM and a tiny 10Y move as STEADY", () => {
     expect(vixStatus(16.4)).toEqual({ status: "CALM", tone: "calm" });
     expect(yieldStatus(0.02)).toEqual({ status: "STEADY", tone: "steady" });
+    expect(yieldStatus(0.04)).toEqual({ status: "STEADY", tone: "steady" });
     expect(yieldStatus(0.12)).toEqual({ status: "RISING", tone: "elevated" });
     expect(yieldStatus(-0.09)).toEqual({ status: "FALLING", tone: "calm" });
   });

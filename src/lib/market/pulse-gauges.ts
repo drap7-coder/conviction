@@ -57,7 +57,7 @@ export function vixStatus(last: number): { status: string; tone: PulseGaugeTone 
 
 export function yieldStatus(change: number | null): { status: string; tone: PulseGaugeTone } {
   if (!isFiniteNumber(change)) return { status: "STEADY", tone: "steady" };
-  if (Math.abs(change) < 0.04) return { status: "STEADY", tone: "steady" };
+  if (Math.abs(change) < 0.05) return { status: "STEADY", tone: "steady" };
   if (change > 0) return { status: "RISING", tone: "elevated" };
   return { status: "FALLING", tone: "calm" };
 }
