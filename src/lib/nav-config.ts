@@ -1,7 +1,7 @@
-import { List, Briefcase, BarChart3, Landmark, Newspaper, type LucideIcon } from "lucide-react";
+import { List, Briefcase, BarChart3, Landmark, LogIn, Newspaper, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
-export type NavGroup = "daily" | "more";
+export type NavGroup = "daily" | "more" | "account";
 
 export interface NavPage {
   href: string;
@@ -54,10 +54,18 @@ export const navPages: NavPage[] = [
     group: "more",
     blurb: "Institution filings and political trades.",
   },
+  {
+    href: "/api/auth/signin",
+    label: "Sign in",
+    icon: LogIn,
+    tone: "blue",
+    group: "account",
+    blurb: "Use GitHub to sync your watchlist across devices.",
+  },
 ];
 
 export const primaryNavTabs = navPages.filter((page) => page.group === "daily");
-export const menuNavPages = navPages.filter((page) => page.group === "more");
+export const menuNavPages = navPages.filter((page) => page.group !== "daily");
 
 /** Daily tab bar items. New pages go in `menuNavPages` unless they are daily. */
 export const navTabs = primaryNavTabs;
@@ -72,5 +80,6 @@ export function isOverflowNavPath(pathname: string): boolean {
 
 export const menuGroups: Array<{ id: NavGroup; label: string; pages: NavPage[] }> = [
   { id: "daily", label: "Daily", pages: primaryNavTabs },
-  { id: "more", label: "More", pages: menuNavPages },
+  { id: "more", label: "More", pages: navPages.filter((page) => page.group === "more") },
+  { id: "account", label: "Account", pages: navPages.filter((page) => page.group === "account") },
 ];

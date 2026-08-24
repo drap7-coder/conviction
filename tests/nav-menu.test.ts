@@ -25,11 +25,16 @@ describe("site menu nav", () => {
     expect(primaryNavTabs.some((tab) => tab.href === "/smart-money")).toBe(false);
   });
 
-  it("demotes Smart Money into Menu → More", () => {
-    expect(menuNavPages.map((page) => page.href)).toEqual(["/smart-money"]);
+  it("puts Smart Money and authentication in Menu", () => {
+    expect(menuNavPages.map((page) => page.href)).toEqual([
+      "/smart-money",
+      "/api/auth/signin",
+    ]);
     expect(navPages.some((page) => page.href === "/smart-money" && page.group === "more")).toBe(true);
-    expect(menuGroups.map((group) => group.id)).toEqual(["daily", "more"]);
+    expect(navPages.some((page) => page.href === "/api/auth/signin" && page.group === "account")).toBe(true);
+    expect(menuGroups.map((group) => group.id)).toEqual(["daily", "more", "account"]);
     expect(isOverflowNavPath("/smart-money")).toBe(true);
+    expect(isOverflowNavPath("/api/auth/signin")).toBe(true);
     expect(isOverflowNavPath("/pulse")).toBe(false);
   });
 
