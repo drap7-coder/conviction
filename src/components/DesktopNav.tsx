@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navTabs } from "@/lib/nav-config";
+import { primaryNavTabs } from "@/lib/nav-config";
 
 export default function DesktopNav() {
   const pathname = usePathname();
 
   return (
     <nav className="hidden md:flex items-center gap-2 px-3 py-2 rounded-full bg-gray-900/60">
-      {navTabs.map(({ href, label, icon: Icon }) => {
+      {primaryNavTabs.map(({ href, label, icon: Icon }) => {
         const active = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
