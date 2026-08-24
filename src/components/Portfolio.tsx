@@ -916,7 +916,7 @@ export default function Portfolio({
               </p>
             ) : null}
             <fieldset className="pf-risk">
-              <legend className="pf-risk-q">{COMPARE_AGAINST_LABEL}</legend>
+              <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
               <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
                 {RISK_PROFILES.map((item) => (
                   <button
