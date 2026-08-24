@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { loadPositions } from "@/lib/portfolio/persist";
+import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 import type {
   MarketNarrativeHeadline,
   MarketNarrativeTheme,
@@ -279,14 +280,22 @@ export function PulseNewsFeed({
     ]);
     setPersonalTickers(localTickers);
 
-    fetch("/api/watchlist")
-      .then((response) => response.ok ? response.json() : null)
-      .then((data: { authenticated?: boolean; entries?: Array<{ ticker: string }>; guestEntries?: Array<{ ticker: string }> } | null) => {
-        if (cancelled || !data) return;
-        const entries = data.authenticated ? data.entries ?? [] : data.guestEntries ?? data.entries ?? [];
+    Promise.all([
+      fetch("/api/watchlist").then((response) => response.ok ? response.json() : null),
+      loadPortfolioForViewer(),
+    ])
+      .then(([data, portfolio]: [
+        { authenticated?: boolean; entries?: Array<{ ticker: string }>; guestEntries?: Array<{ ticker: string }> } | null,
+        Awaited<ReturnType<typeof loadPortfolioForViewer>>,
+      ]) => {
+        if (cancelled) return;
+        const entries = data
+          ? (data.authenticated ? data.entries ?? [] : data.guestEntries ?? data.entries ?? [])
+          : [];
         setPersonalTickers(new Set([
           ...localTickers,
           ...entries.map((entry) => entry.ticker.toUpperCase()),
+          ...portfolio.positions.map((position) => position.ticker.toUpperCase()),
         ]));
       })
       .catch(() => undefined);

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import {
-  loadPositions,
   loadRiskProfileOverride,
   saveRiskProfileOverride,
   type PersistedPosition,
@@ -233,7 +232,12 @@ function SampleBooksSwitcher({
 // ── Main Component ──────────────────────────────────────────────────────────
 
 export default function Portfolio() {
-  const { quotes, data: sharedData, refresh: refreshSharedQuotes } = usePortfolioData();
+  const {
+    quotes,
+    data: sharedData,
+    positions: personalPositions,
+    refresh: refreshSharedQuotes,
+  } = usePortfolioData();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -254,15 +258,16 @@ export default function Portfolio() {
   const sampleAbortRef = useRef<AbortController | null>(null);
   const sampleAwaitingQuotesRef = useRef(false);
 
-  // Load personal positions on mount. Study Mode reads templates from the URL,
-  // so we no longer resolve a stored sample book into the live positions.
   useEffect(() => {
-    setPositions(loadPositions());
     setProfileOverride(loadRiskProfileOverride());
     return () => {
       sampleAbortRef.current?.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (activeBookId === null) setPositions(personalPositions);
+  }, [activeBookId, personalPositions]);
 
   useEffect(() => {
     if (!loadingBook || !sampleAwaitingQuotesRef.current || sharedData.loading) return;
@@ -498,7 +503,7 @@ export default function Portfolio() {
     sampleAwaitingQuotesRef.current = false;
     setLoadingBook(false);
     clearActiveBook();
-    setPositions(loadPositions());
+    setPositions(personalPositions);
     notifyPortfolioChanged();
   }
 

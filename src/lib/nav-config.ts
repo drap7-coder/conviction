@@ -68,7 +68,7 @@ export const navPages: NavPage[] = [
     icon: LogIn,
     tone: "blue",
     group: "account",
-    blurb: "Use GitHub to sync your watchlist across devices.",
+    blurb: "Use Google to sync your data across devices.",
   },
 ];
 

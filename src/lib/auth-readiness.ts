@@ -3,8 +3,8 @@ import { query, isDatabaseConfigured } from "@/lib/db";
 export const REQUIRED_AUTH_ENV_VARS = [
   "DATABASE_URL",
   "AUTH_SECRET",
-  "AUTH_GITHUB_ID",
-  "AUTH_GITHUB_SECRET",
+  "AUTH_GOOGLE_ID",
+  "AUTH_GOOGLE_SECRET",
 ] as const;
 
 export const REQUIRED_AUTH_TABLES = [
@@ -13,6 +13,7 @@ export const REQUIRED_AUTH_TABLES = [
   "sessions",
   "verification_token",
   "watchlist_entries",
+  "portfolio_positions",
 ] as const;
 
 export function isAuthConfigured() {

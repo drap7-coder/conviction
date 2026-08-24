@@ -3,11 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { notifyPortfolioChanged } from "@/components/PortfolioData";
-import {
-  loadPositions,
-  savePositions,
-  type PersistedPosition,
-} from "@/lib/portfolio/persist";
+import { loadPortfolioForViewer, savePortfolioForViewer } from "@/lib/portfolio/client";
+import type { PersistedPosition } from "@/lib/portfolio/persist";
 
 function parsePosition(
   tickerValue: string,
@@ -45,7 +42,11 @@ function formatCost(value: number | undefined): string {
 
 export function PortfolioManager() {
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loaded, setLoaded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
   const [ticker, setTicker] = useState("");
   const [shares, setShares] = useState("");
   const [cost, setCost] = useState("");
@@ -58,18 +59,41 @@ export function PortfolioManager() {
   const [confirmClear, setConfirmClear] = useState(false);
 
   useEffect(() => {
-    setPositions(loadPositions());
-    setLoaded(true);
+    let cancelled = false;
+    void loadPortfolioForViewer().then((next) => {
+      if (cancelled) return;
+      setPositions(next.positions);
+      setAuthenticated(next.authenticated);
+      setPersistence(next.persistence);
+      setLoaded(true);
+    });
+    return () => { cancelled = true; };
   }, []);
 
-  function persist(next: PersistedPosition[]) {
+  async function persist(next: PersistedPosition[]) {
     const trimmed = next.slice(0, 50);
-    savePositions(trimmed);
+    const previous = positions;
     setPositions(trimmed);
-    notifyPortfolioChanged();
+    setSaving(true);
+    setSyncError(null);
+    try {
+      if (persistence === "unconfigured") {
+        throw new Error("Portfolio sync is temporarily unavailable");
+      }
+      const saved = await savePortfolioForViewer(trimmed, authenticated);
+      setPositions(saved);
+      notifyPortfolioChanged();
+      return true;
+    } catch (error) {
+      setPositions(previous);
+      setSyncError(error instanceof Error ? error.message : "Could not save the portfolio");
+      return false;
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function handleAdd(event: React.FormEvent<HTMLFormElement>) {
+  async function handleAdd(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const result = parsePosition(ticker, shares, cost);
     if (!result.position) {
@@ -83,7 +107,7 @@ export function PortfolioManager() {
     );
     if (existingIndex >= 0) next[existingIndex] = result.position;
     else next.push(result.position);
-    persist(next);
+    if (!await persist(next)) return;
     setTicker("");
     setShares("");
     setCost("");
@@ -105,31 +129,32 @@ export function PortfolioManager() {
     setEditError(null);
   }
 
-  function saveEdit(event: React.FormEvent<HTMLFormElement>, originalTicker: string) {
+  async function saveEdit(event: React.FormEvent<HTMLFormElement>, originalTicker: string) {
     event.preventDefault();
     const result = parsePosition(originalTicker, editShares, editCost, true);
     if (!result.position) {
       setEditError(result.error);
       return;
     }
-    persist(positions.map((position) =>
+    const saved = await persist(positions.map((position) =>
       position.ticker.toUpperCase() === originalTicker.toUpperCase()
         ? result.position as PersistedPosition
         : position,
     ));
-    cancelEdit();
+    if (saved) cancelEdit();
   }
 
-  function remove(tickerToRemove: string) {
-    persist(positions.filter(
+  async function remove(tickerToRemove: string) {
+    const saved = await persist(positions.filter(
       (position) => position.ticker.toUpperCase() !== tickerToRemove.toUpperCase(),
     ));
+    if (!saved) return;
     setRemovingTicker(null);
     if (editingTicker?.toUpperCase() === tickerToRemove.toUpperCase()) cancelEdit();
   }
 
-  function clearPortfolio() {
-    persist([]);
+  async function clearPortfolio() {
+    if (!await persist([])) return;
     setConfirmClear(false);
     cancelEdit();
   }
@@ -181,7 +206,7 @@ export function PortfolioManager() {
             placeholder="150.00"
           />
         </label>
-        <button type="submit" className="data-manager-primary">Add holding</button>
+        <button type="submit" className="data-manager-primary" disabled={saving}>Add holding</button>
         {addError ? <p className="data-manager-error" role="alert">{addError}</p> : null}
       </form>
 
@@ -205,7 +230,7 @@ export function PortfolioManager() {
                   {isRemoving ? (
                     <>
                       <span className="data-manager-confirm">Remove?</span>
-                      <button type="button" className="data-manager-action is-danger" onClick={() => remove(position.ticker)}>Yes</button>
+                      <button type="button" className="data-manager-action is-danger" disabled={saving} onClick={() => void remove(position.ticker)}>Yes</button>
                       <button type="button" className="data-manager-action" onClick={() => setRemovingTicker(null)}>Cancel</button>
                     </>
                   ) : (
@@ -217,7 +242,7 @@ export function PortfolioManager() {
                 </div>
 
                 {isEditing ? (
-                  <form className="data-manager-inline-form" onSubmit={(event) => saveEdit(event, position.ticker)}>
+                  <form className="data-manager-inline-form" onSubmit={(event) => void saveEdit(event, position.ticker)}>
                     <label>
                       <span>Shares</span>
                       <input
@@ -242,7 +267,7 @@ export function PortfolioManager() {
                         placeholder="optional"
                       />
                     </label>
-                    <button type="submit" className="data-manager-primary">Save</button>
+                    <button type="submit" className="data-manager-primary" disabled={saving}>Save</button>
                     <button type="button" className="data-manager-action" onClick={cancelEdit}>Cancel</button>
                     {editError ? <p className="data-manager-error" role="alert">{editError}</p> : null}
                   </form>
@@ -259,12 +284,17 @@ export function PortfolioManager() {
       )}
 
       <footer className="data-manager-footer">
-        <span>Portfolio holdings are stored in this browser.</span>
+        <span>
+          {persistence === "neon" && authenticated
+            ? "Portfolio holdings are synced privately in Neon."
+            : "Portfolio holdings are stored in this browser."}
+        </span>
+        {syncError ? <span className="data-manager-error" role="alert">{syncError}</span> : null}
         {positions.length > 0 ? (
           confirmClear ? (
             <div className="data-manager-row-actions">
               <span className="data-manager-confirm">Clear every holding?</span>
-              <button type="button" className="data-manager-action is-danger" onClick={clearPortfolio}>Clear all</button>
+              <button type="button" className="data-manager-action is-danger" disabled={saving} onClick={() => void clearPortfolio()}>Clear all</button>
               <button type="button" className="data-manager-action" onClick={() => setConfirmClear(false)}>Cancel</button>
             </div>
           ) : (

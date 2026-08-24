@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
-import { loadPositions } from "@/lib/portfolio/persist";
+import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { computePortfolioMetrics } from "@/lib/portfolio/calculations";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
@@ -62,8 +62,11 @@ interface PortfolioData {
 interface PortfolioDataContextValue {
   data: PortfolioData;
   quotes: StockQuote[];
+  positions: PersistedPosition[];
+  authenticated: boolean;
+  persistence: "browser" | "neon" | "unconfigured";
   refresh: () => void;
-  reloadPositions: () => void;
+  reloadPositions: () => Promise<void>;
 }
 
 const PortfolioDataContext = createContext<PortfolioDataContextValue | null>(null);
@@ -103,23 +106,26 @@ function sessionLabelFromQuotes(quotes: StockQuote[]): string | null {
 
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const quoteRequestRef = useRef(0);
   const quoteAbortRef = useRef<AbortController | null>(null);
 
-  const reloadPositions = useCallback(() => {
-    // Live book only — Study templates are illustrative and must not replace quotes.
-    const next = loadPositions();
-    setPositions(next);
-    setLoading(next.length > 0);
+  const reloadPositions = useCallback(async () => {
+    const next = await loadPortfolioForViewer();
+    setPositions(next.positions);
+    setAuthenticated(next.authenticated);
+    setPersistence(next.persistence);
+    setLoading(next.positions.length > 0);
   }, []);
 
   useEffect(() => {
-    reloadPositions();
+    void reloadPositions();
     function onChanged() {
-      reloadPositions();
+      void reloadPositions();
     }
     window.addEventListener(PORTFOLIO_CHANGED_EVENT, onChanged);
     return () => window.removeEventListener(PORTFOLIO_CHANGED_EVENT, onChanged);
@@ -195,7 +201,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   }, [positions, quotes, loading, error]);
 
   return (
-    <PortfolioDataContext.Provider value={{ data, quotes, refresh, reloadPositions }}>
+    <PortfolioDataContext.Provider value={{
+      data,
+      quotes,
+      positions,
+      authenticated,
+      persistence,
+      refresh,
+      reloadPositions,
+    }}>
       {children}
     </PortfolioDataContext.Provider>
   );

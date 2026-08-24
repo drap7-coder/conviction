@@ -34,14 +34,15 @@ describe("data management workspace", () => {
     expect(holdingCard).not.toContain("onConfirmRemove");
   });
 
-  it("uses the existing browser portfolio store and confirms destructive bulk clearing", () => {
+  it("uses the shared portfolio sync client and confirms destructive bulk clearing", () => {
     const manager = read("src/components/PortfolioManager.tsx");
 
-    expect(manager).toContain("loadPositions");
-    expect(manager).toContain("savePositions");
+    expect(manager).toContain("loadPortfolioForViewer");
+    expect(manager).toContain("savePortfolioForViewer");
     expect(manager).toContain("notifyPortfolioChanged");
     expect(manager).toContain("Clear every holding?");
     expect(manager).toContain("Portfolio holdings are stored in this browser.");
+    expect(manager).toContain("Portfolio holdings are synced privately in Neon.");
   });
 
   it("keeps the manager usable on narrow screens", () => {

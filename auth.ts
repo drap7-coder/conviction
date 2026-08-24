@@ -1,11 +1,11 @@
 import NextAuth from "next-auth";
-import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 import NeonAdapter from "@auth/neon-adapter";
 import { getPool, isDatabaseConfigured } from "@/lib/db";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: isDatabaseConfigured() ? NeonAdapter(getPool()) : undefined,
-  providers: [GitHub],
+  providers: [Google],
   session: { strategy: isDatabaseConfigured() ? "database" : "jwt" },
   callbacks: {
     jwt({ token, user }) {
