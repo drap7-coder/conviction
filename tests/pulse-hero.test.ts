@@ -96,11 +96,11 @@ describe("Pulse heatmap universe", () => {
     );
     const sectorsBlock = page.slice(
       page.indexOf('title="Sectors"'),
-      page.indexOf("pulse-more-markets"),
+      page.indexOf('className="pulse-more-markets"'),
     );
     const moreMarketsBlock = page.slice(
-      page.indexOf("pulse-more-markets"),
-      page.indexOf("pulse-panel-trending"),
+      page.indexOf('className="pulse-more-markets"'),
+      page.indexOf('id="pulse-panel-trending"'),
     );
 
     expect(stock).toContain(chipMarkup);
