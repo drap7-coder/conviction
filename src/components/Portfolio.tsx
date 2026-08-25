@@ -836,7 +836,7 @@ export default function Portfolio() {
                             </span>
                             <strong className="pf-move-focus">
                               {move.action === "add" ? (
-                                focus
+                                focus.charAt(0).toUpperCase() + focus.slice(1)
                               ) : (
                                 <>
                                   {named.name === named.ticker ? named.ticker : named.name}
