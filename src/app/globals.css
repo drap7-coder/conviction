@@ -8712,6 +8712,15 @@ button.brief-link:focus-visible {
 .pf-allocation-values .up { color: var(--green); }
 .pf-allocation-values .down { color: var(--red); }
 
+.pf-allocation-today {
+  color: var(--quiet);
+  font-family: var(--font-sans);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
 .pf-allocation-more {
   margin: 10px 0 0;
   color: var(--quiet);
@@ -12708,6 +12717,11 @@ a.signal-block-conclusion-link:hover {
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
   justify-content: end;
   padding-bottom: 12px;
+}
+
+.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead .pf-hero-diagnosis {
+  margin-top: 8px;
+  grid-column: 1 / -1;
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead strong {

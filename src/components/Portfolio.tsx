@@ -69,18 +69,9 @@ function signedCurrency(value: number | null): string {
   })}`;
 }
 
-function compactCurrency(value: number | null): string {
+function formatPortfolioDollars(value: number | null): string {
   if (!isFiniteNumber(value)) return "—";
-  if (Math.abs(value) >= 1_000_000) {
-    return "$" + (value / 1_000_000).toFixed(2) + "M";
-  }
-  if (Math.abs(value) >= 1_000) {
-    return "$" + (value / 1_000).toFixed(1) + "K";
-  }
-  return "$" + value.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  return "$" + Math.round(value).toLocaleString("en-US");
 }
 
 function percent(value: number | null): string {
@@ -89,10 +80,12 @@ function percent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-/** Session move intensity for the day-change arcs — ~3% fills the gauge. */
+/** Session move intensity for the day-change arcs — ~2% fills the gauge. */
 function dayChangeFill(percentChange: number | null): number {
   if (!isFiniteNumber(percentChange)) return 0;
-  return Math.min(100, (Math.abs(percentChange) / 3) * 100);
+  if (percentChange === 0) return 0;
+  // Small moves still read as a visible arc.
+  return Math.min(100, Math.max(18, (Math.abs(percentChange) / 2) * 100));
 }
 
 function dayChangeTone(
@@ -102,10 +95,10 @@ function dayChangeTone(
   return dailyChange > 0 ? "positive" : "negative";
 }
 
-const DAY_GAUGE_RADIUS = 40;
-const DAY_GAUGE_STROKE = 7;
-const DAY_GAUGE_CX = 52;
-const DAY_GAUGE_CY = 52;
+const DAY_GAUGE_RADIUS = 46;
+const DAY_GAUGE_STROKE = 11;
+const DAY_GAUGE_CX = 58;
+const DAY_GAUGE_CY = 58;
 const DAY_GAUGE_TRACK = Math.PI * DAY_GAUGE_RADIUS;
 const DAY_GAUGE_ARC = `M ${DAY_GAUGE_CX - DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY} A ${DAY_GAUGE_RADIUS} ${DAY_GAUGE_RADIUS} 0 0 1 ${DAY_GAUGE_CX + DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY}`;
 
@@ -127,11 +120,11 @@ function DayChangeGauge({
       role="img"
       aria-label={`${caption} ${label}`}
     >
-      <svg className="pf-day-gauge-arc" viewBox="0 0 104 64" aria-hidden="true">
+      <svg className="pf-day-gauge-arc" viewBox="0 0 116 72" aria-hidden="true">
         <path
+          className="pf-day-gauge-track"
           d={DAY_GAUGE_ARC}
           fill="none"
-          stroke="var(--border)"
           strokeWidth={DAY_GAUGE_STROKE}
           strokeLinecap="round"
         />
@@ -441,7 +434,7 @@ export default function Portfolio() {
   }, [sectorAllocation]);
   const hasData = enriched.length > 0;
 
-  // ── Sorted positions (value desc — feeds Fit / Capital Map / sleeve moves) ──
+  // ── Sorted positions (value desc — feeds Fit / Sector Mix / sleeve moves) ──
 
   const sortedPositions = useMemo(() => {
     const rows = enriched.map((pos) => {
@@ -503,7 +496,7 @@ export default function Portfolio() {
         ticker,
         companyName: quote?.name ?? ticker,
         weight: metrics.weight ?? 0,
-        marketValue: compactCurrency(metrics.marketValue),
+        marketValue: formatPortfolioDollars(metrics.marketValue),
         dailyChange: signedCurrency(metrics.dailyChange),
         dailyChangeValue: metrics.dailyChange,
       };
@@ -571,14 +564,17 @@ export default function Portfolio() {
   }
 
   const allocationPanel = !calcFailed ? (
-    <div className="pf-insights-allocation">
-      <PortfolioAllocationLadder items={allocationItems} />
-    </div>
+    <PortfolioAllocationLadder
+      items={allocationItems}
+      eyebrow="Concentration"
+      title="Position weight vs. risk thresholds"
+      hint="Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration."
+    />
   ) : null;
 
   // ── Render ──
 
-  const stageHeadline = valueBrief.headline;
+  const fitDiagnosis = valueBrief.headline;
   const stageEyebrow = `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}`;
   const profile = profileOverride ?? valueBrief.fit.defaultProfile ?? "growth-income";
   const profileTarget = targetBookForProfile(profile, valueBrief.fit.rankings);
@@ -626,19 +622,15 @@ export default function Portfolio() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
-  const capitalMapCard = hasData && !calcFailed ? (
-    <section className="pf-section pf-capital-map" aria-label="Capital map">
-      <header className="pf-capital-map-head">
-        <span className="pf-section-eyebrow">Capital Map</span>
-        <h2>Asset-class mix, drilling into positions</h2>
+  const sectorMixCard = hasData && !calcFailed && sectorMixData.length > 0 ? (
+    <section className="pf-section pf-sector-mix" aria-label="Sector mix">
+      <header className="pf-sector-mix-head">
+        <span className="pf-section-eyebrow">Sector Mix</span>
+        <h2>Where the equity exposure sits</h2>
       </header>
-      {sectorMixData.length > 0 ? (
-        <div className="pf-capital-map-donut">
-          <SectorDonut sectors={sectorMixData} />
-        </div>
-      ) : null}
-      <div className="pf-capital-map-divider" aria-hidden="true" />
-      {allocationPanel}
+      <div className="pf-sector-mix-donut">
+        <SectorDonut sectors={sectorMixData} />
+      </div>
     </section>
   ) : null;
 
@@ -772,14 +764,14 @@ export default function Portfolio() {
           loading={loading}
           tone={stageTone}
           eyebrow={stageEyebrow}
-          headline={stageHeadline}
           typewriterHeadline={false}
           metricsPlacement="above"
           metrics={
             <>
               <div className="is-lead">
-                <strong className="tnum">{compactCurrency(portfolioMetrics.totalMarketValue)}</strong>
+                <strong className="tnum">{formatPortfolioDollars(portfolioMetrics.totalMarketValue)}</strong>
                 <span>Value</span>
+                <p className="pf-hero-diagnosis">{fitDiagnosis}</p>
               </div>
               <div className={`pf-day-gauge-cell is-${dayTone}`}>
                 <DayChangeGauge
@@ -806,18 +798,9 @@ export default function Portfolio() {
             </button>
           </div>
         </ProductStage>
-        <div className="pf-fit-board">
-          <div className="pf-live-machine">
-            <div>
-              <span>How it’s built</span>
-              <p>{valueBrief.construction}</p>
-            </div>
-            <div>
-              <span>What has to go right</span>
-              <p>{valueBrief.stake}</p>
-            </div>
-          </div>
-          {capitalMapCard}
+        {sectorMixCard}
+        {allocationPanel}
+        <div className="pf-compare-board">
           <fieldset className="pf-risk">
             <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
             <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
@@ -914,7 +897,7 @@ export default function Portfolio() {
           <h2>
             {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
           </h2>
-          <p>Edit shares, cost basis, and removals in Manage — this page stays on Fit and allocation.</p>
+          <p>Edit shares, cost basis, and removals in Manage — this page stays on mix, concentration, and moves.</p>
         </div>
         <Link href="/manage?view=portfolio" className="data-edit-pill">
           Manage holdings
