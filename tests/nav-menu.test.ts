@@ -25,19 +25,22 @@ describe("site menu nav", () => {
     expect(primaryNavTabs.some((tab) => tab.href === "/smart-money")).toBe(false);
   });
 
-  it("puts Smart Money, International, data management, and authentication in Menu", () => {
+  it("puts Smart Money, Sectors, International, data management, and authentication in Menu", () => {
     expect(menuNavPages.map((page) => page.href)).toEqual([
       "/smart-money",
+      "/sectors",
       "/international",
       "/manage",
       "/signin",
     ]);
     expect(navPages.some((page) => page.href === "/smart-money" && page.group === "more")).toBe(true);
+    expect(navPages.some((page) => page.href === "/sectors" && page.group === "more")).toBe(true);
     expect(navPages.some((page) => page.href === "/international" && page.group === "more")).toBe(true);
     expect(navPages.some((page) => page.href === "/manage" && page.group === "account")).toBe(true);
     expect(navPages.some((page) => page.href === "/signin" && page.group === "account")).toBe(true);
     expect(menuGroups.map((group) => group.id)).toEqual(["daily", "more", "account"]);
     expect(isOverflowNavPath("/smart-money")).toBe(true);
+    expect(isOverflowNavPath("/sectors")).toBe(true);
     expect(isOverflowNavPath("/international")).toBe(true);
     expect(isOverflowNavPath("/manage")).toBe(true);
     expect(isOverflowNavPath("/signin")).toBe(true);
