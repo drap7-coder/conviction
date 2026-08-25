@@ -177,14 +177,18 @@
   background: var(--divider);
 }
 
-/* Nested in the Live hero: same map, no second card chrome. */
+/* Nested in the Live hero: same map, no second card chrome — soft accent wash. */
 .portfolio-page .product-stage .pf-capital-map {
   margin: 2px 0 0;
-  padding: 12px 0 0;
-  border: 0;
-  border-top: 1px solid var(--border);
-  border-radius: 0;
-  background: transparent;
+  padding: 14px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 16%, var(--border));
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--stage-accent, var(--accent)) 10%, var(--card-soft)) 0%,
+      var(--card-soft) 60%
+    );
 }
 
 .portfolio-page .product-stage .pf-capital-map-head {
@@ -195,7 +199,7 @@
   font-size: 0.92rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  color: var(--muted);
+  color: color-mix(in srgb, var(--stage-accent, var(--accent)) 35%, var(--muted));
 }
 
 .portfolio-page .pf-capital-map .pf-allocation-ladder {
@@ -674,29 +678,45 @@
 /* Live hero: Fit + Reliance + risk-profile ask + moves (same ProductStage) */
 .portfolio-page .pf-fit-board {
   display: grid;
-  gap: 14px;
-  margin-top: 4px;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
+  gap: 16px;
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 18%, var(--border));
 }
 
 .portfolio-page .pf-live-machine {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .portfolio-page .pf-live-machine > div {
   display: grid;
-  gap: 6px;
-  padding: 12px 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--card-soft);
+  gap: 7px;
+  padding: 14px 15px;
+  border: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 16%, var(--border));
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--stage-accent, var(--accent)) 11%, var(--card-soft)) 0%,
+      var(--card-soft) 70%
+    );
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 4%, transparent);
+}
+
+.portfolio-page .pf-live-machine > div:last-child {
+  border-color: color-mix(in srgb, var(--amber) 22%, var(--border));
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--amber) 10%, var(--card-soft)) 0%,
+      var(--card-soft) 70%
+    );
 }
 
 .portfolio-page .pf-live-machine span {
-  color: var(--quiet);
+  color: color-mix(in srgb, var(--stage-accent, var(--accent)) 40%, var(--quiet));
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 700;
@@ -704,12 +724,16 @@
   text-transform: uppercase;
 }
 
+.portfolio-page .pf-live-machine > div:last-child span {
+  color: color-mix(in srgb, var(--amber) 45%, var(--quiet));
+}
+
 .portfolio-page .pf-live-machine p {
   margin: 0;
   overflow-wrap: break-word;
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   line-height: 1.45;
   white-space: normal;
 }
@@ -762,10 +786,10 @@
   align-items: center;
   width: auto;
   margin: 0;
-  padding: 7px 12px;
-  border: 1px solid var(--border);
+  padding: 8px 13px;
+  border: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 14%, var(--border));
   border-radius: 999px;
-  background: color-mix(in srgb, var(--card) 82%, transparent);
+  background: color-mix(in srgb, var(--card) 70%, transparent);
   color: var(--muted);
   font-family: var(--font-sans);
   font-size: 0.78rem;
@@ -775,12 +799,21 @@
   text-align: center;
   white-space: nowrap;
   cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.portfolio-page .pf-profile-option:hover,
+.portfolio-page .pf-profile-option:focus-visible {
+  border-color: color-mix(in srgb, var(--stage-accent, var(--accent)) 40%, var(--border));
+  color: var(--ink);
+  outline: none;
 }
 
 .portfolio-page .pf-profile-option.is-active {
-  border-color: color-mix(in srgb, var(--ink) 28%, var(--border));
-  background: var(--ink);
-  color: var(--bg);
+  border-color: color-mix(in srgb, var(--stage-accent, var(--accent)) 55%, transparent);
+  background: color-mix(in srgb, var(--stage-accent, var(--accent)) 22%, var(--card));
+  color: var(--ink);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--stage-accent, var(--accent)) 18%, transparent);
 }
 
 .portfolio-page .pf-moves-block {
