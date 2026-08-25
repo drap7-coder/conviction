@@ -30,8 +30,6 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
-import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import SectorDonut from "@/components/SectorDonut";
@@ -119,16 +117,6 @@ function namedTicker(name: string, ticker: string): { label: string; name: strin
 function humanizeMoveWhy(why: string, ticker: string, label: string): string {
   if (label === ticker) return why;
   return why.replaceAll(ticker, label);
-}
-
-// ── Sort types ──────────────────────────────────────────────────────────────
-
-type SortKey = "ticker" | "value" | "weight" | "dayGl" | "totalGl";
-type SortDir = "asc" | "desc";
-
-interface SortState {
-  key: SortKey;
-  dir: SortDir;
 }
 
 interface PortfolioProfile {
@@ -279,9 +267,6 @@ export default function Portfolio() {
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, PortfolioProfile>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sort, setSort] = useState<SortState>({ key: "value", dir: "desc" });
-  // Track whether data has ever loaded successfully (for data-quality states)
-  const [quotesEverLoaded, setQuotesEverLoaded] = useState(false);
 
   const [profileOverride, setProfileOverride] = useState<RiskProfile | null>(null);
   const sampleLoadRef = useRef(0);
@@ -317,7 +302,6 @@ export default function Portfolio() {
       return;
     }
     setLoading(false);
-    if (quotes.length > 0) setQuotesEverLoaded(true);
     if (sharedData.error) setError(sharedData.error);
     else setError(null);
   }, [quotes, sharedData.loading, sharedData.error]);
@@ -394,7 +378,7 @@ export default function Portfolio() {
   }, [sectorAllocation]);
   const hasData = enriched.length > 0;
 
-  // ── Sorted positions ──
+  // ── Sorted positions (value desc — feeds Fit / Capital Map / sleeve moves) ──
 
   const sortedPositions = useMemo(() => {
     const rows = enriched.map((pos) => {
@@ -405,31 +389,9 @@ export default function Portfolio() {
       return { pos, metrics, dailyPct };
     });
 
-    rows.sort((a, b) => {
-      let cmp = 0;
-      const dir = sort.dir === "desc" ? -1 : 1;
-      switch (sort.key) {
-        case "ticker":
-          cmp = a.pos.companyId.localeCompare(b.pos.companyId);
-          break;
-        case "value":
-          cmp = (a.metrics.marketValue ?? 0) - (b.metrics.marketValue ?? 0);
-          break;
-        case "weight":
-          cmp = (a.metrics.weight ?? 0) - (b.metrics.weight ?? 0);
-          break;
-        case "dayGl":
-          cmp = (a.metrics.dailyChange ?? 0) - (b.metrics.dailyChange ?? 0);
-          break;
-        case "totalGl":
-          cmp = (a.metrics.totalGainLoss ?? 0) - (b.metrics.totalGainLoss ?? 0);
-          break;
-      }
-      return cmp * dir;
-    });
-
+    rows.sort((a, b) => (b.metrics.marketValue ?? 0) - (a.metrics.marketValue ?? 0));
     return rows;
-  }, [enriched, portfolioMetrics, sort]);
+  }, [enriched, portfolioMetrics]);
 
   const portfolioHeatmapSession = useMemo(() => {
     for (const quote of quotes) {
@@ -476,10 +438,7 @@ export default function Portfolio() {
 
   // ── Data-quality states ──
 
-  const hasQuotes = quotes.length > 0;
   const quoteFetchFailed = !loading && error !== null;
-  const partialQuotes = hasQuotes && portfolioMetrics.positionsMissingPrice > 0;
-  const missingCost = portfolioMetrics.positionsMissingCost > 0;
   const calcFailed = portfolioMetrics.totalMarketValue === null && hasData && !loading && !quoteFetchFailed;
 
   // ── Handlers ──
@@ -535,18 +494,6 @@ export default function Portfolio() {
     clearActiveBook();
     setPositions(personalPositions);
     notifyPortfolioChanged();
-  }
-
-  function toggleSort(key: SortKey) {
-    setSort((prev) => ({
-      key,
-      dir: prev.key === key && prev.dir === "desc" ? "asc" : "desc",
-    }));
-  }
-
-  function sortArrow(key: SortKey): string {
-    if (sort.key !== key) return "";
-    return sort.dir === "desc" ? " ↓" : " ↑";
   }
 
   const allocationPanel = !calcFailed ? (
@@ -875,7 +822,7 @@ export default function Portfolio() {
       ) : (
         <div className="pf-empty-prompt">
           <p>No positions yet — build your portfolio or explore a template.</p>
-          <Link href="/manage#portfolio" className="brief-link">
+          <Link href="/manage?view=portfolio" className="brief-link">
             Add portfolio holdings <span aria-hidden="true">→</span>
           </Link>
           <button type="button" className="brief-link" onClick={() => goStudy()}>
@@ -891,110 +838,17 @@ export default function Portfolio() {
       ) : null}
 
       {hasData ? (
-      <div id="portfolio-panel-holdings" className="pf-value-view" aria-label="Portfolio holdings">
-        {loading ? (
-          <PageLoadingMotion
-            label="Loading portfolio prices"
-            compact
-            showLabel={false}
-            showSubtitle={false}
-            speed="slow"
-          />
-        ) : null}
-        {hasData ? (
-              <>
-                {error && !calcFailed ? <div className="pf-state-card pf-state-warn">{error}</div> : null}
-
-                {calcFailed && (
-                  <div className="pf-state-card pf-state-warn">
-                    Portfolio value could not be calculated. Prices may be unavailable.
-                    <button className="pf-refresh-btn" onClick={handleRefresh} style={{ marginLeft: 10 }}>
-                      Retry
-                    </button>
-                  </div>
-                )}
-
-                {!calcFailed && (partialQuotes || (missingCost && portfolioMetrics.totalUnrealizedGL !== null)) ? (
-                  <div className="pf-state-card pf-state-info pf-coverage-note" role="status">
-                    <strong>Data coverage</strong>
-                    <span>
-                      {[
-                        partialQuotes
-                          ? `Prices missing for ${portfolioMetrics.positionsMissingPrice} position${portfolioMetrics.positionsMissingPrice === 1 ? "" : "s"}`
-                          : null,
-                        missingCost && portfolioMetrics.totalUnrealizedGL !== null
-                          ? `Cost basis on ${portfolioMetrics.positionsWithCost}/${portfolioMetrics.positionCount}`
-                          : null,
-                      ].filter(Boolean).join(" · ")}
-                    </span>
-                  </div>
-                ) : null}
-
-                <section className="pf-values-positions" id="portfolio-positions" aria-label="Portfolio holdings">
-                  <header className="pf-values-positions-header">
-                    <div className="pf-values-positions-heading">
-                      <span className="pf-section-eyebrow">Holdings</span>
-                      <h2>Where the value lives</h2>
-                    </div>
-                    <div className="pf-values-positions-header-actions">
-                      <span className="pf-values-position-count">
-                        {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
-                      </span>
-                      <Link href="/manage#portfolio" className="data-edit-pill">
-                        Edit portfolio
-                      </Link>
-                    </div>
-                  </header>
-
-                  <div className="pf-values-controls">
-                    <div className="pf-sort-row" role="group" aria-label="Sort positions">
-                      {(
-                        [
-                          ["ticker", "Ticker"],
-                          ["value", "Value"],
-                          ["weight", "Alloc"],
-                          ["dayGl", "Day"],
-                          ["totalGl", "Gain/Loss"],
-                        ] as const
-                      ).map(([key, label]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          className={`pf-sort-chip${sort.key === key ? " is-active" : ""}`}
-                          onClick={() => toggleSort(key)}
-                        >
-                          {label}{sortArrow(key)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="watchlist-list pf-ring-list">
-                  {sortedPositions.map(({ pos, metrics, dailyPct }) => {
-                    const ticker = pos.companyId.toUpperCase();
-                    const quote = quotes.find((item) => item.ticker.toUpperCase() === ticker);
-                    const live = quote ? getLivePrice(quote) : null;
-                    return (
-                      <PortfolioHoldingCard
-                        key={ticker}
-                        ticker={ticker}
-                        companyName={quote?.name ?? ticker}
-                        price={live?.price ?? quote?.price ?? pos.currentPrice ?? null}
-                        changePercent={live?.changePercent ?? quote?.changePercent ?? dailyPct}
-                        sessionLabel={live?.label ?? null}
-                        closePrice={live?.label ? quote?.price ?? null : null}
-                        closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
-                        shares={pos.shares}
-                        metrics={metrics}
-                        focused={false}
-                      />
-                    );
-                  })}
-                  </div>
-
-                </section>
-              </>
-            ) : null}
+      <div id="portfolio-panel-holdings" className="pf-manage-handoff" aria-label="Portfolio holdings">
+        <div className="pf-manage-handoff-copy">
+          <span className="pf-section-eyebrow">Holdings</span>
+          <h2>
+            {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
+          </h2>
+          <p>Edit shares, cost basis, and removals in Manage — this page stays on Fit and allocation.</p>
+        </div>
+        <Link href="/manage?view=portfolio" className="data-edit-pill">
+          Manage holdings
+        </Link>
       </div>
       ) : null}
       </>

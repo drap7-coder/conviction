@@ -1,11 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
-import { notifyPortfolioChanged } from "@/components/PortfolioData";
-import { loadPortfolioForViewer, savePortfolioForViewer } from "@/lib/portfolio/client";
+import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
+import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
+import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { getLivePrice } from "@/lib/market/live-quote";
+import type { StockQuote } from "@/lib/market/quotes";
+import { savePortfolioForViewer } from "@/lib/portfolio/client";
+import {
+  computePortfolioMetrics,
+  computePositionMetrics,
+} from "@/lib/portfolio/calculations";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
+import type { PortfolioPosition } from "@/lib/portfolio/types";
 
 function parsePosition(
   tickerValue: string,
@@ -31,21 +40,34 @@ function parsePosition(
   return { position: { ticker, shares, averageCost }, error: null };
 }
 
-function formatCost(value: number | undefined): string {
-  if (value === undefined) return "No cost basis";
-  return `${new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value)} avg cost`;
+function enrichWithPrices(
+  persisted: PersistedPosition[],
+  quotes: StockQuote[],
+): PortfolioPosition[] {
+  const quoteMap = new Map(quotes.map((q) => [q.ticker.toUpperCase(), q]));
+  return persisted.map((p) => {
+    const ticker = p.ticker.toUpperCase();
+    const quote = quoteMap.get(ticker);
+    const live = quote ? getLivePrice(quote) : null;
+    return {
+      companyId: ticker,
+      shares: p.shares,
+      averageCost: p.averageCost,
+      currentPrice: live?.price ?? quote?.price ?? null,
+      previousClose: quote?.previousClose ?? null,
+    };
+  });
 }
 
 export function PortfolioManager() {
-  const [positions, setPositions] = useState<PersistedPosition[]>([]);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
-  const [loaded, setLoaded] = useState(false);
+  const {
+    positions,
+    quotes,
+    authenticated,
+    persistence,
+    data: sharedData,
+    reloadPositions,
+  } = usePortfolioData();
   const [saving, setSaving] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -61,34 +83,38 @@ export function PortfolioManager() {
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    void loadPortfolioForViewer().then((next) => {
-      if (cancelled) return;
-      setPositions(next.positions);
-      setAuthenticated(next.authenticated);
-      setPersistence(next.persistence);
-      setLoaded(true);
+  const enriched = useMemo(() => enrichWithPrices(positions, quotes), [positions, quotes]);
+  const portfolioMetrics = useMemo(() => computePortfolioMetrics(enriched), [enriched]);
+  const holdingRows = useMemo(() => {
+    const rows = enriched.map((pos) => {
+      const metrics = computePositionMetrics(
+        pos,
+        portfolioMetrics.totalMarketValue,
+        portfolioMetrics.dailyChange,
+      );
+      const dailyPct =
+        pos.currentPrice != null && pos.previousClose != null
+          ? ((pos.currentPrice - pos.previousClose) / pos.previousClose) * 100
+          : null;
+      return { pos, metrics, dailyPct };
     });
-    return () => { cancelled = true; };
-  }, []);
+    rows.sort((a, b) => (b.metrics.marketValue ?? 0) - (a.metrics.marketValue ?? 0));
+    return rows;
+  }, [enriched, portfolioMetrics]);
 
   async function persist(next: PersistedPosition[]) {
     const trimmed = next.slice(0, 50);
-    const previous = positions;
-    setPositions(trimmed);
     setSaving(true);
     setSyncError(null);
     try {
       if (persistence === "unconfigured") {
         throw new Error("Portfolio sync is temporarily unavailable");
       }
-      const saved = await savePortfolioForViewer(trimmed, authenticated);
-      setPositions(saved);
+      await savePortfolioForViewer(trimmed, authenticated);
       notifyPortfolioChanged();
+      await reloadPositions();
       return true;
     } catch (error) {
-      setPositions(previous);
       setSyncError(error instanceof Error ? error.message : "Could not save the portfolio");
       return false;
     } finally {
@@ -144,7 +170,11 @@ export function PortfolioManager() {
     }
   }
 
-  function startEdit(position: PersistedPosition) {
+  function startEdit(positionTicker: string) {
+    const position = positions.find(
+      (item) => item.ticker.toUpperCase() === positionTicker.toUpperCase(),
+    );
+    if (!position) return;
     setEditingTicker(position.ticker);
     setEditShares(String(position.shares));
     setEditCost(position.averageCost === undefined ? "" : String(position.averageCost));
@@ -159,15 +189,15 @@ export function PortfolioManager() {
     setEditError(null);
   }
 
-  async function saveEdit(event: React.FormEvent<HTMLFormElement>, originalTicker: string) {
-    event.preventDefault();
-    const result = parsePosition(originalTicker, editShares, editCost, true);
+  async function saveEdit() {
+    if (!editingTicker) return;
+    const result = parsePosition(editingTicker, editShares, editCost, true);
     if (!result.position) {
       setEditError(result.error);
       return;
     }
     const saved = await persist(positions.map((position) =>
-      position.ticker.toUpperCase() === originalTicker.toUpperCase()
+      position.ticker.toUpperCase() === editingTicker.toUpperCase()
         ? result.position as PersistedPosition
         : position,
     ));
@@ -188,6 +218,8 @@ export function PortfolioManager() {
     setConfirmClear(false);
     cancelEdit();
   }
+
+  const loaded = !sharedData.loading || positions.length > 0 || Boolean(sharedData.error);
 
   return (
     <section id="portfolio" className="data-manager-section" aria-labelledby="manage-portfolio-title">
@@ -251,66 +283,49 @@ export function PortfolioManager() {
       {!loaded ? (
         <div className="data-manager-empty">Loading portfolio…</div>
       ) : positions.length > 0 ? (
-        <div className="data-manager-list" aria-label="Portfolio holdings">
-          {positions.map((position) => {
-            const isEditing = editingTicker?.toUpperCase() === position.ticker.toUpperCase();
-            const isRemoving = removingTicker?.toUpperCase() === position.ticker.toUpperCase();
+        <div className="data-manager-holdings" aria-label="Portfolio holdings">
+          {sharedData.loading ? (
+            <PageLoadingMotion
+              label="Loading portfolio prices"
+              compact
+              showLabel={false}
+              showSubtitle={false}
+              speed="slow"
+            />
+          ) : null}
+          {holdingRows.map(({ pos, metrics, dailyPct }) => {
+            const tickerKey = pos.companyId.toUpperCase();
+            const quote = quotes.find((item) => item.ticker.toUpperCase() === tickerKey);
+            const live = quote ? getLivePrice(quote) : null;
+            const isEditing = editingTicker?.toUpperCase() === tickerKey;
             return (
-              <div key={position.ticker} className="data-manager-row data-manager-row--portfolio">
-                <div className="data-manager-row-copy">
-                  <Link href={`/companies/${encodeURIComponent(position.ticker)}`} className="data-manager-ticker">
-                    {position.ticker}
-                  </Link>
-                  <span>{position.shares.toLocaleString()} shares · {formatCost(position.averageCost)}</span>
-                </div>
-
-                <div className="data-manager-row-actions">
-                  {isRemoving ? (
-                    <>
-                      <span className="data-manager-confirm">Remove?</span>
-                      <button type="button" className="data-manager-action is-danger" disabled={saving} onClick={() => void remove(position.ticker)}>Yes</button>
-                      <button type="button" className="data-manager-action" onClick={() => setRemovingTicker(null)}>Cancel</button>
-                    </>
-                  ) : (
-                    <>
-                      <button type="button" className="data-manager-action" onClick={() => startEdit(position)}>Edit</button>
-                      <button type="button" className="data-manager-action is-danger" onClick={() => setRemovingTicker(position.ticker)}>Remove</button>
-                    </>
-                  )}
-                </div>
-
-                {isEditing ? (
-                  <form className="data-manager-inline-form" onSubmit={(event) => void saveEdit(event, position.ticker)}>
-                    <label>
-                      <span>Shares</span>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="any"
-                        value={editShares}
-                        onChange={(event) => setEditShares(event.target.value)}
-                        autoFocus
-                      />
-                    </label>
-                    <label>
-                      <span>Average cost</span>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="any"
-                        value={editCost}
-                        onChange={(event) => setEditCost(event.target.value)}
-                        placeholder="optional"
-                      />
-                    </label>
-                    <button type="submit" className="data-manager-primary" disabled={saving}>Save</button>
-                    <button type="button" className="data-manager-action" onClick={cancelEdit}>Cancel</button>
-                    {editError ? <p className="data-manager-error" role="alert">{editError}</p> : null}
-                  </form>
-                ) : null}
-              </div>
+              <PortfolioHoldingCard
+                key={tickerKey}
+                ticker={tickerKey}
+                companyName={quote?.name ?? tickerKey}
+                price={live?.price ?? quote?.price ?? pos.currentPrice ?? null}
+                changePercent={live?.changePercent ?? quote?.changePercent ?? dailyPct}
+                sessionLabel={live?.label ?? null}
+                closePrice={live?.label ? quote?.price ?? null : null}
+                closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
+                shares={pos.shares}
+                metrics={metrics}
+                focused={false}
+                isEditing={isEditing}
+                formShares={editShares}
+                formCost={editCost}
+                formError={isEditing ? editError : null}
+                confirmRemove={removingTicker?.toUpperCase() === tickerKey}
+                saving={saving}
+                onEdit={startEdit}
+                onCancelEdit={cancelEdit}
+                onSharesChange={setEditShares}
+                onCostChange={setEditCost}
+                onSaveEdit={() => void saveEdit()}
+                onAskRemove={setRemovingTicker}
+                onCancelRemove={() => setRemovingTicker(null)}
+                onConfirmRemove={(value) => void remove(value)}
+              />
             );
           })}
         </div>
@@ -339,6 +354,9 @@ export function PortfolioManager() {
             <button type="button" className="data-manager-action is-danger" onClick={() => setConfirmClear(true)}>Clear portfolio</button>
           )
         ) : null}
+        <Link href="/portfolio" className="data-manager-view-link">
+          View Portfolio <span aria-hidden="true">→</span>
+        </Link>
       </footer>
     </section>
   );

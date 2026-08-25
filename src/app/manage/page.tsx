@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
-import Watchlist from "@/components/Watchlist";
-import { PortfolioManager } from "@/components/PortfolioManager";
+import { ManageWorkspace } from "@/components/ManageWorkspace";
 import { isAuthConfigured } from "@/lib/auth-readiness";
 import { getOptionalSession } from "@/lib/auth-session";
 import { pageMetadata } from "@/lib/seo";
@@ -24,22 +23,15 @@ export default async function ManagePage() {
       <header className="data-manage-hero">
         <span>Your data</span>
         <h1>Manage</h1>
-        <p>Edit the lists here. Keep Watchlist and Portfolio focused on what matters now.</p>
+        <p>Edit one list at a time. Keep Watchlist and Portfolio focused on what matters now.</p>
         <GuestModeBanner
           authenticated={Boolean(session?.user)}
           authConfigured={isAuthConfigured()}
           accountLabel={accountLabel}
         />
-        <nav className="data-manage-jumps" aria-label="Manage sections">
-          <a href="#watchlist">Watchlist</a>
-          <a href="#portfolio">Portfolio</a>
-        </nav>
       </header>
 
-      <div className="data-manage-sections">
-        <Watchlist mode="manage" />
-        <PortfolioManager />
-      </div>
+      <ManageWorkspace />
 
       <footer className="data-manage-backlinks">
         <Link href="/watchlist">View Watchlist</Link>

@@ -35,6 +35,7 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("is-best");
     expect(portfolio).toContain("is-worst");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
+    expect(portfolio).toContain("pf-manage-handoff");
     expect(portfolio).toContain("COMPARE_AGAINST_LABEL");
     expect(portfolio).toContain("pf-live-machine");
     expect(portfolio).toContain("How it’s built");
