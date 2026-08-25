@@ -139,13 +139,18 @@ describe("Pulse heatmap universe", () => {
     expect(board).toContain("pulse-index-session");
     expect(board).toContain("showSessionMoves");
     expect(board).toContain("pulse-index-sessions");
+    expect(board).toContain("is-extended");
+    expect(board).toContain("is-today");
     expect(board).toContain("Today");
+    // Live AH/Pre is primary; Today is muted secondary (company-quote hierarchy).
+    expect(board.indexOf("is-extended")).toBeLessThan(board.indexOf("is-today"));
     expect(board).toContain('title="Commodities"');
     expect(board).toContain("SectorScoreboard");
     expect(board).not.toContain("stock-heat-session");
     expect(board).not.toContain("HeatTile");
     expect(css).toContain(".pulse-index-row");
     expect(css).toContain(".pulse-index-sessions");
+    expect(css).toContain(".pulse-index-session-move.is-today");
     expect(css).toContain(".pulse-gauge-grid");
     expect(css).toContain(".pulse-movers-grid");
     expect(moreMarketsBlock).not.toContain("sessionLabel");

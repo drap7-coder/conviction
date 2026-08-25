@@ -17840,7 +17840,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-index-sessions {
   display: grid;
-  gap: 4px;
+  gap: 3px;
   justify-items: end;
   min-width: 0;
 }
@@ -17863,22 +17863,36 @@ a.pulse-news-narrative-title:focus-visible {
   text-transform: uppercase;
 }
 
-.pulse-index-session-move strong {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+/* Primary: AH/Pre chip — same weight as the regular-hours % pill. */
+.pulse-index-session-move.is-extended .pulse-index-pct {
   min-width: 3.2rem;
-  padding: 3px 6px;
+  padding: 4px 7px;
   border-radius: 6px;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 750;
   letter-spacing: -0.02em;
   line-height: 1;
   white-space: nowrap;
 }
 
+/* Secondary: Today as muted context under the live move — not a second chip. */
+.pulse-index-session-move.is-today {
+  gap: 4px;
+  opacity: 0.78;
+}
+
 .pulse-index-session-move.is-today em {
   color: color-mix(in srgb, var(--muted) 88%, var(--quiet));
+  font-size: 0.48rem;
+  letter-spacing: 0.05em;
+}
+
+.pulse-index-session-move.is-today strong {
+  font-size: 0.58rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 @media (max-width: 430px) {
@@ -17891,13 +17905,17 @@ a.pulse-news-narrative-title:focus-visible {
     display: none;
   }
 
-  .pulse-index-session-move em {
+  .pulse-index-session-move.is-extended em {
     font-size: 0.48rem;
   }
 
-  .pulse-index-session-move strong {
+  .pulse-index-session-move.is-extended .pulse-index-pct {
     min-width: 2.9rem;
     font-size: 0.64rem;
+  }
+
+  .pulse-index-session-move.is-today strong {
+    font-size: 0.54rem;
   }
 }
 
