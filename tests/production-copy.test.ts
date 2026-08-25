@@ -35,6 +35,7 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("is-best");
     expect(portfolio).toContain("is-worst");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
+    expect(portfolio).toContain("pf-manage-handoff");
     expect(portfolio).toContain("COMPARE_AGAINST_LABEL");
     expect(portfolio).toContain("pf-live-machine");
     expect(portfolio).toContain("How it’s built");
@@ -51,6 +52,8 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("FIT_HEDGE");
     expect(portfolio).toContain("pf-moves-block");
     expect(portfolio).toContain("pf-move-ticker");
+    expect(portfolio).toContain("pf-move-chip");
+    expect(portfolio).toContain("namedTicker");
     expect(portfolio).toContain("moveVerb");
     expect(portfolio).toContain("moveFocus");
     expect(portfolio).toContain("visibleCompareMoves");
@@ -60,6 +63,7 @@ describe("production copy and fixture isolation", () => {
     expect(read("src/app/globals.css")).toContain("product-stage--metrics-above");
     expect(portfolio).toContain("pf-move-verb");
     expect(portfolio).toContain("pf-move-focus");
+    expect(portfolio).toContain("pf-move-sym");
     expect(portfolio).not.toContain("riskProfileMovesLead");
     expect(portfolio).not.toContain("If you mean");
     expect(portfolio).not.toContain("RISK_PROFILE_BLURBS");
@@ -73,6 +77,7 @@ describe("production copy and fixture isolation", () => {
     expect(profileBlock).not.toContain("text-overflow: ellipsis");
     expect(css).toContain(".pf-move-verb");
     expect(css).toContain(".pf-move-focus");
+    expect(css).toContain(".pf-move-chip");
     expect(css).toContain("@media (max-width: 640px)");
   });
 
