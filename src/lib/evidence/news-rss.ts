@@ -235,14 +235,26 @@ function itemsToEvents(
   return events;
 }
 
-function googleNewsQuery(ticker: string, companyName?: string | null): string {
+function googleNewsQuery(
+  ticker: string,
+  companyName?: string | null,
+  options?: { recentDays?: number },
+): string {
   const alias = getMarketInstrumentAlias(ticker);
-  if (alias) return alias.searchQuery;
-  const name = companyName?.trim();
-  if (name && name.toUpperCase() !== ticker.toUpperCase()) {
-    return `"${ticker}" OR "${name}"`;
+  const base = alias
+    ? alias.searchQuery
+    : (() => {
+      const name = companyName?.trim();
+      if (name && name.toUpperCase() !== ticker.toUpperCase()) {
+        return `"${ticker}" OR "${name}"`;
+      }
+      return `"${ticker}" stock`;
+    })();
+  const recentDays = options?.recentDays;
+  if (recentDays && recentDays > 0) {
+    return `${base} when:${recentDays}d`;
   }
-  return `"${ticker}" stock`;
+  return base;
 }
 
 /**
@@ -276,14 +288,16 @@ export async function fetchRssNews(
 /**
  * Fetch Google News RSS for a ticker/company (used when Yahoo headlines
  * exist but none are company-relevant).
+ * Pass `recentDays` to bias Google toward the last N days (`when:Nd`).
  */
 export async function fetchGoogleNewsRss(
   ticker: string,
   limit = 5,
   companyName?: string | null,
+  options?: { recentDays?: number },
 ): Promise<EvidenceEvent[]> {
   const upper = ticker.toUpperCase();
-  const query = googleNewsQuery(upper, companyName);
+  const query = googleNewsQuery(upper, companyName, options);
   const googleUrl =
     `${GOOGLE_NEWS_RSS}?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
   const googleXml = await fetchRssXml(googleUrl);

@@ -67,9 +67,10 @@ function freshnessBoost(isoDate: string, nowMs: number): number {
   const ageMs = nowMs - new Date(isoDate).getTime();
   const ageDays = Number.isFinite(ageMs) ? Math.max(0, ageMs / 86_400_000) : 30;
   if (ageDays <= 1) return 8;
-  if (ageDays <= 2) return 4;
-  if (ageDays <= 7) return -8;
-  return -28;
+  if (ageDays <= 2) return 2;
+  // Past the News theme window — should rarely appear; keep punitive if it does.
+  if (ageDays <= 7) return -18;
+  return -36;
 }
 
 function uniqueHeadlines(theme: MarketNarrativeTheme): MarketNarrativeHeadline[] {
