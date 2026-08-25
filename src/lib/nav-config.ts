@@ -1,4 +1,4 @@
-import { List, Briefcase, BarChart3, Landmark, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { List, Briefcase, BarChart3, Globe2, Landmark, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
 export type NavGroup = "daily" | "more" | "account";
@@ -20,7 +20,7 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "amber",
     group: "daily",
-    blurb: "Indexes, trending names, commodities, and sectors.",
+    blurb: "Indexes, trending names, commodities, sectors, and crypto.",
   },
   {
     href: "/watchlist",
@@ -53,6 +53,14 @@ export const navPages: NavPage[] = [
     tone: "violet",
     group: "more",
     blurb: "Institution filings and political trades.",
+  },
+  {
+    href: "/international",
+    label: "International",
+    icon: Globe2,
+    tone: "amber",
+    group: "more",
+    blurb: "Country ETFs — Japan, China, UK, India, Taiwan, Germany.",
   },
   {
     href: "/manage",
