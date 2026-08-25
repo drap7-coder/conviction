@@ -78,21 +78,75 @@ function IndexSpark({
   );
 }
 
+function extendedShortLabel(sessionLabel: string): string {
+  if (sessionLabel === "Pre-Market") return "Pre";
+  if (sessionLabel === "After Hours") return "AH";
+  return sessionLabel;
+}
+
+function IndexSessionMoves({
+  market,
+}: {
+  market: PulseGlobalMarket;
+}) {
+  const liveChip = heatChipColors(market.changePercent);
+  const todayPct = market.regularChangePercent ?? null;
+  const todayChip = heatChipColors(todayPct);
+  const extended = Boolean(market.sessionLabel) && isFiniteNumber(todayPct);
+
+  if (!extended) {
+    return (
+      <strong
+        className="pulse-index-pct tnum"
+        style={{ background: liveChip.background, color: liveChip.color }}
+      >
+        {fmtPct(market.changePercent)}
+      </strong>
+    );
+  }
+
+  return (
+    <span className="pulse-index-sessions" aria-hidden="true">
+      <span className="pulse-index-session-move is-today">
+        <em>Today</em>
+        <strong
+          className="tnum"
+          style={{ background: todayChip.background, color: todayChip.color }}
+        >
+          {fmtPct(todayPct)}
+        </strong>
+      </span>
+      <span className="pulse-index-session-move is-extended">
+        <em>{extendedShortLabel(market.sessionLabel!)}</em>
+        <strong
+          className="tnum"
+          style={{ background: liveChip.background, color: liveChip.color }}
+        >
+          {fmtPct(market.changePercent)}
+        </strong>
+      </span>
+    </span>
+  );
+}
+
 export function MarketScoreboard({
   title,
   rows,
   sessionLabel = null,
+  showSessionMoves = false,
 }: {
   title: string;
   rows: PulseGlobalMarket[];
   sessionLabel?: string | null;
+  /** When true, show Today + Pre/AH % when the row is in extended hours. */
+  showSessionMoves?: boolean;
 }) {
   if (rows.length === 0) return null;
   const dayTone = groupDayTone(rows);
 
   return (
     <section
-      className="market-heatmap-shell pulse-index-board"
+      className={`market-heatmap-shell pulse-index-board${showSessionMoves ? " pulse-index-board--sessions" : ""}`}
       aria-label={`${title} scoreboard`}
     >
       <div className="market-heatmap-copy">
@@ -115,10 +169,15 @@ export function MarketScoreboard({
       </div>
       <ol className="pulse-index-rows">
         {rows.map((market) => {
-          const chip = heatChipColors(market.changePercent);
           const spark = (market.history ?? []).map((point) => point.close);
           const href = companyDetailHref(market.ticker);
-          const label = `${market.name}, ${fmtDollarPrice(market.price)}, ${fmtPct(market.changePercent)}`;
+          const extended =
+            showSessionMoves
+            && Boolean(market.sessionLabel)
+            && isFiniteNumber(market.regularChangePercent);
+          const label = extended
+            ? `${market.name}, ${fmtDollarPrice(market.price)}, Today ${fmtPct(market.regularChangePercent ?? null)}, ${market.sessionLabel} ${fmtPct(market.changePercent)}`
+            : `${market.name}, ${fmtDollarPrice(market.price)}, ${fmtPct(market.changePercent)}`;
           const body: ReactNode = (
             <>
               <span className="pulse-index-name">
@@ -127,12 +186,19 @@ export function MarketScoreboard({
               </span>
               <IndexSpark values={spark} changePercent={market.changePercent} />
               <span className="pulse-index-price tnum">{fmtDollarPrice(market.price)}</span>
-              <strong
-                className="pulse-index-pct tnum"
-                style={{ background: chip.background, color: chip.color }}
-              >
-                {fmtPct(market.changePercent)}
-              </strong>
+              {showSessionMoves ? (
+                <IndexSessionMoves market={market} />
+              ) : (
+                <strong
+                  className="pulse-index-pct tnum"
+                  style={{
+                    background: heatChipColors(market.changePercent).background,
+                    color: heatChipColors(market.changePercent).color,
+                  }}
+                >
+                  {fmtPct(market.changePercent)}
+                </strong>
+              )}
             </>
           );
           return (
@@ -166,6 +232,7 @@ export function IndexScoreboard({
       title="Major Indexes"
       rows={scoreboardIndexes(markets)}
       sessionLabel={sessionLabel}
+      showSessionMoves
     />
   );
 }

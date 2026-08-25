@@ -94,6 +94,12 @@ export interface PulseGlobalMarket {
   weight: number;
   category: string;
   history: Array<{ date: string; close: number }>;
+  /** Regular-session close price (distinct from live when pre/post). */
+  regularPrice?: number | null;
+  /** Regular-session day % — shown as “Today” beside After Hours / Pre-Market. */
+  regularChangePercent?: number | null;
+  /** Per-row Pre-Market / After Hours label when the live quote is extended. */
+  sessionLabel?: string | null;
 }
 
 const SECTOR_WEIGHTS: Record<string, number> = {
@@ -207,6 +213,9 @@ export async function GET() {
       price: live?.price ?? quote?.price ?? null,
       changePercent: live?.changePercent ?? quote?.changePercent ?? null,
       history: quote?.sparkline.slice(-15) ?? [],
+      regularPrice: quote?.price ?? null,
+      regularChangePercent: quote?.changePercent ?? null,
+      sessionLabel: live?.label ?? null,
     };
   });
   // Keep definition order within each category section on Pulse.
