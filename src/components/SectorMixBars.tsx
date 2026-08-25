@@ -57,7 +57,7 @@ export default function SectorMixBars({ sectors }: SectorMixBarsProps) {
   if (rows.length === 0) return null;
 
   return (
-    <ul className="pf-sector-mix" aria-label="Portfolio exposure mix">
+    <ul className="pf-sector-bars" aria-label="Portfolio exposure mix">
       {rows.map((row) => (
         <li key={row.name} className="pf-sector-mix-row">
           <div className="pf-sector-mix-meta">
