@@ -7,6 +7,8 @@ import {
 import { fetchGoogleNewsRss, fetchRssNews } from "@/lib/evidence/news-rss";
 
 const CACHE_SECONDS = 5 * 60;
+/** Drop stories older than this from News themes — RSS can keep wire pieces for days. */
+export const NEWS_THEME_MAX_AGE_DAYS = 2;
 
 export type NarrativeHeat = "surging" | "building" | "steady" | "quiet";
 export type NarrativeMarketTone = "positive" | "negative" | "mixed";
@@ -313,6 +315,13 @@ function rankHeadlines(
   now: Date,
 ): MarketNarrativeHeadline[] {
   return [...headlines].sort((a, b) => {
+    const aAge = headlineAgeDays(a.date, now);
+    const bAge = headlineAgeDays(b.date, now);
+    // Prefer anything from the last day before prestige publisher wins.
+    const aStale = aAge !== null && aAge > 1 ? 1 : 0;
+    const bStale = bAge !== null && bAge > 1 ? 1 : 0;
+    if (aStale !== bStale) return aStale - bStale;
+
     const aMatch = pattern.test(a.title) ? 1 : 0;
     const bMatch = pattern.test(b.title) ? 1 : 0;
     if (bMatch !== aMatch) return bMatch - aMatch;
@@ -324,13 +333,22 @@ function rankHeadlines(
     const sourceDiff = publisherWeight(b.publisher) - publisherWeight(a.publisher);
     if (sourceDiff !== 0) return sourceDiff;
 
-    const aAge = headlineAgeDays(a.date, now);
-    const bAge = headlineAgeDays(b.date, now);
     const aScore = aAge === null ? Number.POSITIVE_INFINITY : aAge;
     const bScore = bAge === null ? Number.POSITIVE_INFINITY : bAge;
     if (aScore !== bScore) return aScore - bScore;
     return a.title.localeCompare(b.title);
   });
+}
+
+/** Keep dated stories within the News window; undated stay (ranked last by age). */
+export function isNewsThemeHeadlineFresh(
+  isoDate: string,
+  now: Date,
+  maxAgeDays = NEWS_THEME_MAX_AGE_DAYS,
+): boolean {
+  const age = headlineAgeDays(isoDate, now);
+  if (age === null) return true;
+  return age <= maxAgeDays;
 }
 
 function dedupeHeadlines(headlines: MarketNarrativeHeadline[]): MarketNarrativeHeadline[] {
@@ -353,8 +371,8 @@ async function fetchTheme(
   // Yahoo by ticker + Google by ticker/theme query for broader, more relevant coverage.
   const [yahooHeadlines, googleTickerHeadlines, googleThemeHeadlines] = await Promise.all([
     fetchRssNews(config.newsTicker, 10).catch(() => []),
-    fetchGoogleNewsRss(config.newsTicker, 10, config.query).catch(() => []),
-    fetchGoogleNewsRss(config.newsTicker, 8, config.label).catch(() => []),
+    fetchGoogleNewsRss(config.newsTicker, 10, config.query, { recentDays: NEWS_THEME_MAX_AGE_DAYS }).catch(() => []),
+    fetchGoogleNewsRss(config.newsTicker, 8, config.label, { recentDays: NEWS_THEME_MAX_AGE_DAYS }).catch(() => []),
   ]);
 
   const pool = [...yahooHeadlines, ...googleTickerHeadlines, ...googleThemeHeadlines];
@@ -362,7 +380,8 @@ async function fetchTheme(
     rankHeadlines(
       pool
         .map(toNarrativeHeadline)
-        .filter((headline) => headline.title.trim().length > 0),
+        .filter((headline) => headline.title.trim().length > 0)
+        .filter((headline) => isNewsThemeHeadlineFresh(headline.date, now)),
       config.headlinePattern,
       now,
     ),

@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   MARKET_NARRATIVE_THEMES,
+  NEWS_THEME_MAX_AGE_DAYS,
   hydrateThemePrimaryImages,
+  isNewsThemeHeadlineFresh,
   narrativeSummary,
   scoreNarrative,
   themesForHeatmapGroup,
@@ -231,5 +233,20 @@ describe("hydrateThemePrimaryImages", () => {
     expect(hydrated.headline?.imageUrl).toBe("https://s.yimg.com/os/same-story.jpg");
     expect(hydrated.headline?.url).toBe(googleLead.url);
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("finance.yahoo.com/news/same-story");
+  });
+});
+
+describe("isNewsThemeHeadlineFresh", () => {
+  const now = new Date("2026-08-25T12:00:00.000Z");
+
+  it(`keeps stories within ${NEWS_THEME_MAX_AGE_DAYS} days and drops older wire pieces`, () => {
+    expect(isNewsThemeHeadlineFresh("2026-08-25T08:00:00.000Z", now)).toBe(true);
+    expect(isNewsThemeHeadlineFresh("2026-08-23T12:00:00.000Z", now)).toBe(true);
+    expect(isNewsThemeHeadlineFresh("2026-08-22T11:00:00.000Z", now)).toBe(false);
+    expect(isNewsThemeHeadlineFresh("2026-08-20T12:00:00.000Z", now)).toBe(false);
+  });
+
+  it("keeps undated headlines so ranking can still decide", () => {
+    expect(isNewsThemeHeadlineFresh("not-a-date", now)).toBe(true);
   });
 });
