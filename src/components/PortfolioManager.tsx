@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { CompanyTypeahead } from "@/components/CompanyTypeahead";
 import { notifyPortfolioChanged } from "@/components/PortfolioData";
 import { loadPortfolioForViewer, savePortfolioForViewer } from "@/lib/portfolio/client";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
@@ -51,6 +52,7 @@ export function PortfolioManager() {
   const [ticker, setTicker] = useState("");
   const [shares, setShares] = useState("");
   const [cost, setCost] = useState("");
+  const sharesInputRef = useRef<HTMLInputElement>(null);
   const [addError, setAddError] = useState<string | null>(null);
   const [editingTicker, setEditingTicker] = useState<string | null>(null);
   const [editShares, setEditShares] = useState("");
@@ -202,17 +204,23 @@ export function PortfolioManager() {
       <form className="data-manager-form" onSubmit={handleAdd} aria-label="Add a portfolio holding">
         <label>
           <span>Ticker or company</span>
-          <input
+          <CompanyTypeahead
             value={ticker}
-            onChange={(event) => setTicker(event.target.value)}
+            onChange={setTicker}
+            onSelect={(suggestion) => {
+              setTicker(suggestion.ticker);
+              setAddError(null);
+              sharesInputRef.current?.focus();
+            }}
             placeholder="AAPL or Apple"
+            wrapperClassName="data-manager-typeahead"
             autoCapitalize="characters"
-            autoComplete="off"
           />
         </label>
         <label>
           <span>Shares</span>
           <input
+            ref={sharesInputRef}
             type="number"
             inputMode="decimal"
             min="0"

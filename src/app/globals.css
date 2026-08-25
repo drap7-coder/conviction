@@ -2865,6 +2865,34 @@ button.bottom-tab-item {
   hyphens: auto;
 }
 
+.guest-banner--account .guest-banner-text {
+  display: grid;
+  gap: 2px;
+}
+
+.guest-banner--account .guest-banner-text strong {
+  color: var(--on-ink);
+  font-size: 0.84rem;
+}
+
+.guest-banner--account .guest-banner-text small {
+  color: var(--on-ink-muted);
+  font-size: 0.74rem;
+}
+
+.guest-banner-account-state {
+  flex: 0 0 auto;
+  padding: 4px 9px;
+  border: 1px solid color-mix(in srgb, var(--on-ink-accent) 42%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--on-ink-accent) 16%, transparent);
+  color: var(--on-ink);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .guest-banner-actions {
   display: flex;
   align-items: center;
@@ -3519,6 +3547,7 @@ button.bottom-tab-item {
   padding: 8px 10px;
   border-radius: 8px;
   cursor: pointer;
+  touch-action: manipulation;
   min-width: 0;
 }
 

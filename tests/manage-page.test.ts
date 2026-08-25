@@ -15,6 +15,8 @@ describe("data management workspace", () => {
     expect(nav).toContain('label: "Manage"');
     expect(page).toContain('<Watchlist mode="manage" />');
     expect(page).toContain("<PortfolioManager />");
+    expect(page).toContain("<GuestModeBanner");
+    expect(page).toContain("getOptionalSession");
     expect(page).toContain('href="#watchlist"');
     expect(page).toContain('href="#portfolio"');
   });
@@ -49,6 +51,19 @@ describe("data management workspace", () => {
     expect(manager).toContain("Portfolio holdings are synced privately in Neon.");
     expect(manager).toContain('fetch("/api/portfolio/resolve"');
     expect(manager).toContain("Ticker or company");
+  });
+
+  it("shares a touch-safe company typeahead across both add flows", () => {
+    const watchlist = read("src/components/Watchlist.tsx");
+    const portfolio = read("src/components/PortfolioManager.tsx");
+    const typeahead = read("src/components/CompanyTypeahead.tsx");
+
+    expect(watchlist).toContain("<CompanyTypeahead");
+    expect(portfolio).toContain("<CompanyTypeahead");
+    expect(typeahead).toContain("/api/companies/search?q=");
+    expect(typeahead).toContain("onPointerDown");
+    expect(typeahead).toContain('role="combobox"');
+    expect(portfolio).toContain("sharesInputRef.current?.focus()");
   });
 
   it("keeps the manager usable on narrow screens", () => {

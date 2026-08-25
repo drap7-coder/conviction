@@ -27,7 +27,21 @@ export function GuestModeBanner({
     }
   }, []);
 
-  if (!mounted || authenticated || dismissed) return null;
+  if (!mounted) return null;
+
+  if (authenticated) {
+    return (
+      <div className="guest-banner guest-banner--account ink-box ink-box--quiet" role="status">
+        <span className="guest-banner-text">
+          <strong>{accountLabel ? `Welcome back, ${accountLabel}.` : "Welcome back."}</strong>
+          <small>Signed in — your watchlist and portfolio sync across devices.</small>
+        </span>
+        <span className="guest-banner-account-state">Synced</span>
+      </div>
+    );
+  }
+
+  if (dismissed) return null;
 
   function handleDismiss() {
     setDismissed(true);
@@ -41,7 +55,7 @@ export function GuestModeBanner({
   return (
     <div className="guest-banner ink-box ink-box--quiet" role="status">
       <span className="guest-banner-text">
-        Browsing as guest — sign in to save your watchlist across devices.
+        Browsing as guest — sign in to sync your watchlist and portfolio across devices.
       </span>
       <div className="guest-banner-actions">
         {authConfigured ? (

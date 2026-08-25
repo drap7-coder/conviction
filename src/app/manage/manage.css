@@ -42,6 +42,10 @@
   line-height: 1.55;
 }
 
+.data-manage-hero .guest-banner {
+  margin: 6px 0 0;
+}
+
 .data-manage-jumps,
 .data-manager-row-actions,
 .data-manage-backlinks {
@@ -150,6 +154,11 @@
   color: var(--quiet);
   font-style: normal;
   font-weight: 500;
+}
+
+.data-manager-typeahead {
+  position: relative;
+  min-width: 0;
 }
 
 .data-manager-form input,

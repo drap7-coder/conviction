@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
-import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
-import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { shortenCompanyName } from "@/lib/display/company-name";
+import { CompanyTypeahead } from "@/components/CompanyTypeahead";
 import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
@@ -53,20 +52,6 @@ function markBrowserWatchlistMigrated() {
   window.localStorage.setItem(WATCHLIST_MIGRATION_KEY, "1");
 }
 
-function highlightMatch(text: string, query: string) {
-  const q = query.trim();
-  if (!q) return text;
-  const idx = text.toLowerCase().indexOf(q.toLowerCase());
-  if (idx === -1) return text;
-  return (
-    <>
-      {text.slice(0, idx)}
-      <mark className="ticker-suggestion-match">{text.slice(idx, idx + q.length)}</mark>
-      {text.slice(idx + q.length)}
-    </>
-  );
-}
-
 export default function Watchlist({
   children,
   mode = "view",
@@ -77,8 +62,6 @@ export default function Watchlist({
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [authenticated, setAuthenticated] = useState(false);
-  const [authConfigured, setAuthConfigured] = useState(false);
-  const [accountLabel, setAccountLabel] = useState<string | null>(null);
   const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,14 +71,6 @@ export default function Watchlist({
   const addInputRef = useRef<HTMLInputElement>(null);
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
-
-  // Type-ahead suggestion state
-  const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [activeSuggestion, setActiveSuggestion] = useState(-1);
-  const [suggestStatus, setSuggestStatus] = useState<"idle" | "results" | "empty">("idle");
-  const suggestDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const suggestCacheRef = useRef<Map<string, CompanySuggestion[]>>(new Map());
 
   // Removal state
   const [removing, setRemoving] = useState<string | null>(null);
@@ -115,8 +90,6 @@ export default function Watchlist({
         authenticated?: boolean;
         entries?: WatchlistEntry[];
         guestEntries?: WatchlistEntry[];
-        user?: { name?: string | null; email?: string | null };
-        authConfigured?: boolean;
         persistence?: "browser" | "neon" | "unconfigured";
       }>("/api/watchlist", 8_000);
 
@@ -141,8 +114,6 @@ export default function Watchlist({
       setEntries(nextEntries);
       if (!isAuthenticated) writeBrowserWatchlist(nextEntries);
       setAuthenticated(isAuthenticated);
-      setAuthConfigured(Boolean(data.authConfigured));
-      setAccountLabel(data.user?.name ?? data.user?.email ?? null);
       setPersistence(data.persistence ?? (isAuthenticated ? "neon" : "browser"));
     } catch {
       if (!browserEntries) {
@@ -289,65 +260,6 @@ export default function Watchlist({
     await handleAddValue();
   };
 
-  const handleSelectSuggestion = (suggestion: CompanySuggestion) => {
-    setShowSuggestions(false);
-    setSuggestions([]);
-    setActiveSuggestion(-1);
-    setSuggestStatus("idle");
-    setAddInput("");
-    void handleAddValue(suggestion.ticker);
-  };
-
-  const applySuggestions = (next: CompanySuggestion[]) => {
-    setSuggestions(next);
-    setSuggestStatus(next.length > 0 ? "results" : "empty");
-    setShowSuggestions(true);
-    setActiveSuggestion(-1);
-  };
-
-  // Debounced type-ahead search against the SEC company dataset.
-  useEffect(() => {
-    const query = addInput.trim();
-    if (query.length < 1) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setActiveSuggestion(-1);
-      setSuggestStatus("idle");
-      return;
-    }
-
-    // Serve from the in-session cache instantly (e.g. when backspacing).
-    const cacheKey = query.toLowerCase();
-    const cached = suggestCacheRef.current.get(cacheKey);
-    if (cached) {
-      applySuggestions(cached);
-      return;
-    }
-
-    if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
-    const controller = new AbortController();
-    suggestDebounceRef.current = setTimeout(async () => {
-      try {
-        const res = await fetch(
-          `/api/companies/search?q=${encodeURIComponent(query)}`,
-          { signal: controller.signal },
-        );
-        if (!res.ok) return;
-        const data = (await res.json()) as { suggestions?: CompanySuggestion[] };
-        const next = data.suggestions ?? [];
-        suggestCacheRef.current.set(cacheKey, next);
-        applySuggestions(next);
-      } catch {
-        // Type-ahead is best-effort; fall back to typing the full ticker/name.
-      }
-    }, 150);
-
-    return () => {
-      controller.abort();
-      if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
-    };
-  }, [addInput]);
-
   const handleRemove = async (ticker: string) => {
     setRemoving(ticker);
     const nextEntries = entries.filter((entry) => entry.ticker !== ticker);
@@ -370,32 +282,6 @@ export default function Watchlist({
     } finally {
       setRemoving(null);
     }
-  };
-
-  const handleAddKeyDown = (e: React.KeyboardEvent) => {
-    if (showSuggestions && e.key === "Escape") {
-      e.preventDefault();
-      setShowSuggestions(false);
-      return;
-    }
-    if (showSuggestions && suggestions.length > 0) {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setActiveSuggestion((i) => Math.min(i + 1, suggestions.length - 1));
-        return;
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setActiveSuggestion((i) => Math.max(i - 1, 0));
-        return;
-      }
-      if (e.key === "Enter" && activeSuggestion >= 0 && suggestions[activeSuggestion]) {
-        e.preventDefault();
-        handleSelectSuggestion(suggestions[activeSuggestion]);
-        return;
-      }
-    }
-    if (e.key === "Enter") handleAdd();
   };
 
   // Shortcut: press K to focus Track compose.
@@ -426,45 +312,20 @@ export default function Watchlist({
         <strong className="list-compose-title">Track a company</strong>
       </div>
       <div className="watchlist-add list-compose-fields">
-        <div className="watchlist-input-wrap">
-          <input
-            ref={addInputRef}
-            type="text"
-            value={addInput}
-            onChange={(e) => setAddInput(e.target.value)}
-            onKeyDown={handleAddKeyDown}
-            onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-            onBlur={() => { window.setTimeout(() => setShowSuggestions(false), 120); }}
-            placeholder="Ticker or company name"
-            disabled={adding}
-            className="watchlist-input"
-            role="combobox"
-            aria-expanded={showSuggestions}
-            aria-autocomplete="list"
-            autoComplete="off"
-          />
-          {showSuggestions && suggestStatus === "results" && suggestions.length > 0 ? (
-            <ul className="ticker-suggestions" role="listbox">
-              {suggestions.map((s, i) => (
-                <li
-                  key={`${s.ticker}-${s.cik}`}
-                  role="option"
-                  aria-selected={i === activeSuggestion}
-                  className={`ticker-suggestion ${i === activeSuggestion ? "active" : ""}`}
-                  onMouseDown={(e) => { e.preventDefault(); handleSelectSuggestion(s); }}
-                  onMouseEnter={() => setActiveSuggestion(i)}
-                >
-                  <span className="ticker-suggestion-ticker">{highlightMatch(s.ticker, addInput)}</span>
-                  <span className="ticker-suggestion-name">{highlightMatch(s.name, addInput)}</span>
-                </li>
-              ))}
-            </ul>
-          ) : showSuggestions && suggestStatus === "empty" ? (
-            <div className="ticker-suggestions ticker-suggestions-empty">
-              No matches — press Enter to search anyway
-            </div>
-          ) : null}
-        </div>
+        <CompanyTypeahead
+          value={addInput}
+          onChange={setAddInput}
+          onSelect={(suggestion) => {
+            setAddInput("");
+            void handleAddValue(suggestion.ticker);
+          }}
+          onEnter={() => void handleAdd()}
+          placeholder="Ticker or company name"
+          disabled={adding}
+          className="watchlist-input"
+          wrapperClassName="watchlist-input-wrap"
+          inputRef={addInputRef}
+        />
         <button
           onClick={handleAdd}
           disabled={adding || !addInput.trim()}
@@ -536,11 +397,6 @@ export default function Watchlist({
           </div>
         )}
 
-        <GuestModeBanner
-          authenticated={authenticated}
-          authConfigured={authConfigured}
-          accountLabel={accountLabel}
-        />
       </section>
     );
   }

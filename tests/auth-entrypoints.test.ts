@@ -33,6 +33,8 @@ describe("authentication entry points", () => {
     expect(signInPage).toContain("first sign-in creates the account automatically");
     expect(signInPage).toContain("No separate");
     expect(signInPage).toContain("username or password");
+    expect(guestBanner).toContain("Welcome back");
+    expect(guestBanner).toContain("Signed in — your watchlist and portfolio sync across devices.");
   });
 
   it("uses Google as the only identity provider", () => {
