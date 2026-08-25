@@ -660,28 +660,27 @@
   display: grid;
   justify-items: center;
   width: 100%;
-  max-width: 140px;
+  max-width: 152px;
   margin: 0 auto;
 }
 
 .portfolio-page .pf-day-gauge-arc {
   display: block;
   width: 100%;
-  max-width: 132px;
+  max-width: 148px;
   height: auto;
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--stage-accent, var(--accent)) 28%, transparent));
 }
 
 .portfolio-page .pf-day-gauge-track {
-  stroke: color-mix(in srgb, var(--border) 70%, var(--card-inset));
+  stroke: color-mix(in srgb, var(--border) 55%, var(--card-inset));
 }
 
 .portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-track {
-  stroke: color-mix(in srgb, var(--accent) 28%, var(--card-inset));
+  stroke: color-mix(in srgb, var(--accent) 40%, var(--card-inset));
 }
 
 .portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-track {
-  stroke: color-mix(in srgb, var(--red) 28%, var(--card-inset));
+  stroke: color-mix(in srgb, var(--red) 40%, var(--card-inset));
 }
 
 .portfolio-page .pf-day-gauge-fill {
@@ -690,66 +689,60 @@
 }
 
 .portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-fill {
-  stroke: var(--accent);
+  stroke: #2dd4bf;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 70%, transparent));
 }
 
 .portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-fill {
-  stroke: var(--red);
-}
-
-.portfolio-page .pf-day-gauge.is-positive {
-  filter: drop-shadow(0 6px 18px color-mix(in srgb, var(--accent) 22%, transparent));
-}
-
-.portfolio-page .pf-day-gauge.is-negative {
-  filter: drop-shadow(0 6px 18px color-mix(in srgb, var(--red) 22%, transparent));
+  stroke: #f87171;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--red) 70%, transparent));
 }
 
 .portfolio-page .pf-day-gauge-readout {
   position: absolute;
-  inset: auto 0 0;
+  inset: auto 0 2px;
   display: grid;
-  gap: 2px;
+  gap: 3px;
   justify-items: center;
-  padding-bottom: 2px;
+  padding-bottom: 0;
   text-align: center;
 }
 
 .portfolio-page .pf-day-gauge-readout strong {
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: clamp(1.02rem, 2.4vw, 1.22rem);
-  font-weight: 750;
-  letter-spacing: -0.045em;
+  font-size: clamp(1.08rem, 2.6vw, 1.32rem);
+  font-weight: 780;
+  letter-spacing: -0.05em;
   line-height: 1.05;
   padding-top: 0;
 }
 
 .portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-readout strong {
-  color: var(--accent);
-  text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 35%, transparent);
+  color: #5eead4;
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 .portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-readout strong {
-  color: var(--red);
-  text-shadow: 0 0 18px color-mix(in srgb, var(--red) 35%, transparent);
+  color: #fca5a5;
+  text-shadow: 0 0 20px color-mix(in srgb, var(--red) 45%, transparent);
 }
 
 .portfolio-page .pf-day-gauge-readout span {
-  color: color-mix(in srgb, var(--quiet) 80%, var(--ink));
+  color: color-mix(in srgb, var(--quiet) 70%, var(--ink));
   font-family: var(--font-mono);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.07em;
+  font-size: 0.64rem;
+  font-weight: 720;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-readout span {
-  color: color-mix(in srgb, var(--accent) 55%, var(--quiet));
+  color: color-mix(in srgb, var(--accent) 70%, var(--quiet));
 }
 
 .portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-readout span {
-  color: color-mix(in srgb, var(--red) 55%, var(--quiet));
+  color: color-mix(in srgb, var(--red) 70%, var(--quiet));
 }
 
 .portfolio-page .pf-risk {

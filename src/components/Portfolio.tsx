@@ -85,7 +85,7 @@ function dayChangeFill(percentChange: number | null): number {
   if (!isFiniteNumber(percentChange)) return 0;
   if (percentChange === 0) return 0;
   // Small moves still read as a visible arc.
-  return Math.min(100, Math.max(18, (Math.abs(percentChange) / 2) * 100));
+  return Math.min(100, Math.max(28, (Math.abs(percentChange) / 1.75) * 100));
 }
 
 function dayChangeTone(
@@ -95,10 +95,10 @@ function dayChangeTone(
   return dailyChange > 0 ? "positive" : "negative";
 }
 
-const DAY_GAUGE_RADIUS = 46;
-const DAY_GAUGE_STROKE = 11;
-const DAY_GAUGE_CX = 58;
-const DAY_GAUGE_CY = 58;
+const DAY_GAUGE_RADIUS = 50;
+const DAY_GAUGE_STROKE = 13;
+const DAY_GAUGE_CX = 64;
+const DAY_GAUGE_CY = 62;
 const DAY_GAUGE_TRACK = Math.PI * DAY_GAUGE_RADIUS;
 const DAY_GAUGE_ARC = `M ${DAY_GAUGE_CX - DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY} A ${DAY_GAUGE_RADIUS} ${DAY_GAUGE_RADIUS} 0 0 1 ${DAY_GAUGE_CX + DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY}`;
 
@@ -120,7 +120,7 @@ function DayChangeGauge({
       role="img"
       aria-label={`${caption} ${label}`}
     >
-      <svg className="pf-day-gauge-arc" viewBox="0 0 116 72" aria-hidden="true">
+      <svg className="pf-day-gauge-arc" viewBox="0 0 128 78" aria-hidden="true">
         <path
           className="pf-day-gauge-track"
           d={DAY_GAUGE_ARC}
