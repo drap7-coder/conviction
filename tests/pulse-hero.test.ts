@@ -75,7 +75,9 @@ describe("Pulse heatmap universe", () => {
     expect(page).toContain("CommodityScoreboard");
     expect(page).not.toContain('title="Commodities"');
     expect(page).toContain('title="Crypto"');
-    expect(page).toContain('title="International Indexes"');
+    expect(page).not.toContain('title="International Indexes"');
+    expect(page).not.toContain("internationalMarkets");
+    expect(page).not.toContain("MarketScoreboard");
     expect(page).toContain("MarketMovesPanel");
     expect(page).not.toContain("ViewSwitcher");
     expect(page).not.toContain("PULSE_TABS");
@@ -142,12 +144,33 @@ describe("Pulse heatmap universe", () => {
     expect(css).toContain(".pulse-index-row");
     expect(css).toContain(".pulse-gauge-grid");
     expect(sectorsBlock).toContain("sessionLabel={data.sessionLabel}");
-    expect(page).toContain('className="stock-heat-session ink-chip ink-chip--amber"');
+    expect(read("src/components/market/GlobalMarketsHeatmap.tsx")).toContain(
+      'className="stock-heat-session ink-chip ink-chip--amber"',
+    );
     expect(moreMarketsBlock).not.toContain("sessionLabel");
     expect(moreMarketsBlock).not.toContain("CommodityScoreboard");
     expect(moreMarketsBlock).not.toContain('title="Commodities"');
     expect(moreMarketsBlock).toContain('title="Crypto"');
-    expect(moreMarketsBlock).toContain("<MarketScoreboard");
-    expect(moreMarketsBlock).toContain('title="International Indexes"');
+    expect(moreMarketsBlock).not.toContain("<MarketScoreboard");
+    expect(moreMarketsBlock).not.toContain('title="International Indexes"');
+    expect(moreMarketsBlock).not.toContain("International");
+  });
+});
+
+describe("International menu page", () => {
+  it("lives under Menu and hosts the country heatmap off Pulse", () => {
+    const nav = read("src/lib/nav-config.ts");
+    const page = read("src/app/international/page.tsx");
+    const layout = read("src/app/international/layout.tsx");
+
+    expect(nav).toContain('href: "/international"');
+    expect(nav).toContain('label: "International"');
+    expect(nav).toContain('group: "more"');
+    expect(page).toContain('category === "International"');
+    expect(page).toContain('title="International"');
+    expect(page).toContain("GlobalMarketsHeatmap");
+    expect(page).toContain('sr-only');
+    expect(layout).toContain("pageMetadata");
+    expect(layout).toContain('path: "/international"');
   });
 });
