@@ -37,6 +37,9 @@ const MARKET_INSTRUMENTS: Record<string, MarketInstrument> = {
   "BTC-USD": crypto("BTC-USD", "Bitcoin"),
   "ETH-USD": crypto("ETH-USD", "Ethereum"),
   "SOL-USD": crypto("SOL-USD", "Solana"),
+  "XRP-USD": crypto("XRP-USD", "XRP"),
+  "DOGE-USD": crypto("DOGE-USD", "Dogecoin"),
+  "ADA-USD": crypto("ADA-USD", "Cardano"),
 
   // Major index proxies
   DIA: etf("DIA", "Dow Jones Industrial Average", "Index", "U.S. Equity"),

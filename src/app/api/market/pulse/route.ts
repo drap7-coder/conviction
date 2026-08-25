@@ -51,6 +51,12 @@ const GLOBAL_MARKETS = [
   { ticker: "UNG", name: "Natural Gas", weight: 6, category: "Commodity" },
   { ticker: "BTC-USD", name: "Bitcoin", weight: 12, category: "Crypto" },
   { ticker: "ETH-USD", name: "Ethereum", weight: 10, category: "Crypto" },
+  { ticker: "XRP-USD", name: "XRP", weight: 8, category: "Crypto" },
+  { ticker: "DOGE-USD", name: "Dogecoin", weight: 6, category: "Crypto" },
+  { ticker: "ADA-USD", name: "Cardano", weight: 5, category: "Crypto" },
+  { ticker: "COIN", name: "Coinbase", weight: 4, category: "Crypto Equity" },
+  { ticker: "MSTR", name: "MicroStrategy", weight: 3, category: "Crypto Equity" },
+  { ticker: "MARA", name: "Marathon Digital", weight: 2, category: "Crypto Equity" },
   // Keep International to six countries so the heatmap stays scannable.
   { ticker: "EWJ", name: "Japan", weight: 16, category: "International" },
   { ticker: "MCHI", name: "China", weight: 14, category: "International" },

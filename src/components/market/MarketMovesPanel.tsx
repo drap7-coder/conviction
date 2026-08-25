@@ -5,12 +5,12 @@ import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
-import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { shortenCompanyName } from "@/lib/display/company-name";
-import { StockHeatmap } from "@/components/StockHeatmap";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
+import { MarketMoversBoard } from "@/components/market/MarketMoversBoard";
 import { buildMomentumBrief } from "@/lib/market/pulse-brief";
+import { splitMarketMovers } from "@/lib/market/market-movers";
 
 interface TrendingCompany {
   ticker: string;
@@ -100,38 +100,33 @@ export function MarketMovesPanel({
       }))
     : null;
 
+  const movers = splitMarketMovers(
+    trending.map((idea) => {
+      const live = getLivePrice(idea.quote);
+      return {
+        ticker: idea.ticker,
+        name: shortenCompanyName(idea.companyName),
+        changePercent: live.changePercent,
+        price: live.price,
+      };
+    }),
+    5,
+  );
+
+  const sessionLabel =
+    trending
+      .map((idea) => getLivePrice(idea.quote).label)
+      .find((label): label is string => Boolean(label)) ?? null;
+
   return (
     <div className="market-moves-panel">
       {momentumBrief ? <PulseDecisionCard brief={momentumBrief} compact /> : null}
 
-      <StockHeatmap
-        title="Active names"
-        subtitle=""
-        showStatusDot={false}
-        showPrice
-        uniform
-        sessionLabel={
-          trending
-            .map((idea) => getLivePrice(idea.quote).label)
-            .find((label): label is string => Boolean(label)) ?? null
-        }
-        items={trending.map((idea) => {
-          const live = getLivePrice(idea.quote);
-          return {
-            ticker: idea.ticker,
-            name: shortenCompanyName(idea.companyName),
-            price: live.price,
-            changePercent: live.changePercent,
-            marketCap: idea.quote.marketCap,
-            sizeValue: idea.quote.dollarVolume,
-            sizeLabel: idea.activityLabel,
-            sparkline: sparklineValuesFromQuote({
-              sparkline: idea.sparkline ?? idea.quote.sparkline,
-              price: live.price ?? idea.quote.price,
-              previousClose: idea.quote.previousClose,
-            }),
-          };
-        })}
+      <MarketMoversBoard
+        title="Market Movers"
+        top={movers.top}
+        bottom={movers.bottom}
+        sessionLabel={sessionLabel}
       />
     </div>
   );
