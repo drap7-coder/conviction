@@ -137,11 +137,15 @@ describe("Pulse heatmap universe", () => {
     expect(gauges).not.toContain("ProductStage");
     expect(board).toContain("pulse-index-row");
     expect(board).toContain("pulse-index-session");
+    expect(board).toContain("showSessionMoves");
+    expect(board).toContain("pulse-index-sessions");
+    expect(board).toContain("Today");
     expect(board).toContain('title="Commodities"');
     expect(board).toContain("SectorScoreboard");
     expect(board).not.toContain("stock-heat-session");
     expect(board).not.toContain("HeatTile");
     expect(css).toContain(".pulse-index-row");
+    expect(css).toContain(".pulse-index-sessions");
     expect(css).toContain(".pulse-gauge-grid");
     expect(css).toContain(".pulse-movers-grid");
     expect(moreMarketsBlock).not.toContain("sessionLabel");
