@@ -61,6 +61,8 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain('className="is-lead"');
     expect(read("src/components/ProductStage.tsx")).toContain('metricsPlacement');
     expect(read("src/app/globals.css")).toContain("product-stage--metrics-above");
+    expect(read("src/app/globals.css")).toContain("--pf-hero-pad");
+    expect(read("src/app/portfolio.css")).toContain("stage-accent");
     expect(portfolio).toContain("pf-move-verb");
     expect(portfolio).toContain("pf-move-focus");
     expect(portfolio).toContain("pf-move-sym");
