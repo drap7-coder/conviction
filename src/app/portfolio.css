@@ -1126,3 +1126,49 @@
     font-size: 0.86rem;
   }
 }
+
+/* Compact handoff to Manage — Live Portfolio no longer repeats the holdings list */
+.portfolio-page .pf-manage-handoff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px 18px;
+  margin-top: 8px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--card);
+}
+
+.portfolio-page .pf-manage-handoff-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.portfolio-page .pf-manage-handoff-copy h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.15rem, 3.4vw, 1.45rem);
+  letter-spacing: -0.03em;
+}
+
+.portfolio-page .pf-manage-handoff-copy p {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.portfolio-page .pf-manage-handoff .data-edit-pill {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 640px) {
+  .portfolio-page .pf-manage-handoff {
+    padding: 14px;
+  }
+}

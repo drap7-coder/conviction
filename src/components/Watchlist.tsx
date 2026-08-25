@@ -417,7 +417,7 @@ export default function Watchlist({
         <div className="empty-state">
           <p>Your watchlist is empty.</p>
           <small>Add companies from the Manage page, then return here for the daily view.</small>
-          <Link href="/manage#watchlist" className="brief-link">
+          <Link href="/manage?view=watchlist" className="brief-link">
             Add watchlist names →
           </Link>
         </div>
@@ -428,7 +428,7 @@ export default function Watchlist({
           title="Today’s move"
           subtitle=""
           headerAction={(
-            <Link href="/manage#watchlist" className="data-edit-pill">
+            <Link href="/manage?view=watchlist" className="data-edit-pill">
               Edit watchlist
             </Link>
           )}
