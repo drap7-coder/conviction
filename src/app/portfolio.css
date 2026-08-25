@@ -140,8 +140,8 @@
   font-weight: 600;
 }
 
-/* ── Capital Map (donut + divider + ladder in one card) ── */
-.portfolio-page .pf-capital-map {
+/* ── Sector Mix (donut) ── */
+.portfolio-page .pf-sector-mix {
   margin: 0 0 14px;
   padding: 16px;
   border: 1px solid var(--border);
@@ -149,13 +149,13 @@
   background: var(--card);
 }
 
-.portfolio-page .pf-capital-map-head {
+.portfolio-page .pf-sector-mix-head {
   display: grid;
   gap: 3px;
   margin: 0 0 12px;
 }
 
-.portfolio-page .pf-capital-map-head h2 {
+.portfolio-page .pf-sector-mix-head h2 {
   margin: 0;
   color: var(--ink);
   font-family: var(--font-sans);
@@ -164,26 +164,11 @@
   letter-spacing: -0.03em;
 }
 
-.portfolio-page .pf-capital-map-donut {
+.portfolio-page .pf-sector-mix-donut {
   display: flex;
   justify-content: center;
   padding: 6px 0 2px;
   color: var(--ink);
-}
-
-.portfolio-page .pf-capital-map-divider {
-  height: 1px;
-  margin: 16px 0;
-  background: var(--divider);
-}
-
-.portfolio-page .pf-capital-map .pf-allocation-ladder {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
 }
 
 /* ── Study Mode ── */
@@ -535,37 +520,37 @@
     white-space: normal;
   }
 
-  .portfolio-page .pf-capital-map,
+  .portfolio-page .pf-sector-mix,
   .portfolio-page .pf-benchmark {
     padding: 14px 12px;
   }
 
-  .portfolio-page .pf-capital-map .pf-allocation-heading {
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-heading {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
 
-  .portfolio-page .pf-capital-map .pf-allocation-heading p {
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-heading p {
     text-align: left;
   }
 
-  .portfolio-page .pf-capital-map .pf-allocation-row {
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-row {
     grid-template-columns: minmax(0, 1fr) 48px;
     gap: 8px 10px;
   }
 
-  .portfolio-page .pf-capital-map .pf-allocation-rank,
-  .portfolio-page .pf-capital-map .pf-allocation-values {
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-rank,
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-values {
     display: none;
   }
 
-  .portfolio-page .pf-capital-map .pf-allocation-gauge {
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-gauge {
     order: 3;
     grid-column: 1 / -1;
   }
 
-  .portfolio-page .pf-capital-map .pf-allocation-company span {
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-company span {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -650,21 +635,52 @@
   font-style: normal;
 }
 
+/* Below the slim hero: Sector Mix, Concentration, Compare */
+.portfolio-page .pf-compare-board {
+  display: grid;
+  gap: 16px;
+  margin: 0 0 14px;
+  min-width: 0;
+}
+
+.portfolio-page .pf-hero-diagnosis {
+  margin: 6px 0 0;
+  max-width: 28rem;
+  color: var(--muted);
+  font-family: var(--font-sans);
+  font-size: clamp(0.82rem, 1.8vw, 0.95rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
 /* Day-change semicircle gauges in the slim Live hero metrics strip */
 .portfolio-page .pf-day-gauge {
   position: relative;
   display: grid;
   justify-items: center;
   width: 100%;
-  max-width: 124px;
+  max-width: 152px;
   margin: 0 auto;
 }
 
 .portfolio-page .pf-day-gauge-arc {
   display: block;
   width: 100%;
-  max-width: 112px;
+  max-width: 148px;
   height: auto;
+}
+
+.portfolio-page .pf-day-gauge-track {
+  stroke: color-mix(in srgb, var(--border) 55%, var(--card-inset));
+}
+
+.portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-track {
+  stroke: color-mix(in srgb, var(--accent) 40%, var(--card-inset));
+}
+
+.portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-track {
+  stroke: color-mix(in srgb, var(--red) 40%, var(--card-inset));
 }
 
 .portfolio-page .pf-day-gauge-fill {
@@ -673,110 +689,60 @@
 }
 
 .portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-fill {
-  stroke: var(--accent);
+  stroke: #2dd4bf;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 70%, transparent));
 }
 
 .portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-fill {
-  stroke: var(--red);
+  stroke: #f87171;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--red) 70%, transparent));
 }
 
 .portfolio-page .pf-day-gauge-readout {
   position: absolute;
-  inset: auto 0 0;
+  inset: auto 0 2px;
   display: grid;
-  gap: 1px;
+  gap: 3px;
   justify-items: center;
-  padding-bottom: 2px;
+  padding-bottom: 0;
   text-align: center;
 }
 
 .portfolio-page .pf-day-gauge-readout strong {
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: clamp(0.92rem, 2.2vw, 1.12rem);
-  font-weight: 720;
-  letter-spacing: -0.04em;
+  font-size: clamp(1.08rem, 2.6vw, 1.32rem);
+  font-weight: 780;
+  letter-spacing: -0.05em;
   line-height: 1.05;
   padding-top: 0;
 }
 
 .portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-readout strong {
-  color: var(--accent);
+  color: #5eead4;
+  text-shadow: 0 0 20px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
 .portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-readout strong {
-  color: var(--red);
+  color: #fca5a5;
+  text-shadow: 0 0 20px color-mix(in srgb, var(--red) 45%, transparent);
 }
 
 .portfolio-page .pf-day-gauge-readout span {
-  color: var(--quiet);
+  color: color-mix(in srgb, var(--quiet) 70%, var(--ink));
   font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-/* Below the slim hero: construction, Capital Map, compare, moves */
-.portfolio-page .pf-fit-board {
-  display: grid;
-  gap: 16px;
-  margin: 0 0 14px;
-  min-width: 0;
-}
-
-.portfolio-page .pf-live-machine {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.portfolio-page .pf-live-machine > div {
-  display: grid;
-  gap: 7px;
-  padding: 14px 15px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--card-soft);
-}
-
-.portfolio-page .pf-live-machine > div:last-child {
-  border-color: color-mix(in srgb, var(--amber) 22%, var(--border));
-  background:
-    linear-gradient(
-      155deg,
-      color-mix(in srgb, var(--amber) 8%, var(--card-soft)) 0%,
-      var(--card-soft) 70%
-    );
-}
-
-.portfolio-page .pf-live-machine span {
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 700;
+  font-size: 0.64rem;
+  font-weight: 720;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.portfolio-page .pf-live-machine > div:last-child span {
-  color: color-mix(in srgb, var(--amber) 45%, var(--quiet));
+.portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-readout span {
+  color: color-mix(in srgb, var(--accent) 70%, var(--quiet));
 }
 
-.portfolio-page .pf-live-machine p {
-  margin: 0;
-  overflow-wrap: break-word;
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: 0.9rem;
-  line-height: 1.45;
-  white-space: normal;
-}
-
-@media (max-width: 640px) {
-  .portfolio-page .pf-live-machine {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-readout span {
+  color: color-mix(in srgb, var(--red) 70%, var(--quiet));
 }
 
 .portfolio-page .pf-risk {

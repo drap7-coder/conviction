@@ -16,7 +16,8 @@ export type ProductStageTone =
 type ProductStageProps = {
   variant: ProductStageVariant;
   eyebrow: ReactNode;
-  headline: string;
+  /** Omit or pass empty to hide the stage headline (e.g. Live Portfolio puts Fit under Value). */
+  headline?: string;
   summary?: ReactNode;
   metrics?: ReactNode;
   /** `above` puts the stat strip over the headline (Portfolio). Default stays a side column. */
@@ -40,7 +41,7 @@ type ProductStageProps = {
  * Remounts when the headline changes so arrival motion plays on a live read.
  */
 export function ProductStage(props: ProductStageProps) {
-  return <ProductStageView key={props.headline} {...props} />;
+  return <ProductStageView key={props.headline || "stage"} {...props} />;
 }
 
 function ProductStageView({
@@ -124,6 +125,8 @@ function ProductStageView({
     </div>
   ) : null;
 
+  const showHeadline = Boolean(headline);
+
   if (loading) {
     return (
       <section
@@ -134,9 +137,11 @@ function ProductStageView({
         <div className="product-stage-copy" aria-hidden="true">
           <span className="product-stage-skeleton product-stage-skeleton-eyebrow" />
           {metricsAbove ? metricsSkeleton : null}
-          <h1 className="product-stage-skeleton-headline" aria-hidden="true">
-            <span className="product-stage-skeleton product-stage-skeleton-line product-stage-skeleton-headline-line" />
-          </h1>
+          {showHeadline ? (
+            <h1 className="product-stage-skeleton-headline" aria-hidden="true">
+              <span className="product-stage-skeleton product-stage-skeleton-line product-stage-skeleton-headline-line" />
+            </h1>
+          ) : null}
           {summary ? <div className="product-stage-skeleton product-stage-skeleton-summary" /> : null}
         </div>
         {metricsAbove ? null : metricsSkeleton}
@@ -152,20 +157,22 @@ function ProductStageView({
           {eyebrow}
         </span>
         {metricsAbove ? metricsEl : null}
-        <h1 className="product-stage-headline" aria-live="polite">
-          {useTypewriter ? (
-            <TypewriterText
-              text={headline}
-              as="span"
-              className="product-stage-headline-typewriter"
-              msPerChar={26}
-              startDelay={70}
-              maxLines={headlineMaxLines}
-            />
-          ) : (
-            <span key={headline}>{headline}</span>
-          )}
-        </h1>
+        {showHeadline ? (
+          <h1 className="product-stage-headline" aria-live="polite">
+            {useTypewriter ? (
+              <TypewriterText
+                text={headline!}
+                as="span"
+                className="product-stage-headline-typewriter"
+                msPerChar={26}
+                startDelay={70}
+                maxLines={headlineMaxLines}
+              />
+            ) : (
+              <span key={headline}>{headline}</span>
+            )}
+          </h1>
+        ) : null}
         {summary ? <p>{summary}</p> : null}
         {children}
       </div>

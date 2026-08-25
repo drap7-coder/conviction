@@ -17,8 +17,8 @@ function allocationTone(weight: number) {
 
 export function PortfolioAllocationLadder({
   items,
-  eyebrow = "Capital map",
-  title = "Allocation ladder",
+  eyebrow = "Concentration",
+  title = "Position weight vs. risk thresholds",
   hint = "Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration.",
 }: {
   items: PortfolioAllocationItem[];
@@ -62,7 +62,12 @@ export function PortfolioAllocationLadder({
               {showValues ? (
                 <div className="pf-allocation-values">
                   <strong>{item.marketValue}</strong>
-                  <span className={item.dailyChangeValue != null && item.dailyChangeValue < 0 ? "down" : "up"}>{item.dailyChange}</span>
+                  <span className={item.dailyChangeValue != null && item.dailyChangeValue < 0 ? "down" : "up"}>
+                    {item.dailyChange}
+                    {item.dailyChange && item.dailyChange !== "—" ? (
+                      <em className="pf-allocation-today"> today</em>
+                    ) : null}
+                  </span>
                 </div>
               ) : null}
             </article>
