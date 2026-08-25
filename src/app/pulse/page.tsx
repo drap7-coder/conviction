@@ -9,6 +9,7 @@ import {
   CommodityScoreboard,
   IndexScoreboard,
 } from "@/components/market/IndexScoreboard";
+import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 
 function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
@@ -41,6 +42,7 @@ export default function MarketPulsePage() {
   const majorIndexes = marketsByCategory("Major Index");
   const commodities = marketsByCategory("Commodity");
   const cryptoMarkets = marketsByCategory("Crypto");
+  const cryptoRelated = marketsByCategory("Crypto Equity");
   const industryMarkets = sectorsToMarkets(data?.sectors ?? []);
 
   return (
@@ -82,11 +84,7 @@ export default function MarketPulsePage() {
 
           <div className="pulse-more-markets" aria-label="More markets">
             <p className="pulse-more-markets-label">More markets</p>
-            <GlobalMarketsHeatmap
-              markets={cryptoMarkets}
-              title="Crypto"
-              uniformTiles
-            />
+            <CryptoBoard markets={cryptoMarkets} related={cryptoRelated} />
           </div>
         </>
       ) : null}

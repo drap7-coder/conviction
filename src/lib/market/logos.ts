@@ -70,6 +70,9 @@ const DOMAIN_MAP: Record<string, string> = {
   "BTC-USD": "bitcoin.org",
   "ETH-USD": "ethereum.org",
   "SOL-USD": "solana.com",
+  "XRP-USD": "ripple.com",
+  "DOGE-USD": "dogecoin.com",
+  "ADA-USD": "cardano.org",
 };
 
 // ── Sector ETF fallback colors ──

@@ -215,13 +215,14 @@ describe("production copy and fixture isolation", () => {
     expect(pulse).not.toContain("ProductStage");
   });
 
-  it("keeps Pulse Trending as a heatmap, not a watchlist chip editor", () => {
+  it("keeps Pulse Trending as Market Movers, not a watchlist chip editor", () => {
     const panel = read("src/components/market/MarketMovesPanel.tsx");
     const pulse = read("src/app/pulse/page.tsx");
 
     expect(pulse).toContain("MarketMovesPanel");
-    expect(panel).toContain("StockHeatmap");
-    expect(panel).toContain('title="Active names"');
+    expect(panel).toContain("MarketMoversBoard");
+    expect(panel).toContain("splitMarketMovers");
+    expect(panel).not.toContain("StockHeatmap");
     expect(panel).not.toContain("TrendingManageChips");
     expect(panel).not.toContain("wl-manage-row");
     expect(panel).not.toContain("handleAddTrending");

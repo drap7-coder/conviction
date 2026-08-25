@@ -74,10 +74,9 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("regimeSummary");
     expect(page).toContain("CommodityScoreboard");
     expect(page).not.toContain('title="Commodities"');
-    expect(page).toContain('title="Crypto"');
+    expect(page).toContain("CryptoBoard");
     expect(page).not.toContain('title="International Indexes"');
     expect(page).not.toContain("internationalMarkets");
-    expect(page).not.toContain("MarketScoreboard");
     expect(page).toContain("MarketMovesPanel");
     expect(page).not.toContain("ViewSwitcher");
     expect(page).not.toContain("PULSE_TABS");
@@ -88,7 +87,9 @@ describe("Pulse heatmap universe", () => {
   it("does not treat Trending as a watchlist chip editor", () => {
     const panel = read("src/components/market/MarketMovesPanel.tsx");
 
-    expect(panel).toContain('title="Active names"');
+    expect(panel).toContain("MarketMoversBoard");
+    expect(panel).toContain("splitMarketMovers");
+    expect(panel).not.toContain("StockHeatmap");
     expect(panel).not.toContain("TrendingManageChips");
     expect(panel).not.toContain("wl-manage-row");
   });
@@ -143,6 +144,7 @@ describe("Pulse heatmap universe", () => {
     expect(board).not.toContain("HeatTile");
     expect(css).toContain(".pulse-index-row");
     expect(css).toContain(".pulse-gauge-grid");
+    expect(css).toContain(".pulse-movers-grid");
     expect(sectorsBlock).toContain("sessionLabel={data.sessionLabel}");
     expect(read("src/components/market/GlobalMarketsHeatmap.tsx")).toContain(
       'className="stock-heat-session ink-chip ink-chip--amber"',
@@ -150,10 +152,21 @@ describe("Pulse heatmap universe", () => {
     expect(moreMarketsBlock).not.toContain("sessionLabel");
     expect(moreMarketsBlock).not.toContain("CommodityScoreboard");
     expect(moreMarketsBlock).not.toContain('title="Commodities"');
-    expect(moreMarketsBlock).toContain('title="Crypto"');
-    expect(moreMarketsBlock).not.toContain("<MarketScoreboard");
+    expect(moreMarketsBlock).toContain("CryptoBoard");
+    expect(moreMarketsBlock).not.toContain('title="Crypto"');
+    expect(moreMarketsBlock).not.toContain("GlobalMarketsHeatmap");
     expect(moreMarketsBlock).not.toContain('title="International Indexes"');
     expect(moreMarketsBlock).not.toContain("International");
+  });
+
+  it("expands Crypto beyond BTC/ETH without bringing Solana back to Pulse", () => {
+    const route = read("src/app/api/market/pulse/route.ts");
+    expect(route).toContain("XRP-USD");
+    expect(route).toContain("DOGE-USD");
+    expect(route).toContain("ADA-USD");
+    expect(route).toContain('category: "Crypto Equity"');
+    expect(route).toContain("COIN");
+    expect(route).not.toContain("SOL-USD");
   });
 });
 
