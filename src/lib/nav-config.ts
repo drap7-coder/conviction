@@ -1,4 +1,4 @@
-import { List, Briefcase, BarChart3, Globe2, Landmark, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { List, Briefcase, BarChart3, Globe2, Landmark, Layers, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
 export type NavGroup = "daily" | "more" | "account";
@@ -20,7 +20,7 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "amber",
     group: "daily",
-    blurb: "Indexes, trending names, commodities, sectors, and crypto.",
+    blurb: "Indexes, trending names, commodities, and crypto.",
   },
   {
     href: "/watchlist",
@@ -53,6 +53,14 @@ export const navPages: NavPage[] = [
     tone: "violet",
     group: "more",
     blurb: "Institution filings and political trades.",
+  },
+  {
+    href: "/sectors",
+    label: "Sectors",
+    icon: Layers,
+    tone: "amber",
+    group: "more",
+    blurb: "U.S. sector ETF board — Technology through Utilities.",
   },
   {
     href: "/international",

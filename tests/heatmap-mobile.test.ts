@@ -29,6 +29,7 @@ describe("mobile heatmaps", () => {
   it("re-asserts Pulse auto-fill after the 6-col market-heatmap rule", () => {
     const css = read("src/app/globals.css");
     const page = read("src/app/pulse/page.tsx");
+    const international = read("src/app/international/page.tsx");
     const heatmap = read("src/components/market/GlobalMarketsHeatmap.tsx");
     const sixCol = css.indexOf(
       ".market-heatmap {\n  display: grid;\n  grid-template-columns: repeat(6, minmax(0, 1fr));",
@@ -39,10 +40,10 @@ describe("mobile heatmaps", () => {
     );
 
     expect(page).toContain('className="markets-page pulse-page"');
-    expect(page).toContain("GlobalMarketsHeatmap");
-    expect(page).toContain("uniformTiles");
+    expect(page).not.toContain("GlobalMarketsHeatmap");
+    expect(international).toContain("GlobalMarketsHeatmap");
+    expect(international).toContain("uniformTiles");
     expect(heatmap).toContain('uniformTiles ? "market-heatmap--uniform"');
-    expect(page).not.toContain("uniformTiles && markets.length > 3");
     expect(sixCol).toBeGreaterThan(-1);
     expect(pulseUniform).toBeGreaterThan(sixCol);
     expect(phoneTwoCol).toBeGreaterThan(pulseUniform);

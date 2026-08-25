@@ -77,6 +77,8 @@ describe("Pulse heatmap universe", () => {
     expect(page).toContain("CryptoBoard");
     expect(page).not.toContain('title="International Indexes"');
     expect(page).not.toContain("internationalMarkets");
+    expect(page).not.toContain('id="industries"');
+    expect(page).not.toContain("GlobalMarketsHeatmap");
     expect(page).toContain("MarketMovesPanel");
     expect(page).not.toContain("ViewSwitcher");
     expect(page).not.toContain("PULSE_TABS");
@@ -94,7 +96,7 @@ describe("Pulse heatmap universe", () => {
     expect(panel).not.toContain("wl-manage-row");
   });
 
-  it("renders one scrolling view ordered Indexes, Trending, Commodities, then Sectors", () => {
+  it("renders one scrolling view ordered Indexes, Trending, Commodities, then Crypto", () => {
     const page = read("src/app/pulse/page.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
@@ -103,15 +105,10 @@ describe("Pulse heatmap universe", () => {
     const indexesStart = page.indexOf("<IndexScoreboard");
     const trendingStart = page.indexOf('id="market-moves"');
     const commoditiesStart = page.indexOf("<CommodityScoreboard");
-    const sectorsStart = page.indexOf('id="industries"');
     const moreMarketsStart = page.indexOf('className="pulse-more-markets"');
     const indexesBlock = page.slice(
       gaugesStart,
       trendingStart,
-    );
-    const sectorsBlock = page.slice(
-      page.indexOf('title="Sectors"'),
-      moreMarketsStart,
     );
     const moreMarketsBlock = page.slice(
       moreMarketsStart,
@@ -122,12 +119,13 @@ describe("Pulse heatmap universe", () => {
     expect(gaugesStart).toBeLessThan(indexesStart);
     expect(indexesStart).toBeLessThan(trendingStart);
     expect(trendingStart).toBeLessThan(commoditiesStart);
-    expect(commoditiesStart).toBeLessThan(sectorsStart);
-    expect(sectorsStart).toBeLessThan(moreMarketsStart);
+    expect(commoditiesStart).toBeLessThan(moreMarketsStart);
     expect(page).not.toContain("ViewSwitcher");
     expect(page).not.toContain("PULSE_TABS");
     expect(page).not.toContain('role="tabpanel"');
     expect(page).not.toContain("pulse-panel-trending");
+    expect(page).not.toContain('id="industries"');
+    expect(page).not.toContain('title="Sectors"');
     expect(page).toContain("PulseMacroGauges");
     expect(page).toContain("IndexScoreboard");
     expect(page).toContain("CommodityScoreboard");
@@ -140,15 +138,12 @@ describe("Pulse heatmap universe", () => {
     expect(board).toContain("pulse-index-row");
     expect(board).toContain("pulse-index-session");
     expect(board).toContain('title="Commodities"');
+    expect(board).toContain("SectorScoreboard");
     expect(board).not.toContain("stock-heat-session");
     expect(board).not.toContain("HeatTile");
     expect(css).toContain(".pulse-index-row");
     expect(css).toContain(".pulse-gauge-grid");
     expect(css).toContain(".pulse-movers-grid");
-    expect(sectorsBlock).toContain("sessionLabel={data.sessionLabel}");
-    expect(read("src/components/market/GlobalMarketsHeatmap.tsx")).toContain(
-      'className="stock-heat-session ink-chip ink-chip--amber"',
-    );
     expect(moreMarketsBlock).not.toContain("sessionLabel");
     expect(moreMarketsBlock).not.toContain("CommodityScoreboard");
     expect(moreMarketsBlock).not.toContain('title="Commodities"');
@@ -167,6 +162,24 @@ describe("Pulse heatmap universe", () => {
     expect(route).toContain('category: "Crypto Equity"');
     expect(route).toContain("COIN");
     expect(route).not.toContain("SOL-USD");
+  });
+});
+
+describe("Sectors menu page", () => {
+  it("lives under Menu and hosts the sector scoreboard off Pulse", () => {
+    const nav = read("src/lib/nav-config.ts");
+    const page = read("src/app/sectors/page.tsx");
+    const layout = read("src/app/sectors/layout.tsx");
+
+    expect(nav).toContain('href: "/sectors"');
+    expect(nav).toContain('label: "Sectors"');
+    expect(nav).toContain('group: "more"');
+    expect(page).toContain("SectorScoreboard");
+    expect(page).toContain("sessionLabel={data.sessionLabel}");
+    expect(page).not.toContain("GlobalMarketsHeatmap");
+    expect(page).toContain("sr-only");
+    expect(layout).toContain("pageMetadata");
+    expect(layout).toContain('path: "/sectors"');
   });
 });
 
