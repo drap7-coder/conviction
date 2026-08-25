@@ -20,7 +20,7 @@ export interface PortfolioValueBrief {
   reliance: RelianceResult;
 }
 
-/** Live hero copy: job of the book, then how it’s built / what has to go right. */
+/** Live brief: Fit headline for the slim hero; construction / stake sit below. */
 export function buildPortfolioValueBrief(holdings: PortfolioValueHolding[]): PortfolioValueBrief {
   const fit = classifyFit(holdings);
   const reliance = computeReliance(holdings);

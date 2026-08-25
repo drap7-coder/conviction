@@ -177,31 +177,6 @@
   background: var(--divider);
 }
 
-/* Nested in the Live hero: same map, no second card chrome — soft accent wash. */
-.portfolio-page .product-stage .pf-capital-map {
-  margin: 2px 0 0;
-  padding: 14px 14px 12px;
-  border: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 16%, var(--border));
-  border-radius: 14px;
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--stage-accent, var(--accent)) 10%, var(--card-soft)) 0%,
-      var(--card-soft) 60%
-    );
-}
-
-.portfolio-page .product-stage .pf-capital-map-head {
-  margin-bottom: 8px;
-}
-
-.portfolio-page .product-stage .pf-capital-map-head h2 {
-  font-size: 0.92rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: color-mix(in srgb, var(--stage-accent, var(--accent)) 35%, var(--muted));
-}
-
 .portfolio-page .pf-capital-map .pf-allocation-ladder {
   margin: 0;
   padding: 0;
@@ -675,13 +650,79 @@
   font-style: normal;
 }
 
-/* Live hero: Fit + Reliance + risk-profile ask + moves (same ProductStage) */
+/* Day-change semicircle gauges in the slim Live hero metrics strip */
+.portfolio-page .pf-day-gauge {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  max-width: 124px;
+  margin: 0 auto;
+}
+
+.portfolio-page .pf-day-gauge-arc {
+  display: block;
+  width: 100%;
+  max-width: 112px;
+  height: auto;
+}
+
+.portfolio-page .pf-day-gauge-fill {
+  stroke: var(--muted);
+  transition: stroke-dasharray 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-fill {
+  stroke: var(--accent);
+}
+
+.portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-fill {
+  stroke: var(--red);
+}
+
+.portfolio-page .pf-day-gauge-readout {
+  position: absolute;
+  inset: auto 0 0;
+  display: grid;
+  gap: 1px;
+  justify-items: center;
+  padding-bottom: 2px;
+  text-align: center;
+}
+
+.portfolio-page .pf-day-gauge-readout strong {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: clamp(0.92rem, 2.2vw, 1.12rem);
+  font-weight: 720;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  padding-top: 0;
+}
+
+.portfolio-page .pf-day-gauge.is-positive .pf-day-gauge-readout strong {
+  color: var(--accent);
+}
+
+.portfolio-page .pf-day-gauge.is-negative .pf-day-gauge-readout strong {
+  color: var(--red);
+}
+
+.portfolio-page .pf-day-gauge-readout span {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Below the slim hero: construction, Capital Map, compare, moves */
 .portfolio-page .pf-fit-board {
   display: grid;
   gap: 16px;
-  margin-top: 6px;
-  padding-top: 16px;
-  border-top: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 18%, var(--border));
+  margin: 0 0 14px;
+  min-width: 0;
 }
 
 .portfolio-page .pf-live-machine {
@@ -694,15 +735,9 @@
   display: grid;
   gap: 7px;
   padding: 14px 15px;
-  border: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 16%, var(--border));
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background:
-    linear-gradient(
-      155deg,
-      color-mix(in srgb, var(--stage-accent, var(--accent)) 11%, var(--card-soft)) 0%,
-      var(--card-soft) 70%
-    );
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 4%, transparent);
+  background: var(--card-soft);
 }
 
 .portfolio-page .pf-live-machine > div:last-child {
@@ -710,13 +745,13 @@
   background:
     linear-gradient(
       155deg,
-      color-mix(in srgb, var(--amber) 10%, var(--card-soft)) 0%,
+      color-mix(in srgb, var(--amber) 8%, var(--card-soft)) 0%,
       var(--card-soft) 70%
     );
 }
 
 .portfolio-page .pf-live-machine span {
-  color: color-mix(in srgb, var(--stage-accent, var(--accent)) 40%, var(--quiet));
+  color: var(--quiet);
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 700;
@@ -787,7 +822,7 @@
   width: auto;
   margin: 0;
   padding: 8px 13px;
-  border: 1px solid color-mix(in srgb, var(--stage-accent, var(--accent)) 14%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--border));
   border-radius: 999px;
   background: color-mix(in srgb, var(--card) 70%, transparent);
   color: var(--muted);
@@ -804,16 +839,16 @@
 
 .portfolio-page .pf-profile-option:hover,
 .portfolio-page .pf-profile-option:focus-visible {
-  border-color: color-mix(in srgb, var(--stage-accent, var(--accent)) 40%, var(--border));
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
   color: var(--ink);
   outline: none;
 }
 
 .portfolio-page .pf-profile-option.is-active {
-  border-color: color-mix(in srgb, var(--stage-accent, var(--accent)) 55%, transparent);
-  background: color-mix(in srgb, var(--stage-accent, var(--accent)) 22%, var(--card));
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 22%, var(--card));
   color: var(--ink);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--stage-accent, var(--accent)) 18%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
 .portfolio-page .pf-moves-block {

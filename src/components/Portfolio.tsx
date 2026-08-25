@@ -89,6 +89,69 @@ function percent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+/** Session move intensity for the day-change arcs — ~3% fills the gauge. */
+function dayChangeFill(percentChange: number | null): number {
+  if (!isFiniteNumber(percentChange)) return 0;
+  return Math.min(100, (Math.abs(percentChange) / 3) * 100);
+}
+
+function dayChangeTone(
+  dailyChange: number | null,
+): "positive" | "negative" | "neutral" {
+  if (!isFiniteNumber(dailyChange) || dailyChange === 0) return "neutral";
+  return dailyChange > 0 ? "positive" : "negative";
+}
+
+const DAY_GAUGE_RADIUS = 40;
+const DAY_GAUGE_STROKE = 7;
+const DAY_GAUGE_CX = 52;
+const DAY_GAUGE_CY = 52;
+const DAY_GAUGE_TRACK = Math.PI * DAY_GAUGE_RADIUS;
+const DAY_GAUGE_ARC = `M ${DAY_GAUGE_CX - DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY} A ${DAY_GAUGE_RADIUS} ${DAY_GAUGE_RADIUS} 0 0 1 ${DAY_GAUGE_CX + DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY}`;
+
+function DayChangeGauge({
+  label,
+  caption,
+  fill,
+  tone,
+}: {
+  label: string;
+  caption: string;
+  fill: number;
+  tone: "positive" | "negative" | "neutral";
+}) {
+  const dash = (Math.max(0, Math.min(100, fill)) / 100) * DAY_GAUGE_TRACK;
+  return (
+    <div
+      className={`pf-day-gauge is-${tone}`}
+      role="img"
+      aria-label={`${caption} ${label}`}
+    >
+      <svg className="pf-day-gauge-arc" viewBox="0 0 104 64" aria-hidden="true">
+        <path
+          d={DAY_GAUGE_ARC}
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth={DAY_GAUGE_STROKE}
+          strokeLinecap="round"
+        />
+        <path
+          className="pf-day-gauge-fill"
+          d={DAY_GAUGE_ARC}
+          fill="none"
+          strokeWidth={DAY_GAUGE_STROKE}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${DAY_GAUGE_TRACK}`}
+        />
+      </svg>
+      <div className="pf-day-gauge-readout">
+        <strong className="tnum">{label}</strong>
+        <span>{caption}</span>
+      </div>
+    </div>
+  );
+}
+
 function resolveMoveName(
   ticker: string,
   quotes: StockQuote[],
@@ -418,7 +481,18 @@ export default function Portfolio() {
     [bookHoldings],
   );
 
-  const stageTone = valueBrief.tone;
+  const dayTone = dayChangeTone(portfolioMetrics.dailyChange);
+  const stageTone =
+    dayTone === "positive"
+      ? "positive"
+      : dayTone === "negative"
+        ? "negative"
+        : valueBrief.tone === "concentrated"
+          ? "concentrated"
+          : valueBrief.tone === "watch"
+            ? "watch"
+            : "balanced";
+  const dayFill = dayChangeFill(portfolioMetrics.dailyChangePercent);
 
   const allocationItems = useMemo(() => sortedPositions
     .filter(({ metrics }) => metrics.weight !== null)
@@ -505,7 +579,6 @@ export default function Portfolio() {
   // ── Render ──
 
   const stageHeadline = valueBrief.headline;
-  const stageSummary = valueBrief.summary;
   const stageEyebrow = `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}`;
   const profile = profileOverride ?? valueBrief.fit.defaultProfile ?? "growth-income";
   const profileTarget = targetBookForProfile(profile, valueBrief.fit.rankings);
@@ -692,6 +765,7 @@ export default function Portfolio() {
       {mode === "study" ? studyRegion : (
       <>
       {hasData ? (
+        <>
         <ProductStage
           variant="portfolio"
           aria-label="Portfolio overview"
@@ -699,7 +773,6 @@ export default function Portfolio() {
           tone={stageTone}
           eyebrow={stageEyebrow}
           headline={stageHeadline}
-          summary={stageSummary}
           typewriterHeadline={false}
           metricsPlacement="above"
           metrics={
@@ -708,117 +781,114 @@ export default function Portfolio() {
                 <strong className="tnum">{compactCurrency(portfolioMetrics.totalMarketValue)}</strong>
                 <span>Value</span>
               </div>
-              <div
-                className={
-                  portfolioMetrics.dailyChange !== null && portfolioMetrics.dailyChange < 0
-                    ? "is-negative"
-                    : portfolioMetrics.dailyChange !== null && portfolioMetrics.dailyChange > 0
-                      ? "is-positive"
-                      : ""
-                }
-              >
-                <strong className="tnum">{percent(portfolioMetrics.dailyChangePercent)}</strong>
-                <span>Today</span>
+              <div className={`pf-day-gauge-cell is-${dayTone}`}>
+                <DayChangeGauge
+                  label={signedCurrency(portfolioMetrics.dailyChange)}
+                  caption="Today $"
+                  fill={dayFill}
+                  tone={dayTone}
+                />
               </div>
-              <div className={valueBrief.largest && valueBrief.largest.weight > 20 ? "is-alert" : ""}>
-                <strong className="tnum">
-                  {valueBrief.largest
-                    ? `${valueBrief.largest.ticker} ${valueBrief.largest.weight.toFixed(0)}%`
-                    : "—"}
-                </strong>
-                <span>Largest</span>
+              <div className={`pf-day-gauge-cell is-${dayTone}`}>
+                <DayChangeGauge
+                  label={percent(portfolioMetrics.dailyChangePercent)}
+                  caption="Today %"
+                  fill={dayFill}
+                  tone={dayTone}
+                />
               </div>
             </>
           }
         >
-          <div className="pf-fit-board">
-            <div className="pf-live-machine">
-              <div>
-                <span>How it’s built</span>
-                <p>{valueBrief.construction}</p>
-              </div>
-              <div>
-                <span>What has to go right</span>
-                <p>{valueBrief.stake}</p>
-              </div>
-            </div>
-            {capitalMapCard}
-            <fieldset className="pf-risk">
-              <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
-              <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
-                {RISK_PROFILES.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    role="radio"
-                    aria-checked={profile === item}
-                    className={`pf-profile-option${profile === item ? " is-active" : ""}`}
-                    onClick={() => pickProfile(item)}
-                  >
-                    {RISK_PROFILE_LABELS[item]}
-                  </button>
-                ))}
-              </div>
-              {sleeveMoves.length > 0 ? (
-                <div className="pf-moves-block">
-                  <div className="pf-moves-lead">
-                    <p className="pf-moves-delta">{movesLead}</p>
-                    <p className="pf-moves-subhead">{RISK_PROFILE_MOVES_SUBHEAD}</p>
-                  </div>
-                  <ul className="pf-moves" aria-label={movesLead}>
-                    {sleeveMoves.map((move) => {
-                      const named = namedTicker(
-                        resolveMoveName(move.ticker, quotes, sectorProfiles),
-                        move.ticker,
-                      );
-                      const focus = move.action === "add" ? moveFocus(move) : named.label;
-                      return (
-                        <li
-                          key={`${move.action}-${move.ticker}`}
-                          className={`pf-move is-${move.action}`}
-                        >
-                          <div className="pf-move-action">
-                            <span className={`pf-move-chip pf-move-verb is-${move.action}`}>
-                              {moveVerb(move.action)}
-                            </span>
-                            <strong className="pf-move-focus">
-                              {move.action === "add" ? (
-                                focus.charAt(0).toUpperCase() + focus.slice(1)
-                              ) : (
-                                <>
-                                  {named.name === named.ticker ? named.ticker : named.name}
-                                  {named.name !== named.ticker ? (
-                                    <span className="pf-move-sym"> ({named.ticker})</span>
-                                  ) : null}
-                                </>
-                              )}
-                            </strong>
-                            {move.action === "add" ? (
-                              <span className="pf-move-ticker">
-                                {named.name === named.ticker
-                                  ? named.ticker
-                                  : `${named.name} (${named.ticker})`}
-                              </span>
-                            ) : null}
-                          </div>
-                          <span className="pf-move-why">
-                            {humanizeMoveWhy(move.why, move.ticker, named.label)}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  <p className="pf-fit-hedge">{FIT_HEDGE}</p>
-                </div>
-              ) : null}
-            </fieldset>
-          </div>
           <div className="product-stage-actions">
             <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
               {loading ? "Refreshing…" : "Refresh prices"}
             </button>
           </div>
         </ProductStage>
+        <div className="pf-fit-board">
+          <div className="pf-live-machine">
+            <div>
+              <span>How it’s built</span>
+              <p>{valueBrief.construction}</p>
+            </div>
+            <div>
+              <span>What has to go right</span>
+              <p>{valueBrief.stake}</p>
+            </div>
+          </div>
+          {capitalMapCard}
+          <fieldset className="pf-risk">
+            <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
+            <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
+              {RISK_PROFILES.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  role="radio"
+                  aria-checked={profile === item}
+                  className={`pf-profile-option${profile === item ? " is-active" : ""}`}
+                  onClick={() => pickProfile(item)}
+                >
+                  {RISK_PROFILE_LABELS[item]}
+                </button>
+              ))}
+            </div>
+            {sleeveMoves.length > 0 ? (
+              <div className="pf-moves-block">
+                <div className="pf-moves-lead">
+                  <p className="pf-moves-delta">{movesLead}</p>
+                  <p className="pf-moves-subhead">{RISK_PROFILE_MOVES_SUBHEAD}</p>
+                </div>
+                <ul className="pf-moves" aria-label={movesLead}>
+                  {sleeveMoves.map((move) => {
+                    const named = namedTicker(
+                      resolveMoveName(move.ticker, quotes, sectorProfiles),
+                      move.ticker,
+                    );
+                    const focus = move.action === "add" ? moveFocus(move) : named.label;
+                    return (
+                      <li
+                        key={`${move.action}-${move.ticker}`}
+                        className={`pf-move is-${move.action}`}
+                      >
+                        <div className="pf-move-action">
+                          <span className={`pf-move-chip pf-move-verb is-${move.action}`}>
+                            {moveVerb(move.action)}
+                          </span>
+                          <strong className="pf-move-focus">
+                            {move.action === "add" ? (
+                              focus.charAt(0).toUpperCase() + focus.slice(1)
+                            ) : (
+                              <>
+                                {named.name === named.ticker ? named.ticker : named.name}
+                                {named.name !== named.ticker ? (
+                                  <span className="pf-move-sym"> ({named.ticker})</span>
+                                ) : null}
+                              </>
+                            )}
+                          </strong>
+                          {move.action === "add" ? (
+                            <span className="pf-move-ticker">
+                              {named.name === named.ticker
+                                ? named.ticker
+                                : `${named.name} (${named.ticker})`}
+                            </span>
+                          ) : null}
+                        </div>
+                        <span className="pf-move-why">
+                          {humanizeMoveWhy(move.why, move.ticker, named.label)}
+                        </span>
+                      </li>
+                    );
+                  })}
+                </ul>
+                <p className="pf-fit-hedge">{FIT_HEDGE}</p>
+              </div>
+            ) : null}
+          </fieldset>
+        </div>
+        </>
       ) : (
         <div className="pf-empty-prompt">
           <p>No positions yet — build your portfolio or explore a template.</p>

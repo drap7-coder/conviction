@@ -59,10 +59,16 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("visibleCompareMoves");
     expect(portfolio).toContain('metricsPlacement="above"');
     expect(portfolio).toContain('className="is-lead"');
+    expect(portfolio).toContain("pf-day-gauge");
+    expect(portfolio).toContain("Today $");
+    expect(portfolio).toContain("Today %");
+    expect(portfolio).not.toContain(">Largest<");
+    expect(portfolio).not.toContain("summary={stageSummary}");
     expect(read("src/components/ProductStage.tsx")).toContain('metricsPlacement');
     expect(read("src/app/globals.css")).toContain("product-stage--metrics-above");
     expect(read("src/app/globals.css")).toContain("--pf-hero-pad");
-    expect(read("src/app/portfolio.css")).toContain("stage-accent");
+    expect(read("src/app/globals.css")).toContain("pf-day-gauge-cell");
+    expect(read("src/app/portfolio.css")).toContain("pf-day-gauge");
     expect(portfolio).toContain("pf-move-verb");
     expect(portfolio).toContain("pf-move-focus");
     expect(portfolio).toContain("pf-move-sym");
