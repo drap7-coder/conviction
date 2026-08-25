@@ -105,24 +105,25 @@ function IndexSessionMoves({
     );
   }
 
+  // Match company quote hierarchy: live AH/Pre is the lead figure; Today is muted context.
   return (
     <span className="pulse-index-sessions" aria-hidden="true">
+      <span className="pulse-index-session-move is-extended">
+        <em>{extendedShortLabel(market.sessionLabel!)}</em>
+        <strong
+          className="pulse-index-pct tnum"
+          style={{ background: liveChip.background, color: liveChip.color }}
+        >
+          {fmtPct(market.changePercent)}
+        </strong>
+      </span>
       <span className="pulse-index-session-move is-today">
         <em>Today</em>
         <strong
           className="tnum"
-          style={{ background: todayChip.background, color: todayChip.color }}
+          style={{ color: todayChip.color }}
         >
           {fmtPct(todayPct)}
-        </strong>
-      </span>
-      <span className="pulse-index-session-move is-extended">
-        <em>{extendedShortLabel(market.sessionLabel!)}</em>
-        <strong
-          className="tnum"
-          style={{ background: liveChip.background, color: liveChip.color }}
-        >
-          {fmtPct(market.changePercent)}
         </strong>
       </span>
     </span>
@@ -138,7 +139,7 @@ export function MarketScoreboard({
   title: string;
   rows: PulseGlobalMarket[];
   sessionLabel?: string | null;
-  /** When true, show Today + Pre/AH % when the row is in extended hours. */
+  /** When true, lead with Pre/AH % and mute Today underneath in extended hours. */
   showSessionMoves?: boolean;
 }) {
   if (rows.length === 0) return null;
@@ -176,7 +177,7 @@ export function MarketScoreboard({
             && Boolean(market.sessionLabel)
             && isFiniteNumber(market.regularChangePercent);
           const label = extended
-            ? `${market.name}, ${fmtDollarPrice(market.price)}, Today ${fmtPct(market.regularChangePercent ?? null)}, ${market.sessionLabel} ${fmtPct(market.changePercent)}`
+            ? `${market.name}, ${fmtDollarPrice(market.price)}, ${market.sessionLabel} ${fmtPct(market.changePercent)}, Today ${fmtPct(market.regularChangePercent ?? null)}`
             : `${market.name}, ${fmtDollarPrice(market.price)}, ${fmtPct(market.changePercent)}`;
           const body: ReactNode = (
             <>
