@@ -91,6 +91,36 @@ function percent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+function resolveMoveName(
+  ticker: string,
+  quotes: StockQuote[],
+  sectorProfiles: Record<string, PortfolioProfile>,
+): string {
+  const key = ticker.toUpperCase();
+  const quoteName = quotes.find((quote) => quote.ticker.toUpperCase() === key)?.name?.trim();
+  if (quoteName) return quoteName;
+  const profileName = sectorProfiles[key]?.longName?.trim();
+  if (profileName) return profileName;
+  const instrumentName = getMarketInstrument(key)?.name?.trim();
+  if (instrumentName) return instrumentName;
+  return key;
+}
+
+/** “Apple Inc. (AAPL)” — falls back to the ticker alone when no name exists. */
+function namedTicker(name: string, ticker: string): { label: string; name: string; ticker: string } {
+  const key = ticker.toUpperCase();
+  const clean = name.trim() || key;
+  if (clean.toUpperCase() === key) {
+    return { label: key, name: key, ticker: key };
+  }
+  return { label: `${clean} (${key})`, name: clean, ticker: key };
+}
+
+function humanizeMoveWhy(why: string, ticker: string, label: string): string {
+  if (label === ticker) return why;
+  return why.replaceAll(ticker, label);
+}
+
 // ── Sort types ──────────────────────────────────────────────────────────────
 
 type SortKey = "ticker" | "value" | "weight" | "dayGl" | "totalGl";
@@ -789,21 +819,47 @@ export default function Portfolio() {
                     <p className="pf-moves-subhead">{RISK_PROFILE_MOVES_SUBHEAD}</p>
                   </div>
                   <ul className="pf-moves" aria-label={movesLead}>
-                    {sleeveMoves.map((move) => (
-                      <li
-                        key={`${move.action}-${move.ticker}`}
-                        className={`pf-move is-${move.action}`}
-                      >
-                        <span className="pf-move-action">
-                          <span className="pf-move-verb">{moveVerb(move.action)}</span>
-                          <strong className="pf-move-focus">{moveFocus(move)}</strong>
-                          {move.action === "add" ? (
-                            <span className="pf-move-ticker">{move.ticker}</span>
-                          ) : null}
-                        </span>
-                        <span className="pf-move-why">{move.why}</span>
-                      </li>
-                    ))}
+                    {sleeveMoves.map((move) => {
+                      const named = namedTicker(
+                        resolveMoveName(move.ticker, quotes, sectorProfiles),
+                        move.ticker,
+                      );
+                      const focus = move.action === "add" ? moveFocus(move) : named.label;
+                      return (
+                        <li
+                          key={`${move.action}-${move.ticker}`}
+                          className={`pf-move is-${move.action}`}
+                        >
+                          <div className="pf-move-action">
+                            <span className={`pf-move-chip pf-move-verb is-${move.action}`}>
+                              {moveVerb(move.action)}
+                            </span>
+                            <strong className="pf-move-focus">
+                              {move.action === "add" ? (
+                                focus
+                              ) : (
+                                <>
+                                  {named.name === named.ticker ? named.ticker : named.name}
+                                  {named.name !== named.ticker ? (
+                                    <span className="pf-move-sym"> ({named.ticker})</span>
+                                  ) : null}
+                                </>
+                              )}
+                            </strong>
+                            {move.action === "add" ? (
+                              <span className="pf-move-ticker">
+                                {named.name === named.ticker
+                                  ? named.ticker
+                                  : `${named.name} (${named.ticker})`}
+                              </span>
+                            ) : null}
+                          </div>
+                          <span className="pf-move-why">
+                            {humanizeMoveWhy(move.why, move.ticker, named.label)}
+                          </span>
+                        </li>
+                      );
+                    })}
                   </ul>
                   <p className="pf-fit-hedge">{FIT_HEDGE}</p>
                 </div>
