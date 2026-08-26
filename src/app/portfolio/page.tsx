@@ -16,7 +16,7 @@ export async function generateMetadata({
   return pageMetadata({
     title: "Portfolio",
     description:
-      "See what you own, where your money is concentrated, and how your portfolio is moving today.",
+      "Live portfolio value and today’s move, sector mix, concentration, and compare-against guidance — plus Study Mode templates.",
     path: "/portfolio",
     index: mode !== "study",
   });

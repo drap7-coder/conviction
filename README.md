@@ -1,6 +1,6 @@
 # CONVICTION — The stock market, organized around you
 
-Track the stock market, your watchlist, portfolio, news, and notable investor activity — all in one place.
+Your daily market workspace: Pulse for indexes and movers, watchlist and live portfolio, sectors and international boards, news briefs, and smart-money filings — all in one place.
 
 ## Getting Started
 
@@ -18,15 +18,11 @@ FMP_API_KEY=your_key_here
 
 ## Product surfaces
 
-- **Watchlist / Portfolio** — Companies and holdings you follow
-- **Pulse** — Indexes, trending, commodities, and sectors
-- **Smart Money** — Institutional 13F moves and political disclosures
-
-## Data Sources (V1)
-
-- SEC EDGAR (fixtures)
-- Market price feed (fixtures)
-- USAspending (fixtures)
+- **Pulse** — Indexes, movers, commodities, crypto
+- **Watchlist / Portfolio** — Names you follow and the book you own
+- **News** — Featured brief and themes
+- **Smart Money / Sectors / International** — Under Menu → More
+- **About / Q&A** — Under Menu → About
 
 ## Build
 

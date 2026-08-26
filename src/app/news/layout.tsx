@@ -4,7 +4,8 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "News",
-  description: "The market stories that matter most, organized into a quick daily read.",
+  description:
+    "Market news briefs and themes that matter today — a featured story first, then the rest of the tape.",
   path: "/news",
 });
 
