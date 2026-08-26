@@ -9357,15 +9357,11 @@ button.brief-link:focus-visible {
 }
 
 .pf-donut-readout {
-  position: absolute;
-  z-index: 3;
-  left: 50%;
-  top: 46%;
   display: grid;
   gap: 2px;
   justify-items: center;
-  max-width: 7.5rem;
-  transform: translate(-50%, -50%);
+  max-width: 12rem;
+  margin-top: -6px;
   pointer-events: none;
   text-align: center;
 }
@@ -9373,17 +9369,16 @@ button.brief-link:focus-visible {
 .pf-donut-readout strong {
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   font-weight: 720;
   letter-spacing: -0.02em;
   line-height: 1.15;
-  text-shadow: 0 1px 2px color-mix(in srgb, #000 55%, transparent);
 }
 
 .pf-donut-readout span {
   color: var(--muted);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
