@@ -40,7 +40,7 @@ export function splitMarketMovers(
   }>,
   limit = 5,
 ): MarketMoversSplit {
-  const capped = Math.max(1, Math.min(10, limit));
+  const capped = Math.max(1, Math.floor(limit));
   const usable: MarketMoverRow[] = items
     .filter((item) => isFiniteNumber(item.changePercent) && item.changePercent !== 0)
     .map((item) => ({

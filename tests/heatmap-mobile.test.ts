@@ -11,15 +11,17 @@ describe("quote scoreboards (no product heatmaps)", () => {
     expect(HEATMAP_MOBILE_PREVIEW).toBe(6);
   });
 
-  it("uses index-style scoreboards on Watchlist, International, Sectors, and Pulse", () => {
+  it("uses movers-style Top/Bottom boards on Watchlist and index scoreboards elsewhere", () => {
     const watchlist = read("src/components/Watchlist.tsx");
     const international = read("src/app/international/page.tsx");
     const sectors = read("src/app/sectors/page.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const movers = read("src/components/market/MarketMoversBoard.tsx");
 
-    expect(watchlist).toContain("MarketScoreboard");
+    expect(watchlist).toContain("MarketMoversBoard");
+    expect(watchlist).toContain("splitMarketMovers");
     expect(watchlist).not.toContain("StockHeatmap");
+    expect(watchlist).not.toContain("MarketScoreboard");
     expect(international).toContain("InternationalScoreboard");
     expect(international).not.toContain("GlobalMarketsHeatmap");
     expect(sectors).toContain("SectorScoreboard");
@@ -27,6 +29,7 @@ describe("quote scoreboards (no product heatmaps)", () => {
     expect(board).not.toContain("pulse-move-bar");
     expect(movers).toContain("SessionQuoteStack");
     expect(movers).not.toContain("pulse-move-bar");
+    expect(movers).toContain("headerAction");
   });
 
   it("keeps Pulse free of heatmap shells for markets", () => {
