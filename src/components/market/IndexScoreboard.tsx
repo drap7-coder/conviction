@@ -16,7 +16,6 @@ import {
 } from "@/lib/market/index-scoreboard";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
-import { moverBarHeight } from "@/lib/market/market-movers";
 
 function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
   const values = markets
@@ -93,20 +92,19 @@ export function MarketScoreboard({
   rows,
   sessionLabel = null,
   showSessionMoves = false,
+  headerAction = null,
+  footer = null,
 }: {
   title: string;
   rows: PulseGlobalMarket[];
   sessionLabel?: string | null;
   /** When true, render the Pre/AH line under regular session change (TV-style). */
   showSessionMoves?: boolean;
+  headerAction?: ReactNode;
+  footer?: ReactNode;
 }) {
-  if (rows.length === 0) return null;
+  if (rows.length === 0 && !footer) return null;
   const dayTone = groupDayTone(rows);
-  const maxAbsMove = rows.reduce((max, market) => {
-    const pct = market.regularChangePercent ?? market.changePercent;
-    if (!isFiniteNumber(pct)) return max;
-    return Math.max(max, Math.abs(pct));
-  }, 0);
 
   return (
     <section
@@ -129,63 +127,57 @@ export function MarketScoreboard({
               </span>
             ) : null}
           </h2>
+          {headerAction ? <div className="pulse-index-board-action">{headerAction}</div> : null}
         </div>
       </div>
-      <ol className="pulse-index-rows">
-        {rows.map((market) => {
-          const spark = (market.history ?? []).map((point) => point.close);
-          const href = companyDetailHref(market.ticker);
-          const regularPct = market.regularChangePercent ?? market.changePercent;
-          const barTone =
-            isFiniteNumber(regularPct) && Math.abs(regularPct) >= 0.05
-              ? (regularPct > 0 ? "up" : "down")
-              : "flat";
-          const barHeight = isFiniteNumber(regularPct)
-            ? moverBarHeight(regularPct, maxAbsMove)
-            : 0;
-          const extendedLabel =
-            showSessionMoves
-            && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
-              ? market.sessionLabel
-              : null;
-          const label = rowAriaLabel(market, Boolean(extendedLabel));
-          const body: ReactNode = (
-            <>
-              <span className="pulse-index-name">
-                <strong>{market.name}</strong>
-                <small>{market.ticker}</small>
-              </span>
-              <IndexSpark values={spark} changePercent={regularPct} />
-              <SessionQuoteStack
-                lastPrice={market.price}
-                change={market.regularChange ?? null}
-                changePercent={regularPct}
-                extendedLabel={extendedLabel}
-                extendedPrice={market.extendedPrice ?? null}
-                extendedChange={market.extendedChange ?? null}
-                extendedChangePercent={market.extendedChangePercent ?? null}
-                extendedNoTrades={Boolean(market.extendedNoTrades)}
-              />
-              <span className={`pulse-move-bar is-${barTone}`} aria-hidden="true">
-                <i style={{ height: `${barHeight}%` }} />
-              </span>
-            </>
-          );
-          return (
-            <li key={market.ticker}>
-              {href ? (
-                <Link href={href} className="pulse-index-row" aria-label={label}>
-                  {body}
-                </Link>
-              ) : (
-                <div className="pulse-index-row" aria-label={label}>
-                  {body}
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+      {rows.length > 0 ? (
+        <ol className="pulse-index-rows">
+          {rows.map((market) => {
+            const spark = (market.history ?? []).map((point) => point.close);
+            const href = companyDetailHref(market.ticker);
+            const regularPct = market.regularChangePercent ?? market.changePercent;
+            const extendedLabel =
+              showSessionMoves
+              && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
+                ? market.sessionLabel
+                : null;
+            const label = rowAriaLabel(market, Boolean(extendedLabel));
+            const body: ReactNode = (
+              <>
+                <span className="pulse-index-name">
+                  <strong>{market.name}</strong>
+                  <small>{market.ticker}</small>
+                </span>
+                <IndexSpark values={spark} changePercent={regularPct} />
+                <SessionQuoteStack
+                  lastPrice={market.price}
+                  change={market.regularChange ?? null}
+                  changePercent={regularPct}
+                  extendedLabel={extendedLabel}
+                  extendedPrice={market.extendedPrice ?? null}
+                  extendedChange={market.extendedChange ?? null}
+                  extendedChangePercent={market.extendedChangePercent ?? null}
+                  extendedNoTrades={Boolean(market.extendedNoTrades)}
+                />
+              </>
+            );
+            return (
+              <li key={market.ticker}>
+                {href ? (
+                  <Link href={href} className="pulse-index-row" aria-label={label}>
+                    {body}
+                  </Link>
+                ) : (
+                  <div className="pulse-index-row" aria-label={label}>
+                    {body}
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      ) : null}
+      {footer}
     </section>
   );
 }
@@ -229,4 +221,12 @@ export function SectorScoreboard({
       sessionLabel={sessionLabel}
     />
   );
+}
+
+export function InternationalScoreboard({
+  markets,
+}: {
+  markets: PulseGlobalMarket[];
+}) {
+  return <MarketScoreboard title="International" rows={markets} />;
 }

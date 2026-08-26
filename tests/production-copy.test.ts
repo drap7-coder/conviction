@@ -177,11 +177,11 @@ describe("production copy and fixture isolation", () => {
     expect(watchlist).not.toContain(">Updates<");
     expect(watchlist).not.toContain(">Higher<");
     expect(watchlist).not.toContain(">Lower<");
+    expect(watchlist).not.toContain("StockHeatmap");
+    expect(watchlist).toContain("MarketScoreboard");
     expect(watchlist).toContain("getExtendedSessionQuote");
     expect(watchlist).toContain("extendedNoTrades");
-    expect(read("src/components/HeatTile.tsx")).toContain("SessionQuoteStack");
-    expect(read("src/components/HeatTile.tsx")).toContain("onHeat");
-    expect(read("src/app/globals.css")).toContain("heat-tile-foot--quote");
+    expect(watchlist).toContain("showSessionMoves");
     expect(sectorPage).toContain("MaterialNewsCard");
   });
 
