@@ -29,7 +29,6 @@ export default function MarketPulsePage() {
   const majorIndexes = marketsByCategory("Major Index");
   const commodities = marketsByCategory("Commodity");
   const cryptoMarkets = marketsByCategory("Crypto");
-  const cryptoRelated = marketsByCategory("Crypto Equity");
 
   return (
     <main className="markets-page pulse-page">
@@ -62,7 +61,7 @@ export default function MarketPulsePage() {
 
           <div className="pulse-more-markets" aria-label="More markets">
             <p className="pulse-more-markets-label">More markets</p>
-            <CryptoBoard markets={cryptoMarkets} related={cryptoRelated} />
+            <CryptoBoard markets={cryptoMarkets} />
           </div>
         </>
       ) : null}

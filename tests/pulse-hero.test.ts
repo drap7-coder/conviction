@@ -168,12 +168,15 @@ describe("Pulse heatmap universe", () => {
 
   it("expands Crypto beyond BTC/ETH without bringing Solana back to Pulse", () => {
     const route = read("src/app/api/market/pulse/route.ts");
+    const board = read("src/components/market/CryptoBoard.tsx");
     expect(route).toContain("XRP-USD");
     expect(route).toContain("DOGE-USD");
     expect(route).toContain("ADA-USD");
-    expect(route).toContain('category: "Crypto Equity"');
-    expect(route).toContain("COIN");
+    expect(route).not.toContain('category: "Crypto Equity"');
+    expect(route).not.toContain("COIN");
     expect(route).not.toContain("SOL-USD");
+    expect(board).not.toContain("Related");
+    expect(board).not.toContain("CryptoRelatedStrip");
   });
 });
 
