@@ -14,6 +14,9 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
     weight: sector.weight,
     category: "Sector",
     history: sector.history ?? [],
+    regularPrice: sector.price,
+    regularChange: sector.change ?? null,
+    regularChangePercent: sector.changePercent,
   }));
 }
 

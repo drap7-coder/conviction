@@ -25,6 +25,17 @@ export interface LivePrice {
   session: MarketSession;
 }
 
+/** Extended-hours quote line for TradingView-style rows (nullable = No trades). */
+export interface ExtendedSessionQuote {
+  /** "Pre-Market" or "After Hours" when the ET clock is in that window. */
+  sessionLabel: "Pre-Market" | "After Hours" | null;
+  price: number | null;
+  change: number | null;
+  changePercent: number | null;
+  /** True when the session is extended but Yahoo has no print yet. */
+  noTrades: boolean;
+}
+
 function easternClockSession(now: Date): MarketSession {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
@@ -51,13 +62,6 @@ export function getMarketSession(marketState: string | null): MarketSession {
   if (marketState === "POST" || marketState === "POSTPOST") return "after_hours";
   if (marketState === "REGULAR" || marketState === null) return "regular";
   return "closed";
-}
-
-export interface LivePrice {
-  price: number | null;
-  change: number | null;
-  changePercent: number | null;
-  label: string | null;
 }
 
 /**
@@ -123,5 +127,68 @@ export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice
     changePercent: quote.changePercent,
     label: null,
     session: clockSession === "closed" ? "closed" : "regular",
+  };
+}
+
+/**
+ * Extended-hours line for TV-style quote stacks.
+ * Unlike getLivePrice, this stays in the pre/AH window even when Yahoo has
+ * no print yet — so the UI can render “No trades” instead of a false 0%.
+ */
+export function getExtendedSessionQuote(
+  quote: LiveQuoteInput,
+  now = new Date(),
+): ExtendedSessionQuote {
+  const clock = easternClockSession(now);
+  const state = quote.marketState ?? "";
+
+  const moveFrom = (extendedPrice: number | null, fallbackChange: number | null, fallbackPct: number | null) => {
+    if (extendedPrice == null || quote.price == null) {
+      return { change: fallbackChange, changePercent: fallbackPct };
+    }
+    const change = extendedPrice - quote.price;
+    return {
+      change,
+      changePercent: quote.price !== 0 ? (change / quote.price) * 100 : fallbackPct,
+    };
+  };
+
+  if (clock === "pre_market") {
+    const price = quote.preMarketPrice;
+    const move = moveFrom(price, quote.preMarketChange, quote.preMarketChangePercent);
+    return {
+      sessionLabel: "Pre-Market",
+      price,
+      change: move.change,
+      changePercent: move.changePercent,
+      noTrades: price == null,
+    };
+  }
+
+  if (
+    clock === "after_hours"
+    && (state === "POST" || state === "POSTPOST" || state === "CLOSED" || state === "REGULAR" || state === "")
+  ) {
+    // REGULAR can linger briefly after the bell; still prefer a post print when present.
+    const price = quote.postMarketPrice;
+    if (price == null && state === "REGULAR") {
+      return { sessionLabel: null, price: null, change: null, changePercent: null, noTrades: false };
+    }
+    const move = moveFrom(price, quote.postMarketChange, quote.postMarketChangePercent);
+    return {
+      sessionLabel: "After Hours",
+      price,
+      change: move.change,
+      changePercent: move.changePercent,
+      noTrades: price == null,
+    };
+  }
+
+  return {
+    sessionLabel: null,
+    price: null,
+    change: null,
+    changePercent: null,
+    noTrades: false,
   };
 }

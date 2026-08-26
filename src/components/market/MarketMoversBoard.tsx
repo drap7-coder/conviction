@@ -1,17 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { isFiniteNumber } from "@/lib/display/format";
+import { fmtDollarPrice, fmtPercent, fmtSignedDollar, isFiniteNumber } from "@/lib/display/format";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import {
   moverBarHeight,
   type MarketMoverRow,
 } from "@/lib/market/market-movers";
-
-function fmtPct(value: number): string {
-  if (Math.abs(value) < 0.05) return "0.0%";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
+import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 
 function MoverColumn({
   label,
@@ -37,19 +33,45 @@ function MoverColumn({
           {rows.map((row) => {
             const href = companyDetailHref(row.ticker);
             const height = moverBarHeight(row.changePercent, maxAbs);
+            const extendedLabel =
+              row.sessionLabel === "Pre-Market" || row.sessionLabel === "After Hours"
+                ? row.sessionLabel
+                : null;
+            const changeLabel = `${fmtSignedDollar(row.change ?? null)} ${fmtPercent(row.changePercent, 2)}`;
+            const extendedAria = extendedLabel
+              ? row.extendedNoTrades
+                ? `${extendedLabel} No trades`
+                : `${extendedLabel} ${fmtDollarPrice(row.extendedPrice ?? null)} ${fmtSignedDollar(row.extendedChange ?? null)} ${fmtPercent(row.extendedChangePercent ?? null, 2)}`
+              : null;
             const body = (
               <>
                 <span className="pulse-movers-id">
                   <strong>{row.ticker}</strong>
                   <small>{row.name}</small>
                 </span>
-                <span className="pulse-movers-pct tnum">{fmtPct(row.changePercent)}</span>
+                <SessionQuoteStack
+                  lastPrice={row.price ?? null}
+                  change={row.change ?? null}
+                  changePercent={row.changePercent}
+                  extendedLabel={extendedLabel}
+                  extendedPrice={row.extendedPrice ?? null}
+                  extendedChange={row.extendedChange ?? null}
+                  extendedChangePercent={row.extendedChangePercent ?? null}
+                  extendedNoTrades={Boolean(row.extendedNoTrades)}
+                  compact
+                />
                 <span className="pulse-movers-bar" aria-hidden="true">
                   <i style={{ height: `${height}%` }} />
                 </span>
               </>
             );
-            const aria = `${row.ticker} ${row.name}, ${fmtPct(row.changePercent)}`;
+            const aria = [
+              row.ticker,
+              row.name,
+              fmtDollarPrice(row.price ?? null),
+              changeLabel,
+              extendedAria,
+            ].filter(Boolean).join(", ");
             return (
               <li key={row.ticker}>
                 {href ? (

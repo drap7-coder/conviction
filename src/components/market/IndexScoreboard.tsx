@@ -3,8 +3,7 @@
 import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
-import { fmtDollarPrice, isFiniteNumber } from "@/lib/display/format";
-import { heatChipColors } from "@/lib/display/heat-color";
+import { fmtDollarPrice, fmtPercent, fmtSignedDollar, isFiniteNumber } from "@/lib/display/format";
 import {
   buildSparklineGeometry,
   sparklineStroke,
@@ -16,16 +15,11 @@ import {
   scoreboardIndexes,
 } from "@/lib/market/index-scoreboard";
 import type { InkTone } from "@/lib/display/ink-tone";
-
-function fmtPct(value: number | null): string {
-  if (!isFiniteNumber(value)) return "—";
-  if (Math.abs(value) < 0.05) return "0.0%";
-  return `${value > 0 ? "+" : ""}${value.toFixed(1)}%`;
-}
+import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 
 function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
   const values = markets
-    .map((market) => market.changePercent)
+    .map((market) => market.regularChangePercent ?? market.changePercent)
     .filter((value): value is number => isFiniteNumber(value));
   if (values.length === 0) return "quiet";
   const up = values.filter((value) => value > 0.05).length;
@@ -78,55 +72,19 @@ function IndexSpark({
   );
 }
 
-function extendedShortLabel(sessionLabel: string): string {
-  if (sessionLabel === "Pre-Market") return "Pre";
-  if (sessionLabel === "After Hours") return "AH";
-  return sessionLabel;
-}
-
-function IndexSessionMoves({
-  market,
-}: {
-  market: PulseGlobalMarket;
-}) {
-  const liveChip = heatChipColors(market.changePercent);
-  const todayPct = market.regularChangePercent ?? null;
-  const todayChip = heatChipColors(todayPct);
-  const extended = Boolean(market.sessionLabel) && isFiniteNumber(todayPct);
-
-  if (!extended) {
-    return (
-      <strong
-        className="pulse-index-pct tnum"
-        style={{ background: liveChip.background, color: liveChip.color }}
-      >
-        {fmtPct(market.changePercent)}
-      </strong>
-    );
+function rowAriaLabel(market: PulseGlobalMarket, showExtended: boolean): string {
+  const last = fmtDollarPrice(market.price);
+  const change = `${fmtSignedDollar(market.regularChange ?? null)} ${fmtPercent(market.regularChangePercent ?? market.changePercent, 2)}`;
+  if (
+    showExtended
+    && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
+  ) {
+    const extended = market.extendedNoTrades
+      ? "No trades"
+      : `${fmtDollarPrice(market.extendedPrice ?? null)} ${fmtSignedDollar(market.extendedChange ?? null)} ${fmtPercent(market.extendedChangePercent ?? null, 2)}`;
+    return `${market.name}, ${last}, ${change}, ${market.sessionLabel} ${extended}`;
   }
-
-  return (
-    <span className="pulse-index-sessions" aria-hidden="true">
-      <span className="pulse-index-session-move is-today">
-        <em>Today</em>
-        <strong
-          className="tnum"
-          style={{ background: todayChip.background, color: todayChip.color }}
-        >
-          {fmtPct(todayPct)}
-        </strong>
-      </span>
-      <span className="pulse-index-session-move is-extended">
-        <em>{extendedShortLabel(market.sessionLabel!)}</em>
-        <strong
-          className="tnum"
-          style={{ background: liveChip.background, color: liveChip.color }}
-        >
-          {fmtPct(market.changePercent)}
-        </strong>
-      </span>
-    </span>
-  );
+  return `${market.name}, ${last}, ${change}`;
 }
 
 export function MarketScoreboard({
@@ -138,7 +96,7 @@ export function MarketScoreboard({
   title: string;
   rows: PulseGlobalMarket[];
   sessionLabel?: string | null;
-  /** When true, show Today + Pre/AH % when the row is in extended hours. */
+  /** When true, render the Pre/AH line under regular session change (TV-style). */
   showSessionMoves?: boolean;
 }) {
   if (rows.length === 0) return null;
@@ -171,34 +129,30 @@ export function MarketScoreboard({
         {rows.map((market) => {
           const spark = (market.history ?? []).map((point) => point.close);
           const href = companyDetailHref(market.ticker);
-          const extended =
+          const regularPct = market.regularChangePercent ?? market.changePercent;
+          const extendedLabel =
             showSessionMoves
-            && Boolean(market.sessionLabel)
-            && isFiniteNumber(market.regularChangePercent);
-          const label = extended
-            ? `${market.name}, ${fmtDollarPrice(market.price)}, Today ${fmtPct(market.regularChangePercent ?? null)}, ${market.sessionLabel} ${fmtPct(market.changePercent)}`
-            : `${market.name}, ${fmtDollarPrice(market.price)}, ${fmtPct(market.changePercent)}`;
+            && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
+              ? market.sessionLabel
+              : null;
+          const label = rowAriaLabel(market, Boolean(extendedLabel));
           const body: ReactNode = (
             <>
               <span className="pulse-index-name">
                 <strong>{market.name}</strong>
                 <small>{market.ticker}</small>
               </span>
-              <IndexSpark values={spark} changePercent={market.changePercent} />
-              <span className="pulse-index-price tnum">{fmtDollarPrice(market.price)}</span>
-              {showSessionMoves ? (
-                <IndexSessionMoves market={market} />
-              ) : (
-                <strong
-                  className="pulse-index-pct tnum"
-                  style={{
-                    background: heatChipColors(market.changePercent).background,
-                    color: heatChipColors(market.changePercent).color,
-                  }}
-                >
-                  {fmtPct(market.changePercent)}
-                </strong>
-              )}
+              <IndexSpark values={spark} changePercent={regularPct} />
+              <SessionQuoteStack
+                lastPrice={market.price}
+                change={market.regularChange ?? null}
+                changePercent={regularPct}
+                extendedLabel={extendedLabel}
+                extendedPrice={market.extendedPrice ?? null}
+                extendedChange={market.extendedChange ?? null}
+                extendedChangePercent={market.extendedChangePercent ?? null}
+                extendedNoTrades={Boolean(market.extendedNoTrades)}
+              />
             </>
           );
           return (
