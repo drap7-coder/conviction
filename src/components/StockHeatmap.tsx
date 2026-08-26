@@ -21,11 +21,18 @@ export interface StockHeatmapItem {
   name: string;
   price: number | null;
   changePercent: number | null;
+  /** Regular-session $ change — enables TV-style quote stack on the tile. */
+  change?: number | null;
   marketCap: number | null;
   sizeValue?: number | null;
   sizeLabel?: string;
   /** Recent closes for live sparkline tiles (watchlist). */
   sparkline?: number[] | null;
+  extendedPrice?: number | null;
+  extendedChange?: number | null;
+  extendedChangePercent?: number | null;
+  extendedNoTrades?: boolean;
+  sessionLabel?: "Pre-Market" | "After Hours" | null;
 }
 
 interface StockHeatmapProps {
@@ -161,6 +168,18 @@ export function StockHeatmap({
       >
         {items.map((item) => {
           const span = uniform ? 1 : tileSpan(item.sizeValue ?? item.marketCap, maxSizeValue);
+          const extendedLabel =
+            item.sessionLabel === "Pre-Market" || item.sessionLabel === "After Hours"
+              ? item.sessionLabel
+              : null;
+          const changeBits = item.change != null
+            ? `${item.change > 0 ? "+" : ""}${item.change.toFixed(2)}, ${item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(2)}%`}`
+            : (item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(1)}%`);
+          const extendedBits = extendedLabel
+            ? (item.extendedNoTrades
+              ? `${extendedLabel} No trades`
+              : `${extendedLabel} ${item.extendedPrice ?? "—"}`)
+            : null;
           return (
             <HeatTile
               key={item.ticker}
@@ -168,11 +187,17 @@ export function StockHeatmap({
               subtitle={item.ticker}
               changePercent={item.changePercent}
               href={companyDetailHref(item.ticker)}
-              ariaLabel={`${item.name}, ${item.ticker}, ${item.changePercent === null ? "—" : `${item.changePercent > 0 ? "+" : ""}${item.changePercent.toFixed(1)}%`}`}
+              ariaLabel={[item.name, item.ticker, changeBits, extendedBits].filter(Boolean).join(", ")}
               style={{ gridColumn: `span ${span} / span ${span}` }}
               live={liveCards}
               sparkline={item.sparkline ?? null}
               price={showPrice ? (item.price ?? null) : null}
+              change={showPrice ? (item.change ?? null) : null}
+              extendedPrice={item.extendedPrice ?? null}
+              extendedChange={item.extendedChange ?? null}
+              extendedChangePercent={item.extendedChangePercent ?? null}
+              extendedNoTrades={Boolean(item.extendedNoTrades)}
+              sessionLabel={extendedLabel}
               showLiveDot={showStatusDot}
             />
           );
