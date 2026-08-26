@@ -32,7 +32,7 @@ import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
-import SectorMixBars from "@/components/SectorMixBars";
+import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
@@ -671,7 +671,9 @@ export default function Portfolio() {
       <header className="pf-sector-mix-head">
         <span className="pf-section-eyebrow">Sector Mix</span>
       </header>
-      <SectorMixBars sectors={sectorMixData} />
+      <div className="pf-sector-mix-donut">
+        <SectorDonut sectors={sectorMixData} />
+      </div>
     </section>
   ) : null;
 

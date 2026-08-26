@@ -42,8 +42,9 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).not.toContain("Capital Map");
     expect(portfolio).toContain("Sector Mix");
     expect(portfolio).not.toContain("Where the equity exposure sits");
-    expect(portfolio).toContain("SectorMixBars");
-    expect(portfolio).not.toContain("SectorDonut");
+    expect(portfolio).toContain("SectorDonut");
+    expect(portfolio).toContain("pf-sector-mix-donut");
+    expect(portfolio).not.toContain("SectorMixBars");
     expect(portfolio).toContain("Concentration");
     expect(portfolio).toContain("Largest positions");
     expect(portfolio).not.toContain("Position weight vs. risk thresholds");
@@ -89,11 +90,14 @@ describe("production copy and fixture isolation", () => {
     expect(read("src/app/globals.css")).toContain("product-stage--metrics-above");
     expect(read("src/app/globals.css")).toContain("--pf-hero-pad");
     expect(read("src/app/globals.css")).toContain("pf-day-strip");
-    expect(read("src/app/globals.css")).toContain("backdrop-filter: none");
+    expect(read("src/app/globals.css")).toContain("pf-donut-wrap--3d");
+    expect(read("src/app/globals.css")).toContain(".product-stage-metrics > .is-lead");
+    expect(read("src/components/DonutChart.tsx")).toContain("pf-donut-3d");
     expect(read("src/app/portfolio.css")).toContain("pf-day-strip");
     expect(read("src/app/portfolio.css")).toContain("pf-day-strip-pct");
     expect(read("src/app/portfolio.css")).toContain("pf-live-meta");
     expect(read("src/app/portfolio.css")).toContain("pf-sector-mix");
+    expect(read("src/app/portfolio.css")).toContain("pf-sector-mix-donut");
     expect(read("src/app/portfolio.css")).not.toContain("pf-day-gauge");
     expect(portfolio).toContain("pf-move-verb");
     expect(portfolio).toContain("pf-move-focus");

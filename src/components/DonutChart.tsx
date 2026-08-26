@@ -1,21 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
-// ── SVG arc helpers ──
-
-const RADIUS = 40;
-const STROKE_WIDTH = 8;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+const VIEW = 100;
 const CENTER = 50;
-
-interface Slice {
-  name: string;
-  pct: number;
-  color: string;
-  offset: number;
-  dashArray: string;
-}
+const OUTER_R = 42;
+const INNER_R = 26;
+/** Vertical steps that fake extrusion depth under the lit face. */
+const DEPTH_LAYERS = 7;
+const DEPTH_STEP = 1.15;
 
 export interface DonutSlice {
   name: string;
@@ -23,23 +16,74 @@ export interface DonutSlice {
   color: string;
 }
 
+interface PreparedSlice {
+  name: string;
+  pct: number;
+  color: string;
+  path: string;
+}
+
 interface DonutChartProps {
   slices: DonutSlice[];
-  /** Size of the SVG in px (default 140) */
+  /** Size of the SVG face in px (default 140) */
   size?: number;
 }
 
+function polar(cx: number, cy: number, r: number, angleDeg: number) {
+  const rad = ((angleDeg - 90) * Math.PI) / 180;
+  return {
+    x: cx + r * Math.cos(rad),
+    y: cy + r * Math.sin(rad),
+  };
+}
+
+/** Annular sector path (donut wedge) from startDeg → endDeg (clockwise from top). */
+function donutWedgePath(
+  cx: number,
+  cy: number,
+  outerR: number,
+  innerR: number,
+  startDeg: number,
+  endDeg: number,
+): string {
+  const sweep = Math.max(Math.min(endDeg - startDeg, 359.999), 0.001);
+  const end = startDeg + sweep;
+  const large = sweep > 180 ? 1 : 0;
+  const o0 = polar(cx, cy, outerR, startDeg);
+  const o1 = polar(cx, cy, outerR, end);
+  const i1 = polar(cx, cy, innerR, end);
+  const i0 = polar(cx, cy, innerR, startDeg);
+  return [
+    `M ${o0.x.toFixed(3)} ${o0.y.toFixed(3)}`,
+    `A ${outerR} ${outerR} 0 ${large} 1 ${o1.x.toFixed(3)} ${o1.y.toFixed(3)}`,
+    `L ${i1.x.toFixed(3)} ${i1.y.toFixed(3)}`,
+    `A ${innerR} ${innerR} 0 ${large} 0 ${i0.x.toFixed(3)} ${i0.y.toFixed(3)}`,
+    "Z",
+  ].join(" ");
+}
+
+function shadeColor(hex: string, amount: number): string {
+  const raw = hex.replace("#", "");
+  if (raw.length !== 6) return hex;
+  const num = Number.parseInt(raw, 16);
+  if (!Number.isFinite(num)) return hex;
+  const r = Math.min(255, Math.max(0, ((num >> 16) & 255) + amount));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 255) + amount));
+  const b = Math.min(255, Math.max(0, (num & 255) + amount));
+  return `#${((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)}`;
+}
+
 export default function DonutChart({ slices: inputSlices, size = 140 }: DonutChartProps) {
+  const reactId = useId().replace(/:/g, "");
+  const lightId = `pf-donut-face-light-${reactId}`;
   const [hovered, setHovered] = useState<number | null>(null);
 
   const { slices, largest } = useMemo(() => {
-    if (inputSlices.length === 0) return { slices: [], largest: null };
+    if (inputSlices.length === 0) return { slices: [] as PreparedSlice[], largest: null };
 
-    // Sort by weight descending
     const sorted = [...inputSlices].sort((a, b) => b.pct - a.pct);
 
-    // Top 5 + rest → "Other"
-    let result: { name: string; pct: number; color: string }[];
+    let result: DonutSlice[];
     if (sorted.length <= 5) {
       result = sorted;
     } else {
@@ -51,59 +95,89 @@ export default function DonutChart({ slices: inputSlices, size = 140 }: DonutCha
       }
     }
 
-    const largestSlice = result.length > 0 ? result[0] : null;
-
-    let cumulative = 0;
-    const slices: Slice[] = result.map((seg) => {
-      const frac = seg.pct / 100;
-      const dashLen = CIRCUMFERENCE * frac;
-      const slice: Slice = {
+    const largestSlice = result[0] ?? null;
+    let cursor = 0;
+    const prepared: PreparedSlice[] = result.map((seg) => {
+      const start = cursor;
+      const sweep = (seg.pct / 100) * 360;
+      cursor += sweep;
+      return {
         name: seg.name,
         pct: seg.pct,
         color: seg.color,
-        offset: -cumulative,
-        dashArray: `${Math.max(dashLen, 0.5)} ${CIRCUMFERENCE - Math.max(dashLen, 0.5)}`,
+        path: donutWedgePath(CENTER, CENTER, OUTER_R, INNER_R, start, start + sweep),
       };
-      cumulative += dashLen;
-      return slice;
     });
 
-    return { slices, largest: largestSlice };
+    return { slices: prepared, largest: largestSlice };
   }, [inputSlices]);
 
   if (!largest || slices.length === 0) return null;
 
+  const depthIds = Array.from({ length: DEPTH_LAYERS }, (_, i) => DEPTH_LAYERS - 1 - i);
+  const active = hovered !== null ? slices[hovered] : largest;
+
   return (
-    <div className="pf-donut-wrap">
-      <div className="pf-donut-chart" style={{ width: size, height: size }}>
-        <svg viewBox="0 0 100 100" aria-label="Donut chart">
-          <g transform={`rotate(-90 ${CENTER} ${CENTER})`}>
+    <div className="pf-donut-wrap pf-donut-wrap--3d">
+      <div className="pf-donut-stage" style={{ ["--pf-donut-size" as string]: `${size}px` }}>
+        <div className="pf-donut-floor" aria-hidden="true" />
+        <div className="pf-donut-3d">
+          {depthIds.map((layer) => (
+            <svg
+              key={layer}
+              className="pf-donut-depth"
+              viewBox={`0 0 ${VIEW} ${VIEW}`}
+              style={{ transform: `translate3d(0, ${layer * DEPTH_STEP}px, ${-layer}px)` }}
+              aria-hidden="true"
+            >
+              {slices.map((slice) => (
+                <path
+                  key={`${layer}-${slice.name}`}
+                  d={slice.path}
+                  fill={shadeColor(slice.color, -28 - layer * 6)}
+                  className="pf-donut-slice-depth"
+                />
+              ))}
+            </svg>
+          ))}
+          <svg className="pf-donut-face" viewBox={`0 0 ${VIEW} ${VIEW}`} aria-label="Sector mix chart">
+            <defs>
+              <radialGradient id={lightId} cx="32%" cy="28%" r="70%">
+                <stop offset="0%" stopColor="#ffffff" stopOpacity="0.28" />
+                <stop offset="55%" stopColor="#ffffff" stopOpacity="0.06" />
+                <stop offset="100%" stopColor="#000000" stopOpacity="0.18" />
+              </radialGradient>
+            </defs>
             {slices.map((slice, i) => (
-              <circle
+              <path
                 key={slice.name}
-                cx={CENTER}
-                cy={CENTER}
-                r={RADIUS}
-                fill="none"
-                stroke={slice.color}
-                strokeWidth={STROKE_WIDTH}
-                strokeDasharray={slice.dashArray}
-                strokeDashoffset={slice.offset}
-                strokeLinecap="round"
+                d={slice.path}
+                fill={slice.color}
                 className={`pf-donut-slice${hovered === i ? " pf-donut-slice-hover" : ""}`}
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
-                style={{ transition: "opacity 0.15s, stroke-width 0.15s" }}
               />
             ))}
-          </g>
-          <text x={CENTER} y={CENTER - 5} textAnchor="middle" className="pf-donut-center-name">
-            {largest.name}
-          </text>
-          <text x={CENTER} y={CENTER + 9} textAnchor="middle" className="pf-donut-center-pct">
-            {Math.round(largest.pct)}%
-          </text>
-        </svg>
+            <circle
+              cx={CENTER}
+              cy={CENTER}
+              r={OUTER_R}
+              fill={`url(#${lightId})`}
+              pointerEvents="none"
+            />
+            <circle
+              cx={CENTER}
+              cy={CENTER}
+              r={INNER_R - 0.4}
+              className="pf-donut-well"
+              pointerEvents="none"
+            />
+          </svg>
+        </div>
+      </div>
+      <div className="pf-donut-readout" aria-hidden="true">
+        <strong>{active.name}</strong>
+        <span>{Math.round(active.pct)}%</span>
       </div>
 
       <div className="pf-donut-legend">
@@ -121,11 +195,11 @@ export default function DonutChart({ slices: inputSlices, size = 140 }: DonutCha
         ))}
       </div>
 
-      {hovered !== null && (
+      {hovered !== null ? (
         <div className="pf-donut-tooltip">
           {slices[hovered].name}: {Math.round(slices[hovered].pct)}%
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
