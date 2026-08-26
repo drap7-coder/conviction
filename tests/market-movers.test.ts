@@ -35,6 +35,17 @@ describe("splitMarketMovers", () => {
     expect(split.top.map((row) => row.ticker)).toEqual(["T2", "T3"]);
     expect(split.bottom.map((row) => row.ticker)).toEqual(["B2", "B3"]);
   });
+
+  it("allows more than ten names per side for full watchlists", () => {
+    const items = Array.from({ length: 12 }, (_, index) => ({
+      ticker: `U${index}`,
+      name: `Up ${index}`,
+      changePercent: 12 - index,
+    }));
+    const split = splitMarketMovers(items, items.length);
+    expect(split.top).toHaveLength(12);
+    expect(split.bottom).toHaveLength(0);
+  });
 });
 
 describe("moverBarHeight", () => {

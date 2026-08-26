@@ -998,6 +998,7 @@ button.bottom-tab-item {
 }
 
 .site-menu-root--sheet {
+  /* Full page above the bottom tab bar */
   bottom: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
 }
 
@@ -1006,7 +1007,7 @@ button.bottom-tab-item {
   inset: 0;
   border: 0;
   padding: 0;
-  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
   pointer-events: auto;
   cursor: pointer;
 }
@@ -1015,6 +1016,7 @@ button.bottom-tab-item {
   pointer-events: auto;
   display: grid;
   gap: 16px;
+  align-content: start;
   overflow: auto;
   background: var(--card);
   border: 1px solid var(--border);
@@ -1023,34 +1025,43 @@ button.bottom-tab-item {
 
 .site-menu-root--sheet .site-menu {
   position: absolute;
-  right: 10px;
-  bottom: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom) + 8px);
-  left: 10px;
-  max-height: min(72vh, 560px);
-  padding: 16px 14px 14px;
-  border-radius: 18px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  inset: 0;
+  max-height: none;
+  padding: 18px var(--page-gutter-mobile) calc(18px + env(safe-area-inset-bottom));
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .site-menu-root--header {
-  position: absolute;
-  inset: auto 0 auto auto;
-  top: calc(100% + 8px);
-  width: min(360px, 86vw);
+  position: fixed;
+  inset: 0;
+  width: auto;
+  top: 0;
   z-index: calc(var(--ticker-z) + 8);
 }
 
 .site-menu-root--header .site-menu-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
-  background: transparent;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
 }
 
 .site-menu-root--header .site-menu {
-  position: relative;
-  padding: 14px;
-  border-radius: 14px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  position: absolute;
+  inset: 0;
+  width: auto;
+  max-width: none;
+  padding: 22px var(--page-gutter) 28px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (min-width: 768px) {
+  .site-menu-root--sheet .site-menu {
+    padding: 22px var(--page-gutter) 28px;
+  }
 }
 
 .site-menu-head {
@@ -18063,9 +18074,20 @@ a.pulse-news-narrative-title:focus-visible {
   overflow: hidden;
 }
 
+.pulse-movers-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .pulse-movers-head h2 {
   min-width: 0;
   flex-wrap: nowrap;
+}
+
+.pulse-movers-action {
+  flex: 0 0 auto;
 }
 
 .pulse-movers-grid {

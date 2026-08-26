@@ -187,10 +187,15 @@ describe("production copy and fixture isolation", () => {
     expect(watchlist).not.toContain(">Higher<");
     expect(watchlist).not.toContain(">Lower<");
     expect(watchlist).not.toContain("StockHeatmap");
-    expect(watchlist).toContain("MarketScoreboard");
+    expect(watchlist).toContain("MarketMoversBoard");
+    expect(watchlist).toContain("splitMarketMovers");
+    expect(watchlist).not.toContain("MarketScoreboard");
+    expect(watchlist).toContain("No gainers yet.");
+    expect(watchlist).toContain("No losers yet.");
     expect(watchlist).toContain("getExtendedSessionQuote");
     expect(watchlist).toContain("extendedNoTrades");
-    expect(watchlist).toContain("showSessionMoves");
+    expect(watchlist).toContain("showWhenEmpty");
+    expect(watchlist).toContain("topEmptyLabel");
     expect(sectorPage).toContain("MaterialNewsCard");
   });
 

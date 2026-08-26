@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { fmtDollarPrice, fmtPercent, fmtSignedDollar, isFiniteNumber } from "@/lib/display/format";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { type MarketMoverRow } from "@/lib/market/market-movers";
@@ -10,16 +11,18 @@ function MoverColumn({
   label,
   rows,
   tone,
+  emptyLabel,
 }: {
   label: string;
   rows: MarketMoverRow[];
   tone: "up" | "down";
+  emptyLabel: string;
 }) {
   return (
     <div className={`pulse-movers-col is-${tone}`}>
       <h3 className="pulse-movers-col-label">{label}</h3>
       {rows.length === 0 ? (
-        <p className="pulse-movers-empty">No names in this column.</p>
+        <p className="pulse-movers-empty">{emptyLabel}</p>
       ) : (
         <ol className="pulse-movers-list">
           {rows.map((row) => {
@@ -85,13 +88,24 @@ export function MarketMoversBoard({
   top,
   bottom,
   sessionLabel = null,
+  headerAction = null,
+  footer = null,
+  showWhenEmpty = false,
+  topEmptyLabel = "No names in this column.",
+  bottomEmptyLabel = "No names in this column.",
 }: {
   title?: string;
   top: MarketMoverRow[];
   bottom: MarketMoverRow[];
   sessionLabel?: string | null;
+  headerAction?: ReactNode;
+  footer?: ReactNode;
+  /** Keep the shell when both columns are empty (e.g. watchlist waiting on quotes). */
+  showWhenEmpty?: boolean;
+  topEmptyLabel?: string;
+  bottomEmptyLabel?: string;
 }) {
-  if (top.length === 0 && bottom.length === 0) return null;
+  if (top.length === 0 && bottom.length === 0 && !showWhenEmpty && !footer) return null;
 
   return (
     <section className="market-heatmap-shell pulse-movers" aria-label={title}>
@@ -106,12 +120,14 @@ export function MarketMoversBoard({
               </span>
             ) : null}
           </h2>
+          {headerAction ? <div className="pulse-movers-action">{headerAction}</div> : null}
         </div>
       </div>
       <div className="pulse-movers-grid">
-        <MoverColumn label="Top" rows={top} tone="up" />
-        <MoverColumn label="Bottom" rows={bottom} tone="down" />
+        <MoverColumn label="Top" rows={top} tone="up" emptyLabel={topEmptyLabel} />
+        <MoverColumn label="Bottom" rows={bottom} tone="down" emptyLabel={bottomEmptyLabel} />
       </div>
+      {footer}
     </section>
   );
 }

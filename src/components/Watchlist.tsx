@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback, useRef, type ReactNode } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo, type ReactNode } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
 import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
-import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
-import { MarketScoreboard } from "@/components/market/IndexScoreboard";
-import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
+import {
+  MarketMoversBoard,
+  sessionLabelFromQuotes,
+} from "@/components/market/MarketMoversBoard";
+import { splitMarketMovers } from "@/lib/market/market-movers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
@@ -346,6 +348,40 @@ export default function Watchlist({
     </section>
   );
 
+  const watchlistSessionLabel = sessionLabelFromQuotes(
+    entries.map((entry) => {
+      const quote = quotes[entry.ticker];
+      if (!quote) return null;
+      return getExtendedSessionQuote(quote).sessionLabel ?? getLivePrice(quote).label;
+    }),
+  );
+
+  const { top: watchlistTop, bottom: watchlistBottom } = useMemo(() => {
+    const rows = entries.map((entry) => {
+      const quote = quotes[entry.ticker];
+      const live = quote ? getLivePrice(quote) : null;
+      const extended = quote ? getExtendedSessionQuote(quote) : null;
+      const inExtended = Boolean(extended?.sessionLabel);
+      const price = inExtended
+        ? (quote?.price ?? null)
+        : (live?.price ?? quote?.price ?? null);
+      const changePercent = quote?.changePercent ?? live?.changePercent ?? null;
+      return {
+        ticker: entry.ticker,
+        name: shortenCompanyName(entry.companyName),
+        changePercent,
+        price,
+        change: quote?.change ?? null,
+        extendedPrice: extended?.price ?? null,
+        extendedChange: extended?.change ?? null,
+        extendedChangePercent: extended?.changePercent ?? null,
+        extendedNoTrades: extended?.noTrades ?? false,
+        sessionLabel: extended?.sessionLabel ?? null,
+      };
+    });
+    return splitMarketMovers(rows, Math.max(rows.length, 1));
+  }, [entries, quotes]);
+
   if (mode === "manage") {
     return (
       <section id="watchlist" className="data-manager-section" aria-labelledby="manage-watchlist-title">
@@ -425,61 +461,19 @@ export default function Watchlist({
       ) : null}
 
       {loading || entries.length > 0 || children ? (
-        <MarketScoreboard
+        <MarketMoversBoard
           title="Today’s move"
           headerAction={(
             <Link href="/manage?view=watchlist" className="data-edit-pill">
               Edit watchlist
             </Link>
           )}
-          sessionLabel={
-            entries
-              .map((entry) => {
-                const quote = quotes[entry.ticker];
-                if (!quote) return null;
-                return getExtendedSessionQuote(quote).sessionLabel ?? getLivePrice(quote).label;
-              })
-              .find((label): label is string => Boolean(label)) ?? null
-          }
-          showSessionMoves
-          rows={entries.map((entry): PulseGlobalMarket => {
-            const quote = quotes[entry.ticker];
-            const live = quote ? getLivePrice(quote) : null;
-            const extended = quote ? getExtendedSessionQuote(quote) : null;
-            const inExtended = Boolean(extended?.sessionLabel);
-            const price = inExtended
-              ? (quote?.price ?? null)
-              : (live?.price ?? quote?.price ?? null);
-            const changePercent = quote?.changePercent ?? live?.changePercent ?? null;
-            const previousClose =
-              quote?.previousClose
-              ?? (price != null && quote?.change != null ? price - quote.change : null);
-            const spark = sparklineValuesFromQuote({
-              sparkline: quote?.sparkline,
-              price,
-              previousClose,
-            });
-            return {
-              ticker: entry.ticker,
-              name: shortenCompanyName(entry.companyName),
-              price,
-              changePercent,
-              weight: 0,
-              category: "Watchlist",
-              history: spark.map((close, index) => ({
-                date: String(index),
-                close,
-              })),
-              regularPrice: quote?.price ?? null,
-              regularChange: quote?.change ?? null,
-              regularChangePercent: changePercent,
-              extendedPrice: extended?.price ?? null,
-              extendedChange: extended?.change ?? null,
-              extendedChangePercent: extended?.changePercent ?? null,
-              extendedNoTrades: extended?.noTrades ?? false,
-              sessionLabel: extended?.sessionLabel ?? null,
-            };
-          })}
+          sessionLabel={watchlistSessionLabel}
+          top={watchlistTop}
+          bottom={watchlistBottom}
+          showWhenEmpty={entries.length > 0 || Boolean(children)}
+          topEmptyLabel="No gainers yet."
+          bottomEmptyLabel="No losers yet."
           footer={children}
         />
       ) : null}

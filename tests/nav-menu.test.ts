@@ -42,7 +42,10 @@ describe("site menu nav", () => {
     expect(navPages.some((page) => page.href === "/faq" && page.group === "about")).toBe(true);
     expect(navPages.some((page) => page.href === "/manage" && page.group === "account")).toBe(true);
     expect(navPages.some((page) => page.href === "/signin" && page.group === "account")).toBe(true);
-    expect(menuGroups.map((group) => group.id)).toEqual(["daily", "more", "about", "account"]);
+    expect(menuGroups.map((group) => group.id)).toEqual(["account", "daily", "more", "about"]);
+    expect(read("src/app/globals.css")).toContain(".site-menu-root--sheet .site-menu");
+    expect(read("src/app/globals.css")).toContain("inset: 0");
+    expect(read("src/app/globals.css")).not.toContain("max-height: min(72vh, 560px)");
     expect(isOverflowNavPath("/smart-money")).toBe(true);
     expect(isOverflowNavPath("/sectors")).toBe(true);
     expect(isOverflowNavPath("/international")).toBe(true);
