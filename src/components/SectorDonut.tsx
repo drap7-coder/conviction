@@ -4,9 +4,18 @@ import { useMemo } from "react";
 import DonutChart from "./DonutChart";
 import type { SectorAllocation } from "@/lib/portfolio/types";
 
-// ── Sector name → color ──
-
+/** Shared palette for stock sectors + ETF exposure sleeves. */
 const SECTOR_NAME_COLORS: Record<string, string> = {
+  "U.S. Equity": "#0052CC",
+  "International Equity": "#7F55E0",
+  "Fixed Income": "#00B8D9",
+  Cash: "#00875A",
+  Commodities: "#F59E0B",
+  Currency: "#A67C52",
+  Crypto: "#F97316",
+  "Other ETF": "#64748B",
+  "Other Fund": "#64748B",
+  Index: "#475569",
   Technology: "#0052CC",
   Financials: "#00875A",
   "Health Care": "#E0115F",
@@ -38,32 +47,17 @@ export default function SectorDonut({ sectors }: SectorDonutProps) {
   const slices = useMemo(() => {
     if (sectors.length === 0) return [];
 
-    const sorted = [...sectors].sort((a, b) => b.weight - a.weight);
-
-    let result: { name: string; pct: number; color: string }[];
-    if (sorted.length <= 5) {
-      result = sorted.map((s) => ({
-        name: s.sector,
-        pct: s.weight,
-        color: getSectorColor(s.sector),
+    return [...sectors]
+      .filter((sector) => sector.weight > 0)
+      .sort((a, b) => b.weight - a.weight)
+      .map((sector) => ({
+        name: sector.sector,
+        pct: sector.weight,
+        color: getSectorColor(sector.sector),
       }));
-    } else {
-      const top5 = sorted.slice(0, 5);
-      const otherPct = sorted.slice(5).reduce((sum, s) => sum + s.weight, 0);
-      result = top5.map((s) => ({
-        name: s.sector,
-        pct: s.weight,
-        color: getSectorColor(s.sector),
-      }));
-      if (otherPct > 0) {
-        result.push({ name: "Other", pct: otherPct, color: "#6b7280" });
-      }
-    }
-
-    return result;
   }, [sectors]);
 
   if (slices.length === 0) return null;
 
-  return <DonutChart slices={slices} size={176} />;
+  return <DonutChart slices={slices} size={188} />;
 }

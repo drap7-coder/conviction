@@ -9276,6 +9276,118 @@ button.brief-link:focus-visible {
   gap: 14px;
 }
 
+.pf-donut-wrap--3d {
+  gap: 18px;
+}
+
+.pf-donut-stage {
+  --pf-donut-size: 140px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(var(--pf-donut-size) + 36px);
+  height: calc(var(--pf-donut-size) * 0.78 + 52px);
+  perspective: 760px;
+  perspective-origin: 50% 42%;
+}
+
+.pf-donut-floor {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 0;
+  width: calc(var(--pf-donut-size) * 0.92);
+  height: 28px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, #000 55%, transparent) 0%,
+    color-mix(in srgb, #000 18%, transparent) 55%,
+    transparent 78%
+  );
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.pf-donut-3d {
+  position: relative;
+  z-index: 1;
+  width: var(--pf-donut-size);
+  height: var(--pf-donut-size);
+  transform-style: preserve-3d;
+  transform: rotateX(58deg) rotateZ(-8deg);
+  filter: drop-shadow(0 14px 18px color-mix(in srgb, #000 42%, transparent));
+}
+
+.pf-donut-depth,
+.pf-donut-face {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.pf-donut-depth {
+  z-index: 0;
+  pointer-events: none;
+}
+
+.pf-donut-face {
+  z-index: 2;
+}
+
+.pf-donut-slice {
+  cursor: pointer;
+  transition: filter 0.15s ease, opacity 0.15s ease;
+}
+
+.pf-donut-slice-hover {
+  filter: brightness(1.12);
+}
+
+.pf-donut-slice-depth {
+  pointer-events: none;
+}
+
+.pf-donut-well {
+  fill: var(--card);
+}
+
+.pf-donut-readout {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 46%;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  max-width: 7.5rem;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  text-align: center;
+}
+
+.pf-donut-readout strong {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 720;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-shadow: 0 1px 2px color-mix(in srgb, #000 55%, transparent);
+}
+
+.pf-donut-readout span {
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .pf-donut-chart {
   width: 140px;
   height: 140px;
@@ -9286,15 +9398,6 @@ button.brief-link:focus-visible {
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.pf-donut-slice {
-  cursor: pointer;
-}
-
-.pf-donut-slice-hover {
-  opacity: 1;
-  stroke-width: 10;
 }
 
 .pf-donut-center-name {
@@ -9374,6 +9477,26 @@ button.brief-link:focus-visible {
   pointer-events: none;
   z-index: 10;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-donut-3d {
+    transform: none;
+    filter: drop-shadow(0 8px 12px color-mix(in srgb, #000 28%, transparent));
+  }
+
+  .pf-donut-depth {
+    display: none;
+  }
+
+  .pf-donut-stage {
+    height: calc(var(--pf-donut-size) + 24px);
+  }
+
+  .pf-donut-floor {
+    bottom: 4px;
+    opacity: 0.55;
+  }
 }
 
 /* ── Positions header ── */
@@ -12640,7 +12763,7 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: var(--red-dim);
 }
 
-/* Live book: opaque Value + Today hero — solid stage, brokerage $ (+%) day move. */
+/* Live book: atmospheric stage + solid opaque Value panel so it stands out. */
 .product-stage--portfolio.product-stage--metrics-above {
   --pf-hero-pad: clamp(16px, 2.4vw, 26px);
   grid-template-columns: minmax(0, 1fr);
@@ -12648,20 +12771,22 @@ a.signal-block-conclusion-link:hover {
   gap: 0;
   margin: 0 0 14px;
   padding: var(--pf-hero-pad);
-  border-color: color-mix(in srgb, var(--stage-accent) 42%, var(--border));
+  border-color: color-mix(in srgb, var(--stage-accent) 34%, var(--border));
   border-radius: 20px;
   background:
+    radial-gradient(ellipse 78% 58% at 100% -8%, color-mix(in srgb, var(--stage-glow) 70%, transparent), transparent 60%),
+    radial-gradient(ellipse 48% 42% at 0% 110%, color-mix(in srgb, var(--stage-glow) 40%, transparent), transparent 58%),
     linear-gradient(
       155deg,
-      color-mix(in srgb, var(--stage-accent) 22%, var(--card-soft)) 0%,
-      color-mix(in srgb, var(--stage-accent) 10%, var(--card-soft)) 36%,
-      var(--card-soft) 68%,
-      var(--card) 100%
+      color-mix(in srgb, var(--stage-accent) 16%, color-mix(in srgb, var(--card-soft) 72%, transparent)) 0%,
+      color-mix(in srgb, var(--card-soft) 78%, transparent) 46%,
+      color-mix(in srgb, var(--card) 82%, transparent) 100%
     );
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--stage-accent) 28%, var(--card-soft)),
-    0 1px 0 color-mix(in srgb, #ffffff 5%, var(--card)),
-    0 18px 42px color-mix(in srgb, #000000 55%, transparent);
+    inset 0 1px 0 color-mix(in srgb, var(--stage-accent) 20%, transparent),
+    0 18px 42px color-mix(in srgb, #000000 42%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .product-stage--portfolio.product-stage--metrics-above::before {
@@ -12683,7 +12808,7 @@ a.signal-block-conclusion-link:hover {
   bottom: -60px;
   width: 220px;
   height: 220px;
-  opacity: 0.55;
+  opacity: 0.45;
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-copy {
@@ -12699,23 +12824,29 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics {
   align-self: stretch;
-  align-items: end;
-  gap: 0;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  padding: 14px 14px 12px;
-  border: 1px solid color-mix(in srgb, var(--stage-accent) 32%, var(--border));
-  border-radius: 14px;
-  background: var(--card);
+  align-items: stretch;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #ffffff 7%, var(--card)),
-    0 10px 24px color-mix(in srgb, #000000 40%, transparent);
+  box-shadow: none;
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
   justify-content: end;
-  padding-bottom: 12px;
+  gap: 6px;
+  margin: 0;
+  padding: 16px 16px 14px;
+  border: 1px solid color-mix(in srgb, var(--stage-accent) 36%, var(--border));
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 8%, var(--card)),
+    0 12px 28px color-mix(in srgb, #000000 48%, transparent);
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead .pf-hero-diagnosis {
@@ -12737,21 +12868,21 @@ a.signal-block-conclusion-link:hover {
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip {
   align-self: stretch;
-  margin: 4px;
-  padding: 10px 12px 8px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--border) 85%, var(--card-soft));
-  background: var(--card-soft);
+  margin: 0;
+  padding: 12px 12px 10px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, var(--card-soft));
+  background: color-mix(in srgb, var(--card-soft) 70%, transparent);
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip.is-positive {
-  background: color-mix(in srgb, var(--accent) 16%, var(--card-soft));
-  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, color-mix(in srgb, var(--card-soft) 78%, transparent));
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--border));
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip.is-negative {
-  background: color-mix(in srgb, var(--red) 16%, var(--card-soft));
-  border-color: color-mix(in srgb, var(--red) 38%, var(--border));
+  background: color-mix(in srgb, var(--red) 14%, color-mix(in srgb, var(--card-soft) 78%, transparent));
+  border-color: color-mix(in srgb, var(--red) 34%, var(--border));
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip::before {
@@ -12801,13 +12932,14 @@ a.signal-block-conclusion-link:hover {
 
   .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics {
     grid-template-columns: minmax(0, 1fr);
-    padding: 12px 10px 8px;
+    padding: 0;
+    gap: 10px;
   }
 
   .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
     grid-column: 1 / -1;
-    padding-bottom: 10px;
-    border-bottom: 1px solid color-mix(in srgb, var(--stage-accent) 16%, var(--border));
+    padding: 14px 14px 12px;
+    border-bottom: 1px solid color-mix(in srgb, var(--stage-accent) 36%, var(--border));
   }
 
   .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead + div {

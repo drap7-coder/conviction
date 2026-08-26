@@ -140,7 +140,7 @@
   font-weight: 600;
 }
 
-/* ── Sector Mix (ranked bars) ── */
+/* ── Sector Mix (3D donut) ── */
 .portfolio-page .pf-sector-mix {
   margin: 0 0 14px;
   padding: 14px 16px 16px;
@@ -162,6 +162,12 @@
   font-size: 1.1rem;
   font-weight: 720;
   letter-spacing: -0.03em;
+}
+
+.portfolio-page .pf-sector-mix-donut {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 2px;
 }
 
 .portfolio-page .pf-sector-bars {
