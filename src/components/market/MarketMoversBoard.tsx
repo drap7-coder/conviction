@@ -60,7 +60,7 @@ function MoverColumn({
                   extendedNoTrades={Boolean(row.extendedNoTrades)}
                   compact
                 />
-                <span className="pulse-movers-bar" aria-hidden="true">
+                <span className={`pulse-move-bar is-${tone}`} aria-hidden="true">
                   <i style={{ height: `${height}%` }} />
                 </span>
               </>

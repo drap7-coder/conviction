@@ -17755,7 +17755,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-index-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) 64px minmax(7.5rem, auto);
+  grid-template-columns: minmax(0, 1.15fr) 64px minmax(7.5rem, auto) 28px;
   align-items: center;
   gap: 10px;
   min-height: 48px;
@@ -17815,7 +17815,7 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-index-board--sessions .pulse-index-row {
-  grid-template-columns: minmax(0, 1.1fr) 56px minmax(8.5rem, auto);
+  grid-template-columns: minmax(0, 1.1fr) 56px minmax(8.5rem, auto) 28px;
   align-items: center;
 }
 
@@ -17908,7 +17908,7 @@ a.pulse-news-narrative-title:focus-visible {
 @media (max-width: 430px) {
   .pulse-index-row,
   .pulse-index-board--sessions .pulse-index-row {
-    grid-template-columns: minmax(0, 1fr) minmax(7.2rem, auto);
+    grid-template-columns: minmax(0, 1fr) minmax(7.2rem, auto) 22px;
     gap: 8px;
   }
 
@@ -18023,29 +18023,31 @@ a.pulse-news-narrative-title:focus-visible {
   white-space: nowrap;
 }
 
-.pulse-movers-bar {
+/* Shared magnitude bar — Indexes scoreboards + Market Movers */
+.pulse-move-bar {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  align-self: end;
+  align-self: stretch;
   width: 22px;
-  height: 40px;
+  min-height: 40px;
   padding-bottom: 1px;
 }
 
-.pulse-movers-bar > i {
+.pulse-move-bar > i {
   display: block;
   width: 14px;
   min-height: 3px;
   border-radius: 3px 3px 1px 1px;
+  background: color-mix(in srgb, var(--muted) 55%, transparent);
 }
 
-.pulse-movers-col.is-up .pulse-movers-bar > i {
+.pulse-move-bar.is-up > i {
   background: linear-gradient(180deg, #2dd4bf 0%, #0f6e66 100%);
   box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 35%, transparent);
 }
 
-.pulse-movers-col.is-down .pulse-movers-bar > i {
+.pulse-move-bar.is-down > i {
   background: linear-gradient(180deg, #f87171 0%, #8f3532 100%);
   box-shadow: 0 0 10px color-mix(in srgb, var(--red) 35%, transparent);
 }

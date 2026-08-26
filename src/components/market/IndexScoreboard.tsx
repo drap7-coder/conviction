@@ -16,6 +16,7 @@ import {
 } from "@/lib/market/index-scoreboard";
 import type { InkTone } from "@/lib/display/ink-tone";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
+import { moverBarHeight } from "@/lib/market/market-movers";
 
 function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
   const values = markets
@@ -101,6 +102,11 @@ export function MarketScoreboard({
 }) {
   if (rows.length === 0) return null;
   const dayTone = groupDayTone(rows);
+  const maxAbsMove = rows.reduce((max, market) => {
+    const pct = market.regularChangePercent ?? market.changePercent;
+    if (!isFiniteNumber(pct)) return max;
+    return Math.max(max, Math.abs(pct));
+  }, 0);
 
   return (
     <section
@@ -130,6 +136,13 @@ export function MarketScoreboard({
           const spark = (market.history ?? []).map((point) => point.close);
           const href = companyDetailHref(market.ticker);
           const regularPct = market.regularChangePercent ?? market.changePercent;
+          const barTone =
+            isFiniteNumber(regularPct) && Math.abs(regularPct) >= 0.05
+              ? (regularPct > 0 ? "up" : "down")
+              : "flat";
+          const barHeight = isFiniteNumber(regularPct)
+            ? moverBarHeight(regularPct, maxAbsMove)
+            : 0;
           const extendedLabel =
             showSessionMoves
             && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
@@ -153,6 +166,9 @@ export function MarketScoreboard({
                 extendedChangePercent={market.extendedChangePercent ?? null}
                 extendedNoTrades={Boolean(market.extendedNoTrades)}
               />
+              <span className={`pulse-move-bar is-${barTone}`} aria-hidden="true">
+                <i style={{ height: `${barHeight}%` }} />
+              </span>
             </>
           );
           return (
