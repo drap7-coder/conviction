@@ -17713,12 +17713,20 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-index-board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: nowrap;
 }
 
 .pulse-index-board-head h2 {
   min-width: 0;
   flex-wrap: nowrap;
+}
+
+.pulse-index-board-action {
+  flex: 0 0 auto;
 }
 
 .pulse-index-session {
@@ -17755,7 +17763,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-index-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) 64px minmax(7.5rem, auto) 28px;
+  grid-template-columns: minmax(0, 1.15fr) 64px minmax(7.5rem, auto);
   align-items: center;
   gap: 10px;
   min-height: 48px;
@@ -17815,7 +17823,7 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-index-board--sessions .pulse-index-row {
-  grid-template-columns: minmax(0, 1.1fr) 56px minmax(8.5rem, auto) 28px;
+  grid-template-columns: minmax(0, 1.1fr) 56px minmax(8.5rem, auto);
   align-items: center;
 }
 
@@ -17908,7 +17916,7 @@ a.pulse-news-narrative-title:focus-visible {
 @media (max-width: 430px) {
   .pulse-index-row,
   .pulse-index-board--sessions .pulse-index-row {
-    grid-template-columns: minmax(0, 1fr) minmax(7.2rem, auto) 22px;
+    grid-template-columns: minmax(0, 1fr) minmax(7.2rem, auto);
     gap: 8px;
   }
 
@@ -17979,7 +17987,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-movers-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, auto) 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, auto);
   align-items: center;
   gap: 8px;
   min-height: 52px;
@@ -18021,35 +18029,6 @@ a.pulse-news-narrative-title:focus-visible {
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* Shared magnitude bar — Indexes scoreboards + Market Movers */
-.pulse-move-bar {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  align-self: stretch;
-  width: 22px;
-  min-height: 40px;
-  padding-bottom: 1px;
-}
-
-.pulse-move-bar > i {
-  display: block;
-  width: 14px;
-  min-height: 3px;
-  border-radius: 3px 3px 1px 1px;
-  background: color-mix(in srgb, var(--muted) 55%, transparent);
-}
-
-.pulse-move-bar.is-up > i {
-  background: linear-gradient(180deg, #2dd4bf 0%, #0f6e66 100%);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 35%, transparent);
-}
-
-.pulse-move-bar.is-down > i {
-  background: linear-gradient(180deg, #f87171 0%, #8f3532 100%);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--red) 35%, transparent);
 }
 
 .pulse-crypto-board {

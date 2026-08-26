@@ -3,10 +3,7 @@
 import Link from "next/link";
 import { fmtDollarPrice, fmtPercent, fmtSignedDollar, isFiniteNumber } from "@/lib/display/format";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
-import {
-  moverBarHeight,
-  type MarketMoverRow,
-} from "@/lib/market/market-movers";
+import { type MarketMoverRow } from "@/lib/market/market-movers";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 
 function MoverColumn({
@@ -18,11 +15,6 @@ function MoverColumn({
   rows: MarketMoverRow[];
   tone: "up" | "down";
 }) {
-  const maxAbs = rows.reduce(
-    (max, row) => Math.max(max, Math.abs(row.changePercent)),
-    0,
-  );
-
   return (
     <div className={`pulse-movers-col is-${tone}`}>
       <h3 className="pulse-movers-col-label">{label}</h3>
@@ -32,7 +24,6 @@ function MoverColumn({
         <ol className="pulse-movers-list">
           {rows.map((row) => {
             const href = companyDetailHref(row.ticker);
-            const height = moverBarHeight(row.changePercent, maxAbs);
             const extendedLabel =
               row.sessionLabel === "Pre-Market" || row.sessionLabel === "After Hours"
                 ? row.sessionLabel
@@ -60,9 +51,6 @@ function MoverColumn({
                   extendedNoTrades={Boolean(row.extendedNoTrades)}
                   compact
                 />
-                <span className={`pulse-move-bar is-${tone}`} aria-hidden="true">
-                  <i style={{ height: `${height}%` }} />
-                </span>
               </>
             );
             const aria = [

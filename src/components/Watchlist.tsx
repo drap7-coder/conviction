@@ -9,7 +9,8 @@ import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
-import { StockHeatmap } from "@/components/StockHeatmap";
+import { MarketScoreboard } from "@/components/market/IndexScoreboard";
+import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
@@ -424,18 +425,13 @@ export default function Watchlist({
       ) : null}
 
       {loading || entries.length > 0 || children ? (
-        <StockHeatmap
+        <MarketScoreboard
           title="Today’s move"
-          subtitle=""
           headerAction={(
             <Link href="/manage?view=watchlist" className="data-edit-pill">
               Edit watchlist
             </Link>
           )}
-          loading={loading}
-          showStatusDot={false}
-          showPrice
-          uniform
           sessionLabel={
             entries
               .map((entry) => {
@@ -445,12 +441,12 @@ export default function Watchlist({
               })
               .find((label): label is string => Boolean(label)) ?? null
           }
-          items={entries.map((entry) => {
+          showSessionMoves
+          rows={entries.map((entry): PulseGlobalMarket => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;
             const extended = quote ? getExtendedSessionQuote(quote) : null;
             const inExtended = Boolean(extended?.sessionLabel);
-            // Primary last: RTH close while pre/AH is open; live print during the session.
             const price = inExtended
               ? (quote?.price ?? null)
               : (live?.price ?? quote?.price ?? null);
@@ -458,18 +454,25 @@ export default function Watchlist({
             const previousClose =
               quote?.previousClose
               ?? (price != null && quote?.change != null ? price - quote.change : null);
+            const spark = sparklineValuesFromQuote({
+              sparkline: quote?.sparkline,
+              price,
+              previousClose,
+            });
             return {
               ticker: entry.ticker,
               name: shortenCompanyName(entry.companyName),
               price,
-              change: quote?.change ?? null,
               changePercent,
-              marketCap: quote?.marketCap ?? null,
-              sparkline: sparklineValuesFromQuote({
-                sparkline: quote?.sparkline,
-                price,
-                previousClose,
-              }),
+              weight: 0,
+              category: "Watchlist",
+              history: spark.map((close, index) => ({
+                date: String(index),
+                close,
+              })),
+              regularPrice: quote?.price ?? null,
+              regularChange: quote?.change ?? null,
+              regularChangePercent: changePercent,
               extendedPrice: extended?.price ?? null,
               extendedChange: extended?.change ?? null,
               extendedChangePercent: extended?.changePercent ?? null,

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { PulseData } from "@/app/api/market/pulse/route";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { GlobalMarketsHeatmap } from "@/components/market/GlobalMarketsHeatmap";
+import { InternationalScoreboard } from "@/components/market/IndexScoreboard";
 
 export default function InternationalPage() {
   const [data, setData] = useState<PulseData | null>(null);
@@ -50,14 +50,7 @@ export default function InternationalPage() {
         <div className="market-empty">Market data is temporarily unavailable.</div>
       ) : null}
 
-      {data ? (
-        <GlobalMarketsHeatmap
-          markets={internationalMarkets}
-          title="International"
-          subtitle="Country ETFs for a quick read on Japan, China, the UK, India, Taiwan, and Germany."
-          uniformTiles
-        />
-      ) : null}
+      {data ? <InternationalScoreboard markets={internationalMarkets} /> : null}
     </main>
   );
 }

@@ -140,18 +140,19 @@ describe("Pulse heatmap universe", () => {
     expect(board).toContain("showSessionMoves");
     expect(board).toContain("SessionQuoteStack");
     expect(board).toContain("extendedNoTrades");
-    expect(board).toContain("pulse-move-bar");
-    expect(board).toContain("moverBarHeight");
+    expect(board).not.toContain("pulse-move-bar");
+    expect(board).not.toContain("moverBarHeight");
     expect(board).not.toContain("pulse-index-sessions");
     expect(board).not.toContain("IndexSessionMoves");
     expect(board).toContain('title="Commodities"');
     expect(board).toContain("SectorScoreboard");
+    expect(board).toContain("InternationalScoreboard");
     expect(board).not.toContain("stock-heat-session");
     expect(board).not.toContain("HeatTile");
     expect(css).toContain(".pulse-index-row");
     expect(css).toContain(".session-quote");
     expect(css).toContain(".session-quote-extended");
-    expect(css).toContain(".pulse-move-bar");
+    expect(css).not.toContain(".pulse-move-bar");
     expect(css).toContain(".pulse-gauge-grid");
     expect(css).toContain(".pulse-movers-grid");
     expect(css).not.toContain(".pulse-index-sessions");
@@ -195,7 +196,7 @@ describe("Sectors menu page", () => {
 });
 
 describe("International menu page", () => {
-  it("lives under Menu and hosts the country heatmap off Pulse", () => {
+  it("lives under Menu and hosts the country scoreboard off Pulse", () => {
     const nav = read("src/lib/nav-config.ts");
     const page = read("src/app/international/page.tsx");
     const layout = read("src/app/international/layout.tsx");
@@ -204,8 +205,11 @@ describe("International menu page", () => {
     expect(nav).toContain('label: "International"');
     expect(nav).toContain('group: "more"');
     expect(page).toContain('category === "International"');
-    expect(page).toContain('title="International"');
-    expect(page).toContain("GlobalMarketsHeatmap");
+    expect(page).toContain("InternationalScoreboard");
+    expect(page).not.toContain("GlobalMarketsHeatmap");
+    expect(read("src/components/market/IndexScoreboard.tsx")).toContain(
+      'title="International"',
+    );
     expect(page).toContain('sr-only');
     expect(layout).toContain("pageMetadata");
     expect(layout).toContain('path: "/international"');
