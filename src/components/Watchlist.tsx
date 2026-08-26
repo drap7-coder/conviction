@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback, useRef, type ReactNode } from "react"
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
 import type { StockQuote } from "@/lib/market/types";
-import { getLivePrice } from "@/lib/market/live-quote";
+import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { sparklineValuesFromQuote } from "@/lib/display/sparkline";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
@@ -440,14 +440,21 @@ export default function Watchlist({
             entries
               .map((entry) => {
                 const quote = quotes[entry.ticker];
-                return quote ? getLivePrice(quote).label : null;
+                if (!quote) return null;
+                return getExtendedSessionQuote(quote).sessionLabel ?? getLivePrice(quote).label;
               })
               .find((label): label is string => Boolean(label)) ?? null
           }
           items={entries.map((entry) => {
             const quote = quotes[entry.ticker];
             const live = quote ? getLivePrice(quote) : null;
-            const price = live?.price ?? quote?.price ?? null;
+            const extended = quote ? getExtendedSessionQuote(quote) : null;
+            const inExtended = Boolean(extended?.sessionLabel);
+            // Primary last: RTH close while pre/AH is open; live print during the session.
+            const price = inExtended
+              ? (quote?.price ?? null)
+              : (live?.price ?? quote?.price ?? null);
+            const changePercent = quote?.changePercent ?? live?.changePercent ?? null;
             const previousClose =
               quote?.previousClose
               ?? (price != null && quote?.change != null ? price - quote.change : null);
@@ -455,13 +462,19 @@ export default function Watchlist({
               ticker: entry.ticker,
               name: shortenCompanyName(entry.companyName),
               price,
-              changePercent: live?.changePercent ?? quote?.changePercent ?? null,
+              change: quote?.change ?? null,
+              changePercent,
               marketCap: quote?.marketCap ?? null,
               sparkline: sparklineValuesFromQuote({
                 sparkline: quote?.sparkline,
                 price,
                 previousClose,
               }),
+              extendedPrice: extended?.price ?? null,
+              extendedChange: extended?.change ?? null,
+              extendedChangePercent: extended?.changePercent ?? null,
+              extendedNoTrades: extended?.noTrades ?? false,
+              sessionLabel: extended?.sessionLabel ?? null,
             };
           })}
           footer={children}

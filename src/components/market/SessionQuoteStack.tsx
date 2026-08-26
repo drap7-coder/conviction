@@ -52,6 +52,7 @@ export function SessionQuoteStack({
   extendedChangePercent = null,
   extendedNoTrades = false,
   compact = false,
+  onHeat = false,
 }: {
   lastPrice: number | null;
   change: number | null;
@@ -63,13 +64,20 @@ export function SessionQuoteStack({
   extendedNoTrades?: boolean;
   /** Tighter type for Market Movers columns. */
   compact?: boolean;
+  /** Dark heatmap tile foot — left-aligned, light-on-fill colors. */
+  onHeat?: boolean;
 }) {
   const tone = sessionQuoteTone(change);
   const extendedTone = sessionQuoteTone(extendedChange);
   const showExtended = Boolean(extendedLabel);
+  const classes = [
+    "session-quote",
+    compact ? "is-compact" : null,
+    onHeat ? "is-on-heat" : null,
+  ].filter(Boolean).join(" ");
 
   return (
-    <span className={`session-quote${compact ? " is-compact" : ""}`}>
+    <span className={classes}>
       <strong className="session-quote-last tnum">{fmtDollarPrice(lastPrice)}</strong>
       <span className={`session-quote-change tnum is-${tone}`}>
         <span>{fmtSignedDollar(change)}</span>
