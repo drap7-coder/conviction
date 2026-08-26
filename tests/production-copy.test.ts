@@ -53,9 +53,9 @@ describe("production copy and fixture isolation", () => {
     const liveStart = portfolio.lastIndexOf("<ProductStage");
     const liveRender = portfolio.slice(liveStart);
     expect(liveRender.indexOf("{sectorMixCard}")).toBeLessThan(liveRender.indexOf("{allocationPanel}"));
-    expect(liveRender.indexOf("{allocationPanel}")).toBeLessThan(liveRender.indexOf("pf-compare-board"));
-    expect(liveStart + liveRender.indexOf("pf-compare-board")).toBeLessThan(portfolio.indexOf("<PortfolioBenchmarkChart"));
-    expect(portfolio.indexOf("<PortfolioBenchmarkChart")).toBeLessThan(portfolio.indexOf('id="portfolio-panel-holdings"'));
+    expect(liveRender.indexOf("{allocationPanel}")).toBeLessThan(liveRender.indexOf("<PortfolioBenchmarkChart"));
+    expect(liveRender.indexOf("<PortfolioBenchmarkChart")).toBeLessThan(liveRender.indexOf("pf-compare-board"));
+    expect(liveRender.indexOf("pf-compare-board")).toBeLessThan(liveRender.indexOf('id="portfolio-panel-holdings"'));
     expect(portfolio).not.toContain("Also close to");
     expect(portfolio).toContain("typewriterHeadline={false}");
     expect(portfolio).not.toContain("headline={stageHeadline}");

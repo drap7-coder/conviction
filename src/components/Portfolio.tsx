@@ -855,6 +855,11 @@ export default function Portfolio() {
         </div>
         {sectorMixCard}
         {allocationPanel}
+        {!calcFailed ? (
+          <PortfolioBenchmarkChart
+            positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
+          />
+        ) : null}
         <div className="pf-compare-board">
           <fieldset className="pf-risk">
             <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
@@ -938,12 +943,6 @@ export default function Portfolio() {
           </button>
         </div>
       )}
-
-      {hasData && !calcFailed ? (
-        <PortfolioBenchmarkChart
-          positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
-        />
-      ) : null}
 
       {hasData ? (
       <div id="portfolio-panel-holdings" className="pf-manage-handoff" aria-label="Portfolio holdings">

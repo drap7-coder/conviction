@@ -1051,6 +1051,30 @@
   box-shadow: var(--shadow-sm);
 }
 
+.portfolio-page .pf-benchmark-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 14px;
+  margin: 0 0 10px;
+}
+
+.portfolio-page .pf-benchmark-head .pf-section-eyebrow {
+  margin: 0;
+}
+
+.portfolio-page .pf-benchmark-ranges {
+  justify-content: flex-end;
+}
+
+.portfolio-page .pf-benchmark-empty {
+  margin: 8px 0 0;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
 .portfolio-page .pf-benchmark .market-panel {
   margin: 0;
   padding: 0;

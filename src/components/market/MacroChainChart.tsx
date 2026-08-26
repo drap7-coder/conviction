@@ -84,13 +84,15 @@ export function MacroChainChart({
   }, [series]);
 
   return (
-    <section className="market-panel market-macro-panel" aria-label={title}>
-      <div className="market-panel-header">
-        <div>
-          <h2>{title}</h2>
-          {subtitle.trim() ? <p>{subtitle}</p> : null}
+    <section className="market-panel market-macro-panel" aria-label={title || "Macro chain"}>
+      {title.trim() || subtitle.trim() ? (
+        <div className="market-panel-header">
+          <div>
+            {title.trim() ? <h2>{title}</h2> : null}
+            {subtitle.trim() ? <p>{subtitle}</p> : null}
+          </div>
         </div>
-      </div>
+      ) : null}
       <div className="market-macro-chart">
         {data.length > 1 && series.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
