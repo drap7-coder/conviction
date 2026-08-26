@@ -61,6 +61,18 @@ export const RISK_PROFILE_QUESTION = "Risk profile";
 /** Pills are a comparison target, not a second diagnosis. */
 export const COMPARE_AGAINST_LABEL = "Compare against →";
 
+/**
+ * Liquid ETF proxy for Book vs Benchmark when that profile is selected.
+ * Chart + takeaway recompute against this ticker (not always SPY).
+ */
+export const PROFILE_BENCHMARK: Record<RiskProfile, { ticker: string; label: string }> = {
+  "aggressive-growth": { ticker: "QQQ", label: "QQQ" },
+  growth: { ticker: "VTI", label: "VTI" },
+  "growth-income": { ticker: "SPY", label: "SPY" },
+  defensive: { ticker: "TLT", label: "TLT" },
+  income: { ticker: "SCHD", label: "SCHD" },
+};
+
 /** Line 2 under the Fit → selected header. */
 export const RISK_PROFILE_MOVES_SUBHEAD = "Here's what would need to change:";
 
