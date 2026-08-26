@@ -540,12 +540,13 @@ export default function Portfolio() {
         ticker,
         companyName: quote?.name ?? ticker,
         weight: metrics.weight ?? 0,
+        sector: resolveHoldingExposure(ticker, sectorProfiles[ticker]),
         marketValue: formatPortfolioDollars(metrics.marketValue),
         dailyChange: signedCurrency(metrics.dailyChange),
         dailyChangeValue: metrics.dailyChange,
       };
     })
-    .sort((a, b) => b.weight - a.weight), [quotes, sortedPositions]);
+    .sort((a, b) => b.weight - a.weight), [quotes, sectorProfiles, sortedPositions]);
 
   // ── Data-quality states ──
 
@@ -613,7 +614,7 @@ export default function Portfolio() {
       items={allocationItems}
       eyebrow="Concentration"
       title="Largest positions"
-      hint="Bar color is weight risk (12% watch · 20% concentrated) — not today’s move."
+      hint="Bar color matches industry (Sector Mix). Markers at 12% watch and 20% concentrated."
     />
   ) : null;
 
@@ -743,9 +744,10 @@ export default function Portfolio() {
               ticker: sleeve.ticker,
               companyName: sleeve.role || sleeve.ticker,
               weight: sleeve.weight,
+              sector: getMarketInstrument(sleeve.ticker)?.portfolioExposure ?? null,
             }))}
             eyebrow="Target mix"
-            hint="Template weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration."
+            hint="Bar color matches sleeve exposure. Markers at 12% watch and 20% concentrated."
           />
         </div>
         {studyDelta !== null ? (

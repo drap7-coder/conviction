@@ -8624,7 +8624,7 @@ button.brief-link:focus-visible {
 }
 
 .pf-allocation-row {
-  --allocation-color: var(--accent);
+  --allocation-color: #6b7280;
   display: grid;
   grid-template-columns: 28px minmax(96px, 0.7fr) minmax(160px, 1.5fr) 58px minmax(92px, auto);
   align-items: center;
@@ -8641,10 +8641,6 @@ button.brief-link:focus-visible {
 .pf-allocation-row:last-child {
   border-bottom: none;
 }
-
-/* Concentration heat — amber scale only. Never P&L red/green on the bar. */
-.pf-allocation-row.tone-watch { --allocation-color: var(--amber); }
-.pf-allocation-row.tone-high { --allocation-color: #e8874a; }
 
 .pf-allocation-rank {
   color: var(--quiet);

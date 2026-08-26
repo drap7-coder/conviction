@@ -1,18 +1,15 @@
 import Link from "next/link";
+import { getSectorColor } from "@/lib/display/sector-colors";
 
 export interface PortfolioAllocationItem {
   ticker: string;
   companyName: string;
   weight: number;
+  /** Industry / exposure sleeve — colors the bar to match Sector Mix. */
+  sector?: string | null;
   marketValue?: string;
   dailyChange?: string;
   dailyChangeValue?: number | null;
-}
-
-function allocationTone(weight: number) {
-  if (weight > 20) return "high";
-  if (weight >= 12) return "watch";
-  return "balanced";
 }
 
 function dayMoveClass(change: number | null | undefined): "up" | "down" | "flat" {
@@ -24,7 +21,7 @@ export function PortfolioAllocationLadder({
   items,
   eyebrow = "Concentration",
   title = "Position weight vs. risk thresholds",
-  hint = "Bar color is weight risk (12% watch · 20% concentrated) — not today’s move.",
+  hint = "Bar color matches industry (Sector Mix). Markers at 12% watch and 20% concentrated.",
 }: {
   items: PortfolioAllocationItem[];
   eyebrow?: string;
@@ -49,10 +46,14 @@ export function PortfolioAllocationLadder({
       </div>
       <div className="pf-allocation-list">
         {visible.map((item, index) => {
-          const tone = allocationTone(item.weight);
           const fill = Math.min(100, (item.weight / 25) * 100);
+          const color = getSectorColor(item.sector);
           return (
-            <article className={`pf-allocation-row tone-${tone}`} key={item.ticker}>
+            <article
+              className="pf-allocation-row"
+              key={item.ticker}
+              style={{ ["--allocation-color" as string]: color }}
+            >
               <span className="pf-allocation-rank">{String(index + 1).padStart(2, "0")}</span>
               <Link href={`/companies/${item.ticker}`} className="pf-allocation-company">
                 <strong>{item.ticker}</strong>
