@@ -15,11 +15,16 @@ function allocationTone(weight: number) {
   return "balanced";
 }
 
+function dayMoveClass(change: number | null | undefined): "up" | "down" | "flat" {
+  if (change == null || change === 0) return "flat";
+  return change < 0 ? "down" : "up";
+}
+
 export function PortfolioAllocationLadder({
   items,
   eyebrow = "Concentration",
   title = "Position weight vs. risk thresholds",
-  hint = "Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration.",
+  hint = "Bar color is weight risk (12% watch · 20% concentrated) — not today’s move.",
 }: {
   items: PortfolioAllocationItem[];
   eyebrow?: string;
@@ -62,7 +67,7 @@ export function PortfolioAllocationLadder({
               {showValues ? (
                 <div className="pf-allocation-values">
                   <strong>{item.marketValue}</strong>
-                  <span className={item.dailyChangeValue != null && item.dailyChangeValue < 0 ? "down" : "up"}>
+                  <span className={dayMoveClass(item.dailyChangeValue)}>
                     {item.dailyChange}
                     {item.dailyChange && item.dailyChange !== "—" ? (
                       <em className="pf-allocation-today"> today</em>

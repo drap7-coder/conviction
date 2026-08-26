@@ -613,7 +613,7 @@ export default function Portfolio() {
       items={allocationItems}
       eyebrow="Concentration"
       title="Largest positions"
-      hint="Markers at 12% watch and 20% concentration."
+      hint="Bar color is weight risk (12% watch · 20% concentrated) — not today’s move."
     />
   ) : null;
 
