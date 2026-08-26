@@ -12,14 +12,17 @@ function read(path: string) {
 }
 
 describe("SEO metadata", () => {
-  it("keeps the public brand constants", () => {
+  it("keeps the public brand constants focused on today’s product", () => {
     expect(SITE_NAME).toBe("CONVICTION");
     expect(SITE_TAGLINE).toBe("The stock market, organized around you");
     expect(SITE_TITLE).toBe("CONVICTION — The stock market, organized around you");
     expect(SITE_TITLE).not.toContain("Evidence Detection");
     expect(SITE_TITLE).not.toContain("Ownership Signals");
-    expect(SITE_DESCRIPTION).toContain("stock market");
-    expect(SITE_DESCRIPTION).toContain("watchlist, portfolio, news");
+    expect(SITE_DESCRIPTION).toContain("daily market workspace");
+    expect(SITE_DESCRIPTION).toContain("Pulse");
+    expect(SITE_DESCRIPTION).toContain("watchlist");
+    expect(SITE_DESCRIPTION).toContain("portfolio");
+    expect(SITE_DESCRIPTION).toContain("smart-money");
     expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
     expect(SITE_DESCRIPTION).not.toContain("Ownership Signals");
     expect(SITE_URL).toMatch(/^https:\/\//);
@@ -29,7 +32,7 @@ describe("SEO metadata", () => {
   it("builds matching title, canonical, Open Graph, and Twitter tags", () => {
     const meta = pageMetadata({
       title: "Pulse",
-      description: "Market heatmaps for indexes and sectors.",
+      description: "Indexes and movers on Pulse.",
       path: "/pulse",
     });
 
@@ -63,6 +66,8 @@ describe("SEO metadata", () => {
     expect(urls).toContain(`${SITE_URL}/smart-money`);
     expect(urls).toContain(`${SITE_URL}/international`);
     expect(urls).toContain(`${SITE_URL}/sectors`);
+    expect(urls).toContain(`${SITE_URL}/about`);
+    expect(urls).toContain(`${SITE_URL}/faq`);
 
     for (const sector of SECTORS) {
       expect(urls).toContain(`${SITE_URL}/industries/${sector.ticker}`);
@@ -75,11 +80,13 @@ describe("SEO metadata", () => {
     }
   });
 
-  it("publishes Organization and WebSite JSON-LD plus breadcrumbs", () => {
+  it("publishes Organization, WebSite, and SoftwareApplication JSON-LD plus breadcrumbs", () => {
     const site = siteJsonLd();
     expect(JSON.stringify(site)).toContain("Organization");
     expect(JSON.stringify(site)).toContain("WebSite");
+    expect(JSON.stringify(site)).toContain("SoftwareApplication");
     expect(JSON.stringify(site)).not.toContain("SearchAction");
+    expect(JSON.stringify(site)).not.toContain("Evidence Detection");
     expect(site["@graph"][1]).toMatchObject({
       "@type": "WebSite",
       name: SITE_NAME,
@@ -93,6 +100,16 @@ describe("SEO metadata", () => {
     ]);
     expect(crumbs.itemListElement).toHaveLength(2);
     expect(crumbs.itemListElement[1]?.item).toBe(`${SITE_URL}/companies/AAPL`);
+  });
+
+  it("ships About and Q&A pages with FAQ JSON-LD", () => {
+    expect(read("src/app/about/page.tsx")).toContain("pageMetadata");
+    expect(read("src/app/about/page.tsx")).toContain("PRODUCT_ABOUT_LEDE");
+    expect(read("src/app/faq/page.tsx")).toContain("faqJsonLd");
+    expect(read("src/app/faq/page.tsx")).toContain("PRODUCT_FAQ");
+    expect(read("src/lib/product-copy.ts")).not.toContain("Evidence Detection");
+    expect(read("src/lib/nav-config.ts")).toContain('href: "/about"');
+    expect(read("src/lib/nav-config.ts")).toContain('href: "/faq"');
   });
 
   it("wires the shared metadata helper into every workspace route", () => {

@@ -13,18 +13,23 @@ export const SITE_URL = normalizeOrigin(
   process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.gotconviction.com",
 );
 
-/** Public search / share copy. Lead with the product category, not a feature. */
+/** Public search / share copy. Lead with the full product as it ships today. */
 export const SITE_NAME = "CONVICTION";
 export const SITE_TAGLINE = "The stock market, organized around you";
 export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
+
+/**
+ * Meta description for Google / SMS / OG cards.
+ * Describe today’s workspace (Pulse, lists, portfolio, news, filings) — never a legacy feature label.
+ */
 export const SITE_DESCRIPTION =
-  "Track the stock market, your watchlist, portfolio, news, and notable investor activity — all in one place.";
+  "Your daily market workspace: Pulse for indexes and movers, watchlist and live portfolio, sectors and international boards, news briefs, and smart-money filings — all in one place.";
 
 export const SITE_OG_IMAGE = {
   url: "/conviction-og.png",
   width: 1200,
   height: 630,
-  alt: "CONVICTION pixel bull logo",
+  alt: `${SITE_TITLE}`,
 } as const;
 
 export function absoluteUrl(path: string): string {

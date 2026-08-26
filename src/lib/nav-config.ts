@@ -1,7 +1,7 @@
-import { List, Briefcase, BarChart3, Globe2, Landmark, Layers, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { List, Briefcase, BarChart3, CircleHelp, Globe2, Info, Landmark, Layers, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
-export type NavGroup = "daily" | "more" | "account";
+export type NavGroup = "daily" | "more" | "about" | "account";
 
 export interface NavPage {
   href: string;
@@ -71,6 +71,22 @@ export const navPages: NavPage[] = [
     blurb: "Country ETFs — Japan, China, UK, India, Taiwan, Germany.",
   },
   {
+    href: "/about",
+    label: "About",
+    icon: Info,
+    tone: "blue",
+    group: "about",
+    blurb: "What CONVICTION is today.",
+  },
+  {
+    href: "/faq",
+    label: "Q&A",
+    icon: CircleHelp,
+    tone: "violet",
+    group: "about",
+    blurb: "Common questions about Pulse, Portfolio, and data.",
+  },
+  {
     href: "/manage",
     label: "Manage",
     icon: SlidersHorizontal,
@@ -105,5 +121,6 @@ export function isOverflowNavPath(pathname: string): boolean {
 export const menuGroups: Array<{ id: NavGroup; label: string; pages: NavPage[] }> = [
   { id: "daily", label: "Daily", pages: primaryNavTabs },
   { id: "more", label: "More", pages: navPages.filter((page) => page.group === "more") },
+  { id: "about", label: "About", pages: navPages.filter((page) => page.group === "about") },
   { id: "account", label: "Your data", pages: navPages.filter((page) => page.group === "account") },
 ];

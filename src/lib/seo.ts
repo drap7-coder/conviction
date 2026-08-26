@@ -6,6 +6,7 @@ import {
   SITE_URL,
   absoluteUrl,
 } from "@/lib/site";
+import type { FaqItem } from "@/lib/product-copy";
 
 export function pageMetadata({
   title,
@@ -71,7 +72,35 @@ export function siteJsonLd() {
         description: SITE_DESCRIPTION,
         publisher: { "@type": "Organization", name: SITE_NAME },
       },
+      {
+        "@type": "SoftwareApplication",
+        name: SITE_NAME,
+        applicationCategory: "FinanceApplication",
+        operatingSystem: "Web",
+        url: SITE_URL,
+        description: SITE_DESCRIPTION,
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "USD",
+        },
+      },
     ],
+  };
+}
+
+export function faqJsonLd(items: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
   };
 }
 
