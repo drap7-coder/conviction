@@ -66,8 +66,8 @@
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--card)) 0%, var(--card) 46%),
     var(--card);
-  border-color: var(--border);
-  box-shadow: none;
+  border-color: var(--border-raised);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Gauge track reads as a recessed dark well. */
@@ -144,9 +144,10 @@
 .portfolio-page .pf-sector-mix {
   margin: 0 0 14px;
   padding: 14px 16px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: 16px;
   background: var(--card);
+  box-shadow: var(--shadow-sm);
 }
 
 .portfolio-page .pf-sector-mix-head {
@@ -759,6 +760,11 @@
   gap: 16px;
   margin: 0 0 14px;
   min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border-raised);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
 }
 
 .portfolio-page .pf-hero-diagnosis {
@@ -1039,9 +1045,10 @@
 .portfolio-page .pf-benchmark {
   margin: 0 0 14px;
   padding: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: 16px;
   background: var(--card);
+  box-shadow: var(--shadow-sm);
 }
 
 .portfolio-page .pf-benchmark .market-panel {
@@ -1111,10 +1118,10 @@
   gap: 8px;
   margin: 0;
   padding: 12px 12px 0;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: 14px;
   background: var(--card-soft);
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
 

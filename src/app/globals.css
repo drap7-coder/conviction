@@ -59,11 +59,19 @@
   --on-ink-red: #f0665e;
   --on-ink-amber: #f2b84b;
 
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
-  --shadow-ink: none;
+  /* Soft elevation for dark brokerage panels — inset rim + outer depth, no glow. */
+  --shadow-sm:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 7%, transparent),
+    0 8px 20px color-mix(in srgb, #000000 32%, transparent);
+  --shadow-md:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 9%, transparent),
+    0 14px 32px color-mix(in srgb, #000000 42%, transparent);
+  --shadow-lg:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 10%, transparent),
+    0 22px 48px color-mix(in srgb, #000000 50%, transparent);
+  --shadow-ink: var(--shadow-sm);
   --shadow: var(--shadow-sm);
+  --border-raised: color-mix(in srgb, #ffffff 8%, var(--border));
   --radius: 12px;
   --font-sans: var(--font-plex-sans), 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: var(--font-plex-mono), 'IBM Plex Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
@@ -192,13 +200,13 @@ html, body {
 
 .ink-panel {
   background: var(--ink-panel);
-  border: 1px solid var(--on-ink-border);
+  border: 1px solid var(--border-raised);
   box-shadow: var(--shadow-ink);
 }
 
 .ink-box {
   background: var(--ink-panel-elevated);
-  border: 1px solid var(--on-ink-border);
+  border: 1px solid var(--border-raised);
   border-radius: calc(var(--radius) + 2px);
   box-shadow: var(--shadow-ink);
 }
@@ -1548,11 +1556,11 @@ button.bottom-tab-item {
   overflow: hidden;
   margin: 0 0 12px;
   padding: 12px 14px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-left: 3px solid var(--insight-accent);
   border-radius: 12px;
   background: var(--card);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-sm);
   animation: smart-money-insight-arrive 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
@@ -2521,11 +2529,11 @@ button.bottom-tab-item {
   gap: 0;
   margin: 0;
   padding: 0 0 14px;
-  border: 1px solid var(--border-active);
+  border: 1px solid var(--border-raised);
   border-radius: 16px;
   background: var(--card);
   color: var(--ink);
-  box-shadow: 0 2px 10px rgba(17, 19, 24, 0.06);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: border-color 0.16s ease, box-shadow 0.16s ease;
 }
@@ -2536,7 +2544,7 @@ button.bottom-tab-item {
   filter: none;
   transform: none;
   outline: none;
-  box-shadow: 0 4px 14px rgba(17, 19, 24, 0.08);
+  box-shadow: var(--shadow-md);
 }
 
 .investor-idea-card .signal-block.ink-box {
@@ -3546,9 +3554,9 @@ button.bottom-tab-item {
   max-height: 320px;
   overflow-y: auto;
   background: var(--surface-elevated);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: var(--radius);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-md);
 }
 
 .ticker-suggestion {
@@ -4558,7 +4566,7 @@ button.bottom-tab-item {
   display: grid;
   gap: 12px;
   padding: 20px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: calc(var(--radius) + 7px);
   background: var(--card);
   box-shadow: var(--shadow-sm);
@@ -6118,7 +6126,7 @@ button.bottom-tab-item {
 
 .move-card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: calc(var(--radius) + 6px);
   box-shadow: var(--shadow-sm);
   padding: 20px;
@@ -6151,9 +6159,9 @@ button.bottom-tab-item {
 
 .political-card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: calc(var(--radius) + 6px);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-sm);
   padding: 20px;
 }
 
@@ -8036,6 +8044,10 @@ button.bottom-tab-item {
 .empty-state {
   text-align: center;
   padding: 28px 16px;
+  border: 1px solid var(--border-raised);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
 }
 
 .empty-state p {
@@ -10027,6 +10039,10 @@ button.brief-link:focus-visible {
 .pf-table-wrap {
   overflow-x: auto;
   margin-bottom: 16px;
+  border: 1px solid var(--border-raised);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
 }
 
 .pf-table {
@@ -10037,20 +10053,21 @@ button.brief-link:focus-visible {
 
 .pf-table th {
   text-align: left;
-  padding: 8px 10px;
+  padding: 10px 12px;
   font-size: 0.62rem;
   color: var(--quiet);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--divider);
+  background: color-mix(in srgb, var(--card-soft) 70%, var(--card));
   white-space: nowrap;
   font-family: var(--font-mono);
   font-weight: 600;
 }
 
 .pf-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--divider);
   color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -12567,13 +12584,13 @@ a.signal-block-conclusion-link:hover {
   overflow: hidden;
   margin: 0 0 9px;
   padding: 9px 15px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: 16px;
   background:
     radial-gradient(circle at 93% 3%, var(--stage-glow), transparent 34%),
     var(--card);
   color: var(--ink);
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
   animation: product-stage-arrive 480ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
@@ -13888,13 +13905,13 @@ a.signal-block-conclusion-link:hover {
   gap: 11px;
   overflow: hidden;
   padding: var(--card-pad);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: 19px;
   background:
     radial-gradient(circle at 98% 0%, color-mix(in srgb, var(--feed-accent) 8%, transparent), transparent 32%),
     var(--card);
   color: var(--ink);
-  box-shadow: 0 9px 25px rgba(15, 23, 42, 0.055);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
   transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
 }
@@ -13917,7 +13934,7 @@ a.signal-block-conclusion-link:hover {
 .for-you-feed-card:hover,
 .for-you-feed-card:focus-visible {
   border-color: color-mix(in srgb, var(--feed-accent) 44%, var(--border));
-  box-shadow: 0 17px 38px rgba(15, 23, 42, 0.1);
+  box-shadow: var(--shadow-md);
   outline: none;
   transform: translateY(-2px);
 }
@@ -13926,12 +13943,12 @@ a.signal-block-conclusion-link:hover {
   grid-row: 1 / span 2;
   min-height: var(--lead-min-height);
   padding: clamp(16px, 2.5vw, 22px);
-  border-color: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.14);
   background:
     radial-gradient(circle at 91% 3%, color-mix(in srgb, var(--feed-accent) 18%, transparent), transparent 34%),
     linear-gradient(145deg, #0a0f14, #121b27);
   color: #ffffff;
-  box-shadow: 0 21px 52px rgba(15, 23, 42, 0.18);
+  box-shadow: var(--shadow-ink);
 }
 
 .for-you-feed-board.item-count-1 .for-you-feed-card.is-lead,
@@ -14381,13 +14398,13 @@ a.signal-block-conclusion-link:hover {
   isolation: isolate;
   overflow: hidden;
   margin: 0 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 22px;
   background:
     radial-gradient(circle at 92% 0%, var(--insight-accent-soft), transparent 32%),
     linear-gradient(155deg, #0c1118 0%, #0a0e14 100%);
   color: #f7faf9;
-  box-shadow: 0 22px 56px rgba(7, 10, 14, 0.18);
+  box-shadow: var(--shadow-ink);
 }
 
 .portfolio-insight-card.is-personal {
@@ -16835,12 +16852,12 @@ button.portfolio-check-item:focus-visible {
   overflow: hidden;
   min-width: 0;
   padding: var(--card-pad);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: 18px;
   background:
     radial-gradient(circle at 102% -8%, color-mix(in srgb, var(--narrative-accent) 10%, transparent), transparent 32%),
     var(--card);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 
 .pulse-news-narrative.is-alt {
@@ -17623,15 +17640,15 @@ a.pulse-news-narrative-title:focus-visible {
   margin-bottom: var(--section-gap);
 }
 
-/* Heatmaps: dark card + flush title (Watchlist + Pulse). */
+/* Heatmaps / quote boards: raised dark card with a readable edge. */
 .stock-heat-panel,
 .market-heatmap-shell {
   margin: 0 0 var(--section-gap);
   padding: 0 0 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-raised);
   border-radius: 16px;
   background: var(--card);
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
   color: var(--ink);
   font-family: var(--font-mono);
   overflow: hidden;
