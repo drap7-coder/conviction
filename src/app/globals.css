@@ -12640,7 +12640,7 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: var(--red-dim);
 }
 
-/* Live book: Value + compact Today $/% (with spark) above Fit — slim hero. */
+/* Live book: opaque Value + Today hero — solid stage, brokerage $ (+%) day move. */
 .product-stage--portfolio.product-stage--metrics-above {
   --pf-hero-pad: clamp(16px, 2.4vw, 26px);
   grid-template-columns: minmax(0, 1fr);
@@ -12648,20 +12648,20 @@ a.signal-block-conclusion-link:hover {
   gap: 0;
   margin: 0 0 14px;
   padding: var(--pf-hero-pad);
-  border-color: color-mix(in srgb, var(--stage-accent) 28%, var(--border));
+  border-color: color-mix(in srgb, var(--stage-accent) 42%, var(--border));
   border-radius: 20px;
   background:
-    radial-gradient(ellipse 80% 55% at 100% -10%, color-mix(in srgb, var(--stage-glow) 100%, transparent), transparent 58%),
-    radial-gradient(ellipse 50% 40% at 0% 100%, color-mix(in srgb, var(--stage-glow) 55%, transparent), transparent 55%),
     linear-gradient(
-      165deg,
-      color-mix(in srgb, var(--stage-accent) 14%, var(--card)) 0%,
-      color-mix(in srgb, var(--stage-accent) 5%, var(--card)) 38%,
-      var(--card) 72%
+      155deg,
+      color-mix(in srgb, var(--stage-accent) 22%, var(--card-soft)) 0%,
+      color-mix(in srgb, var(--stage-accent) 10%, var(--card-soft)) 36%,
+      var(--card-soft) 68%,
+      var(--card) 100%
     );
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--stage-accent) 18%, transparent),
-    0 18px 40px color-mix(in srgb, var(--stage-glow) 55%, transparent);
+    inset 0 1px 0 color-mix(in srgb, var(--stage-accent) 28%, var(--card-soft)),
+    0 1px 0 color-mix(in srgb, #ffffff 5%, var(--card)),
+    0 18px 42px color-mix(in srgb, #000000 55%, transparent);
 }
 
 .product-stage--portfolio.product-stage--metrics-above::before {
@@ -12674,7 +12674,7 @@ a.signal-block-conclusion-link:hover {
   background: linear-gradient(
     180deg,
     var(--stage-accent) 0%,
-    color-mix(in srgb, var(--stage-accent) 35%, transparent) 100%
+    color-mix(in srgb, var(--stage-accent) 55%, var(--card-soft)) 100%
   );
 }
 
@@ -12683,7 +12683,7 @@ a.signal-block-conclusion-link:hover {
   bottom: -60px;
   width: 220px;
   height: 220px;
-  opacity: 0.9;
+  opacity: 0.55;
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-copy {
@@ -12702,16 +12702,15 @@ a.signal-block-conclusion-link:hover {
   align-items: end;
   gap: 0;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  padding: 12px 14px 10px;
-  border: 1px solid color-mix(in srgb, var(--stage-accent) 20%, var(--border));
+  padding: 14px 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--stage-accent) 32%, var(--border));
   border-radius: 14px;
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--stage-accent) 12%, var(--card-soft)) 0%,
-      var(--card-soft) 55%
-    );
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 4%, transparent);
+  background: var(--card);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 7%, var(--card)),
+    0 10px 24px color-mix(in srgb, #000000 40%, transparent);
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
@@ -12725,10 +12724,10 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead strong {
-  font-size: clamp(1.75rem, 4.2vw, 2.45rem);
+  font-size: clamp(1.85rem, 4.4vw, 2.55rem);
   letter-spacing: -0.07em;
   color: var(--ink);
-  text-shadow: 0 0 28px color-mix(in srgb, var(--stage-accent) 22%, transparent);
+  text-shadow: none;
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead span {
@@ -12739,23 +12738,20 @@ a.signal-block-conclusion-link:hover {
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip {
   align-self: stretch;
   margin: 4px;
-  padding: 8px 10px 6px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--card) 55%, transparent);
+  padding: 10px 12px 8px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--border) 85%, var(--card-soft));
+  background: var(--card-soft);
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip.is-positive {
-  background:
-    radial-gradient(ellipse 80% 70% at 85% 100%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
-    color-mix(in srgb, var(--accent) 8%, var(--card-soft));
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  background: color-mix(in srgb, var(--accent) 16%, var(--card-soft));
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--border));
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip.is-negative {
-  background:
-    radial-gradient(ellipse 80% 70% at 85% 100%, color-mix(in srgb, var(--red) 22%, transparent), transparent 70%),
-    color-mix(in srgb, var(--red) 8%, var(--card-soft));
-  border: 1px solid color-mix(in srgb, var(--red) 28%, var(--border));
+  background: color-mix(in srgb, var(--red) 16%, var(--card-soft));
+  border-color: color-mix(in srgb, var(--red) 38%, var(--border));
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip::before {

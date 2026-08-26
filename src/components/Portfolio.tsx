@@ -86,6 +86,18 @@ function percent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+/** Brokerage-style day move: +$1,234.56 (+1.23%) */
+function dayChangeParts(
+  change: number | null,
+  changePercent: number | null,
+): { dollars: string; percent: string | null } | null {
+  if (!isFiniteNumber(change)) return null;
+  return {
+    dollars: signedCurrency(change),
+    percent: isFiniteNumber(changePercent) ? percent(changePercent) : null,
+  };
+}
+
 function dayChangeTone(
   dailyChange: number | null,
 ): "positive" | "negative" | "neutral" {
@@ -498,6 +510,10 @@ export default function Portfolio() {
   );
 
   const dayTone = dayChangeTone(portfolioMetrics.dailyChange);
+  const dayMove = dayChangeParts(
+    portfolioMetrics.dailyChange,
+    portfolioMetrics.dailyChangePercent,
+  );
   const stageTone =
     dayTone === "positive"
       ? "positive"
@@ -801,8 +817,16 @@ export default function Portfolio() {
               <div className={`pf-day-strip is-${dayTone}`}>
                 <div className="pf-day-strip-copy">
                   <div className="pf-day-strip-figures tnum">
-                    <strong>{signedCurrency(portfolioMetrics.dailyChange)}</strong>
-                    <strong className="pf-day-strip-pct">{percent(portfolioMetrics.dailyChangePercent)}</strong>
+                    {dayMove ? (
+                      <strong aria-label={dayMove.percent ? `${dayMove.dollars} (${dayMove.percent})` : dayMove.dollars}>
+                        {dayMove.dollars}
+                        {dayMove.percent ? (
+                          <span className="pf-day-strip-pct">({dayMove.percent})</span>
+                        ) : null}
+                      </strong>
+                    ) : (
+                      <strong>—</strong>
+                    )}
                   </div>
                   <span>Today</span>
                 </div>
