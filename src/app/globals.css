@@ -18696,6 +18696,10 @@ a.pulse-news-narrative-title:focus-visible {
   overflow: hidden;
 }
 
+.heat-tile:has(.heat-tile-foot--quote) {
+  height: 9.25rem;
+}
+
 a.heat-tile {
   cursor: pointer;
 }
@@ -18776,6 +18780,59 @@ a.heat-tile {
 .heat-tile-foot .heat-tile-pct {
   margin-top: 0;
   align-self: auto;
+}
+
+/* TV-style stack on dark heat fills (Watchlist). */
+.heat-tile-foot--quote {
+  display: block;
+  justify-content: unset;
+  min-width: 0;
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat {
+  justify-items: start;
+  text-align: left;
+  gap: 3px;
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-last {
+  color: rgba(255, 255, 255, 0.98);
+  font-family: var(--font-mono);
+  font-size: 0.92rem;
+  font-weight: 750;
+  letter-spacing: -0.04em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-change {
+  font-size: 0.68rem;
+  font-weight: 700;
+  gap: 6px;
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-change.is-up,
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-extended.is-up {
+  color: #b8fff4;
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-change.is-down,
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-extended.is-down {
+  color: #ffd0d0;
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-change.is-flat,
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-extended.is-flat {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-extended {
+  font-size: 0.58rem;
+  opacity: 0.95;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.heat-tile-foot--quote .session-quote.is-on-heat .session-quote-icon {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .heat-tile-price {

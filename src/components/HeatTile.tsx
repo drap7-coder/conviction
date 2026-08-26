@@ -15,6 +15,7 @@ import {
   sparklineToneFromChange,
 } from "@/lib/display/sparkline";
 import { fmtDollarPrice } from "@/lib/display/format";
+import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 
 export interface HeatTileProps {
   /** Primary large label — instrument/company name. */
@@ -36,6 +37,13 @@ export interface HeatTileProps {
   sparkline?: number[] | null;
   /** Optional last price shown in the tile foot (watchlist quote grid). */
   price?: number | null;
+  /** Regular-session $ change — enables TV-style stack with price. */
+  change?: number | null;
+  extendedPrice?: number | null;
+  extendedChange?: number | null;
+  extendedChangePercent?: number | null;
+  extendedNoTrades?: boolean;
+  sessionLabel?: "Pre-Market" | "After Hours" | null;
   /** Show the pulsing live/status dot. Off by default — tone + % already convey direction. */
   showLiveDot?: boolean;
 }
@@ -64,6 +72,12 @@ export function HeatTile({
   live = true,
   sparkline = null,
   price = null,
+  change = null,
+  extendedPrice = null,
+  extendedChange = null,
+  extendedChangePercent = null,
+  extendedNoTrades = false,
+  sessionLabel = null,
   showLiveDot = false,
 }: HeatTileProps) {
   const band: HeatBand = heatBand(changePercent);
@@ -165,7 +179,25 @@ export function HeatTile({
         </svg>
       ) : null}
 
-      {price != null ? (
+      {price != null && change != null ? (
+        <span className="heat-tile-foot heat-tile-foot--quote">
+          <SessionQuoteStack
+            lastPrice={price}
+            change={change}
+            changePercent={changePercent ?? null}
+            extendedLabel={
+              sessionLabel === "Pre-Market" || sessionLabel === "After Hours"
+                ? sessionLabel
+                : null
+            }
+            extendedPrice={extendedPrice}
+            extendedChange={extendedChange}
+            extendedChangePercent={extendedChangePercent}
+            extendedNoTrades={extendedNoTrades}
+            onHeat
+          />
+        </span>
+      ) : price != null ? (
         <span className="heat-tile-foot">
           <span className="heat-tile-price tnum">{fmtDollarPrice(price)}</span>
           <strong
