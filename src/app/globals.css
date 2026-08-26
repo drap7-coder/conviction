@@ -8984,12 +8984,12 @@ button.brief-link:focus-visible {
   gap: 28px;
 }
 
-.pf-exposure-card .pf-sector-mix {
+.pf-exposure-card .pf-sector-bars {
   width: 100%;
   max-width: 28rem;
 }
 
-.pf-sector-mix {
+.pf-sector-bars {
   display: grid;
   gap: 10px;
   margin: 0;
@@ -12640,7 +12640,7 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: var(--red-dim);
 }
 
-/* Live book: Value + Today $/% gauges above the Fit headline — slim colorful hero. */
+/* Live book: Value + compact Today $/% (with spark) above Fit — slim hero. */
 .product-stage--portfolio.product-stage--metrics-above {
   --pf-hero-pad: clamp(16px, 2.4vw, 26px);
   grid-template-columns: minmax(0, 1fr);
@@ -12701,7 +12701,7 @@ a.signal-block-conclusion-link:hover {
   align-self: stretch;
   align-items: end;
   gap: 0;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   padding: 12px 14px 10px;
   border: 1px solid color-mix(in srgb, var(--stage-accent) 20%, var(--border));
   border-radius: 14px;
@@ -12736,34 +12736,29 @@ a.signal-block-conclusion-link:hover {
   font-weight: 650;
 }
 
-.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-gauge-cell {
-  display: flex;
-  justify-content: center;
-  align-items: end;
-  gap: 0;
+.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip {
+  align-self: stretch;
   margin: 4px;
-  padding: 10px 8px 8px;
-  border-radius: 16px;
+  padding: 8px 10px 6px;
+  border-radius: 14px;
   background: color-mix(in srgb, var(--card) 55%, transparent);
 }
 
-.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-gauge-cell.is-positive {
+.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip.is-positive {
   background:
-    radial-gradient(ellipse 80% 70% at 50% 100%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 70%),
-    color-mix(in srgb, var(--accent) 10%, var(--card-soft));
-  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 18%, transparent);
+    radial-gradient(ellipse 80% 70% at 85% 100%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    color-mix(in srgb, var(--accent) 8%, var(--card-soft));
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
 }
 
-.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-gauge-cell.is-negative {
+.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip.is-negative {
   background:
-    radial-gradient(ellipse 80% 70% at 50% 100%, color-mix(in srgb, var(--red) 28%, transparent), transparent 70%),
-    color-mix(in srgb, var(--red) 10%, var(--card-soft));
-  border: 1px solid color-mix(in srgb, var(--red) 32%, var(--border));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--red) 18%, transparent);
+    radial-gradient(ellipse 80% 70% at 85% 100%, color-mix(in srgb, var(--red) 22%, transparent), transparent 70%),
+    color-mix(in srgb, var(--red) 8%, var(--card-soft));
+  border: 1px solid color-mix(in srgb, var(--red) 28%, var(--border));
 }
 
-.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-gauge-cell::before {
+.product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .pf-day-strip::before {
   display: none;
 }
 
@@ -12809,7 +12804,7 @@ a.signal-block-conclusion-link:hover {
   }
 
   .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     padding: 12px 10px 8px;
   }
 

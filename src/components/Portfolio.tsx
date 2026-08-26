@@ -32,7 +32,7 @@ import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
-import SectorDonut from "@/components/SectorDonut";
+import SectorMixBars from "@/components/SectorMixBars";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
@@ -50,6 +50,12 @@ import {
 } from "@/lib/portfolio/fit";
 import { generateSleeveMoves, moveFocus, moveVerb, visibleCompareMoves } from "@/lib/portfolio/sleeve-moves";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
+import {
+  buildSparklineGeometry,
+  sparklineStroke,
+  sparklineToneFromChange,
+  sparklineValuesFromQuote,
+} from "@/lib/display/sparkline";
 
 const PORTFOLIO_TEMPLATE_DEFAULT = "three-fund";
 
@@ -80,14 +86,6 @@ function percent(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-/** Session move intensity for the day-change arcs — ~2% fills the gauge. */
-function dayChangeFill(percentChange: number | null): number {
-  if (!isFiniteNumber(percentChange)) return 0;
-  if (percentChange === 0) return 0;
-  // Small moves still read as a visible arc.
-  return Math.min(100, Math.max(28, (Math.abs(percentChange) / 1.75) * 100));
-}
-
 function dayChangeTone(
   dailyChange: number | null,
 ): "positive" | "negative" | "neutral" {
@@ -95,53 +93,76 @@ function dayChangeTone(
   return dailyChange > 0 ? "positive" : "negative";
 }
 
-const DAY_GAUGE_RADIUS = 50;
-const DAY_GAUGE_STROKE = 13;
-const DAY_GAUGE_CX = 64;
-const DAY_GAUGE_CY = 62;
-const DAY_GAUGE_TRACK = Math.PI * DAY_GAUGE_RADIUS;
-const DAY_GAUGE_ARC = `M ${DAY_GAUGE_CX - DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY} A ${DAY_GAUGE_RADIUS} ${DAY_GAUGE_RADIUS} 0 0 1 ${DAY_GAUGE_CX + DAY_GAUGE_RADIUS} ${DAY_GAUGE_CY}`;
+function formatUpdatedAt(at: number | null): string | null {
+  if (at == null) return null;
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(at));
+}
 
-function DayChangeGauge({
-  label,
-  caption,
-  fill,
-  tone,
+/** Weighted book trail from holding sparklines (shares × close). */
+function portfolioSparklineValues(
+  positions: PersistedPosition[],
+  quotes: StockQuote[],
+): number[] {
+  const quoteMap = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
+  const series: number[][] = [];
+  for (const position of positions) {
+    const quote = quoteMap.get(position.ticker.toUpperCase());
+    if (!quote || !(position.shares > 0)) continue;
+    const closes = sparklineValuesFromQuote({
+      sparkline: quote.sparkline,
+      price: getLivePrice(quote).price ?? quote.price,
+      previousClose: quote.previousClose,
+      limit: 24,
+    });
+    if (closes.length < 2) continue;
+    series.push(closes.map((close) => close * position.shares));
+  }
+  if (series.length === 0) return [];
+  const length = Math.min(...series.map((row) => row.length));
+  if (length < 2) return [];
+  const out: number[] = [];
+  for (let i = 0; i < length; i++) {
+    let sum = 0;
+    for (const row of series) sum += row[row.length - length + i]!;
+    out.push(sum);
+  }
+  return out;
+}
+
+function DaySpark({
+  values,
+  changePercent,
 }: {
-  label: string;
-  caption: string;
-  fill: number;
-  tone: "positive" | "negative" | "neutral";
+  values: number[];
+  changePercent: number | null;
 }) {
-  const dash = (Math.max(0, Math.min(100, fill)) / 100) * DAY_GAUGE_TRACK;
+  const tone = sparklineToneFromChange(changePercent);
+  const geometry = useMemo(
+    () => (values.length >= 2 ? buildSparklineGeometry(values, 120, 40) : null),
+    [values],
+  );
+  if (!geometry) return <span className="pf-day-spark is-empty" aria-hidden="true" />;
+
   return (
-    <div
-      className={`pf-day-gauge is-${tone}`}
-      role="img"
-      aria-label={`${caption} ${label}`}
+    <svg
+      className="pf-day-spark"
+      viewBox="0 0 120 40"
+      preserveAspectRatio="none"
+      aria-hidden="true"
     >
-      <svg className="pf-day-gauge-arc" viewBox="0 0 128 78" aria-hidden="true">
-        <path
-          className="pf-day-gauge-track"
-          d={DAY_GAUGE_ARC}
-          fill="none"
-          strokeWidth={DAY_GAUGE_STROKE}
-          strokeLinecap="round"
-        />
-        <path
-          className="pf-day-gauge-fill"
-          d={DAY_GAUGE_ARC}
-          fill="none"
-          strokeWidth={DAY_GAUGE_STROKE}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${DAY_GAUGE_TRACK}`}
-        />
-      </svg>
-      <div className="pf-day-gauge-readout">
-        <strong className="tnum">{label}</strong>
-        <span>{caption}</span>
-      </div>
-    </div>
+      <path
+        d={geometry.path}
+        fill="none"
+        stroke={sparklineStroke(tone)}
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
   );
 }
 
@@ -325,6 +346,7 @@ export default function Portfolio() {
   const [error, setError] = useState<string | null>(null);
 
   const [profileOverride, setProfileOverride] = useState<RiskProfile | null>(null);
+  const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
   const sampleLoadRef = useRef(0);
   const sampleAbortRef = useRef<AbortController | null>(null);
   const sampleAwaitingQuotesRef = useRef(false);
@@ -358,6 +380,7 @@ export default function Portfolio() {
       return;
     }
     setLoading(false);
+    if (quotes.length > 0) setLastUpdatedAt(Date.now());
     if (sharedData.error) setError(sharedData.error);
     else setError(null);
   }, [quotes, sharedData.loading, sharedData.error]);
@@ -485,7 +508,11 @@ export default function Portfolio() {
           : valueBrief.tone === "watch"
             ? "watch"
             : "balanced";
-  const dayFill = dayChangeFill(portfolioMetrics.dailyChangePercent);
+  const daySparkValues = useMemo(
+    () => portfolioSparklineValues(positions, quotes),
+    [positions, quotes],
+  );
+  const updatedLabel = formatUpdatedAt(lastUpdatedAt);
 
   const allocationItems = useMemo(() => sortedPositions
     .filter(({ metrics }) => metrics.weight !== null)
@@ -514,6 +541,7 @@ export default function Portfolio() {
     refreshSharedQuotes();
     const tickers = positions.map((p) => p.ticker).filter(Boolean);
     void fetchSectorProfiles(Array.from(new Set(tickers)));
+    setLastUpdatedAt(Date.now());
   }
 
   async function handleLoadSample(book: SampleBook) {
@@ -567,8 +595,8 @@ export default function Portfolio() {
     <PortfolioAllocationLadder
       items={allocationItems}
       eyebrow="Concentration"
-      title="Position weight vs. risk thresholds"
-      hint="Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration."
+      title="Largest positions"
+      hint="Markers at 12% watch and 20% concentration."
     />
   ) : null;
 
@@ -626,11 +654,8 @@ export default function Portfolio() {
     <section className="pf-section pf-sector-mix" aria-label="Sector mix">
       <header className="pf-sector-mix-head">
         <span className="pf-section-eyebrow">Sector Mix</span>
-        <h2>Where the equity exposure sits</h2>
       </header>
-      <div className="pf-sector-mix-donut">
-        <SectorDonut sectors={sectorMixData} />
-      </div>
+      <SectorMixBars sectors={sectorMixData} />
     </section>
   ) : null;
 
@@ -770,34 +795,38 @@ export default function Portfolio() {
             <>
               <div className="is-lead">
                 <strong className="tnum">{formatPortfolioDollars(portfolioMetrics.totalMarketValue)}</strong>
-                <span>Value</span>
+                <span>Portfolio Value</span>
                 <p className="pf-hero-diagnosis">{fitDiagnosis}</p>
               </div>
-              <div className={`pf-day-gauge-cell is-${dayTone}`}>
-                <DayChangeGauge
-                  label={signedCurrency(portfolioMetrics.dailyChange)}
-                  caption="Today $"
-                  fill={dayFill}
-                  tone={dayTone}
-                />
-              </div>
-              <div className={`pf-day-gauge-cell is-${dayTone}`}>
-                <DayChangeGauge
-                  label={percent(portfolioMetrics.dailyChangePercent)}
-                  caption="Today %"
-                  fill={dayFill}
-                  tone={dayTone}
+              <div className={`pf-day-strip is-${dayTone}`}>
+                <div className="pf-day-strip-copy">
+                  <div className="pf-day-strip-figures tnum">
+                    <strong>{signedCurrency(portfolioMetrics.dailyChange)}</strong>
+                    <strong className="pf-day-strip-pct">{percent(portfolioMetrics.dailyChangePercent)}</strong>
+                  </div>
+                  <span>Today</span>
+                </div>
+                <DaySpark
+                  values={daySparkValues}
+                  changePercent={portfolioMetrics.dailyChangePercent}
                 />
               </div>
             </>
           }
-        >
-          <div className="product-stage-actions">
-            <button type="button" className="product-stage-action" onClick={handleRefresh} disabled={loading}>
-              {loading ? "Refreshing…" : "Refresh prices"}
-            </button>
-          </div>
-        </ProductStage>
+        />
+        <div className="pf-live-meta">
+          <button
+            type="button"
+            className="pf-live-meta-refresh"
+            onClick={handleRefresh}
+            disabled={loading}
+          >
+            {loading ? "Refreshing…" : "Refresh prices"}
+          </button>
+          {updatedLabel ? (
+            <span className="pf-live-meta-updated">Last updated {updatedLabel}</span>
+          ) : null}
+        </div>
         {sectorMixCard}
         {allocationPanel}
         <div className="pf-compare-board">
@@ -897,7 +926,7 @@ export default function Portfolio() {
           <h2>
             {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
           </h2>
-          <p>Edit shares, cost basis, and removals in Manage — this page stays on mix, concentration, and moves.</p>
+          <p>Edit shares and cost basis in Manage.</p>
         </div>
         <Link href="/manage?view=portfolio" className="data-edit-pill">
           Manage holdings
