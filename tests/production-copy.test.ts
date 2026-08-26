@@ -74,6 +74,9 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).not.toContain("compactCurrency");
     expect(portfolio).not.toContain('toFixed(1) + "K"');
     expect(portfolio).toContain("pf-day-strip");
+    expect(portfolio).toContain("pf-day-strip-pct");
+    expect(portfolio).toContain("dayChangeParts");
+    expect(portfolio).toContain("({dayMove.percent})");
     expect(portfolio).toContain("pf-live-meta");
     expect(portfolio).toContain("DaySpark");
     expect(portfolio).not.toContain("pf-day-gauge");
@@ -86,7 +89,9 @@ describe("production copy and fixture isolation", () => {
     expect(read("src/app/globals.css")).toContain("product-stage--metrics-above");
     expect(read("src/app/globals.css")).toContain("--pf-hero-pad");
     expect(read("src/app/globals.css")).toContain("pf-day-strip");
+    expect(read("src/app/globals.css")).toContain("backdrop-filter: none");
     expect(read("src/app/portfolio.css")).toContain("pf-day-strip");
+    expect(read("src/app/portfolio.css")).toContain("pf-day-strip-pct");
     expect(read("src/app/portfolio.css")).toContain("pf-live-meta");
     expect(read("src/app/portfolio.css")).toContain("pf-sector-mix");
     expect(read("src/app/portfolio.css")).not.toContain("pf-day-gauge");
