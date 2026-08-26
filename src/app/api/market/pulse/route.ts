@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { fetchStockQuotes } from "@/lib/market/quotes";
-import { getLivePrice } from "@/lib/market/live-quote";
+import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { getWatchlist } from "@/lib/watchlist/persist";
 import { SECTORS } from "@/lib/market/industries";
 import {
@@ -81,6 +81,8 @@ export interface PulseSector {
   ticker: string;
   name: string;
   changePercent: number | null;
+  /** Regular-session $ change (TV-style quote stacks). */
+  change?: number | null;
   price: number | null;
   weight: number;
   history: Array<{ date: string; close: number }>;
@@ -89,16 +91,26 @@ export interface PulseSector {
 export interface PulseGlobalMarket {
   ticker: string;
   name: string;
+  /** Live session % when extended; otherwise regular %. Kept for breadth/sort consumers. */
   changePercent: number | null;
+  /** Display last: regular close in extended hours, live price when the market is open. */
   price: number | null;
   weight: number;
   category: string;
   history: Array<{ date: string; close: number }>;
-  /** Regular-session close price (distinct from live when pre/post). */
+  /** Regular-session close (always the RTH print). */
   regularPrice?: number | null;
-  /** Regular-session day % — shown as “Today” beside After Hours / Pre-Market. */
+  /** Regular-session day $ change. */
+  regularChange?: number | null;
+  /** Regular-session day %. */
   regularChangePercent?: number | null;
-  /** Per-row Pre-Market / After Hours label when the live quote is extended. */
+  /** Pre/AH last when a print exists; null means No trades in that window. */
+  extendedPrice?: number | null;
+  extendedChange?: number | null;
+  extendedChangePercent?: number | null;
+  /** True when the ET clock is pre/AH but Yahoo has no extended print yet. */
+  extendedNoTrades?: boolean;
+  /** Per-row Pre-Market / After Hours label when the clock is in that window. */
   sessionLabel?: string | null;
 }
 
@@ -153,11 +165,23 @@ export async function GET() {
     return quote ? getLivePrice(quote) : null;
   };
   let sessionLabel: string | null = null;
-  for (const quote of quotes) {
-    const label = getLivePrice(quote).label;
+  // Prefer US listed pulse names so crypto / intl clocks don’t smear Pre-Market onto the badge.
+  for (const market of GLOBAL_MARKETS) {
+    const quote = quoteMap.get(market.ticker);
+    if (!quote) continue;
+    const label = getExtendedSessionQuote(quote).sessionLabel ?? getLivePrice(quote).label;
     if (label) {
       sessionLabel = label;
       break;
+    }
+  }
+  if (!sessionLabel) {
+    for (const quote of quotes) {
+      const label = getLivePrice(quote).label;
+      if (label) {
+        sessionLabel = label;
+        break;
+      }
     }
   }
 
@@ -197,6 +221,7 @@ export async function GET() {
       ticker: sector.ticker,
       name: sector.name,
       changePercent: live?.changePercent ?? q?.changePercent ?? null,
+      change: q?.change ?? live?.change ?? null,
       price: live?.price ?? q?.price ?? null,
       weight: SECTOR_WEIGHTS[sector.ticker] ?? 0,
       history: q?.sparkline.slice(-15) ?? [],
@@ -208,14 +233,26 @@ export async function GET() {
   const globalMarkets: PulseGlobalMarket[] = GLOBAL_MARKETS.map((market) => {
     const live = liveFor(market.ticker);
     const quote = quoteMap.get(market.ticker);
+    const extended = quote ? getExtendedSessionQuote(quote) : null;
+    const inExtended = Boolean(extended?.sessionLabel);
     return {
       ...market,
-      price: live?.price ?? quote?.price ?? null,
-      changePercent: live?.changePercent ?? quote?.changePercent ?? null,
+      // Primary last: RTH close while pre/AH is open; live print during the regular session.
+      price: inExtended
+        ? (quote?.price ?? null)
+        : (live?.price ?? quote?.price ?? null),
+      changePercent: inExtended
+        ? (quote?.changePercent ?? null)
+        : (live?.changePercent ?? quote?.changePercent ?? null),
       history: quote?.sparkline.slice(-15) ?? [],
       regularPrice: quote?.price ?? null,
+      regularChange: quote?.change ?? null,
       regularChangePercent: quote?.changePercent ?? null,
-      sessionLabel: live?.label ?? null,
+      extendedPrice: extended?.price ?? null,
+      extendedChange: extended?.change ?? null,
+      extendedChangePercent: extended?.changePercent ?? null,
+      extendedNoTrades: extended?.noTrades ?? false,
+      sessionLabel: extended?.sessionLabel ?? null,
     };
   });
   // Keep definition order within each category section on Pulse.

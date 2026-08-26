@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
-import { getLivePrice } from "@/lib/market/live-quote";
+import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
@@ -102,12 +102,22 @@ export function MarketMovesPanel({
 
   const movers = splitMarketMovers(
     trending.map((idea) => {
-      const live = getLivePrice(idea.quote);
+      const quote = idea.quote;
+      const live = getLivePrice(quote);
+      const extended = getExtendedSessionQuote(quote);
+      const inExtended = Boolean(extended.sessionLabel);
       return {
         ticker: idea.ticker,
         name: shortenCompanyName(idea.companyName),
-        changePercent: live.changePercent,
-        price: live.price,
+        // Rank Top/Bottom on the regular session move; extended sits on its own row.
+        changePercent: quote.changePercent ?? live.changePercent,
+        change: quote.change ?? null,
+        price: inExtended ? (quote.price ?? null) : (live.price ?? quote.price ?? null),
+        extendedPrice: extended.price,
+        extendedChange: extended.change,
+        extendedChangePercent: extended.changePercent,
+        extendedNoTrades: extended.noTrades,
+        sessionLabel: extended.sessionLabel,
       };
     }),
     5,
@@ -115,7 +125,10 @@ export function MarketMovesPanel({
 
   const sessionLabel =
     trending
-      .map((idea) => getLivePrice(idea.quote).label)
+      .map((idea) => {
+        const extended = getExtendedSessionQuote(idea.quote);
+        return extended.sessionLabel ?? getLivePrice(idea.quote).label;
+      })
       .find((label): label is string => Boolean(label)) ?? null;
 
   return (

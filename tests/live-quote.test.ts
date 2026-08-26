@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getLivePrice, type LiveQuoteInput } from "@/lib/market/live-quote";
+import {
+  getExtendedSessionQuote,
+  getLivePrice,
+  type LiveQuoteInput,
+} from "@/lib/market/live-quote";
 
 function quote(overrides: Partial<LiveQuoteInput>): LiveQuoteInput {
   return {
@@ -73,5 +77,42 @@ describe("getLivePrice", () => {
     expect(live.label).toBeNull();
     expect(live.session).toBe("regular");
     expect(live.price).toBe(101);
+  });
+});
+
+describe("getExtendedSessionQuote", () => {
+  it("keeps the Pre-Market window open with No trades when Yahoo has no print", () => {
+    const extended = getExtendedSessionQuote(quote({
+      marketState: "PRE",
+      preMarketPrice: null,
+    }), new Date("2026-07-23T12:00:00Z"));
+
+    expect(extended.sessionLabel).toBe("Pre-Market");
+    expect(extended.price).toBeNull();
+    expect(extended.noTrades).toBe(true);
+  });
+
+  it("returns pre-market price and move vs the regular close", () => {
+    const extended = getExtendedSessionQuote(quote({
+      marketState: "PRE",
+      price: 100,
+      preMarketPrice: 101.5,
+    }), new Date("2026-07-23T12:00:00Z"));
+
+    expect(extended.sessionLabel).toBe("Pre-Market");
+    expect(extended.price).toBe(101.5);
+    expect(extended.change).toBeCloseTo(1.5);
+    expect(extended.changePercent).toBeCloseTo(1.5);
+    expect(extended.noTrades).toBe(false);
+  });
+
+  it("stays quiet during regular hours even if pre fields linger", () => {
+    const extended = getExtendedSessionQuote(quote({
+      marketState: "REGULAR",
+      preMarketPrice: 99,
+    }), new Date("2026-07-23T15:00:00Z"));
+
+    expect(extended.sessionLabel).toBeNull();
+    expect(extended.noTrades).toBe(false);
   });
 });

@@ -3,8 +3,17 @@ import { isFiniteNumber } from "@/lib/display/format";
 export interface MarketMoverRow {
   ticker: string;
   name: string;
+  /** Regular-session % used to rank Top / Bottom. */
   changePercent: number;
+  /** Display last: RTH close in extended hours, live when open. */
   price?: number | null;
+  /** Regular-session $ change. */
+  change?: number | null;
+  extendedPrice?: number | null;
+  extendedChange?: number | null;
+  extendedChangePercent?: number | null;
+  extendedNoTrades?: boolean;
+  sessionLabel?: "Pre-Market" | "After Hours" | null;
 }
 
 export interface MarketMoversSplit {
@@ -22,6 +31,12 @@ export function splitMarketMovers(
     name: string;
     changePercent: number | null | undefined;
     price?: number | null;
+    change?: number | null;
+    extendedPrice?: number | null;
+    extendedChange?: number | null;
+    extendedChangePercent?: number | null;
+    extendedNoTrades?: boolean;
+    sessionLabel?: "Pre-Market" | "After Hours" | null;
   }>,
   limit = 5,
 ): MarketMoversSplit {
@@ -33,6 +48,12 @@ export function splitMarketMovers(
       name: item.name,
       changePercent: item.changePercent as number,
       price: item.price ?? null,
+      change: item.change ?? null,
+      extendedPrice: item.extendedPrice ?? null,
+      extendedChange: item.extendedChange ?? null,
+      extendedChangePercent: item.extendedChangePercent ?? null,
+      extendedNoTrades: item.extendedNoTrades ?? false,
+      sessionLabel: item.sessionLabel ?? null,
     }));
 
   const top = usable
