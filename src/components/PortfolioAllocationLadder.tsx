@@ -1,25 +1,27 @@
 import Link from "next/link";
+import { getSectorColor } from "@/lib/display/sector-colors";
 
 export interface PortfolioAllocationItem {
   ticker: string;
   companyName: string;
   weight: number;
+  /** Industry / exposure sleeve — colors the bar to match Sector Mix. */
+  sector?: string | null;
   marketValue?: string;
   dailyChange?: string;
   dailyChangeValue?: number | null;
 }
 
-function allocationTone(weight: number) {
-  if (weight > 20) return "high";
-  if (weight >= 12) return "watch";
-  return "balanced";
+function dayMoveClass(change: number | null | undefined): "up" | "down" | "flat" {
+  if (change == null || change === 0) return "flat";
+  return change < 0 ? "down" : "up";
 }
 
 export function PortfolioAllocationLadder({
   items,
   eyebrow = "Concentration",
   title = "Position weight vs. risk thresholds",
-  hint = "Position weight on a 0–25% risk scale. Markers at 12% watch and 20% concentration.",
+  hint = "Bar color matches industry (Sector Mix). Markers at 12% watch and 20% concentrated.",
 }: {
   items: PortfolioAllocationItem[];
   eyebrow?: string;
@@ -44,10 +46,14 @@ export function PortfolioAllocationLadder({
       </div>
       <div className="pf-allocation-list">
         {visible.map((item, index) => {
-          const tone = allocationTone(item.weight);
           const fill = Math.min(100, (item.weight / 25) * 100);
+          const color = getSectorColor(item.sector);
           return (
-            <article className={`pf-allocation-row tone-${tone}`} key={item.ticker}>
+            <article
+              className="pf-allocation-row"
+              key={item.ticker}
+              style={{ ["--allocation-color" as string]: color }}
+            >
               <span className="pf-allocation-rank">{String(index + 1).padStart(2, "0")}</span>
               <Link href={`/companies/${item.ticker}`} className="pf-allocation-company">
                 <strong>{item.ticker}</strong>
@@ -62,7 +68,7 @@ export function PortfolioAllocationLadder({
               {showValues ? (
                 <div className="pf-allocation-values">
                   <strong>{item.marketValue}</strong>
-                  <span className={item.dailyChangeValue != null && item.dailyChangeValue < 0 ? "down" : "up"}>
+                  <span className={dayMoveClass(item.dailyChangeValue)}>
                     {item.dailyChange}
                     {item.dailyChange && item.dailyChange !== "—" ? (
                       <em className="pf-allocation-today"> today</em>
