@@ -140,6 +140,8 @@ describe("Pulse heatmap universe", () => {
     expect(board).toContain("showSessionMoves");
     expect(board).toContain("SessionQuoteStack");
     expect(board).toContain("extendedNoTrades");
+    expect(board).toContain("pulse-move-bar");
+    expect(board).toContain("moverBarHeight");
     expect(board).not.toContain("pulse-index-sessions");
     expect(board).not.toContain("IndexSessionMoves");
     expect(board).toContain('title="Commodities"');
@@ -149,6 +151,7 @@ describe("Pulse heatmap universe", () => {
     expect(css).toContain(".pulse-index-row");
     expect(css).toContain(".session-quote");
     expect(css).toContain(".session-quote-extended");
+    expect(css).toContain(".pulse-move-bar");
     expect(css).toContain(".pulse-gauge-grid");
     expect(css).toContain(".pulse-movers-grid");
     expect(css).not.toContain(".pulse-index-sessions");
