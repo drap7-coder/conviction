@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
 import type { StockHistoryRange } from "@/lib/market/quotes";
 
@@ -22,7 +22,7 @@ const RANGE_SUBTITLE: Record<StockHistoryRange, string> = {
   "1y": "Normalized · 1 year",
 };
 
-/** Bucket key so holdings + SPY can align across Yahoo timestamps. */
+/** Bucket key so holdings + benchmark can align across Yahoo timestamps. */
 function alignKey(date: string, range: StockHistoryRange): string {
   if (range === "1m" || range === "6m" || range === "1y") {
     return date.slice(0, 10);
@@ -54,20 +54,28 @@ async function fetchHistory(
 }
 
 /**
- * Book vs Benchmark — portfolio NAV (teal) vs SPY (gray), range-selectable,
- * normalized 0–100 via the shared MacroChain chart. Portfolio NAV is computed
- * from each holding's closes (Σ shares × close) on timestamps common to all
- * holdings and SPY. Renders nothing when history can't be aligned.
+ * Book vs Benchmark — portfolio NAV vs the active Compare-against ETF,
+ * range-selectable, with optional Compare / moves footer in the same card.
  */
 export function PortfolioBenchmarkChart({
   positions,
+  benchmarkTicker = "SPY",
+  benchmarkLabel = "SPY",
+  skipChart = false,
+  children,
 }: {
   positions: { ticker: string; shares: number }[];
+  benchmarkTicker?: string;
+  benchmarkLabel?: string;
+  /** When true, skip history fetch and render only the Compare footer. */
+  skipChart?: boolean;
+  children?: ReactNode;
 }) {
+  const benchTicker = benchmarkTicker.toUpperCase();
   const [range, setRange] = useState<StockHistoryRange>("1m");
   const [histories, setHistories] = useState<Record<string, HistPoint[]>>({});
-  const [spy, setSpy] = useState<HistPoint[]>([]);
-  const [status, setStatus] = useState<"loading" | "ready">("loading");
+  const [benchmark, setBenchmark] = useState<HistPoint[]>([]);
+  const [status, setStatus] = useState<"loading" | "ready">(skipChart ? "ready" : "loading");
 
   const tickers = useMemo(
     () => Array.from(new Set(positions.map((position) => position.ticker.toUpperCase()))),
@@ -76,10 +84,10 @@ export function PortfolioBenchmarkChart({
   const tickerKey = tickers.join(",");
 
   useEffect(() => {
-    if (tickers.length === 0) {
+    if (skipChart || tickers.length === 0) {
       setStatus("ready");
       setHistories({});
-      setSpy([]);
+      setBenchmark([]);
       return;
     }
     let cancelled = false;
@@ -89,7 +97,7 @@ export function PortfolioBenchmarkChart({
       setStatus("loading");
       const results = await Promise.all([
         ...tickers.map((ticker) => fetchHistory(ticker, range, controller.signal)),
-        fetchHistory("SPY", range, controller.signal),
+        fetchHistory(benchTicker, range, controller.signal),
       ]);
       if (cancelled) return;
       const map: Record<string, HistPoint[]> = {};
@@ -97,7 +105,7 @@ export function PortfolioBenchmarkChart({
         map[ticker] = results[index];
       });
       setHistories(map);
-      setSpy(results[results.length - 1]);
+      setBenchmark(results[results.length - 1]);
       setStatus("ready");
     }
 
@@ -107,16 +115,20 @@ export function PortfolioBenchmarkChart({
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tickerKey, range]);
+  }, [tickerKey, range, benchTicker, skipChart]);
 
   const { series, takeaway, takeawayTone } = useMemo<{
     series: MacroChainSeries[];
     takeaway: string | null;
     takeawayTone: "ahead" | "behind" | "flat" | null;
   }>(() => {
-    if (spy.length < 2) return { series: [], takeaway: null, takeawayTone: null };
+    if (skipChart || benchmark.length < 2) {
+      return { series: [], takeaway: null, takeawayTone: null };
+    }
 
-    const spyMap = new Map(spy.map((point) => [alignKey(point.date, range), point.close]));
+    const benchMap = new Map(
+      benchmark.map((point) => [alignKey(point.date, range), point.close]),
+    );
     const holdingMaps = positions
       .map((position) => ({
         shares: position.shares,
@@ -131,8 +143,7 @@ export function PortfolioBenchmarkChart({
 
     if (holdingMaps.length === 0) return { series: [], takeaway: null, takeawayTone: null };
 
-    // Keys present across SPY and every priced holding, in SPY order.
-    const alignedKeys = spy
+    const alignedKeys = benchmark
       .map((point) => alignKey(point.date, range))
       .filter((key, index, all) => all.indexOf(key) === index)
       .filter((key) => holdingMaps.every((holding) => holding.map.has(key)));
@@ -142,27 +153,31 @@ export function PortfolioBenchmarkChart({
     const navValues = alignedKeys.map((key) =>
       holdingMaps.reduce((sum, holding) => sum + holding.shares * (holding.map.get(key) ?? 0), 0),
     );
-    const spyValues = alignedKeys.map((key) => spyMap.get(key) ?? 0);
+    const benchValues = alignedKeys.map((key) => benchMap.get(key) ?? 0);
 
-    const navReturn = navValues[0] > 0 ? ((navValues[navValues.length - 1] - navValues[0]) / navValues[0]) * 100 : 0;
-    const spyReturn = spyValues[0] > 0 ? ((spyValues[spyValues.length - 1] - spyValues[0]) / spyValues[0]) * 100 : 0;
-    const delta = navReturn - spyReturn;
+    const navReturn =
+      navValues[0] > 0 ? ((navValues[navValues.length - 1] - navValues[0]) / navValues[0]) * 100 : 0;
+    const benchReturn =
+      benchValues[0] > 0
+        ? ((benchValues[benchValues.length - 1] - benchValues[0]) / benchValues[0]) * 100
+        : 0;
+    const delta = navReturn - benchReturn;
     const takeawayTone: "ahead" | "behind" | "flat" =
       Math.abs(delta) < 0.05 ? "flat" : delta > 0 ? "ahead" : "behind";
     const takeawayText =
       takeawayTone === "flat"
-        ? "Your book is tracking SPY over this window."
-        : `Your book is ${takeawayTone === "ahead" ? "outpacing" : "trailing"} SPY by ${delta > 0 ? "+" : "−"}${Math.abs(delta).toFixed(1)}% over this window.`;
+        ? `Your book is tracking ${benchmarkLabel} over this window.`
+        : `Your book is ${takeawayTone === "ahead" ? "outpacing" : "trailing"} ${benchmarkLabel} by ${delta > 0 ? "+" : "−"}${Math.abs(delta).toFixed(1)}% over this window.`;
 
     return {
       series: [
         { key: "portfolio", label: "Your Portfolio", color: "#2dd4bf", values: navValues },
-        { key: "spy", label: "SPY", color: "#8b95a5", values: spyValues },
+        { key: "benchmark", label: benchmarkLabel, color: "#8b95a5", values: benchValues },
       ],
       takeaway: takeawayText,
       takeawayTone,
     };
-  }, [spy, histories, positions, range]);
+  }, [benchmark, histories, positions, range, benchmarkLabel, skipChart]);
 
   const rangeTabs = (
     <div className="price-range-tabs pf-benchmark-ranges" role="tablist" aria-label="Benchmark range">
@@ -181,45 +196,41 @@ export function PortfolioBenchmarkChart({
     </div>
   );
 
-  if (status === "loading") {
+  const chartBody = (() => {
+    if (skipChart) return null;
+    if (status === "loading") {
+      return <div className="pf-benchmark-skeleton" aria-hidden="true" />;
+    }
+    if (series.length === 0) {
+      return <p className="pf-benchmark-empty">Not enough shared history for this range.</p>;
+    }
     return (
-      <section className="pf-benchmark" aria-label="Book vs benchmark" aria-busy="true">
-        <div className="pf-benchmark-head">
-          <span className="pf-section-eyebrow">Book vs Benchmark</span>
-          {rangeTabs}
-        </div>
-        <div className="pf-benchmark-skeleton" aria-hidden="true" />
-      </section>
+      <>
+        <MacroChainChart series={series} title="" subtitle={RANGE_SUBTITLE[range]} />
+        {takeaway ? (
+          <p className={`pf-benchmark-takeaway${takeawayTone ? ` is-${takeawayTone}` : ""}`}>
+            {takeaway}
+          </p>
+        ) : null}
+      </>
     );
-  }
-
-  if (series.length === 0) {
-    return (
-      <section className="pf-benchmark" aria-label="Book vs benchmark">
-        <div className="pf-benchmark-head">
-          <span className="pf-section-eyebrow">Book vs Benchmark</span>
-          {rangeTabs}
-        </div>
-        <p className="pf-benchmark-empty">Not enough shared history for this range.</p>
-      </section>
-    );
-  }
+  })();
 
   return (
-    <section className="pf-benchmark" aria-label="Book vs benchmark">
-      <div className="pf-benchmark-head">
-        <span className="pf-section-eyebrow">Book vs Benchmark</span>
-        {rangeTabs}
-      </div>
-      <MacroChainChart
-        series={series}
-        title=""
-        subtitle={RANGE_SUBTITLE[range]}
-      />
-      {takeaway ? (
-        <p className={`pf-benchmark-takeaway${takeawayTone ? ` is-${takeawayTone}` : ""}`}>
-          {takeaway}
-        </p>
+    <section
+      className="pf-benchmark"
+      aria-label="Book vs benchmark"
+      aria-busy={!skipChart && status === "loading" ? true : undefined}
+    >
+      {!skipChart ? (
+        <div className="pf-benchmark-head">
+          <span className="pf-section-eyebrow">Book vs Benchmark</span>
+          {rangeTabs}
+        </div>
+      ) : null}
+      {chartBody}
+      {children ? (
+        <div className={`pf-benchmark-compare${skipChart ? " is-solo" : ""}`}>{children}</div>
       ) : null}
     </section>
   );

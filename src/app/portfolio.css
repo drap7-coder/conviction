@@ -754,7 +754,7 @@
   font-style: normal;
 }
 
-/* Below the slim hero: Sector Mix, Concentration, Compare */
+/* Below the slim hero: Sector Mix, Concentration — Compare lives inside Book vs Benchmark */
 .portfolio-page .pf-compare-board {
   display: grid;
   gap: 16px;
@@ -765,6 +765,21 @@
   border-radius: 16px;
   background: var(--card);
   box-shadow: var(--shadow-sm);
+}
+
+.portfolio-page .pf-benchmark-compare {
+  display: grid;
+  gap: 14px;
+  margin: 14px 0 0;
+  padding: 14px 0 0;
+  border-top: 1px solid var(--divider);
+  min-width: 0;
+}
+
+.portfolio-page .pf-benchmark-compare.is-solo {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
 }
 
 .portfolio-page .pf-hero-diagnosis {

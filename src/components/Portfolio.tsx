@@ -40,6 +40,7 @@ import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import {
   COMPARE_AGAINST_LABEL,
   FIT_HEDGE,
+  PROFILE_BENCHMARK,
   RISK_PROFILE_LABELS,
   RISK_PROFILE_MOVES_SUBHEAD,
   RISK_PROFILES,
@@ -627,6 +628,7 @@ export default function Portfolio() {
   );
   const currentFitLabel = investorFitLabel(valueBrief.fit.primary, valueBrief.fit.defaultProfile);
   const movesLead = riskProfileDeltaLead(currentFitLabel, profile);
+  const benchmark = PROFILE_BENCHMARK[profile];
 
   function pickProfile(next: RiskProfile) {
     setProfileOverride(next);
@@ -855,12 +857,12 @@ export default function Portfolio() {
         </div>
         {sectorMixCard}
         {allocationPanel}
-        {!calcFailed ? (
-          <PortfolioBenchmarkChart
-            positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
-          />
-        ) : null}
-        <div className="pf-compare-board">
+        <PortfolioBenchmarkChart
+          positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
+          benchmarkTicker={benchmark.ticker}
+          benchmarkLabel={benchmark.label}
+          skipChart={calcFailed}
+        >
           <fieldset className="pf-risk">
             <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
             <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
@@ -930,7 +932,7 @@ export default function Portfolio() {
               </div>
             ) : null}
           </fieldset>
-        </div>
+        </PortfolioBenchmarkChart>
         </>
       ) : (
         <div className="pf-empty-prompt">
