@@ -50,7 +50,11 @@ function easternClockSession(now: Date): MarketSession {
   const minutes = Number(value("hour")) * 60 + Number(value("minute"));
   if (minutes >= 4 * 60 && minutes < 9 * 60 + 30) return "pre_market";
   if (minutes >= 9 * 60 + 30 && minutes < 16 * 60) return "regular";
-  if (minutes >= 16 * 60 && minutes < 20 * 60) return "after_hours";
+  // After the close: keep the AH window open overnight until pre starts so the
+  // last post print stays visible (Yahoo keeps After Hours up past 8pm ET).
+  // Mon 12:00–4:00am is still closed — Friday's AH is stale across the weekend.
+  if (minutes >= 16 * 60) return "after_hours";
+  if (minutes < 4 * 60 && weekday !== "Mon") return "after_hours";
   return "closed";
 }
 
@@ -103,11 +107,11 @@ export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice
     };
   }
 
-  // After-hours. Yahoo switches to CLOSED at 8 p.m. ET but leaves the
-  // completed post-market quote populated, so keep showing that result.
+  // After-hours. Yahoo often clears marketState / postMarket* meta after 8pm ET
+  // but leaves the completed post print (or 5m bars) — keep showing it overnight.
   if (
     clockSession === "after_hours" &&
-    (state === "POST" || state === "POSTPOST" || state === "CLOSED") &&
+    (state === "POST" || state === "POSTPOST" || state === "CLOSED" || state === "REGULAR" || state === "") &&
     quote.postMarketPrice != null
   ) {
     const move = getExtendedMove(quote.postMarketPrice);
