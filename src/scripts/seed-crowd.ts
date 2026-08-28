@@ -3,8 +3,8 @@
  * Usage: DATABASE_URL=... npx tsx scripts/seed-crowd.ts
  * (or: node --import tsx scripts/seed-crowd.ts)
  */
-import { ensureCrowdSeedBooks, countCrowdSeedUsersInDb } from "../src/lib/crowd/ensure-seeds";
-import { isDatabaseConfigured } from "../src/lib/db";
+import { ensureCrowdSeedBooks, countCrowdSeedUsersInDb } from "../lib/crowd/ensure-seeds";
+import { isDatabaseConfigured } from "../lib/db";
 
 async function main() {
   if (!isDatabaseConfigured()) {
