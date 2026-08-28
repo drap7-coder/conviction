@@ -33,6 +33,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${SITE_URL}/crowd`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.8,
+    },
+    {
       url: `${SITE_URL}/pulse?view=international`,
       lastModified: now,
       changeFrequency: "hourly",
