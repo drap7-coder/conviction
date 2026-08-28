@@ -25,19 +25,17 @@ describe("site menu nav", () => {
     expect(primaryNavTabs.some((tab) => tab.href === "/smart-money")).toBe(false);
   });
 
-  it("puts Smart Money, Sectors, International, About, Q&A, data management, and authentication in Menu", () => {
+  it("puts Smart Money, About, Q&A, data management, and authentication in Menu — not Sectors/International", () => {
     expect(menuNavPages.map((page) => page.href)).toEqual([
       "/smart-money",
-      "/sectors",
-      "/international",
       "/about",
       "/faq",
       "/manage",
       "/signin",
     ]);
     expect(navPages.some((page) => page.href === "/smart-money" && page.group === "more")).toBe(true);
-    expect(navPages.some((page) => page.href === "/sectors" && page.group === "more")).toBe(true);
-    expect(navPages.some((page) => page.href === "/international" && page.group === "more")).toBe(true);
+    expect(navPages.some((page) => page.href === "/sectors")).toBe(false);
+    expect(navPages.some((page) => page.href === "/international")).toBe(false);
     expect(navPages.some((page) => page.href === "/about" && page.group === "about")).toBe(true);
     expect(navPages.some((page) => page.href === "/faq" && page.group === "about")).toBe(true);
     expect(navPages.some((page) => page.href === "/manage" && page.group === "account")).toBe(true);
@@ -47,8 +45,8 @@ describe("site menu nav", () => {
     expect(read("src/app/globals.css")).toContain("inset: 0");
     expect(read("src/app/globals.css")).not.toContain("max-height: min(72vh, 560px)");
     expect(isOverflowNavPath("/smart-money")).toBe(true);
-    expect(isOverflowNavPath("/sectors")).toBe(true);
-    expect(isOverflowNavPath("/international")).toBe(true);
+    expect(isOverflowNavPath("/sectors")).toBe(false);
+    expect(isOverflowNavPath("/international")).toBe(false);
     expect(isOverflowNavPath("/about")).toBe(true);
     expect(isOverflowNavPath("/faq")).toBe(true);
     expect(isOverflowNavPath("/manage")).toBe(true);

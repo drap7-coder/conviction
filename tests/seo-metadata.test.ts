@@ -64,8 +64,8 @@ describe("SEO metadata", () => {
     expect(urls).toContain(`${SITE_URL}/watchlist`);
     expect(urls).toContain(`${SITE_URL}/news`);
     expect(urls).toContain(`${SITE_URL}/smart-money`);
-    expect(urls).toContain(`${SITE_URL}/international`);
-    expect(urls).toContain(`${SITE_URL}/sectors`);
+    expect(urls).toContain(`${SITE_URL}/pulse?view=international`);
+    expect(urls).toContain(`${SITE_URL}/pulse?view=sectors`);
     expect(urls).toContain(`${SITE_URL}/about`);
     expect(urls).toContain(`${SITE_URL}/faq`);
 
@@ -134,8 +134,8 @@ describe("SEO metadata", () => {
     expect(read("src/app/not-found.tsx")).toContain("index: false");
     expect(read("src/app/pulse/page.tsx")).toContain('sr-only');
     expect(read("src/app/smart-money/page.tsx")).toContain('sr-only');
-    expect(read("src/app/international/page.tsx")).toContain('sr-only');
-    expect(read("src/app/sectors/page.tsx")).toContain('sr-only');
+    expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
+    expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/page.tsx")).toContain("permanentRedirect");
     expect(read("next.config.ts")).toContain('source: "/"');
     expect(read("next.config.ts")).toContain("www.gotconviction.com");
