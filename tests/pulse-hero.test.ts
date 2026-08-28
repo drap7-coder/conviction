@@ -145,6 +145,7 @@ describe("Pulse heatmap universe", () => {
     expect(board).not.toContain("pulse-index-sessions");
     expect(board).not.toContain("IndexSessionMoves");
     expect(board).toContain('title="Commodities"');
+    expect(board).toMatch(/CommodityScoreboard[\s\S]*showSessionMoves/);
     expect(board).toContain("SectorScoreboard");
     expect(board).toContain("InternationalScoreboard");
     expect(board).not.toContain("stock-heat-session");

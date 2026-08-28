@@ -204,7 +204,13 @@ export function CommodityScoreboard({
 }: {
   markets: PulseGlobalMarket[];
 }) {
-  return <MarketScoreboard title="Commodities" rows={scoreboardCommodities(markets)} />;
+  return (
+    <MarketScoreboard
+      title="Commodities"
+      rows={scoreboardCommodities(markets)}
+      showSessionMoves
+    />
+  );
 }
 
 export function SectorScoreboard({

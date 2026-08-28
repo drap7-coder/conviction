@@ -78,6 +78,30 @@ describe("getLivePrice", () => {
     expect(live.session).toBe("regular");
     expect(live.price).toBe(101);
   });
+  it("keeps showing the last after-hours print overnight past 8pm ET", () => {
+    const live = getLivePrice(quote({
+      marketState: "CLOSED",
+      price: 422.6,
+      postMarketPrice: 421.22,
+    }), new Date("2026-08-28T01:30:00Z")); // Thu 9:30pm ET
+
+    expect(live.label).toBe("After Hours");
+    expect(live.session).toBe("after_hours");
+    expect(live.price).toBe(421.22);
+    expect(live.change).toBeCloseTo(-1.38);
+  });
+
+  it("does not carry Friday after-hours into Monday before pre-market", () => {
+    const live = getLivePrice(quote({
+      marketState: "CLOSED",
+      price: 422.6,
+      postMarketPrice: 421.22,
+    }), new Date("2026-08-31T05:00:00Z")); // Mon 1:00am ET
+
+    expect(live.label).toBeNull();
+    expect(live.session).toBe("closed");
+    expect(live.price).toBe(422.6);
+  });
 });
 
 describe("getExtendedSessionQuote", () => {
@@ -113,6 +137,18 @@ describe("getExtendedSessionQuote", () => {
     }), new Date("2026-07-23T15:00:00Z"));
 
     expect(extended.sessionLabel).toBeNull();
+    expect(extended.noTrades).toBe(false);
+  });
+
+  it("keeps After Hours overnight when a post print exists", () => {
+    const extended = getExtendedSessionQuote(quote({
+      marketState: "CLOSED",
+      price: 422.6,
+      postMarketPrice: 421.22,
+    }), new Date("2026-08-28T02:00:00Z")); // Thu 10pm ET
+
+    expect(extended.sessionLabel).toBe("After Hours");
+    expect(extended.price).toBe(421.22);
     expect(extended.noTrades).toBe(false);
   });
 });
