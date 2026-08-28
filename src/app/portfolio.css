@@ -143,7 +143,7 @@
 /* ── Sector Mix (3D donut) ── */
 .portfolio-page .pf-sector-mix {
   margin: 0 0 14px;
-  padding: 14px 16px 16px;
+  padding: 14px 16px 18px;
   border: 1px solid var(--border-raised);
   border-radius: 16px;
   background: var(--card);
@@ -153,7 +153,7 @@
 .portfolio-page .pf-sector-mix-head {
   display: grid;
   gap: 0;
-  margin: 0 0 12px;
+  margin: 0 0 14px;
 }
 
 .portfolio-page .pf-sector-mix-head h2 {
@@ -166,9 +166,114 @@
 }
 
 .portfolio-page .pf-sector-mix-donut {
-  display: flex;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  padding: 14px 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 3.5%, transparent), transparent 46%),
+    var(--card-inset);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 5%, transparent);
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-wrap {
+  width: 100%;
+  max-width: 36rem;
+  gap: 16px;
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-stage {
+  width: min(100%, calc(var(--pf-donut-size) + 56px));
+  height: calc(var(--pf-donut-size) * 0.82 + 64px);
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-3d {
+  transform: rotateX(56deg) rotateZ(-10deg);
+  filter: drop-shadow(0 18px 22px color-mix(in srgb, #000 48%, transparent));
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-floor {
+  bottom: 8px;
+  width: calc(var(--pf-donut-size) * 0.98);
+  height: 34px;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, #000 62%, transparent) 0%,
+    color-mix(in srgb, #000 22%, transparent) 52%,
+    transparent 78%
+  );
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-legend {
+  width: 100%;
   justify-content: center;
-  padding: 4px 0 2px;
+  gap: 8px 16px;
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-readout strong {
+  font-size: 0.92rem;
+}
+
+.portfolio-page .pf-sector-mix-donut .pf-donut-readout span {
+  font-size: 0.8rem;
+}
+
+@media (min-width: 720px) {
+  .portfolio-page .pf-sector-mix-donut .pf-donut-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    align-items: center;
+    gap: 18px 28px;
+    max-width: none;
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-stage {
+    justify-self: center;
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-readout {
+    grid-column: 1;
+    justify-self: center;
+    margin-top: -2px;
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-legend {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-legend-item {
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--card) 72%, transparent);
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-legend-name {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .portfolio-page .pf-sector-mix-donut {
+    padding: 12px 8px 14px;
+  }
 }
 
 .portfolio-page .pf-sector-bars {

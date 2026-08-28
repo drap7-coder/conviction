@@ -7,8 +7,8 @@ const CENTER = 50;
 const OUTER_R = 42;
 const INNER_R = 26;
 /** Vertical steps that fake extrusion depth under the lit face. */
-const DEPTH_LAYERS = 7;
-const DEPTH_STEP = 1.15;
+const DEPTH_LAYERS = 11;
+const DEPTH_STEP = 1.35;
 
 export interface DonutSlice {
   name: string;
@@ -134,7 +134,7 @@ export default function DonutChart({ slices: inputSlices, size = 140 }: DonutCha
                 <path
                   key={`${layer}-${slice.name}`}
                   d={slice.path}
-                  fill={shadeColor(slice.color, -28 - layer * 6)}
+                  fill={shadeColor(slice.color, -22 - layer * 5)}
                   className="pf-donut-slice-depth"
                 />
               ))}
