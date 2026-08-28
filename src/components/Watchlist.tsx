@@ -14,9 +14,23 @@ import {
 } from "@/components/market/MarketMoversBoard";
 import { splitMarketMovers } from "@/lib/market/market-movers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
+
+type PerformanceSlice = "all" | "leaders" | "laggards";
+
+const PERFORMANCE_SLICES: SurfaceSlicerOption[] = [
+  { id: "all", label: "All Assets" },
+  { id: "leaders", label: "Leaders", tone: "up" },
+  { id: "laggards", label: "Laggards", tone: "down" },
+];
+
+function parsePerformanceSlice(value: string): PerformanceSlice {
+  if (value === "leaders" || value === "laggards") return value;
+  return "all";
+}
 
 function readBrowserWatchlist(): WatchlistEntry[] | null {
   if (typeof window === "undefined") return null;
@@ -80,6 +94,7 @@ export default function Watchlist({
 
   // Search state
   const [searchResult, setSearchResult] = useState<{ type: "navigate" | "filter" | "unrecognized"; text: string } | null>(null);
+  const [performanceSlice, setPerformanceSlice] = useState<PerformanceSlice>("all");
 
   const loadWatchlist = useCallback(async () => {
     const browserEntries = readBrowserWatchlist();
@@ -439,7 +454,7 @@ export default function Watchlist({
   }
 
   return (
-    <div>
+    <div className="watchlist-daily">
       {loading ? (
         <PageLoadingMotion
           label="Loading watchlist"
@@ -461,21 +476,37 @@ export default function Watchlist({
       ) : null}
 
       {loading || entries.length > 0 || children ? (
-        <MarketMoversBoard
-          title="Today’s move"
-          headerAction={(
-            <Link href="/manage?view=watchlist" className="data-edit-pill">
-              Edit watchlist
-            </Link>
-          )}
-          sessionLabel={watchlistSessionLabel}
-          top={watchlistTop}
-          bottom={watchlistBottom}
-          showWhenEmpty={entries.length > 0 || Boolean(children)}
-          topEmptyLabel="No gainers yet."
-          bottomEmptyLabel="No losers yet."
-          footer={children}
-        />
+        <>
+          <SurfaceSlicer
+            label="Watchlist performance"
+            options={PERFORMANCE_SLICES}
+            activeId={performanceSlice}
+            onChange={(id) => setPerformanceSlice(parsePerformanceSlice(id))}
+            className="watchlist-performance-slicer"
+          />
+          <MarketMoversBoard
+            title="Today’s move"
+            headerAction={(
+              <Link href="/manage?view=watchlist" className="data-edit-pill">
+                Edit watchlist
+              </Link>
+            )}
+            sessionLabel={watchlistSessionLabel}
+            top={watchlistTop}
+            bottom={watchlistBottom}
+            columns={
+              performanceSlice === "leaders"
+                ? "top"
+                : performanceSlice === "laggards"
+                  ? "bottom"
+                  : "both"
+            }
+            showWhenEmpty={entries.length > 0 || Boolean(children)}
+            topEmptyLabel="No gainers yet."
+            bottomEmptyLabel="No losers yet."
+            footer={children}
+          />
+        </>
       ) : null}
 
     </div>

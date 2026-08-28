@@ -93,6 +93,8 @@ export function MarketMoversBoard({
   showWhenEmpty = false,
   topEmptyLabel = "No names in this column.",
   bottomEmptyLabel = "No names in this column.",
+  /** Hide one column when a performance slicer focuses Leaders or Laggards. */
+  columns = "both",
 }: {
   title?: string;
   top: MarketMoverRow[];
@@ -104,8 +106,13 @@ export function MarketMoversBoard({
   showWhenEmpty?: boolean;
   topEmptyLabel?: string;
   bottomEmptyLabel?: string;
+  columns?: "both" | "top" | "bottom";
 }) {
-  if (top.length === 0 && bottom.length === 0 && !showWhenEmpty && !footer) return null;
+  const showTop = columns !== "bottom";
+  const showBottom = columns !== "top";
+  const visibleTop = showTop ? top : [];
+  const visibleBottom = showBottom ? bottom : [];
+  if (visibleTop.length === 0 && visibleBottom.length === 0 && !showWhenEmpty && !footer) return null;
 
   return (
     <section className="market-heatmap-shell pulse-movers" aria-label={title}>
@@ -124,9 +131,23 @@ export function MarketMoversBoard({
         </div>
       </div>
       <div className="surface-well pulse-movers-well">
-        <div className="pulse-movers-grid">
-          <MoverColumn label="Top" rows={top} tone="up" emptyLabel={topEmptyLabel} />
-          <MoverColumn label="Bottom" rows={bottom} tone="down" emptyLabel={bottomEmptyLabel} />
+        <div className={`pulse-movers-grid${columns === "both" ? "" : " is-solo"}`}>
+          {showTop ? (
+            <MoverColumn
+              label={columns === "top" ? "Leaders" : "Top"}
+              rows={visibleTop}
+              tone="up"
+              emptyLabel={topEmptyLabel}
+            />
+          ) : null}
+          {showBottom ? (
+            <MoverColumn
+              label={columns === "bottom" ? "Laggards" : "Bottom"}
+              rows={visibleBottom}
+              tone="down"
+              emptyLabel={bottomEmptyLabel}
+            />
+          ) : null}
         </div>
       </div>
       {footer}

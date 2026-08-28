@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
+import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 import type {
@@ -329,30 +330,24 @@ export function PulseNewsFeed({
   const visibleItems = moreItems.slice(0, expanded ? 18 : 8);
   const showBrief = section === "all" || section === "brief";
   const showHeadlines = section === "all" || section === "headlines";
+  const categoryOptions = useMemo(
+    () => [
+      { id: "all", label: "All" },
+      ...rankedThemes.map((theme) => ({ id: theme.id, label: theme.label })),
+    ],
+    [rankedThemes],
+  );
 
   return (
     <section className="pulse-news-feed" aria-label="Market news">
-      <div className="pulse-news-filters" role="group" aria-label="Filter news by narrative">
-        <button
-          type="button"
-          className={activeTheme === "all" ? "is-active" : ""}
-          aria-pressed={activeTheme === "all"}
-          onClick={() => setActiveTheme("all")}
-        >
-          All
-        </button>
-        {rankedThemes.map((theme) => (
-          <button
-            key={theme.id}
-            type="button"
-            className={activeTheme === theme.id ? "is-active" : ""}
-            aria-pressed={activeTheme === theme.id}
-            onClick={() => setActiveTheme(theme.id)}
-          >
-            {theme.label}
-          </button>
-        ))}
-      </div>
+      <SurfaceSlicer
+        label="Filter news by narrative"
+        options={categoryOptions}
+        activeId={activeTheme}
+        onChange={setActiveTheme}
+        className="pulse-news-filters"
+        role="group"
+      />
 
       <div className="pulse-news-brief-grid" role="feed" aria-busy="false">
         {showBrief

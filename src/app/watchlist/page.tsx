@@ -11,6 +11,10 @@ export const metadata: Metadata = pageMetadata({
   path: "/watchlist",
 });
 
+/**
+ * Watchlist daily view. Performance slicer (All Assets / Leaders / Laggards)
+ * lives in the client Watchlist board — same SurfaceSlicer chrome as Portfolio.
+ */
 export default async function WatchlistPage({
   searchParams,
 }: {

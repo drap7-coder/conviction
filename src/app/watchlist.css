@@ -7,6 +7,16 @@
   padding: 14px var(--page-gutter-mobile) 24px;
 }
 
+.watchlist-daily {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+
+.watchlist-page .watchlist-performance-slicer {
+  margin-bottom: 12px;
+}
+
 @media (min-width: 768px) {
   .watchlist-page {
     margin-inline: calc(-1 * var(--page-gutter));

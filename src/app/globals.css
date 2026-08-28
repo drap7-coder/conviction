@@ -267,6 +267,95 @@ html, body {
   min-width: 0;
 }
 
+/*
+ * Shared performance / category slicer — Portfolio mode-switch language.
+ * Compact dark track + smooth pill highlights; scrolls on phones.
+ */
+.surface-slicer {
+  display: grid;
+  min-width: 0;
+  margin: 0 0 14px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card-soft) 82%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 4%, transparent);
+}
+
+.surface-slicer-track {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.surface-slicer-track::-webkit-scrollbar {
+  display: none;
+}
+
+.surface-slicer-pill {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.surface-slicer-pill:hover,
+.surface-slicer-pill:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+
+.surface-slicer-pill.is-active {
+  border-color: color-mix(in srgb, var(--ink) 10%, var(--border));
+  background: color-mix(in srgb, var(--ink) 10%, var(--card));
+  color: var(--ink);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
+}
+
+.surface-slicer-pill.tone-up.is-active {
+  border-color: color-mix(in srgb, var(--green) 42%, var(--border));
+  background: color-mix(in srgb, var(--green) 16%, #052e1f);
+  color: var(--green);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green) 18%, transparent);
+}
+
+.surface-slicer-pill.tone-down.is-active {
+  border-color: color-mix(in srgb, var(--red) 42%, var(--border));
+  background: color-mix(in srgb, var(--red) 16%, #3f0a14);
+  color: var(--red);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--red) 18%, transparent);
+}
+
+.watchlist-page .surface-slicer,
+.news-page .surface-slicer {
+  width: 100%;
+  max-width: 100%;
+}
+
 .ink-box-grid {
   display: grid;
   gap: 8px;
@@ -17188,42 +17277,12 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-news-filters {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  padding: 1px 1px 5px;
-  scrollbar-width: none;
+  /* News category bar reuses shared SurfaceSlicer chrome. */
+  margin-bottom: 14px;
 }
 
-.pulse-news-filters::-webkit-scrollbar {
-  display: none;
-}
-
-.pulse-news-filters button {
-  flex: 0 0 auto;
-  padding: 7px 11px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--card);
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.pulse-news-filters button:hover,
-.pulse-news-filters button:focus-visible {
-  border-color: var(--border-active);
-  color: var(--ink);
-  outline: none;
-}
-
-.pulse-news-filters button.is-active {
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
-  background: var(--accent-dim);
-  color: var(--ink);
-  outline: none;
+.pulse-news-filters.surface-slicer {
+  margin-bottom: 14px;
 }
 
 .pulse-news-stream {
@@ -18155,6 +18214,14 @@ a.pulse-news-narrative-title:focus-visible {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
+}
+
+.pulse-movers-grid.is-solo {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.pulse-movers-grid.is-solo .pulse-movers-col + .pulse-movers-col {
+  border-left: 0;
 }
 
 .pulse-movers-col {
