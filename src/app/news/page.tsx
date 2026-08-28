@@ -10,6 +10,10 @@ interface NewsResponse {
   fetchedAt: string;
 }
 
+/**
+ * News daily view. Category slicer (All + narrative themes) is owned by
+ * PulseNewsFeed via shared SurfaceSlicer — horizontal scroll on mobile.
+ */
 export default function NewsPage() {
   const [data, setData] = useState<NewsResponse | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");

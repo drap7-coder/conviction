@@ -194,6 +194,10 @@ describe("production copy and fixture isolation", () => {
     expect(watchlist).not.toContain("StockHeatmap");
     expect(watchlist).toContain("MarketMoversBoard");
     expect(watchlist).toContain("splitMarketMovers");
+    expect(watchlist).toContain("SurfaceSlicer");
+    expect(watchlist).toContain("All Assets");
+    expect(watchlist).toContain("Leaders");
+    expect(watchlist).toContain("Laggards");
     expect(watchlist).not.toContain("MarketScoreboard");
     expect(watchlist).toContain("No gainers yet.");
     expect(watchlist).toContain("No losers yet.");
@@ -225,16 +229,12 @@ describe("production copy and fixture isolation", () => {
     expect(feed).toContain("HeadlineCard");
     expect(feed).not.toContain("pulse-news-row");
     expect(feed).not.toContain(">Headlines<");
+    expect(feed).toContain("SurfaceSlicer");
+    expect(feed).toContain("pulse-news-filters");
     const newsCss = read("src/app/globals.css");
-    const filterBlock = newsCss.slice(
-      newsCss.indexOf(".pulse-news-filters button"),
-      newsCss.indexOf(".pulse-news-stream"),
-    );
-    expect(filterBlock).toContain(".pulse-news-filters button.is-active");
-    expect(filterBlock).toContain("background: var(--accent-dim)");
-    expect(filterBlock).toContain("color: var(--ink)");
-    expect(filterBlock).not.toContain("background: var(--ink)");
-    expect(filterBlock).not.toContain("#ffffff");
+    expect(newsCss).toContain(".surface-slicer");
+    expect(newsCss).toContain(".surface-slicer-pill.is-active");
+    expect(newsCss).toContain("overflow-x: auto");
     expect(newsCss).toContain(".pulse-news-narrative.is-featured");
     expect(newsCss).toContain("grid-column: 1 / -1");
     expect(newsCss).toContain(".pulse-news-hero-media");
