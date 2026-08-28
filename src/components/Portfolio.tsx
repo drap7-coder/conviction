@@ -670,11 +670,11 @@ export default function Portfolio() {
   }
 
   const sectorMixCard = hasData && !calcFailed && sectorMixData.length > 0 ? (
-    <section className="pf-section pf-sector-mix" aria-label="Sector mix">
+    <section className="pf-section pf-sector-mix surface-shell" aria-label="Sector mix">
       <header className="pf-sector-mix-head">
         <span className="pf-section-eyebrow">Sector Mix</span>
       </header>
-      <div className="pf-sector-mix-donut">
+      <div className="pf-sector-mix-donut surface-well">
         <SectorDonut sectors={sectorMixData} />
       </div>
     </section>

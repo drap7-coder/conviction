@@ -61,11 +61,8 @@
   color: var(--ink);
 }
 
-/* Allocation ladder card hardcodes a white gradient — darken it. */
+/* Allocation ladder: shell uses shared raised card; gauge tracks stay recessed. */
 .portfolio-page .pf-allocation-ladder {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--card)) 0%, var(--card) 46%),
-    var(--card);
   border-color: var(--border-raised);
   box-shadow: var(--shadow-sm);
 }
@@ -144,10 +141,6 @@
 .portfolio-page .pf-sector-mix {
   margin: 0 0 14px;
   padding: 14px 16px 18px;
-  border: 1px solid var(--border-raised);
-  border-radius: 16px;
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
 }
 
 .portfolio-page .pf-sector-mix-head {
@@ -170,12 +163,6 @@
   place-items: center;
   min-width: 0;
   padding: 14px 12px 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 3.5%, transparent), transparent 46%),
-    var(--card-inset);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 5%, transparent);
 }
 
 .portfolio-page .pf-sector-mix-donut .pf-donut-wrap {
@@ -624,6 +611,10 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+}
+
+.portfolio-page .pf-study-book .pf-allocation-list.surface-well {
+  padding: 4px 10px;
 }
 
 .portfolio-page .pf-study-book .pf-allocation-heading h2 {
@@ -1165,10 +1156,6 @@
 .portfolio-page .pf-benchmark {
   margin: 0 0 14px;
   padding: 16px;
-  border: 1px solid var(--border-raised);
-  border-radius: 16px;
-  background: var(--card);
-  box-shadow: var(--shadow-sm);
 }
 
 .portfolio-page .pf-benchmark-head {
