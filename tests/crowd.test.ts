@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildCrowdSnapshot, rankCrowdHoldings, rankCrowdWatched } from "@/lib/crowd/aggregate";
 import { CROWD_SEED_BOOKS, isCrowdSeedUserId, listCrowdSeedBooks } from "@/lib/crowd/seed-books";
+import { getSectorColors, hasDomainLogo } from "@/lib/market/logos";
 import type { CrowdBook } from "@/lib/crowd/types";
 
 function read(path: string) {
@@ -79,10 +80,22 @@ describe("Crowd surface wiring", () => {
     expect(read("src/app/crowd/page.tsx")).toContain("CrowdBoard");
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most held");
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most watched");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("LogoDisplay");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-share-track");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
     expect(read("src/lib/nav-config.ts")).toContain('href: "/crowd"');
     expect(read("src/lib/nav-config.ts")).toContain('group: "more"');
     expect(read("src/app/api/crowd/route.ts")).toContain("loadCrowdSnapshot");
     expect(read("AGENTS.md")).toContain("Crowd");
+  });
+
+  it("covers Crowd seed tickers with logo domains or sector badges", () => {
+    const tickers = new Set<string>();
+    for (const book of CROWD_SEED_BOOKS) {
+      for (const p of book.positions) tickers.add(p.ticker);
+      for (const t of book.watchlist) tickers.add(t);
+    }
+    const missing = [...tickers].filter((t) => !hasDomainLogo(t) && !getSectorColors(t));
+    expect(missing).toEqual([]);
   });
 });
