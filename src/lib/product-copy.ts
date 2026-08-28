@@ -13,7 +13,7 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Pulse",
     href: "/pulse",
-    blurb: "Markets, sectors, and international boards — slicer at the top of the home screen.",
+    blurb: "Markets, sectors, intl, and crypto boards — slicer at the top of the home screen.",
   },
   {
     name: "Crowd",
@@ -57,7 +57,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Pulse?",
     answer:
-      "Pulse is the home screen. Use the Markets / Sectors / International slicer at the top. Markets opens with VIX and 10Y gauges, then Major Indexes, Market Movers, Commodities, and Crypto. Sectors and International swap in their scoreboards without leaving Pulse.",
+      "Pulse is the home screen. Use the Markets / Sectors / Intl / Crypto slicer at the top. Markets opens with VIX and 10Y gauges, then Major Indexes, Market Movers, and Commodities. Sectors, Intl, and Crypto each swap in their scoreboard without leaving Pulse.",
   },
   {
     question: "How is Watchlist different from Portfolio?",

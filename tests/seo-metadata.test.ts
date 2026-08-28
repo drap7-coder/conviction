@@ -69,6 +69,7 @@ describe("SEO metadata", () => {
     expect(urls).toContain(`${SITE_URL}/crowd`);
     expect(urls).toContain(`${SITE_URL}/smart-money`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=international`);
+    expect(urls).toContain(`${SITE_URL}/pulse?view=crypto`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=sectors`);
     expect(urls).toContain(`${SITE_URL}/about`);
     expect(urls).toContain(`${SITE_URL}/faq`);
