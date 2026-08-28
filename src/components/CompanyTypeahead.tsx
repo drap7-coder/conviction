@@ -151,31 +151,40 @@ export function CompanyTypeahead({
   }
 
   const activeOptionId = activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined;
+  const input = (
+    <input
+      ref={inputRef}
+      type="text"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      onKeyDown={handleKeyDown}
+      onFocus={() => {
+        if (suggestions.length > 0 || status === "empty") setOpen(true);
+      }}
+      onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+      placeholder={placeholder}
+      disabled={disabled}
+      className={[className, trailing ? "has-mic" : ""].filter(Boolean).join(" ")}
+      role="combobox"
+      aria-expanded={open}
+      aria-autocomplete="list"
+      aria-controls={open ? listboxId : undefined}
+      aria-activedescendant={activeOptionId}
+      autoCapitalize={autoCapitalize}
+      autoComplete="off"
+    />
+  );
 
   return (
-    <div className={[wrapperClassName, trailing ? "has-ticker-capture" : ""].filter(Boolean).join(" ")}>
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={handleKeyDown}
-        onFocus={() => {
-          if (suggestions.length > 0 || status === "empty") setOpen(true);
-        }}
-        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={className}
-        role="combobox"
-        aria-expanded={open}
-        aria-autocomplete="list"
-        aria-controls={open ? listboxId : undefined}
-        aria-activedescendant={activeOptionId}
-        autoCapitalize={autoCapitalize}
-        autoComplete="off"
-      />
-      {trailing}
+    <div className={[wrapperClassName, trailing ? "has-ticker-mic" : ""].filter(Boolean).join(" ")}>
+      {trailing ? (
+        <div className="ticker-field-control">
+          {input}
+          {trailing}
+        </div>
+      ) : (
+        input
+      )}
       {open && status === "results" && suggestions.length > 0 ? (
         <ul id={listboxId} className="ticker-suggestions" role="listbox">
           {suggestions.map((suggestion, index) => (

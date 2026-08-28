@@ -14,7 +14,7 @@ async function searchSuggestions(query: string): Promise<CaptureSuggestion[]> {
 }
 
 /**
- * Resolve free text (voice or OCR) to a company suggestion.
+ * Resolve free text (voice) to a company suggestion.
  * Prefers exact ticker hits, then first search result for the cleaned query.
  */
 export async function resolveCaptureText(
@@ -42,36 +42,4 @@ export async function resolveCaptureText(
     query: searchQuery,
     status: `No match for “${searchQuery}” — type the ticker.`,
   };
-}
-
-/** OCR an image file with tesseract (lazy-loaded). */
-export async function recognizeImageText(file: Blob): Promise<string> {
-  // Prefer Chrome's Shape Detection TextDetector when present (no download).
-  if (typeof window !== "undefined" && "TextDetector" in window) {
-    try {
-      const Detector = (window as unknown as {
-        TextDetector: new () => { detect: (source: ImageBitmapSource) => Promise<Array<{ rawValue: string }>> };
-      }).TextDetector;
-      const detector = new Detector();
-      const bitmap = await createImageBitmap(file);
-      const results = await detector.detect(bitmap);
-      bitmap.close();
-      const joined = results.map((row) => row.rawValue).join(" ").trim();
-      if (joined) return joined;
-    } catch {
-      // Fall through to tesseract.
-    }
-  }
-
-  const { createWorker } = await import("tesseract.js");
-  const worker = await createWorker("eng", 1, {
-    // Keep logs quiet in production.
-    logger: () => undefined,
-  });
-  try {
-    const { data } = await worker.recognize(file);
-    return data.text ?? "";
-  } finally {
-    await worker.terminate();
-  }
 }
