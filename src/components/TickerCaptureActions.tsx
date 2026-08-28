@@ -149,47 +149,52 @@ export function TickerCaptureActions({
 
   return (
     <div className="ticker-capture" role="group" aria-label="Add by voice or camera">
-      {supported.voice ? (
-        <button
-          type="button"
-          className={`ticker-capture-btn${listening ? " is-live" : ""}`}
-          disabled={disabled || busy}
-          aria-pressed={listening}
-          aria-label={listening ? "Stop listening" : "Add by voice"}
-          title={listening ? "Stop" : "Voice"}
-          onClick={() => (listening ? stopListening() : startListening())}
-        >
-          {listening ? <Square size={16} aria-hidden /> : <Mic size={16} aria-hidden />}
-        </button>
-      ) : null}
-      {supported.camera ? (
-        <>
+      <span className="ticker-capture-label">Or add with</span>
+      <div className="ticker-capture-actions">
+        {supported.voice ? (
           <button
             type="button"
-            className="ticker-capture-btn"
+            className={`ticker-capture-btn${listening ? " is-live" : ""}`}
             disabled={disabled || busy}
-            aria-label="Add from camera"
-            title="Camera"
-            onClick={() => fileRef.current?.click()}
+            aria-pressed={listening}
+            aria-label={listening ? "Stop listening" : "Add by voice"}
+            title={listening ? "Stop" : "Voice"}
+            onClick={() => (listening ? stopListening() : startListening())}
           >
-            <Camera size={16} aria-hidden />
+            {listening ? <Square size={15} aria-hidden /> : <Mic size={15} aria-hidden />}
+            <span>{listening ? "Listening…" : "Voice"}</span>
           </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="ticker-capture-file"
-            tabIndex={-1}
-            aria-hidden
-            onChange={(event) => {
-              const file = event.target.files?.[0] ?? null;
-              event.target.value = "";
-              void onPhotoSelected(file);
-            }}
-          />
-        </>
-      ) : null}
+        ) : null}
+        {supported.camera ? (
+          <>
+            <button
+              type="button"
+              className="ticker-capture-btn ticker-capture-camera"
+              disabled={disabled || busy}
+              aria-label="Add from camera"
+              title="Camera"
+              onClick={() => fileRef.current?.click()}
+            >
+              <Camera size={15} aria-hidden />
+              <span>Camera</span>
+            </button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="ticker-capture-file"
+              tabIndex={-1}
+              aria-hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0] ?? null;
+                event.target.value = "";
+                void onPhotoSelected(file);
+              }}
+            />
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }
