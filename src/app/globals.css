@@ -72,6 +72,9 @@
   --shadow-ink: var(--shadow-sm);
   --shadow: var(--shadow-sm);
   --border-raised: color-mix(in srgb, #ffffff 8%, var(--border));
+  /* Nested card language: raised shell + recessed content well (Sector Mix). */
+  --surface-well-radius: 14px;
+  --surface-well-highlight: inset 0 1px 0 color-mix(in srgb, #ffffff 5%, transparent);
   --radius: 12px;
   --font-sans: var(--font-plex-sans), 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: var(--font-plex-mono), 'IBM Plex Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
@@ -233,6 +236,35 @@ html, body {
 
 .ink-box .ink-box {
   box-shadow: none;
+}
+
+/*
+ * Shared nested-card language (Sector Mix):
+ * .surface-shell = raised outer panel
+ * .surface-well  = recessed content tray inside the shell
+ */
+.surface-shell {
+  border: 1px solid var(--border-raised);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.surface-well,
+.stock-heat-grid,
+.market-heatmap-shell .market-heatmap,
+.market-macro-chart--depth {
+  border: 1px solid var(--border);
+  border-radius: var(--surface-well-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 3.5%, transparent), transparent 46%),
+    var(--card-inset);
+  box-shadow: var(--surface-well-highlight);
+}
+
+.surface-well {
+  padding: 12px;
+  min-width: 0;
 }
 
 .ink-box-grid {
@@ -8585,13 +8617,13 @@ button.brief-link:focus-visible {
 
 .pf-allocation-ladder {
   margin: 0 0 var(--section-gap);
-  padding: 20px;
-  border: 1px solid var(--border-active);
-  border-radius: 18px;
+  padding: 16px 16px 18px;
+  border: 1px solid var(--border-raised);
+  border-radius: 16px;
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, var(--card)) 0%, var(--card) 46%),
     var(--card);
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
 }
 
 .pf-allocation-heading {
@@ -8599,7 +8631,7 @@ button.brief-link:focus-visible {
   align-items: end;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 17px;
+  margin-bottom: 14px;
 }
 
 .pf-allocation-heading h2 {
@@ -8621,6 +8653,8 @@ button.brief-link:focus-visible {
 
 .pf-allocation-list {
   display: grid;
+  padding: 4px 12px;
+  min-width: 0;
 }
 
 .pf-allocation-row {
@@ -17899,10 +17933,16 @@ a.pulse-news-narrative-title:focus-visible {
   background: currentColor;
 }
 
+.pulse-index-well {
+  margin: 10px 12px 12px;
+  padding: 2px 0;
+  overflow: hidden;
+}
+
 .pulse-index-rows {
   display: grid;
   margin: 0;
-  padding: 2px 0;
+  padding: 0;
   list-style: none;
 }
 
@@ -18105,11 +18145,16 @@ a.pulse-news-narrative-title:focus-visible {
   flex: 0 0 auto;
 }
 
+.pulse-movers-well {
+  margin: 10px 12px 12px;
+  padding: 0;
+  overflow: hidden;
+}
+
 .pulse-movers-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
-  border-top: 1px solid var(--divider);
 }
 
 .pulse-movers-col {
@@ -18299,12 +18344,8 @@ a.pulse-news-narrative-title:focus-visible {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-flow: dense;
   gap: 8px;
-
   margin: 10px 12px 0;
   padding: 8px;
-  border-radius: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
   overflow: visible;
 }
 
@@ -18522,9 +18563,12 @@ a.pulse-news-narrative-title:focus-visible {
   gap: 8px;
   margin: 10px 12px 0;
   padding: 8px;
-  border-radius: 12px;
-  background: var(--bg);
+  border-radius: var(--surface-well-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 3.5%, transparent), transparent 46%),
+    var(--card-inset);
   border: 1px solid var(--border);
+  box-shadow: var(--surface-well-highlight);
 }
 
 .stock-heat-loading-tile {
@@ -18582,6 +18626,11 @@ a.pulse-news-narrative-title:focus-visible {
     margin-inline: 10px;
   }
 
+  .pulse-index-well,
+  .pulse-movers-well {
+    margin-inline: 10px;
+  }
+
   .stock-heat-footer {
     margin-inline: 10px;
   }
@@ -18598,9 +18647,6 @@ a.pulse-news-narrative-title:focus-visible {
 .market-heatmap-shell .market-heatmap {
   margin: 10px 12px 0;
   padding: 8px;
-  border-radius: 12px;
-  background: var(--bg);
-  border: 1px solid var(--border);
 }
 
 .market-panel-header {
@@ -18675,12 +18721,6 @@ a.pulse-news-narrative-title:focus-visible {
   height: 268px;
   margin: 6px -2px 10px;
   padding: 10px 6px 4px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #ffffff 3.5%, transparent), transparent 42%),
-    var(--card-inset);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 5%, transparent);
 }
 
 .market-chart-empty {

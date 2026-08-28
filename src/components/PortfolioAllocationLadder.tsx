@@ -34,7 +34,7 @@ export function PortfolioAllocationLadder({
 
   return (
     <section
-      className={`pf-allocation-ladder${showValues ? "" : " is-weights-only"}`}
+      className={`pf-allocation-ladder surface-shell${showValues ? "" : " is-weights-only"}`}
       aria-label="Portfolio allocation ladder"
     >
       <div className="pf-allocation-heading">
@@ -44,7 +44,7 @@ export function PortfolioAllocationLadder({
         </div>
         <p>{hint}</p>
       </div>
-      <div className="pf-allocation-list">
+      <div className="pf-allocation-list surface-well">
         {visible.map((item, index) => {
           const fill = Math.min(100, (item.weight / 25) * 100);
           const color = getSectorColor(item.sector);

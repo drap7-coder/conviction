@@ -131,51 +131,53 @@ export function MarketScoreboard({
         </div>
       </div>
       {rows.length > 0 ? (
-        <ol className="pulse-index-rows">
-          {rows.map((market) => {
-            const spark = (market.history ?? []).map((point) => point.close);
-            const href = companyDetailHref(market.ticker);
-            const regularPct = market.regularChangePercent ?? market.changePercent;
-            const extendedLabel =
-              showSessionMoves
-              && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
-                ? market.sessionLabel
-                : null;
-            const label = rowAriaLabel(market, Boolean(extendedLabel));
-            const body: ReactNode = (
-              <>
-                <span className="pulse-index-name">
-                  <strong>{market.name}</strong>
-                  <small>{market.ticker}</small>
-                </span>
-                <IndexSpark values={spark} changePercent={regularPct} />
-                <SessionQuoteStack
-                  lastPrice={market.price}
-                  change={market.regularChange ?? null}
-                  changePercent={regularPct}
-                  extendedLabel={extendedLabel}
-                  extendedPrice={market.extendedPrice ?? null}
-                  extendedChange={market.extendedChange ?? null}
-                  extendedChangePercent={market.extendedChangePercent ?? null}
-                  extendedNoTrades={Boolean(market.extendedNoTrades)}
-                />
-              </>
-            );
-            return (
-              <li key={market.ticker}>
-                {href ? (
-                  <Link href={href} className="pulse-index-row" aria-label={label}>
-                    {body}
-                  </Link>
-                ) : (
-                  <div className="pulse-index-row" aria-label={label}>
-                    {body}
-                  </div>
-                )}
-              </li>
-            );
-          })}
-        </ol>
+        <div className="surface-well pulse-index-well">
+          <ol className="pulse-index-rows">
+            {rows.map((market) => {
+              const spark = (market.history ?? []).map((point) => point.close);
+              const href = companyDetailHref(market.ticker);
+              const regularPct = market.regularChangePercent ?? market.changePercent;
+              const extendedLabel =
+                showSessionMoves
+                && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
+                  ? market.sessionLabel
+                  : null;
+              const label = rowAriaLabel(market, Boolean(extendedLabel));
+              const body: ReactNode = (
+                <>
+                  <span className="pulse-index-name">
+                    <strong>{market.name}</strong>
+                    <small>{market.ticker}</small>
+                  </span>
+                  <IndexSpark values={spark} changePercent={regularPct} />
+                  <SessionQuoteStack
+                    lastPrice={market.price}
+                    change={market.regularChange ?? null}
+                    changePercent={regularPct}
+                    extendedLabel={extendedLabel}
+                    extendedPrice={market.extendedPrice ?? null}
+                    extendedChange={market.extendedChange ?? null}
+                    extendedChangePercent={market.extendedChangePercent ?? null}
+                    extendedNoTrades={Boolean(market.extendedNoTrades)}
+                  />
+                </>
+              );
+              return (
+                <li key={market.ticker}>
+                  {href ? (
+                    <Link href={href} className="pulse-index-row" aria-label={label}>
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="pulse-index-row" aria-label={label}>
+                      {body}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </div>
       ) : null}
       {footer}
     </section>

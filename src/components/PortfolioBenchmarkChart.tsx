@@ -218,7 +218,7 @@ export function PortfolioBenchmarkChart({
 
   return (
     <section
-      className="pf-benchmark"
+      className="pf-benchmark surface-shell"
       aria-label="Book vs benchmark"
       aria-busy={!skipChart && status === "loading" ? true : undefined}
     >

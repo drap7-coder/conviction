@@ -123,9 +123,11 @@ export function MarketMoversBoard({
           {headerAction ? <div className="pulse-movers-action">{headerAction}</div> : null}
         </div>
       </div>
-      <div className="pulse-movers-grid">
-        <MoverColumn label="Top" rows={top} tone="up" emptyLabel={topEmptyLabel} />
-        <MoverColumn label="Bottom" rows={bottom} tone="down" emptyLabel={bottomEmptyLabel} />
+      <div className="surface-well pulse-movers-well">
+        <div className="pulse-movers-grid">
+          <MoverColumn label="Top" rows={top} tone="up" emptyLabel={topEmptyLabel} />
+          <MoverColumn label="Bottom" rows={bottom} tone="down" emptyLabel={bottomEmptyLabel} />
+        </div>
       </div>
       {footer}
     </section>
