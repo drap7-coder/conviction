@@ -351,9 +351,14 @@ html, body {
 }
 
 .watchlist-page .surface-slicer,
-.news-page .surface-slicer {
+.news-page .surface-slicer,
+.pulse-page .surface-slicer {
   width: 100%;
   max-width: 100%;
+}
+
+.pulse-page .pulse-view-slicer {
+  margin-bottom: 12px;
 }
 
 .ink-box-grid {

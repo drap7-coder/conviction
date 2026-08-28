@@ -13,7 +13,7 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Pulse",
     href: "/pulse",
-    blurb: "Indexes, market movers, commodities, and crypto in one daily scan.",
+    blurb: "Markets, sectors, and international boards — slicer at the top of the home screen.",
   },
   {
     name: "Watchlist",
@@ -35,16 +35,6 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
     href: "/smart-money",
     blurb: "Institution filings and political trades under Menu → More.",
   },
-  {
-    name: "Sectors",
-    href: "/sectors",
-    blurb: "U.S. sector ETF board — Technology through Utilities.",
-  },
-  {
-    name: "International",
-    href: "/international",
-    blurb: "Country ETFs for Japan, China, the UK, India, Taiwan, and Germany.",
-  },
 ];
 
 export type FaqItem = {
@@ -62,7 +52,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Pulse?",
     answer:
-      "Pulse is the home screen. It opens with VIX and 10Y gauges, then Major Indexes, Market Movers, Commodities, and Crypto so you can read the tape in one scroll.",
+      "Pulse is the home screen. Use the Markets / Sectors / International slicer at the top. Markets opens with VIX and 10Y gauges, then Major Indexes, Market Movers, Commodities, and Crypto. Sectors and International swap in their scoreboards without leaving Pulse.",
   },
   {
     question: "How is Watchlist different from Portfolio?",

@@ -33,13 +33,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/international`,
+      url: `${SITE_URL}/pulse?view=international`,
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.8,
     },
     {
-      url: `${SITE_URL}/sectors`,
+      url: `${SITE_URL}/pulse?view=sectors`,
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.8,
