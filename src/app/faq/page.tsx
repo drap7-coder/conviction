@@ -7,7 +7,7 @@ import styles from "../legal.module.css";
 export const metadata: Metadata = pageMetadata({
   title: "Q&A",
   description:
-    "Answers about CONVICTION today — Pulse, Watchlist, Portfolio, data sources, accounts, and Smart Money.",
+    "Answers about CONVICTION today — Pulse, Watchlist, Portfolio, data sources, accounts, Smart Money, and Crowd.",
   path: "/faq",
 });
 

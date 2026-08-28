@@ -1,0 +1,11 @@
+-- Optional reference: Crowd starter books are upserted at runtime by
+-- ensureCrowdSeedBooks() when DATABASE_URL is set (see src/lib/crowd/ensure-seeds.ts).
+-- This file documents the seed identity shape; running it manually is not required.
+--
+-- Seed users use stable ids: crowd-seed-01 … crowd-seed-10
+-- Emails: crowd-seed-NN@seed.gotconviction.internal (no OAuth accounts rows).
+
+-- Example (idempotent user insert):
+-- insert into users (id, name, email)
+-- values ('crowd-seed-01', 'Mega-cap growth', 'crowd-seed-01@seed.gotconviction.internal')
+-- on conflict (id) do update set name = excluded.name;

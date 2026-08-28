@@ -23,6 +23,7 @@ describe("SEO metadata", () => {
     expect(SITE_DESCRIPTION).toContain("watchlist");
     expect(SITE_DESCRIPTION).toContain("portfolio");
     expect(SITE_DESCRIPTION).toContain("smart-money");
+    expect(SITE_DESCRIPTION).toContain("Crowd");
     expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
     expect(SITE_DESCRIPTION).not.toContain("Ownership Signals");
     expect(SITE_URL).toMatch(/^https:\/\//);
@@ -64,6 +65,7 @@ describe("SEO metadata", () => {
     expect(urls).toContain(`${SITE_URL}/watchlist`);
     expect(urls).toContain(`${SITE_URL}/news`);
     expect(urls).toContain(`${SITE_URL}/smart-money`);
+    expect(urls).toContain(`${SITE_URL}/crowd`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=international`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=sectors`);
     expect(urls).toContain(`${SITE_URL}/about`);
@@ -117,6 +119,7 @@ describe("SEO metadata", () => {
       "src/app/pulse/layout.tsx",
       "src/app/news/layout.tsx",
       "src/app/smart-money/layout.tsx",
+      "src/app/crowd/layout.tsx",
       "src/app/international/layout.tsx",
       "src/app/sectors/layout.tsx",
       "src/app/watchlist/page.tsx",
@@ -134,6 +137,7 @@ describe("SEO metadata", () => {
     expect(read("src/app/not-found.tsx")).toContain("index: false");
     expect(read("src/app/pulse/page.tsx")).toContain('sr-only');
     expect(read("src/app/smart-money/page.tsx")).toContain('sr-only');
+    expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/page.tsx")).toContain("permanentRedirect");

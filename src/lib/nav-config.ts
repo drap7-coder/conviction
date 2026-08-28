@@ -1,4 +1,4 @@
-import { List, Briefcase, BarChart3, CircleHelp, Info, Landmark, LogIn, Newspaper, SlidersHorizontal, type LucideIcon } from "lucide-react";
+import { List, Briefcase, BarChart3, CircleHelp, Info, Landmark, LogIn, Newspaper, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
 export type NavGroup = "daily" | "more" | "about" | "account";
@@ -53,6 +53,14 @@ export const navPages: NavPage[] = [
     tone: "violet",
     group: "more",
     blurb: "Institution filings and political trades.",
+  },
+  {
+    href: "/crowd",
+    label: "Crowd",
+    icon: Users,
+    tone: "teal",
+    group: "more",
+    blurb: "Names members hold and watch most.",
   },
   {
     href: "/about",
