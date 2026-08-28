@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { fmtWeight } from "@/lib/display/format";
@@ -82,6 +83,14 @@ export function CrowdBoard() {
       ? (snapshot?.held ?? []).slice(0, 20)
       : (snapshot?.watched ?? []).slice(0, 20);
 
+  const maxShare = rows.reduce((max, row) => {
+    const pct =
+      view === "held"
+        ? (row as CrowdHoldingRank).holderPct
+        : (row as CrowdWatchRank).watcherPct;
+    return Math.max(max, pct);
+  }, 0);
+
   return (
     <div className="crowd-page-body">
       <SurfaceSlicer
@@ -91,18 +100,13 @@ export function CrowdBoard() {
         onChange={(id) => setView(id as CrowdView)}
       />
 
-      <section className="market-heatmap-shell crowd-board" aria-label="Crowd rankings">
-        <div className="market-heatmap-copy">
-          <div className="market-panel-header">
-            <h2>
-              {view === "held" ? "Most held" : "Most watched"}
-              {snapshot ? (
-                <span className="pulse-index-session" aria-label={bookMetaLine(snapshot)}>
-                  <i className="pulse-index-session-dot" aria-hidden="true" />
-                  {bookMetaLine(snapshot)}
-                </span>
-              ) : null}
-            </h2>
+      <section className="surface-shell crowd-board" aria-label="Crowd rankings">
+        <div className="crowd-board-head">
+          <div className="crowd-board-title">
+            <h2>{view === "held" ? "Most held" : "Most watched"}</h2>
+            {snapshot ? (
+              <p className="crowd-board-meta">{bookMetaLine(snapshot)}</p>
+            ) : null}
           </div>
         </div>
 
@@ -127,25 +131,35 @@ export function CrowdBoard() {
                 const watched = view === "watched" ? (row as CrowdWatchRank) : null;
                 const sharePct = held?.holderPct ?? watched?.watcherPct ?? 0;
                 const countLabel = held
-                  ? `${held.holderCount} of ${held.bookCount}`
-                  : `${watched?.watcherCount ?? 0} of ${watched?.listCount ?? 0}`;
+                  ? `${held.holderCount} of ${held.bookCount} books`
+                  : `${watched?.watcherCount ?? 0} of ${watched?.listCount ?? 0} lists`;
                 const avgWeight = held?.avgWeightPct ?? null;
                 const name = quote?.name ?? ticker;
+                const barWidth = maxShare > 0 ? Math.max(8, (sharePct / maxShare) * 100) : 0;
+                const topThree = index < 3;
                 const body = (
                   <>
-                    <span className="crowd-rank" aria-hidden="true">
+                    <span className={`crowd-rank${topThree ? " is-lead" : ""}`} aria-hidden="true">
                       {index + 1}
+                    </span>
+                    <span className="crowd-logo" aria-hidden="true">
+                      <LogoDisplay ticker={ticker} size="detail" />
                     </span>
                     <span className="crowd-id">
                       <strong>{ticker}</strong>
                       <small>{name}</small>
                     </span>
                     <span className="crowd-share">
-                      <strong>{fmtWeight(sharePct)}</strong>
-                      <small>
-                        {countLabel}
-                        {avgWeight !== null ? ` · avg ${fmtWeight(avgWeight)}` : ""}
-                      </small>
+                      <span className="crowd-share-top">
+                        <strong>{fmtWeight(sharePct)}</strong>
+                        <small>
+                          {countLabel}
+                          {avgWeight !== null ? ` · avg ${fmtWeight(avgWeight)}` : ""}
+                        </small>
+                      </span>
+                      <span className="crowd-share-track" aria-hidden="true">
+                        <i style={{ width: `${barWidth}%` }} />
+                      </span>
                     </span>
                     <SessionQuoteStack
                       lastPrice={quote?.price ?? null}
@@ -163,7 +177,7 @@ export function CrowdBoard() {
                 ].join(", ");
 
                 return (
-                  <li key={ticker}>
+                  <li key={ticker} className={topThree ? "is-lead" : undefined}>
                     {href ? (
                       <Link href={href} className="crowd-row" aria-label={aria}>
                         {body}
