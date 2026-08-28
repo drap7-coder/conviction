@@ -3301,28 +3301,6 @@ button.bottom-tab-item {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%94a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat center / contain;
 }
 
-.list-compose .ticker-capture-label {
-  color: var(--on-ink-quiet);
-}
-
-.list-compose .ticker-capture-btn {
-  border-color: var(--on-ink-border);
-  color: var(--on-ink);
-  background: color-mix(in srgb, #ffffff 8%, transparent);
-}
-
-.list-compose .ticker-capture-btn:hover:not(:disabled),
-.list-compose .ticker-capture-btn:focus-visible:not(:disabled) {
-  border-color: color-mix(in srgb, var(--on-ink-accent) 55%, transparent);
-  background: color-mix(in srgb, var(--on-ink-accent) 18%, transparent);
-}
-
-.list-compose .ticker-capture-btn.is-live {
-  border-color: color-mix(in srgb, var(--red) 55%, transparent);
-  color: #fecaca;
-  background: color-mix(in srgb, var(--red) 22%, transparent);
-}
-
 .list-compose-cta,
 .list-compose .watchlist-add-button {
   min-height: 44px;
@@ -20172,88 +20150,67 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   }
 }
 
-/* ── Ticker capture (voice always; camera on phones) ── */
+/* ── Inline voice mic inside ticker fields ── */
 
-.has-ticker-capture {
-  display: grid;
-  gap: 8px;
+.ticker-field-control {
+  position: relative;
   min-width: 0;
+  width: 100%;
 }
 
-.ticker-capture {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px 10px;
-  min-width: 0;
+.ticker-field-control > input.has-mic,
+input.has-mic {
+  padding-right: 42px;
 }
 
-.ticker-capture-label {
-  font-size: 0.72rem;
-  color: var(--muted);
-  letter-spacing: 0.01em;
-}
-
-.ticker-capture-actions {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
-.ticker-capture-file {
+.ticker-mic {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.ticker-capture-btn {
+  top: 50%;
+  right: 6px;
+  z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 6px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--card-soft) 88%, transparent);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transform: translateY(-50%);
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.ticker-capture-btn:hover:not(:disabled),
-.ticker-capture-btn:focus-visible:not(:disabled) {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+.ticker-mic:hover:not(:disabled),
+.ticker-mic:focus-visible:not(:disabled) {
+  color: var(--accent);
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   outline: none;
 }
 
-.ticker-capture-btn:disabled {
-  opacity: 0.45;
+.ticker-mic:disabled {
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.ticker-capture-btn.is-live {
-  border-color: color-mix(in srgb, var(--red) 50%, var(--border));
+.ticker-mic.is-live {
   color: var(--red);
-  background: color-mix(in srgb, var(--red) 12%, transparent);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
 }
 
-/* Camera is phone-first; voice shows on desktop too. */
-.ticker-capture-camera {
-  display: none;
+.list-compose .ticker-mic {
+  color: var(--on-ink-quiet);
 }
 
-@media (max-width: 720px), (pointer: coarse) {
-  .ticker-capture-camera {
-    display: inline-flex;
-  }
+.list-compose .ticker-mic:hover:not(:disabled),
+.list-compose .ticker-mic:focus-visible:not(:disabled) {
+  color: var(--on-ink);
+  background: color-mix(in srgb, var(--on-ink-accent) 18%, transparent);
+}
+
+.list-compose .ticker-mic.is-live {
+  color: #fecaca;
+  background: color-mix(in srgb, var(--red) 22%, transparent);
 }

@@ -22,19 +22,20 @@ describe("ticker capture parsing", () => {
   });
 });
 
-describe("mobile capture wiring", () => {
-  it("mounts labeled voice and camera actions under Manage compose fields", () => {
-    expect(read("src/components/TickerCaptureActions.tsx")).toContain("Or add with");
-    expect(read("src/components/TickerCaptureActions.tsx")).toContain("Add by voice");
-    expect(read("src/components/TickerCaptureActions.tsx")).toContain("Add from camera");
-    expect(read("src/components/TickerCaptureActions.tsx")).toContain("capture=\"environment\"");
-    expect(read("src/components/TickerCaptureActions.tsx")).toContain("ticker-capture-camera");
+describe("inline voice mic wiring", () => {
+  it("keeps a mic inside Manage ticker fields and drops camera", () => {
+    const capture = read("src/components/TickerCaptureActions.tsx");
+    expect(capture).toContain("Add by voice");
+    expect(capture).toContain("ticker-mic");
+    expect(capture).not.toContain("Camera");
+    expect(capture).not.toContain("recognizeImageText");
+    expect(capture).not.toContain("capture=\"environment\"");
+    expect(read("src/lib/ticker-capture-resolve.ts")).not.toContain("tesseract");
     expect(read("src/components/Watchlist.tsx")).toContain("TickerCaptureActions");
     expect(read("src/components/PortfolioManager.tsx")).toContain("TickerCaptureActions");
-    expect(read("src/components/CompanyTypeahead.tsx")).toContain("trailing");
-    expect(read("src/components/CompanyTypeahead.tsx")).not.toContain("ticker-input-row");
-    expect(read("src/app/globals.css")).toContain(".ticker-capture");
-    expect(read("src/app/globals.css")).toContain(".ticker-capture-camera");
-    expect(read("src/app/globals.css")).toContain("(pointer: coarse)");
+    expect(read("src/components/CompanyTypeahead.tsx")).toContain("ticker-field-control");
+    expect(read("src/components/CompanyTypeahead.tsx")).toContain("has-mic");
+    expect(read("src/app/globals.css")).toContain(".ticker-mic");
+    expect(read("src/app/globals.css")).not.toContain(".ticker-capture-camera");
   });
 });

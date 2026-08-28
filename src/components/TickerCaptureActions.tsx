@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Mic, Square } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import {
-  recognizeImageText,
   resolveCaptureText,
   type CaptureSuggestion,
 } from "@/lib/ticker-capture-resolve";
@@ -30,6 +29,7 @@ function getSpeechRecognition(): (new () => SpeechRecognitionLike) | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
+/** Inline mic control for Manage ticker fields (desktop + mobile). */
 export function TickerCaptureActions({
   disabled = false,
   onResolved,
@@ -37,23 +37,17 @@ export function TickerCaptureActions({
   onStatus,
 }: {
   disabled?: boolean;
-  /** Fired when voice/camera resolves to a company. */
   onResolved: (suggestion: CaptureSuggestion) => void;
-  /** Fill the typeahead when resolution is ambiguous. */
   onQuery?: (query: string) => void;
   onStatus?: (message: string | null) => void;
 }) {
   const [listening, setListening] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [supported, setSupported] = useState({ voice: false, camera: true });
+  const [supported, setSupported] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
-  const fileRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    setSupported({
-      voice: Boolean(getSpeechRecognition()),
-      camera: typeof window !== "undefined" && typeof FileReader !== "undefined",
-    });
+    setSupported(Boolean(getSpeechRecognition()));
     return () => {
       recognitionRef.current?.abort();
       recognitionRef.current = null;
@@ -64,9 +58,9 @@ export function TickerCaptureActions({
     onStatus?.(message);
   }
 
-  async function handleResolvedText(text: string, source: "voice" | "camera") {
+  async function handleResolvedText(text: string) {
     setBusy(true);
-    setStatus(source === "voice" ? "Matching…" : "Reading ticker…");
+    setStatus("Matching…");
     try {
       const result = await resolveCaptureText(text);
       if (result.suggestion) {
@@ -77,7 +71,7 @@ export function TickerCaptureActions({
       if (result.query) onQuery?.(result.query);
       setStatus(result.status || "Couldn’t match that — type the ticker.");
     } catch {
-      setStatus(source === "camera" ? "Couldn’t read that photo." : "Voice capture failed.");
+      setStatus("Voice capture failed.");
     } finally {
       setBusy(false);
     }
@@ -103,7 +97,7 @@ export function TickerCaptureActions({
         setStatus("Nothing heard — try again.");
         return;
       }
-      void handleResolvedText(transcript, "voice");
+      void handleResolvedText(transcript);
     };
     recognition.onerror = (event) => {
       setListening(false);
@@ -127,74 +121,19 @@ export function TickerCaptureActions({
     }
   }
 
-  async function onPhotoSelected(file: File | null) {
-    if (!file || disabled || busy) return;
-    setBusy(true);
-    setStatus("Reading photo…");
-    try {
-      const text = await recognizeImageText(file);
-      if (!text.trim()) {
-        setStatus("No text found — try a clearer shot of the ticker.");
-        return;
-      }
-      await handleResolvedText(text, "camera");
-    } catch {
-      setStatus("Couldn’t read that photo.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (!supported.voice && !supported.camera) return null;
+  if (!supported) return null;
 
   return (
-    <div className="ticker-capture" role="group" aria-label="Add by voice or camera">
-      <span className="ticker-capture-label">Or add with</span>
-      <div className="ticker-capture-actions">
-        {supported.voice ? (
-          <button
-            type="button"
-            className={`ticker-capture-btn${listening ? " is-live" : ""}`}
-            disabled={disabled || busy}
-            aria-pressed={listening}
-            aria-label={listening ? "Stop listening" : "Add by voice"}
-            title={listening ? "Stop" : "Voice"}
-            onClick={() => (listening ? stopListening() : startListening())}
-          >
-            {listening ? <Square size={15} aria-hidden /> : <Mic size={15} aria-hidden />}
-            <span>{listening ? "Listening…" : "Voice"}</span>
-          </button>
-        ) : null}
-        {supported.camera ? (
-          <>
-            <button
-              type="button"
-              className="ticker-capture-btn ticker-capture-camera"
-              disabled={disabled || busy}
-              aria-label="Add from camera"
-              title="Camera"
-              onClick={() => fileRef.current?.click()}
-            >
-              <Camera size={15} aria-hidden />
-              <span>Camera</span>
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="ticker-capture-file"
-              tabIndex={-1}
-              aria-hidden
-              onChange={(event) => {
-                const file = event.target.files?.[0] ?? null;
-                event.target.value = "";
-                void onPhotoSelected(file);
-              }}
-            />
-          </>
-        ) : null}
-      </div>
-    </div>
+    <button
+      type="button"
+      className={`ticker-mic${listening ? " is-live" : ""}`}
+      disabled={disabled || busy}
+      aria-pressed={listening}
+      aria-label={listening ? "Stop listening" : "Add by voice"}
+      title={listening ? "Stop" : "Voice"}
+      onClick={() => (listening ? stopListening() : startListening())}
+    >
+      {listening ? <Square size={15} aria-hidden /> : <Mic size={15} aria-hidden />}
+    </button>
   );
 }
