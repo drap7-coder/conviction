@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type ReactNode,
   type RefObject,
 } from "react";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
@@ -37,6 +38,7 @@ export function CompanyTypeahead({
   wrapperClassName,
   inputRef,
   autoCapitalize,
+  trailing = null,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -48,6 +50,8 @@ export function CompanyTypeahead({
   wrapperClassName?: string;
   inputRef?: RefObject<HTMLInputElement | null>;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  /** Optional controls beside the input (e.g. mobile voice/camera). */
+  trailing?: ReactNode;
 }) {
   const listboxId = useId();
   const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
@@ -149,28 +153,31 @@ export function CompanyTypeahead({
   const activeOptionId = activeIndex >= 0 ? `${listboxId}-${activeIndex}` : undefined;
 
   return (
-    <div className={wrapperClassName}>
-      <input
-        ref={inputRef}
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        onKeyDown={handleKeyDown}
-        onFocus={() => {
-          if (suggestions.length > 0 || status === "empty") setOpen(true);
-        }}
-        onBlur={() => window.setTimeout(() => setOpen(false), 120)}
-        placeholder={placeholder}
-        disabled={disabled}
-        className={className}
-        role="combobox"
-        aria-expanded={open}
-        aria-autocomplete="list"
-        aria-controls={open ? listboxId : undefined}
-        aria-activedescendant={activeOptionId}
-        autoCapitalize={autoCapitalize}
-        autoComplete="off"
-      />
+    <div className={[wrapperClassName, trailing ? "has-ticker-capture" : ""].filter(Boolean).join(" ")}>
+      <div className="ticker-input-row">
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onKeyDown={handleKeyDown}
+          onFocus={() => {
+            if (suggestions.length > 0 || status === "empty") setOpen(true);
+          }}
+          onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={className}
+          role="combobox"
+          aria-expanded={open}
+          aria-autocomplete="list"
+          aria-controls={open ? listboxId : undefined}
+          aria-activedescendant={activeOptionId}
+          autoCapitalize={autoCapitalize}
+          autoComplete="off"
+        />
+        {trailing}
+      </div>
       {open && status === "results" && suggestions.length > 0 ? (
         <ul id={listboxId} className="ticker-suggestions" role="listbox">
           {suggestions.map((suggestion, index) => (

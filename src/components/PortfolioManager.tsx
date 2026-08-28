@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
+import { TickerCaptureActions } from "@/components/TickerCaptureActions";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -247,6 +248,18 @@ export function PortfolioManager() {
             placeholder="AAPL or Apple"
             wrapperClassName="data-manager-typeahead"
             autoCapitalize="characters"
+            trailing={(
+              <TickerCaptureActions
+                disabled={saving || resolving}
+                onResolved={(suggestion) => {
+                  setTicker(suggestion.ticker);
+                  setAddError(null);
+                  sharesInputRef.current?.focus();
+                }}
+                onQuery={(query) => setTicker(query)}
+                onStatus={(message) => setAddError(message)}
+              />
+            )}
           />
         </label>
         <label>

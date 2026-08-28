@@ -23,7 +23,7 @@ export default async function ManagePage() {
       <header className="data-manage-hero">
         <span>Your data</span>
         <h1>Manage</h1>
-        <p>Edit one list at a time. Keep Watchlist and Portfolio focused on what matters now.</p>
+        <p>Edit one list at a time. On phones you can also add by voice or camera.</p>
         <GuestModeBanner
           authenticated={Boolean(session?.user)}
           authConfigured={isAuthConfigured()}
