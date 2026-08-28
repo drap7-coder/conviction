@@ -23,14 +23,18 @@ describe("ticker capture parsing", () => {
 });
 
 describe("mobile capture wiring", () => {
-  it("mounts voice and camera actions on Manage watchlist and portfolio compose", () => {
+  it("mounts labeled voice and camera actions under Manage compose fields", () => {
+    expect(read("src/components/TickerCaptureActions.tsx")).toContain("Or add with");
     expect(read("src/components/TickerCaptureActions.tsx")).toContain("Add by voice");
     expect(read("src/components/TickerCaptureActions.tsx")).toContain("Add from camera");
     expect(read("src/components/TickerCaptureActions.tsx")).toContain("capture=\"environment\"");
+    expect(read("src/components/TickerCaptureActions.tsx")).toContain("ticker-capture-camera");
     expect(read("src/components/Watchlist.tsx")).toContain("TickerCaptureActions");
     expect(read("src/components/PortfolioManager.tsx")).toContain("TickerCaptureActions");
     expect(read("src/components/CompanyTypeahead.tsx")).toContain("trailing");
+    expect(read("src/components/CompanyTypeahead.tsx")).not.toContain("ticker-input-row");
     expect(read("src/app/globals.css")).toContain(".ticker-capture");
+    expect(read("src/app/globals.css")).toContain(".ticker-capture-camera");
     expect(read("src/app/globals.css")).toContain("(pointer: coarse)");
   });
 });
