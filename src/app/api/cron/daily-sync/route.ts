@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireCronSecret } from "@/lib/api/cron-auth";
 
 /**
  * GET /api/cron/daily-sync
@@ -11,9 +12,8 @@ import { NextRequest, NextResponse } from "next/server";
  * This endpoint is idempotent: repeated calls within the same day
  * will only insert new transactions not previously seen.
  *
- * Security: Protected by CRON_SECRET environment variable.
- * Requests without a valid `Authorization: Bearer <CRON_SECRET>` header
- * are rejected. This prevents unauthorized triggering of full syncs.
+ * Security: Fail-closed on `CRON_SECRET`. Requests without a valid
+ * `Authorization: Bearer <CRON_SECRET>` header are rejected.
  *
  * For external schedulers (e.g., cron-job.org, GitHub Actions):
  * Send header: Authorization: Bearer ${CRON_SECRET}
@@ -24,17 +24,10 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
-  // CRON_SECRET verification
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const auth = request.headers.get("authorization") || "";
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized — provide a valid CRON_SECRET" },
-        { status: 401 },
-      );
-    }
-  }
+  const denied = requireCronSecret(request);
+  if (denied) return denied;
+
+  const cronSecret = process.env.CRON_SECRET!.trim();
 
   try {
     const origin = process.env.VERCEL_URL
@@ -43,7 +36,10 @@ export async function GET(request: NextRequest) {
 
     const response = await fetch(`${origin}/api/evidence/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${cronSecret}`,
+      },
       body: JSON.stringify({}),
     });
 

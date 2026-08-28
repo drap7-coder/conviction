@@ -1,12 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getStoredTransactions, getAllTrackedTickers, getAllDedupKeys } from "@/lib/sec/persist";
 import { getSyncLog } from "@/lib/sync/sync-log";
 import { SYNC_CONFIG } from "@/lib/sync/sync-config";
 import { getWatchlist, isKvEnabled } from "@/lib/watchlist/persist";
+import { requireAdminAccess } from "@/lib/api/cron-auth";
 
 /**
  * GET /api/admin/resources
  * Lightweight resource dashboard.
+ *
+ * Auth: `Authorization: Bearer <CRON_SECRET>` or a signed-in session
+ * when AUTH_SECRET is configured.
  *
  * Reports:
  * - Database row counts by ticker
@@ -19,7 +23,10 @@ import { getWatchlist, isKvEnabled } from "@/lib/watchlist/persist";
  */
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await requireAdminAccess(request);
+  if (denied) return denied;
+
   const tickers = await getAllTrackedTickers();
   const syncLog = getSyncLog();
   const watchlistEntries = await getWatchlist();

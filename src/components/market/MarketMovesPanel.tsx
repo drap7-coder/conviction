@@ -7,9 +7,7 @@ import type { StockHistoryPoint } from "@/lib/market/quotes";
 import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
-import { PulseDecisionCard } from "@/components/market/PulseDecisionCard";
 import { MarketMoversBoard } from "@/components/market/MarketMoversBoard";
-import { buildMomentumBrief } from "@/lib/market/pulse-brief";
 import { splitMarketMovers } from "@/lib/market/market-movers";
 
 interface TrendingCompany {
@@ -22,12 +20,7 @@ interface TrendingCompany {
   activityLabel: string;
 }
 
-export function MarketMovesPanel({
-  showDecisionCard = true,
-}: {
-  /** When false, skip the stacked momentum brief (Pulse Trending already has breadth). */
-  showDecisionCard?: boolean;
-}) {
+export function MarketMovesPanel() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
   const [requestKey, setRequestKey] = useState(0);
@@ -89,17 +82,6 @@ export function MarketMovesPanel({
     );
   }
 
-  const momentumBrief = showDecisionCard
-    ? buildMomentumBrief(trending.map((idea) => {
-        const live = getLivePrice(idea.quote);
-        return {
-          ticker: idea.ticker,
-          companyName: idea.companyName,
-          changePercent: live.changePercent,
-        };
-      }))
-    : null;
-
   const movers = splitMarketMovers(
     trending.map((idea) => {
       const quote = idea.quote;
@@ -133,8 +115,6 @@ export function MarketMovesPanel({
 
   return (
     <div className="market-moves-panel">
-      {momentumBrief ? <PulseDecisionCard brief={momentumBrief} compact /> : null}
-
       <MarketMoversBoard
         title="Market Movers"
         top={movers.top}
