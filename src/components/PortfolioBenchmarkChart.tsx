@@ -206,7 +206,7 @@ export function PortfolioBenchmarkChart({
     }
     return (
       <>
-        <MacroChainChart series={series} title="" subtitle={RANGE_SUBTITLE[range]} />
+        <MacroChainChart series={series} title="" subtitle={RANGE_SUBTITLE[range]} depth />
         {takeaway ? (
           <p className={`pf-benchmark-takeaway${takeawayTone ? ` is-${takeawayTone}` : ""}`}>
             {takeaway}
