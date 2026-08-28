@@ -15,16 +15,17 @@ import {
 import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 
-type PulseView = "markets" | "sectors" | "international";
+type PulseView = "markets" | "sectors" | "international" | "crypto";
 
 const PULSE_VIEWS: SurfaceSlicerOption[] = [
   { id: "markets", label: "Markets" },
   { id: "sectors", label: "Sectors" },
-  { id: "international", label: "International" },
+  { id: "international", label: "Intl" },
+  { id: "crypto", label: "Crypto" },
 ];
 
 function parsePulseView(value: string | null | undefined): PulseView {
-  if (value === "sectors" || value === "international") return value;
+  if (value === "sectors" || value === "international" || value === "crypto") return value;
   return "markets";
 }
 
@@ -41,6 +42,13 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
     regularChange: sector.change ?? null,
     regularChangePercent: sector.changePercent,
   }));
+}
+
+function pulseHeading(view: PulseView): string {
+  if (view === "sectors") return "Sectors";
+  if (view === "international") return "International";
+  if (view === "crypto") return "Crypto";
+  return "Pulse";
 }
 
 function PulsePageInner() {
@@ -93,12 +101,9 @@ function PulsePageInner() {
   const internationalMarkets = marketsByCategory("International");
   const sectorMarkets = sectorsToMarkets(data?.sectors ?? []);
 
-  const heading =
-    view === "sectors" ? "Sectors" : view === "international" ? "International" : "Pulse";
-
   return (
     <main className="markets-page pulse-page">
-      <h1 className="sr-only">{heading}</h1>
+      <h1 className="sr-only">{pulseHeading(view)}</h1>
 
       <SurfaceSlicer
         label="Pulse market view"
@@ -132,11 +137,6 @@ function PulsePageInner() {
             <MarketMovesPanel />
           </section>
           <CommodityScoreboard markets={commodities} />
-
-          <div className="pulse-more-markets" aria-label="More markets">
-            <p className="pulse-more-markets-label">More markets</p>
-            <CryptoBoard markets={cryptoMarkets} />
-          </div>
         </>
       ) : null}
 
@@ -149,6 +149,10 @@ function PulsePageInner() {
 
       {data && view === "international" ? (
         <InternationalScoreboard markets={internationalMarkets} />
+      ) : null}
+
+      {data && view === "crypto" ? (
+        <CryptoBoard markets={cryptoMarkets} />
       ) : null}
     </main>
   );

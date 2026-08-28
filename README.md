@@ -18,7 +18,7 @@ FMP_API_KEY=your_key_here
 
 ## Product surfaces
 
-- **Pulse** — Indexes, movers, commodities, crypto (Sectors / International via top slicer)
+- **Pulse** — Indexes, movers, commodities (Sectors / Intl / Crypto via top slicer)
 - **Crowd** — Most held / most watched across member books
 - **Portfolio** — Live book, Watchlist, and Study templates (top slicer)
 - **News** — Featured brief and themes
