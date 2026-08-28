@@ -20142,3 +20142,77 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
     text-align: left;
   }
 }
+
+/* ── Mobile ticker capture (voice + camera) ── */
+
+.ticker-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  width: 100%;
+}
+
+.ticker-input-row > input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ticker-capture {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ticker-capture-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ticker-capture-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card-soft) 80%, transparent);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ticker-capture-btn:hover:not(:disabled),
+.ticker-capture-btn:focus-visible:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  outline: none;
+}
+
+.ticker-capture-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ticker-capture-btn.is-live {
+  border-color: color-mix(in srgb, var(--red) 50%, var(--border));
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 12%, transparent);
+}
+
+.has-ticker-capture.watchlist-input-wrap::before {
+  /* Keep search glyph aligned to the text field, not the capture buttons. */
+  top: 22px;
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .ticker-capture {
+    display: inline-flex;
+  }
+}

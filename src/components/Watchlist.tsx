@@ -8,6 +8,7 @@ import type { StockQuote } from "@/lib/market/types";
 import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
+import { TickerCaptureActions } from "@/components/TickerCaptureActions";
 import {
   MarketMoversBoard,
   sessionLabelFromQuotes,
@@ -343,6 +344,20 @@ export default function Watchlist({
           className="watchlist-input"
           wrapperClassName="watchlist-input-wrap"
           inputRef={addInputRef}
+          trailing={(
+            <TickerCaptureActions
+              disabled={adding}
+              onResolved={(suggestion) => {
+                setAddInput("");
+                setSearchResult(null);
+                void handleAddValue(suggestion.ticker);
+              }}
+              onQuery={(query) => setAddInput(query)}
+              onStatus={(message) => {
+                setSearchResult(message ? { type: "unrecognized", text: message } : null);
+              }}
+            />
+          )}
         />
         <button
           onClick={handleAdd}
