@@ -27,6 +27,7 @@ describe("portfolio Book vs Benchmark ranges", () => {
     const fit = read("src/lib/portfolio/fit.ts");
     const portfolio = read("src/components/Portfolio.tsx");
     const css = read("src/app/portfolio.css");
+    const macro = read("src/components/market/MacroChainChart.tsx");
 
     expect(fit).toContain("PROFILE_BENCHMARK");
     expect(fit).toContain('ticker: "QQQ"');
@@ -35,9 +36,13 @@ describe("portfolio Book vs Benchmark ranges", () => {
     expect(chart).toContain("fetchHistory(benchTicker");
     expect(chart).toContain("pf-benchmark-compare");
     expect(chart).toContain("children");
+    expect(chart).toContain("depth");
+    expect(macro).toContain("AreaChart");
+    expect(macro).toContain("market-macro-chart--depth");
     expect(portfolio).toContain("PROFILE_BENCHMARK[profile]");
     expect(portfolio).toContain("benchmarkTicker={benchmark.ticker}");
     expect(css).toContain(".pf-benchmark-compare");
+    expect(css).toContain("market-macro-chart--depth");
     expect(css).toMatch(/\.pf-benchmark-compare[\s\S]*border-top:\s*1px solid var\(--divider\)/);
   });
 });

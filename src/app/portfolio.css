@@ -1118,10 +1118,26 @@
   font-family: var(--font-mono);
 }
 
+.portfolio-page .pf-benchmark .market-macro-chart--depth {
+  height: clamp(240px, 38vw, 300px);
+  margin: 4px 0 12px;
+}
+
+.portfolio-page .pf-benchmark .market-legend {
+  gap: 10px 18px;
+  font-size: 0.64rem;
+}
+
+.portfolio-page .pf-benchmark .market-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
 .portfolio-page .pf-benchmark-skeleton {
-  height: 168px;
+  height: clamp(240px, 38vw, 300px);
   margin: 12px 0 4px;
-  border-radius: 12px;
+  border-radius: 14px;
   background:
     linear-gradient(90deg, var(--card-soft) 0%, #161d28 50%, var(--card-soft) 100%);
   background-size: 200% 100%;

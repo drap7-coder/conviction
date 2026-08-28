@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import {
+  Area,
+  AreaChart,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -64,11 +66,15 @@ export function MacroChainChart({
   series,
   title = "Macro Chain",
   subtitle = "Last 15 points · normalized 0–100",
+  /** Soft gradient fills under each line + taller stroke for portfolio depth. */
+  depth = false,
 }: {
   series: MacroChainSeries[];
   title?: string;
   subtitle?: string;
+  depth?: boolean;
 }) {
+  const reactId = useId().replace(/:/g, "");
   const data = useMemo(() => {
     const normalized = series.map((item) => normalize(item.values));
     const length = Math.max(...normalized.map((points) => points.length), 0);
@@ -83,8 +89,75 @@ export function MacroChainChart({
     });
   }, [series]);
 
+  const chartBody =
+    data.length > 1 && series.length > 0 ? (
+      <ResponsiveContainer width="100%" height="100%">
+        {depth ? (
+          <AreaChart data={data} margin={{ top: 12, right: 2, bottom: 4, left: 2 }}>
+            <defs>
+              {series.map((item) => (
+                <linearGradient
+                  key={item.key}
+                  id={`macro-fill-${reactId}-${item.key}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={item.color} stopOpacity={0.42} />
+                  <stop offset="55%" stopColor={item.color} stopOpacity={0.12} />
+                  <stop offset="100%" stopColor={item.color} stopOpacity={0} />
+                </linearGradient>
+              ))}
+            </defs>
+            <YAxis hide domain={[0, 100]} />
+            <Tooltip content={<MacroTooltip />} />
+            {series.map((item) => (
+              <Area
+                key={item.key}
+                type="monotone"
+                dataKey={item.key}
+                name={item.label}
+                stroke={item.color}
+                strokeWidth={2.75}
+                fill={`url(#macro-fill-${reactId}-${item.key})`}
+                fillOpacity={1}
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 0 }}
+                connectNulls
+                isAnimationActive={false}
+              />
+            ))}
+          </AreaChart>
+        ) : (
+          <LineChart data={data} margin={{ top: 8, right: 4, bottom: 8, left: 4 }}>
+            <YAxis hide domain={[0, 100]} />
+            <Tooltip content={<MacroTooltip />} />
+            {series.map((item) => (
+              <Line
+                key={item.key}
+                type="monotone"
+                dataKey={item.key}
+                name={item.label}
+                stroke={item.color}
+                strokeWidth={2}
+                dot={false}
+                connectNulls
+                isAnimationActive={false}
+              />
+            ))}
+          </LineChart>
+        )}
+      </ResponsiveContainer>
+    ) : (
+      <div className="market-chart-empty">Intraday history unavailable.</div>
+    );
+
   return (
-    <section className="market-panel market-macro-panel" aria-label={title || "Macro chain"}>
+    <section
+      className={`market-panel market-macro-panel${depth ? " market-macro-panel--depth" : ""}`}
+      aria-label={title || "Macro chain"}
+    >
       {title.trim() || subtitle.trim() ? (
         <div className="market-panel-header">
           <div>
@@ -93,30 +166,8 @@ export function MacroChainChart({
           </div>
         </div>
       ) : null}
-      <div className="market-macro-chart">
-        {data.length > 1 && series.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ top: 8, right: 4, bottom: 8, left: 4 }}>
-              <YAxis hide domain={[0, 100]} />
-              <Tooltip content={<MacroTooltip />} />
-              {series.map((item) => (
-                <Line
-                  key={item.key}
-                  type="monotone"
-                  dataKey={item.key}
-                  name={item.label}
-                  stroke={item.color}
-                  strokeWidth={2}
-                  dot={false}
-                  connectNulls
-                  isAnimationActive={false}
-                />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="market-chart-empty">Intraday history unavailable.</div>
-        )}
+      <div className={`market-macro-chart${depth ? " market-macro-chart--depth" : ""}`}>
+        {chartBody}
       </div>
       {series.length > 0 ? (
         <div className="market-legend">
