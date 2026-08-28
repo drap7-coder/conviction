@@ -35,6 +35,8 @@ import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadde
 import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
+import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
+import Watchlist from "@/components/Watchlist";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import {
@@ -339,6 +341,20 @@ function SampleBooksSwitcher({
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
+type PortfolioView = "live" | "watchlist" | "study";
+
+const PORTFOLIO_VIEWS: SurfaceSlicerOption[] = [
+  { id: "live", label: "Live" },
+  { id: "watchlist", label: "Watchlist" },
+  { id: "study", label: "Study" },
+];
+
+function parsePortfolioView(searchParams: URLSearchParams): PortfolioView {
+  if (searchParams.get("mode") === "study") return "study";
+  if (searchParams.get("view") === "watchlist") return "watchlist";
+  return "live";
+}
+
 export default function Portfolio() {
   const {
     quotes,
@@ -349,7 +365,7 @@ export default function Portfolio() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const mode: "live" | "study" = searchParams.get("mode") === "study" ? "study" : "live";
+  const view = parsePortfolioView(searchParams);
   const templateId = searchParams.get("template") || PORTFOLIO_TEMPLATE_DEFAULT;
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
@@ -659,14 +675,29 @@ export default function Portfolio() {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("mode");
     params.delete("template");
+    params.delete("view");
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   }
+  function goWatchlist() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("mode");
+    params.delete("template");
+    params.set("view", "watchlist");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
   function goStudy(template?: string) {
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("view");
     params.set("mode", "study");
     params.set("template", template ?? templateId);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
+  function selectView(next: PortfolioView) {
+    if (next === "live") goLive();
+    else if (next === "watchlist") goWatchlist();
+    else goStudy();
   }
 
   const sectorMixCard = hasData && !calcFailed && sectorMixData.length > 0 ? (
@@ -779,29 +810,21 @@ export default function Portfolio() {
 
   return (
     <div className="pf">
-      <div className="pf-mode-switch" role="tablist" aria-label="Portfolio mode">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === "live"}
-          className={`pf-mode-tab${mode === "live" ? " is-active" : ""}`}
-          onClick={goLive}
-        >
-          <span className="pf-mode-dot" aria-hidden="true" />
-          Live Portfolio
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === "study"}
-          className={`pf-mode-tab${mode === "study" ? " is-active" : ""}`}
-          onClick={() => goStudy()}
-        >
-          Study Mode
-        </button>
-      </div>
+      <SurfaceSlicer
+        label="Portfolio view"
+        options={PORTFOLIO_VIEWS}
+        activeId={view}
+        onChange={(id) => selectView(id as PortfolioView)}
+        className="pf-view-slicer"
+      />
 
-      {mode === "study" ? studyRegion : (
+      {view === "watchlist" ? (
+        <div className="pf-watchlist">
+          <Watchlist />
+        </div>
+      ) : view === "study" ? (
+        studyRegion
+      ) : (
       <>
       {hasData ? (
         <>

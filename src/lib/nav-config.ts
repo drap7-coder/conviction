@@ -1,4 +1,4 @@
-import { List, Briefcase, BarChart3, CircleHelp, Info, Landmark, LogIn, Newspaper, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
+import { Briefcase, BarChart3, CircleHelp, Info, Landmark, LogIn, Newspaper, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
 export type NavGroup = "daily" | "more" | "about" | "account";
@@ -23,12 +23,12 @@ export const navPages: NavPage[] = [
     blurb: "Markets, sectors, and international boards in one place.",
   },
   {
-    href: "/watchlist",
-    label: "Watchlist",
-    icon: List,
+    href: "/crowd",
+    label: "Crowd",
+    icon: Users,
     tone: "teal",
     group: "daily",
-    blurb: "The names you follow.",
+    blurb: "Names members hold and watch most.",
   },
   {
     href: "/portfolio",
@@ -36,7 +36,7 @@ export const navPages: NavPage[] = [
     icon: Briefcase,
     tone: "blue",
     group: "daily",
-    blurb: "The live book and Study templates.",
+    blurb: "Live book, Watchlist, and Study templates.",
   },
   {
     href: "/news",
@@ -53,14 +53,6 @@ export const navPages: NavPage[] = [
     tone: "violet",
     group: "more",
     blurb: "Institution filings and political trades.",
-  },
-  {
-    href: "/crowd",
-    label: "Crowd",
-    icon: Users,
-    tone: "teal",
-    group: "more",
-    blurb: "Names members hold and watch most.",
   },
   {
     href: "/about",

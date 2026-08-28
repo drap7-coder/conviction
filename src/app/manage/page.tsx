@@ -34,7 +34,7 @@ export default async function ManagePage() {
       <ManageWorkspace />
 
       <footer className="data-manage-backlinks">
-        <Link href="/watchlist">View Watchlist</Link>
+        <Link href="/portfolio?view=watchlist">View Watchlist</Link>
         <Link href="/portfolio">View Portfolio</Link>
       </footer>
     </main>

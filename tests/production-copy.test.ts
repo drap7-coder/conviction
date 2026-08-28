@@ -24,8 +24,12 @@ describe("production copy and fixture isolation", () => {
   it("keeps Live Portfolio as the default, and Study Mode on design briefs", () => {
     const portfolio = read("src/components/Portfolio.tsx");
 
-    expect(portfolio).toContain('searchParams.get("mode") === "study" ? "study" : "live"');
-    expect(portfolio).toContain("Live Portfolio");
+    expect(portfolio).toContain("parsePortfolioView");
+    expect(portfolio).toContain('id: "live"');
+    expect(portfolio).toContain('id: "watchlist"');
+    expect(portfolio).toContain('id: "study"');
+    expect(portfolio).toContain("SurfaceSlicer");
+    expect(portfolio).toContain("<Watchlist");
     expect(portfolio).not.toContain("PortfolioCheckPanel");
     expect(portfolio).toContain("getStudyBrief");
     expect(portfolio).toContain("How it’s built");

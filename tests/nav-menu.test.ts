@@ -14,28 +14,30 @@ function read(path: string) {
 }
 
 describe("site menu nav", () => {
-  it("keeps daily tabs to Pulse, Watchlist, Portfolio, and News", () => {
+  it("keeps daily tabs to Pulse, Crowd, Portfolio, and News", () => {
     expect(primaryNavTabs.map((tab) => tab.href)).toEqual([
       "/pulse",
-      "/watchlist",
+      "/crowd",
       "/portfolio",
       "/news",
     ]);
     expect(navTabs).toEqual(primaryNavTabs);
     expect(primaryNavTabs.some((tab) => tab.href === "/smart-money")).toBe(false);
+    expect(primaryNavTabs.some((tab) => tab.href === "/watchlist")).toBe(false);
+    expect(primaryNavTabs.some((tab) => tab.href === "/crowd")).toBe(true);
   });
 
-  it("puts Smart Money, Crowd, About, Q&A, data management, and authentication in Menu — not Sectors/International", () => {
+  it("puts Smart Money, About, Q&A, data management, and authentication in Menu — not Watchlist/Sectors/International", () => {
     expect(menuNavPages.map((page) => page.href)).toEqual([
       "/smart-money",
-      "/crowd",
       "/about",
       "/faq",
       "/manage",
       "/signin",
     ]);
     expect(navPages.some((page) => page.href === "/smart-money" && page.group === "more")).toBe(true);
-    expect(navPages.some((page) => page.href === "/crowd" && page.group === "more")).toBe(true);
+    expect(navPages.some((page) => page.href === "/crowd" && page.group === "daily")).toBe(true);
+    expect(navPages.some((page) => page.href === "/watchlist")).toBe(false);
     expect(navPages.some((page) => page.href === "/sectors")).toBe(false);
     expect(navPages.some((page) => page.href === "/international")).toBe(false);
     expect(navPages.some((page) => page.href === "/about" && page.group === "about")).toBe(true);
@@ -47,7 +49,8 @@ describe("site menu nav", () => {
     expect(read("src/app/globals.css")).toContain("inset: 0");
     expect(read("src/app/globals.css")).not.toContain("max-height: min(72vh, 560px)");
     expect(isOverflowNavPath("/smart-money")).toBe(true);
-    expect(isOverflowNavPath("/crowd")).toBe(true);
+    expect(isOverflowNavPath("/crowd")).toBe(false);
+    expect(isOverflowNavPath("/watchlist")).toBe(false);
     expect(isOverflowNavPath("/sectors")).toBe(false);
     expect(isOverflowNavPath("/international")).toBe(false);
     expect(isOverflowNavPath("/about")).toBe(true);
@@ -57,7 +60,7 @@ describe("site menu nav", () => {
     expect(isOverflowNavPath("/pulse")).toBe(false);
   });
 
-  it("renders Menu as the fifth chrome item, not a Smart Money or Crowd tab", () => {
+  it("renders Menu as the fifth chrome item, with Crowd on the tab bar and Watchlist off it", () => {
     const bar = read("src/components/BottomTabBar.tsx");
     expect(bar).toContain('aria-label="Menu"');
     expect(bar).toContain(">Menu</span>");
@@ -66,8 +69,10 @@ describe("site menu nav", () => {
     expect(bar).toContain("isOverflowNavPath");
     expect(bar).not.toMatch(/href=\{href\}[\s\S]*Smart Money/);
     expect(bar).not.toContain('href: "/smart-money"');
-    expect(bar).not.toContain('href: "/crowd"');
-    expect(primaryNavTabs.some((tab) => tab.href === "/crowd")).toBe(false);
+    expect(bar).not.toContain('href: "/watchlist"');
+    expect(read("src/components/Portfolio.tsx")).toContain('id: "watchlist"');
+    expect(read("src/components/Portfolio.tsx")).toContain("SurfaceSlicer");
+    expect(read("src/app/watchlist/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/globals.css")).toContain(".site-menu");
   });
 });

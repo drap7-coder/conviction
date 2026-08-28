@@ -38,7 +38,7 @@ export function WatchlistTrackControl({
   if (tracked) {
     return (
       <Link
-        href="/watchlist"
+        href="/portfolio?view=watchlist"
         className={className}
         aria-label={`${ticker} is on your watchlist`}
         title="On your watchlist"

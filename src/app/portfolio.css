@@ -72,49 +72,13 @@
   background: var(--card-inset);
 }
 
-/* ── Mode switch (Live / Study) ── */
-.portfolio-page .pf-mode-switch {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px;
+/* ── View slicer (Live / Watchlist / Study) ── */
+.portfolio-page .pf-view-slicer {
   margin: 0 0 14px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--card-soft);
 }
 
-.portfolio-page .pf-mode-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 16px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.portfolio-page .pf-mode-tab.is-active {
-  background: var(--accent-dim);
-  color: var(--ink);
-}
-
-.portfolio-page .pf-mode-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--quiet);
-}
-
-.portfolio-page .pf-mode-tab.is-active .pf-mode-dot {
-  background: var(--accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+.portfolio-page .pf-watchlist {
+  min-width: 0;
 }
 
 /* ── Empty state ── */
@@ -626,17 +590,6 @@
 }
 
 @media (max-width: 720px) {
-  .portfolio-page .pf-mode-switch {
-    display: flex;
-    width: 100%;
-  }
-
-  .portfolio-page .pf-mode-tab {
-    flex: 1;
-    justify-content: center;
-    padding: 8px 10px;
-  }
-
   .portfolio-page .pf-study-book {
     padding: 14px 12px 12px;
   }

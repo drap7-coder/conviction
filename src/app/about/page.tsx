@@ -11,7 +11,7 @@ import styles from "../legal.module.css";
 export const metadata: Metadata = pageMetadata({
   title: "About",
   description:
-    "What CONVICTION is today: a daily market workspace for Pulse, Watchlist, Portfolio, News, Sectors, International, Smart Money, and Crowd.",
+    "What CONVICTION is today: a daily market workspace for Pulse, Crowd, Portfolio (with Watchlist), News, Sectors, International, and Smart Money.",
   path: "/about",
 });
 

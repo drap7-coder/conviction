@@ -15,10 +15,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: `${SITE_URL}/crowd`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.9,
+    },
+    {
       url: `${SITE_URL}/watchlist`,
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.9,
+    },
+    {
+      url: `${SITE_URL}/portfolio?view=watchlist`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.85,
     },
     {
       url: `${SITE_URL}/news`,
@@ -31,12 +43,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: now,
       changeFrequency: "hourly",
       priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/crowd`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.8,
     },
     {
       url: `${SITE_URL}/pulse?view=international`,

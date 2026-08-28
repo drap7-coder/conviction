@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Watchlist from "@/components/Watchlist";
 
 /**
- * Watchlist page shell. Portfolio lives on its own `/portfolio` tab now.
+ * Watchlist board shell — also embedded on Portfolio (`?view=watchlist`).
  */
 export default function MyListShell({ publicFeed }: { publicFeed?: ReactNode }) {
   return (
