@@ -55,7 +55,7 @@ export default function MarketPulsePage() {
             sessionLabel={data.sessionLabel}
           />
           <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
-            <MarketMovesPanel showDecisionCard={false} />
+            <MarketMovesPanel />
           </section>
           <CommodityScoreboard markets={commodities} />
 

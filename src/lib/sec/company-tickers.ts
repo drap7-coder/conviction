@@ -97,7 +97,6 @@ export async function getCompanyTickerDataset(): Promise<CompanyTickerDataset> {
 
   cached = { byTicker, byName, fetchedAt: new Date().toISOString(), count: byTicker.size };
   cachedAt = Date.now();
-  console.log(`[companyTickers] ${cached.count} entries loaded`);
   return cached;
 }
 

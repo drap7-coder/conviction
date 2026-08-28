@@ -7,6 +7,10 @@ import { NextRequest, NextResponse } from "next/server";
  * Reads from the persisted watchlist. If no ticker is specified, syncs the
  * least-recently-synced active tickers first, up to MAX_COMPANIES_PER_SYNC.
  *
+ * Auth:
+ * - Full sync (no ticker): requires `Authorization: Bearer <CRON_SECRET>`
+ * - Single ticker: open for company-page refresh (bounded by SYNC_CONFIG)
+ *
  * All limits bounded by sync-config.ts:
  * - Maximum 10 companies per sync
  * - Maximum 30 filings per company
@@ -26,13 +30,21 @@ import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
 import { recordSync } from "@/lib/sync/sync-log";
 import { getWatchlistSortedBySyncPriority, updateWatchlistSync } from "@/lib/watchlist/persist";
 import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
+import { requireCronSecret } from "@/lib/api/cron-auth";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
-  const ticker: string | undefined = body.ticker;
+  const ticker: string | undefined = typeof body.ticker === "string" ? body.ticker.trim() : undefined;
+
+  // Full watchlist sync is cron/ops only. Single-ticker refresh stays open for
+  // company-page guests (still bounded by SYNC_CONFIG).
+  if (!ticker) {
+    const denied = requireCronSecret(request);
+    if (denied) return denied;
+  }
 
   const startTime = Date.now();
   const results: Record<string, {
