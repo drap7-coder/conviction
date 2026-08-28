@@ -4,10 +4,10 @@
  */
 
 export const PRODUCT_ONE_LINER =
-  "Your daily market workspace — Pulse, Watchlist, Portfolio, News, Smart Money, and Crowd.";
+  "Your daily market workspace — Pulse, Crowd, Portfolio (with Watchlist), News, and Smart Money.";
 
 export const PRODUCT_ABOUT_LEDE =
-  "CONVICTION organizes the stock market around how you actually look at it: the tape first, then the names you follow, the book you own, the stories that matter, filings from institutions and lawmakers, and what members hold together.";
+  "CONVICTION organizes the stock market around how you actually look at it: the tape first, what members hold together, the book and names you follow, the stories that matter, and filings from institutions and lawmakers.";
 
 export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string }> = [
   {
@@ -16,14 +16,19 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
     blurb: "Markets, sectors, and international boards — slicer at the top of the home screen.",
   },
   {
-    name: "Watchlist",
-    href: "/watchlist",
-    blurb: "The names you follow, with today’s moves in a brokerage-style quote board.",
+    name: "Crowd",
+    href: "/crowd",
+    blurb: "Most held and most watched names across member books.",
   },
   {
     name: "Portfolio",
     href: "/portfolio",
-    blurb: "Live value and day change, sector mix, concentration, and compare-against moves — plus Study Mode templates.",
+    blurb: "Live book, Watchlist, and Study templates — slicer at the top of Portfolio.",
+  },
+  {
+    name: "Watchlist",
+    href: "/portfolio?view=watchlist",
+    blurb: "The names you follow — on Portfolio behind the Live / Watchlist / Study slicer.",
   },
   {
     name: "News",
@@ -34,11 +39,6 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
     name: "Smart Money",
     href: "/smart-money",
     blurb: "Institution filings and political trades under Menu → More.",
-  },
-  {
-    name: "Crowd",
-    href: "/crowd",
-    blurb: "Most held and most watched names across member books — under Menu → More.",
   },
 ];
 
@@ -52,7 +52,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is CONVICTION?",
     answer:
-      "CONVICTION is a daily stock-market workspace. It brings together Pulse (indexes and movers), your watchlist, a live portfolio with fit and concentration tools, news briefs, sector and international boards, smart-money filings, and Crowd (what members hold and watch) — organized around you, not a single research feature.",
+      "CONVICTION is a daily stock-market workspace. It brings together Pulse (indexes and movers), Crowd (what members hold and watch), a Portfolio tab with your live book and Watchlist, news briefs, sector and international boards, and smart-money filings — organized around you, not a single research feature.",
   },
   {
     question: "What is Pulse?",
@@ -62,7 +62,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "How is Watchlist different from Portfolio?",
     answer:
-      "Watchlist is the names you follow day to day. Portfolio is the book you own — value, today’s move, sector mix, concentration, and compare-against guidance. Edit either from Manage.",
+      "Both live on the Portfolio tab. Watchlist is the names you follow day to day. Live Portfolio is the book you own — value, today’s move, sector mix, concentration, and compare-against guidance. Use the Live / Watchlist / Study slicer to switch. Edit either from Manage.",
   },
   {
     question: "What is Study Mode on Portfolio?",
@@ -92,6 +92,6 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Crowd?",
     answer:
-      "Crowd (under Menu → More) ranks names by how often they appear in member portfolios and watchlists — a simple “most held / most watched” board. Starter books fill the board while membership is small. It is an aggregate, not advice, and it never shows who owns what.",
+      "Crowd is a daily tab that ranks names by how often they appear in member portfolios and watchlists — a simple “most held / most watched” board. Starter books fill the board while membership is small. It is an aggregate, not advice, and it never shows who owns what.",
   },
 ];

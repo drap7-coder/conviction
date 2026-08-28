@@ -75,7 +75,7 @@ describe("Crowd aggregation", () => {
 });
 
 describe("Crowd surface wiring", () => {
-  it("keeps Crowd under Menu with sr-only page title and no tab-bar entry", () => {
+  it("keeps Crowd on the daily tab bar with sr-only page title", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/crowd/page.tsx")).toContain("CrowdBoard");
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most held");
@@ -84,7 +84,7 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-share-track");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
     expect(read("src/lib/nav-config.ts")).toContain('href: "/crowd"');
-    expect(read("src/lib/nav-config.ts")).toContain('group: "more"');
+    expect(read("src/lib/nav-config.ts")).toContain('group: "daily"');
     expect(read("src/app/api/crowd/route.ts")).toContain("loadCrowdSnapshot");
     expect(read("AGENTS.md")).toContain("Crowd");
   });

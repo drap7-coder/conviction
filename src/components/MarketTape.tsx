@@ -9,11 +9,12 @@ import { companyDetailHref } from "@/lib/market/company-detail-href";
 import type { StockQuote } from "@/lib/market/quotes";
 
 const WORKSPACE_PATHS = new Set([
-  "/watchlist",
+  "/crowd",
   "/portfolio",
   "/pulse",
   "/news",
   "/smart-money",
+  "/watchlist",
 ]);
 
 const ANCHOR_ITEMS = [

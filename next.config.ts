@@ -73,7 +73,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/quotes",
-        destination: "/watchlist",
+        destination: "/portfolio?view=watchlist",
         permanent: true,
       },
     ];
