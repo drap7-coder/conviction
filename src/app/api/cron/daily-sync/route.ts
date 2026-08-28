@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireCronSecret } from "@/lib/api/cron-auth";
+import { SITE_URL } from "@/lib/site";
 
 /**
  * GET /api/cron/daily-sync
@@ -30,9 +31,9 @@ export async function GET(request: NextRequest) {
   const cronSecret = process.env.CRON_SECRET!.trim();
 
   try {
-    const origin = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    // Call the public canonical host — not VERCEL_URL. Deployment URLs are
+    // behind Vercel Authentication and return 401 SSO challenges on fetch.
+    const origin = SITE_URL;
 
     const response = await fetch(`${origin}/api/evidence/refresh`, {
       method: "POST",

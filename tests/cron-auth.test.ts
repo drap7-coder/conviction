@@ -21,6 +21,8 @@ describe("cron / admin / refresh auth wiring", () => {
     expect(auth).toContain("requireAdminAccess");
     expect(cron).toContain("requireCronSecret(request)");
     expect(cron).toContain("Authorization: `Bearer ${cronSecret}`");
+    expect(cron).toContain("SITE_URL");
+    expect(cron).not.toContain("process.env.VERCEL_URL");
     expect(refresh).toContain("requireCronSecret(request)");
     expect(refresh).toContain("if (!ticker)");
     expect(admin).toContain("requireAdminAccess(request)");
