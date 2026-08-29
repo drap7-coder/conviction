@@ -251,6 +251,7 @@ export function PortfolioManager() {
       </header>
 
       <form
+        id="manage-compose"
         className="data-manager-compose list-compose surface-well"
         onSubmit={handleAdd}
         aria-label="Add a portfolio holding"

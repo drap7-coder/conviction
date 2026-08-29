@@ -327,7 +327,11 @@ export default function Watchlist({
   }, [mode]);
 
   const composeBar = (
-    <section className="data-manager-compose list-compose surface-well" aria-label="Track a company">
+    <section
+      id="manage-compose"
+      className="data-manager-compose list-compose surface-well"
+      aria-label="Track a company"
+    >
       <div className="list-compose-copy">
         <strong className="list-compose-title">Track a company</strong>
       </div>

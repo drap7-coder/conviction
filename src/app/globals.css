@@ -12964,6 +12964,31 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: var(--accent-dim);
 }
 
+/* Manage is an editor stage — same shell language, no urgency glow or fake metrics. */
+.product-stage--manage {
+  --stage-accent: var(--accent);
+  --stage-glow: transparent;
+  background: var(--card);
+  padding: 16px 18px;
+}
+
+.product-stage--manage::after {
+  opacity: 0.28;
+}
+
+.product-stage--manage .product-stage-headline {
+  font-size: clamp(1.45rem, 3.4vw, 1.9rem);
+  font-weight: 720;
+  letter-spacing: -0.045em;
+  line-height: 1.15;
+}
+
+.product-stage--manage p {
+  max-width: 34rem;
+  font-size: clamp(0.78rem, 1.4vw, 0.88rem);
+  line-height: 1.5;
+}
+
 .product-stage--smart-money {
   --stage-accent: var(--accent);
   --stage-glow: var(--accent-dim);

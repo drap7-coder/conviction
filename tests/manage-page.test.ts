@@ -14,12 +14,11 @@ describe("data management workspace", () => {
 
     expect(nav).toContain('href: "/manage"');
     expect(nav).toContain('label: "Manage"');
-    expect(page).toContain("<ManageWorkspace />");
-    expect(page).toContain("<GuestModeBanner");
+    expect(page).toContain("<ManageWorkspace");
     expect(page).toContain("getOptionalSession");
-    expect(page).toContain("surface-shell");
     expect(page).not.toContain('href="#watchlist"');
     expect(page).not.toContain('href="#portfolio"');
+    expect(workspace).toContain("<GuestModeBanner");
     expect(workspace).toContain('<Watchlist mode="manage" />');
     expect(workspace).toContain("<PortfolioManager />");
     expect(workspace).toContain("SurfaceSlicer");
@@ -28,6 +27,32 @@ describe("data management workspace", () => {
     expect(workspace).toContain('params.set("view", next)');
     expect(workspace).toContain("activeView === \"watchlist\"");
     expect(workspace).toContain("activeView === \"portfolio\"");
+  });
+
+  it("uses a quiet ProductStage hero with view-aware editor copy and compose CTA", () => {
+    const workspace = read("src/components/ManageWorkspace.tsx");
+    const stage = read("src/components/ProductStage.tsx");
+    const css = read("src/app/manage/manage.css");
+    const globals = read("src/app/globals.css");
+    const watchlist = read("src/components/Watchlist.tsx");
+    const manager = read("src/components/PortfolioManager.tsx");
+
+    expect(stage).toContain('"manage"');
+    expect(workspace).toContain('variant="manage"');
+    expect(workspace).toContain("Watchlist editor");
+    expect(workspace).toContain("Portfolio editor");
+    expect(workspace).toContain("Edit what you follow.");
+    expect(workspace).toContain("Edit what you own.");
+    expect(workspace).toContain("Jump to add");
+    expect(workspace).toContain("focusManageCompose");
+    expect(workspace).toContain('typewriterHeadline={false}');
+    expect(workspace).not.toContain("Your data");
+    expect(css).toContain(".data-manage-hero-cta");
+    expect(css).toContain(".data-manage-hero .product-stage");
+    expect(globals).toContain(".product-stage--manage");
+    expect(globals).toContain("--stage-glow: transparent");
+    expect(watchlist).toContain('id="manage-compose"');
+    expect(manager).toContain('id="manage-compose"');
   });
 
   it("keeps main Watchlist and Portfolio pages read-first with Manage deep links", () => {
