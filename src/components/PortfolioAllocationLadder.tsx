@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { getSectorColor } from "@/lib/display/sector-colors";
 
 export interface PortfolioAllocationItem {
@@ -55,6 +56,9 @@ export function PortfolioAllocationLadder({
               style={{ ["--allocation-color" as string]: color }}
             >
               <span className="pf-allocation-rank">{String(index + 1).padStart(2, "0")}</span>
+              <span className="pf-allocation-logo" aria-hidden="true">
+                <LogoDisplay ticker={item.ticker} size="card" />
+              </span>
               <Link href={`/companies/${item.ticker}`} className="pf-allocation-company">
                 <strong>{item.ticker}</strong>
                 <span>{item.companyName}</span>
@@ -64,11 +68,11 @@ export function PortfolioAllocationLadder({
                 <i className="pf-allocation-threshold is-high" />
                 <span style={{ width: `${fill}%` }} />
               </div>
-              <strong className="pf-allocation-weight">{item.weight.toFixed(1)}%</strong>
+              <strong className="pf-allocation-weight tnum">{item.weight.toFixed(1)}%</strong>
               {showValues ? (
                 <div className="pf-allocation-values">
-                  <strong>{item.marketValue}</strong>
-                  <span className={dayMoveClass(item.dailyChangeValue)}>
+                  <strong className="tnum">{item.marketValue}</strong>
+                  <span className={`tnum ${dayMoveClass(item.dailyChangeValue)}`}>
                     {item.dailyChange}
                     {item.dailyChange && item.dailyChange !== "—" ? (
                       <em className="pf-allocation-today"> today</em>

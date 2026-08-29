@@ -5,23 +5,14 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Watchlist from "@/components/Watchlist";
 import { PortfolioManager } from "@/components/PortfolioManager";
 import { PortfolioDataProvider } from "@/components/PortfolioData";
+import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 
-const MANAGE_VIEWS = [
-  {
-    id: "watchlist",
-    label: "Watchlist",
-    tabId: "manage-tab-watchlist",
-    panelId: "manage-panel-watchlist",
-  },
-  {
-    id: "portfolio",
-    label: "Portfolio",
-    tabId: "manage-tab-portfolio",
-    panelId: "manage-panel-portfolio",
-  },
-] as const;
+export type ManageView = "watchlist" | "portfolio";
 
-export type ManageView = (typeof MANAGE_VIEWS)[number]["id"];
+const MANAGE_VIEWS: SurfaceSlicerOption[] = [
+  { id: "watchlist", label: "Watchlist" },
+  { id: "portfolio", label: "Portfolio" },
+];
 
 function parseManageView(value: string | null | undefined): ManageView {
   return value === "portfolio" ? "portfolio" : "watchlist";
@@ -51,35 +42,24 @@ function ManageWorkspaceInner() {
     }
   }, [pathname, router, searchParams]);
 
-  function selectView(view: ManageView) {
-    setActiveView(view);
+  function selectView(view: string) {
+    const next = parseManageView(view);
+    setActiveView(next);
     const params = new URLSearchParams(searchParams.toString());
-    params.set("view", view);
+    params.set("view", next);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
   return (
     <div className="data-manage-workspace">
-      <div className="data-manage-switch" role="tablist" aria-label="Manage workspace">
-        {MANAGE_VIEWS.map((option) => {
-          const selected = activeView === option.id;
-          return (
-            <button
-              key={option.id}
-              type="button"
-              role="tab"
-              id={option.tabId}
-              aria-selected={selected}
-              aria-controls={option.panelId}
-              tabIndex={selected ? 0 : -1}
-              className={`data-manage-switch-tab${selected ? " is-active" : ""}`}
-              onClick={() => selectView(option.id)}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
+      <SurfaceSlicer
+        label="Manage workspace"
+        options={MANAGE_VIEWS}
+        activeId={activeView}
+        onChange={selectView}
+        role="tablist"
+        className="data-manage-slicer"
+      />
 
       <div
         id="manage-panel-watchlist"

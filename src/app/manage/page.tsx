@@ -20,7 +20,7 @@ export default async function ManagePage() {
 
   return (
     <main className="data-manage-page">
-      <header className="data-manage-hero">
+      <header className="data-manage-hero surface-shell">
         <span>Your data</span>
         <h1>Manage</h1>
         <p>Edit one list at a time. Add by typing or the mic in the ticker field.</p>

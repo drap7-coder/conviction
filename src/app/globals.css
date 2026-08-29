@@ -5498,24 +5498,29 @@ button.bottom-tab-item {
 }
 
 .detail-logo {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
-  border-radius: 8px;
-}
-
-.detail-logo.sector-badge {
-  object-fit: none;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 70%, #fff 8%);
+  border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
   overflow: hidden;
 }
 
-.detail-logo.sector-badge svg {
-  display: block;
-  width: 100%;
-  height: 100%;
+.detail-logo .card-logo,
+.detail-logo .logo-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}
+
+.detail-logo .card-logo.sector-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
 }
 
 .signal-badge.pos {
@@ -6880,11 +6885,29 @@ button.bottom-tab-item {
 }
 
 .company-quote-logo {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 70%, #fff 8%);
+  border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
+  overflow: hidden;
+}
+
+.company-quote-logo .card-logo,
+.company-quote-logo .logo-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+}
+
+.company-quote-logo .card-logo.sector-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
 }
 
 .company-quote-copy {
@@ -7279,8 +7302,15 @@ button.bottom-tab-item {
   }
 
   .company-quote-logo {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .company-quote-logo .card-logo,
+  .company-quote-logo .logo-badge,
+  .company-quote-logo .card-logo.sector-badge {
+    width: 24px;
+    height: 24px;
   }
 
   .company-quote-ticker {
@@ -8824,7 +8854,7 @@ button.brief-link:focus-visible {
 .pf-allocation-row {
   --allocation-color: #6b7280;
   display: grid;
-  grid-template-columns: 28px minmax(96px, 0.7fr) minmax(160px, 1.5fr) 58px minmax(92px, auto);
+  grid-template-columns: 28px 32px minmax(96px, 0.7fr) minmax(160px, 1.5fr) 58px minmax(92px, auto);
   align-items: center;
   gap: 12px;
   min-width: 0;
@@ -8833,7 +8863,7 @@ button.brief-link:focus-visible {
 }
 
 .pf-allocation-ladder.is-weights-only .pf-allocation-row {
-  grid-template-columns: 28px minmax(96px, 0.7fr) minmax(160px, 1.5fr) 58px;
+  grid-template-columns: 28px 32px minmax(96px, 0.7fr) minmax(160px, 1.5fr) 58px;
 }
 
 .pf-allocation-row:last-child {
@@ -8845,6 +8875,32 @@ button.brief-link:focus-visible {
   font-family: var(--font-mono);
   font-size: 0.53rem;
   font-weight: 750;
+}
+
+.pf-allocation-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 70%, #fff 8%);
+  border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pf-allocation-logo .card-logo,
+.pf-allocation-logo .logo-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.pf-allocation-logo .card-logo.sector-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
 }
 
 .pf-allocation-company {
@@ -8965,12 +9021,12 @@ button.brief-link:focus-visible {
   }
 
   .pf-allocation-row {
-    grid-template-columns: 24px minmax(84px, 0.8fr) minmax(120px, 1.3fr) 54px minmax(78px, auto);
+    grid-template-columns: 24px 28px minmax(84px, 0.8fr) minmax(120px, 1.3fr) 54px minmax(78px, auto);
     gap: 9px;
   }
 
   .pf-allocation-ladder.is-weights-only .pf-allocation-row {
-    grid-template-columns: 24px minmax(84px, 0.8fr) minmax(120px, 1.3fr) 54px;
+    grid-template-columns: 24px 28px minmax(84px, 0.8fr) minmax(120px, 1.3fr) 54px;
   }
 
   .pf-values-controls {
@@ -9014,7 +9070,7 @@ button.brief-link:focus-visible {
   }
 
   .pf-allocation-row {
-    grid-template-columns: 22px minmax(76px, 0.72fr) minmax(90px, 1.2fr) 46px;
+    grid-template-columns: 22px 28px minmax(76px, 0.72fr) minmax(90px, 1.2fr) 46px;
   }
 
   .pf-allocation-values {
