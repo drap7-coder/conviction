@@ -15,21 +15,18 @@ import {
 import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 
-type PulseView = "markets" | "movers" | "commodities" | "international" | "crypto";
+type PulseView = "markets" | "movers" | "crypto" | "international";
 
 const PULSE_VIEWS: SurfaceSlicerOption[] = [
   { id: "markets", label: "Markets" },
   { id: "movers", label: "Movers" },
-  { id: "commodities", label: "Commodities" },
-  { id: "international", label: "Intl" },
   { id: "crypto", label: "Crypto" },
+  { id: "international", label: "Intl" },
 ];
 
 function parsePulseView(value: string | null | undefined): PulseView {
-  if (value === "movers" || value === "commodities" || value === "international" || value === "crypto") {
-    return value;
-  }
-  // Legacy `?view=sectors` bookmarks land on Markets (indexes + sectors).
+  if (value === "movers" || value === "crypto" || value === "international") return value;
+  // Legacy `?view=sectors` / `?view=commodities` land on Markets.
   return "markets";
 }
 
@@ -50,9 +47,8 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
 
 function pulseHeading(view: PulseView): string {
   if (view === "movers") return "Market Movers";
-  if (view === "commodities") return "Commodities";
-  if (view === "international") return "International";
   if (view === "crypto") return "Crypto";
+  if (view === "international") return "International";
   return "Pulse";
 }
 
@@ -138,6 +134,7 @@ function PulsePageInner() {
             markets={majorIndexes}
             sessionLabel={data.sessionLabel}
           />
+          <CommodityScoreboard markets={commodities} />
           <SectorScoreboard
             markets={sectorMarkets}
             sessionLabel={data.sessionLabel}
@@ -151,16 +148,12 @@ function PulsePageInner() {
         </section>
       ) : null}
 
-      {data && view === "commodities" ? (
-        <CommodityScoreboard markets={commodities} />
+      {data && view === "crypto" ? (
+        <CryptoBoard markets={cryptoMarkets} />
       ) : null}
 
       {data && view === "international" ? (
         <InternationalScoreboard markets={internationalMarkets} />
-      ) : null}
-
-      {data && view === "crypto" ? (
-        <CryptoBoard markets={cryptoMarkets} />
       ) : null}
     </main>
   );

@@ -20,7 +20,7 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "amber",
     group: "daily",
-    blurb: "Markets, movers, commodities, intl, and crypto — slicer on Pulse.",
+    blurb: "Markets, movers, crypto, and intl — slicer on Pulse.",
   },
   {
     href: "/crowd",
