@@ -39,4 +39,17 @@ describe("surface scan polish", () => {
     expect(css).toContain("color-mix(in srgb, #ffffff 5%, transparent)");
     expect(css).toContain("color-mix(in srgb, #ffffff 12%, transparent)");
   });
+
+  it("uses tabular mono figures on Pulse, Crowd, and Portfolio numerics", () => {
+    const css = read("src/app/globals.css");
+    const portfolioCss = read("src/app/portfolio.css");
+
+    expect(css).toMatch(/\.session-quote\s*\{[^}]*font-family:\s*var\(--font-mono\)/s);
+    expect(css).toMatch(/\.session-quote\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
+    expect(css).toMatch(/\.crowd-rank\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
+    expect(css).toMatch(/\.product-stage--portfolio\.product-stage--metrics-above \.product-stage-metrics > \.is-lead strong\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
+    expect(css).toMatch(/\.pulse-gauge-readout strong\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
+    expect(portfolioCss).toMatch(/\.portfolio-page \.pf-day-strip-figures strong\s*\{[^}]*font-family:\s*var\(--font-mono\)/s);
+    expect(portfolioCss).toMatch(/\.portfolio-page \.pf-day-strip-figures strong\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
+  });
 });

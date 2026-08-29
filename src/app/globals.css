@@ -13039,8 +13039,11 @@ a.signal-block-conclusion-link:hover {
 }
 
 .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead strong {
+  font-family: var(--font-mono);
   font-size: clamp(1.85rem, 4.4vw, 2.55rem);
-  letter-spacing: -0.07em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.04em;
   color: var(--ink);
   text-shadow: none;
 }
@@ -17944,9 +17947,10 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-gauge-readout strong {
   color: var(--ink);
+  font-family: var(--font-mono);
   font-size: 1.35rem;
   font-weight: 700;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
@@ -18132,6 +18136,7 @@ a.pulse-news-narrative-title:focus-visible {
   justify-items: end;
   min-width: 0;
   text-align: right;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
@@ -18140,7 +18145,7 @@ a.pulse-news-narrative-title:focus-visible {
   color: var(--ink);
   font-size: 1.02rem;
   font-weight: 750;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.02em;
   line-height: 1.1;
   white-space: nowrap;
 }
@@ -18152,7 +18157,7 @@ a.pulse-news-narrative-title:focus-visible {
   gap: 6px;
   font-size: 0.72rem;
   font-weight: 650;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   line-height: 1.15;
   white-space: nowrap;
 }
