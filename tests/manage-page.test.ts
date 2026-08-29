@@ -90,6 +90,8 @@ describe("data management workspace", () => {
 
   it("keeps the manager usable on narrow screens and matches site chrome", () => {
     const css = read("src/app/manage/manage.css");
+    const watchlist = read("src/components/Watchlist.tsx");
+    const manager = read("src/components/PortfolioManager.tsx");
 
     expect(css).toContain("@media (max-width: 720px)");
     expect(css).toContain("@media (max-width: 480px)");
@@ -99,6 +101,14 @@ describe("data management workspace", () => {
     expect(css).toContain(".data-manager-logo");
     expect(css).toContain(".pf-holding-logo");
     expect(css).toContain("min-width: 0");
+    expect(css).toContain("var(--border-raised)");
+    expect(css).toContain("var(--shadow-sm)");
+    expect(css).toContain("var(--surface-well-highlight)");
+    expect(css).toContain("var(--card-inset)");
+    expect(css).not.toContain("--surface-shell-radius");
+    expect(watchlist).toContain("data-manager-compose list-compose surface-well");
+    expect(watchlist).not.toContain("list-compose ink-panel");
+    expect(manager).toContain("data-manager-compose list-compose surface-well");
   });
 });
 
