@@ -125,7 +125,7 @@ describe("Pulse heatmap universe", () => {
     expect(css).toContain(".session-quote-extended");
     expect(css).not.toContain(".pulse-move-bar");
     expect(css).toContain(".pulse-gauge-grid");
-    expect(css).toContain(".pulse-movers-grid");
+    expect(css).toContain(".pulse-movers-stack");
     expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*background:\s*transparent/s);
     expect(css).toMatch(/\.market-tape\s*\{[^}]*background:\s*transparent/s);
     expect(css).toMatch(/\.market-tape-item \+ \.market-tape-item\s*\{[^}]*border-left:\s*0/s);

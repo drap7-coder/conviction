@@ -8,7 +8,7 @@ import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MarketMoversBoard } from "@/components/market/MarketMoversBoard";
-import { splitMarketMovers } from "@/lib/market/market-movers";
+import { rankByVolume, splitMarketMovers } from "@/lib/market/market-movers";
 
 interface TrendingCompany {
   ticker: string;
@@ -82,8 +82,7 @@ export function MarketMovesPanel() {
     );
   }
 
-  const movers = splitMarketMovers(
-    trending.map((idea) => {
+  const mapped = trending.map((idea) => {
       const quote = idea.quote;
       const live = getLivePrice(quote);
       const extended = getExtendedSessionQuote(quote);
@@ -100,10 +99,12 @@ export function MarketMovesPanel() {
         extendedChangePercent: extended.changePercent,
         extendedNoTrades: extended.noTrades,
         sessionLabel: extended.sessionLabel,
+        volume: quote.volume ?? null,
+        dollarVolume: quote.dollarVolume ?? null,
       };
-    }),
-    5,
-  );
+    });
+  const movers = splitMarketMovers(mapped, 5);
+  const volume = rankByVolume(mapped, 5);
 
   const sessionLabel =
     trending
@@ -119,6 +120,8 @@ export function MarketMovesPanel() {
         title="Market Movers"
         top={movers.top}
         bottom={movers.bottom}
+        volume={volume}
+        showVolume
         sessionLabel={sessionLabel}
       />
     </div>

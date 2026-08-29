@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { moverBarHeight, splitMarketMovers } from "@/lib/market/market-movers";
+import { moverBarHeight, rankByVolume, splitMarketMovers } from "@/lib/market/market-movers";
 
 describe("splitMarketMovers", () => {
   it("splits gainers and losers by session percent", () => {
@@ -45,6 +45,32 @@ describe("splitMarketMovers", () => {
     const split = splitMarketMovers(items, items.length);
     expect(split.top).toHaveLength(12);
     expect(split.bottom).toHaveLength(0);
+  });
+});
+
+describe("rankByVolume", () => {
+  it("ranks by dollar volume then caps", () => {
+    const rows = rankByVolume(
+      [
+        { ticker: "A", name: "A", changePercent: 1, dollarVolume: 1_000 },
+        { ticker: "B", name: "B", changePercent: -2, dollarVolume: 9_000 },
+        { ticker: "C", name: "C", changePercent: 0.5, dollarVolume: 4_000 },
+        { ticker: "D", name: "D", changePercent: 3, volume: 50 },
+      ],
+      2,
+    );
+    expect(rows.map((row) => row.ticker)).toEqual(["B", "C"]);
+  });
+
+  it("falls back to share volume when dollar volume is missing", () => {
+    const rows = rankByVolume(
+      [
+        { ticker: "A", name: "A", changePercent: 1, volume: 100 },
+        { ticker: "B", name: "B", changePercent: -1, volume: 500 },
+      ],
+      2,
+    );
+    expect(rows.map((row) => row.ticker)).toEqual(["B", "A"]);
   });
 });
 

@@ -18195,69 +18195,30 @@ a.pulse-news-narrative-title:focus-visible {
   }
 }
 
-/* ── Market Movers (Top / Bottom vertical bars) ── */
+/* ── Market Movers (stacked Gainers / Losers / Volume cards) ── */
 
 .pulse-movers {
   overflow: hidden;
 }
 
-.pulse-movers-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.pulse-movers-head h2 {
+.pulse-movers-stack {
+  display: grid;
+  gap: var(--section-gap);
   min-width: 0;
-  flex-wrap: nowrap;
 }
 
-.pulse-movers-action {
-  flex: 0 0 auto;
+.pulse-movers-card {
+  overflow: hidden;
 }
 
 .pulse-movers-well {
   margin: 10px 12px 12px;
-  padding: 0;
+  padding: 4px 8px 8px;
   overflow: hidden;
 }
 
-.pulse-movers-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-}
-
-.pulse-movers-grid.is-solo {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.pulse-movers-grid.is-solo .pulse-movers-col + .pulse-movers-col {
-  border-left: 0;
-}
-
-.pulse-movers-col {
-  min-width: 0;
-  padding: 10px 12px 12px;
-}
-
-.pulse-movers-col + .pulse-movers-col {
-  border-left: 1px solid var(--divider);
-}
-
-.pulse-movers-col-label {
-  margin: 0 0 8px;
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 750;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .pulse-movers-empty {
-  margin: 8px 0 0;
+  margin: 8px 4px 4px;
   color: var(--muted);
   font-size: 0.78rem;
 }
@@ -18348,16 +18309,6 @@ a.pulse-news-narrative-title:focus-visible {
   min-width: 0;
 }
 
-@media (max-width: 640px) {
-  .pulse-movers-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .pulse-movers-col + .pulse-movers-col {
-    border-left: 0;
-    border-top: 1px solid var(--divider);
-  }
-}
 
 @media (max-width: 430px) {
   .pulse-gauge-grid {
