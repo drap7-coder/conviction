@@ -21,12 +21,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/watchlist`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.9,
-    },
-    {
       url: `${SITE_URL}/portfolio?view=watchlist`,
       lastModified: now,
       changeFrequency: "hourly",

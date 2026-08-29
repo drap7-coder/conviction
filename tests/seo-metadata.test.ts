@@ -64,7 +64,7 @@ describe("SEO metadata", () => {
     expect(urls).toContain(`${SITE_URL}/pulse`);
     expect(urls).toContain(`${SITE_URL}/portfolio`);
     expect(urls).toContain(`${SITE_URL}/portfolio?view=watchlist`);
-    expect(urls).toContain(`${SITE_URL}/watchlist`);
+    expect(urls).not.toContain(`${SITE_URL}/watchlist`);
     expect(urls).toContain(`${SITE_URL}/news`);
     expect(urls).toContain(`${SITE_URL}/crowd`);
     expect(urls).toContain(`${SITE_URL}/smart-money`);
@@ -107,6 +107,15 @@ describe("SEO metadata", () => {
     ]);
     expect(crumbs.itemListElement).toHaveLength(2);
     expect(crumbs.itemListElement[1]?.item).toBe(`${SITE_URL}/companies/AAPL`);
+  });
+
+  it("marks legacy redirect shells noindex and points canonicals at live destinations", () => {
+    expect(read("src/app/sectors/layout.tsx")).toContain("index: false");
+    expect(read("src/app/sectors/layout.tsx")).toContain('path: "/pulse"');
+    expect(read("src/app/international/layout.tsx")).toContain("index: false");
+    expect(read("src/app/international/layout.tsx")).toContain('path: "/pulse?view=international"');
+    expect(read("src/app/watchlist/layout.tsx")).toContain("index: false");
+    expect(read("src/app/watchlist/layout.tsx")).toContain('path: "/portfolio?view=watchlist"');
   });
 
   it("ships About and Q&A pages with FAQ JSON-LD", () => {
