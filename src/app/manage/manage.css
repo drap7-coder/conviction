@@ -1,74 +1,126 @@
 /*
- * Manage workspace chrome — same raised shell + recessed well language as
- * Sector Mix / Crowd / Pulse index boards (see .surface-shell / .surface-well).
+ * Manage workspace chrome — raised shell + recessed well language, with a
+ * calm first-viewport deck (hero + slicer) that leads into compose.
  */
 
 .data-manage-page {
   display: grid;
-  gap: 18px;
+  gap: 16px;
   margin-inline: calc(-1 * var(--page-gutter-mobile));
-  padding: 14px var(--page-gutter-mobile) 32px;
+  padding: 12px var(--page-gutter-mobile) 32px;
   min-width: 0;
   max-width: 100%;
 }
 
+.data-manage-workspace {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Hero + slicer read as one composition before the editor panel. */
+.data-manage-deck {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border-raised));
+  border-radius: 20px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--card-soft) 72%, transparent) 0%,
+      color-mix(in srgb, var(--card) 55%, transparent) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 5%, transparent),
+    var(--shadow-sm);
+}
+
 .data-manage-hero {
   display: grid;
-  gap: 8px;
-  padding: 18px 20px;
+  gap: 10px;
   min-width: 0;
-  overflow: hidden;
 }
 
-.data-manage-hero > span,
-.data-manager-eyebrow {
-  color: var(--accent);
+.data-manage-hero .product-stage {
+  margin: 0;
+}
+
+.data-manage-hero-actions {
+  margin-top: 10px;
+}
+
+.data-manage-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  margin: 0;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  border-radius: 10px;
+  background: var(--accent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 18%, transparent);
+  color: var(--bg);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    filter 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
 }
 
-.data-manage-hero h1,
-.data-manager-section-head h2 {
-  margin: 0;
-  color: var(--ink);
-  letter-spacing: -0.04em;
-}
-
-.data-manage-hero h1 {
-  font-size: clamp(2rem, 6vw, 3.4rem);
-}
-
-.data-manage-hero p,
-.data-manager-lede {
-  max-width: 660px;
-  margin: 0;
-  color: var(--muted);
-  line-height: 1.55;
-}
-
-.data-manager-lede {
-  margin-top: 6px;
-  font-size: 0.84rem;
+.data-manage-hero-cta:hover,
+.data-manage-hero-cta:focus-visible {
+  border-color: var(--accent);
+  filter: brightness(1.06);
+  outline: none;
 }
 
 .data-manage-hero .guest-banner {
-  margin: 6px 0 0;
+  margin: 0;
   border: 1px solid var(--border);
+  border-radius: 12px;
   background: var(--card-inset);
   box-shadow: var(--surface-well-highlight);
 }
 
-.data-manage-workspace {
-  display: grid;
-  gap: 14px;
-  min-width: 0;
-}
-
 .data-manage-slicer.surface-slicer {
   margin: 0;
+  border-color: color-mix(in srgb, var(--accent) 14%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 3%, transparent), transparent 70%),
+    color-mix(in srgb, var(--card-inset) 88%, transparent);
+  box-shadow: var(--surface-well-highlight);
+}
+
+.data-manage-slicer .surface-slicer-pill {
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: center;
+  padding: 9px 12px;
+}
+
+.data-manage-panel {
+  min-width: 0;
+  animation: manage-panel-arrive 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes manage-panel-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .data-manage-backlinks {
@@ -95,6 +147,10 @@
   font-size: 0.72rem;
   font-weight: 700;
   text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .data-manage-backlinks a:hover,
@@ -108,8 +164,12 @@
 .data-manager-section {
   scroll-margin-top: calc(var(--sticky-header-offset) + 18px);
   min-width: 0;
-  padding: 14px 16px 16px;
+  padding: 16px 16px 18px;
   overflow: hidden;
+}
+
+#manage-compose {
+  scroll-margin-top: calc(var(--sticky-header-offset) + 18px);
 }
 
 .data-manager-section-head {
@@ -125,9 +185,30 @@
   min-width: 0;
 }
 
+.data-manager-eyebrow {
+  color: color-mix(in srgb, var(--accent) 62%, var(--muted));
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .data-manager-section-head h2 {
-  margin-top: 3px;
-  font-size: clamp(1.25rem, 4vw, 1.65rem);
+  margin: 4px 0 0;
+  color: var(--ink);
+  font-size: clamp(1.18rem, 3.6vw, 1.48rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.15;
+}
+
+.data-manager-lede {
+  max-width: 640px;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
 }
 
 .data-manager-head-meta {
@@ -140,7 +221,7 @@
 .data-manager-count,
 .data-manager-book-value {
   flex: 0 0 auto;
-  padding: 6px 9px;
+  padding: 7px 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--card-soft);
@@ -155,13 +236,28 @@
   font-weight: 700;
 }
 
-/* Compose tray = recessed well inside the raised section shell */
+/* Compose tray = recessed well with a quiet accent rail */
 .data-manager-section .list-compose,
 .data-manager-compose.list-compose {
+  position: relative;
   gap: 12px;
   margin: 0 0 14px;
-  padding: 14px 16px;
+  padding: 15px 16px;
   min-width: 0;
+  border-color: color-mix(in srgb, var(--accent) 16%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 52%),
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 3.5%, transparent), transparent 46%),
+    var(--card-inset);
+}
+
+.data-manager-compose.list-compose::before {
+  content: "";
+  position: absolute;
+  inset: 10px auto 10px 0;
+  width: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .data-manager-compose-hint {
@@ -170,9 +266,25 @@
   line-height: 1.4;
 }
 
+.data-manager-compose .list-compose-copy {
+  gap: 4px;
+  padding-left: 8px;
+}
+
+.data-manager-compose .list-compose-eyebrow {
+  color: color-mix(in srgb, var(--accent) 55%, var(--quiet));
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .data-manager-compose .list-compose-title {
   color: var(--ink);
-  font-size: 1.02rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .data-manager-compose-fields {
@@ -181,6 +293,11 @@
   align-items: end;
   gap: 10px;
   min-width: 0;
+  padding-left: 8px;
+}
+
+.data-manager-compose .watchlist-add.list-compose-fields {
+  padding-left: 8px;
 }
 
 .data-manager-compose-fields label,
@@ -213,16 +330,20 @@
 .data-manager-compose .watchlist-input {
   width: 100%;
   min-width: 0;
-  min-height: 38px;
-  padding: 8px 10px;
+  min-height: 40px;
+  padding: 9px 11px;
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--card);
   box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 3%, transparent);
   color: var(--ink);
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-variant-numeric: tabular-nums;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .data-manager-compose-fields input:focus,
@@ -242,17 +363,18 @@
 .data-manager-compose .list-compose-cta,
 .data-manager-compose .watchlist-add-button {
   align-self: flex-end;
-  min-height: 38px;
-  padding: 8px 14px;
+  min-height: 40px;
+  padding: 9px 16px;
   border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
   border-radius: 10px;
   background: var(--accent);
   color: var(--bg);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 16%, transparent);
+  transition: filter 160ms ease;
 }
 
 .data-manager-compose .list-compose-cta:hover,
@@ -260,6 +382,12 @@
   border-color: var(--accent);
   filter: brightness(1.05);
   transform: none;
+}
+
+.data-manager-compose .list-compose-cta:disabled,
+.data-manager-compose .watchlist-add-button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 
 .data-manager-row-actions {
@@ -282,14 +410,18 @@
   font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .data-manager-primary {
-  min-height: 38px;
+  min-height: 40px;
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
   background: var(--accent);
   color: var(--bg);
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 16%, transparent);
 }
 
 .data-manager-action:hover,
@@ -300,13 +432,23 @@
   outline: none;
 }
 
+.data-manager-primary:hover,
+.data-manager-primary:focus-visible {
+  filter: brightness(1.05);
+}
+
 .data-manager-action.is-danger {
   color: var(--negative);
   border-color: color-mix(in srgb, var(--negative) 34%, var(--border));
   background: color-mix(in srgb, var(--negative) 8%, var(--card-soft));
 }
 
-/* Recessed list / holdings trays inside the section shell */
+.data-manager-action.is-danger:hover,
+.data-manager-action.is-danger:focus-visible {
+  border-color: color-mix(in srgb, var(--negative) 55%, var(--border));
+  background: color-mix(in srgb, var(--negative) 14%, var(--card-soft));
+}
+
 .data-manager-list,
 .data-manager-holdings {
   overflow: hidden;
@@ -314,12 +456,12 @@
 }
 
 .data-manager-list {
-  padding: 2px 8px;
+  padding: 4px 6px;
 }
 
 .data-manager-holdings {
   display: grid;
-  gap: 8px;
+  gap: 9px;
   padding: 10px;
 }
 
@@ -328,20 +470,27 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
-  padding: 11px 6px;
+  padding: 12px 8px;
+  border-radius: 12px;
   background: transparent;
   min-width: 0;
+  transition: background-color 160ms ease;
 }
 
 .data-manager-row + .data-manager-row {
-  border-top: 1px solid color-mix(in srgb, #ffffff 10%, transparent);
+  border-top: 1px solid color-mix(in srgb, #ffffff 8%, transparent);
+}
+
+.data-manager-row:hover,
+.data-manager-row:focus-within {
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
 .data-manager-row-copy {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -349,25 +498,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   background: color-mix(in srgb, var(--card) 70%, #fff 8%);
   border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .data-manager-logo .card-logo,
 .data-manager-logo .logo-badge {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
 }
 
 .data-manager-logo .card-logo.sector-badge {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
 }
 
@@ -381,7 +531,7 @@
 .data-manager-id > span {
   overflow: hidden;
   color: var(--muted);
-  font-size: 0.74rem;
+  font-size: 0.76rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -389,7 +539,7 @@
 .data-manager-ticker {
   color: var(--ink);
   font-family: var(--font-mono);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 750;
   letter-spacing: 0.02em;
 }
@@ -402,26 +552,38 @@
 
 .data-manager-empty {
   display: grid;
-  gap: 4px;
-  padding: 16px;
-  border: 1px solid var(--border);
+  gap: 6px;
+  justify-items: start;
+  padding: 22px 18px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 22%, var(--border));
   border-radius: var(--surface-well-radius);
   background:
+    radial-gradient(ellipse 70% 80% at 8% 0%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
     linear-gradient(180deg, color-mix(in srgb, #ffffff 3.5%, transparent), transparent 46%),
     var(--card-inset);
   box-shadow: var(--surface-well-highlight);
   color: var(--muted);
   font-size: 0.84rem;
+  line-height: 1.45;
   min-width: 0;
 }
 
 .data-manager-empty strong {
   color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.data-manager-empty-hint {
+  color: var(--quiet);
+  font-size: 0.78rem;
 }
 
 .data-manager-error {
   grid-column: 1 / -1;
   margin: 0;
+  padding-left: 8px;
   color: var(--negative);
   font-size: 0.75rem;
 }
@@ -437,7 +599,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, #ffffff 7%, transparent);
   color: var(--quiet);
   font-size: 0.72rem;
   min-width: 0;
@@ -447,7 +611,7 @@
   margin-left: auto;
   color: var(--accent);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-decoration: none;
 }
@@ -458,19 +622,27 @@
   outline: none;
 }
 
-/* Holding cards inside the recessed well — match Portfolio Live cards */
 .data-manage-page .pf-holding-card {
   position: relative;
   display: grid;
   gap: 8px;
   margin: 0;
-  padding: 12px 12px 0;
+  padding: 13px 13px 0;
   border: 1px solid var(--border-raised);
   border-radius: 14px;
-  background: var(--card-soft);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, #ffffff 3%, transparent), transparent 40%),
+    var(--card-soft);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   min-width: 0;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.data-manage-page .pf-holding-card:hover {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border-raised));
 }
 
 .data-manage-page .pf-holding-card.is-editing,
@@ -485,7 +657,7 @@
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: start;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -493,25 +665,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
   background: color-mix(in srgb, var(--card) 70%, #fff 8%);
   border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 6%, transparent);
   overflow: hidden;
   flex-shrink: 0;
 }
 
 .data-manage-page .pf-holding-logo .card-logo,
 .data-manage-page .pf-holding-logo .logo-badge {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
 }
 
 .data-manage-page .pf-holding-logo .card-logo.sector-badge {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 6px;
 }
 
@@ -531,7 +704,7 @@
 .data-manage-page .pf-holding-ticker {
   color: var(--ink);
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 750;
   letter-spacing: 0.02em;
 }
@@ -540,7 +713,7 @@
   overflow: hidden;
   color: var(--muted);
   font-family: var(--font-sans);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -571,7 +744,7 @@
 .data-manage-page .pf-holding-value {
   color: var(--ink);
   font-family: var(--font-mono);
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   font-weight: 700;
   letter-spacing: -0.03em;
   white-space: nowrap;
@@ -595,13 +768,13 @@
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 }
 
 .data-manage-page .pf-holding-action,
 .data-manage-page .pf-holding-save {
   margin: 0;
-  padding: 5px 8px;
+  padding: 6px 9px;
   border: 1px solid var(--border-raised);
   border-radius: 8px;
   background: var(--card);
@@ -613,6 +786,9 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
 }
 
 .data-manage-page .pf-holding-action:hover,
@@ -703,7 +879,7 @@
   border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
   background: var(--accent);
   color: var(--bg);
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #ffffff 16%, transparent);
 }
 
 .data-manage-page .pf-holding-edit-error {
@@ -715,7 +891,7 @@
 
 .data-manage-page .pf-holding-bar {
   height: 3px;
-  margin: 2px -12px 0;
+  margin: 2px -13px 0;
   background: var(--divider);
 }
 
@@ -732,7 +908,12 @@
 @media (min-width: 768px) {
   .data-manage-page {
     margin-inline: calc(-1 * var(--page-gutter));
-    padding: 18px var(--page-gutter) 38px;
+    padding: 16px var(--page-gutter) 38px;
+  }
+
+  .data-manage-deck {
+    padding: 14px;
+    gap: 12px;
   }
 }
 
@@ -761,13 +942,29 @@
 }
 
 @media (max-width: 480px) {
-  .data-manager-section,
-  .data-manage-hero {
+  .data-manage-deck {
+    padding: 10px;
+    border-radius: 16px;
+    gap: 8px;
+  }
+
+  .data-manager-section {
+    padding: 14px;
+  }
+
+  .data-manage-hero .product-stage--manage {
     padding: 14px;
   }
 
   .data-manager-compose.list-compose {
-    padding: 12px;
+    padding: 13px 12px;
+  }
+
+  .data-manager-compose .list-compose-copy,
+  .data-manager-compose-fields,
+  .data-manager-compose .watchlist-add.list-compose-fields,
+  .data-manager-error {
+    padding-left: 6px;
   }
 
   .data-manager-compose-fields {
@@ -776,6 +973,7 @@
 
   .data-manager-row {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .data-manager-row-copy {
@@ -786,8 +984,12 @@
     white-space: normal;
   }
 
+  .data-manager-action {
+    width: 100%;
+  }
+
   .data-manage-page .pf-holding-main {
-    gap: 8px;
+    gap: 10px;
   }
 
   .data-manage-page .pf-holding-value {
@@ -813,5 +1015,24 @@
   .data-manager-view-link {
     margin-left: 0;
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .data-manage-panel {
+    animation: none;
+  }
+
+  .data-manage-hero-cta,
+  .data-manage-backlinks a,
+  .data-manager-primary,
+  .data-manager-action,
+  .data-manager-row,
+  .data-manage-page .pf-holding-card,
+  .data-manage-page .pf-holding-action,
+  .data-manage-page .pf-holding-save,
+  .data-manager-compose-fields input,
+  .data-manager-compose .watchlist-input {
+    transition: none;
   }
 }

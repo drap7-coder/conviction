@@ -235,7 +235,7 @@ export function PortfolioManager() {
           <span className="data-manager-eyebrow">Portfolio</span>
           <h2 id="manage-portfolio-title">Holdings you own</h2>
           <p className="data-manager-lede">
-            Add a ticker, shares, and optional average cost. Edit or remove any row below.
+            Shares and optional cost. Edit or remove any row below.
           </p>
         </div>
         <div className="data-manager-head-meta">
@@ -251,11 +251,13 @@ export function PortfolioManager() {
       </header>
 
       <form
+        id="manage-compose"
         className="data-manager-compose list-compose surface-well"
         onSubmit={handleAdd}
         aria-label="Add a portfolio holding"
       >
         <div className="list-compose-copy">
+          <span className="list-compose-eyebrow">Compose</span>
           <strong className="list-compose-title">Add a holding</strong>
           <span className="data-manager-compose-hint">
             Type a ticker or company — mic sits in the field.
@@ -374,8 +376,9 @@ export function PortfolioManager() {
         </div>
       ) : (
         <div className="data-manager-empty">
-          <strong>No portfolio holdings yet.</strong>
-          <span>Use the form above to add your first position.</span>
+          <strong>No holdings yet.</strong>
+          <span>Add a ticker, shares, and optional cost above.</span>
+          <span className="data-manager-empty-hint">You can edit any row after it lands.</span>
         </div>
       )}
 

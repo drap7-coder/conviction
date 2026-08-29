@@ -12964,6 +12964,89 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: var(--accent-dim);
 }
 
+/* Manage is an editor stage — calm atmosphere, no urgency glow or fake metrics. */
+.product-stage--manage {
+  --stage-accent: var(--accent);
+  --stage-glow: color-mix(in srgb, var(--accent-dim) 42%, transparent);
+  margin: 0;
+  padding: 18px 20px;
+  border-color: color-mix(in srgb, var(--accent) 18%, var(--border-raised));
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse 72% 58% at 100% -12%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 58%),
+    radial-gradient(ellipse 46% 40% at 0% 112%, color-mix(in srgb, var(--accent) 8%, transparent), transparent 56%),
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--accent) 7%, var(--card-soft)) 0%,
+      color-mix(in srgb, var(--card-soft) 88%, transparent) 48%,
+      var(--card) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #ffffff 7%, transparent),
+    var(--shadow-sm);
+}
+
+.product-stage--manage::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: 18px 0 0 18px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--accent) 72%, transparent) 0%,
+    color-mix(in srgb, var(--accent) 28%, var(--card)) 100%
+  );
+}
+
+.product-stage--manage::after {
+  opacity: 0.22;
+}
+
+.product-stage--manage .product-stage-copy {
+  position: relative;
+  z-index: 1;
+  padding-left: 6px;
+}
+
+.product-stage--manage .product-stage-eyebrow {
+  color: color-mix(in srgb, var(--accent) 58%, var(--muted));
+}
+
+.product-stage--manage .product-stage-headline {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 720;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+
+.product-stage--manage p {
+  max-width: 34rem;
+  font-size: clamp(0.8rem, 1.4vw, 0.9rem);
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--muted) 88%, var(--ink));
+}
+
+@media (max-width: 640px) {
+  .product-stage--manage {
+    padding: 15px 14px 16px;
+    border-radius: 16px;
+  }
+
+  .product-stage--manage::before {
+    border-radius: 16px 0 0 16px;
+  }
+
+  .product-stage--manage .product-stage-copy {
+    padding-left: 4px;
+  }
+
+  .product-stage--manage .product-stage-headline {
+    font-size: clamp(1.32rem, 6.2vw, 1.58rem);
+  }
+}
+
 .product-stage--smart-money {
   --stage-accent: var(--accent);
   --stage-glow: var(--accent-dim);

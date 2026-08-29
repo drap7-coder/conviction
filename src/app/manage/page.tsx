@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import { ManageWorkspace } from "@/components/ManageWorkspace";
 import { isAuthConfigured } from "@/lib/auth-readiness";
 import { getOptionalSession } from "@/lib/auth-session";
@@ -20,18 +19,11 @@ export default async function ManagePage() {
 
   return (
     <main className="data-manage-page">
-      <header className="data-manage-hero surface-shell">
-        <span>Your data</span>
-        <h1>Manage</h1>
-        <p>Edit one list at a time. Add by typing or the mic in the ticker field.</p>
-        <GuestModeBanner
-          authenticated={Boolean(session?.user)}
-          authConfigured={isAuthConfigured()}
-          accountLabel={accountLabel}
-        />
-      </header>
-
-      <ManageWorkspace />
+      <ManageWorkspace
+        authenticated={Boolean(session?.user)}
+        authConfigured={isAuthConfigured()}
+        accountLabel={accountLabel}
+      />
 
       <footer className="data-manage-backlinks">
         <Link href="/portfolio?view=watchlist">View Watchlist</Link>
