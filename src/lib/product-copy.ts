@@ -13,7 +13,7 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Pulse",
     href: "/pulse",
-    blurb: "Markets, movers, commodities, intl, and crypto — slicer at the top of the home screen.",
+    blurb: "Markets, movers, crypto, and intl — slicer at the top of the home screen.",
   },
   {
     name: "Crowd",
@@ -52,12 +52,12 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is CONVICTION?",
     answer:
-      "CONVICTION is a daily stock-market workspace. It brings together Pulse (indexes, sectors, movers, commodities, intl, and crypto), Crowd (what members hold and watch), a Portfolio tab with your live book and Watchlist, news briefs, and smart-money filings — organized around you, not a single research feature.",
+      "CONVICTION is a daily stock-market workspace. It brings together Pulse (indexes, commodities, sectors, movers, crypto, and intl), Crowd (what members hold and watch), a Portfolio tab with your live book and Watchlist, news briefs, and smart-money filings — organized around you, not a single research feature.",
   },
   {
     question: "What is Pulse?",
     answer:
-      "Pulse is the home screen. Use the Markets / Movers / Commodities / Intl / Crypto slicer at the top. Markets opens with VIX and 10Y gauges, then Major Indexes and US Sectors. Movers, Commodities, Intl, and Crypto each swap in their board without leaving Pulse.",
+      "Pulse is the home screen. Use the Markets / Movers / Crypto / Intl slicer at the top. Markets opens with VIX and 10Y gauges, then Major Indexes, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
   },
   {
     question: "How is Watchlist different from Portfolio?",

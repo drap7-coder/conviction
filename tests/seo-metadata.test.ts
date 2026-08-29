@@ -71,7 +71,7 @@ describe("SEO metadata", () => {
     expect(urls).toContain(`${SITE_URL}/pulse?view=international`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=crypto`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=movers`);
-    expect(urls).toContain(`${SITE_URL}/pulse?view=commodities`);
+    expect(urls).not.toContain(`${SITE_URL}/pulse?view=commodities`);
     expect(urls).not.toContain(`${SITE_URL}/pulse?view=sectors`);
     expect(urls).toContain(`${SITE_URL}/about`);
     expect(urls).toContain(`${SITE_URL}/faq`);
