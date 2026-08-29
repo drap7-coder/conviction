@@ -45,6 +45,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
+      url: `${SITE_URL}/pulse?view=movers`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/pulse?view=commodities`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 0.8,
+    },
+    {
       url: `${SITE_URL}/pulse?view=international`,
       lastModified: now,
       changeFrequency: "hourly",
@@ -56,12 +68,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "hourly",
       priority: 0.8,
     },
-    {
-      url: `${SITE_URL}/pulse?view=sectors`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.8,
-    },
+
     {
       url: `${SITE_URL}/portfolio`,
       lastModified: now,

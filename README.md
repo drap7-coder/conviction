@@ -1,6 +1,6 @@
 # CONVICTION — The stock market, organized around you
 
-Your daily market workspace: Pulse for indexes and movers, Crowd holdings, portfolio with watchlist, sectors and international boards, news briefs, and smart-money filings — all in one place.
+Your daily market workspace: Pulse for indexes, sectors, movers, and commodities, Crowd holdings, portfolio with watchlist, news briefs, and smart-money filings — all in one place.
 
 ## Getting Started
 
@@ -18,7 +18,7 @@ FMP_API_KEY=your_key_here
 
 ## Product surfaces
 
-- **Pulse** — Indexes, movers, commodities (Sectors / Intl / Crypto via top slicer)
+- **Pulse** — Markets (indexes + sectors), Movers, Commodities, Intl, Crypto via top slicer
 - **Crowd** — Most held / most watched across member books
 - **Portfolio** — Live book, Watchlist, and Study templates (top slicer)
 - **News** — Featured brief and themes

@@ -20,7 +20,7 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "amber",
     group: "daily",
-    blurb: "Markets, sectors, intl, and crypto boards in one place.",
+    blurb: "Markets, movers, commodities, intl, and crypto — slicer on Pulse.",
   },
   {
     href: "/crowd",
