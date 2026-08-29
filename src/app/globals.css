@@ -1391,9 +1391,29 @@ button.bottom-tab-item {
   padding-bottom: 2px;
 }
 
+.app-title-boot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .app-title.typewriter {
   overflow: hidden;
   white-space: nowrap;
+  text-transform: none;
+  letter-spacing: 0.04em;
+}
+
+.app-title-boot-body {
+  text-transform: none;
+}
+
+.typewriter-period {
+  display: inline-block;
+  margin-left: 1px;
+  color: var(--accent);
+  animation: blink-cursor 0.8s step-end infinite;
 }
 
 .typewriter-cursor {
@@ -1404,6 +1424,38 @@ button.bottom-tab-item {
   margin-left: 2px;
   animation: blink-cursor 0.8s step-end infinite;
   vertical-align: text-bottom;
+}
+
+.boot-sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--card-soft) 70%, transparent);
+  color: var(--quiet);
+  cursor: pointer;
+  opacity: 0.72;
+}
+
+.boot-sound-toggle:hover,
+.boot-sound-toggle:focus-visible {
+  color: var(--ink);
+  opacity: 1;
+  outline: none;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.boot-sound-toggle.is-on {
+  color: var(--accent);
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .typewriter-line {

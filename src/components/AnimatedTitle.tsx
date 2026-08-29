@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 
-/** First-visit boot types lowercase with period; settled nav drops the period. */
-const BOOT_TEXT = "conviction.";
+/** First-visit boot types lowercase; settled nav is all-caps, no period. */
+const BOOT_BODY = "conviction";
+const BOOT_FINAL = "conviction.";
 const SETTLED_TEXT = "CONVICTION";
 const STORAGE_KEY = "conviction-title-revealed";
 const SOUND_PREF_KEY = "conviction-boot-sound";
@@ -13,10 +14,18 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Soft click tick for the boot typewriter — opt-in via localStorage. */
-function playBootTick(): void {
+function readSoundOn(): boolean {
   try {
-    if (localStorage.getItem(SOUND_PREF_KEY) !== "on") return;
+    return localStorage.getItem(SOUND_PREF_KEY) === "on";
+  } catch {
+    return false;
+  }
+}
+
+/** Soft click tick — opt-in only; fail silently if audio is blocked. */
+function playBootTick(soundOn: boolean): void {
+  if (!soundOn) return;
+  try {
     const Ctx =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -41,11 +50,13 @@ function playBootTick(): void {
 }
 
 export default function AnimatedTitle() {
-  const [displayed, setDisplayed] = useState(SETTLED_TEXT);
-  const [done, setDone] = useState(true);
-  const [skip, setSkip] = useState(true);
+  const [body, setBody] = useState(SETTLED_TEXT);
+  const [phase, setPhase] = useState<"settled" | "typing" | "blink">("settled");
+  const [soundOn, setSoundOn] = useState(false);
 
   useEffect(() => {
+    setSoundOn(readSoundOn());
+
     let alreadySeen = true;
     try {
       alreadySeen = localStorage.getItem(STORAGE_KEY) === "true";
@@ -53,54 +64,118 @@ export default function AnimatedTitle() {
       // localStorage unavailable — settle immediately
     }
 
-    if (alreadySeen || prefersReducedMotion()) {
-      setDisplayed(SETTLED_TEXT);
-      setDone(true);
-      setSkip(true);
-      if (!alreadySeen) {
-        try {
-          localStorage.setItem(STORAGE_KEY, "true");
-        } catch {
-          // best-effort
-        }
-      }
+    if (alreadySeen) {
+      setBody(SETTLED_TEXT);
+      setPhase("settled");
       return;
     }
 
-    setSkip(false);
-    setDone(false);
-    setDisplayed("");
+    // First visit: reduced motion skips typing, shows final boot frame, then settles.
+    if (prefersReducedMotion()) {
+      setBody(BOOT_BODY);
+      setPhase("blink");
+      try {
+        localStorage.setItem(STORAGE_KEY, "true");
+      } catch {
+        // best-effort
+      }
+      const settleTimer = window.setTimeout(() => {
+        setBody(SETTLED_TEXT);
+        setPhase("settled");
+      }, 900);
+      return () => window.clearTimeout(settleTimer);
+    }
+
+    setBody("");
+    setPhase("typing");
     let i = 0;
+    let settleTimer: number | undefined;
     const interval = window.setInterval(() => {
-      i++;
-      setDisplayed(BOOT_TEXT.slice(0, i));
-      playBootTick();
-      if (i >= BOOT_TEXT.length) {
+      i += 1;
+      setBody(BOOT_BODY.slice(0, i));
+      playBootTick(readSoundOn());
+      if (i >= BOOT_BODY.length) {
         window.clearInterval(interval);
-        setDone(true);
-        window.setTimeout(() => {
-          setDisplayed(SETTLED_TEXT);
-          setSkip(true);
-        }, 420);
+        setPhase("blink");
         try {
           localStorage.setItem(STORAGE_KEY, "true");
         } catch {
           // best-effort
         }
+        settleTimer = window.setTimeout(() => {
+          setBody(SETTLED_TEXT);
+          setPhase("settled");
+        }, 1100);
       }
     }, 110);
 
-    return () => window.clearInterval(interval);
+    return () => {
+      window.clearInterval(interval);
+      if (settleTimer) window.clearTimeout(settleTimer);
+    };
   }, []);
 
-  if (skip) {
-    return <span className="app-title">{displayed || SETTLED_TEXT}</span>;
+  function toggleSound(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    const next = !soundOn;
+    setSoundOn(next);
+    try {
+      localStorage.setItem(SOUND_PREF_KEY, next ? "on" : "off");
+    } catch {
+      // best-effort
+    }
+    if (next) playBootTick(true);
+  }
+
+  const booting = phase === "typing" || phase === "blink";
+  const showPeriodCursor = phase === "blink";
+
+  if (phase === "settled") {
+    return <span className="app-title">{SETTLED_TEXT}</span>;
   }
 
   return (
-    <span className="app-title typewriter" aria-label={SETTLED_TEXT}>
-      {displayed}
-      {!done && <span className="typewriter-cursor" aria-hidden="true" />}
+    <span className="app-title-boot">
+      <span
+        className={`app-title typewriter${phase === "typing" ? " is-typing" : ""}`}
+        aria-label={BOOT_FINAL}
+      >
+        <span className="app-title-boot-body">{body}</span>
+        {showPeriodCursor ? (
+          <span className="typewriter-period" aria-hidden="true">
+            .
+          </span>
+        ) : phase === "typing" ? (
+          <span className="typewriter-cursor" aria-hidden="true" />
+        ) : null}
+      </span>
+      {booting ? (
+        <button
+          type="button"
+          className={`boot-sound-toggle${soundOn ? " is-on" : ""}`}
+          aria-label={soundOn ? "Mute boot sound" : "Unmute boot sound"}
+          aria-pressed={soundOn}
+          title={soundOn ? "Mute" : "Sound off (click to enable)"}
+          onClick={toggleSound}
+        >
+          {soundOn ? (
+            <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M2 6.5h2.2L7.5 4v8L4.2 9.5H2zm7.2.2a2.4 2.4 0 0 1 0 2.6l-.8-.6a1.4 1.4 0 0 0 0-1.4zm1.7-1.7a4.2 4.2 0 0 1 0 6l-.85-.55a3.2 3.2 0 0 0 0-4.9z"
+              />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M2 6.5h2.2L7.5 4v8L4.2 9.5H2zm9.4-2.1.7.7-1.6 1.6 1.6 1.6-.7.7-1.6-1.6-1.6 1.6-.7-.7 1.6-1.6-1.6-1.6.7-.7 1.6 1.6z"
+              />
+            </svg>
+          )}
+        </button>
+      ) : null}
     </span>
   );
 }
