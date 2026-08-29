@@ -12989,6 +12989,16 @@ a.signal-block-conclusion-link:hover {
   line-height: 1.5;
 }
 
+@media (max-width: 640px) {
+  .product-stage--manage {
+    padding: 14px 15px;
+  }
+
+  .product-stage--manage .product-stage-headline {
+    font-size: clamp(1.28rem, 6vw, 1.55rem);
+  }
+}
+
 .product-stage--smart-money {
   --stage-accent: var(--accent);
   --stage-glow: var(--accent-dim);

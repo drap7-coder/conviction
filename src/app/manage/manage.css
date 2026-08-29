@@ -135,6 +135,10 @@
   overflow: hidden;
 }
 
+#manage-compose {
+  scroll-margin-top: calc(var(--sticky-header-offset) + 18px);
+}
+
 .data-manager-section-head {
   display: flex;
   align-items: flex-start;
