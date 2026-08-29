@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { SectorProfile } from "@/lib/market/sector-profile";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { PriceTrendCard } from "@/app/components/PriceTrendCard";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import { useWatchlistTracking } from "@/app/components/use-watchlist-tracking";
@@ -14,7 +15,8 @@ interface CompanyQuoteCardProps {
   ticker: string;
   companyName: string;
   sectorName: string | null;
-  logoUrl: string | null;
+  /** @deprecated LogoDisplay resolves favicons / sector badges from ticker. */
+  logoUrl?: string | null;
 }
 
 function formatPrice(value: number | null): string {
@@ -47,7 +49,6 @@ export function CompanyQuoteCard({
   ticker,
   companyName,
   sectorName,
-  logoUrl,
 }: CompanyQuoteCardProps) {
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [profile, setProfile] = useState<SectorProfile | null>(null);
@@ -136,13 +137,9 @@ export function CompanyQuoteCard({
     <section className="company-quote-card ink-panel" aria-label={`${ticker} quote and chart`}>
       <header className="company-quote-top">
         <div className="company-quote-identity">
-          {logoUrl ? (
-            <img src={logoUrl} alt="" className="company-quote-logo" />
-          ) : (
-            <div className="logo-badge logo-badge-detail" aria-hidden="true">
-              {ticker.charAt(0)}
-            </div>
-          )}
+          <span className="company-quote-logo" aria-hidden="true">
+            <LogoDisplay ticker={ticker} size="detail" />
+          </span>
           <div className="company-quote-copy">
             <div className="company-quote-ticker-row">
               <h1 className="company-quote-ticker">

@@ -1098,7 +1098,7 @@
 .portfolio-page .pf-benchmark-takeaway.is-ahead { color: var(--green); }
 .portfolio-page .pf-benchmark-takeaway.is-behind { color: var(--red); }
 
-/* ── Position cards (badge / name / value / allocation bar) ── */
+/* ── Position cards (logo / ticker stack / value / allocation bar) ── */
 .portfolio-page .pf-holding-card {
   position: relative;
   display: grid;
@@ -1110,6 +1110,7 @@
   background: var(--card-soft);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  min-width: 0;
 }
 
 .portfolio-page .pf-holding-card.focused-card,
@@ -1126,21 +1127,30 @@
   min-width: 0;
 }
 
-.portfolio-page .pf-holding-badge {
+.portfolio-page .pf-holding-logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 28px;
-  padding: 4px 8px;
-  border: 1px solid var(--border);
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: var(--card);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
+  background: color-mix(in srgb, var(--card) 70%, #fff 8%);
+  border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.portfolio-page .pf-holding-logo .card-logo,
+.portfolio-page .pf-holding-logo .logo-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.portfolio-page .pf-holding-logo .card-logo.sector-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
 }
 
 .portfolio-page .pf-holding-copy {
@@ -1149,29 +1159,42 @@
   min-width: 0;
 }
 
+.portfolio-page .pf-holding-id {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  text-decoration: none;
+}
+
+.portfolio-page .pf-holding-ticker {
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: 0.02em;
+}
+
 .portfolio-page .pf-holding-name {
   overflow: hidden;
-  color: var(--ink);
+  color: var(--muted);
   font-family: var(--font-sans);
-  font-size: 0.92rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.portfolio-page .pf-holding-name:hover,
-.portfolio-page .pf-holding-name:focus-visible {
+.portfolio-page .pf-holding-id:hover .pf-holding-ticker,
+.portfolio-page .pf-holding-id:focus-visible .pf-holding-ticker {
   color: var(--accent);
   outline: none;
 }
 
 .portfolio-page .pf-holding-meta {
   overflow: hidden;
-  color: var(--muted);
+  color: var(--quiet);
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -1180,7 +1203,7 @@
   display: grid;
   justify-items: end;
   gap: 1px;
-  min-width: max-content;
+  min-width: 0;
 }
 
 .portfolio-page .pf-holding-value {
@@ -1193,13 +1216,15 @@
 }
 
 .portfolio-page .pf-holding-day,
-.portfolio-page .pf-holding-close {
+.portfolio-page .pf-holding-close,
+.portfolio-page .pf-holding-weight {
   font-family: var(--font-mono);
   font-size: 0.68rem;
   font-weight: 600;
   white-space: nowrap;
 }
 
+.portfolio-page .pf-holding-weight,
 .portfolio-page .pf-holding-close {
   color: var(--quiet);
 }
@@ -1236,16 +1261,12 @@
   background: var(--surface-elevated);
   border-color: var(--border);
   color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 400px) {
   .portfolio-page .pf-holding-main {
     gap: 8px;
-  }
-
-  .portfolio-page .pf-holding-badge {
-    padding: 4px 6px;
-    font-size: 0.68rem;
   }
 
   .portfolio-page .pf-holding-value {

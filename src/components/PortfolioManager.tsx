@@ -16,6 +16,7 @@ import {
 } from "@/lib/portfolio/calculations";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
+import { fmtCompactCurrency } from "@/lib/display/format";
 
 function parsePosition(
   tickerValue: string,
@@ -221,82 +222,111 @@ export function PortfolioManager() {
   }
 
   const loaded = !sharedData.loading || positions.length > 0 || Boolean(sharedData.error);
+  const bookValue = fmtCompactCurrency(portfolioMetrics.totalMarketValue);
 
   return (
-    <section id="portfolio" className="data-manager-section" aria-labelledby="manage-portfolio-title">
+    <section
+      id="portfolio"
+      className="data-manager-section surface-shell"
+      aria-labelledby="manage-portfolio-title"
+    >
       <header className="data-manager-section-head">
         <div>
           <span className="data-manager-eyebrow">Portfolio</span>
           <h2 id="manage-portfolio-title">Holdings you own</h2>
+          <p className="data-manager-lede">
+            Add a ticker, shares, and optional average cost. Edit or remove any row below.
+          </p>
         </div>
-        <span className="data-manager-count">
-          {positions.length} holding{positions.length === 1 ? "" : "s"}
-        </span>
+        <div className="data-manager-head-meta">
+          <span className="data-manager-count">
+            {positions.length} holding{positions.length === 1 ? "" : "s"}
+          </span>
+          {positions.length > 0 ? (
+            <span className="data-manager-book-value tnum" title="Book market value">
+              {bookValue}
+            </span>
+          ) : null}
+        </div>
       </header>
 
-      <form className="data-manager-form" onSubmit={handleAdd} aria-label="Add a portfolio holding">
-        <label>
-          <span>Ticker or company</span>
-          <CompanyTypeahead
-            value={ticker}
-            onChange={setTicker}
-            onSelect={(suggestion) => {
-              setTicker(suggestion.ticker);
-              setAddError(null);
-              sharesInputRef.current?.focus();
-            }}
-            placeholder="AAPL or Apple"
-            wrapperClassName="data-manager-typeahead"
-            autoCapitalize="characters"
-            trailing={(
-              <TickerCaptureActions
-                disabled={saving || resolving}
-                onResolved={(suggestion) => {
-                  setTicker(suggestion.ticker);
-                  setAddError(null);
-                  sharesInputRef.current?.focus();
-                }}
-                onQuery={(query) => setTicker(query)}
-                onStatus={(message) => setAddError(message)}
-              />
-            )}
-          />
-        </label>
-        <label>
-          <span>Shares</span>
-          <input
-            ref={sharesInputRef}
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="any"
-            value={shares}
-            onChange={(event) => setShares(event.target.value)}
-            placeholder="10"
-          />
-        </label>
-        <label>
-          <span>Average cost <em>optional</em></span>
-          <input
-            type="number"
-            inputMode="decimal"
-            min="0"
-            step="any"
-            value={cost}
-            onChange={(event) => setCost(event.target.value)}
-            placeholder="150.00"
-          />
-        </label>
-        <button type="submit" className="data-manager-primary" disabled={saving || resolving}>
-          {resolving ? "Adding…" : "Add holding"}
-        </button>
+      <form
+        className="data-manager-compose list-compose"
+        onSubmit={handleAdd}
+        aria-label="Add a portfolio holding"
+      >
+        <div className="list-compose-copy">
+          <strong className="list-compose-title">Add a holding</strong>
+          <span className="data-manager-compose-hint">
+            Type a ticker or company — mic sits in the field.
+          </span>
+        </div>
+        <div className="data-manager-compose-fields">
+          <label className="data-manager-compose-ticker">
+            <span>Ticker or company</span>
+            <CompanyTypeahead
+              value={ticker}
+              onChange={setTicker}
+              onSelect={(suggestion) => {
+                setTicker(suggestion.ticker);
+                setAddError(null);
+                sharesInputRef.current?.focus();
+              }}
+              placeholder="AAPL or Apple"
+              wrapperClassName="data-manager-typeahead"
+              autoCapitalize="characters"
+              trailing={(
+                <TickerCaptureActions
+                  disabled={saving || resolving}
+                  onResolved={(suggestion) => {
+                    setTicker(suggestion.ticker);
+                    setAddError(null);
+                    sharesInputRef.current?.focus();
+                  }}
+                  onQuery={(query) => setTicker(query)}
+                  onStatus={(message) => setAddError(message)}
+                />
+              )}
+            />
+          </label>
+          <label>
+            <span>Shares</span>
+            <input
+              ref={sharesInputRef}
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="any"
+              className="tnum"
+              value={shares}
+              onChange={(event) => setShares(event.target.value)}
+              placeholder="10"
+            />
+          </label>
+          <label>
+            <span>Avg cost <em>optional</em></span>
+            <input
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="any"
+              className="tnum"
+              value={cost}
+              onChange={(event) => setCost(event.target.value)}
+              placeholder="150.00"
+            />
+          </label>
+          <button type="submit" className="data-manager-primary" disabled={saving || resolving}>
+            {resolving ? "Adding…" : "Add"}
+          </button>
+        </div>
         {addError ? <p className="data-manager-error" role="alert">{addError}</p> : null}
       </form>
 
       {!loaded ? (
         <div className="data-manager-empty">Loading portfolio…</div>
       ) : positions.length > 0 ? (
-        <div className="data-manager-holdings" aria-label="Portfolio holdings">
+        <div className="data-manager-holdings surface-well" aria-label="Portfolio holdings">
           {sharedData.loading ? (
             <PageLoadingMotion
               label="Loading portfolio prices"

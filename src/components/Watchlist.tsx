@@ -15,6 +15,7 @@ import {
 } from "@/components/market/MarketMoversBoard";
 import { splitMarketMovers } from "@/lib/market/market-movers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
@@ -414,11 +415,18 @@ export default function Watchlist({
 
   if (mode === "manage") {
     return (
-      <section id="watchlist" className="data-manager-section" aria-labelledby="manage-watchlist-title">
+      <section
+        id="watchlist"
+        className="data-manager-section surface-shell"
+        aria-labelledby="manage-watchlist-title"
+      >
         <header className="data-manager-section-head">
           <div>
             <span className="data-manager-eyebrow">Watchlist</span>
             <h2 id="manage-watchlist-title">Names you follow</h2>
+            <p className="data-manager-lede">
+              Track tickers by name or symbol. Mic sits in the ticker field.
+            </p>
           </div>
           <span className="data-manager-count">
             {entries.length} symbol{entries.length === 1 ? "" : "s"}
@@ -436,14 +444,20 @@ export default function Watchlist({
             speed="slow"
           />
         ) : entries.length > 0 ? (
-          <div className="data-manager-list" aria-label="Watchlist names">
+          <div className="data-manager-list surface-well" aria-label="Watchlist names">
             {entries.map((entry) => (
               <div key={entry.ticker} className="data-manager-row">
                 <div className="data-manager-row-copy">
-                  <Link href={`/companies/${encodeURIComponent(entry.ticker)}`} className="data-manager-ticker">
-                    {entry.ticker}
+                  <span className="data-manager-logo" aria-hidden="true">
+                    <LogoDisplay ticker={entry.ticker} size="card" />
+                  </span>
+                  <Link
+                    href={`/companies/${encodeURIComponent(entry.ticker)}`}
+                    className="data-manager-id"
+                  >
+                    <strong className="data-manager-ticker">{entry.ticker}</strong>
+                    <span>{entry.companyName}</span>
                   </Link>
-                  <span>{entry.companyName}</span>
                 </div>
                 <button
                   type="button"
