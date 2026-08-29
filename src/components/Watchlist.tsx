@@ -333,7 +333,11 @@ export default function Watchlist({
       aria-label="Track a company"
     >
       <div className="list-compose-copy">
+        <span className="list-compose-eyebrow">Compose</span>
         <strong className="list-compose-title">Track a company</strong>
+        <span className="data-manager-compose-hint">
+          Type a ticker or company — mic sits in the field.
+        </span>
       </div>
       <div className="watchlist-add list-compose-fields">
         <CompanyTypeahead
@@ -429,7 +433,7 @@ export default function Watchlist({
             <span className="data-manager-eyebrow">Watchlist</span>
             <h2 id="manage-watchlist-title">Names you follow</h2>
             <p className="data-manager-lede">
-              Track tickers by name or symbol. Mic sits in the ticker field.
+              Names you follow day to day. Add above, remove here.
             </p>
           </div>
           <span className="data-manager-count">
@@ -477,8 +481,9 @@ export default function Watchlist({
           </div>
         ) : (
           <div className="data-manager-empty">
-            <strong>No watchlist names yet.</strong>
-            <span>Use the field above to track your first company.</span>
+            <strong>Your watchlist is empty.</strong>
+            <span>Start with a ticker or company name in the field above.</span>
+            <span className="data-manager-empty-hint">Mic works in the ticker field too.</span>
           </div>
         )}
 

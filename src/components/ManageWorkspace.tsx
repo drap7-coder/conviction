@@ -21,13 +21,13 @@ const MANAGE_HERO = {
     eyebrow: "Watchlist editor",
     headline: "Edit what you follow.",
     summary: "Add or remove names below. Type a ticker, or use the mic in the field.",
-    cta: "Jump to add",
+    cta: "Add a name",
   },
   portfolio: {
     eyebrow: "Portfolio editor",
     headline: "Edit what you own.",
     summary: "Add shares and optional cost below. Edit or remove any holding in the list.",
-    cta: "Jump to add",
+    cta: "Add a holding",
   },
 } as const;
 
@@ -87,46 +87,49 @@ function ManageWorkspaceInner({
 
   return (
     <div className="data-manage-workspace">
-      <header className="data-manage-hero">
-        <ProductStage
-          variant="manage"
-          aria-label="Manage workspace"
-          eyebrow={hero.eyebrow}
-          headline={hero.headline}
-          summary={hero.summary}
-          typewriterHeadline={false}
-        >
-          <div className="product-stage-actions data-manage-hero-actions">
-            <button
-              type="button"
-              className="data-manage-hero-cta"
-              onClick={focusManageCompose}
-            >
-              {hero.cta}
-            </button>
-          </div>
-        </ProductStage>
-        <GuestModeBanner
-          authenticated={authenticated}
-          authConfigured={authConfigured}
-          accountLabel={accountLabel}
-        />
-      </header>
+      <div className="data-manage-deck">
+        <header className="data-manage-hero">
+          <ProductStage
+            variant="manage"
+            aria-label="Manage workspace"
+            eyebrow={hero.eyebrow}
+            headline={hero.headline}
+            summary={hero.summary}
+            typewriterHeadline={false}
+          >
+            <div className="product-stage-actions data-manage-hero-actions">
+              <button
+                type="button"
+                className="data-manage-hero-cta"
+                onClick={focusManageCompose}
+              >
+                {hero.cta}
+              </button>
+            </div>
+          </ProductStage>
+          <GuestModeBanner
+            authenticated={authenticated}
+            authConfigured={authConfigured}
+            accountLabel={accountLabel}
+          />
+        </header>
 
-      <SurfaceSlicer
-        label="Manage workspace"
-        options={MANAGE_VIEWS}
-        activeId={activeView}
-        onChange={selectView}
-        role="tablist"
-        className="data-manage-slicer"
-      />
+        <SurfaceSlicer
+          label="Manage workspace"
+          options={MANAGE_VIEWS}
+          activeId={activeView}
+          onChange={selectView}
+          role="tablist"
+          className="data-manage-slicer"
+        />
+      </div>
 
       <div
         id="manage-panel-watchlist"
         role="tabpanel"
         aria-labelledby="manage-tab-watchlist"
         hidden={activeView !== "watchlist"}
+        className="data-manage-panel"
       >
         {activeView === "watchlist" ? <Watchlist mode="manage" /> : null}
       </div>
@@ -136,6 +139,7 @@ function ManageWorkspaceInner({
         role="tabpanel"
         aria-labelledby="manage-tab-portfolio"
         hidden={activeView !== "portfolio"}
+        className="data-manage-panel"
       >
         {activeView === "portfolio" ? (
           <PortfolioDataProvider>

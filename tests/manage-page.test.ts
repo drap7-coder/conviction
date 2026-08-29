@@ -43,16 +43,27 @@ describe("data management workspace", () => {
     expect(workspace).toContain("Portfolio editor");
     expect(workspace).toContain("Edit what you follow.");
     expect(workspace).toContain("Edit what you own.");
-    expect(workspace).toContain("Jump to add");
+    expect(workspace).toContain("Add a name");
+    expect(workspace).toContain("Add a holding");
+    expect(workspace).toContain("data-manage-deck");
     expect(workspace).toContain("focusManageCompose");
     expect(workspace).toContain('typewriterHeadline={false}');
     expect(workspace).not.toContain("Your data");
+    expect(workspace).not.toContain("Jump to add");
+    expect(css).toContain(".data-manage-deck");
     expect(css).toContain(".data-manage-hero-cta");
     expect(css).toContain(".data-manage-hero .product-stage");
+    expect(css).toContain(".data-manager-empty-hint");
+    expect(css).toContain("width: 36px");
     expect(globals).toContain(".product-stage--manage");
-    expect(globals).toContain("--stage-glow: transparent");
+    expect(globals).toContain(".product-stage--manage::before");
+    expect(globals).not.toContain("--stage-glow: transparent");
     expect(watchlist).toContain('id="manage-compose"');
+    expect(watchlist).toContain("list-compose-eyebrow");
+    expect(watchlist).toContain("data-manager-empty-hint");
     expect(manager).toContain('id="manage-compose"');
+    expect(manager).toContain("list-compose-eyebrow");
+    expect(manager).toContain("data-manager-empty-hint");
   });
 
   it("keeps main Watchlist and Portfolio pages read-first with Manage deep links", () => {
@@ -122,6 +133,7 @@ describe("data management workspace", () => {
     expect(css).toContain("@media (max-width: 480px)");
     expect(css).toContain("grid-template-columns: 1fr;");
     expect(css).toContain(".data-manage-slicer");
+    expect(css).toContain(".data-manage-panel");
     expect(css).toContain(".data-manager-holdings");
     expect(css).toContain(".data-manager-logo");
     expect(css).toContain(".pf-holding-logo");
@@ -130,6 +142,7 @@ describe("data management workspace", () => {
     expect(css).toContain("var(--shadow-sm)");
     expect(css).toContain("var(--surface-well-highlight)");
     expect(css).toContain("var(--card-inset)");
+    expect(css).toContain("prefers-reduced-motion: reduce");
     expect(css).not.toContain("--surface-shell-radius");
     expect(watchlist).toContain("data-manager-compose list-compose surface-well");
     expect(watchlist).not.toContain("list-compose ink-panel");
