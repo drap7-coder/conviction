@@ -2,6 +2,7 @@
 
 import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
 import { fmtDollarPrice, fmtPercent, fmtSignedDollar } from "@/lib/display/format";
 import {
@@ -118,6 +119,9 @@ export function MarketScoreboard({
               const label = rowAriaLabel(market, Boolean(extendedLabel));
               const body: ReactNode = (
                 <>
+                  <span className="pulse-index-logo" aria-hidden="true">
+                    <LogoDisplay ticker={market.ticker} size="detail" />
+                  </span>
                   <span className="pulse-index-name">
                     <strong>{market.name}</strong>
                     <small>{market.ticker}</small>
