@@ -642,8 +642,8 @@ details > summary::before {
   margin: calc(var(--section-gap) * -1) -8px 10px;
   padding: 0;
   overflow: hidden;
-  border-bottom: 1px solid var(--border);
-  background: color-mix(in srgb, var(--surface-elevated) 78%, var(--bg));
+  border: 0;
+  background: transparent;
   font-family: var(--font-mono);
   mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
 }
@@ -680,7 +680,7 @@ details > summary::before {
 }
 
 .market-tape-item + .market-tape-item {
-  border-left: 1px solid var(--border);
+  border-left: 0;
 }
 
 @keyframes market-tape-scroll {
@@ -692,6 +692,7 @@ a.market-tape-item:hover,
 a.market-tape-item:focus-visible {
   background: var(--accent-dim);
   outline: none;
+  border-radius: 6px;
 }
 
 .market-tape-symbol {
@@ -17862,10 +17863,10 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-gauge-card {
   min-width: 0;
-  padding: 10px 10px 8px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--card);
+  padding: 4px 4px 2px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .pulse-gauge-kicker {
