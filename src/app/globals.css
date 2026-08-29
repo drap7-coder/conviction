@@ -20160,33 +20160,46 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .ticker-field-control > input.has-mic,
 input.has-mic {
-  padding-right: 42px;
+  padding-right: 56px;
 }
 
 .ticker-mic {
   position: absolute;
   top: 50%;
-  right: 6px;
+  right: 5px;
   z-index: 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 30px;
   padding: 0;
-  border: 0;
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   border-radius: 8px;
-  background: transparent;
-  color: var(--muted);
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent);
   cursor: pointer;
   transform: translateY(-50%);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+/* Rule between typed text and the voice control */
+.ticker-mic::before {
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: 14%;
+  bottom: 14%;
+  width: 1px;
+  background: color-mix(in srgb, var(--muted) 80%, transparent);
+  pointer-events: none;
 }
 
 .ticker-mic:hover:not(:disabled),
 .ticker-mic:focus-visible:not(:disabled) {
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  background: color-mix(in srgb, var(--accent) 32%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 70%, transparent);
   outline: none;
 }
 
@@ -20197,20 +20210,33 @@ input.has-mic {
 
 .ticker-mic.is-live {
   color: var(--red);
-  background: color-mix(in srgb, var(--red) 14%, transparent);
+  background: color-mix(in srgb, var(--red) 18%, transparent);
+  border-color: color-mix(in srgb, var(--red) 45%, transparent);
+}
+
+.ticker-mic.is-live::before {
+  background: color-mix(in srgb, var(--red) 50%, transparent);
 }
 
 .list-compose .ticker-mic {
-  color: var(--on-ink-quiet);
+  color: var(--on-ink);
+  background: color-mix(in srgb, var(--on-ink-accent) 26%, transparent);
+  border-color: color-mix(in srgb, var(--on-ink-accent) 55%, transparent);
+}
+
+.list-compose .ticker-mic::before {
+  background: color-mix(in srgb, var(--on-ink-muted) 90%, transparent);
 }
 
 .list-compose .ticker-mic:hover:not(:disabled),
 .list-compose .ticker-mic:focus-visible:not(:disabled) {
   color: var(--on-ink);
-  background: color-mix(in srgb, var(--on-ink-accent) 18%, transparent);
+  background: color-mix(in srgb, var(--on-ink-accent) 36%, transparent);
+  border-color: color-mix(in srgb, var(--on-ink-accent) 75%, transparent);
 }
 
 .list-compose .ticker-mic.is-live {
   color: #fecaca;
-  background: color-mix(in srgb, var(--red) 22%, transparent);
+  background: color-mix(in srgb, var(--red) 24%, transparent);
+  border-color: color-mix(in srgb, var(--red) 50%, transparent);
 }

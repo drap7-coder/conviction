@@ -36,6 +36,7 @@ describe("inline voice mic wiring", () => {
     expect(read("src/components/CompanyTypeahead.tsx")).toContain("ticker-field-control");
     expect(read("src/components/CompanyTypeahead.tsx")).toContain("has-mic");
     expect(read("src/app/globals.css")).toContain(".ticker-mic");
+    expect(read("src/app/globals.css")).toContain(".ticker-mic::before");
     expect(read("src/app/globals.css")).not.toContain(".ticker-capture-camera");
   });
 });
