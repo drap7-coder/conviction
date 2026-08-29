@@ -3,7 +3,7 @@
 import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
 import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
-import { fmtDollarPrice, fmtPercent, fmtSignedDollar, isFiniteNumber } from "@/lib/display/format";
+import { fmtDollarPrice, fmtPercent, fmtSignedDollar } from "@/lib/display/format";
 import {
   buildSparklineGeometry,
   sparklineStroke,
@@ -14,29 +14,7 @@ import {
   scoreboardCommodities,
   scoreboardIndexes,
 } from "@/lib/market/index-scoreboard";
-import type { InkTone } from "@/lib/display/ink-tone";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
-
-function groupDayTone(markets: PulseGlobalMarket[]): InkTone {
-  const values = markets
-    .map((market) => market.regularChangePercent ?? market.changePercent)
-    .filter((value): value is number => isFiniteNumber(value));
-  if (values.length === 0) return "quiet";
-  const up = values.filter((value) => value > 0.05).length;
-  const down = values.filter((value) => value < -0.05).length;
-  if (up > 0 && down > 0) return "amber";
-  const mean = values.reduce((sum, value) => sum + value, 0) / values.length;
-  if (mean > 0.05) return "up";
-  if (mean < -0.05) return "down";
-  return "quiet";
-}
-
-function groupDayStatusLabel(tone: InkTone): string {
-  if (tone === "up") return "Up on the day";
-  if (tone === "down") return "Down on the day";
-  if (tone === "amber") return "Mixed on the day";
-  return "Flat on the day";
-}
 
 function IndexSpark({
   values,
@@ -104,7 +82,6 @@ export function MarketScoreboard({
   footer?: ReactNode;
 }) {
   if (rows.length === 0 && !footer) return null;
-  const dayTone = groupDayTone(rows);
 
   return (
     <section
@@ -114,11 +91,7 @@ export function MarketScoreboard({
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
           <h2>
-            <i
-              className={`pulse-day-status pulse-day-status--${dayTone}`}
-              aria-label={groupDayStatusLabel(dayTone)}
-              title={groupDayStatusLabel(dayTone)}
-            />
+            <i className="pulse-day-status pulse-day-status--mark" aria-hidden="true" />
             {title}
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>

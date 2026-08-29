@@ -12920,30 +12920,56 @@ a.signal-block-conclusion-link:hover {
   --stage-glow: var(--red-dim);
 }
 
-/* Live book: atmospheric stage + solid opaque Value panel so it stands out. */
+/* Live Portfolio hero only: heavier radius + atmospheric glow.
+ * Sector Mix / Index boards stay plain .surface-shell (16px, thin border).
+ * Day-move intensity: mild (<1%) stays quiet; strong only past ~2.5%. */
 .product-stage--portfolio.product-stage--metrics-above {
   --pf-hero-pad: clamp(16px, 2.4vw, 26px);
+  --pf-glow-a: 70%;
+  --pf-glow-b: 40%;
+  --pf-fill-mix: 16%;
+  --pf-border-mix: 34%;
+  --pf-inset-mix: 20%;
+  --pf-edge-opacity: 1;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 0;
   margin: 0 0 14px;
   padding: var(--pf-hero-pad);
-  border-color: color-mix(in srgb, var(--stage-accent) 34%, var(--border));
+  border-color: color-mix(in srgb, var(--stage-accent) var(--pf-border-mix), var(--border));
   border-radius: 20px;
   background:
-    radial-gradient(ellipse 78% 58% at 100% -8%, color-mix(in srgb, var(--stage-glow) 70%, transparent), transparent 60%),
-    radial-gradient(ellipse 48% 42% at 0% 110%, color-mix(in srgb, var(--stage-glow) 40%, transparent), transparent 58%),
+    radial-gradient(ellipse 78% 58% at 100% -8%, color-mix(in srgb, var(--stage-glow) var(--pf-glow-a), transparent), transparent 60%),
+    radial-gradient(ellipse 48% 42% at 0% 110%, color-mix(in srgb, var(--stage-glow) var(--pf-glow-b), transparent), transparent 58%),
     linear-gradient(
       155deg,
-      color-mix(in srgb, var(--stage-accent) 16%, color-mix(in srgb, var(--card-soft) 72%, transparent)) 0%,
+      color-mix(in srgb, var(--stage-accent) var(--pf-fill-mix), color-mix(in srgb, var(--card-soft) 72%, transparent)) 0%,
       color-mix(in srgb, var(--card-soft) 78%, transparent) 46%,
       color-mix(in srgb, var(--card) 82%, transparent) 100%
     );
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--stage-accent) 20%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--stage-accent) var(--pf-inset-mix), transparent),
     0 18px 42px color-mix(in srgb, #000000 42%, transparent);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+.product-stage--portfolio.product-stage--metrics-above.intensity-mild {
+  --pf-glow-a: 28%;
+  --pf-glow-b: 14%;
+  --pf-fill-mix: 7%;
+  --pf-border-mix: 16%;
+  --pf-inset-mix: 8%;
+  --pf-edge-opacity: 0.42;
+}
+
+.product-stage--portfolio.product-stage--metrics-above.intensity-medium {
+  --pf-glow-a: 48%;
+  --pf-glow-b: 26%;
+  --pf-fill-mix: 11%;
+  --pf-border-mix: 24%;
+  --pf-inset-mix: 14%;
+  --pf-edge-opacity: 0.7;
 }
 
 .product-stage--portfolio.product-stage--metrics-above::before {
@@ -12953,6 +12979,7 @@ a.signal-block-conclusion-link:hover {
   inset: 0 auto 0 0;
   width: 4px;
   border-radius: 20px 0 0 20px;
+  opacity: var(--pf-edge-opacity, 1);
   background: linear-gradient(
     180deg,
     var(--stage-accent) 0%,
@@ -17824,7 +17851,7 @@ a.pulse-news-narrative-title:focus-visible {
   font-size: 0.74rem;
 }
 
-/* Little day-status square in the Pulse asset-class header. */
+/* Little section mark in Pulse board headers — neutral only (not day direction). */
 .pulse-day-status {
   display: inline-block;
   flex: 0 0 auto;
@@ -17833,6 +17860,10 @@ a.pulse-news-narrative-title:focus-visible {
   border-radius: 2px;
   background: var(--border-active);
   box-shadow: none;
+}
+
+.pulse-day-status--mark {
+  background: color-mix(in srgb, var(--accent) 72%, var(--border-active));
 }
 
 .pulse-day-status--up {
@@ -17917,6 +17948,8 @@ a.pulse-news-narrative-title:focus-visible {
   font-weight: 700;
   letter-spacing: -0.04em;
   line-height: 1;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .pulse-gauge-pill {
@@ -18019,7 +18052,11 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-index-rows > li + li {
-  border-top: 1px solid var(--divider);
+  border-top: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+}
+
+.pulse-index-rows > li:nth-child(even) .pulse-index-row {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
 }
 
 .pulse-index-row {
@@ -18035,7 +18072,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-index-row:hover,
 .pulse-index-row:focus-visible {
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
   outline: none;
 }
 
@@ -18095,6 +18132,8 @@ a.pulse-news-narrative-title:focus-visible {
   justify-items: end;
   min-width: 0;
   text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
 }
 
 .session-quote-last {
@@ -19961,13 +20000,17 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   padding: 12px 14px;
   color: inherit;
   text-decoration: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
   min-width: 0;
   transition: background 0.15s ease;
 }
 
 .crowd-list > li:last-child .crowd-row {
   border-bottom: 0;
+}
+
+.crowd-list > li:nth-child(even) .crowd-row {
+  background: color-mix(in srgb, #ffffff 5%, transparent);
 }
 
 .crowd-row:hover,
