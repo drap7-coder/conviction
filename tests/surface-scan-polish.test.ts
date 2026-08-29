@@ -57,10 +57,9 @@ describe("surface scan polish", () => {
     const css = read("src/app/globals.css");
 
     expect(css).toMatch(/\.market-tape\s*\{[^}]*border-top:\s*1px solid/s);
-    expect(css).toMatch(
-      /\.market-tape-item \+ \.market-tape-item\s*\{[^}]*border-left:\s*1px solid/s,
-    );
-    expect(css).not.toContain(".market-tape-item + .market-tape-item::before");
+    expect(css).toMatch(/\.market-tape-item \+ \.market-tape-item\s*\{[^}]*border-left:\s*0/s);
+    expect(css).toContain(".market-tape-item + .market-tape-item::before");
+    expect(css).toContain('content: "·"');
     expect(css).toMatch(/\.market-tape-symbol\s*\{[^}]*font-weight:\s*800/s);
     expect(css).toMatch(/\.surface-slicer-pill\.is-active\s*\{[^}]*var\(--accent\)/s);
     expect(css).toMatch(/\.surface-slicer\s*\{[^}]*border-radius:\s*14px/s);

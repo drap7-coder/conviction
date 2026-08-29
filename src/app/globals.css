@@ -683,7 +683,15 @@ details > summary::before {
 }
 
 .market-tape-item + .market-tape-item {
-  border-left: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
+  border-left: 0;
+}
+
+.market-tape-item + .market-tape-item::before {
+  content: "·";
+  margin-right: 8px;
+  color: color-mix(in srgb, var(--muted) 70%, transparent);
+  font-weight: 600;
+  pointer-events: none;
 }
 
 @keyframes market-tape-scroll {
