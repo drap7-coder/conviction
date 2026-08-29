@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
 import {
   COMMODITY_SCOREBOARD,
@@ -6,6 +8,11 @@ import {
   scoreboardCommodities,
   scoreboardIndexes,
 } from "@/lib/market/index-scoreboard";
+import { getSectorColors, hasDomainLogo } from "@/lib/market/logos";
+
+function read(path: string): string {
+  return readFileSync(resolve(process.cwd(), path), "utf8");
+}
 
 function market(overrides: Partial<PulseGlobalMarket>): PulseGlobalMarket {
   return {
@@ -51,5 +58,47 @@ describe("commodity scoreboard", () => {
     expect(rows.map((row) => row.ticker)).toEqual(["USO", "GLD", "SLV", "UNG"]);
     expect(rows[0]?.name).toBe("Crude Oil");
     expect(rows[1]?.name).toBe("Gold");
+  });
+});
+
+describe("scoreboard LogoDisplay", () => {
+  it("renders LogoDisplay on MarketScoreboard rows with Movers-matched chrome", () => {
+    const board = read("src/components/market/IndexScoreboard.tsx");
+    expect(board).toContain("LogoDisplay");
+    expect(board).toContain('size="detail"');
+    expect(board).toContain("pulse-index-logo");
+    expect(read("src/app/globals.css")).toContain(".pulse-index-logo");
+    expect(read("src/components/market/CryptoBoard.tsx")).toContain("MarketScoreboard");
+  });
+
+  it("covers Pulse scoreboard tickers with domains or sector badges", () => {
+    const tickers = [
+      ...INDEX_SCOREBOARD.map((e) => e.ticker),
+      ...COMMODITY_SCOREBOARD.map((e) => e.ticker),
+      "BTC-USD",
+      "ETH-USD",
+      "XRP-USD",
+      "DOGE-USD",
+      "ADA-USD",
+      "EWJ",
+      "MCHI",
+      "EWU",
+      "INDA",
+      "EWT",
+      "EWG",
+      "XLK",
+      "XLF",
+      "XLV",
+      "XLE",
+      "XLI",
+      "XLY",
+      "XLP",
+      "XLU",
+      "XLRE",
+      "XLC",
+      "XLB",
+    ];
+    const missing = tickers.filter((t) => !hasDomainLogo(t) && !getSectorColors(t));
+    expect(missing).toEqual([]);
   });
 });
