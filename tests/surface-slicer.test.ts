@@ -15,6 +15,9 @@ describe("watchlist + news surface slicers", () => {
     expect(css).toContain(".surface-slicer");
     expect(css).toContain("overflow-x: auto");
     expect(css).toContain("-webkit-overflow-scrolling: touch");
+    expect(css).toMatch(/\.surface-slicer\s*\{[^}]*border-radius:\s*14px/s);
+    expect(css).toMatch(/\.surface-slicer-pill\s*\{[^}]*border-radius:\s*10px/s);
+    expect(css).toMatch(/\.surface-slicer-pill\.is-active\s*\{[^}]*var\(--accent\)/s);
     expect(css).toContain(".surface-slicer-pill.tone-up.is-active");
     expect(css).toContain(".surface-slicer-pill.tone-down.is-active");
     expect(css).toContain("var(--green)");

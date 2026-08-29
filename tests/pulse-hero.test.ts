@@ -128,7 +128,12 @@ describe("Pulse heatmap universe", () => {
     expect(css).toContain(".pulse-movers-stack");
     expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*background:\s*transparent/s);
     expect(css).toMatch(/\.market-tape\s*\{[^}]*background:\s*transparent/s);
-    expect(css).toMatch(/\.market-tape-item \+ \.market-tape-item\s*\{[^}]*border-left:\s*0/s);
+    expect(css).toMatch(/\.market-tape\s*\{[^}]*border-top:\s*1px solid/s);
+    expect(css).toMatch(
+      /\.market-tape-item \+ \.market-tape-item\s*\{[^}]*border-left:\s*1px solid/s,
+    );
+    expect(css).not.toContain(".market-tape-item + .market-tape-item::before");
+    expect(css).toMatch(/\.pulse-gauge-kicker\s*\{[^}]*text-align:\s*center/s);
     expect(css).not.toContain(".pulse-index-sessions");
   });
 
