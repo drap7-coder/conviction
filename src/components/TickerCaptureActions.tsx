@@ -130,10 +130,10 @@ export function TickerCaptureActions({
       disabled={disabled || busy}
       aria-pressed={listening}
       aria-label={listening ? "Stop listening" : "Add by voice"}
-      title={listening ? "Stop" : "Voice"}
+      title={listening ? "Stop listening" : "Add by voice"}
       onClick={() => (listening ? stopListening() : startListening())}
     >
-      {listening ? <Square size={15} aria-hidden /> : <Mic size={15} aria-hidden />}
+      {listening ? <Square size={16} aria-hidden strokeWidth={2.25} /> : <Mic size={16} aria-hidden strokeWidth={2.25} />}
     </button>
   );
 }
