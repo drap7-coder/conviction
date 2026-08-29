@@ -92,6 +92,17 @@ function dayChangeTone(
   return dailyChange > 0 ? "positive" : "negative";
 }
 
+/** Soften hero chrome for small day moves; escalate past ~1% / ~2.5%. */
+function dayMoveIntensity(
+  changePercent: number | null,
+): "mild" | "medium" | "strong" {
+  if (!isFiniteNumber(changePercent)) return "mild";
+  const abs = Math.abs(changePercent);
+  if (abs < 1) return "mild";
+  if (abs < 2.5) return "medium";
+  return "strong";
+}
+
 function formatUpdatedAt(at: number | null): string | null {
   if (at == null) return null;
   return new Intl.DateTimeFormat("en-US", {
@@ -410,6 +421,7 @@ export default function Portfolio() {
   );
 
   const dayTone = dayChangeTone(portfolioMetrics.dailyChange);
+  const dayIntensity = dayMoveIntensity(portfolioMetrics.dailyChangePercent);
   const dayMove = dayChangeParts(
     portfolioMetrics.dailyChange,
     portfolioMetrics.dailyChangePercent,
@@ -424,6 +436,10 @@ export default function Portfolio() {
           : valueBrief.tone === "watch"
             ? "watch"
             : "balanced";
+  const stageIntensity =
+    stageTone === "positive" || stageTone === "negative"
+      ? dayIntensity
+      : "strong";
   const daySparkValues = useMemo(
     () => portfolioSparklineValues(positions, quotes),
     [positions, quotes],
@@ -706,6 +722,7 @@ export default function Portfolio() {
           aria-label="Portfolio overview"
           loading={loading}
           tone={stageTone}
+          intensity={stageIntensity}
           eyebrow={stageEyebrow}
           typewriterHeadline={false}
           metricsPlacement="above"

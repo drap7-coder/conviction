@@ -13,6 +13,9 @@ export type ProductStageTone =
   | "negative"
   | "neutral";
 
+/** How hard the stage chrome should read — used to soften mild day moves. */
+export type ProductStageIntensity = "mild" | "medium" | "strong";
+
 type ProductStageProps = {
   variant: ProductStageVariant;
   eyebrow: ReactNode;
@@ -23,6 +26,8 @@ type ProductStageProps = {
   /** `above` puts the stat strip over the headline (Portfolio). Default stays a side column. */
   metricsPlacement?: "aside" | "above";
   tone?: ProductStageTone;
+  /** Softens portfolio glow for small day moves; default strong. */
+  intensity?: ProductStageIntensity;
   /** If true, headline animates in left-to-right like a terminal/typewriter. */
   typewriterHeadline?: boolean;
   /** Shrink the typed headline so the full title paints in this many lines. */
@@ -52,6 +57,7 @@ function ProductStageView({
   metrics,
   metricsPlacement = "aside",
   tone,
+  intensity = "strong",
   typewriterHeadline,
   headlineMaxLines,
   loading,
@@ -62,8 +68,10 @@ function ProductStageView({
   const hasMetrics = Boolean(metrics);
   const metricsAbove = metricsPlacement === "above" && hasMetrics;
   const toneClass = tone && tone !== "neutral" ? ` tone-${tone}` : "";
+  const intensityClass =
+    variant === "portfolio" && intensity !== "strong" ? ` intensity-${intensity}` : "";
   const useTypewriter = typewriterHeadline ?? true;
-  const stageClass = `product-stage product-stage--${variant}${hasMetrics ? " has-metrics" : " is-copy-only"}${metricsAbove ? " product-stage--metrics-above" : ""}${toneClass}`;
+  const stageClass = `product-stage product-stage--${variant}${hasMetrics ? " has-metrics" : " is-copy-only"}${metricsAbove ? " product-stage--metrics-above" : ""}${toneClass}${intensityClass}`;
 
   const metricsEl = hasMetrics ? (
     <div

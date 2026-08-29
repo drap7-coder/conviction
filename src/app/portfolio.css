@@ -300,10 +300,12 @@
 
 .portfolio-page .pf-day-strip-figures strong {
   color: var(--ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: clamp(1.12rem, 2.5vw, 1.38rem);
   font-weight: 750;
-  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
   line-height: 1.05;
 }
 
