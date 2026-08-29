@@ -48,7 +48,7 @@ describe("Pulse heatmap universe", () => {
     expect(panel).not.toContain("showDecisionCard");
   });
 
-  it("renders Markets scroll ordered Indexes, Trending, Commodities — Crypto on its own view", () => {
+  it("renders Markets as gauges + indexes + sectors; Movers and Commodities are own views", () => {
     const page = read("src/app/pulse/page.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
@@ -56,25 +56,32 @@ describe("Pulse heatmap universe", () => {
     const marketsBlockStart = page.indexOf('view === "markets"');
     const gaugesStart = page.indexOf("<PulseMacroGauges", marketsBlockStart);
     const indexesStart = page.indexOf("<IndexScoreboard", marketsBlockStart);
-    const trendingStart = page.indexOf('id="market-moves"', marketsBlockStart);
-    const commoditiesStart = page.indexOf("<CommodityScoreboard", marketsBlockStart);
-    const marketsBlockEnd = page.indexOf('view === "sectors"', marketsBlockStart + 1);
+    const sectorsStart = page.indexOf("<SectorScoreboard", marketsBlockStart);
+    const marketsBlockEnd = page.indexOf('view === "movers"', marketsBlockStart + 1);
     const marketsBlock = page.slice(marketsBlockStart, marketsBlockEnd);
-    const indexesBlock = page.slice(gaugesStart, trendingStart);
+    const indexesBlock = page.slice(gaugesStart, sectorsStart);
     expect(page).toContain('className="pulse-view-slicer"');
     expect(page).toContain('label: "Markets"');
-    expect(page).toContain('label: "Sectors"');
+    expect(page).toContain('label: "Movers"');
+    expect(page).toContain('label: "Commodities"');
     expect(page).toContain('label: "Intl"');
     expect(page).toContain('label: "Crypto"');
+    expect(page).not.toContain('label: "Sectors"');
     expect(page).not.toContain('label: "International"');
     expect(gaugesStart).toBeGreaterThan(-1);
     expect(indexesStart).toBeGreaterThan(-1);
+    expect(sectorsStart).toBeGreaterThan(-1);
     expect(gaugesStart).toBeLessThan(indexesStart);
-    expect(indexesStart).toBeLessThan(trendingStart);
-    expect(trendingStart).toBeLessThan(commoditiesStart);
+    expect(indexesStart).toBeLessThan(sectorsStart);
+    expect(marketsBlock).toContain("SectorScoreboard");
+    expect(marketsBlock).not.toContain("MarketMovesPanel");
+    expect(marketsBlock).not.toContain("CommodityScoreboard");
     expect(marketsBlock).not.toContain("CryptoBoard");
     expect(marketsBlock).not.toContain("pulse-more-markets");
+    expect(page).toContain('view === "movers"');
+    expect(page).toContain('view === "commodities"');
     expect(page).toContain('view === "crypto"');
+    expect(page).not.toContain('view === "sectors"');
     expect(page).not.toContain("ViewSwitcher");
     expect(page).not.toContain("PULSE_TABS");
     expect(page).not.toContain("pulse-panel-trending");
@@ -82,6 +89,7 @@ describe("Pulse heatmap universe", () => {
     expect(page).toContain("PulseMacroGauges");
     expect(page).toContain("IndexScoreboard");
     expect(page).toContain("CommodityScoreboard");
+    expect(page).toContain("MarketMovesPanel");
     expect(indexesBlock).toContain("sessionLabel={data.sessionLabel}");
     expect(indexesBlock).not.toContain("HeatTile");
     expect(indexesBlock).not.toContain("HeatmapGrid");
@@ -126,7 +134,7 @@ describe("Pulse heatmap universe", () => {
   });
 });
 
-describe("Sectors, Intl, and Crypto on Pulse", () => {
+describe("Pulse slicer hosts Markets, Movers, Commodities, Intl, Crypto", () => {
   it("hosts scoreboards on Pulse slicer views and redirects legacy Menu routes", () => {
     const nav = read("src/lib/nav-config.ts");
     const page = read("src/app/pulse/page.tsx");
@@ -137,15 +145,18 @@ describe("Sectors, Intl, and Crypto on Pulse", () => {
 
     expect(nav).not.toContain('href: "/sectors"');
     expect(nav).not.toContain('href: "/international"');
-    expect(page).toContain('view === "sectors"');
+    expect(page).toContain('view === "movers"');
+    expect(page).toContain('view === "commodities"');
     expect(page).toContain('view === "international"');
     expect(page).toContain('view === "crypto"');
+    expect(page).toContain('label: "Movers"');
+    expect(page).toContain('label: "Commodities"');
     expect(page).toContain('label: "Intl"');
     expect(page).toContain("SectorScoreboard");
     expect(page).toContain("InternationalScoreboard");
     expect(page).toContain("CryptoBoard");
     expect(page).toContain("sessionLabel={data.sessionLabel}");
-    expect(sectors).toContain('permanentRedirect("/pulse?view=sectors")');
+    expect(sectors).toContain('permanentRedirect("/pulse")');
     expect(international).toContain('permanentRedirect("/pulse?view=international")');
     expect(sectorsLayout).toContain("pageMetadata");
     expect(sectorsLayout).toContain('path: "/sectors"');

@@ -23,7 +23,7 @@ export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
  * Describe today’s workspace (Pulse, lists, portfolio, news, filings) — never a legacy feature label.
  */
 export const SITE_DESCRIPTION =
-  "Your daily market workspace: Pulse for indexes and movers, Crowd holdings, live portfolio and watchlist, sectors and international boards, news briefs, and smart-money filings — all in one place.";
+  "Your daily market workspace: Pulse for indexes, sectors, movers, and commodities, Crowd holdings, live portfolio and watchlist, news briefs, and smart-money filings — all in one place.";
 
 export const SITE_OG_IMAGE = {
   url: "/conviction-og.png",

@@ -15,17 +15,21 @@ import {
 import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 
-type PulseView = "markets" | "sectors" | "international" | "crypto";
+type PulseView = "markets" | "movers" | "commodities" | "international" | "crypto";
 
 const PULSE_VIEWS: SurfaceSlicerOption[] = [
   { id: "markets", label: "Markets" },
-  { id: "sectors", label: "Sectors" },
+  { id: "movers", label: "Movers" },
+  { id: "commodities", label: "Commodities" },
   { id: "international", label: "Intl" },
   { id: "crypto", label: "Crypto" },
 ];
 
 function parsePulseView(value: string | null | undefined): PulseView {
-  if (value === "sectors" || value === "international" || value === "crypto") return value;
+  if (value === "movers" || value === "commodities" || value === "international" || value === "crypto") {
+    return value;
+  }
+  // Legacy `?view=sectors` bookmarks land on Markets (indexes + sectors).
   return "markets";
 }
 
@@ -45,7 +49,8 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
 }
 
 function pulseHeading(view: PulseView): string {
-  if (view === "sectors") return "Sectors";
+  if (view === "movers") return "Market Movers";
+  if (view === "commodities") return "Commodities";
   if (view === "international") return "International";
   if (view === "crypto") return "Crypto";
   return "Pulse";
@@ -133,18 +138,21 @@ function PulsePageInner() {
             markets={majorIndexes}
             sessionLabel={data.sessionLabel}
           />
-          <section id="market-moves" className="pulse-market-moves" aria-label="Trending stocks">
-            <MarketMovesPanel />
-          </section>
-          <CommodityScoreboard markets={commodities} />
+          <SectorScoreboard
+            markets={sectorMarkets}
+            sessionLabel={data.sessionLabel}
+          />
         </>
       ) : null}
 
-      {data && view === "sectors" ? (
-        <SectorScoreboard
-          markets={sectorMarkets}
-          sessionLabel={data.sessionLabel}
-        />
+      {view === "movers" && status !== "loading" ? (
+        <section id="market-moves" className="pulse-market-moves" aria-label="Market movers">
+          <MarketMovesPanel />
+        </section>
+      ) : null}
+
+      {data && view === "commodities" ? (
+        <CommodityScoreboard markets={commodities} />
       ) : null}
 
       {data && view === "international" ? (
