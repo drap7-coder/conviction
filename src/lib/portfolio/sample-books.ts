@@ -3,6 +3,8 @@ import type { PersistedPosition } from "@/lib/portfolio/persist";
 export type SampleBook = {
   id: string;
   label: string;
+  /** Short emoji mark for Study chips / titles. */
+  emoji: string;
   description: string;
   /** Constituent tickers — sized to a shared target value when loaded. */
   tickers: string[];
@@ -32,6 +34,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "all-weather",
     label: "All-Weather",
+    emoji: "⚖️",
     description: "Risk-balanced across growth and inflation.",
     tickers: ["VTI", "TLT", "IEF", "GLD", "DBC"],
     weights: {
@@ -45,6 +48,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "sixty-forty",
     label: "60/40",
+    emoji: "📊",
     description: "Stocks for growth. Bonds for ballast.",
     tickers: ["VTI", "BND"],
     weights: {
@@ -55,6 +59,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "three-fund",
     label: "Three-Fund",
+    emoji: "🌐",
     description: "US, international, bonds. The whole market.",
     tickers: ["VTI", "VXUS", "BND"],
     weights: {
@@ -66,6 +71,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "permanent",
     label: "Permanent",
+    emoji: "🛡️",
     description: "Four seasons. Equal capital. No forecast.",
     tickers: ["VTI", "TLT", "GLD", "SGOV"],
     weights: {
@@ -78,6 +84,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "dogs-of-the-dow",
     label: "Dogs of the Dow",
+    emoji: "🐕",
     description: "Ten highest-yielding Dow names. Equal weight.",
     tickers: ["VZ", "IBM", "DOW", "CVX", "AMGN", "KO", "CSCO", "JPM", "MMM", "WBA"],
     weights: {
@@ -96,6 +103,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "dividend",
     label: "Dividend",
+    emoji: "💵",
     description: "Cash-returning blue chips. Paid to wait.",
     tickers: ["JNJ", "PG", "KO", "PEP", "ABBV", "MRK", "HD", "MMM", "IBM", "VZ"],
     weights: {
@@ -114,6 +122,7 @@ export const SAMPLE_PORTFOLIO_BOOKS: SampleBook[] = [
   {
     id: "growth",
     label: "Growth",
+    emoji: "📈",
     description: "Mega-cap compounders. Equal weight.",
     tickers: ["AAPL", "MSFT", "NVDA", "AMZN", "GOOG", "META", "AVGO", "NFLX", "CRM", "COST"],
     weights: {

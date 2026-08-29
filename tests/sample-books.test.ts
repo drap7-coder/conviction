@@ -30,6 +30,7 @@ describe("sample portfolio books", () => {
     expect(SAMPLE_PORTFOLIO_BOOKS.map((book) => book.id)).toEqual([...STRATEGY_BOOK_IDS]);
 
     for (const book of SAMPLE_PORTFOLIO_BOOKS) {
+      expect(book.emoji.trim().length).toBeGreaterThan(0);
       expect(book.weights).toBeTruthy();
       const weightSum = Object.values(book.weights!).reduce((sum, weight) => sum + weight, 0);
       expect(weightSum).toBeCloseTo(100, 5);
@@ -76,7 +77,7 @@ describe("sample portfolio books", () => {
     ]);
     expect(sampleBookLargestWeight(allWeather)).toBe(40);
 
-    const equal = { id: "demo", label: "Demo", description: "", tickers: ["AAA", "BBB"] };
+    const equal = { id: "demo", label: "Demo", emoji: "📘", description: "", tickers: ["AAA", "BBB"] };
     expect(sampleBookSleeves(equal)).toEqual([
       { ticker: "AAA", weight: 50 },
       { ticker: "BBB", weight: 50 },
