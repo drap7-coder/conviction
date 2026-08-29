@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { fmtDollarPrice, fmtPercent, fmtSignedDollar, isFiniteNumber } from "@/lib/display/format";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { type MarketMoverRow } from "@/lib/market/market-movers";
@@ -39,6 +40,9 @@ function MoverColumn({
               : null;
             const body = (
               <>
+                <span className="pulse-movers-logo" aria-hidden="true">
+                  <LogoDisplay ticker={row.ticker} size="detail" />
+                </span>
                 <span className="pulse-movers-id">
                   <strong>{row.ticker}</strong>
                   <small>{row.name}</small>

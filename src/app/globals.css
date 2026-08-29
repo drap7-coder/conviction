@@ -18272,7 +18272,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-movers-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(6.5rem, auto);
+  grid-template-columns: 2rem minmax(0, 1fr) minmax(6.5rem, auto);
   align-items: center;
   gap: 8px;
   min-height: 52px;
@@ -18286,6 +18286,32 @@ a.pulse-news-narrative-title:focus-visible {
 .pulse-movers-row:focus-visible {
   background: color-mix(in srgb, var(--ink) 5%, transparent);
   outline: none;
+}
+
+.pulse-movers-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 70%, #fff 8%);
+  border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pulse-movers-logo .card-logo,
+.pulse-movers-logo .logo-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.pulse-movers-logo .card-logo.sector-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
 }
 
 .pulse-movers-id {
@@ -19978,7 +20004,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .crowd-row {
   display: grid;
-  grid-template-columns: 1.4rem 2.25rem minmax(0, 1.15fr) minmax(6.5rem, 0.95fr) auto;
+  grid-template-columns: 1.4rem 2.25rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px 12px;
   padding: 12px 14px;
@@ -20062,54 +20088,6 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   text-overflow: ellipsis;
 }
 
-.crowd-share {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-
-.crowd-share-top {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  min-width: 0;
-}
-
-.crowd-share-top strong {
-  font-size: 0.9rem;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.crowd-share-top small {
-  font-size: 0.66rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: right;
-}
-
-.crowd-share-track {
-  display: block;
-  height: 4px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--line) 85%, transparent);
-  overflow: hidden;
-}
-
-.crowd-share-track > i {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--accent) 55%, transparent),
-    color-mix(in srgb, var(--accent) 88%, #7dd3c0)
-  );
-}
-
 .crowd-empty {
   margin: 0;
   padding: 18px 14px;
@@ -20127,28 +20105,11 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 @media (max-width: 720px) {
   .crowd-row {
     grid-template-columns: 1.25rem 2.1rem minmax(0, 1fr) auto;
-    grid-template-areas:
-      "rank logo id quote"
-      "rank logo share quote";
-    row-gap: 4px;
     column-gap: 10px;
   }
 
-  .crowd-rank { grid-area: rank; align-self: start; padding-top: 8px; }
-  .crowd-logo { grid-area: logo; align-self: start; }
-  .crowd-id { grid-area: id; }
-  .crowd-share { grid-area: share; }
-  .crowd-row .session-quote { grid-area: quote; align-self: center; }
-
-  .crowd-share-top {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-
-  .crowd-share-top small {
-    text-align: left;
-  }
+  .crowd-rank { align-self: center; }
+  .crowd-logo { align-self: center; }
 }
 
 /* ── Inline voice mic inside ticker fields ── */
