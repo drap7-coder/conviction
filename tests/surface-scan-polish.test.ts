@@ -52,4 +52,40 @@ describe("surface scan polish", () => {
     expect(portfolioCss).toMatch(/\.portfolio-page \.pf-day-strip-figures strong\s*\{[^}]*font-family:\s*var\(--font-mono\)/s);
     expect(portfolioCss).toMatch(/\.portfolio-page \.pf-day-strip-figures strong\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
   });
+
+  it("polishes tape separators, teal slicer, and centered gauge labels", () => {
+    const css = read("src/app/globals.css");
+
+    expect(css).toMatch(/\.market-tape\s*\{[^}]*border-top:\s*1px solid/s);
+    expect(css).toMatch(/\.market-tape-item \+ \.market-tape-item\s*\{[^}]*border-left:\s*0/s);
+    expect(css).toContain(".market-tape-item + .market-tape-item::before");
+    expect(css).toContain('content: "·"');
+    expect(css).toMatch(/\.market-tape-symbol\s*\{[^}]*font-weight:\s*800/s);
+    expect(css).toMatch(/\.surface-slicer-pill\.is-active\s*\{[^}]*var\(--accent\)/s);
+    expect(css).toMatch(/\.surface-slicer\s*\{[^}]*border-radius:\s*14px/s);
+    expect(css).toMatch(/\.pulse-gauge-kicker\s*\{[^}]*text-align:\s*center/s);
+    expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*justify-items:\s*center/s);
+  });
+
+  it("boots nav as conviction. then settles without a trailing period", () => {
+    const title = read("src/components/AnimatedTitle.tsx");
+    const css = read("src/app/globals.css");
+    const layout = read("src/app/layout.tsx");
+
+    expect(title).toContain('const BOOT_BODY = "conviction"');
+    expect(title).toContain('const BOOT_FINAL = "conviction."');
+    expect(title).toContain('const SETTLED_TEXT = "CONVICTION"');
+    expect(title).toContain("prefersReducedMotion");
+    expect(title).toContain("conviction-boot-sound");
+    expect(title).toContain("typewriter-period");
+    expect(title).toContain("boot-sound-toggle");
+    expect(title).toContain('SOUND_PREF_KEY) === "on"');
+    expect(title).not.toContain("accent-dot");
+    expect(title).not.toContain('FULL_TEXT = "CONVICTION."');
+    expect(css).toContain(".typewriter-period");
+    expect(css).toContain(".boot-sound-toggle");
+    expect(layout).toContain('src="/conviction-bull.png"');
+    expect(layout).toContain("<AnimatedTitle");
+    expect(layout).toContain('icon: "/icon.png"');
+  });
 });
