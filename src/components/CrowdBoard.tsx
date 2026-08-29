@@ -5,9 +5,8 @@ import Link from "next/link";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
-import { fmtWeight } from "@/lib/display/format";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
-import type { CrowdHoldingRank, CrowdSnapshot, CrowdWatchRank } from "@/lib/crowd/types";
+import type { CrowdSnapshot } from "@/lib/crowd/types";
 import type { StockQuote } from "@/lib/market/quotes";
 
 type CrowdView = "held" | "watched";
@@ -16,14 +15,6 @@ const VIEWS: Array<{ id: CrowdView; label: string }> = [
   { id: "held", label: "Most held" },
   { id: "watched", label: "Most watched" },
 ];
-
-function bookMetaLine(snapshot: CrowdSnapshot): string {
-  const parts = [`${snapshot.bookCount} book${snapshot.bookCount === 1 ? "" : "s"}`];
-  if (snapshot.liveBookCount > 0 && snapshot.seedBookCount > 0) {
-    parts.push(`${snapshot.liveBookCount} signed-in`);
-  }
-  return parts.join(" · ");
-}
 
 export function CrowdBoard() {
   const [view, setView] = useState<CrowdView>("held");
@@ -83,14 +74,6 @@ export function CrowdBoard() {
       ? (snapshot?.held ?? []).slice(0, 20)
       : (snapshot?.watched ?? []).slice(0, 20);
 
-  const maxShare = rows.reduce((max, row) => {
-    const pct =
-      view === "held"
-        ? (row as CrowdHoldingRank).holderPct
-        : (row as CrowdWatchRank).watcherPct;
-    return Math.max(max, pct);
-  }, 0);
-
   return (
     <div className="crowd-page-body">
       <SurfaceSlicer
@@ -104,9 +87,6 @@ export function CrowdBoard() {
         <div className="crowd-board-head">
           <div className="crowd-board-title">
             <h2>{view === "held" ? "Most held" : "Most watched"}</h2>
-            {snapshot ? (
-              <p className="crowd-board-meta">{bookMetaLine(snapshot)}</p>
-            ) : null}
           </div>
         </div>
 
@@ -127,15 +107,7 @@ export function CrowdBoard() {
                 const ticker = row.ticker;
                 const quote = quotes[ticker];
                 const href = companyDetailHref(ticker);
-                const held = view === "held" ? (row as CrowdHoldingRank) : null;
-                const watched = view === "watched" ? (row as CrowdWatchRank) : null;
-                const sharePct = held?.holderPct ?? watched?.watcherPct ?? 0;
-                const countLabel = held
-                  ? `${held.holderCount} of ${held.bookCount} books`
-                  : `${watched?.watcherCount ?? 0} of ${watched?.listCount ?? 0} lists`;
-                const avgWeight = held?.avgWeightPct ?? null;
                 const name = quote?.name ?? ticker;
-                const barWidth = maxShare > 0 ? Math.max(8, (sharePct / maxShare) * 100) : 0;
                 const topThree = index < 3;
                 const body = (
                   <>
@@ -149,18 +121,6 @@ export function CrowdBoard() {
                       <strong>{ticker}</strong>
                       <small>{name}</small>
                     </span>
-                    <span className="crowd-share">
-                      <span className="crowd-share-top">
-                        <strong>{fmtWeight(sharePct)}</strong>
-                        <small>
-                          {countLabel}
-                          {avgWeight !== null ? ` · avg ${fmtWeight(avgWeight)}` : ""}
-                        </small>
-                      </span>
-                      <span className="crowd-share-track" aria-hidden="true">
-                        <i style={{ width: `${barWidth}%` }} />
-                      </span>
-                    </span>
                     <SessionQuoteStack
                       lastPrice={quote?.price ?? null}
                       change={quote?.change ?? null}
@@ -169,12 +129,7 @@ export function CrowdBoard() {
                     />
                   </>
                 );
-                const aria = [
-                  `#${index + 1}`,
-                  ticker,
-                  name,
-                  `${fmtWeight(sharePct)} of ${view === "held" ? "books" : "lists"}`,
-                ].join(", ");
+                const aria = [`#${index + 1}`, ticker, name].join(", ");
 
                 return (
                   <li key={ticker} className={topThree ? "is-lead" : undefined}>

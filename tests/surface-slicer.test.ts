@@ -33,7 +33,10 @@ describe("watchlist + news surface slicers", () => {
     expect(watchlist).toContain("Laggards");
     expect(watchlist).toContain('columns={');
     expect(movers).toContain('columns?: "both" | "top" | "bottom"');
-    expect(movers).toContain("is-solo");
+    expect(movers).toContain("showVolume");
+    expect(movers).toContain("pulse-movers-stack");
+    expect(movers).toContain("pulse-day-status");
+    expect(movers).toContain("Highest volume");
     expect(newsFeed).toContain("SurfaceSlicer");
     expect(newsFeed).toContain('className="pulse-news-filters"');
     expect(newsPage).toContain("PulseNewsFeed");

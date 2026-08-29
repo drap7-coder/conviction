@@ -14,6 +14,10 @@ export interface MarketMoverRow {
   extendedChangePercent?: number | null;
   extendedNoTrades?: boolean;
   sessionLabel?: "Pre-Market" | "After Hours" | null;
+  /** Share volume (shares) when available. */
+  volume?: number | null;
+  /** Notional volume when available — preferred for Highest volume ranking. */
+  dollarVolume?: number | null;
 }
 
 export interface MarketMoversSplit {
@@ -21,40 +25,50 @@ export interface MarketMoversSplit {
   bottom: MarketMoverRow[];
 }
 
+type MoverInput = {
+  ticker: string;
+  name: string;
+  changePercent: number | null | undefined;
+  price?: number | null;
+  change?: number | null;
+  extendedPrice?: number | null;
+  extendedChange?: number | null;
+  extendedChangePercent?: number | null;
+  extendedNoTrades?: boolean;
+  sessionLabel?: "Pre-Market" | "After Hours" | null;
+  volume?: number | null;
+  dollarVolume?: number | null;
+};
+
+function toMoverRow(item: MoverInput, changePercent: number): MarketMoverRow {
+  return {
+    ticker: item.ticker,
+    name: item.name,
+    changePercent,
+    price: item.price ?? null,
+    change: item.change ?? null,
+    extendedPrice: item.extendedPrice ?? null,
+    extendedChange: item.extendedChange ?? null,
+    extendedChangePercent: item.extendedChangePercent ?? null,
+    extendedNoTrades: item.extendedNoTrades ?? false,
+    sessionLabel: item.sessionLabel ?? null,
+    volume: item.volume ?? null,
+    dollarVolume: item.dollarVolume ?? null,
+  };
+}
+
 /**
  * Split a quote set into CNBC-style Top (gainers) / Bottom (losers) by session %.
  * Rows without a usable % are dropped. Each side is capped at `limit`.
  */
 export function splitMarketMovers(
-  items: Array<{
-    ticker: string;
-    name: string;
-    changePercent: number | null | undefined;
-    price?: number | null;
-    change?: number | null;
-    extendedPrice?: number | null;
-    extendedChange?: number | null;
-    extendedChangePercent?: number | null;
-    extendedNoTrades?: boolean;
-    sessionLabel?: "Pre-Market" | "After Hours" | null;
-  }>,
+  items: MoverInput[],
   limit = 5,
 ): MarketMoversSplit {
   const capped = Math.max(1, Math.floor(limit));
   const usable: MarketMoverRow[] = items
     .filter((item) => isFiniteNumber(item.changePercent) && item.changePercent !== 0)
-    .map((item) => ({
-      ticker: item.ticker,
-      name: item.name,
-      changePercent: item.changePercent as number,
-      price: item.price ?? null,
-      change: item.change ?? null,
-      extendedPrice: item.extendedPrice ?? null,
-      extendedChange: item.extendedChange ?? null,
-      extendedChangePercent: item.extendedChangePercent ?? null,
-      extendedNoTrades: item.extendedNoTrades ?? false,
-      sessionLabel: item.sessionLabel ?? null,
-    }));
+    .map((item) => toMoverRow(item, item.changePercent as number));
 
   const top = usable
     .filter((item) => item.changePercent > 0)
@@ -67,6 +81,28 @@ export function splitMarketMovers(
     .slice(0, capped);
 
   return { top, bottom };
+}
+
+/** Rank by dollar volume (fallback: share volume). Cap at `limit`. */
+export function rankByVolume(items: MoverInput[], limit = 5): MarketMoverRow[] {
+  const capped = Math.max(1, Math.floor(limit));
+  return items
+    .map((item) => {
+      const changePercent = isFiniteNumber(item.changePercent) ? (item.changePercent as number) : 0;
+      return toMoverRow(item, changePercent);
+    })
+    .filter((item) => {
+      const notional = item.dollarVolume;
+      const shares = item.volume;
+      return (isFiniteNumber(notional) && (notional as number) > 0)
+        || (isFiniteNumber(shares) && (shares as number) > 0);
+    })
+    .sort((a, b) => {
+      const aVol = (a.dollarVolume ?? 0) > 0 ? (a.dollarVolume as number) : (a.volume as number);
+      const bVol = (b.dollarVolume ?? 0) > 0 ? (b.dollarVolume as number) : (b.volume as number);
+      return bVol - aVol;
+    })
+    .slice(0, capped);
 }
 
 /** Bar fill height 0–100 relative to the largest |%| in the column. */

@@ -81,8 +81,14 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most held");
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most watched");
     expect(read("src/components/CrowdBoard.tsx")).toContain("LogoDisplay");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-share-track");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-share-track");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("holderPct");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("bookMetaLine");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
+    expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
+    expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("pulse-movers-logo");
+    expect(read("src/app/globals.css")).toContain(".pulse-movers-logo");
+    expect(read("src/app/globals.css")).not.toContain(".crowd-share-track");
     expect(read("src/lib/nav-config.ts")).toContain('href: "/crowd"');
     expect(read("src/lib/nav-config.ts")).toContain('group: "daily"');
     expect(read("src/app/api/crowd/route.ts")).toContain("loadCrowdSnapshot");
