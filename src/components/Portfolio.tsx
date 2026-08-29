@@ -3,11 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import {
-  loadRiskProfileOverride,
-  saveRiskProfileOverride,
-  type PersistedPosition,
-} from "@/lib/portfolio/persist";
+import { type PersistedPosition } from "@/lib/portfolio/persist";
 import {
   computePortfolioMetrics,
   computePositionMetrics,
@@ -39,19 +35,7 @@ import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSli
 import Watchlist from "@/components/Watchlist";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
-import {
-  COMPARE_AGAINST_LABEL,
-  FIT_HEDGE,
-  PROFILE_BENCHMARK,
-  RISK_PROFILE_LABELS,
-  RISK_PROFILE_MOVES_SUBHEAD,
-  RISK_PROFILES,
-  investorFitLabel,
-  riskProfileDeltaLead,
-  targetBookForProfile,
-  type RiskProfile,
-} from "@/lib/portfolio/fit";
-import { generateSleeveMoves, moveFocus, moveVerb, visibleCompareMoves } from "@/lib/portfolio/sleeve-moves";
+import { PROFILE_BENCHMARK } from "@/lib/portfolio/fit";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
 import {
   buildSparklineGeometry,
@@ -181,36 +165,6 @@ function DaySpark({
   );
 }
 
-function resolveMoveName(
-  ticker: string,
-  quotes: StockQuote[],
-  sectorProfiles: Record<string, PortfolioProfile>,
-): string {
-  const key = ticker.toUpperCase();
-  const quoteName = quotes.find((quote) => quote.ticker.toUpperCase() === key)?.name?.trim();
-  if (quoteName) return quoteName;
-  const profileName = sectorProfiles[key]?.longName?.trim();
-  if (profileName) return profileName;
-  const instrumentName = getMarketInstrument(key)?.name?.trim();
-  if (instrumentName) return instrumentName;
-  return key;
-}
-
-/** “Apple Inc. (AAPL)” — falls back to the ticker alone when no name exists. */
-function namedTicker(name: string, ticker: string): { label: string; name: string; ticker: string } {
-  const key = ticker.toUpperCase();
-  const clean = name.trim() || key;
-  if (clean.toUpperCase() === key) {
-    return { label: key, name: key, ticker: key };
-  }
-  return { label: `${clean} (${key})`, name: clean, ticker: key };
-}
-
-function humanizeMoveWhy(why: string, ticker: string, label: string): string {
-  if (label === ticker) return why;
-  return why.replaceAll(ticker, label);
-}
-
 interface PortfolioProfile {
   sector: string | null;
   marketCap: number | null;
@@ -270,75 +224,6 @@ function enrichWithPrices(
   });
 }
 
-function SampleBooksSwitcher({
-  activeId,
-  onSelect,
-  onSelectPersonal,
-  disabled = false,
-}: {
-  activeId: string | null;
-  onSelect: (book: SampleBook) => void;
-  onSelectPersonal: () => void;
-  disabled?: boolean;
-}) {
-  const personalActive = activeId === null;
-
-  return (
-    <section className="pf-book-switch" aria-label="Portfolio books">
-      <div className="pf-book-switch-primary">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={personalActive}
-          disabled={disabled}
-          className={`pf-book-switch-mine${personalActive ? " is-active" : ""}`}
-          onClick={onSelectPersonal}
-        >
-          <span className="pf-book-switch-mine-label">My Portfolio</span>
-          <svg
-            className="pf-book-switch-pencil"
-            viewBox="0 0 120 6"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M1.5 3.2 C 18 1.1, 34 4.8, 52 2.6 S 88 5.2, 118.5 2.9"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
-        </button>
-      </div>
-
-      <div className="pf-book-switch-samples" role="group" aria-label="Sample portfolio options">
-        <p className="pf-book-switch-samples-label">Or try a sample portfolio</p>
-        <div className="pf-book-switch-tabs" role="tablist" aria-label="Sample portfolio books">
-          {SAMPLE_PORTFOLIO_BOOKS.map((book) => {
-            const selected = activeId === book.id;
-            return (
-              <button
-                key={book.id}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                title={book.description}
-                disabled={disabled}
-                className={`pf-book-switch-tab${selected ? " is-active" : ""}`}
-                onClick={() => onSelect(book)}
-              >
-                {book.label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-    </section>
-  );
-}
-
 // ── Main Component ──────────────────────────────────────────────────────────
 
 type PortfolioView = "live" | "watchlist" | "study";
@@ -374,14 +259,12 @@ export default function Portfolio() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [profileOverride, setProfileOverride] = useState<RiskProfile | null>(null);
   const [lastUpdatedAt, setLastUpdatedAt] = useState<number | null>(null);
   const sampleLoadRef = useRef(0);
   const sampleAbortRef = useRef<AbortController | null>(null);
   const sampleAwaitingQuotesRef = useRef(false);
 
   useEffect(() => {
-    setProfileOverride(loadRiskProfileOverride());
     return () => {
       sampleAbortRef.current?.abort();
     };
@@ -638,19 +521,8 @@ export default function Portfolio() {
 
   const fitDiagnosis = valueBrief.headline;
   const stageEyebrow = `Portfolio · Live data · ${portfolioHeatmapSession ?? "Market session"}`;
-  const profile = profileOverride ?? valueBrief.fit.defaultProfile ?? "growth-income";
-  const profileTarget = targetBookForProfile(profile, valueBrief.fit.rankings);
-  const sleeveMoves = visibleCompareMoves(
-    generateSleeveMoves(bookHoldings, profileTarget, undefined, profile),
-  );
-  const currentFitLabel = investorFitLabel(valueBrief.fit.primary, valueBrief.fit.defaultProfile);
-  const movesLead = riskProfileDeltaLead(currentFitLabel, profile);
+  const profile = valueBrief.fit.defaultProfile ?? "growth-income";
   const benchmark = PROFILE_BENCHMARK[profile];
-
-  function pickProfile(next: RiskProfile) {
-    setProfileOverride(next);
-    saveRiskProfileOverride(next);
-  }
 
   const studyBook =
     getSampleBook(templateId)
@@ -667,9 +539,6 @@ export default function Portfolio() {
   const studyDelta = positions.length > 0 && valueBrief.largest
     ? Math.round(valueBrief.largest.weight - sampleBookLargestWeight(studyBook))
     : null;
-  const studyMoves = positions.length > 0
-    ? generateSleeveMoves(bookHoldings, studyBook)
-    : [];
 
   function goLive() {
     const params = new URLSearchParams(searchParams.toString());
@@ -724,16 +593,23 @@ export default function Portfolio() {
             className={`pf-study-chip${book.id === studyBook.id ? " is-active" : ""}`}
             onClick={() => goStudy(book.id)}
           >
-            {book.label}
+            <span className="pf-study-chip-emoji" aria-hidden="true">{book.emoji}</span>
+            <span>{book.label}</span>
           </button>
         ))}
       </div>
-      <section className="pf-study-book" aria-labelledby="pf-study-title">
-        <span className="pf-study-badge">Sample</span>
-        <h2 id="pf-study-title">{studyBook.label}</h2>
-        <p className="pf-study-lede">{studyBrief?.principle ?? studyBook.description}</p>
+
+      <section className="pf-study-board surface-shell" aria-labelledby="pf-study-title">
+        <header className="pf-study-board-head">
+          <span className="pf-study-badge">Sample</span>
+          <h2 id="pf-study-title">
+            <span className="pf-study-title-emoji" aria-hidden="true">{studyBook.emoji}</span>
+            {studyBook.label}
+          </h2>
+          <p className="pf-study-lede">{studyBrief?.principle ?? studyBook.description}</p>
+        </header>
         {studyBrief ? (
-          <div className="pf-study-machine">
+          <div className="pf-study-machine surface-well">
             <div>
               <span>How it’s built</span>
               <p>{studyBrief.design}</p>
@@ -744,12 +620,18 @@ export default function Portfolio() {
             </div>
           </div>
         ) : null}
-        {studyBrief ? (
-          <div className="pf-study-history" aria-label={`${studyBook.label} illustrative history`}>
-            <div className="pf-study-history-heading">
-              <span>Historical performance</span>
-              <p>{studyBrief.performance.periodLabel}</p>
-            </div>
+      </section>
+
+      {studyBrief ? (
+        <section
+          className="pf-study-board surface-shell"
+          aria-label={`${studyBook.label} illustrative history`}
+        >
+          <header className="pf-study-board-head">
+            <span className="pf-section-eyebrow">Historical performance</span>
+            <h2>{studyBrief.performance.periodLabel}</h2>
+          </header>
+          <div className="pf-study-history surface-well">
             <div className="pf-study-history-metrics">
               <div className="is-avg">
                 <span>Annualized</span>
@@ -768,43 +650,34 @@ export default function Portfolio() {
               Study figures for learning the design — not a live track record of this book.
             </p>
           </div>
-        ) : null}
-        <div className="pf-study-ladder">
-          <PortfolioAllocationLadder
-            items={studySleeves.map((sleeve) => ({
-              ticker: sleeve.ticker,
-              companyName: sleeve.role || sleeve.ticker,
-              weight: sleeve.weight,
-              sector: getMarketInstrument(sleeve.ticker)?.portfolioExposure ?? null,
-            }))}
-            eyebrow="Target mix"
-            hint="Bar color matches sleeve exposure. Markers at 12% watch and 20% concentrated."
-          />
-        </div>
-        {studyDelta !== null ? (
-          <div className="pf-study-compare">
-            <span>Your book vs this template</span>
-            <strong className={studyDelta > 0 ? "is-alert" : studyDelta < 0 ? "is-positive" : ""}>
+        </section>
+      ) : null}
+
+      <div className="pf-study-ladder">
+        <PortfolioAllocationLadder
+          items={studySleeves.map((sleeve) => ({
+            ticker: sleeve.ticker,
+            companyName: sleeve.role || sleeve.ticker,
+            weight: sleeve.weight,
+            sector: getMarketInstrument(sleeve.ticker)?.portfolioExposure ?? null,
+          }))}
+          eyebrow="Target mix"
+          hint="Bar color matches sleeve exposure. Markers at 12% watch and 20% concentrated."
+        />
+      </div>
+
+      {studyDelta !== null ? (
+        <section className="pf-study-board surface-shell" aria-label="Your book vs this template">
+          <header className="pf-study-board-head">
+            <span className="pf-section-eyebrow">Vs your book</span>
+            <h2>
               {Math.abs(studyDelta) < 1
                 ? "About the same concentration"
                 : `${studyDelta > 0 ? "+" : "−"}${Math.abs(studyDelta)}pt ${studyDelta > 0 ? "more" : "less"} concentrated`}
-            </strong>
-          </div>
-        ) : null}
-        {studyMoves.length > 0 ? (
-          <div className="pf-study-moves">
-            <span>Moves vs your book</span>
-            <ul>
-              {studyMoves.map((move) => (
-                <li key={`${move.action}-${move.ticker}`}>
-                  <strong>{move.label}</strong>
-                  <em>{move.why}</em>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </section>
+            </h2>
+          </header>
+        </section>
+      ) : null}
     </div>
   );
 
@@ -887,77 +760,7 @@ export default function Portfolio() {
           benchmarkTicker={benchmark.ticker}
           benchmarkLabel={benchmark.label}
           skipChart={calcFailed}
-        >
-          <fieldset className="pf-risk">
-            <p className="pf-risk-q">{COMPARE_AGAINST_LABEL}</p>
-            <div className="pf-profile" role="radiogroup" aria-label={COMPARE_AGAINST_LABEL}>
-              {RISK_PROFILES.map((item) => (
-                <button
-                  key={item}
-                  type="button"
-                  role="radio"
-                  aria-checked={profile === item}
-                  className={`pf-profile-option${profile === item ? " is-active" : ""}`}
-                  onClick={() => pickProfile(item)}
-                >
-                  {RISK_PROFILE_LABELS[item]}
-                </button>
-              ))}
-            </div>
-            {sleeveMoves.length > 0 ? (
-              <div className="pf-moves-block">
-                <div className="pf-moves-lead">
-                  <p className="pf-moves-delta">{movesLead}</p>
-                  <p className="pf-moves-subhead">{RISK_PROFILE_MOVES_SUBHEAD}</p>
-                </div>
-                <ul className="pf-moves" aria-label={movesLead}>
-                  {sleeveMoves.map((move) => {
-                    const named = namedTicker(
-                      resolveMoveName(move.ticker, quotes, sectorProfiles),
-                      move.ticker,
-                    );
-                    const focus = move.action === "add" ? moveFocus(move) : named.label;
-                    return (
-                      <li
-                        key={`${move.action}-${move.ticker}`}
-                        className={`pf-move is-${move.action}`}
-                      >
-                        <div className="pf-move-action">
-                          <span className={`pf-move-chip pf-move-verb is-${move.action}`}>
-                            {moveVerb(move.action)}
-                          </span>
-                          <strong className="pf-move-focus">
-                            {move.action === "add" ? (
-                              focus.charAt(0).toUpperCase() + focus.slice(1)
-                            ) : (
-                              <>
-                                {named.name === named.ticker ? named.ticker : named.name}
-                                {named.name !== named.ticker ? (
-                                  <span className="pf-move-sym"> ({named.ticker})</span>
-                                ) : null}
-                              </>
-                            )}
-                          </strong>
-                          {move.action === "add" ? (
-                            <span className="pf-move-ticker">
-                              {named.name === named.ticker
-                                ? named.ticker
-                                : `${named.name} (${named.ticker})`}
-                            </span>
-                          ) : null}
-                        </div>
-                        <span className="pf-move-why">
-                          {humanizeMoveWhy(move.why, move.ticker, named.label)}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-                <p className="pf-fit-hedge">{FIT_HEDGE}</p>
-              </div>
-            ) : null}
-          </fieldset>
-        </PortfolioBenchmarkChart>
+        />
         </>
       ) : (
         <div className="pf-empty-prompt">

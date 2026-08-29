@@ -346,14 +346,20 @@
   min-height: 40px;
 }
 
-/* ── Study Mode ── */
+/* ── Study Mode (stacked surface boards) ── */
+.portfolio-page .pf-study {
+  display: grid;
+  gap: var(--section-gap);
+  min-width: 0;
+}
+
 .portfolio-page .pf-study-chips {
   display: flex;
   gap: 8px;
   min-width: 0;
   max-width: 100%;
   overflow-x: auto;
-  padding: 2px 0 10px;
+  padding: 2px 0;
   scrollbar-width: none;
 }
 
@@ -362,8 +368,11 @@
 }
 
 .portfolio-page .pf-study-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: 0 0 auto;
-  padding: 7px 14px;
+  padding: 7px 12px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--card-soft);
@@ -375,21 +384,46 @@
   cursor: pointer;
 }
 
+.portfolio-page .pf-study-chip-emoji {
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
 .portfolio-page .pf-study-chip.is-active {
-  background: color-mix(in srgb, var(--sample) 26%, transparent);
-  border-color: var(--sample);
-  color: #f4ecff;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sample) 45%, transparent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  color: var(--ink);
+  box-shadow: none;
+}
+
+.portfolio-page .pf-study-board {
+  margin: 0;
+  padding: 14px 16px 16px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.portfolio-page .pf-study-board-head {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding: 0;
+  min-width: 0;
+}
+
+.portfolio-page .pf-study-board-head .pf-section-eyebrow {
+  margin: 0;
 }
 
 .portfolio-page .pf-study-badge {
   display: inline-flex;
-  margin: 0 0 10px;
+  width: fit-content;
+  margin: 0;
   padding: 3px 9px;
   border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--sample) 40%, transparent);
-  background: var(--sample-dim);
-  color: #e9d8ff;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
   font-family: var(--font-mono);
   font-size: 0.56rem;
   font-weight: 700;
@@ -397,30 +431,31 @@
   text-transform: uppercase;
 }
 
-.portfolio-page .pf-study-book {
-  padding: 16px 16px 14px;
-  border: 1px solid color-mix(in srgb, var(--sample) 28%, var(--border));
-  border-radius: 16px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--sample) 12%, var(--card)) 0%, var(--card) 55%),
-    var(--card);
-}
-
-.portfolio-page .pf-study-book h2 {
+.portfolio-page .pf-study-board-head h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
+  min-width: 0;
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 1.35rem;
-  font-weight: 650;
+  font-size: 1.15rem;
+  font-weight: 720;
   letter-spacing: -0.03em;
 }
 
+.portfolio-page .pf-study-title-emoji {
+  flex: 0 0 auto;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
 .portfolio-page .pf-study-lede {
-  margin: 6px 0 0;
+  margin: 0;
   overflow-wrap: break-word;
   color: var(--muted);
   font-family: var(--font-sans);
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   line-height: 1.45;
   white-space: normal;
 }
@@ -429,7 +464,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin: 16px 0 0;
+  margin: 0;
+  padding: 10px;
 }
 
 .portfolio-page .pf-study-machine > div {
@@ -463,28 +499,8 @@
 .portfolio-page .pf-study-history {
   display: grid;
   gap: 10px;
-  margin: 16px 0 0;
-}
-
-.portfolio-page .pf-study-history-heading {
-  display: grid;
-  gap: 2px;
-}
-
-.portfolio-page .pf-study-history-heading span {
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.portfolio-page .pf-study-history-heading p {
   margin: 0;
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
+  padding: 12px;
 }
 
 .portfolio-page .pf-study-history-metrics {
@@ -513,11 +529,11 @@
   right: 10px;
   height: 3px;
   border-radius: 0 0 2px 2px;
-  background: color-mix(in srgb, var(--sample) 70%, transparent);
+  background: var(--accent);
 }
 
 .portfolio-page .pf-study-history-metrics .is-avg::before {
-  background: color-mix(in srgb, var(--sample) 80%, #fff);
+  background: var(--accent);
 }
 
 .portfolio-page .pf-study-history-metrics .is-best::before {
@@ -563,39 +579,15 @@
 }
 
 .portfolio-page .pf-study-ladder {
-  margin: 16px 0 0;
-  padding-top: 4px;
-  border-top: 1px solid var(--divider);
-}
-
-.portfolio-page .pf-study-book .pf-allocation-ladder {
   margin: 0;
-  padding: 12px 0 0;
+  padding: 0;
   border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-.portfolio-page .pf-study-book .pf-allocation-list.surface-well {
-  padding: 4px 10px;
-}
-
-.portfolio-page .pf-study-book .pf-allocation-heading h2 {
-  color: var(--ink);
-}
-
-.portfolio-page .pf-study-book .pf-allocation-heading p {
-  color: var(--muted);
+  min-width: 0;
 }
 
 @media (max-width: 720px) {
-  .portfolio-page .pf-study-book {
-    padding: 14px 12px 12px;
-  }
-
-  .portfolio-page .pf-study-book h2 {
-    font-size: 1.18rem;
+  .portfolio-page .pf-study-board-head h2 {
+    font-size: 1.08rem;
   }
 
   .portfolio-page .pf-study-machine {
@@ -609,7 +601,6 @@
 
   .portfolio-page .pf-study-history-metrics > div {
     display: flex;
-    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
@@ -640,42 +631,6 @@
     white-space: nowrap;
   }
 
-  .portfolio-page .pf-study-book .pf-allocation-heading {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-    margin-bottom: 10px;
-  }
-
-  .portfolio-page .pf-study-book .pf-allocation-heading p {
-    text-align: left;
-  }
-
-  .portfolio-page .pf-study-book .pf-allocation-row,
-  .portfolio-page .pf-study-book .pf-allocation-ladder.is-weights-only .pf-allocation-row {
-    grid-template-columns: minmax(0, 1fr) 48px;
-    gap: 8px 10px;
-  }
-
-  .portfolio-page .pf-study-book .pf-allocation-rank {
-    display: none;
-  }
-
-  .portfolio-page .pf-study-book .pf-allocation-gauge {
-    order: 3;
-    grid-column: 1 / -1;
-  }
-
-  .portfolio-page .pf-study-book .pf-allocation-company span {
-    display: block;
-  }
-
-  .portfolio-page .pf-study-compare {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
-
   .portfolio-page .product-stage-metrics strong {
     overflow: visible;
     font-size: clamp(0.72rem, 3.6vw, 0.92rem);
@@ -689,7 +644,8 @@
   }
 
   .portfolio-page .pf-sector-mix,
-  .portfolio-page .pf-benchmark {
+  .portfolio-page .pf-benchmark,
+  .portfolio-page .pf-study-board {
     padding: 14px 12px;
   }
 
@@ -731,77 +687,6 @@
   }
 }
 
-.portfolio-page .pf-study-compare {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 12px 0 0;
-  padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--sample) 26%, var(--border));
-  border-radius: 12px;
-  background: var(--sample-dim);
-}
-
-.portfolio-page .pf-study-compare span {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-}
-
-.portfolio-page .pf-study-compare strong {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  color: var(--ink);
-}
-
-.portfolio-page .pf-study-compare strong.is-alert { color: var(--red); }
-.portfolio-page .pf-study-compare strong.is-positive { color: var(--green); }
-
-.portfolio-page .pf-study-moves {
-  display: grid;
-  gap: 6px;
-  margin: 10px 0 0;
-  padding: 10px 0 0;
-  border-top: 1px solid var(--divider);
-}
-
-.portfolio-page .pf-study-moves > span {
-  color: var(--quiet);
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.portfolio-page .pf-study-moves ul {
-  display: grid;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.portfolio-page .pf-study-moves li {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px 10px;
-}
-
-.portfolio-page .pf-study-moves strong {
-  color: var(--muted);
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
-}
-
-.portfolio-page .pf-study-moves em {
-  color: var(--quiet);
-  font-family: var(--font-sans);
-  font-size: 0.68rem;
-  font-style: normal;
-}
 
 /* Below the slim hero: Sector Mix, Concentration — Compare lives inside Book vs Benchmark */
 .portfolio-page .pf-compare-board {
