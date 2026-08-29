@@ -159,8 +159,10 @@ describe("Pulse slicer hosts Markets, Movers, Commodities, Intl, Crypto", () => 
     expect(sectors).toContain('permanentRedirect("/pulse")');
     expect(international).toContain('permanentRedirect("/pulse?view=international")');
     expect(sectorsLayout).toContain("pageMetadata");
-    expect(sectorsLayout).toContain('path: "/sectors"');
+    expect(sectorsLayout).toContain('path: "/pulse"');
+    expect(sectorsLayout).toContain("index: false");
     expect(internationalLayout).toContain("pageMetadata");
-    expect(internationalLayout).toContain('path: "/international"');
+    expect(internationalLayout).toContain('path: "/pulse?view=international"');
+    expect(internationalLayout).toContain("index: false");
   });
 });
