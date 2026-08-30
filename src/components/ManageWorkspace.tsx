@@ -88,6 +88,15 @@ function ManageWorkspaceInner({
   return (
     <div className="data-manage-workspace">
       <div className="data-manage-deck">
+        <SurfaceSlicer
+          label="Manage workspace"
+          options={MANAGE_VIEWS}
+          activeId={activeView}
+          onChange={selectView}
+          role="tablist"
+          className="data-manage-slicer"
+        />
+
         <header className="data-manage-hero">
           <ProductStage
             variant="manage"
@@ -113,15 +122,6 @@ function ManageWorkspaceInner({
             accountLabel={accountLabel}
           />
         </header>
-
-        <SurfaceSlicer
-          label="Manage workspace"
-          options={MANAGE_VIEWS}
-          activeId={activeView}
-          onChange={selectView}
-          role="tablist"
-          className="data-manage-slicer"
-        />
       </div>
 
       <div

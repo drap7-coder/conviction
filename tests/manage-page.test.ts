@@ -48,6 +48,9 @@ describe("data management workspace", () => {
     expect(workspace).toContain("data-manage-deck");
     expect(workspace).toContain("focusManageCompose");
     expect(workspace).toContain('typewriterHeadline={false}');
+    expect(workspace.indexOf("data-manage-slicer")).toBeLessThan(
+      workspace.indexOf("data-manage-hero"),
+    );
     expect(workspace).not.toContain("Your data");
     expect(workspace).not.toContain("Jump to add");
     expect(css).toContain(".data-manage-deck");
