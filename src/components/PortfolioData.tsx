@@ -6,6 +6,7 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { computePortfolioMetrics } from "@/lib/portfolio/calculations";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
 import type { StockQuote } from "@/lib/market/quotes";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import { isFiniteNumber } from "@/lib/display/format";
 import { SplitFlapMetric } from "@/app/components/SplitFlapMetric";
 
@@ -148,12 +149,11 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     setError(null);
 
     try {
-      const res = await fetch(`/api/market/quotes?tickers=${tickers.join(",")}`, {
+      const nextQuotes = await fetchMarketQuotes(tickers, {
+        reason: "manual",
         signal: controller.signal,
       });
-      if (!res.ok) throw new Error("Quote data is temporarily unavailable");
-      const data = await res.json();
-      if (requestId === quoteRequestRef.current) setQuotes(data.quotes ?? []);
+      if (requestId === quoteRequestRef.current) setQuotes(nextQuotes);
     } catch (err) {
       if (controller.signal.aborted) return;
       if (requestId === quoteRequestRef.current) {

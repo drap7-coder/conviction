@@ -320,7 +320,7 @@ export async function fetchStockQuotes(tickers: string[]): Promise<StockQuote[]>
               "User-Agent": "Conviction/1.0",
               Accept: "application/json",
             },
-            next: { revalidate: 60 },
+            next: { revalidate: 300 },
           },
           6_000,
         );

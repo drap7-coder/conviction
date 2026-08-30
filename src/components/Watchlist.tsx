@@ -17,6 +17,7 @@ import { splitMarketMovers } from "@/lib/market/market-movers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
+import { subscribeMarketData } from "@/lib/market/client-market-data";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -157,42 +158,21 @@ export default function Watchlist({
       setQuotes({});
       return;
     }
-    let cancelled = false;
 
-    async function loadQuotes() {
-      try {
-        const tickers = entries.map((entry) => entry.ticker).join(",");
-        const response = await fetch(
-          `/api/market/quotes?tickers=${encodeURIComponent(tickers)}`,
-          { cache: "no-store" },
-        );
-        if (!response.ok) return;
-        const data = (await response.json()) as { quotes?: StockQuote[] };
-        if (cancelled) return;
-        const nextQuotes: Record<string, StockQuote> = {};
-        for (const quote of data.quotes ?? []) {
-          nextQuotes[quote.ticker] = quote;
+    const tickers = entries.map((entry) => entry.ticker);
+    const subscription = subscribeMarketData({
+      quoteTickers: tickers,
+      onQuotes: (next) => {
+        const mapped: Record<string, StockQuote> = {};
+        for (const quote of next) {
+          mapped[quote.ticker] = quote;
         }
-        setQuotes(nextQuotes);
-      } catch {
-        if (!cancelled) setQuotes({});
-      }
-    }
+        setQuotes(mapped);
+      },
+    });
 
-    void loadQuotes();
-    const refreshInterval = window.setInterval(() => {
-      void loadQuotes();
-    }, 60_000);
-
-    function refreshVisibleDashboard() {
-      if (document.visibilityState === "visible") void loadQuotes();
-    }
-
-    document.addEventListener("visibilitychange", refreshVisibleDashboard);
     return () => {
-      cancelled = true;
-      window.clearInterval(refreshInterval);
-      document.removeEventListener("visibilitychange", refreshVisibleDashboard);
+      subscription.unsubscribe();
     };
   }, [entries, mode]);
 

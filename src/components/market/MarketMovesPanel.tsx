@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
+import { classifyClientError, type EvidenceStatus } from "@/app/components/evidence-request";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
@@ -9,6 +9,7 @@ import { shortenCompanyName } from "@/lib/display/company-name";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MarketMoversBoard } from "@/components/market/MarketMoversBoard";
 import { rankByVolume, splitMarketMovers } from "@/lib/market/market-movers";
+import { fetchMarketTrending } from "@/lib/market/client-market-data";
 
 interface TrendingCompany {
   ticker: string;
@@ -32,13 +33,12 @@ export function MarketMovesPanel() {
     async function loadTrending() {
       setTrendingStatus("loading");
       try {
-        const data = await fetchJsonWithTimeout<{ companies?: TrendingCompany[] }>(
-          "/api/market/trending?limit=24",
-          10_000,
-          controller.signal,
-        );
+        const data = await fetchMarketTrending(24, {
+          reason: requestKey === 0 ? "initial" : "manual",
+          signal: controller.signal,
+        });
         if (!cancelled) {
-          const companies = data.companies ?? [];
+          const companies = (data.companies ?? []) as TrendingCompany[];
           setTrending(companies);
           setTrendingStatus(companies.length > 0 ? "success" : "empty");
         }
