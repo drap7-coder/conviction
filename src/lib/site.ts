@@ -1,16 +1,16 @@
 /**
  * Shared public site origin for canonicals, sitemap, and robots.
- * Override with SITE_URL when the public host is not www.iqbulls.com.
+ * Prefer apex https://iqbulls.com — live TLS cert has no www SAN. Override with SITE_URL if needed.
  */
 function normalizeOrigin(value: string): string {
   const trimmed = value.trim().replace(/\/$/, "");
-  if (!trimmed) return "https://www.iqbulls.com";
+  if (!trimmed) return "https://iqbulls.com";
   if (/^https?:\/\//i.test(trimmed)) return trimmed.replace(/^http:/i, "https:");
   return `https://${trimmed}`;
 }
 
 export const SITE_URL = normalizeOrigin(
-  process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.iqbulls.com",
+  process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://iqbulls.com",
 );
 
 /** Public search / share copy. Lead with the full product as it ships today. */
