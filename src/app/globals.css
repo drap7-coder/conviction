@@ -13395,6 +13395,15 @@ a.signal-block-conclusion-link:hover {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--stage-accent) 13%, transparent);
 }
 
+.product-stage-brand-mark {
+  display: block;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  object-fit: contain;
+  border-radius: 5px;
+}
+
 .product-stage h1,
 .product-stage-headline {
   max-width: 100%;

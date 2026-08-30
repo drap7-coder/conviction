@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-const CANONICAL_ORIGIN = "https://www.gotconviction.com";
+const CANONICAL_ORIGIN = "https://www.iqbulls.com";
 
 const nextConfig: NextConfig = {
   images: {
@@ -22,9 +22,29 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Apex → www
+      {
+        source: "/",
+        has: [{ type: "host", value: "iqbulls.com" }],
+        destination: `${CANONICAL_ORIGIN}/pulse`,
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "iqbulls.com" }],
+        destination: `${CANONICAL_ORIGIN}/:path*`,
+        permanent: true,
+      },
+      // Legacy CONVICTION hosts → IQBulls
       {
         source: "/",
         has: [{ type: "host", value: "gotconviction.com" }],
+        destination: `${CANONICAL_ORIGIN}/pulse`,
+        permanent: true,
+      },
+      {
+        source: "/",
+        has: [{ type: "host", value: "www.gotconviction.com" }],
         destination: `${CANONICAL_ORIGIN}/pulse`,
         permanent: true,
       },
@@ -37,6 +57,12 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         has: [{ type: "host", value: "gotconviction.com" }],
+        destination: `${CANONICAL_ORIGIN}/:path*`,
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.gotconviction.com" }],
         destination: `${CANONICAL_ORIGIN}/:path*`,
         permanent: true,
       },

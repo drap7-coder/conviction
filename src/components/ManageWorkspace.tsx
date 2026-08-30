@@ -101,6 +101,16 @@ function ManageWorkspaceInner({
           <ProductStage
             variant="manage"
             aria-label="Manage workspace"
+            mark={
+              <img
+                className="product-stage-brand-mark"
+                src="/conviction-bull.png"
+                alt=""
+                aria-hidden="true"
+                width={22}
+                height={22}
+              />
+            }
             eyebrow={hero.eyebrow}
             headline={hero.headline}
             summary={hero.summary}

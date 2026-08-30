@@ -1,13 +1,13 @@
 /**
- * Public product copy — describe CONVICTION as it ships today.
+ * Public product copy — describe IQBulls as it ships today.
  * Keep marketing, About, Q&A, and JSON-LD aligned here.
  */
 
 export const PRODUCT_ONE_LINER =
-  "Your daily market workspace — Pulse, Crowd, Portfolio (with Watchlist), News, and Smart Money.";
+  "Raising your market IQ — Pulse, Crowd, Portfolio, News, and Smart Money.";
 
 export const PRODUCT_ABOUT_LEDE =
-  "CONVICTION organizes the stock market around how you actually look at it: the tape first, what members hold together, the book and names you follow, the stories that matter, and filings from institutions and lawmakers.";
+  "IQBulls raises your market IQ: the tape, the crowd, your book, the stories that matter, and the filings behind them.";
 
 export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string }> = [
   {
@@ -50,9 +50,9 @@ export type FaqItem = {
 /** Q&A for the FAQ page and FAQPage JSON-LD. */
 export const PRODUCT_FAQ: FaqItem[] = [
   {
-    question: "What is CONVICTION?",
+    question: "What is IQBulls?",
     answer:
-      "CONVICTION is a daily stock-market workspace. It brings together Pulse (indexes, commodities, sectors, movers, crypto, and intl), Crowd (what members hold and watch), a Portfolio tab with your live book and Watchlist, news briefs, and smart-money filings — organized around you, not a single research feature.",
+      "IQBulls raises your market IQ. Pulse, Crowd, your portfolio and watchlist, news, and smart-money filings — organized around you, not a single research feature.",
   },
   {
     question: "What is Pulse?",
@@ -77,12 +77,12 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "Do I need an account?",
     answer:
-      "No. You can use CONVICTION as a guest — watchlist and portfolio stay in your browser. Sign in with Google if you want the same lists synced across devices.",
+      "No. You can use IQBulls as a guest — watchlist and portfolio stay in your browser. Sign in with Google if you want the same lists synced across devices.",
   },
   {
-    question: "Is CONVICTION investment advice?",
+    question: "Is IQBulls investment advice?",
     answer:
-      "No. CONVICTION is a research and organization tool, not a brokerage or adviser. Quotes, briefs, portfolio fit, and filings are informational. You are responsible for your own decisions.",
+      "No. IQBulls is a research and organization tool, not a brokerage or adviser. Quotes, briefs, portfolio fit, and filings are informational. You are responsible for your own decisions.",
   },
   {
     question: "What is Smart Money?",

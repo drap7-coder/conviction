@@ -8,7 +8,7 @@ import "./manage.css";
 
 export const metadata: Metadata = pageMetadata({
   title: "Manage",
-  description: "Edit your Conviction watchlist and portfolio in one focused workspace.",
+  description: "Edit your IQBulls watchlist and portfolio in one focused workspace.",
   path: "/manage",
   index: false,
 });

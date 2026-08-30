@@ -19,7 +19,7 @@ export function pageMetadata({
   description: string;
   path: string;
   index?: boolean;
-  /** Skip the “Page · CONVICTION” template — use for the public homepage card. */
+  /** Skip the “Page · IQBulls” template — use for the public homepage card. */
   absoluteTitle?: boolean;
 }): Metadata {
   const url = absoluteUrl(path);

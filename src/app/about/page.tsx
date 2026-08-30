@@ -11,7 +11,7 @@ import styles from "../legal.module.css";
 export const metadata: Metadata = pageMetadata({
   title: "About",
   description:
-    "What CONVICTION is today: a daily market workspace for Pulse, Crowd, Portfolio (with Watchlist), News, Sectors, International, and Smart Money.",
+    "What IQBulls is: raising your market IQ with Pulse, Crowd, Portfolio, News, and Smart Money.",
   path: "/about",
 });
 
@@ -19,8 +19,16 @@ export default function AboutPage() {
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
+        <img
+          className={styles.brandMark}
+          src="/conviction-bull.png"
+          alt=""
+          aria-hidden="true"
+          width={40}
+          height={40}
+        />
         <span className={styles.eyebrow}>About</span>
-        <h1>CONVICTION today</h1>
+        <h1>IQBulls</h1>
         <p>{PRODUCT_ABOUT_LEDE}</p>
         <p>{PRODUCT_ONE_LINER}</p>
       </header>
@@ -43,8 +51,8 @@ export default function AboutPage() {
       <section className={styles.section}>
         <h2>What it is not</h2>
         <p>
-          CONVICTION is not a brokerage, not a trading platform, and not personalized investment
-          advice. It is a research and organization tool so you can see the market, your lists,
+          IQBulls is not a brokerage, not a trading platform, and not personalized investment
+          advice. It is research and organization — so you can see the market, your lists,
           and your book in one place.
         </p>
       </section>

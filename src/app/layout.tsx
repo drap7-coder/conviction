@@ -89,7 +89,7 @@ export default function RootLayout({
         <div className="app-shell">
           <header className="app-header">
             <div className="header-brand-row">
-              <Link className="app-brand" href="/pulse" aria-label="CONVICTION home">
+              <Link className="app-brand" href="/pulse" aria-label="IQBulls home">
                 <img
                   alt=""
                   aria-hidden="true"

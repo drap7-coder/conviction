@@ -182,7 +182,7 @@ export function buildWatchlistBriefItems({
           scope,
           proofStatus: "Evidence-backed",
           convictionEffect: transitionEffect(freshTransition.type),
-          sourceLabel: "CONVICTION signal history",
+          sourceLabel: "IQBulls signal history",
           headline: freshTransition.reason,
           why: news?.driver?.explanation ?? "The evidence mix changed enough to alter the company’s conviction state.",
           watchNext: news?.driver ? WATCH_NEXT[news.driver.label] ?? "Confirming or contradicting evidence" : "Confirming or contradicting evidence",

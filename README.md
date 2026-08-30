@@ -1,32 +1,3 @@
-# CONVICTION — The stock market, organized around you
+# IQBulls — Raising your market IQ.
 
-Your daily market workspace: Pulse for indexes, sectors, movers, and commodities, Crowd holdings, portfolio with watchlist, news briefs, and smart-money filings — all in one place.
-
-## Getting Started
-
-```bash
-npm install
-npm run dev
-```
-
-Optional env:
-
-```bash
-# Broader earnings coverage (FMP primary, Nasdaq fallback)
-FMP_API_KEY=your_key_here
-```
-
-## Product surfaces
-
-- **Pulse** — Markets (indexes + commodities + sectors), Movers, Crypto, Intl via top slicer
-- **Crowd** — Most held / most watched across member books
-- **Portfolio** — Live book, Watchlist, and Study templates (top slicer)
-- **News** — Featured brief and themes
-- **Smart Money** — Under Menu → More
-- **About / Q&A** — Under Menu → About
-
-## Build
-
-```bash
-npm run build
-```
+Personal market workspace: Pulse, Crowd, portfolio with watchlist, news, and smart-money filings.
