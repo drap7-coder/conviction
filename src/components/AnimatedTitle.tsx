@@ -2,9 +2,9 @@
 
 import { useEffect, useState, type MouseEvent } from "react";
 
-/** First-visit boot types lowercase; settled nav is the brand mark. */
-const BOOT_BODY = "iqbulls";
-const BOOT_FINAL = "iqbulls.";
+/** First-visit boot types the brand mark; settle drops the period cursor only. */
+const BOOT_BODY = "IQBulls";
+const BOOT_FINAL = "IQBulls.";
 const SETTLED_TEXT = "IQBulls";
 const STORAGE_KEY = "iqbulls-title-revealed";
 const SOUND_PREF_KEY = "iqbulls-boot-sound";
