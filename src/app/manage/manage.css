@@ -1,6 +1,6 @@
 /*
  * Manage workspace chrome — raised shell + recessed well language, with a
- * calm first-viewport deck (hero + slicer) that leads into compose.
+ * calm first-viewport deck (slicer + hero) that leads into compose.
  */
 
 .data-manage-page {
@@ -18,7 +18,7 @@
   min-width: 0;
 }
 
-/* Hero + slicer read as one composition before the editor panel. */
+/* Slicer + hero read as one composition before the editor panel. */
 .data-manage-deck {
   display: grid;
   gap: 10px;
