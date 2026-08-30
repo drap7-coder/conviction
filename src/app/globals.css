@@ -59,6 +59,10 @@
   --on-ink-red: #f0665e;
   --on-ink-amber: #f2b84b;
 
+  /* Brand wordmark: IQ green + horn cream (matches bull mark / favicon). */
+  --brand-iq: #3ddc97;
+  --brand-horn: #ecd6b1;
+
   /* Soft elevation for dark brokerage panels — inset rim + outer depth, no glow. */
   --shadow-sm:
     inset 0 1px 0 color-mix(in srgb, #ffffff 7%, transparent),
@@ -1386,9 +1390,17 @@ button.bottom-tab-item {
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: none;
-  color: var(--ink);
+  color: var(--brand-horn);
   line-height: 1;
   padding-bottom: 2px;
+}
+
+.app-title-iq {
+  color: var(--brand-iq);
+}
+
+.app-title-bulls {
+  color: var(--brand-horn);
 }
 
 .app-title-boot {

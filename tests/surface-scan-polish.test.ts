@@ -75,6 +75,9 @@ describe("surface scan polish", () => {
     expect(title).toContain('const BOOT_BODY = "IQBulls"');
     expect(title).toContain('const BOOT_FINAL = "IQBulls."');
     expect(title).toContain('const SETTLED_TEXT = "IQBulls"');
+    expect(title).toContain("BrandWordmark");
+    expect(title).toContain("app-title-iq");
+    expect(title).toContain("app-title-bulls");
     expect(title).toContain("prefersReducedMotion");
     expect(title).toContain("iqbulls-boot-sound");
     expect(title).toContain("typewriter-period");
@@ -89,6 +92,10 @@ describe("surface scan polish", () => {
     expect(title).not.toContain("IQBULLs");
     expect(css).toMatch(/\.app-title\s*\{[^}]*text-transform:\s*none/s);
     expect(css).not.toMatch(/\.app-title\s*\{[^}]*text-transform:\s*uppercase/s);
+    expect(css).toContain("--brand-iq:");
+    expect(css).toContain("--brand-horn:");
+    expect(css).toContain(".app-title-iq");
+    expect(css).toContain(".app-title-bulls");
     expect(css).toContain(".typewriter-period");
     expect(css).toContain(".boot-sound-toggle");
     expect(layout).toContain('src="/conviction-bull.png"');

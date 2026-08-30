@@ -28,7 +28,10 @@ export default function AboutPage() {
           height={40}
         />
         <span className={styles.eyebrow}>About</span>
-        <h1>IQBulls</h1>
+        <h1>
+          <span className={styles.brandIq}>IQ</span>
+          <span className={styles.brandBulls}>Bulls</span>
+        </h1>
         <p>{PRODUCT_ABOUT_LEDE}</p>
         <p>{PRODUCT_ONE_LINER}</p>
       </header>
