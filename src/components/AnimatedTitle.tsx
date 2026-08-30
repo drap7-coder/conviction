@@ -2,10 +2,10 @@
 
 import { useEffect, useState, type MouseEvent } from "react";
 
-/** Header chrome display mark — spaced for the typewriter; SEO SITE_NAME stays IQBulls. */
-const BOOT_BODY = "IQ Bulls";
-const BOOT_FINAL = "IQ Bulls.";
-const SETTLED_TEXT = "IQ Bulls";
+/** First-visit boot types the brand mark; settle drops the period cursor only. */
+const BOOT_BODY = "IQBulls";
+const BOOT_FINAL = "IQBulls.";
+const SETTLED_TEXT = "IQBulls";
 const STORAGE_KEY = "iqbulls-title-revealed";
 const SOUND_PREF_KEY = "iqbulls-boot-sound";
 
