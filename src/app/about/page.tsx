@@ -19,6 +19,14 @@ export default function AboutPage() {
   return (
     <main className={styles.page}>
       <header className={styles.hero}>
+        <img
+          className={styles.brandMark}
+          src="/conviction-bull.png"
+          alt=""
+          aria-hidden="true"
+          width={40}
+          height={40}
+        />
         <span className={styles.eyebrow}>About</span>
         <h1>IQBulls</h1>
         <p>{PRODUCT_ABOUT_LEDE}</p>

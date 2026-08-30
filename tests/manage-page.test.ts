@@ -54,6 +54,9 @@ describe("data management workspace", () => {
     expect(workspace).not.toContain("Your data");
     expect(workspace).not.toContain("Jump to add");
     expect(css).toContain(".data-manage-deck");
+    expect(workspace).toContain("product-stage-brand-mark");
+    expect(workspace).toContain("/conviction-bull.png");
+    expect(stage).toContain("mark ??");
     expect(css).toContain(".data-manage-hero-cta");
     expect(css).toContain(".data-manage-hero .product-stage");
     expect(css).toContain(".data-manager-empty-hint");

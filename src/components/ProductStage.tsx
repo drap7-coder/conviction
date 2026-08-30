@@ -25,6 +25,8 @@ export type ProductStageIntensity = "mild" | "medium" | "strong";
 type ProductStageProps = {
   variant: ProductStageVariant;
   eyebrow: ReactNode;
+  /** Replaces the default accent dot beside the eyebrow (e.g. brand mark). */
+  mark?: ReactNode;
   /** Omit or pass empty to hide the stage headline (e.g. Live Portfolio puts Fit under Value). */
   headline?: string;
   summary?: ReactNode;
@@ -58,6 +60,7 @@ export function ProductStage(props: ProductStageProps) {
 function ProductStageView({
   variant,
   eyebrow,
+  mark,
   headline,
   summary,
   metrics,
@@ -167,7 +170,7 @@ function ProductStageView({
     <section className={stageClass} aria-label={ariaLabel}>
       <div className="product-stage-copy">
         <span className="product-stage-eyebrow">
-          <i aria-hidden="true" />
+          {mark ?? <i aria-hidden="true" />}
           {eyebrow}
         </span>
         {metricsAbove ? metricsEl : null}
