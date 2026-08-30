@@ -1384,8 +1384,8 @@ button.bottom-tab-item {
   font-family: 'Courier Prime', 'Courier New', monospace;
   font-size: 1.3rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-transform: none;
   color: var(--ink);
   line-height: 1;
   padding-bottom: 2px;
@@ -1401,12 +1401,7 @@ button.bottom-tab-item {
 .app-title.typewriter {
   overflow: hidden;
   white-space: nowrap;
-  text-transform: none;
   letter-spacing: 0.04em;
-}
-
-.app-title-boot-body {
-  text-transform: none;
 }
 
 .typewriter-period {
