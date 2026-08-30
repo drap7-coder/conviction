@@ -656,8 +656,8 @@
 .data-manage-page .pf-holding-main {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -989,7 +989,21 @@
   }
 
   .data-manage-page .pf-holding-main {
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .data-manage-page .pf-holding-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+
+  .data-manage-page .pf-holding-logo .card-logo,
+  .data-manage-page .pf-holding-logo .logo-badge,
+  .data-manage-page .pf-holding-logo .card-logo.sector-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
   }
 
   .data-manage-page .pf-holding-value {
