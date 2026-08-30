@@ -18290,10 +18290,40 @@ a.pulse-news-narrative-title:focus-visible {
   text-decoration: none;
 }
 
+.pulse-index-board--logos .pulse-index-row {
+  grid-template-columns: 2rem minmax(0, 1.15fr) 64px minmax(7.5rem, auto);
+}
+
 .pulse-index-row:hover,
 .pulse-index-row:focus-visible {
   background: color-mix(in srgb, var(--ink) 7%, transparent);
   outline: none;
+}
+
+.pulse-index-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 70%, #fff 8%);
+  border: 1px solid color-mix(in srgb, var(--divider) 80%, transparent);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.pulse-index-logo .card-logo,
+.pulse-index-logo .logo-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
+.pulse-index-logo .card-logo.sector-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
 }
 
 .pulse-index-name {
@@ -18343,6 +18373,10 @@ a.pulse-news-narrative-title:focus-visible {
 .pulse-index-board--sessions .pulse-index-row {
   grid-template-columns: minmax(0, 1.1fr) 56px minmax(8.5rem, auto);
   align-items: center;
+}
+
+.pulse-index-board--logos.pulse-index-board--sessions .pulse-index-row {
+  grid-template-columns: 2rem minmax(0, 1.1fr) 56px minmax(8.5rem, auto);
 }
 
 /* TradingView-style last / change / Pre·AH stack */
@@ -18439,6 +18473,11 @@ a.pulse-news-narrative-title:focus-visible {
   .pulse-index-board--sessions .pulse-index-row {
     grid-template-columns: minmax(0, 1fr) minmax(7.2rem, auto);
     gap: 8px;
+  }
+
+  .pulse-index-board--logos .pulse-index-row,
+  .pulse-index-board--logos.pulse-index-board--sessions .pulse-index-row {
+    grid-template-columns: 2rem minmax(0, 1fr) minmax(7.2rem, auto);
   }
 
   .pulse-index-spark,
@@ -18584,6 +18623,10 @@ a.pulse-news-narrative-title:focus-visible {
     gap: 8px;
     min-height: 44px;
     padding: 5px 10px;
+  }
+
+  .pulse-index-board--logos .pulse-index-row {
+    grid-template-columns: 2rem minmax(0, 1fr) minmax(7.2rem, auto);
   }
 
   .pulse-index-spark {

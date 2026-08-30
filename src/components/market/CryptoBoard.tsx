@@ -9,7 +9,7 @@ export function CryptoBoard({ markets }: { markets: PulseGlobalMarket[] }) {
 
   return (
     <div className="pulse-crypto-board">
-      <MarketScoreboard title="Crypto" rows={markets} />
+      <MarketScoreboard title="Crypto" rows={markets} showLogos />
     </div>
   );
 }
