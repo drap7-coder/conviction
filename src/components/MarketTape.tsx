@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
+import {
+  subscribeMarketData,
+  type MarketDataSubscription,
+} from "@/lib/market/client-market-data";
 import type { StockQuote } from "@/lib/market/quotes";
 
 const WORKSPACE_PATHS = new Set([
@@ -15,6 +18,7 @@ const WORKSPACE_PATHS = new Set([
   "/news",
   "/smart-money",
   "/watchlist",
+  "/manage",
 ]);
 
 const ANCHOR_ITEMS = [
@@ -88,13 +92,10 @@ export function MarketTape() {
   const [flashes, setFlashes] = useState<Record<string, FlashTone>>({});
   const [loading, setLoading] = useState(true);
   const previousPrices = useRef(new Map<string, number>());
+  const flashTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     if (!visible) return;
-    let cancelled = false;
-    let quoteController: AbortController | null = null;
-    let trendingController: AbortController | null = null;
-    let flashTimer: number | undefined;
 
     function applyQuotes(nextQuotes: StockQuote[]) {
       const nextFlashes: Record<string, FlashTone> = {};
@@ -121,42 +122,19 @@ export function MarketTape() {
       });
       if (Object.keys(nextFlashes).length > 0) {
         setFlashes((current) => ({ ...current, ...nextFlashes }));
-        if (flashTimer !== undefined) window.clearTimeout(flashTimer);
-        flashTimer = window.setTimeout(() => setFlashes({}), 900);
+        if (flashTimer.current !== undefined) window.clearTimeout(flashTimer.current);
+        flashTimer.current = window.setTimeout(() => setFlashes({}), 900);
       }
+      setLoading(false);
     }
 
-    async function loadAnchors() {
-      quoteController?.abort();
-      quoteController = new AbortController();
-      try {
-        const data = await fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(
-          `/api/market/quotes?tickers=${encodeURIComponent(ANCHOR_ITEMS.map((item) => item.ticker).join(","))}`,
-          8_000,
-          quoteController.signal,
-        );
-        if (!cancelled) applyQuotes(data.quotes ?? []);
-      } catch {
-        // Keep the last good tape during a transient refresh failure.
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    async function loadTrending() {
-      trendingController?.abort();
-      trendingController = new AbortController();
-      try {
-        const data = await fetchJsonWithTimeout<{
-          companies?: Array<{ ticker: string; quote?: StockQuote }>;
-        }>(
-          `/api/market/trending?limit=${TRENDING_LIMIT}`,
-          10_000,
-          trendingController.signal,
-        );
-        if (cancelled) return;
+    const subscription: MarketDataSubscription = subscribeMarketData({
+      quoteTickers: ANCHOR_ITEMS.map((item) => item.ticker),
+      trendingLimit: TRENDING_LIMIT,
+      onQuotes: applyQuotes,
+      onTrending: (payload) => {
         const reserved = new Set<string>(ANCHOR_ITEMS.map((item) => item.ticker));
-        const companies = (data.companies ?? [])
+        const companies = (payload.companies ?? [])
           .map((company) => ({
             ticker: company.ticker.trim().toUpperCase(),
             quote: company.quote,
@@ -170,24 +148,12 @@ export function MarketTape() {
             .map((company) => company.quote)
             .filter((quote): quote is StockQuote => Boolean(quote)),
         );
-      } catch {
-        // Anchors still render if trending is briefly unavailable.
-      }
-    }
-
-    setLoading(true);
-    void loadAnchors();
-    void loadTrending();
-    const quoteRefresh = window.setInterval(() => { void loadAnchors(); }, 60_000);
-    const trendingRefresh = window.setInterval(() => { void loadTrending(); }, 60_000);
+      },
+    });
 
     return () => {
-      cancelled = true;
-      quoteController?.abort();
-      trendingController?.abort();
-      if (flashTimer !== undefined) window.clearTimeout(flashTimer);
-      window.clearInterval(quoteRefresh);
-      window.clearInterval(trendingRefresh);
+      subscription.unsubscribe();
+      if (flashTimer.current !== undefined) window.clearTimeout(flashTimer.current);
     };
   }, [visible]);
 

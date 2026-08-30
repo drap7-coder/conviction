@@ -22,8 +22,10 @@ const DEFAULT_TTL: Record<string, number> = {
   "/api/evidence/earnings": 60 * 60 * 1000, // 1 hour
   // Political trades are batched
   "/api/evidence/political": 60 * 60 * 1000, // 1 hour
-  // Market quotes are fast-changing
-  "/api/market/quotes": 60 * 1000, // 1 minute
+  // Market quotes — slow browser refresh; server also caches
+  "/api/market/quotes": 5 * 60 * 1000, // 5 minutes
+  // Trending universe is expensive — refresh rarely
+  "/api/market/trending": 12 * 60 * 1000, // 12 minutes
   // News is fast-changing
   "/api/evidence/news-batch": 5 * 60 * 1000, // 5 minutes
   // Short interest is bi-monthly

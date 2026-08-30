@@ -156,7 +156,7 @@ describe("production copy and fixture isolation", () => {
     expect(tape).toContain('ticker: "BTC-USD"');
     expect(tape).toContain('symbol: "BTC"');
     expect(tape).toContain("TRENDING_LIMIT");
-    expect(tape).toContain("/api/market/trending");
+    expect(tape).toContain("subscribeMarketData");
     expect(tape).toContain('aria-label="Market tape"');
     expect(tape).toContain("inert={hidden || undefined}");
     expect(tape).not.toContain("formatValue");
