@@ -35,8 +35,8 @@ export async function generateMetadata({
 
   const title = `${companyName} (${upperTicker})`;
   const description = supportsSignals
-    ? `Live quote, news, and company detail for ${companyName} (${upperTicker}) on CONVICTION.`
-    : `Price, chart, and news for ${companyName} (${upperTicker}) on CONVICTION.`;
+    ? `Live quote, news, and company detail for ${companyName} (${upperTicker}) on IQBulls.`
+    : `Price, chart, and news for ${companyName} (${upperTicker}) on IQBulls.`;
 
   return pageMetadata({
     title,

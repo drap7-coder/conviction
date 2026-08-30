@@ -67,25 +67,27 @@ describe("surface scan polish", () => {
     expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*justify-items:\s*center/s);
   });
 
-  it("boots nav as conviction. then settles without a trailing period", () => {
+  it("boots nav as iqbulls. then settles to IQBulls", () => {
     const title = read("src/components/AnimatedTitle.tsx");
     const css = read("src/app/globals.css");
     const layout = read("src/app/layout.tsx");
 
-    expect(title).toContain('const BOOT_BODY = "conviction"');
-    expect(title).toContain('const BOOT_FINAL = "conviction."');
-    expect(title).toContain('const SETTLED_TEXT = "CONVICTION"');
+    expect(title).toContain('const BOOT_BODY = "iqbulls"');
+    expect(title).toContain('const BOOT_FINAL = "iqbulls."');
+    expect(title).toContain('const SETTLED_TEXT = "IQBulls"');
     expect(title).toContain("prefersReducedMotion");
-    expect(title).toContain("conviction-boot-sound");
+    expect(title).toContain("iqbulls-boot-sound");
     expect(title).toContain("typewriter-period");
     expect(title).toContain("boot-sound-toggle");
     expect(title).toContain('SOUND_PREF_KEY) === "on"');
     expect(title).not.toContain("accent-dot");
-    expect(title).not.toContain('FULL_TEXT = "CONVICTION."');
+    expect(title).not.toContain('SETTLED_TEXT = "CONVICTION"');
+    expect(title).not.toContain('BOOT_BODY = "conviction"');
     expect(css).toContain(".typewriter-period");
     expect(css).toContain(".boot-sound-toggle");
     expect(layout).toContain('src="/conviction-bull.png"');
     expect(layout).toContain("<AnimatedTitle");
     expect(layout).toContain('icon: "/icon.png"');
+    expect(layout).toContain('aria-label="IQBulls home"');
   });
 });

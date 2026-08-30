@@ -13,18 +13,17 @@ function read(path: string) {
 
 describe("SEO metadata", () => {
   it("keeps the public brand constants focused on today’s product", () => {
-    expect(SITE_NAME).toBe("CONVICTION");
-    expect(SITE_TAGLINE).toBe("The stock market, organized around you");
-    expect(SITE_TITLE).toBe("CONVICTION — The stock market, organized around you");
+    expect(SITE_NAME).toBe("IQBulls");
+    expect(SITE_TAGLINE).toBe("Raising your market IQ.");
+    expect(SITE_TITLE).toBe("IQBulls — Raising your market IQ.");
     expect(SITE_TITLE).not.toContain("Evidence Detection");
     expect(SITE_TITLE).not.toContain("Ownership Signals");
-    expect(SITE_DESCRIPTION).toContain("daily market workspace");
+    expect(SITE_DESCRIPTION).toContain("raises your market IQ");
     expect(SITE_DESCRIPTION).toContain("Pulse");
     expect(SITE_DESCRIPTION).toContain("watchlist");
     expect(SITE_DESCRIPTION).toContain("portfolio");
     expect(SITE_DESCRIPTION).toContain("smart-money");
     expect(SITE_DESCRIPTION).toContain("Crowd");
-    expect(SITE_DESCRIPTION).toContain("watchlist");
     expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
     expect(SITE_DESCRIPTION).not.toContain("Ownership Signals");
     expect(SITE_URL).toMatch(/^https:\/\//);
@@ -41,8 +40,8 @@ describe("SEO metadata", () => {
     expect(meta.title).toBe("Pulse");
     expect(meta.alternates).toEqual({ canonical: "/pulse" });
     expect(meta.openGraph?.url).toBe(`${SITE_URL}/pulse`);
-    expect(meta.openGraph?.title).toBe("Pulse · CONVICTION");
-    expect(meta.twitter?.title).toBe("Pulse · CONVICTION");
+    expect(meta.openGraph?.title).toBe("Pulse · IQBulls");
+    expect(meta.twitter?.title).toBe("Pulse · IQBulls");
     expect(meta.robots).toEqual({ index: true, follow: true });
   });
 
@@ -156,7 +155,7 @@ describe("SEO metadata", () => {
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/page.tsx")).toContain("permanentRedirect");
     expect(read("next.config.ts")).toContain('source: "/"');
-    expect(read("next.config.ts")).toContain("www.gotconviction.com");
+    expect(read("next.config.ts")).toContain("www.iqbulls.com");
     expect(read("src/app/industries/[ticker]/page.tsx")).not.toContain("Ownership signals");
   });
 
@@ -174,7 +173,7 @@ describe("SEO metadata", () => {
     expect(meta.openGraph?.locale).toBe("en_US");
   });
 
-  it("uses the brand title on Pulse so Google and SMS cards are not Pulse · CONVICTION", () => {
+  it("uses the brand title on Pulse so Google and SMS cards are not Pulse · IQBulls", () => {
     const meta = pageMetadata({
       title: SITE_TITLE,
       description: SITE_DESCRIPTION,

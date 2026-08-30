@@ -60,7 +60,7 @@ export const navPages: NavPage[] = [
     icon: Info,
     tone: "blue",
     group: "about",
-    blurb: "What CONVICTION is today.",
+    blurb: "What IQBulls is.",
   },
   {
     href: "/faq",

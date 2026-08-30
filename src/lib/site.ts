@@ -1,29 +1,30 @@
 /**
  * Shared public site origin for canonicals, sitemap, and robots.
- * Override with SITE_URL when the public host is not www.gotconviction.com.
+ * Override with SITE_URL when the public host is not www.iqbulls.com.
  */
 function normalizeOrigin(value: string): string {
   const trimmed = value.trim().replace(/\/$/, "");
-  if (!trimmed) return "https://www.gotconviction.com";
+  if (!trimmed) return "https://www.iqbulls.com";
   if (/^https?:\/\//i.test(trimmed)) return trimmed.replace(/^http:/i, "https:");
   return `https://${trimmed}`;
 }
 
 export const SITE_URL = normalizeOrigin(
-  process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.gotconviction.com",
+  process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.iqbulls.com",
 );
 
 /** Public search / share copy. Lead with the full product as it ships today. */
-export const SITE_NAME = "CONVICTION";
-export const SITE_TAGLINE = "The stock market, organized around you";
+export const SITE_NAME = "IQBulls";
+/** Brand play + benefit. Short. No jargon. */
+export const SITE_TAGLINE = "Raising your market IQ.";
 export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 
 /**
  * Meta description for Google / SMS / OG cards.
- * Describe today’s workspace (Pulse, lists, portfolio, news, filings) — never a legacy feature label.
+ * One job: say what it is. Then name the surfaces.
  */
 export const SITE_DESCRIPTION =
-  "Your daily market workspace: Pulse for indexes, sectors, movers, and commodities, Crowd holdings, live portfolio and watchlist, news briefs, and smart-money filings — all in one place.";
+  "IQBulls raises your market IQ — Pulse, Crowd, your portfolio and watchlist, news, and smart-money filings, organized around you.";
 
 export const SITE_OG_IMAGE = {
   url: "/conviction-og.png",

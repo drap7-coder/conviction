@@ -13,7 +13,7 @@ export default function NotFound() {
   return (
     <main className="not-found-page">
       <h1>Page not found</h1>
-      <p>That route isn’t on CONVICTION.</p>
+      <p>That route isn’t on IQBulls.</p>
       <Link href="/pulse">Back to Pulse</Link>
     </main>
   );
