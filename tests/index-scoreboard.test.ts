@@ -61,11 +61,27 @@ describe("commodity scoreboard", () => {
 });
 
 describe("scoreboard logos", () => {
-  it("keeps MarketScoreboard text-only — no LogoDisplay (indexes/ETFs lack usable marks)", () => {
+  it("keeps MarketScoreboard text-only by default; crypto opts into LogoDisplay", () => {
     const board = read("src/components/market/IndexScoreboard.tsx");
-    expect(board).not.toContain("LogoDisplay");
-    expect(board).not.toContain("pulse-index-logo");
-    expect(read("src/app/globals.css")).not.toContain(".pulse-index-logo");
-    expect(read("src/components/market/CryptoBoard.tsx")).toContain("MarketScoreboard");
+    expect(board).toContain("LogoDisplay");
+    expect(board).toContain("showLogos = false");
+    expect(board).toContain("pulse-index-board--logos");
+    expect(board).toContain("pulse-index-logo");
+    expect(board).toMatch(/showLogos\s*\?\s*\([\s\S]*LogoDisplay/);
+
+    const css = read("src/app/globals.css");
+    expect(css).toContain(".pulse-index-logo");
+    expect(css).toContain(".pulse-index-board--logos .pulse-index-row");
+
+    const crypto = read("src/components/market/CryptoBoard.tsx");
+    expect(crypto).toContain("MarketScoreboard");
+    expect(crypto).toContain("showLogos");
+
+    // Indexes / commodities / sectors / intl stay on the default (no showLogos).
+    expect(board).toMatch(/title="Major Indexes"[\s\S]*?showSessionMoves/);
+    expect(board).not.toMatch(/title="Major Indexes"[\s\S]*?showLogos/);
+    expect(board).not.toMatch(/title="Commodities"[\s\S]*?showLogos/);
+    expect(board).not.toMatch(/title="Sectors"[\s\S]*?showLogos/);
+    expect(board).not.toMatch(/title="International"[\s\S]*?showLogos/);
   });
 });

@@ -2,6 +2,7 @@
 
 import { useMemo, type ReactNode } from "react";
 import Link from "next/link";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
 import { fmtDollarPrice, fmtPercent, fmtSignedDollar } from "@/lib/display/format";
 import {
@@ -70,6 +71,7 @@ export function MarketScoreboard({
   rows,
   sessionLabel = null,
   showSessionMoves = false,
+  showLogos = false,
   headerAction = null,
   footer = null,
 }: {
@@ -78,16 +80,24 @@ export function MarketScoreboard({
   sessionLabel?: string | null;
   /** When true, render the Pre/AH line under regular session change (TV-style). */
   showSessionMoves?: boolean;
+  /** Opt-in logo column (crypto). Indexes/commodities/sectors/intl stay text-only. */
+  showLogos?: boolean;
   headerAction?: ReactNode;
   footer?: ReactNode;
 }) {
   if (rows.length === 0 && !footer) return null;
 
+  const boardClass = [
+    "market-heatmap-shell",
+    "pulse-index-board",
+    showSessionMoves ? "pulse-index-board--sessions" : "",
+    showLogos ? "pulse-index-board--logos" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <section
-      className={`market-heatmap-shell pulse-index-board${showSessionMoves ? " pulse-index-board--sessions" : ""}`}
-      aria-label={`${title} scoreboard`}
-    >
+    <section className={boardClass} aria-label={`${title} scoreboard`}>
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
           <h2>
@@ -118,6 +128,11 @@ export function MarketScoreboard({
               const label = rowAriaLabel(market, Boolean(extendedLabel));
               const body: ReactNode = (
                 <>
+                  {showLogos ? (
+                    <span className="pulse-index-logo" aria-hidden="true">
+                      <LogoDisplay ticker={market.ticker} size="detail" />
+                    </span>
+                  ) : null}
                   <span className="pulse-index-name">
                     <strong>{market.name}</strong>
                     <small>{market.ticker}</small>
