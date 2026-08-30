@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
-const CANONICAL_ORIGIN = "https://www.iqbulls.com";
+/**
+ * Apex is canonical. The live TLS cert is issued for `iqbulls.com` only
+ * (no www SAN). Sending users to www triggers Chrome “Not secure”.
+ * www → apex; legacy hosts → apex.
+ */
+const CANONICAL_ORIGIN = "https://iqbulls.com";
 
 const nextConfig: NextConfig = {
   images: {
@@ -22,20 +27,20 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // Apex → www
+      // www → apex (www cert is missing; avoid Not Secure)
       {
         source: "/",
-        has: [{ type: "host", value: "iqbulls.com" }],
+        has: [{ type: "host", value: "www.iqbulls.com" }],
         destination: `${CANONICAL_ORIGIN}/pulse`,
         permanent: true,
       },
       {
         source: "/:path*",
-        has: [{ type: "host", value: "iqbulls.com" }],
+        has: [{ type: "host", value: "www.iqbulls.com" }],
         destination: `${CANONICAL_ORIGIN}/:path*`,
         permanent: true,
       },
-      // Legacy CONVICTION hosts → IQBulls
+      // Legacy CONVICTION hosts → IQBulls apex
       {
         source: "/",
         has: [{ type: "host", value: "gotconviction.com" }],

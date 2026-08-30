@@ -155,7 +155,9 @@ describe("SEO metadata", () => {
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/page.tsx")).toContain("permanentRedirect");
     expect(read("next.config.ts")).toContain('source: "/"');
+    expect(read("next.config.ts")).toContain("https://iqbulls.com");
     expect(read("next.config.ts")).toContain("www.iqbulls.com");
+    expect(read("next.config.ts")).toContain("gotconviction.com");
     expect(read("src/app/industries/[ticker]/page.tsx")).not.toContain("Ownership signals");
   });
 
