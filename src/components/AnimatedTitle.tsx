@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useEffect, useState, type MouseEvent, type ReactNode } from "react";
 
 /** First-visit boot types the brand mark; settle drops the period cursor only. */
 const BOOT_BODY = "IQBulls";
@@ -8,6 +8,8 @@ const BOOT_FINAL = "IQBulls.";
 const SETTLED_TEXT = "IQBulls";
 const STORAGE_KEY = "iqbulls-title-revealed";
 const SOUND_PREF_KEY = "iqbulls-boot-sound";
+/** "IQ" stays green; "Bulls" (+ trailing boot chars) match horn cream. */
+const IQ_LEN = 2;
 
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined") return true;
@@ -47,6 +49,19 @@ function playBootTick(soundOn: boolean): void {
   } catch {
     // Audio is optional chrome — never block boot.
   }
+}
+
+/** IQ green + horn-cream Bulls — matches favicon / bull mark palette. */
+export function BrandWordmark({ text }: { text: string }): ReactNode {
+  if (!text) return null;
+  const iq = text.slice(0, Math.min(IQ_LEN, text.length));
+  const rest = text.slice(IQ_LEN);
+  return (
+    <>
+      {iq ? <span className="app-title-iq">{iq}</span> : null}
+      {rest ? <span className="app-title-bulls">{rest}</span> : null}
+    </>
+  );
 }
 
 export default function AnimatedTitle() {
@@ -132,7 +147,11 @@ export default function AnimatedTitle() {
   const showPeriodCursor = phase === "blink";
 
   if (phase === "settled") {
-    return <span className="app-title">{SETTLED_TEXT}</span>;
+    return (
+      <span className="app-title">
+        <BrandWordmark text={SETTLED_TEXT} />
+      </span>
+    );
   }
 
   return (
@@ -141,7 +160,9 @@ export default function AnimatedTitle() {
         className={`app-title typewriter${phase === "typing" ? " is-typing" : ""}`}
         aria-label={BOOT_FINAL}
       >
-        <span className="app-title-boot-body">{body}</span>
+        <span className="app-title-boot-body">
+          <BrandWordmark text={body} />
+        </span>
         {showPeriodCursor ? (
           <span className="typewriter-period" aria-hidden="true">
             .
