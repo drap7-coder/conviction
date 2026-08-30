@@ -67,14 +67,14 @@ describe("surface scan polish", () => {
     expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*justify-items:\s*center/s);
   });
 
-  it("boots nav as IQBulls. then settles to IQBulls without a case flip", () => {
+  it("boots nav as IQ Bulls. then settles to IQ Bulls (spaced, no case snap)", () => {
     const title = read("src/components/AnimatedTitle.tsx");
     const css = read("src/app/globals.css");
     const layout = read("src/app/layout.tsx");
 
-    expect(title).toContain('const BOOT_BODY = "IQBulls"');
-    expect(title).toContain('const BOOT_FINAL = "IQBulls."');
-    expect(title).toContain('const SETTLED_TEXT = "IQBulls"');
+    expect(title).toContain('const BOOT_BODY = "IQ Bulls"');
+    expect(title).toContain('const BOOT_FINAL = "IQ Bulls."');
+    expect(title).toContain('const SETTLED_TEXT = "IQ Bulls"');
     expect(title).toContain("prefersReducedMotion");
     expect(title).toContain("iqbulls-boot-sound");
     expect(title).toContain("typewriter-period");
@@ -84,6 +84,9 @@ describe("surface scan polish", () => {
     expect(title).not.toContain('SETTLED_TEXT = "CONVICTION"');
     expect(title).not.toContain('BOOT_BODY = "conviction"');
     expect(title).not.toContain('BOOT_BODY = "iqbulls"');
+    expect(title).not.toContain('BOOT_BODY = "IQBulls"');
+    expect(title).not.toContain('SETTLED_TEXT = "IQBulls"');
+    expect(title).not.toContain("IQBULLs");
     expect(css).toMatch(/\.app-title\s*\{[^}]*text-transform:\s*none/s);
     expect(css).not.toMatch(/\.app-title\s*\{[^}]*text-transform:\s*uppercase/s);
     expect(css).toContain(".typewriter-period");
