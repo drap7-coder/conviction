@@ -662,13 +662,28 @@
   }
 
   .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-row {
-    grid-template-columns: minmax(0, 1fr) 48px;
+    /* logo | name | weight — gauge spans full width below */
+    grid-template-columns: auto minmax(0, 1fr) 48px;
     gap: 8px 10px;
   }
 
   .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-rank,
   .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-values {
     display: none;
+  }
+
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+  }
+
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-logo .card-logo,
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-logo .logo-badge,
+  .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-logo .card-logo.sector-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
   }
 
   .portfolio-page .pf > .pf-allocation-ladder .pf-allocation-gauge {
@@ -1122,7 +1137,7 @@
 .portfolio-page .pf-holding-main {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
+  align-items: center;
   gap: 10px;
   min-width: 0;
 }
@@ -1267,6 +1282,20 @@
 @media (max-width: 400px) {
   .portfolio-page .pf-holding-main {
     gap: 8px;
+  }
+
+  .portfolio-page .pf-holding-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+  }
+
+  .portfolio-page .pf-holding-logo .card-logo,
+  .portfolio-page .pf-holding-logo .logo-badge,
+  .portfolio-page .pf-holding-logo .card-logo.sector-badge {
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
   }
 
   .portfolio-page .pf-holding-value {
