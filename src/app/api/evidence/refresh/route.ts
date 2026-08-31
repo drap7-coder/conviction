@@ -9,7 +9,8 @@ import { NextRequest, NextResponse } from "next/server";
  *
  * Auth:
  * - Full sync (no ticker): requires `Authorization: Bearer <CRON_SECRET>`
- * - Single ticker: open for company-page refresh (bounded by SYNC_CONFIG)
+ * - Single ticker: available for company-page refresh, rate-capped
+ *   (per-ticker cooldown + per-IP burst). Cron Bearer bypasses caps.
  *
  * All limits bounded by sync-config.ts:
  * - Maximum 10 companies per sync
@@ -17,11 +18,13 @@ import { NextRequest, NextResponse } from "next/server";
  * - Maximum 100 records per sync
  * - Maximum 55s runtime
  * - Sequential SEC requests with existing delay
+ * - Single-ticker cooldown + IP burst caps
  */
 
 import { fetchInsiderTransactions } from "@/lib/sec/client";
 import {
   setLastFetchTime,
+  getLastFetchTime,
   getAllDedupKeys,
   storeTransactions,
   txToRecord,
@@ -30,17 +33,33 @@ import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
 import { recordSync } from "@/lib/sync/sync-log";
 import { getWatchlistSortedBySyncPriority, updateWatchlistSync } from "@/lib/watchlist/persist";
 import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
-import { requireCronSecret } from "@/lib/api/cron-auth";
+import { isValidCronBearer, requireCronSecret } from "@/lib/api/cron-auth";
+import {
+  checkSingleTickerCooldown,
+  checkSingleTickerIpLimit,
+  clientIpFromRequest,
+} from "@/lib/api/refresh-rate-limit";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+function rateLimitedResponse(retryAfterSec: number, error: string) {
+  return NextResponse.json(
+    { success: false, error, retryAfterSec },
+    {
+      status: 429,
+      headers: { "Retry-After": String(retryAfterSec) },
+    },
+  );
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const ticker: string | undefined = typeof body.ticker === "string" ? body.ticker.trim() : undefined;
+  const cronAuthorized = isValidCronBearer(request);
 
   // Full watchlist sync is cron/ops only. Single-ticker refresh stays open for
-  // company-page guests (still bounded by SYNC_CONFIG).
+  // company-page guests but is rate-capped unless the cron bearer is present.
   if (!ticker) {
     const denied = requireCronSecret(request);
     if (denied) return denied;
@@ -61,6 +80,25 @@ export async function POST(request: NextRequest) {
   if (ticker) {
     // Sync a single ticker
     const tickersToProcess = [ticker.toUpperCase()];
+
+    if (!cronAuthorized) {
+      const ipLimit = checkSingleTickerIpLimit(clientIpFromRequest(request.headers));
+      if (!ipLimit.ok) {
+        return rateLimitedResponse(
+          ipLimit.retryAfterSec,
+          "Too many evidence refreshes from this client. Try again shortly.",
+        );
+      }
+
+      const lastFetch = await getLastFetchTime(tickersToProcess[0]);
+      const cooldown = checkSingleTickerCooldown(lastFetch);
+      if (!cooldown.ok) {
+        return rateLimitedResponse(
+          cooldown.retryAfterSec,
+          `Evidence for ${tickersToProcess[0]} was refreshed recently. Try again in ${cooldown.retryAfterSec}s.`,
+        );
+      }
+    }
 
     const boundsCheck = checkSyncBounds({
       companyCount: 1,
@@ -127,6 +165,8 @@ export async function POST(request: NextRequest) {
       _limits: {
         maxCompaniesPerSync: SYNC_CONFIG.MAX_COMPANIES_PER_SYNC,
         maxDurationSeconds: SYNC_CONFIG.MAX_SYNC_DURATION_SECONDS,
+        singleTickerCooldownSeconds: SYNC_CONFIG.SINGLE_TICKER_COOLDOWN_SECONDS,
+        singleTickerIpMax: SYNC_CONFIG.SINGLE_TICKER_IP_MAX,
         syncFrequency: "daily (Vercel Hobby constraint)",
       },
     });

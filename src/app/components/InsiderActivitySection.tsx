@@ -136,7 +136,17 @@ export function InsiderActivitySection({ ticker, hideHeader = false }: InsiderAc
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ticker }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setFetchMessage(
+          typeof data.error === "string"
+            ? data.error
+            : res.status === 429
+              ? "Refresh rate-limited. Try again shortly."
+              : "Refresh failed. SEC may be rate-limiting.",
+        );
+        return;
+      }
       const result = data.results?.[ticker];
       if (result) {
         setFetchMessage(

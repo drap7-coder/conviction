@@ -9,8 +9,8 @@ import { requireAdminAccess } from "@/lib/api/cron-auth";
  * GET /api/admin/resources
  * Lightweight resource dashboard.
  *
- * Auth: `Authorization: Bearer <CRON_SECRET>` or a signed-in session
- * when AUTH_SECRET is configured.
+ * Auth: `Authorization: Bearer <CRON_SECRET>` or a signed-in user
+ * whose email is listed in `ADMIN_EMAILS`.
  *
  * Reports:
  * - Database row counts by ticker
