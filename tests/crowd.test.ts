@@ -4,6 +4,7 @@ import { buildCrowdSnapshot, rankCrowdHoldings, rankCrowdWatched } from "@/lib/c
 import { CROWD_SEED_BOOKS, isCrowdSeedUserId, listCrowdSeedBooks } from "@/lib/crowd/seed-books";
 import { getSectorColors, hasDomainLogo } from "@/lib/market/logos";
 import type { CrowdBook } from "@/lib/crowd/types";
+import { crowdBoardMetaLine } from "@/components/CrowdBoard";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -74,6 +75,28 @@ describe("Crowd aggregation", () => {
   });
 });
 
+describe("crowdBoardMetaLine", () => {
+  it("names starter-only boards clearly", () => {
+    const snapshot = buildCrowdSnapshot(listCrowdSeedBooks());
+    expect(crowdBoardMetaLine(snapshot, "held")).toBe("Across 10 starter books");
+    expect(crowdBoardMetaLine(snapshot, "watched")).toMatch(/Across \d+ starter lists/);
+  });
+
+  it("splits live vs starter when both are present", () => {
+    const live: CrowdBook = {
+      id: "live-user-1",
+      label: "Member",
+      source: "live",
+      positions: [{ ticker: "NVDA", shares: 1, averageCost: 100 }],
+      watchlist: ["HOOD"],
+    };
+    const snapshot = buildCrowdSnapshot([...listCrowdSeedBooks(), live]);
+    expect(crowdBoardMetaLine(snapshot, "held")).toBe("Across 11 books · 1 live · 10 starter");
+    expect(crowdBoardMetaLine(snapshot, "watched")).toContain("live");
+    expect(crowdBoardMetaLine(snapshot, "watched")).toContain("starter");
+  });
+});
+
 describe("Crowd surface wiring", () => {
   it("keeps Crowd on the daily tab bar with sr-only page title", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
@@ -86,17 +109,20 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("watcherPct");
     expect(read("src/components/CrowdBoard.tsx")).toContain("of books");
     expect(read("src/components/CrowdBoard.tsx")).toContain("of lists");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("bookMetaLine");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowdBoardMetaLine");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-board-meta");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("pulse-movers-logo");
     expect(read("src/app/globals.css")).toContain(".pulse-movers-logo");
     expect(read("src/app/globals.css")).toContain(".crowd-share");
+    expect(read("src/app/globals.css")).toContain(".crowd-board-meta");
     expect(read("src/lib/nav-config.ts")).toContain('href: "/crowd"');
     expect(read("src/lib/nav-config.ts")).toContain('group: "daily"');
     expect(read("src/app/api/crowd/route.ts")).toContain("loadCrowdSnapshot");
     expect(read("AGENTS.md")).toContain("Crowd");
     expect(read("AGENTS.md")).toContain("holderPct");
+    expect(read("AGENTS.md")).toContain("crowd-board-meta");
   });
 
   it("covers Crowd seed tickers with logo domains or sector badges", () => {

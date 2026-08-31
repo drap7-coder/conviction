@@ -22,6 +22,40 @@ function formatSharePct(pct: number): string {
   return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
 }
 
+/** Quiet head meta: book/list counts + starter vs live mix. Aggregate only. */
+export function crowdBoardMetaLine(
+  snapshot: CrowdSnapshot,
+  view: CrowdView,
+): string {
+  if (view === "held") {
+    const { bookCount, liveBookCount, seedBookCount, includesDemoBooks } = snapshot;
+    if (bookCount <= 0) return "No books yet";
+    if (includesDemoBooks && liveBookCount === 0) {
+      return `Across ${bookCount} starter ${bookCount === 1 ? "book" : "books"}`;
+    }
+    if (includesDemoBooks && liveBookCount > 0) {
+      return `Across ${bookCount} books · ${liveBookCount} live · ${seedBookCount} starter`;
+    }
+    return `Across ${bookCount} ${bookCount === 1 ? "book" : "books"}`;
+  }
+
+  const { listCount, liveBookCount, seedBookCount, includesDemoBooks } = snapshot;
+  if (listCount <= 0) return "No lists yet";
+  if (includesDemoBooks && liveBookCount === 0) {
+    return `Across ${listCount} starter ${listCount === 1 ? "list" : "lists"}`;
+  }
+  if (includesDemoBooks && liveBookCount > 0) {
+    const liveLists = Math.min(listCount, liveBookCount);
+    const starterLists = Math.max(0, listCount - liveLists);
+    // Prefer snapshot seed/live book mix for honesty when every book has a list.
+    if (listCount === snapshot.bookCount) {
+      return `Across ${listCount} lists · ${liveBookCount} live · ${seedBookCount} starter`;
+    }
+    return `Across ${listCount} lists · ${liveLists} live · ${starterLists} starter`;
+  }
+  return `Across ${listCount} ${listCount === 1 ? "list" : "lists"}`;
+}
+
 export function CrowdBoard() {
   const [view, setView] = useState<CrowdView>("held");
   const [snapshot, setSnapshot] = useState<CrowdSnapshot | null>(null);
@@ -94,6 +128,9 @@ export function CrowdBoard() {
           <div className="crowd-board-title">
             <h2>{view === "held" ? "Most held" : "Most watched"}</h2>
           </div>
+          {snapshot ? (
+            <p className="crowd-board-meta">{crowdBoardMetaLine(snapshot, view)}</p>
+          ) : null}
         </div>
 
         <div className="surface-well crowd-well">
