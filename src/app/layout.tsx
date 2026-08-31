@@ -46,13 +46,13 @@ export const metadata: Metadata = {
     canonical: "/pulse",
   },
   icons: {
-    // New filename + v= busts aggressive browser favicon caches (same /icon.png URL
-    // was still showing the old tab mark after PNG bytes changed on Vercel).
+    // New path + ?v= busts aggressive browser favicon caches. Keep version bumps
+    // whenever the mark changes — same /icon.png URL stays sticky in tabs.
     icon: [
-      { url: "/brand-favicon.png?v=20260831b", type: "image/png", sizes: "512x512" },
-      { url: "/favicon.ico?v=20260831b", type: "image/x-icon", sizes: "48x48" },
+      { url: "/brand-favicon.png?v=20260831c", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico?v=20260831c", type: "image/x-icon", sizes: "48x48" },
     ],
-    apple: [{ url: "/brand-apple-icon.png?v=20260831b", type: "image/png", sizes: "180x180" }],
+    apple: [{ url: "/brand-apple-icon.png?v=20260831c", type: "image/png", sizes: "180x180" }],
   },
   openGraph: {
     title: SITE_TITLE,
