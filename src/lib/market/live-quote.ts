@@ -46,15 +46,18 @@ function easternClockSession(now: Date): MarketSession {
   }).formatToParts(now);
   const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
   const weekday = value("weekday");
-  if (weekday === "Sat" || weekday === "Sun") return "closed";
   const minutes = Number(value("hour")) * 60 + Number(value("minute"));
+
+  // Weekends: no regular session. Keep the Friday post window conceptually open
+  // so callers can still surface the last AH print (Yahoo leaves it up).
+  if (weekday === "Sat" || weekday === "Sun") return "after_hours";
+
   if (minutes >= 4 * 60 && minutes < 9 * 60 + 30) return "pre_market";
   if (minutes >= 9 * 60 + 30 && minutes < 16 * 60) return "regular";
-  // After the close: keep the AH window open overnight until pre starts so the
-  // last post print stays visible (Yahoo keeps After Hours up past 8pm ET).
-  // Mon 12:00–4:00am is still closed — Friday's AH is stale across the weekend.
-  if (minutes >= 16 * 60) return "after_hours";
-  if (minutes < 4 * 60 && weekday !== "Mon") return "after_hours";
+  // After the close (incl. overnight past 8pm ET and Mon 12:00–4:00am): keep
+  // the last post print visible until pre starts — Yahoo keeps After Hours up
+  // through the weekend into Monday morning.
+  if (minutes >= 16 * 60 || minutes < 4 * 60) return "after_hours";
   return "closed";
 }
 
@@ -108,7 +111,8 @@ export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice
   }
 
   // After-hours. Yahoo often clears marketState / postMarket* meta after 8pm ET
-  // but leaves the completed post print (or 5m bars) — keep showing it overnight.
+  // but leaves the completed post print (or 5m bars) — keep showing it overnight
+  // and across the weekend until Monday pre-market.
   if (
     clockSession === "after_hours" &&
     (state === "POST" || state === "POSTPOST" || state === "CLOSED" || state === "REGULAR" || state === "") &&
@@ -124,13 +128,17 @@ export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice
     };
   }
 
-  // Regular / closed / fallback
+  // Regular / closed / fallback (incl. AH clock with no post print yet)
   return {
     price: quote.price,
     change: quote.change,
     changePercent: quote.changePercent,
     label: null,
-    session: clockSession === "closed" ? "closed" : "regular",
+    session:
+      clockSession === "closed"
+      || (clockSession === "after_hours" && state !== "POST" && state !== "POSTPOST" && state !== "REGULAR")
+        ? "closed"
+        : "regular",
   };
 }
 
@@ -175,7 +183,18 @@ export function getExtendedSessionQuote(
   ) {
     // REGULAR can linger briefly after the bell; still prefer a post print when present.
     const price = quote.postMarketPrice;
-    if (price == null && state === "REGULAR") {
+    if (price == null) {
+      // Live post window: surface No trades. Overnight/weekend after Yahoo
+      // cleared meta with no derived bar: stay quiet (don't spam every name).
+      if (state === "POST" || state === "POSTPOST") {
+        return {
+          sessionLabel: "After Hours",
+          price: null,
+          change: null,
+          changePercent: null,
+          noTrades: true,
+        };
+      }
       return { sessionLabel: null, price: null, change: null, changePercent: null, noTrades: false };
     }
     const move = moveFrom(price, quote.postMarketChange, quote.postMarketChangePercent);
@@ -184,7 +203,7 @@ export function getExtendedSessionQuote(
       price,
       change: move.change,
       changePercent: move.changePercent,
-      noTrades: price == null,
+      noTrades: false,
     };
   }
 
