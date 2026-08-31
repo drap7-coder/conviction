@@ -20,6 +20,13 @@ import type { InsiderTransaction } from "@/lib/sec/types";
 
 // ── Helpers ──
 
+/** Keep fixtures inside CONVICTION_WINDOW_DAYS so scoring tests do not rot. */
+function daysAgoIso(days: number): string {
+  const d = new Date();
+  d.setUTCDate(d.getUTCDate() - days);
+  return d.toISOString().slice(0, 10);
+}
+
 function makeTx(overrides: Partial<InsiderTransaction> = {}): InsiderTransaction {
   return {
     id: "test-001",
@@ -32,8 +39,8 @@ function makeTx(overrides: Partial<InsiderTransaction> = {}): InsiderTransaction
     isDirector: true,
     isOfficer: true,
     isTenPercentOwner: false,
-    transactionDate: "2026-06-01",
-    filingDate: "2026-06-02",
+    transactionDate: daysAgoIso(14),
+    filingDate: daysAgoIso(13),
     transactionCode: "P",
     transactionType: "purchase",
     shares: 10000,
