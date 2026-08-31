@@ -16,6 +16,12 @@ const VIEWS: Array<{ id: CrowdView; label: string }> = [
   { id: "watched", label: "Most watched" },
 ];
 
+function formatSharePct(pct: number): string {
+  if (!Number.isFinite(pct) || pct < 0) return "—";
+  const rounded = Math.round(pct * 10) / 10;
+  return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
+}
+
 export function CrowdBoard() {
   const [view, setView] = useState<CrowdView>("held");
   const [snapshot, setSnapshot] = useState<CrowdSnapshot | null>(null);
@@ -109,6 +115,8 @@ export function CrowdBoard() {
                 const href = companyDetailHref(ticker);
                 const name = quote?.name ?? ticker;
                 const topThree = index < 3;
+                const sharePct = "holderPct" in row ? row.holderPct : row.watcherPct;
+                const shareLabel = view === "held" ? "of books" : "of lists";
                 const body = (
                   <>
                     <span className={`crowd-rank${topThree ? " is-lead" : ""}`} aria-hidden="true">
@@ -121,6 +129,10 @@ export function CrowdBoard() {
                       <strong>{ticker}</strong>
                       <small>{name}</small>
                     </span>
+                    <span className="crowd-share" aria-hidden="true">
+                      <strong className="tnum">{formatSharePct(sharePct)}</strong>
+                      <small>{shareLabel}</small>
+                    </span>
                     <SessionQuoteStack
                       lastPrice={quote?.price ?? null}
                       change={quote?.change ?? null}
@@ -129,7 +141,12 @@ export function CrowdBoard() {
                     />
                   </>
                 );
-                const aria = [`#${index + 1}`, ticker, name].join(", ");
+                const aria = [
+                  `#${index + 1}`,
+                  ticker,
+                  name,
+                  `${formatSharePct(sharePct)} ${shareLabel}`,
+                ].join(", ");
 
                 return (
                   <li key={ticker} className={topThree ? "is-lead" : undefined}>

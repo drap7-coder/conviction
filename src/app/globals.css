@@ -20274,7 +20274,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .crowd-row {
   display: grid;
-  grid-template-columns: 1.4rem 2.25rem minmax(0, 1fr) auto;
+  grid-template-columns: 1.4rem 2.25rem minmax(0, 1fr) minmax(3.5rem, auto) auto;
   align-items: center;
   gap: 10px 12px;
   padding: 12px 14px;
@@ -20362,6 +20362,29 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   text-overflow: ellipsis;
 }
 
+.crowd-share {
+  display: grid;
+  gap: 1px;
+  justify-items: end;
+  text-align: right;
+  min-width: 0;
+}
+
+.crowd-share strong {
+  font-size: 0.88rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.crowd-share small {
+  font-size: 0.62rem;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
 .crowd-empty {
   margin: 0;
   padding: 18px 14px;
@@ -20378,12 +20401,13 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 @media (max-width: 720px) {
   .crowd-row {
-    grid-template-columns: 1.25rem 2.1rem minmax(0, 1fr) auto;
+    grid-template-columns: 1.25rem 2.1rem minmax(0, 1fr) minmax(3.1rem, auto) auto;
     column-gap: 10px;
   }
 
   .crowd-rank { align-self: center; }
   .crowd-logo { align-self: center; }
+  .crowd-share { align-self: center; }
 }
 
 /* ── Inline voice mic inside ticker fields ── */

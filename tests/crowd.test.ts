@@ -81,18 +81,22 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most held");
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most watched");
     expect(read("src/components/CrowdBoard.tsx")).toContain("LogoDisplay");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-share-track");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("holderPct");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-share");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("holderPct");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("watcherPct");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("of books");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("of lists");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("bookMetaLine");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("pulse-movers-logo");
     expect(read("src/app/globals.css")).toContain(".pulse-movers-logo");
-    expect(read("src/app/globals.css")).not.toContain(".crowd-share-track");
+    expect(read("src/app/globals.css")).toContain(".crowd-share");
     expect(read("src/lib/nav-config.ts")).toContain('href: "/crowd"');
     expect(read("src/lib/nav-config.ts")).toContain('group: "daily"');
     expect(read("src/app/api/crowd/route.ts")).toContain("loadCrowdSnapshot");
     expect(read("AGENTS.md")).toContain("Crowd");
+    expect(read("AGENTS.md")).toContain("holderPct");
   });
 
   it("covers Crowd seed tickers with logo domains or sector badges", () => {
