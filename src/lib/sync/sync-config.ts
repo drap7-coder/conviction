@@ -31,6 +31,18 @@ export const SYNC_CONFIG = {
   /** Maximum sync log entries retained */
   MAX_SYNC_LOG_ENTRIES: 100,
 
+  /**
+   * Unauthenticated single-ticker `/api/evidence/refresh` cooldown per ticker
+   * (uses last fetch timestamp in persist). Cron Bearer bypasses.
+   */
+  SINGLE_TICKER_COOLDOWN_SECONDS: 300,
+
+  /** Best-effort per-IP burst cap for single-ticker refresh (process-local). */
+  SINGLE_TICKER_IP_MAX: 6,
+
+  /** Window for the per-IP burst cap. */
+  SINGLE_TICKER_IP_WINDOW_MS: 15 * 60_000,
+
   /** Default sync frequency per provider source */
   FREQUENCY: {
     SEC_EDGAR: "daily",       // Form 4 filings — daily is sufficient for MVP
