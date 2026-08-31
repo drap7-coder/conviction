@@ -46,13 +46,13 @@ export const metadata: Metadata = {
     canonical: "/pulse",
   },
   icons: {
-    // New path + ?v= busts aggressive browser favicon caches. Keep version bumps
-    // whenever the mark changes — same /icon.png URL stays sticky in tabs.
+    // New filename + ?v= busts aggressive browser favicon caches. Same URL paths
+    // stay sticky in tabs — bump both whenever the mark changes.
     icon: [
-      { url: "/brand-favicon.png?v=20260831c", type: "image/png", sizes: "512x512" },
-      { url: "/favicon.ico?v=20260831c", type: "image/x-icon", sizes: "48x48" },
+      { url: "/iqbulls-favicon.png?v=20260831d", type: "image/png", sizes: "512x512" },
+      { url: "/favicon.ico?v=20260831d", type: "image/x-icon", sizes: "48x48" },
     ],
-    apple: [{ url: "/brand-apple-icon.png?v=20260831c", type: "image/png", sizes: "180x180" }],
+    apple: [{ url: "/iqbulls-apple-icon.png?v=20260831d", type: "image/png", sizes: "180x180" }],
   },
   openGraph: {
     title: SITE_TITLE,
