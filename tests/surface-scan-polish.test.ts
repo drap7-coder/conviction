@@ -100,7 +100,7 @@ describe("surface scan polish", () => {
     expect(css).toContain(".boot-sound-toggle");
     expect(layout).toContain('src="/conviction-bull.png"');
     expect(layout).toContain("<AnimatedTitle");
-    expect(layout).toContain('icon: "/icon.png"');
+    expect(layout).toContain("/brand-favicon.png?v=20260831b");
     expect(layout).toContain('aria-label="IQBulls home"');
   });
 });
