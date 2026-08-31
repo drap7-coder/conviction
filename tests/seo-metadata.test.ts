@@ -169,9 +169,9 @@ describe("SEO metadata", () => {
     });
 
     expect(meta.openGraph?.images).toEqual([
-      { ...SITE_OG_IMAGE, url: `${SITE_URL}/iqbulls-og.png` },
+      { ...SITE_OG_IMAGE, url: `${SITE_URL}/iqbulls-share.png` },
     ]);
-    expect(meta.twitter?.images).toEqual([`${SITE_URL}/iqbulls-og.png`]);
+    expect(meta.twitter?.images).toEqual([`${SITE_URL}/iqbulls-share.png`]);
     expect(meta.openGraph?.locale).toBe("en_US");
   });
 
