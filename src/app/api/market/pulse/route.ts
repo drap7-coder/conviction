@@ -1,50 +1,38 @@
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
-import { getWatchlist } from "@/lib/watchlist/persist";
 import { SECTORS } from "@/lib/market/industries";
-import {
-  classifyMacroRegime,
-  type IndicatorSnapshot,
-  type MacroRegime,
-} from "@/lib/market/macro-regime";
-import {
-  classifySectorLeadership,
-  type SectorLeadership,
-} from "@/lib/market/sector-classification";
-import { runTriage, type TriageWatchlistInput, type TriageResult } from "@/lib/market/triage";
-import {
-  fetchMarketNarrativePulse,
-  MARKET_NARRATIVE_THEMES,
-  type MarketNarrativePulse,
-} from "@/lib/market/market-narratives";
 
-export const dynamic = "force-dynamic";
+/**
+ * Pulse Markets / Crypto / Intl payload.
+ * Kept lean: gauges + scoreboards only. No watchlist fan-out, macro essays,
+ * or News RSS — those live elsewhere and burned Active CPU when bundled here.
+ */
+export const revalidate = 300;
 
 export type DataStatus = "ready" | "proxy" | "delayed" | "stale" | "unsupported" | "error";
 
+/** VIX + 10Y only — `PulseMacroGauges` ignores everything else. */
 const INDICATORS: Array<{
   ticker: string;
   label: string;
   status: DataStatus;
   isPercentValue?: boolean;
 }> = [
-  { ticker: "SPY", label: "S&P 500", status: "proxy" },
-  { ticker: "QQQ", label: "Nasdaq", status: "proxy" },
   { ticker: "^VIX", label: "VIX", status: "ready" },
-  { ticker: "USO", label: "Oil", status: "proxy" },
   { ticker: "^TNX", label: "10Y Yield", status: "ready", isPercentValue: true },
-  { ticker: "UUP", label: "Dollar", status: "proxy" },
 ];
 
+/**
+ * Scoreboard universe. DIA/SPY/QQQ/IWM only for indexes (no MDY/RSP).
+ * Crypto excludes Solana. International stays six countries.
+ */
 const GLOBAL_MARKETS = [
-  // Broad market / size proxies — sector ETFs stay on the Sectors tab.
   { ticker: "DIA", name: "Dow Jones Industrial Average", weight: 14, category: "Major Index" },
   { ticker: "SPY", name: "S&P 500", weight: 30, category: "Major Index" },
   { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "Major Index" },
   { ticker: "IWM", name: "Russell 2000", weight: 9, category: "Major Index" },
-  { ticker: "MDY", name: "S&P MidCap 400", weight: 6, category: "Major Index" },
-  { ticker: "RSP", name: "S&P 500 Equal Weight", weight: 8.5, category: "Major Index" },
   { ticker: "USO", name: "Crude Oil", weight: 8, category: "Commodity" },
   { ticker: "GLD", name: "Gold", weight: 7, category: "Commodity" },
   { ticker: "SLV", name: "Silver", weight: 5, category: "Commodity" },
@@ -54,7 +42,6 @@ const GLOBAL_MARKETS = [
   { ticker: "XRP-USD", name: "XRP", weight: 8, category: "Crypto" },
   { ticker: "DOGE-USD", name: "Dogecoin", weight: 6, category: "Crypto" },
   { ticker: "ADA-USD", name: "Cardano", weight: 5, category: "Crypto" },
-  // Keep International to six countries so the heatmap stays scannable.
   { ticker: "EWJ", name: "Japan", weight: 16, category: "International" },
   { ticker: "MCHI", name: "China", weight: 14, category: "International" },
   { ticker: "EWU", name: "United Kingdom", weight: 12, category: "International" },
@@ -129,31 +116,17 @@ export interface PulseData {
   indicators: PulseIndicator[];
   sectors: PulseSector[];
   globalMarkets: PulseGlobalMarket[];
-  macroRegime: MacroRegime;
-  sectorLeadership: SectorLeadership;
-  triage: TriageResult;
-  marketNarratives: MarketNarrativePulse;
   /** Pre-Market / After Hours when any tracked US quote is in extended hours. */
   sessionLabel: string | null;
   fetchedAt: string;
 }
 
-export async function GET() {
-  const watchlist = await getWatchlist();
-  const watchlistTickers = watchlist
-    .filter((e) => e.status === "active")
-    .map((e) => e.ticker);
-
+async function buildPulsePayload(): Promise<Omit<PulseData, "fetchedAt">> {
   const sectorTickers = SECTORS.map((s) => s.ticker);
-  const narrativeTickers = Array.from(new Set(
-    MARKET_NARRATIVE_THEMES.flatMap((theme) => theme.assets.map((asset) => asset.ticker)),
-  ));
   const allTickers = [
     ...INDICATORS.map((i) => i.ticker),
     ...sectorTickers,
     ...GLOBAL_MARKETS.map((market) => market.ticker),
-    ...watchlistTickers,
-    ...narrativeTickers,
   ];
   const quotes = await fetchStockQuotes(allTickers);
   const quoteMap = new Map(quotes.map((q) => [q.ticker, q]));
@@ -161,6 +134,7 @@ export async function GET() {
     const quote = quoteMap.get(ticker);
     return quote ? getLivePrice(quote) : null;
   };
+
   let sessionLabel: string | null = null;
   // Prefer US listed pulse names so crypto / intl clocks don’t smear Pre-Market onto the badge.
   for (const market of GLOBAL_MARKETS) {
@@ -182,7 +156,6 @@ export async function GET() {
     }
   }
 
-  // ── Indicators ──
   const indicators: PulseIndicator[] = INDICATORS.map((indicator) => {
     const q = quoteMap.get(indicator.ticker);
     const live = liveFor(indicator.ticker);
@@ -198,19 +171,6 @@ export async function GET() {
     };
   });
 
-  // ── Macro regime ──
-  const indicatorSnapshots: IndicatorSnapshot[] = indicators.map((i) => ({
-    ticker: i.ticker,
-    label: i.label,
-    price: i.price,
-    change: i.change,
-    changePercent: i.changePercent,
-    isPercentValue: i.isPercentValue,
-    status: i.status,
-  }));
-  const macroRegime = classifyMacroRegime(indicatorSnapshots);
-
-  // ── Sectors (sorted by performance) ──
   const sectors: PulseSector[] = SECTORS.map((sector) => {
     const live = liveFor(sector.ticker);
     const q = quoteMap.get(sector.ticker);
@@ -225,7 +185,6 @@ export async function GET() {
     };
   });
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
-  const sectorLeadership = classifySectorLeadership(sectors);
 
   const globalMarkets: PulseGlobalMarket[] = GLOBAL_MARKETS.map((market) => {
     const live = liveFor(market.ticker);
@@ -234,7 +193,6 @@ export async function GET() {
     const inExtended = Boolean(extended?.sessionLabel);
     return {
       ...market,
-      // Primary last: RTH close while pre/AH is open; live print during the regular session.
       price: inExtended
         ? (quote?.price ?? null)
         : (live?.price ?? quote?.price ?? null),
@@ -252,45 +210,33 @@ export async function GET() {
       sessionLabel: extended?.sessionLabel ?? null,
     };
   });
-  // Keep definition order within each category section on Pulse.
-  // Do not resort the full list by session move.
 
-  // ── Broad market narratives (Yahoo + Google News RSS) ──
-  const marketNarratives = await fetchMarketNarrativePulse(
-    new Map(narrativeTickers.map((ticker) => [
-      ticker,
-      liveFor(ticker)?.changePercent ?? quoteMap.get(ticker)?.changePercent ?? null,
-    ])),
-  );
-
-  // ── Triage ──
-  const triageItems: TriageWatchlistInput[] = watchlistTickers.map((ticker) => {
-    const q = quoteMap.get(ticker);
-    const live = liveFor(ticker);
-    const entry = watchlist.find((e) => e.ticker === ticker);
-    return {
-      ticker,
-      companyName: entry?.companyName ?? ticker,
-      price: live?.price ?? q?.price ?? null,
-      changePercent: live?.changePercent ?? q?.changePercent ?? null,
-      snapshot: null, // conviction snapshots require per-ticker server-side fetch
-      portfolio: {
-        held: false,
-        positionChange: null,
-      },
-    };
-  });
-  const triage = runTriage(triageItems);
-
-  return NextResponse.json({
+  return {
     indicators,
     sectors,
     globalMarkets,
-    macroRegime,
-    sectorLeadership,
-    triage,
-    marketNarratives,
     sessionLabel,
-    fetchedAt: new Date().toISOString(),
-  });
+  };
+}
+
+const loadPulse = unstable_cache(
+  async () => buildPulsePayload(),
+  ["market-pulse-v2"],
+  { revalidate: 300 },
+);
+
+export async function GET() {
+  const payload = await loadPulse();
+
+  return NextResponse.json(
+    {
+      ...payload,
+      fetchedAt: new Date().toISOString(),
+    },
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    },
+  );
 }
