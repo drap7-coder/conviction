@@ -91,12 +91,30 @@ export function CommunitySettingsPanel({
         credentials: "include",
         body: JSON.stringify(body),
       });
-      const json = await res.json();
+      const json = (await res.json()) as CommunitiesPayload & { error?: string };
       if (!res.ok) {
         setMessage(json.error ?? "Could not update communities.");
         return false;
       }
-      await reload();
+      if (Array.isArray(json.memberships)) {
+        setData((current) => ({
+          ...(current ?? EMPTY_COMMUNITIES_PAYLOAD),
+          authenticated: json.authenticated ?? current?.authenticated ?? true,
+          communities: json.communities ?? current?.communities ?? [],
+          memberships: json.memberships,
+          primaryCommunity: json.primaryCommunity ?? null,
+          primaryGroup: json.primaryGroup ?? null,
+        }));
+        const accent =
+          json.primaryCommunity?.primaryColor ?? json.primaryGroup?.primaryColor ?? null;
+        if (accent) {
+          writeStoredPrimaryColor(accent);
+          document.documentElement.style.setProperty("--group-accent", accent);
+          setThemeColor(accent);
+        }
+      } else {
+        await reload();
+      }
       return true;
     } finally {
       setBusy(false);
@@ -123,8 +141,27 @@ export function CommunitySettingsPanel({
       document.documentElement.style.setProperty("--group-accent", themeColor);
       setPickedSchool(null);
       setSchoolQuery("");
+      setMessage("Community saved.");
       onJoined?.();
     }
+  }
+
+  async function saveThemeForMembership(institutionId: string, swatch: string) {
+    setThemeColor(swatch);
+    writeStoredPrimaryColor(swatch);
+    document.documentElement.style.setProperty("--group-accent", swatch);
+    const ok = await post({
+      action: "theme",
+      institutionId,
+      primaryColor: swatch,
+    });
+    if (ok) setMessage("Theme color saved.");
+  }
+
+  function previewTheme(swatch: string) {
+    setThemeColor(swatch);
+    writeStoredPrimaryColor(swatch);
+    document.documentElement.style.setProperty("--group-accent", swatch);
   }
 
   if (loading && !data) {
@@ -144,10 +181,27 @@ export function CommunitySettingsPanel({
     );
   }
 
-  const showTheme = onboarding || panelData.memberships.length > 0;
+  const showTheme =
+    onboarding || panelData.memberships.length > 0 || Boolean(pickedSchool);
   const showJoinSearch =
     panelData.authenticated &&
     (onboarding || panelData.memberships.length === 0 || !compact);
+  const pendingJoin =
+    Boolean(pickedSchool) && !memberIds.has(pickedSchool?.institutionId ?? "");
+  const themeTarget =
+    panelData.memberships.find((m) => m.isPrimary) ?? panelData.memberships[0] ?? null;
+
+  function handleThemePick(swatch: string) {
+    if (pendingJoin) {
+      previewTheme(swatch);
+      return;
+    }
+    if (themeTarget) {
+      void saveThemeForMembership(themeTarget.institutionId, swatch);
+      return;
+    }
+    previewTheme(swatch);
+  }
 
   return (
     <section
@@ -228,14 +282,11 @@ export function CommunitySettingsPanel({
             />
           </label>
           {pickedSchool ? (
-            <button
-              type="button"
-              className="watchlist-add-button group-settings-join-btn"
-              disabled={busy}
-              onClick={() => void joinPickedSchool()}
-            >
-              Join community
-            </button>
+            <p className="group-settings-note">
+              {pendingJoin
+                ? "Pick a theme color, then save your school below."
+                : "You are already in this community."}
+            </p>
           ) : null}
         </div>
       ) : null}
@@ -252,25 +303,32 @@ export function CommunitySettingsPanel({
                   className={`group-theme-swatch${themeColor === swatch ? " is-selected" : ""}`}
                   style={{ background: swatch }}
                   aria-label={`Theme ${swatch}`}
+                  aria-pressed={themeColor === swatch}
                   disabled={busy}
-                  onClick={() => {
-                    setThemeColor(swatch);
-                    if (onboarding && !pickedSchool) return;
-                    const primary =
-                      panelData.memberships.find((m) => m.isPrimary) ?? panelData.memberships[0];
-                    if (primary) {
-                      void post({
-                        action: "theme",
-                        institutionId: primary.institutionId,
-                        primaryColor: swatch,
-                      });
-                    }
-                  }}
+                  onClick={() => handleThemePick(swatch)}
                 />
               ))}
             </span>
           </label>
+          {pendingJoin ? (
+            <p className="group-settings-note">
+              Color applies when you tap Save &amp; join.
+            </p>
+          ) : themeTarget ? (
+            <p className="group-settings-note">Tap a swatch to save your theme color.</p>
+          ) : null}
         </div>
+      ) : null}
+
+      {showJoinSearch && pickedSchool && pendingJoin ? (
+        <button
+          type="button"
+          className="watchlist-add-button group-settings-join-btn"
+          disabled={busy}
+          onClick={() => void joinPickedSchool()}
+        >
+          {busy ? "Saving…" : `Save & join ${pickedSchool.name}`}
+        </button>
       ) : null}
 
       {!onboarding ? (

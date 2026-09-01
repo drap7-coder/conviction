@@ -104,9 +104,9 @@ export function CrowdCommunityPanel() {
       {open && panelData.authenticated ? (
         <CommunitySettingsPanel
           compact
+          onboarding={panelData.memberships.length === 0}
           onJoined={() => {
             void reload();
-            setOpen(false);
           }}
         />
       ) : null}

@@ -164,8 +164,23 @@ export async function POST(request: Request) {
           primaryColor: body.primaryColor,
         });
       }
+      const refreshed = await listCommunityMembershipsForUser(userId);
+      const primary = refreshed.find((m) => m.isPrimary) ?? refreshed[0] ?? null;
       return NextResponse.json({
-        memberships: await listCommunityMembershipsForUser(userId),
+        authenticated: true,
+        communities: [],
+        memberships: refreshed,
+        primaryCommunity: primary,
+        primaryGroup: primary
+          ? {
+              id: primary.groupId,
+              institutionId: primary.institutionId,
+              name: primary.institution.name,
+              inviteCode: null,
+              primaryColor: primary.primaryColor,
+              isCanonicalCommunity: true,
+            }
+          : null,
         groupMemberships: memberships,
       });
     }
@@ -216,9 +231,24 @@ export async function POST(request: Request) {
         institutionId,
         primaryColor: body.primaryColor ?? null,
       });
+      const refreshed = await listCommunityMembershipsForUser(userId);
+      const primary = refreshed.find((m) => m.isPrimary) ?? refreshed[0] ?? null;
       return NextResponse.json({
+        authenticated: true,
+        communities: [community],
         community,
-        memberships: await listCommunityMembershipsForUser(userId),
+        memberships: refreshed,
+        primaryCommunity: primary,
+        primaryGroup: primary
+          ? {
+              id: primary.groupId,
+              institutionId: primary.institutionId,
+              name: primary.institution.name,
+              inviteCode: null,
+              primaryColor: primary.primaryColor,
+              isCanonicalCommunity: true,
+            }
+          : null,
       });
     }
 
