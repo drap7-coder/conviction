@@ -640,6 +640,8 @@ details > summary::before {
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
+  contain: layout style;
+  touch-action: manipulation;
 }
 
 /* Shared market context for the five top-level workspaces. It scrolls away. */
@@ -11219,6 +11221,10 @@ button.brief-link:focus-visible {
     display: block;
     margin-inline: calc(var(--page-gutter-mobile) * -1);
     padding: 10px var(--page-gutter-mobile) 10px;
+    /* backdrop-filter on sticky mobile chrome is a common INP killer — use opaque bg. */
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--bg);
   }
 
   .header-brand-row {
