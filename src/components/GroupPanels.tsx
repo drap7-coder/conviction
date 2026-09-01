@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { SchoolSuggestion } from "@/lib/groups/ncaa-catalog";
+import type { InstitutionSearchSuggestion } from "@/lib/groups/institution-directory";
 import type { Community, UserCommunityMembership } from "@/lib/groups/types";
 import { SchoolTypeahead } from "@/components/SchoolTypeahead";
 import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
@@ -29,7 +29,7 @@ export function CommunitySettingsPanel({
   const [data, setData] = useState<CommunitiesPayload | null>(null);
   const [themeColor, setThemeColor] = useState(THEME_SWATCHES[0]);
   const [schoolQuery, setSchoolQuery] = useState("");
-  const [pickedSchool, setPickedSchool] = useState<SchoolSuggestion | null>(null);
+  const [pickedSchool, setPickedSchool] = useState<InstitutionSearchSuggestion | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 

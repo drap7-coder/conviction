@@ -7,7 +7,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import type { SchoolSuggestion } from "@/lib/groups/ncaa-catalog";
+import type { InstitutionSearchSuggestion } from "@/lib/groups/institution-directory";
 
 function highlightMatch(text: string, query: string) {
   const normalized = query.trim();
@@ -36,18 +36,18 @@ export function SchoolTypeahead({
 }: {
   value: string;
   onChange: (value: string) => void;
-  onSelect: (suggestion: SchoolSuggestion) => void;
+  onSelect: (suggestion: InstitutionSearchSuggestion) => void;
   onClearSelection?: () => void;
   placeholder?: string;
   disabled?: boolean;
   selectedInstitutionId?: string | null;
 }) {
   const listboxId = useId();
-  const [suggestions, setSuggestions] = useState<SchoolSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<InstitutionSearchSuggestion[]>([]);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [status, setStatus] = useState<"idle" | "results" | "empty">("idle");
-  const cacheRef = useRef<Map<string, SchoolSuggestion[]>>(new Map());
+  const cacheRef = useRef<Map<string, InstitutionSearchSuggestion[]>>(new Map());
   const pickedRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -79,11 +79,11 @@ export function SchoolTypeahead({
     const debounce = window.setTimeout(async () => {
       try {
         const response = await fetch(
-          `/api/schools/search?q=${encodeURIComponent(query)}`,
+          `/api/institutions/search?q=${encodeURIComponent(query)}`,
           { signal: controller.signal },
         );
         if (!response.ok) return;
-        const data = (await response.json()) as { suggestions?: SchoolSuggestion[] };
+        const data = (await response.json()) as { suggestions?: InstitutionSearchSuggestion[] };
         const next = data.suggestions ?? [];
         cacheRef.current.set(cacheKey, next);
         setSuggestions(next);
@@ -101,7 +101,7 @@ export function SchoolTypeahead({
     };
   }, [value]);
 
-  function selectSuggestion(suggestion: SchoolSuggestion) {
+  function selectSuggestion(suggestion: InstitutionSearchSuggestion) {
     pickedRef.current = suggestion.name;
     setOpen(false);
     setSuggestions([]);
@@ -176,8 +176,11 @@ export function SchoolTypeahead({
               }}
               onPointerEnter={() => setActiveIndex(index)}
             >
-              <span className="ticker-suggestion-name">
-                {highlightMatch(suggestion.name, value)}
+              <span className="school-suggestion-copy">
+                <span className="ticker-suggestion-name">
+                  {highlightMatch(suggestion.name, value)}
+                </span>
+                <span className="school-suggestion-meta">{suggestion.statusLabel}</span>
               </span>
               <span className="school-suggestion-badge">Join</span>
             </li>

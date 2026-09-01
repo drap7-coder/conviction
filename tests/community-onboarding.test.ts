@@ -47,7 +47,8 @@ describe("community onboarding wiring", () => {
     expect(read("src/components/GroupPanels.tsx")).toContain("SchoolTypeahead");
     expect(read("src/components/GroupPanels.tsx")).toContain("onboarding");
     expect(read("src/components/GroupPanels.tsx")).toContain("Theme color");
-    expect(read("src/app/api/schools/search/route.ts")).toContain("searchNcaaSchools");
+    expect(read("src/app/api/institutions/search/route.ts")).toContain("searchInstitutionDirectory");
+    expect(read("src/app/api/schools/search/route.ts")).toContain("searchInstitutionDirectory");
     expect(read("src/components/CrowdCommunityPanel.tsx")).toContain("CommunitySettingsPanel");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdCommunityPanel");
     expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');

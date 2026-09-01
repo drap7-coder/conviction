@@ -1,6 +1,7 @@
 import { isDatabaseConfigured, query } from "@/lib/db";
 import { applyMigrations } from "@/lib/db/migrate";
 import { ensureSeedGroups, ensureSeedInstitutions } from "@/lib/groups/store";
+import { ensureNcaaInstitutionDirectory } from "@/lib/groups/institution-directory";
 
 let ready: Promise<void> | null = null;
 
@@ -25,6 +26,7 @@ export async function ensureCommunitySchema(): Promise<void> {
       }
       await ensureSeedInstitutions();
       await ensureSeedGroups();
+      await ensureNcaaInstitutionDirectory();
     })().catch((error) => {
       ready = null;
       throw error;

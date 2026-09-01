@@ -25,6 +25,10 @@ export type Institution = {
   affiliationStatus: AffiliationStatus;
   /** Optional UI accent only — never official logos. */
   accentColor: string | null;
+  ncaaId: string | null;
+  conference: string | null;
+  /** Active community — false means directory-only until first join. */
+  communityEnabled: boolean;
 };
 
 /** Private compatibility row — one per institution in the one-community product. */

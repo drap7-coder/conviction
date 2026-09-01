@@ -21432,6 +21432,18 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 8px;
 }
 
+.school-suggestion-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.school-suggestion-meta {
+  color: var(--quiet);
+  font-size: 0.66rem;
+  line-height: 1.2;
+}
+
 .school-suggestion-badge {
   flex-shrink: 0;
   font-size: 0.68rem;
