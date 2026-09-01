@@ -82,13 +82,18 @@ describe("community picks wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain('label: "Picks"');
   });
 
-  it("keeps weekly competition foundations dormant for a future mode", () => {
+  it("mounts weekly rivalry above continuous community picks on Picks", () => {
     expect(RIVALRY_PAIRS[0]?.groupAId).toBe("group-wm");
     expect(RIVALRY_PAIRS[0]?.groupBId).toBe("group-rpi");
+    expect(RIVALRY_PAIRS[1]?.groupAId).toBe("group-njit");
+    expect(RIVALRY_PAIRS[1]?.groupBId).toBe("group-stevens");
     expect(read("migrations/008_weekly_picks.sql")).toContain("return_pct");
     expect(read("migrations/008_weekly_picks.sql")).toContain("competition_picks_one_per_user_idx");
+    expect(read("migrations/011_seed_njit_stevens.sql")).toContain("group-njit");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("HeadToHeadMatchCard");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("RivalryCountdown");
+    expect(read("src/lib/competitions/store.ts")).toContain("resolveActiveCompetition");
     expect(read("src/app/api/cron/competitions/route.ts")).toContain("runCompetitionLifecycleTick");
     expect(read("src/lib/competitions/lifecycle.ts")).toContain("lockDueCompetitions");
   });

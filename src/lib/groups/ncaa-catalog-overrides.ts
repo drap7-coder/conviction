@@ -32,4 +32,22 @@ export const NCAA_CATALOG_OVERRIDES: Record<string, NcaaCatalogOverride> = {
     inviteCode: "rpi",
     searchAliases: ["RPI"],
   },
+  njit: {
+    institutionId: "institution-njit",
+    groupId: "group-njit",
+    slug: "njit",
+    canonicalDomain: "njit.edu",
+    accentColor: "#CC0000",
+    inviteCode: "njit",
+    searchAliases: ["NJIT", "New Jersey Tech"],
+  },
+  stevens: {
+    institutionId: "institution-stevens",
+    groupId: "group-stevens",
+    slug: "stevens",
+    canonicalDomain: "stevens.edu",
+    accentColor: "#A32638",
+    inviteCode: "stevens",
+    searchAliases: ["Stevens Tech"],
+  },
 };

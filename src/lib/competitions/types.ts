@@ -30,6 +30,8 @@ export type CompetitionGroupSide = {
   groupId: string;
   name: string;
   primaryColor: string | null;
+  /** Institution catalog accent — isolated from user theme. */
+  accentColor: string | null;
   avgReturnPct: number | null;
   pickCount: number;
 };
