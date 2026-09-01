@@ -11,17 +11,39 @@ type CommunitiesPayload = {
   primaryCommunity: UserCommunityMembership | null;
 };
 
+const EMPTY_PAYLOAD: CommunitiesPayload = {
+  authenticated: false,
+  memberships: [],
+  primaryCommunity: null,
+};
+
 /** Crowd-native community identity — join or edit without leaving the board. */
 export function CrowdCommunityPanel() {
   const [data, setData] = useState<CommunitiesPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
   const reload = useCallback(async () => {
-    const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
-    if (!res.ok) return null;
-    const json = (await res.json()) as CommunitiesPayload;
-    setData(json);
-    return json;
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
+      if (!res.ok) {
+        throw new Error("Could not load your community.");
+      }
+      const json = (await res.json()) as CommunitiesPayload;
+      setData(json);
+      return json;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not load your community.";
+      setLoadError(message);
+      setData((current) => current ?? EMPTY_PAYLOAD);
+      return null;
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -32,18 +54,21 @@ export function CrowdCommunityPanel() {
     });
   }, [reload]);
 
+  const panelData = data ?? EMPTY_PAYLOAD;
   const primary =
-    data?.primaryCommunity ??
-    data?.memberships?.find((m) => m.isPrimary) ??
-    data?.memberships?.[0] ??
+    panelData.primaryCommunity ??
+    panelData.memberships?.find((m) => m.isPrimary) ??
+    panelData.memberships?.[0] ??
     null;
 
   let summary = "Loading…";
-  if (data && !data.authenticated) {
+  if (!loading && loadError && !primary) {
+    summary = loadError;
+  } else if (!loading && panelData && !panelData.authenticated) {
     summary = "Sign in to join your school community.";
-  } else if (data && primary) {
+  } else if (!loading && primary) {
     summary = primary.institution.name;
-  } else if (data) {
+  } else if (!loading) {
     summary = "Pick your school to join the Crowd.";
   }
 
@@ -55,11 +80,15 @@ export function CrowdCommunityPanel() {
           <p className="crowd-community-summary">{summary}</p>
         </div>
         <div className="crowd-community-actions">
-          {!data?.authenticated ? (
+          {!loading && loadError && !primary ? (
+            <button type="button" className="brief-link" onClick={() => void reload()}>
+              Retry
+            </button>
+          ) : !panelData.authenticated && !loading ? (
             <Link className="watchlist-add-button" href="/signin">
               Sign in
             </Link>
-          ) : (
+          ) : !loading ? (
             <button
               type="button"
               className="brief-link"
@@ -68,11 +97,11 @@ export function CrowdCommunityPanel() {
             >
               {open ? "Close" : primary ? "Edit" : "Join"}
             </button>
-          )}
+          ) : null}
         </div>
       </div>
 
-      {open && data?.authenticated ? (
+      {open && panelData.authenticated ? (
         <CommunitySettingsPanel
           compact
           onJoined={() => {
