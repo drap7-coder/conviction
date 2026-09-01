@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import {
-  ensureSeedGroups,
-  ensureSeedInstitutions,
+  ensureCommunitySchema,
+  formatCommunityDbError,
+} from "@/lib/db/ensure-community-schema";
+import {
   getInstitutionBySlug,
   joinByInviteCode,
   joinCommunity,
@@ -26,8 +28,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const institutionSlug = searchParams.get("institution")?.trim().toLowerCase() ?? "";
 
-  await ensureSeedInstitutions().catch(() => undefined);
-  await ensureSeedGroups().catch(() => undefined);
+  await ensureCommunitySchema().catch(() => undefined);
 
   const [institutions, communities, memberships] = await Promise.all([
     listInstitutions(),
@@ -94,6 +95,8 @@ export async function POST(request: Request) {
   }
 
   try {
+    await ensureCommunitySchema();
+
     if (body.action === "create") {
       return NextResponse.json(
         {
@@ -113,6 +116,13 @@ export async function POST(request: Request) {
         inviteCode: body.inviteCode,
         isPrimary: body.isPrimary ?? true,
       });
+      if (body.primaryColor && result.institution.id) {
+        await updateCommunityTheme({
+          userId,
+          institutionId: result.institution.id,
+          primaryColor: body.primaryColor,
+        });
+      }
       return NextResponse.json(result);
     }
 
@@ -135,6 +145,13 @@ export async function POST(request: Request) {
         institutionId,
         isPrimary: body.isPrimary,
       });
+      if (body.primaryColor) {
+        await updateCommunityTheme({
+          userId,
+          institutionId,
+          primaryColor: body.primaryColor,
+        });
+      }
       return NextResponse.json({
         memberships: await listCommunityMembershipsForUser(userId),
         groupMemberships: memberships,
@@ -195,7 +212,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "Unknown action." }, { status: 400 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Community update failed";
+    const message = formatCommunityDbError(error);
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

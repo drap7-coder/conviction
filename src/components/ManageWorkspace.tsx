@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { GuestModeBanner } from "@/app/components/GuestModeBanner";
 import Watchlist from "@/components/Watchlist";
@@ -35,8 +36,8 @@ const MANAGE_HERO = {
     eyebrow: "Community",
     headline: "Your school or company community.",
     summary:
-      "Join a seeded school community (William & Mary, RPI, and more as we add them). One group per school — set a theme anytime.",
-    cta: "Join a community",
+      "Join or edit on Crowd — search NCAA schools (William & Mary and RPI are live). One community per school; platform adds new schools over time.",
+    cta: "Open Crowd",
   },
 } as const;
 
