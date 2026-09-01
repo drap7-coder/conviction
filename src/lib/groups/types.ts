@@ -1,13 +1,40 @@
-/** Shared types for multi-group membership and competitions. */
+/** Shared types for Institution → Group → Members → Competitions. */
 
-export type GroupType = "school" | "org";
+export type InstitutionType =
+  | "university"
+  | "company"
+  | "high_school"
+  | "organization";
+
+export type AffiliationStatus = "unofficial" | "official";
+
+export type Institution = {
+  id: string;
+  name: string;
+  slug: string;
+  type: InstitutionType;
+  /** Canonical domain, e.g. `wm.edu` — long-term identity / email association. */
+  canonicalDomain: string | null;
+  affiliationStatus: AffiliationStatus;
+  /** Optional UI accent only — never official logos. */
+  accentColor: string | null;
+};
 
 export type Group = {
   id: string;
+  institutionId: string;
   name: string;
-  type: GroupType;
-  /** Hex accent, e.g. `#115740` — optional. */
+  /** Shareable invite token (unique). */
+  inviteCode: string | null;
+  /** Hex accent, e.g. `#115740` — optional theme preference. */
   primaryColor: string | null;
+};
+
+export type UserInstitutionMembership = {
+  id: string;
+  userId: string;
+  institutionId: string;
+  institution: Institution;
 };
 
 export type UserGroupMembership = {
