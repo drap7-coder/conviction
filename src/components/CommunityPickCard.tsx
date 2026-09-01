@@ -135,7 +135,12 @@ export function CommunityPickCard() {
         ) : (
           <ol>
             {data.standings.map((standing, index) => (
-              <li key={standing.groupId}>
+              <li
+                key={standing.groupId}
+                className={
+                  standing.groupId === data.viewerGroup?.groupId ? "is-yours" : undefined
+                }
+              >
                 <span className="community-standing-rank">{index + 1}</span>
                 <span className="community-standing-name">
                   <strong>{standing.name}</strong>

@@ -65,6 +65,9 @@ describe("communities schema + wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
     expect(read("src/app/layout.tsx")).toContain("GroupAccentProvider");
     expect(read("src/app/globals.css")).toContain("--group-accent");
+    expect(read("src/app/globals.css")).toContain("data-group-accent");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("is-yours");
+    expect(read("src/components/GroupPanels.tsx")).toContain("group-theme-preview");
     expect(read("src/lib/auth-readiness.ts")).toContain("institutions");
     expect(read("src/app/join/[code]/page.tsx")).toContain("JoinInviteClient");
   });

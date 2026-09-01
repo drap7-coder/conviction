@@ -26,6 +26,18 @@ export function writeStoredPrimaryColor(color: string | null) {
   }
 }
 
+export function applyGroupAccent(color: string | null) {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  if (color) {
+    root.style.setProperty("--group-accent", color);
+    root.dataset.groupAccent = "true";
+  } else {
+    root.style.removeProperty("--group-accent");
+    delete root.dataset.groupAccent;
+  }
+}
+
 /** Injects --group-accent from the viewer's primary community (guest localStorage or API). */
 export function GroupAccentProvider({ children }: { children: React.ReactNode }) {
   const [color, setColor] = useState<string | null>(null);
@@ -58,9 +70,7 @@ export function GroupAccentProvider({ children }: { children: React.ReactNode })
   }, []);
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (color) root.style.setProperty("--group-accent", color);
-    else root.style.removeProperty("--group-accent");
+    applyGroupAccent(color);
   }, [color]);
 
   return <>{children}</>;
