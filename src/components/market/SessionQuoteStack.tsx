@@ -40,7 +40,7 @@ function SessionIcon({ kind }: { kind: "Pre-Market" | "After Hours" }) {
 
 /**
  * TradingView-style quote stack:
- * last price → regular $ + % → optional Pre/AH line (or “No trades”).
+ * last price → primary $ + % → optional Pre/AH (or prior-close) icon line.
  */
 export function SessionQuoteStack({
   lastPrice,
@@ -51,6 +51,8 @@ export function SessionQuoteStack({
   extendedChange = null,
   extendedChangePercent = null,
   extendedNoTrades = false,
+  /** Secondary line shows prior RTH close (Gainers/Losers/Volume in pre/AH). */
+  priorCloseSecondary = false,
   compact = false,
   onHeat = false,
 }: {
@@ -62,6 +64,7 @@ export function SessionQuoteStack({
   extendedChange?: number | null;
   extendedChangePercent?: number | null;
   extendedNoTrades?: boolean;
+  priorCloseSecondary?: boolean;
   /** Tighter type for Market Movers columns. */
   compact?: boolean;
   /** Dark heatmap tile foot — left-aligned, light-on-fill colors. */
@@ -70,6 +73,7 @@ export function SessionQuoteStack({
   const tone = sessionQuoteTone(change);
   const extendedTone = sessionQuoteTone(extendedChange);
   const showExtended = Boolean(extendedLabel);
+  const secondaryName = priorCloseSecondary ? "Prior close" : extendedLabel;
   const classes = [
     "session-quote",
     compact ? "is-compact" : null,
@@ -88,8 +92,8 @@ export function SessionQuoteStack({
           className={`session-quote-extended tnum is-${extendedNoTrades ? "flat" : extendedTone}`}
           aria-label={
             extendedNoTrades
-              ? `${extendedLabel}: No trades`
-              : `${extendedLabel} ${fmtDollarPrice(extendedPrice)}, ${fmtSignedDollar(extendedChange)} ${fmtPercent(extendedChangePercent, 2)}`
+              ? `${secondaryName}: No trades`
+              : `${secondaryName} ${fmtDollarPrice(extendedPrice)}, ${fmtSignedDollar(extendedChange)} ${fmtPercent(extendedChangePercent, 2)}`
           }
         >
           <SessionIcon kind={extendedLabel} />

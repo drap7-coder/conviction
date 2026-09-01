@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   moverBarHeight,
+  promoteMoversExtendedPrimary,
   rankByVolume,
   shouldRankMoversByExtended,
   splitMarketMovers,
@@ -120,12 +121,17 @@ describe("splitMarketMovers", () => {
       "HOT_RTH_COOL_PRE",
     ]);
     expect(split.top.map((row) => row.changePercent)).toEqual([8, 5, 1]);
-    // Primary stack promotes pre print / % so the badge matches the bold number.
+    // Dual print: bold pre print, prior RTH close on the sun-icon line.
     expect(split.top[0].price).toBe(108);
     expect(split.top[0].change).toBe(8);
-    expect(split.top[0].extendedChangePercent).toBeNull();
+    expect(split.top[0].extendedPrice).toBe(100);
+    expect(split.top[0].extendedChange).toBe(0.1);
+    expect(split.top[0].extendedChangePercent).toBe(0.1);
+    expect(split.top[0].priorCloseSecondary).toBe(true);
+    expect(split.top[0].sessionLabel).toBe("Pre-Market");
     expect(split.bottom.map((row) => row.ticker)).toEqual(["PRE_DOWN"]);
     expect(split.bottom[0].changePercent).toBe(-5);
+    expect(split.bottom[0].extendedChangePercent).toBe(3);
 
     // Strict descending order by the ranked (pre) %.
     let previous = Infinity;
@@ -167,6 +173,28 @@ describe("shouldRankMoversByExtended", () => {
     expect(shouldRankMoversByExtended("After Hours")).toBe(true);
     expect(shouldRankMoversByExtended(null)).toBe(false);
     expect(shouldRankMoversByExtended("Regular")).toBe(false);
+  });
+});
+
+describe("promoteMoversExtendedPrimary", () => {
+  it("swaps volume rows onto the same dual-print stack as Gainers", () => {
+    const promoted = promoteMoversExtendedPrimary({
+      ticker: "VOL",
+      name: "Volume",
+      changePercent: 2,
+      price: 40,
+      change: 0.8,
+      extendedPrice: 42,
+      extendedChange: 2,
+      extendedChangePercent: 5,
+      sessionLabel: "Pre-Market",
+      dollarVolume: 9_000,
+    });
+    expect(promoted.price).toBe(42);
+    expect(promoted.changePercent).toBe(5);
+    expect(promoted.extendedPrice).toBe(40);
+    expect(promoted.extendedChangePercent).toBe(2);
+    expect(promoted.priorCloseSecondary).toBe(true);
   });
 });
 

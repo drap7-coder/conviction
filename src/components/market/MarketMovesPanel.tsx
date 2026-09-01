@@ -8,7 +8,7 @@ import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MarketMoversBoard } from "@/components/market/MarketMoversBoard";
-import { rankByVolume, shouldRankMoversByExtended, splitMarketMovers } from "@/lib/market/market-movers";
+import { promoteMoversExtendedPrimary, rankByVolume, shouldRankMoversByExtended, splitMarketMovers } from "@/lib/market/market-movers";
 import { fetchMarketTrending } from "@/lib/market/client-market-data";
 
 interface TrendingCompany {
@@ -113,10 +113,13 @@ export function MarketMovesPanel() {
       .find((label): label is string => Boolean(label)) ?? null;
 
   // Pre-Market / AH Gainers must order by that session's %, not yesterday's RTH print.
+  const rankExtended = shouldRankMoversByExtended(sessionLabel);
   const movers = splitMarketMovers(mapped, 5, {
-    rankBy: shouldRankMoversByExtended(sessionLabel) ? "extended" : "regular",
+    rankBy: rankExtended ? "extended" : "regular",
   });
-  const volume = rankByVolume(mapped, 5);
+  const volume = rankExtended
+    ? rankByVolume(mapped, 5).map(promoteMoversExtendedPrimary)
+    : rankByVolume(mapped, 5);
 
   return (
     <div className="market-moves-panel">

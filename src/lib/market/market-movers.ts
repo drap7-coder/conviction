@@ -17,6 +17,11 @@ export interface MarketMoverRow {
   extendedChangePercent?: number | null;
   extendedNoTrades?: boolean;
   sessionLabel?: "Pre-Market" | "After Hours" | null;
+  /**
+   * When true, primary is the live pre/AH print and the secondary icon line
+   * carries the prior regular-session close (Volume / Gainers / Losers dual print).
+   */
+  priorCloseSecondary?: boolean;
   /** Share volume (shares) when available. */
   volume?: number | null;
   /** Notional volume when available — preferred for Highest volume ranking. */
@@ -65,27 +70,30 @@ function toRegularRankedRow(item: MoverInput, changePercent: number): MarketMove
     extendedChangePercent: item.extendedChangePercent ?? null,
     extendedNoTrades: item.extendedNoTrades ?? false,
     sessionLabel: item.sessionLabel ?? null,
+    priorCloseSecondary: false,
     volume: item.volume ?? null,
     dollarVolume: item.dollarVolume ?? null,
   };
 }
 
 /**
- * Promote pre/AH into the primary stack slots so Gainers/Losers % matches the
- * session badge. Secondary Pre/AH line is cleared to avoid duplicating the same print.
+ * Dual-print stack for Pre-Market / AH boards:
+ * bold primary = live extended print; secondary icon line = prior RTH close.
  */
 function toExtendedRankedRow(item: MoverInput, changePercent: number): MarketMoverRow {
+  const rthPct = isFiniteNumber(item.changePercent) ? (item.changePercent as number) : null;
   return {
     ticker: item.ticker,
     name: item.name,
     changePercent,
     price: item.extendedPrice ?? item.price ?? null,
     change: item.extendedChange ?? null,
-    extendedPrice: null,
-    extendedChange: null,
-    extendedChangePercent: null,
+    extendedPrice: item.price ?? null,
+    extendedChange: item.change ?? null,
+    extendedChangePercent: rthPct,
     extendedNoTrades: false,
-    sessionLabel: null,
+    sessionLabel: item.sessionLabel ?? null,
+    priorCloseSecondary: true,
     volume: item.volume ?? null,
     dollarVolume: item.dollarVolume ?? null,
   };
@@ -96,11 +104,37 @@ function toMoverRow(item: MoverInput, changePercent: number): MarketMoverRow {
 }
 
 /**
+ * Align Highest volume rows with Gainers/Losers when the board session badge
+ * is Pre-Market / After Hours: bold live print, prior close on the icon line.
+ */
+export function promoteMoversExtendedPrimary(row: MarketMoverRow): MarketMoverRow {
+  if (
+    row.priorCloseSecondary ||
+    !row.sessionLabel ||
+    row.extendedNoTrades ||
+    !isFiniteNumber(row.extendedChangePercent)
+  ) {
+    return row;
+  }
+  return {
+    ...row,
+    price: row.extendedPrice ?? row.price ?? null,
+    change: row.extendedChange ?? null,
+    changePercent: row.extendedChangePercent as number,
+    extendedPrice: row.price ?? null,
+    extendedChange: row.change ?? null,
+    extendedChangePercent: row.changePercent,
+    extendedNoTrades: false,
+    priorCloseSecondary: true,
+  };
+}
+
+/**
  * Split a quote set into CNBC-style Top (gainers) / Bottom (losers) by session %.
  * Rows without a usable % are dropped. Each side is capped at `limit`.
  *
- * When `rankBy: "extended"`, sort and primary display use pre/AH % so a
- * Pre-Market / After Hours badge matches the Gainers list order.
+ * When `rankBy: "extended"`, sort on pre/AH % and use the dual-print stack
+ * (bold extended print + prior RTH close on the session-icon line).
  */
 export function splitMarketMovers(
   items: MoverInput[],

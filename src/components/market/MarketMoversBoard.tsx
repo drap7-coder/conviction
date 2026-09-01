@@ -71,11 +71,12 @@ function MoverCard({
                 row.sessionLabel === "Pre-Market" || row.sessionLabel === "After Hours"
                   ? row.sessionLabel
                   : null;
+              const priorClose = Boolean(row.priorCloseSecondary);
               const changeLabel = `${fmtSignedDollar(row.change ?? null)} ${fmtPercent(row.changePercent, 2)}`;
               const extendedAria = extendedLabel
                 ? row.extendedNoTrades
-                  ? `${extendedLabel} No trades`
-                  : `${extendedLabel} ${fmtDollarPrice(row.extendedPrice ?? null)} ${fmtSignedDollar(row.extendedChange ?? null)} ${fmtPercent(row.extendedChangePercent ?? null, 2)}`
+                  ? `${priorClose ? "Prior close" : extendedLabel} No trades`
+                  : `${priorClose ? "Prior close" : extendedLabel} ${fmtDollarPrice(row.extendedPrice ?? null)} ${fmtSignedDollar(row.extendedChange ?? null)} ${fmtPercent(row.extendedChangePercent ?? null, 2)}`
                 : null;
               const body = (
                 <>
@@ -95,6 +96,7 @@ function MoverCard({
                     extendedChange={row.extendedChange ?? null}
                     extendedChangePercent={row.extendedChangePercent ?? null}
                     extendedNoTrades={Boolean(row.extendedNoTrades)}
+                    priorCloseSecondary={priorClose}
                     compact
                   />
                 </>
