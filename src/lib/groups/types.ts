@@ -1,4 +1,11 @@
-/** Shared types for Institution → Group → Members → Competitions. */
+/**
+ * Shared types for communities (one layer).
+ *
+ * Product: Platform → Community (school/company) → Members → Portfolios
+ * DB retains Institution + Group tables; each community has one canonical
+ * group row for membership/Crowd scoping. Subgroup/competition tables stay
+ * dormant for future compatibility — not exposed in the product.
+ */
 
 export type InstitutionType =
   | "university"
@@ -20,13 +27,23 @@ export type Institution = {
   accentColor: string | null;
 };
 
+/** Private compatibility row — one per institution in the one-community product. */
 export type Group = {
   id: string;
   institutionId: string;
   name: string;
-  /** Shareable invite token (unique). */
   inviteCode: string | null;
-  /** Hex accent, e.g. `#115740` — optional theme preference. */
+  primaryColor: string | null;
+  /** True for the single public community record under an institution. */
+  isCanonicalCommunity?: boolean;
+};
+
+/** Public community = institution + its canonical group handle. */
+export type Community = {
+  institution: Institution;
+  /** Canonical group id used for Crowd membership scoping. */
+  groupId: string;
+  inviteCode: string | null;
   primaryColor: string | null;
 };
 
@@ -45,43 +62,10 @@ export type UserGroupMembership = {
   group: Group;
 };
 
-export type CompetitionMetric = "avg_pct_return";
-
-export type Competition = {
-  id: string;
-  groupAId: string;
-  groupBId: string;
-  periodStart: string;
-  periodEnd: string;
-  metric: CompetitionMetric;
-};
-
-export type CompetitionPick = {
-  id: string;
-  competitionId: string;
-  userId: string;
+export type UserCommunityMembership = {
+  institutionId: string;
   groupId: string;
-  ticker: string;
-  submittedAt: string;
-  updatedAt: string;
-};
-
-export type CompetitionSideStats = {
-  groupId: string;
-  groupName: string;
+  institution: Institution;
   primaryColor: string | null;
-  /** Average % return across members who submitted a pick — never padded with 0s. */
-  avgPctReturn: number | null;
-  pickCount: number;
-};
-
-export type CompetitionStanding = {
-  competition: Competition;
-  groupA: CompetitionSideStats;
-  groupB: CompetitionSideStats;
-  /** Explicit tie when both sides have picks and averages match within epsilon. */
-  isTie: boolean;
-  leaderGroupId: string | null;
-  msRemaining: number;
-  picksLocked: boolean;
+  isPrimary: boolean;
 };

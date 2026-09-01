@@ -1,6 +1,6 @@
--- Multi-group membership, competitions, and weekly picks (v1).
--- Schools/orgs started as peer groups; 005_institutions.sql nests groups under
--- canonical institutions (Platform → Institution → Groups → Members).
+-- Multi-group membership, competitions, and weekly picks (v1 foundation).
+-- Competition / subgroup tables remain for future compatibility.
+-- Product currently exposes one community per institution (see 005 / 006).
 
 create extension if not exists pgcrypto;
 

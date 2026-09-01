@@ -15,7 +15,7 @@ export type ManageView = "watchlist" | "portfolio" | "groups";
 const MANAGE_VIEWS: SurfaceSlicerOption[] = [
   { id: "watchlist", label: "Watchlist" },
   { id: "portfolio", label: "Portfolio" },
-  { id: "groups", label: "Groups" },
+  { id: "groups", label: "Community" },
 ];
 
 const MANAGE_HERO = {
@@ -32,11 +32,11 @@ const MANAGE_HERO = {
     cta: "Add a holding",
   },
   groups: {
-    eyebrow: "Groups",
-    headline: "Campus groups under your institution.",
+    eyebrow: "Community",
+    headline: "Your school or company community.",
     summary:
-      "Join or create groups under William & Mary (and later other campuses). Set a primary for your theme.",
-    cta: "Add a group",
+      "Join William & Mary (and later other campuses or companies). One community per organization — set a theme anytime.",
+    cta: "Join a community",
   },
 } as const;
 

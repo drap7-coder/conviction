@@ -9,16 +9,14 @@ import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { formatCrowdRowCount } from "@/lib/crowd/display";
 import type { CrowdHoldingRank, CrowdSnapshot, CrowdWatchRank } from "@/lib/crowd/types";
-import type { CompetitionStanding, Group } from "@/lib/groups/types";
+import type { Group } from "@/lib/groups/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { loadPortfolioForViewer } from "@/lib/portfolio/client";
-import { CompetitionCard } from "@/components/GroupPanels";
 
 type CrowdView = "held" | "watched";
 type CrowdApiPayload = CrowdSnapshot & {
   groups?: Group[];
-  competitions?: CompetitionStanding[];
   activeGroupId?: string | null;
 };
 
@@ -134,7 +132,6 @@ export function CrowdBoard() {
   const [groupId, setGroupId] = useState<string>("all");
   const [snapshot, setSnapshot] = useState<CrowdSnapshot | null>(null);
   const [groups, setGroups] = useState<Group[]>([]);
-  const [competitions, setCompetitions] = useState<CompetitionStanding[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,7 +152,6 @@ export function CrowdBoard() {
         if (cancelled) return;
         setSnapshot(data);
         setGroups(data.groups ?? []);
-        setCompetitions(data.competitions ?? []);
 
         const tickers = [
           ...data.held.slice(0, 20).map((row) => row.ticker),
@@ -259,11 +255,11 @@ export function CrowdBoard() {
 
       {groups.length > 0 ? (
         <label className="crowd-group-filter">
-          <span>Group</span>
+          <span>Community</span>
           <select
             value={groupId}
             onChange={(event) => setGroupId(event.target.value)}
-            aria-label="Filter Crowd by group"
+            aria-label="Filter Crowd by community"
           >
             <option value="all">All members</option>
             {groups.map((group) => (
@@ -274,10 +270,6 @@ export function CrowdBoard() {
           </select>
         </label>
       ) : null}
-
-      {competitions.map((standing) => (
-        <CompetitionCard key={standing.competition.id} standing={standing} />
-      ))}
 
       <section className="surface-shell crowd-board" aria-label="Crowd rankings">
         <div className="crowd-board-head">

@@ -3,13 +3,13 @@ import {
   ensureSeedGroups,
   ensureSeedInstitutions,
   getInstitutionBySlug,
-  listGroupsForInstitution,
+  listCommunities,
   listInstitutions,
 } from "@/lib/groups/store";
 
 export const dynamic = "force-dynamic";
 
-/** Public catalog of canonical institutions (not user-created). */
+/** Public catalog of canonical communities (not user-created). */
 export async function GET(request: Request) {
   await ensureSeedInstitutions().catch(() => undefined);
   await ensureSeedGroups().catch(() => undefined);
@@ -20,12 +20,16 @@ export async function GET(request: Request) {
   if (slug) {
     const institution = await getInstitutionBySlug(slug);
     if (!institution) {
-      return NextResponse.json({ error: "Institution not found." }, { status: 404 });
+      return NextResponse.json({ error: "Community not found." }, { status: 404 });
     }
-    const groups = await listGroupsForInstitution(institution.id);
-    return NextResponse.json({ institution, groups });
+    const communities = await listCommunities();
+    const community = communities.find((c) => c.institution.id === institution.id);
+    return NextResponse.json({ institution, community });
   }
 
-  const institutions = await listInstitutions();
-  return NextResponse.json({ institutions });
+  const [institutions, communities] = await Promise.all([
+    listInstitutions(),
+    listCommunities(),
+  ]);
+  return NextResponse.json({ institutions, communities });
 }

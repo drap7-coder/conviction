@@ -1,85 +1,77 @@
 /**
- * User-created-style groups under canonical institutions.
- * Guest mode + first Neon bootstrap. Names are free-form under an institution.
+ * One canonical community group per institution (private compatibility row).
+ * Product surface is the institution itself — not Finance Club–style subgroups.
+ * Legacy invite codes still resolve here so old links keep working.
  */
 
 import type { Group } from "@/lib/groups/types";
 
-/** Groups nested under William & Mary (institution-wm). */
+/** Canonical community record for William & Mary (matches institution name). */
 export const SEED_GROUPS: Group[] = [
   {
-    id: "group-wm-class-2028",
+    id: "group-wm",
     institutionId: "institution-wm",
-    name: "Class of 2028",
-    inviteCode: "wm-2028",
+    name: "William & Mary",
+    inviteCode: "wm",
     primaryColor: "#115740",
-  },
-  {
-    id: "group-wm-finance",
-    institutionId: "institution-wm",
-    name: "Finance Club",
-    inviteCode: "wm-finance",
-    primaryColor: "#0D7377",
-  },
-  {
-    id: "group-wm-charlottes",
-    institutionId: "institution-wm",
-    name: "Charlotte's Friends",
-    inviteCode: "wm-charlottes",
-    primaryColor: "#2E5A88",
-  },
-  {
-    id: "group-wm-sept-challenge",
-    institutionId: "institution-wm",
-    name: "September Stock Challenge",
-    inviteCode: "wm-sept",
-    primaryColor: "#C45C26",
-  },
-  {
-    id: "group-wm-kkg",
-    institutionId: "institution-wm",
-    name: "KKG Investment Competition",
-    inviteCode: "wm-kkg",
-    primaryColor: "#5B2C6F",
+    isCanonicalCommunity: true,
   },
 ];
 
-/** Map crowd-seed book ids → group memberships for demo Crowd filters. */
-export const SEED_BOOK_GROUP_IDS: Record<string, string[]> = {
-  "crowd-seed-01": ["group-wm-class-2028", "group-wm-kkg"],
-  "crowd-seed-02": ["group-wm-finance"],
-  "crowd-seed-03": ["group-wm-charlottes"],
-  "crowd-seed-04": ["group-wm-sept-challenge", "group-wm-finance"],
-  "crowd-seed-05": ["group-wm-class-2028"],
-  "crowd-seed-06": ["group-wm-kkg"],
-  "crowd-seed-07": ["group-wm-sept-challenge"],
-  "crowd-seed-08": ["group-wm-charlottes", "group-wm-kkg"],
-  "crowd-seed-09": ["group-wm-finance", "group-wm-sept-challenge"],
-  "crowd-seed-10": ["group-wm-class-2028", "group-wm-finance"],
+/**
+ * Old club / class invite tokens → canonical W&M community.
+ * Kept so production invite links never 404 after the flatten.
+ */
+export const LEGACY_INVITE_ALIASES: Record<string, string> = {
+  wm: "group-wm",
+  "wm-campus": "group-wm",
+  "wm-2028": "group-wm",
+  "wm-finance": "group-wm",
+  "wm-charlottes": "group-wm",
+  "wm-sept": "group-wm",
+  "wm-kkg": "group-wm",
+  "group-seed-wm": "group-wm",
+  "group-wm-class-2028": "group-wm",
+  "group-wm-finance": "group-wm",
+  "group-wm-charlottes": "group-wm",
+  "group-wm-sept-challenge": "group-wm",
+  "group-wm-kkg": "group-wm",
 };
 
-export function findSeedGroupByName(
-  name: string,
-  institutionId?: string,
-): Group | null {
-  return (
-    SEED_GROUPS.find(
-      (group) =>
-        group.name === name &&
-        (!institutionId || group.institutionId === institutionId),
-    ) ?? null
-  );
+/** Map crowd-seed book ids → canonical community group for demo Crowd filters. */
+export const SEED_BOOK_GROUP_IDS: Record<string, string[]> = {
+  "crowd-seed-01": ["group-wm"],
+  "crowd-seed-02": ["group-wm"],
+  "crowd-seed-03": ["group-wm"],
+  "crowd-seed-04": ["group-wm"],
+  "crowd-seed-05": ["group-wm"],
+  "crowd-seed-06": ["group-wm"],
+  "crowd-seed-07": ["group-wm"],
+  "crowd-seed-08": ["group-wm"],
+  "crowd-seed-09": ["group-wm"],
+  "crowd-seed-10": ["group-wm"],
+};
+
+export function findSeedGroupById(id: string): Group | null {
+  const canonicalId = LEGACY_INVITE_ALIASES[id] ?? id;
+  return SEED_GROUPS.find((group) => group.id === canonicalId) ?? null;
 }
 
 export function findSeedGroupByInviteCode(code: string): Group | null {
   const normalized = code.trim().toLowerCase();
+  const canonicalId = LEGACY_INVITE_ALIASES[normalized];
+  if (canonicalId) return findSeedGroupById(canonicalId);
   return SEED_GROUPS.find((group) => group.inviteCode === normalized) ?? null;
 }
 
-export function findSeedGroupById(id: string): Group | null {
-  return SEED_GROUPS.find((group) => group.id === id) ?? null;
+export function listSeedCanonicalCommunities(): Group[] {
+  return SEED_GROUPS.filter((group) => group.isCanonicalCommunity);
 }
 
-export function listSeedGroupsForInstitution(institutionId: string): Group[] {
-  return SEED_GROUPS.filter((group) => group.institutionId === institutionId);
+export function getCanonicalSeedGroupForInstitution(institutionId: string): Group | null {
+  return (
+    SEED_GROUPS.find(
+      (group) => group.institutionId === institutionId && group.isCanonicalCommunity,
+    ) ?? null
+  );
 }
