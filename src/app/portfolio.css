@@ -275,6 +275,108 @@
   white-space: nowrap;
 }
 
+/* Quiet concentration telemetry between hero meta and Sector Mix */
+.portfolio-page .pf-concentration-notice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--amber) 22%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--amber-dim) 55%, var(--card));
+  min-width: 0;
+}
+
+.portfolio-page .pf-concentration-notice-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.portfolio-page .pf-concentration-notice-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: color-mix(in srgb, var(--amber) 88%, var(--ink));
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.portfolio-page .pf-concentration-notice-dot {
+  flex: 0 0 auto;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber) 22%, transparent);
+}
+
+.portfolio-page .pf-concentration-notice-marks {
+  color: color-mix(in srgb, var(--amber) 55%, var(--quiet));
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.portfolio-page .pf-concentration-notice-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.portfolio-page .pf-concentration-notice-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.portfolio-page .pf-concentration-notice-chip strong {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.portfolio-page .pf-concentration-notice-chip.is-watch {
+  border-color: color-mix(in srgb, var(--amber) 28%, var(--border));
+  background: color-mix(in srgb, var(--amber) 10%, transparent);
+  color: color-mix(in srgb, var(--amber) 92%, var(--ink));
+}
+
+.portfolio-page .pf-concentration-notice-chip.is-concentrated {
+  border-color: color-mix(in srgb, var(--red) 30%, var(--border));
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  color: color-mix(in srgb, var(--red) 88%, var(--ink));
+}
+
+.portfolio-page .pf-concentration-notice-chip span {
+  opacity: 0.78;
+  font-weight: 500;
+}
+
+@media (max-width: 560px) {
+  .portfolio-page .pf-concentration-notice-head {
+    flex-wrap: wrap;
+  }
+
+  .portfolio-page .pf-concentration-notice-marks {
+    white-space: normal;
+  }
+}
+
 /* Compact Today $/% + sparkline in the Live hero */
 .portfolio-page .pf-day-strip {
   display: grid;

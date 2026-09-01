@@ -29,6 +29,7 @@ import { isFiniteNumber } from "@/lib/display/format";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
+import { ConcentrationNotice } from "@/components/ConcentrationNotice";
 import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
@@ -535,6 +536,16 @@ export default function Portfolio() {
     />
   ) : null;
 
+  const concentrationNotice = !calcFailed && allocationItems.length > 0 ? (
+    <ConcentrationNotice
+      holdings={allocationItems.map((item) => ({
+        ticker: item.ticker,
+        name: item.companyName,
+        weight: item.weight,
+      }))}
+    />
+  ) : null;
+
   // ── Render ──
 
   const fitDiagnosis = valueBrief.headline;
@@ -792,6 +803,7 @@ export default function Portfolio() {
             <span className="pf-live-meta-updated">Last updated {updatedLabel}</span>
           ) : null}
         </div>
+        {concentrationNotice}
         {sectorMixCard}
         {allocationPanel}
         <PortfolioBenchmarkChart

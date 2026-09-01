@@ -75,6 +75,9 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).not.toContain("Position weight vs. risk thresholds");
     expect(portfolio).toContain("pf-hero-diagnosis");
     expect(portfolio).toContain("PROFILE_BENCHMARK");
+    expect(portfolio).toContain("ConcentrationNotice");
+    expect(portfolio).toContain("concentrationNotice");
+    expect(liveRender.indexOf("{concentrationNotice}")).toBeLessThan(liveRender.indexOf("{sectorMixCard}"));
     expect(liveRender.indexOf("{sectorMixCard}")).toBeLessThan(liveRender.indexOf("{allocationPanel}"));
     expect(liveRender.indexOf("{allocationPanel}")).toBeLessThan(liveRender.indexOf("<PortfolioBenchmarkChart"));
     expect(liveRender.indexOf("<PortfolioBenchmarkChart")).toBeLessThan(liveRender.indexOf('id="portfolio-panel-holdings"'));
@@ -115,8 +118,12 @@ describe("production copy and fixture isolation", () => {
     expect(read("src/app/portfolio.css")).toContain("pf-day-strip");
     expect(read("src/app/portfolio.css")).toContain("pf-day-strip-pct");
     expect(read("src/app/portfolio.css")).toContain("pf-live-meta");
+    expect(read("src/app/portfolio.css")).toContain("pf-concentration-notice");
+    expect(read("src/app/portfolio.css")).toContain("is-concentrated");
     expect(read("src/app/portfolio.css")).toContain("pf-sector-mix");
     expect(read("src/app/portfolio.css")).toContain("pf-sector-mix-donut");
+    expect(read("src/components/ConcentrationNotice.tsx")).toContain("flagConcentrationHoldings");
+    expect(read("src/components/ConcentrationNotice.tsx")).not.toContain("animate-ping");
     expect(read("src/app/portfolio.css")).toContain("pf-study-board");
     expect(read("src/app/portfolio.css")).toContain("pf-study-chip-emoji");
     expect(read("src/app/portfolio.css")).not.toContain("pf-day-gauge");
