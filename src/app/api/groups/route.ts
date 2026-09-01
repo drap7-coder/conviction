@@ -113,6 +113,13 @@ export async function POST(request: Request) {
         inviteCode: body.inviteCode,
         isPrimary: body.isPrimary ?? true,
       });
+      if (body.primaryColor && result.institution.id) {
+        await updateCommunityTheme({
+          userId,
+          institutionId: result.institution.id,
+          primaryColor: body.primaryColor,
+        });
+      }
       return NextResponse.json(result);
     }
 
@@ -135,6 +142,13 @@ export async function POST(request: Request) {
         institutionId,
         isPrimary: body.isPrimary,
       });
+      if (body.primaryColor) {
+        await updateCommunityTheme({
+          userId,
+          institutionId,
+          primaryColor: body.primaryColor,
+        });
+      }
       return NextResponse.json({
         memberships: await listCommunityMembershipsForUser(userId),
         groupMemberships: memberships,

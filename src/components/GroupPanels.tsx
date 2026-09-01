@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { SchoolSuggestion } from "@/lib/groups/ncaa-schools";
 import type { Community, UserCommunityMembership } from "@/lib/groups/types";
+import { SchoolTypeahead } from "@/components/SchoolTypeahead";
 import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
 
-const THEME_SWATCHES = ["#115740", "#0D7377", "#2E5A88", "#5B2C6F", "#C45C26", "#8B1E1E"];
+export const THEME_SWATCHES = ["#115740", "#0D7377", "#2E5A88", "#5B2C6F", "#C45C26", "#8B1E1E", "#D6001C"];
 
 type CommunitiesPayload = {
   authenticated: boolean;
@@ -14,15 +16,29 @@ type CommunitiesPayload = {
   primaryGroup: { primaryColor: string | null } | null;
 };
 
-export function CommunitySettingsPanel({ compact = false }: { compact?: boolean }) {
+export function CommunitySettingsPanel({
+  compact = false,
+  onboarding = false,
+  onJoined,
+}: {
+  compact?: boolean;
+  /** Onboarding: theme before join, search-first UX. */
+  onboarding?: boolean;
+  onJoined?: () => void;
+}) {
   const [data, setData] = useState<CommunitiesPayload | null>(null);
   const [themeColor, setThemeColor] = useState(THEME_SWATCHES[0]);
+  const [schoolQuery, setSchoolQuery] = useState("");
+  const [pickedSchool, setPickedSchool] = useState<SchoolSuggestion | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  async function reload() {
-    const res = await fetch("/api/groups", { cache: "no-store" });
-    if (!res.ok) return;
+  const reload = useCallback(async () => {
+    const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
+    if (!res.ok) {
+      setMessage("Could not load communities. Try again.");
+      return null;
+    }
     const json = (await res.json()) as CommunitiesPayload;
     setData(json);
     const accent =
@@ -32,11 +48,12 @@ export function CommunitySettingsPanel({ compact = false }: { compact?: boolean 
       document.documentElement.style.setProperty("--group-accent", accent);
       setThemeColor(accent);
     }
-  }
+    return json;
+  }, []);
 
   useEffect(() => {
     void reload().catch(() => undefined);
-  }, []);
+  }, [reload]);
 
   const memberIds = useMemo(
     () => new Set((data?.memberships ?? []).map((m) => m.institutionId)),
@@ -50,16 +67,46 @@ export function CommunitySettingsPanel({ compact = false }: { compact?: boolean 
       const res = await fetch("/api/groups", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(body),
       });
       const json = await res.json();
       if (!res.ok) {
         setMessage(json.error ?? "Could not update communities.");
-        return;
+        return false;
       }
       await reload();
+      return true;
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function joinPickedSchool() {
+    if (!pickedSchool?.institutionId) {
+      setMessage(
+        pickedSchool
+          ? `${pickedSchool.name} is not live yet — William & Mary and RPI are available now.`
+          : "Search and pick your school first.",
+      );
+      return;
+    }
+    if (memberIds.has(pickedSchool.institutionId)) {
+      setMessage("You are already in that community.");
+      return;
+    }
+    const ok = await post({
+      action: "join",
+      institutionId: pickedSchool.institutionId,
+      isPrimary: (data?.memberships ?? []).length === 0,
+      primaryColor: themeColor,
+    });
+    if (ok) {
+      writeStoredPrimaryColor(themeColor);
+      document.documentElement.style.setProperty("--group-accent", themeColor);
+      setPickedSchool(null);
+      setSchoolQuery("");
+      onJoined?.();
     }
   }
 
@@ -67,14 +114,18 @@ export function CommunitySettingsPanel({ compact = false }: { compact?: boolean 
     return <p className="crowd-empty">Loading communities…</p>;
   }
 
+  const showTheme = onboarding || data.memberships.length > 0;
+  const showJoinSearch =
+    data.authenticated && (onboarding || data.memberships.length === 0 || !compact);
+
   return (
     <section
-      className={`group-settings${compact ? " is-compact" : ""}`}
+      className={`group-settings${compact ? " is-compact" : ""}${onboarding ? " is-onboarding" : ""}`}
       aria-label="Your communities"
     >
       {!data.authenticated ? (
         <p className="group-settings-note">
-          Sign in to join a campus or company community. Guests can still browse Crowd filters.
+          Sign in to join a campus community. Guests can still browse Crowd filters.
         </p>
       ) : null}
 
@@ -92,108 +143,144 @@ export function CommunitySettingsPanel({ compact = false }: { compact?: boolean 
               {membership.institution.name}
               {membership.isPrimary ? " · Primary" : ""}
             </span>
-            <span className="group-settings-actions">
-              {!membership.isPrimary ? (
+            {!onboarding ? (
+              <span className="group-settings-actions">
+                {!membership.isPrimary ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() =>
+                      void post({
+                        action: "primary",
+                        institutionId: membership.institutionId,
+                      })
+                    }
+                  >
+                    Make primary
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   disabled={busy}
                   onClick={() =>
                     void post({
-                      action: "primary",
+                      action: "leave",
                       institutionId: membership.institutionId,
                     })
                   }
                 >
-                  Make primary
+                  Leave
                 </button>
-              ) : null}
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() =>
-                  void post({
-                    action: "leave",
-                    institutionId: membership.institutionId,
-                  })
-                }
-              >
-                Leave
-              </button>
-            </span>
+              </span>
+            ) : null}
           </li>
         ))}
       </ul>
 
-      {data.authenticated ? (
-        <>
-          <div className="group-settings-join">
-            <label>
-              Join a community
-              <select
-                defaultValue=""
-                disabled={busy}
-                onChange={(event) => {
-                  const institutionId = event.target.value;
-                  if (!institutionId) return;
-                  void post({
-                    action: "join",
-                    institutionId,
-                    isPrimary: (data.memberships ?? []).length === 0,
-                  });
-                  event.target.value = "";
-                }}
-              >
-                <option value="">Select…</option>
-                {data.communities
-                  .filter((community) => !memberIds.has(community.institution.id))
-                  .map((community) => (
-                    <option key={community.institution.id} value={community.institution.id}>
-                      {community.institution.name}
-                      {community.institution.affiliationStatus === "unofficial"
-                        ? " (unofficial)"
-                        : ""}
-                    </option>
-                  ))}
-              </select>
-            </label>
-          </div>
-
-          {data.memberships.length > 0 ? (
-            <div className="group-settings-create">
-              <label>
-                Theme color
-                <span className="group-theme-swatches">
-                  {THEME_SWATCHES.map((swatch) => (
-                    <button
-                      key={swatch}
-                      type="button"
-                      className={`group-theme-swatch${themeColor === swatch ? " is-selected" : ""}`}
-                      style={{ background: swatch }}
-                      aria-label={`Theme ${swatch}`}
-                      disabled={busy}
-                      onClick={() => {
-                        setThemeColor(swatch);
-                        const primary =
-                          data.memberships.find((m) => m.isPrimary) ?? data.memberships[0];
-                        if (!primary) return;
-                        void post({
-                          action: "theme",
-                          institutionId: primary.institutionId,
-                          primaryColor: swatch,
-                        });
-                      }}
-                    />
-                  ))}
-                </span>
-              </label>
-            </div>
+      {showJoinSearch ? (
+        <div className="group-settings-join">
+          <label>
+            {onboarding ? "Find your school" : "Join another school"}
+            <SchoolTypeahead
+              value={schoolQuery}
+              onChange={setSchoolQuery}
+              selectedInstitutionId={pickedSchool?.institutionId}
+              onClearSelection={() => setPickedSchool(null)}
+              disabled={busy || !data.authenticated}
+              onSelect={(suggestion) => {
+                setPickedSchool(suggestion);
+                setSchoolQuery(suggestion.name);
+                if (!suggestion.live) {
+                  setMessage(`${suggestion.name} is coming soon. William & Mary and RPI are live.`);
+                } else {
+                  setMessage(null);
+                }
+              }}
+            />
+          </label>
+          {onboarding && pickedSchool?.live ? (
+            <button
+              type="button"
+              className="watchlist-add-button group-settings-join-btn"
+              disabled={busy}
+              onClick={() => void joinPickedSchool()}
+            >
+              Join community
+            </button>
           ) : null}
+        </div>
+      ) : null}
 
-          <p className="group-settings-note">
-            Each school is one community. New schools are added by the platform — you cannot
-            create a duplicate &ldquo;William & Mary&rdquo; or &ldquo;RPI&rdquo; here.
-          </p>
-        </>
+      {!onboarding && data.authenticated && data.memberships.length === 0 ? (
+        <div className="group-settings-join">
+          <label>
+            Or pick from live schools
+            <select
+              defaultValue=""
+              disabled={busy}
+              onChange={(event) => {
+                const institutionId = event.target.value;
+                if (!institutionId) return;
+                void post({
+                  action: "join",
+                  institutionId,
+                  primaryColor: themeColor,
+                  isPrimary: true,
+                });
+                event.target.value = "";
+              }}
+            >
+              <option value="">Select…</option>
+              {data.communities
+                .filter((community) => !memberIds.has(community.institution.id))
+                .map((community) => (
+                  <option key={community.institution.id} value={community.institution.id}>
+                    {community.institution.name}
+                  </option>
+                ))}
+            </select>
+          </label>
+        </div>
+      ) : null}
+
+      {showTheme && data.authenticated ? (
+        <div className="group-settings-create">
+          <label>
+            Theme color
+            <span className="group-theme-swatches">
+              {THEME_SWATCHES.map((swatch) => (
+                <button
+                  key={swatch}
+                  type="button"
+                  className={`group-theme-swatch${themeColor === swatch ? " is-selected" : ""}`}
+                  style={{ background: swatch }}
+                  aria-label={`Theme ${swatch}`}
+                  disabled={busy}
+                  onClick={() => {
+                    setThemeColor(swatch);
+                    if (onboarding && !pickedSchool?.live) return;
+                    const primary =
+                      data.memberships.find((m) => m.isPrimary) ?? data.memberships[0];
+                    if (primary) {
+                      void post({
+                        action: "theme",
+                        institutionId: primary.institutionId,
+                        primaryColor: swatch,
+                      });
+                    }
+                  }}
+                />
+              ))}
+            </span>
+          </label>
+        </div>
+      ) : null}
+
+      {!onboarding ? (
+        <p className="group-settings-note">
+          Search NCAA schools to join. Only live communities can be joined — more schools roll out
+          over time.
+        </p>
       ) : null}
 
       {message ? <p className="group-settings-message">{message}</p> : null}
@@ -204,53 +291,87 @@ export function CommunitySettingsPanel({ compact = false }: { compact?: boolean 
 /** @deprecated Prefer CommunitySettingsPanel — alias kept for Manage imports. */
 export const GroupSettingsPanel = CommunitySettingsPanel;
 
-/** Skippable post-signup prompt — does not block registration. */
+function shouldOpenOnboarding(data: CommunitiesPayload | null): boolean {
+  if (!data?.authenticated) return false;
+  if ((data.memberships ?? []).length > 0) return false;
+  return true;
+}
+
+/** Skippable post-signup prompt — tap outside to dismiss for this visit. */
 export function GroupOnboardingPrompt() {
   const [open, setOpen] = useState(false);
 
-  useEffect(() => {
+  const evaluate = useCallback(async () => {
     if (typeof window === "undefined") return;
     if (window.localStorage.getItem(SKIP_ONBOARDING_KEY)) return;
-    void fetch("/api/groups", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: CommunitiesPayload | null) => {
-        if (!data?.authenticated) return;
-        if ((data.memberships ?? []).length > 0) return;
-        setOpen(true);
-      })
-      .catch(() => undefined);
+    try {
+      const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
+      if (!res.ok) return;
+      const data = (await res.json()) as CommunitiesPayload;
+      setOpen(shouldOpenOnboarding(data));
+    } catch {
+      // ignore
+    }
   }, []);
+
+  useEffect(() => {
+    void evaluate();
+    const onFocus = () => void evaluate();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") void evaluate();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [evaluate]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open]);
+
+  function finish(skipForever: boolean) {
+    if (skipForever) window.localStorage.setItem(SKIP_ONBOARDING_KEY, "1");
+    setOpen(false);
+  }
 
   if (!open) return null;
 
   return (
-    <div className="group-onboarding" role="dialog" aria-label="Join your community">
-      <div className="group-onboarding-card">
+    <div
+      className="group-onboarding"
+      role="presentation"
+      onClick={() => setOpen(false)}
+    >
+      <div
+        className="group-onboarding-card"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Join your community"
+        onClick={(event) => event.stopPropagation()}
+      >
         <h2>Join your community</h2>
         <p>
-          Pick your school or company and a theme color. You can skip and manage this later under
+          Search your school, pick a color, then join. Tap outside to close — or manage anytime under
           Manage → Community.
         </p>
-        <CommunitySettingsPanel compact />
+        <CommunitySettingsPanel
+          compact
+          onboarding
+          onJoined={() => finish(true)}
+        />
         <div className="group-onboarding-actions">
-          <button
-            type="button"
-            className="brief-link"
-            onClick={() => {
-              window.localStorage.setItem(SKIP_ONBOARDING_KEY, "1");
-              setOpen(false);
-            }}
-          >
+          <button type="button" className="brief-link" onClick={() => finish(true)}>
             Skip for now
           </button>
-          <button
-            type="button"
-            className="watchlist-add-button"
-            onClick={() => {
-              window.localStorage.setItem(SKIP_ONBOARDING_KEY, "1");
-              setOpen(false);
-            }}
-          >
+          <button type="button" className="watchlist-add-button" onClick={() => finish(true)}>
             Done
           </button>
         </div>

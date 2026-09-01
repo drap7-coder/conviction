@@ -21085,6 +21085,46 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   margin-top: 12px;
 }
 
+.school-typeahead {
+  position: relative;
+  min-width: 0;
+}
+
+.school-typeahead-input {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card-soft);
+  color: var(--ink);
+}
+
+.school-suggestions .ticker-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.school-suggestion-badge {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.school-suggestion.is-live .school-suggestion-badge {
+  color: color-mix(in srgb, var(--group-accent, #115740) 80%, var(--ink));
+}
+
+.group-settings.is-onboarding .group-settings-join-btn {
+  margin-top: 8px;
+  width: 100%;
+}
+
 .group-theme-swatches {
   display: flex;
   flex-wrap: wrap;
