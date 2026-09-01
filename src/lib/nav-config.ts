@@ -51,7 +51,7 @@ export const navPages: NavPage[] = [
     label: "Smart Money",
     icon: Landmark,
     tone: "violet",
-    group: "daily",
+    group: "more",
     blurb: "Institution filings and political trades.",
   },
   {
