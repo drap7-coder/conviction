@@ -35,7 +35,7 @@ const MANAGE_HERO = {
     eyebrow: "Community",
     headline: "Your school or company community.",
     summary:
-      "Join William & Mary (and later other campuses or companies). One community per organization — set a theme anytime.",
+      "Join a seeded school community (William & Mary, RPI, and more as we add them). One group per school — set a theme anytime.",
     cta: "Join a community",
   },
 } as const;

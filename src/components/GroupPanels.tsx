@@ -190,8 +190,8 @@ export function CommunitySettingsPanel({ compact = false }: { compact?: boolean 
           ) : null}
 
           <p className="group-settings-note">
-            Each school or company is one community. Clubs and competitions may return later —
-            they are not created from here.
+            Each school is one community. New schools are added by the platform — you cannot
+            create a duplicate &ldquo;William & Mary&rdquo; or &ldquo;RPI&rdquo; here.
           </p>
         </>
       ) : null}
