@@ -130,7 +130,7 @@ export async function GET(request: NextRequest) {
     notes: [
       "Page loads read persisted data only — no external provider calls.",
       "Ingestion is incremental: only unseen filing IDs trigger new records.",
-      "Watchlist is editable at runtime and persisted independently of transaction data.",
+      "Ops sync universe (KV/JSON) drives daily evidence refresh — not guest or Neon personal watchlists.",
       "Dedup keys are pruned to max 5,000 entries.",
       "Transaction records are capped at 100 per ticker (newest).",
       "Sync log entries are capped at 100 (oldest evicted).",

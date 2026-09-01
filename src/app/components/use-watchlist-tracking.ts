@@ -57,15 +57,17 @@ export function useWatchlistTracking() {
         const data = await fetchJsonWithTimeout<{
           authenticated?: boolean;
           entries?: WatchlistEntry[];
-          guestEntries?: WatchlistEntry[];
+          persistence?: string;
         }>("/api/watchlist", 8_000, controller.signal);
         if (cancelled) return;
         const entries = data.authenticated
           ? data.entries ?? []
-          : data.guestEntries ?? data.entries ?? [];
+          : readBrowserWatchlist();
         setTrackedTickers(new Set(entries.map((entry) => entry.ticker.toUpperCase())));
       } catch {
-        if (!cancelled) setTrackedTickers(new Set());
+        if (!cancelled) {
+          setTrackedTickers(new Set(readBrowserWatchlist().map((e) => e.ticker.toUpperCase())));
+        }
       }
     }
 

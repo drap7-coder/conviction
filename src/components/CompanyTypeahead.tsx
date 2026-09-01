@@ -39,6 +39,7 @@ export function CompanyTypeahead({
   inputRef,
   autoCapitalize,
   trailing = null,
+  inputAriaLabel,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -52,6 +53,8 @@ export function CompanyTypeahead({
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
   /** Optional controls beside the input (e.g. mobile voice/camera). */
   trailing?: ReactNode;
+  /** Accessible name for the combobox (defaults to placeholder). */
+  inputAriaLabel?: string;
 }) {
   const listboxId = useId();
   const [suggestions, setSuggestions] = useState<CompanySuggestion[]>([]);
@@ -166,6 +169,7 @@ export function CompanyTypeahead({
       disabled={disabled}
       className={[className, trailing ? "has-mic" : ""].filter(Boolean).join(" ")}
       role="combobox"
+      aria-label={inputAriaLabel ?? placeholder}
       aria-expanded={open}
       aria-autocomplete="list"
       aria-controls={open ? listboxId : undefined}

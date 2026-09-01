@@ -1,8 +1,12 @@
 /**
- * Watchlist persistence layer.
- * Stored under `conviction:watchlist` in KV, with local JSON fallback.
+ * Evidence sync universe (ops / cron), not a personal user watchlist.
  *
- * In production (KV), the watchlist is durable across deployments.
+ * Stored under `conviction:watchlist` in KV, with local JSON fallback.
+ * Daily sync and emerging-idea routes read this list. Guest and signed-in
+ * personal lists live in browser localStorage and Neon respectively —
+ * user add/remove APIs must not mutate this store.
+ *
+ * In production (KV), the universe is durable across deployments.
  * When KV is not configured, it falls back to a local JSON file
  * that is specific to the machine/environment (not durable on Vercel).
  *

@@ -1,26 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
-import { addToWatchlist, updateWatchlistSync } from "@/lib/watchlist/persist";
 import { validateTicker } from "@/lib/watchlist/validate";
 import { addUserWatchlistEntry } from "@/lib/user-watchlist";
-import { fetchInsiderTransactions } from "@/lib/sec/client";
-import { txToRecord, storeTransactions, setLastFetchTime, getAllDedupKeys } from "@/lib/sec/persist";
-import { recordSync } from "@/lib/sync/sync-log";
-import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
-import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
 
 /**
- * POST /api/watchlist
- * Add a ticker or company name to the watchlist.
+ * POST /api/watchlist/add
+ * Validate a ticker and persist it to the caller's personal list.
  *
- * Validates the ticker, persists it, and runs a bounded single-company
- * initial sync to fetch its SEC Form 4 data.
+ * Signed-in → Neon. Guest → browser-only response (client writes localStorage).
+ * Never mutates the shared ops/cron evidence sync universe.
  *
- * Body: { ticker: string }
- * Body: { company: string }  (alternative field)
+ * Body: { ticker: string } | { company: string }
  */
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
@@ -33,7 +25,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Validate and resolve ticker
   const validation = await validateTicker(input);
   if (!validation.valid) {
     return NextResponse.json(
@@ -50,7 +41,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Add to watchlist
   const status = isForeignIssuer ? "unsupported" : "active";
   const statusMessage = isForeignIssuer
     ? `${companyName} is a foreign issuer and does not file SEC Form 4. Added for reference only.`
@@ -86,121 +76,21 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  if (!session) {
-    return NextResponse.json({
-      success: true,
-      added: {
-        ticker,
-        companyName,
-        cik,
-        addedAt: new Date().toISOString(),
-        status,
-        statusMessage,
-      },
-      entries: [],
-      persistence: "browser",
-      initialSync: isForeignIssuer
-        ? { skipped: true, reason: "Foreign issuer — does not file SEC Form 4" }
-        : { skipped: true, reason: "Saved in this browser. Sign in to sync across devices." },
-    });
-  }
-
-  const result = await addToWatchlist({
-    ticker,
-    companyName,
-    cik,
-    addedAt: new Date().toISOString(),
-    status,
-    statusMessage,
-  });
-
-  if (!result.success) {
-    return NextResponse.json(
-      { success: false, error: result.error, entries: result.entries },
-      { status: 409 },
-    );
-  }
-
-  // Bounded initial sync for active (supported) tickers only
-  if (!isForeignIssuer) {
-    try {
-      const startTime = Date.now();
-      const dedupKeys = await getAllDedupKeys();
-      const fetchResult = await fetchInsiderTransactions(ticker, dedupKeys);
-
-      const newRecords = fetchResult.newTransactions.map(txToRecord);
-      const newDedupKeys = fetchResult.newTransactions.map((tx) => tx.id);
-
-      if (newRecords.length > 0) {
-        await storeTransactions(ticker, newRecords, newDedupKeys);
-      }
-      await setLastFetchTime(ticker, fetchResult.fetchedAt);
-      await updateWatchlistSync(
-        ticker,
-        fetchResult.errors.length > 0 ? "error" : "active",
-        fetchResult.errors.length > 0
-          ? `Initial sync completed with ${fetchResult.errors.length} error(s)`
-          : undefined,
-      );
-
-      const elapsedMs = Date.now() - startTime;
-      recordSync({
-        timestamp: new Date().toISOString(),
-        source: "sec-edgar",
-        ticker,
-        durationMs: elapsedMs,
-        newRecords: fetchResult.newTransactions.length,
-        totalRecords: fetchResult.allTransactions.length,
-        errors: fetchResult.errors.length,
-        errorMessages: fetchResult.errors,
-      });
-      const transition = fetchResult.errors.length === 0
-        ? await refreshConvictionTransitionForTicker(ticker)
-        : undefined;
-
-      return NextResponse.json({
-        success: true,
-        added: { ticker, companyName, cik, status },
-        entries: result.entries,
-        initialSync: {
-          newTransactions: fetchResult.newTransactions.length,
-          totalTransactions: fetchResult.allTransactions.length,
-          errors: fetchResult.errors,
-          durationMs: elapsedMs,
-          transition,
-        },
-        _limits: {
-          maxFilingsPerCompany: SYNC_CONFIG.MAX_FILINGS_PER_COMPANY,
-        },
-      });
-    } catch (syncErr) {
-      // Sync failure shouldn't prevent the ticker from being added
-      const message = syncErr instanceof Error ? syncErr.message : String(syncErr);
-      await updateWatchlistSync(ticker, "error", `Initial sync failed: ${message}`);
-
-      return NextResponse.json({
-        success: true,
-        added: { ticker, companyName, cik, status },
-        entries: result.entries,
-        initialSync: {
-          newTransactions: 0,
-          totalTransactions: 0,
-          errors: [message],
-          failed: true,
-        },
-      });
-    }
-  } else {
-    // Foreign issuer — mark synced immediately (no SEC data expected)
-    await updateWatchlistSync(ticker, "unsupported", statusMessage);
-  }
-
+  // Guests (and any session without a user id) persist in the browser only.
   return NextResponse.json({
     success: true,
-    added: { ticker, companyName, cik, status },
-    entries: result.entries,
+    added: {
+      ticker,
+      companyName,
+      cik,
+      addedAt: new Date().toISOString(),
+      status,
+      statusMessage,
+    },
+    entries: [],
+    persistence: "browser",
     initialSync: isForeignIssuer
       ? { skipped: true, reason: "Foreign issuer — does not file SEC Form 4" }
-      : undefined,
+      : { skipped: true, reason: "Saved in this browser. Sign in to sync across devices." },
   });
 }

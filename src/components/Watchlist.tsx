@@ -110,14 +110,13 @@ export default function Watchlist({
       const data = await fetchJsonWithTimeout<{
         authenticated?: boolean;
         entries?: WatchlistEntry[];
-        guestEntries?: WatchlistEntry[];
         persistence?: "browser" | "neon" | "unconfigured";
       }>("/api/watchlist", 8_000);
 
       const isAuthenticated = Boolean(data.authenticated);
       let nextEntries = isAuthenticated
         ? (data.entries ?? [])
-        : (browserEntries ?? data.guestEntries ?? data.entries ?? []);
+        : (browserEntries ?? []);
 
       if (isAuthenticated && browserEntries?.length && !hasMigratedBrowserWatchlist()) {
         const migrateResponse = await fetch("/api/watchlist/migrate", {
@@ -133,7 +132,8 @@ export default function Watchlist({
       }
 
       setEntries(nextEntries);
-      if (!isAuthenticated) writeBrowserWatchlist(nextEntries);
+      // Guests own localStorage only — never adopt the ops/seed sync universe.
+      if (!isAuthenticated && browserEntries) writeBrowserWatchlist(nextEntries);
       setAuthenticated(isAuthenticated);
       setPersistence(data.persistence ?? (isAuthenticated ? "neon" : "browser"));
     } catch {
@@ -320,34 +320,38 @@ export default function Watchlist({
         </span>
       </div>
       <div className="watchlist-add list-compose-fields">
-        <CompanyTypeahead
-          value={addInput}
-          onChange={setAddInput}
-          onSelect={(suggestion) => {
-            setAddInput("");
-            void handleAddValue(suggestion.ticker);
-          }}
-          onEnter={() => void handleAdd()}
-          placeholder="Ticker or company name"
-          disabled={adding}
-          className="watchlist-input"
-          wrapperClassName="watchlist-input-wrap"
-          inputRef={addInputRef}
-          trailing={(
-            <TickerCaptureActions
-              disabled={adding}
-              onResolved={(suggestion) => {
-                setAddInput("");
-                setSearchResult(null);
-                void handleAddValue(suggestion.ticker);
-              }}
-              onQuery={(query) => setAddInput(query)}
-              onStatus={(message) => {
-                setSearchResult(message ? { type: "unrecognized", text: message } : null);
-              }}
-            />
-          )}
-        />
+        <label className="data-manager-compose-ticker">
+          <span className="sr-only">Ticker or company</span>
+          <CompanyTypeahead
+            value={addInput}
+            onChange={setAddInput}
+            onSelect={(suggestion) => {
+              setAddInput("");
+              void handleAddValue(suggestion.ticker);
+            }}
+            onEnter={() => void handleAdd()}
+            placeholder="Ticker or company name"
+            inputAriaLabel="Ticker or company name"
+            disabled={adding}
+            className="watchlist-input"
+            wrapperClassName="watchlist-input-wrap"
+            inputRef={addInputRef}
+            trailing={(
+              <TickerCaptureActions
+                disabled={adding}
+                onResolved={(suggestion) => {
+                  setAddInput("");
+                  setSearchResult(null);
+                  void handleAddValue(suggestion.ticker);
+                }}
+                onQuery={(query) => setAddInput(query)}
+                onStatus={(message) => {
+                  setSearchResult(message ? { type: "unrecognized", text: message } : null);
+                }}
+              />
+            )}
+          />
+        </label>
         <button
           onClick={handleAdd}
           disabled={adding || !addInput.trim()}

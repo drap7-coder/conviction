@@ -2,7 +2,7 @@ import { after, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import { isAuthConfigured } from "@/lib/auth-readiness";
 import { getConvictionScoresForTickers } from "@/lib/conviction/score";
-import { getWatchlist, isKvEnabled } from "@/lib/watchlist/persist";
+import { isKvEnabled } from "@/lib/watchlist/persist";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { getUserWatchlist, isUserWatchlistAvailable } from "@/lib/user-watchlist";
 
@@ -21,7 +21,11 @@ function warmScores(tickers: string[]) {
 
 /**
  * GET /api/watchlist
- * Returns the current watchlist with sync status and conviction context.
+ *
+ * Signed-in → private per-user list.
+ * Guest → empty `entries` + `persistence: "browser"` (client SoT is localStorage).
+ * `suggestions` is the ops seed list for compose hints — not the guest's list.
+ * The KV/JSON sync universe is ops/cron only and is never returned as personal entries.
  */
 export const dynamic = "force-dynamic";
 
@@ -52,12 +56,8 @@ export async function GET() {
       });
     }
 
-    const entries = await getWatchlist();
-    warmScores(entries.map((entry) => entry.ticker));
-
     return NextResponse.json({
       entries: [],
-      guestEntries: entries,
       suggestions: SEED_WATCHLIST,
       authenticated: false,
       authConfigured: isAuthConfigured(),

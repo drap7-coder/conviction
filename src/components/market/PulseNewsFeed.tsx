@@ -286,13 +286,11 @@ export function PulseNewsFeed({
       loadPortfolioForViewer(),
     ])
       .then(([data, portfolio]: [
-        { authenticated?: boolean; entries?: Array<{ ticker: string }>; guestEntries?: Array<{ ticker: string }> } | null,
+        { authenticated?: boolean; entries?: Array<{ ticker: string }> } | null,
         Awaited<ReturnType<typeof loadPortfolioForViewer>>,
       ]) => {
         if (cancelled) return;
-        const entries = data
-          ? (data.authenticated ? data.entries ?? [] : data.guestEntries ?? data.entries ?? [])
-          : [];
+        const entries = data?.authenticated ? data.entries ?? [] : [];
         setPersonalTickers(new Set([
           ...localTickers,
           ...entries.map((entry) => entry.ticker.toUpperCase()),
