@@ -1,6 +1,6 @@
 /**
- * Compact portfolio holding card — logo + ticker stack, value + day %,
- * and a thin allocation bar. Optional edit/remove controls for Manage.
+ * Compact portfolio holding card — logo + ticker stack, value + today move,
+ * optional allocation bar. Edit/remove controls only when Manage passes handlers.
  */
 
 "use client";
@@ -29,6 +29,11 @@ export interface PortfolioHoldingCardProps {
   closeChangePercent: number | null;
   shares: number;
   metrics: PositionMetrics;
+  /**
+   * Allocation bar fill. Pass an industry color on Manage; omit on Live
+   * (Concentration owns the weight story).
+   */
+  barColor?: string | null;
   isEditing?: boolean;
   formShares?: string;
   formCost?: string;
@@ -46,16 +51,18 @@ export interface PortfolioHoldingCardProps {
   onConfirmRemove?: (ticker: string) => void;
 }
 
-function allocationBand(weight: number | null): "green" | "amber" | "red" | "neutral" {
-  if (!isFiniteNumber(weight)) return "neutral";
-  if (weight > 20) return "red";
-  if (weight >= 12) return "amber";
-  return "green";
-}
-
 function formatWeight(weight: number | null): string {
   if (!isFiniteNumber(weight)) return "—";
   return `${weight.toFixed(1)}%`;
+}
+
+function formatTodayDollars(value: number | null): string {
+  if (!isFiniteNumber(value)) return "—";
+  if (value === 0) return "$0.00";
+  return `${value > 0 ? "+" : "−"}$${Math.abs(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 export function PortfolioHoldingCard({
@@ -68,6 +75,7 @@ export function PortfolioHoldingCard({
   closeChangePercent,
   shares,
   metrics,
+  barColor = null,
   isEditing = false,
   formShares = "",
   formCost = "",
@@ -85,12 +93,12 @@ export function PortfolioHoldingCard({
   onConfirmRemove,
 }: PortfolioHoldingCardProps) {
   const hasExtendedSession = sessionLabel !== null && closePrice !== null;
-  const dayChangeClass = changeToneClass(changePercent);
+  const dayChangeClass = changeToneClass(metrics.dailyChange ?? changePercent);
   const closeChangeClass = changeToneClass(closeChangePercent);
   const allocation = metrics.weight;
-  const band = allocationBand(allocation);
   const displayName = companyName?.trim() || ticker;
   const barWidth = isFiniteNumber(allocation) ? Math.min(100, Math.max(0, allocation)) : 0;
+  const showBar = typeof barColor === "string" && barColor.length > 0;
   const editable = Boolean(onEdit && onAskRemove);
   const sharesLabel = `${shares.toLocaleString("en-US", {
     maximumFractionDigits: 4,
@@ -127,7 +135,13 @@ export function PortfolioHoldingCard({
 
         <div className="pf-holding-figures">
           <strong className="pf-holding-value tnum">{fmtCompactCurrency(metrics.marketValue)}</strong>
-          <span className={`pf-holding-day tnum ${dayChangeClass}`}>{fmtPercent(changePercent, 2)}</span>
+          <span className={`pf-holding-day tnum ${dayChangeClass}`}>
+            {formatTodayDollars(metrics.dailyChange)}
+            {isFiniteNumber(changePercent) ? (
+              <span className="pf-holding-day-pct"> {fmtPercent(changePercent, 2)}</span>
+            ) : null}
+            <span className="pf-holding-day-suffix"> today</span>
+          </span>
           <span className="pf-holding-weight tnum">{formatWeight(allocation)}</span>
           {hasExtendedSession ? (
             <span className={`pf-holding-close tnum ${closeChangeClass}`}>
@@ -218,12 +232,14 @@ export function PortfolioHoldingCard({
         </form>
       ) : null}
 
-      <div
-        className={`pf-holding-bar is-${band}`}
-        aria-label={`${ticker} allocation ${isFiniteNumber(allocation) ? `${allocation.toFixed(1)} percent` : "unavailable"}`}
-      >
-        <i style={{ width: `${barWidth}%` }} />
-      </div>
+      {showBar ? (
+        <div
+          className="pf-holding-bar is-industry"
+          aria-label={`${ticker} allocation ${isFiniteNumber(allocation) ? `${allocation.toFixed(1)} percent` : "unavailable"}`}
+        >
+          <i style={{ width: `${barWidth}%`, background: barColor }} />
+        </div>
+      ) : null}
     </article>
   );
 }

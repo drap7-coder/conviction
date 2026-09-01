@@ -28,6 +28,7 @@ import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
+import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
@@ -813,18 +814,40 @@ export default function Portfolio() {
       )}
 
       {hasData ? (
-      <div id="portfolio-panel-holdings" className="pf-manage-handoff" aria-label="Portfolio holdings">
-        <div className="pf-manage-handoff-copy">
-          <span className="pf-section-eyebrow">Holdings</span>
-          <h2>
-            {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
-          </h2>
-          <p>Edit shares and cost basis in Manage.</p>
-        </div>
-        <Link href="/manage?view=portfolio" className="data-edit-pill">
-          Manage holdings
-        </Link>
-      </div>
+        <section id="portfolio-panel-holdings" className="pf-holdings" aria-label="Portfolio holdings">
+          <header className="pf-holdings-head">
+            <div className="pf-holdings-copy">
+              <span className="pf-section-eyebrow">Holdings</span>
+              <h2>
+                {sortedPositions.length} holding{sortedPositions.length === 1 ? "" : "s"}
+              </h2>
+            </div>
+            <Link href="/manage?view=portfolio" className="data-edit-pill">
+              Manage holdings
+            </Link>
+          </header>
+          <div className="pf-holdings-list surface-well">
+            {sortedPositions.map(({ pos, metrics }) => {
+              const tickerKey = pos.companyId.toUpperCase();
+              const quote = quotes.find((item) => item.ticker.toUpperCase() === tickerKey);
+              const live = quote ? getLivePrice(quote) : null;
+              return (
+                <PortfolioHoldingCard
+                  key={tickerKey}
+                  ticker={tickerKey}
+                  companyName={quote?.name ?? tickerKey}
+                  price={live?.price ?? quote?.price ?? pos.currentPrice ?? null}
+                  changePercent={live?.changePercent ?? quote?.changePercent ?? null}
+                  sessionLabel={live?.label ?? null}
+                  closePrice={live?.label ? quote?.price ?? null : null}
+                  closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
+                  shares={pos.shares}
+                  metrics={metrics}
+                />
+              );
+            })}
+          </div>
+        </section>
       ) : null}
       </>
       )}

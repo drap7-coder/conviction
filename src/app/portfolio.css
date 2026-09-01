@@ -1312,6 +1312,27 @@
 .portfolio-page .pf-holding-bar.is-green i { background: var(--green); }
 .portfolio-page .pf-holding-bar.is-amber i { background: var(--amber); }
 .portfolio-page .pf-holding-bar.is-red i { background: var(--red); }
+.portfolio-page .pf-holding-bar.is-industry i { background: var(--quiet); }
+
+.portfolio-page .pf-holding-day {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+}
+
+.portfolio-page .pf-holding-day-pct {
+  opacity: 0.78;
+  font-weight: 500;
+}
+
+.portfolio-page .pf-holding-day-suffix {
+  color: var(--quiet);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
 
 .portfolio-page .pf-holding-edit {
   background: var(--card);
@@ -1349,7 +1370,45 @@
   }
 }
 
-/* Compact handoff to Manage — Live Portfolio no longer repeats the holdings list */
+/* Live holdings — full book list under Book vs Benchmark */
+.portfolio-page .pf-holdings {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+  min-width: 0;
+}
+
+.portfolio-page .pf-holdings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 0 2px;
+}
+
+.portfolio-page .pf-holdings-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.portfolio-page .pf-holdings-copy h2 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.05rem, 2.8vw, 1.28rem);
+  letter-spacing: -0.02em;
+}
+
+.portfolio-page .pf-holdings-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 10px;
+  min-width: 0;
+}
+
+/* Legacy handoff chrome (unused on Live after B3; kept for safety) */
 .portfolio-page .pf-manage-handoff {
   display: flex;
   flex-wrap: wrap;

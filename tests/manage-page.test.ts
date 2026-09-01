@@ -83,8 +83,10 @@ describe("data management workspace", () => {
     expect(watchlist).toContain("data-manager-logo");
     expect(watchlist).not.toContain("wl-manage-row");
     expect(portfolio).toContain('href="/manage?view=portfolio"');
-    expect(portfolio).toContain("pf-manage-handoff");
+    expect(portfolio).toContain("pf-holdings");
+    expect(portfolio).toContain("PortfolioHoldingCard");
     expect(portfolio).toContain("Manage holdings");
+    expect(portfolio).not.toContain("pf-manage-handoff");
     expect(portfolio).not.toContain("Where the value lives");
     expect(portfolio).not.toContain("composeBar");
     expect(portfolio).not.toContain("handleClearAll");
@@ -93,6 +95,9 @@ describe("data management workspace", () => {
     expect(holdingCard).toContain("fmtPercent");
     expect(holdingCard).toContain("pf-holding-actions");
     expect(holdingCard).toContain("onConfirmRemove");
+    expect(holdingCard).toContain("formatTodayDollars");
+    expect(holdingCard).toContain("barColor");
+    expect(holdingCard).not.toContain("allocationBand");
     expect(holdingCard).not.toContain("pf-holding-badge");
     expect(watchlist).toContain("headerAction={(");
     expect(watchlist).not.toContain('className="data-page-actions"');

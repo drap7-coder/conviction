@@ -41,7 +41,11 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("is-best");
     expect(portfolio).toContain("is-worst");
     expect(portfolio).toContain('id="portfolio-panel-holdings"');
-    expect(portfolio).toContain("pf-manage-handoff");
+    expect(portfolio).toContain("pf-holdings");
+    expect(portfolio).toContain("PortfolioHoldingCard");
+    expect(portfolio).toContain("Manage holdings");
+    expect(portfolio).not.toContain("pf-manage-handoff");
+    expect(portfolio).not.toContain("Where the value lives");
     expect(portfolio).not.toContain("COMPARE_AGAINST_LABEL");
     expect(portfolio).not.toContain("pf-risk");
     expect(portfolio).not.toContain("pf-moves-block");

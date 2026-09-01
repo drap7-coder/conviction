@@ -17,6 +17,8 @@ import {
 import type { PersistedPosition } from "@/lib/portfolio/persist";
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import { fmtCompactCurrency } from "@/lib/display/format";
+import { getSectorColor } from "@/lib/display/sector-colors";
+import { getSectorForCompany } from "@/lib/market/industries";
 
 function parsePosition(
   tickerValue: string,
@@ -355,6 +357,7 @@ export function PortfolioManager() {
                 closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
                 shares={pos.shares}
                 metrics={metrics}
+                barColor={getSectorColor(getSectorForCompany(tickerKey)?.name)}
                 focused={false}
                 isEditing={isEditing}
                 formShares={editShares}

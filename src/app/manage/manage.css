@@ -904,6 +904,27 @@
 .data-manage-page .pf-holding-bar.is-green i { background: var(--green); }
 .data-manage-page .pf-holding-bar.is-amber i { background: var(--amber); }
 .data-manage-page .pf-holding-bar.is-red i { background: var(--red); }
+.data-manage-page .pf-holding-bar.is-industry i { background: var(--quiet); }
+
+.data-manage-page .pf-holding-day {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 4px;
+}
+
+.data-manage-page .pf-holding-day-pct {
+  opacity: 0.78;
+  font-weight: 500;
+}
+
+.data-manage-page .pf-holding-day-suffix {
+  color: var(--quiet);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: lowercase;
+}
 
 @media (min-width: 768px) {
   .data-manage-page {
