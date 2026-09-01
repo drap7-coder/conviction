@@ -15,8 +15,10 @@ export const SEED_INSTITUTIONS: Institution[] = [
     type: "university",
     canonicalDomain: "wm.edu",
     affiliationStatus: "unofficial",
-    /** Neutral UI accent — not official branding. */
     accentColor: "#115740",
+    ncaaId: "william-mary",
+    conference: null,
+    communityEnabled: true,
   },
   {
     id: "institution-rpi",
@@ -26,6 +28,9 @@ export const SEED_INSTITUTIONS: Institution[] = [
     canonicalDomain: "rpi.edu",
     affiliationStatus: "unofficial",
     accentColor: "#D6001C",
+    ncaaId: "rensselaer",
+    conference: null,
+    communityEnabled: true,
   },
 ];
 

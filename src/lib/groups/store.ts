@@ -15,6 +15,10 @@ import {
   getCatalogOverride,
 } from "@/lib/groups/ncaa-catalog";
 import {
+  activateCommunityFromCatalog,
+  ensureNcaaInstitutionDirectory,
+} from "@/lib/groups/institution-directory";
+import {
   SEED_INSTITUTIONS,
   findSeedInstitutionByDomain,
   findSeedInstitutionById,
@@ -39,7 +43,30 @@ type InstitutionRow = {
   canonical_domain: string | null;
   affiliation_status: AffiliationStatus;
   accent_color: string | null;
+  ncaa_id: string | null;
+  conference: string | null;
+  community_enabled: boolean;
 };
+
+const INSTITUTION_COLUMNS = `
+  id, name, slug, type, canonical_domain, affiliation_status, accent_color,
+  ncaa_id, conference, community_enabled
+`;
+
+function mapInstitution(row: InstitutionRow): Institution {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    type: row.type,
+    canonicalDomain: row.canonical_domain,
+    affiliationStatus: row.affiliation_status,
+    accentColor: row.accent_color,
+    ncaaId: row.ncaa_id,
+    conference: row.conference,
+    communityEnabled: row.community_enabled,
+  };
+}
 
 type GroupRow = {
   id: string;
@@ -59,18 +86,6 @@ type InstitutionMembershipRow = InstitutionRow & {
   membership_id: string;
   user_id: string;
 };
-
-function mapInstitution(row: InstitutionRow): Institution {
-  return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug,
-    type: row.type,
-    canonicalDomain: row.canonical_domain,
-    affiliationStatus: row.affiliation_status,
-    accentColor: row.accent_color,
-  };
-}
 
 function mapGroup(row: GroupRow, isCanonical = false): Group {
   return {
@@ -104,14 +119,17 @@ export async function ensureSeedInstitutions(): Promise<void> {
   for (const institution of SEED_INSTITUTIONS) {
     await query(
       `insert into institutions (
-         id, name, slug, type, canonical_domain, affiliation_status, accent_color
-       ) values ($1, $2, $3, $4, $5, $6, $7)
+         id, name, slug, type, canonical_domain, affiliation_status, accent_color,
+         ncaa_id, community_enabled
+       ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        on conflict (slug) do update set
          name = excluded.name,
          type = excluded.type,
          canonical_domain = excluded.canonical_domain,
          affiliation_status = excluded.affiliation_status,
-         accent_color = excluded.accent_color`,
+         accent_color = excluded.accent_color,
+         ncaa_id = coalesce(institutions.ncaa_id, excluded.ncaa_id),
+         community_enabled = institutions.community_enabled or excluded.community_enabled`,
       [
         institution.id,
         institution.name,
@@ -120,6 +138,8 @@ export async function ensureSeedInstitutions(): Promise<void> {
         institution.canonicalDomain,
         institution.affiliationStatus,
         institution.accentColor,
+        institution.ncaaId,
+        institution.communityEnabled,
       ],
     );
   }
@@ -153,7 +173,7 @@ export async function listInstitutions(): Promise<Institution[]> {
   if (!isDatabaseConfigured()) return SEED_INSTITUTIONS.slice();
   try {
     const result = await query<InstitutionRow>(
-      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+      `select ${INSTITUTION_COLUMNS}
        from institutions
        order by name asc`,
     );
@@ -173,7 +193,7 @@ export async function getInstitutionBySlug(slug: string): Promise<Institution | 
   if (!isDatabaseConfigured()) return findSeedInstitutionBySlug(normalized);
   try {
     const result = await query<InstitutionRow>(
-      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+      `select ${INSTITUTION_COLUMNS}
        from institutions where slug = $1 limit 1`,
       [normalized],
     );
@@ -189,7 +209,7 @@ export async function getInstitutionById(id: string): Promise<Institution | null
   if (!isDatabaseConfigured()) return findSeedInstitutionById(id);
   try {
     const result = await query<InstitutionRow>(
-      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+      `select ${INSTITUTION_COLUMNS}
        from institutions where id = $1 limit 1`,
       [id],
     );
@@ -209,7 +229,7 @@ export async function findInstitutionByEmail(
   if (!isDatabaseConfigured()) return findSeedInstitutionByDomain(domain);
   try {
     const result = await query<InstitutionRow>(
-      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+      `select ${INSTITUTION_COLUMNS}
        from institutions where lower(canonical_domain) = $1 limit 1`,
       [domain],
     );
@@ -364,7 +384,7 @@ export async function listInstitutionMembershipsForUser(
     const result = await query<InstitutionMembershipRow>(
       `select m.id as membership_id, m.user_id,
               i.id, i.name, i.slug, i.type, i.canonical_domain,
-              i.affiliation_status, i.accent_color
+              i.affiliation_status, i.accent_color, i.ncaa_id, i.conference, i.community_enabled
        from user_institution_memberships m
        join institutions i on i.id = m.institution_id
        where m.user_id = $1
@@ -554,7 +574,7 @@ export async function joinByInviteCode(input: {
   };
 }
 
-/** Upsert canonical institution + community group from the NCAA directory. */
+/** Activate directory school + ensure canonical group on join (no user-created schools). */
 export async function provisionInstitutionFromCatalog(ncaaId: string): Promise<{
   institution: Institution;
   group: Group;
@@ -577,6 +597,9 @@ export async function provisionInstitutionFromCatalog(ncaaId: string): Promise<{
     canonicalDomain: override?.canonicalDomain ?? seedInstitution?.canonicalDomain ?? null,
     affiliationStatus: "unofficial",
     accentColor: override?.accentColor ?? seedInstitution?.accentColor ?? null,
+    ncaaId: normalizedNcaaId,
+    conference: null,
+    communityEnabled: true,
   };
 
   const group: Group = {
@@ -592,40 +615,13 @@ export async function provisionInstitutionFromCatalog(ncaaId: string): Promise<{
     return { institution, group };
   }
 
-  await query(
-    `insert into institutions (
-       id, name, slug, type, canonical_domain, affiliation_status, accent_color,
-       ncaa_id, community_enabled
-     ) values ($1, $2, $3, 'university', $4, 'unofficial', $5, $6, true)
-     on conflict (id) do update set
-       name = excluded.name,
-       slug = excluded.slug,
-       ncaa_id = coalesce(institutions.ncaa_id, excluded.ncaa_id),
-       community_enabled = true,
-       canonical_domain = coalesce(institutions.canonical_domain, excluded.canonical_domain),
-       accent_color = coalesce(institutions.accent_color, excluded.accent_color)`,
-    [
-      institution.id,
-      institution.name,
-      institution.slug,
-      institution.canonicalDomain,
-      institution.accentColor,
-      normalizedNcaaId,
-    ],
-  );
-
-  await query(
-    `insert into groups (id, institution_id, name, type, primary_color, invite_code)
-     values ($1, $2, $3, 'group', $4, $5)
-     on conflict (id) do update set
-       institution_id = excluded.institution_id,
-       name = excluded.name,
-       primary_color = coalesce(groups.primary_color, excluded.primary_color),
-       invite_code = coalesce(groups.invite_code, excluded.invite_code)`,
-    [group.id, group.institutionId, group.name, group.primaryColor, group.inviteCode],
-  );
-
-  return { institution, group };
+  await activateCommunityFromCatalog(normalizedNcaaId);
+  const loadedInstitution = await getInstitutionById(institutionId);
+  const loadedGroup = await findGroupById(groupId);
+  if (!loadedInstitution || !loadedGroup) {
+    throw new Error("Community not found after activation.");
+  }
+  return { institution: loadedInstitution, group: loadedGroup };
 }
 
 export async function joinCommunity(input: {
