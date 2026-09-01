@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
+
+const TICKER_INPUT_PATTERN = /^[A-Z][A-Z0-9.-]{0,9}$/;
 
 function formatReturn(value: number | null): string {
   if (value === null) return "—";
@@ -20,49 +22,103 @@ function formatStartedAt(value: string): string {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+function normalizeTickerInput(value: string): string {
+  return value.trim().toUpperCase();
+}
+
+function isValidTickerInput(value: string): boolean {
+  const ticker = normalizeTickerInput(value);
+  return TICKER_INPUT_PATTERN.test(ticker);
+}
+
+async function loadCommunityPicksPayload(): Promise<CommunityPicksPayload> {
+  const response = await fetch("/api/community-picks", {
+    cache: "no-store",
+    credentials: "include",
+  });
+  if (!response.ok) throw new Error("Could not load community picks.");
+  return response.json() as Promise<CommunityPicksPayload>;
+}
+
 export function CommunityPickCard() {
   const [data, setData] = useState<CommunityPicksPayload | null>(null);
   const [ticker, setTicker] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/community-picks", { cache: "no-store", credentials: "include" })
-      .then(async (response) => {
-        if (!response.ok) throw new Error("Could not load community picks.");
-        return response.json() as Promise<CommunityPicksPayload>;
-      })
+    loadCommunityPicksPayload()
       .then((payload) => {
         if (!cancelled) setData(payload);
       })
       .catch((reason) => {
-        if (!cancelled) setError(reason instanceof Error ? reason.message : "Could not load community picks.");
+        if (!cancelled) {
+          setError(reason instanceof Error ? reason.message : "Could not load community picks.");
+        }
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  const normalizedTicker = normalizeTickerInput(ticker);
+  const hasExistingPick = Boolean(data?.viewerPick);
+  const isSameTicker =
+    hasExistingPick && normalizedTicker === data?.viewerPick?.ticker.toUpperCase();
+  const canSubmit = isValidTickerInput(ticker) && !isSameTicker;
+
+  const actionLabel = useMemo(() => {
+    if (busy) return hasExistingPick ? "Swapping…" : "Saving…";
+    return hasExistingPick ? "Confirm Swap" : "Save Pick";
+  }, [busy, hasExistingPick]);
+
+  const actionHint = useMemo(() => {
+    if (!ticker.trim()) {
+      return hasExistingPick
+        ? "Enter a new ticker, then tap Confirm Swap."
+        : "Enter a ticker, then tap Save Pick.";
+    }
+    if (!isValidTickerInput(ticker)) {
+      return "Enter a valid stock or ETF ticker (e.g. AAPL).";
+    }
+    if (isSameTicker) {
+      return "Enter a different ticker to swap.";
+    }
+    return hasExistingPick
+      ? `Swap from ${data?.viewerPick?.ticker} to ${normalizedTicker}. Your current pick will bank into lifetime score.`
+      : `Save ${normalizedTicker} as your community pick.`;
+  }, [data?.viewerPick?.ticker, hasExistingPick, isSameTicker, normalizedTicker, ticker]);
+
   async function submitTicker() {
-    if (!ticker.trim() || !data) return;
+    if (!canSubmit || !data) return;
     setBusy(true);
     setError(null);
-    const endpoint = data.viewerPick ? "/api/picks/swap" : "/api/community-picks";
+    setSuccess(null);
+    const endpoint = hasExistingPick ? "/api/picks/swap" : "/api/community-picks";
     try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ ticker: ticker.trim() }),
+        body: JSON.stringify({ ticker: normalizedTicker }),
       });
       const payload = (await response.json()) as CommunityPicksPayload & { error?: string };
       if (!response.ok) {
-        setError(payload.error ?? "Could not save your pick.");
+        setError(payload.error ?? (hasExistingPick ? "Could not swap your pick." : "Could not save your pick."));
         return;
       }
-      setData(payload);
+
+      const refreshed = await loadCommunityPicksPayload();
+      setData(refreshed);
       setTicker("");
+      const savedTicker = refreshed.viewerPick?.ticker ?? normalizedTicker;
+      setSuccess(
+        hasExistingPick
+          ? `Swap confirmed. ${savedTicker} is now your active pick.`
+          : `Pick saved. ${savedTicker} is now your active pick.`,
+      );
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not save your pick.");
     } finally {
@@ -126,35 +182,59 @@ export function CommunityPickCard() {
       ) : null}
 
       {data.authenticated && data.viewerGroup ? (
-        <div className="community-pick-compose">
-          <label>
-            <span>{data.viewerPick ? "Swap ticker" : "Ticker"}</span>
+        <div className="community-pick-editor">
+          <div className="community-pick-editor-head">
+            <h3>{hasExistingPick ? "Change your pick" : "Set your pick"}</h3>
+            {hasExistingPick ? (
+              <span className="community-pick-editor-current">
+                Active: <strong>{data.viewerPick?.ticker}</strong>
+              </span>
+            ) : null}
+          </div>
+
+          <label className="community-pick-editor-field">
+            <span>{hasExistingPick ? "New ticker" : "Ticker"}</span>
             <input
               value={ticker}
-              onChange={(event) => setTicker(event.target.value.toUpperCase())}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") void submitTicker();
+              onChange={(event) => {
+                setTicker(event.target.value.toUpperCase());
+                setError(null);
+                setSuccess(null);
               }}
               placeholder="AAPL"
               autoComplete="off"
               spellCheck={false}
+              inputMode="text"
+              aria-describedby="community-pick-action-hint"
+              disabled={busy}
             />
           </label>
+
+          <p id="community-pick-action-hint" className="community-pick-editor-hint">
+            {actionHint}
+          </p>
+
           <button
             type="button"
-            className="watchlist-add-button"
-            disabled={busy || !ticker.trim()}
+            className="watchlist-add-button community-pick-action"
+            disabled={busy || !canSubmit}
+            aria-busy={busy}
             onClick={() => void submitTicker()}
           >
-            {busy ? "Saving…" : data.viewerPick ? "Swap ticker" : "Set pick"}
+            {actionLabel}
           </button>
-        </div>
-      ) : null}
 
-      {data.viewerPick ? (
-        <p className="community-pick-note">
-          Swapping banks your current pick into your lifetime score. Performance compounds across every ticker you hold.
-        </p>
+          {success ? (
+            <p className="community-pick-success" role="status">
+              {success}
+            </p>
+          ) : null}
+          {error ? (
+            <p className="community-pick-error h2h-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {data.pickHistory.length > 0 ? (
@@ -172,8 +252,6 @@ export function CommunityPickCard() {
           </ol>
         </div>
       ) : null}
-
-      {error ? <p className="h2h-error">{error}</p> : null}
 
       <div className="community-standings">
         <div className="community-standings-head">
