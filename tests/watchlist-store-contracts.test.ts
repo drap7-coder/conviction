@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -13,7 +14,6 @@ describe("watchlist store contracts", () => {
     const tracking = read("src/app/components/use-watchlist-tracking.ts");
     const news = read("src/components/market/PulseNewsFeed.tsx");
     const universe = read("src/lib/evidence/sync-universe.ts");
-    const shim = read("src/lib/watchlist/persist.ts");
     const admin = read("src/app/api/admin/resources/route.ts");
     const agents = read("AGENTS.md");
 
@@ -43,7 +43,7 @@ describe("watchlist store contracts", () => {
     expect(universe).toContain("conviction:sync-universe");
     expect(universe).toContain("buildDailySyncQueue");
     expect(universe).toContain("listPopularMemberWatchlistTickers");
-    expect(shim).toContain("@/lib/evidence/sync-universe");
+    expect(existsSync(resolve("src/lib/watchlist/persist.ts"))).toBe(false);
     expect(admin).toContain("syncUniverse");
     expect(admin).toContain("popular Neon member tickers");
     expect(agents).toContain("sync-universe");

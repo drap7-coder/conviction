@@ -1,14 +1,16 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { HEATMAP_MOBILE_PREVIEW } from "@/components/HeatmapGrid";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 }
 
 describe("quote scoreboards (no product heatmaps)", () => {
-  it("keeps the shared HeatmapGrid collapse helper for any leftover grids", () => {
-    expect(HEATMAP_MOBILE_PREVIEW).toBe(6);
+  it("removes the orphan StockHeatmap / HeatmapGrid / HeatTile stack", () => {
+    expect(existsSync(resolve("src/components/StockHeatmap.tsx"))).toBe(false);
+    expect(existsSync(resolve("src/components/HeatmapGrid.tsx"))).toBe(false);
+    expect(existsSync(resolve("src/components/HeatTile.tsx"))).toBe(false);
   });
 
   it("uses movers-style Top/Bottom boards on Watchlist and index scoreboards on Pulse", () => {
