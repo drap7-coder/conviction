@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import {
-  createInitialCommunityPick,
   loadCommunityPicks,
+  swapCommunityPick,
 } from "@/lib/community-picks/store";
 import { ensureCommunitySchema, formatCommunityDbError } from "@/lib/db/ensure-community-schema";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
@@ -10,17 +10,11 @@ import { validateTicker } from "@/lib/watchlist/validate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  await ensureCommunitySchema();
-  const session = await getOptionalSession();
-  return NextResponse.json(await loadCommunityPicks(session?.user?.id));
-}
-
 export async function POST(request: Request) {
   const session = await getOptionalSession();
   const userId = session?.user?.id;
   if (!userId) {
-    return NextResponse.json({ error: "Sign in to set a community pick." }, { status: 401 });
+    return NextResponse.json({ error: "Sign in to swap your pick." }, { status: 401 });
   }
 
   const body = (await request.json().catch(() => null)) as { ticker?: string } | null;
@@ -32,7 +26,7 @@ export async function POST(request: Request) {
     await ensureCommunitySchema();
     const group = await getPrimaryGroupForUser(userId);
     if (!group) {
-      return NextResponse.json({ error: "Join a community before setting a pick." }, { status: 400 });
+      return NextResponse.json({ error: "Join a community before swapping a pick." }, { status: 400 });
     }
 
     const validation = await validateTicker(body.ticker);
@@ -43,15 +37,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Choose a stock or ETF ticker." }, { status: 400 });
     }
 
-    await createInitialCommunityPick({
+    const result = await swapCommunityPick({
       userId,
       groupId: group.id,
-      ticker: validation.ticker,
+      newTicker: validation.ticker,
     });
-    return NextResponse.json(await loadCommunityPicks(userId));
+
+    const payload = await loadCommunityPicks(userId);
+    return NextResponse.json({
+      ...payload,
+      viewerPick: result.pick,
+      pickHistory: result.pickHistory,
+    });
   } catch (error) {
-    const message = formatCommunityDbError(error);
-    const status = message.includes("already have an active pick") ? 409 : 400;
-    return NextResponse.json({ error: message }, { status });
+    return NextResponse.json({ error: formatCommunityDbError(error) }, { status: 400 });
   }
 }

@@ -93,10 +93,13 @@ describe("community picks wiring", () => {
     expect(read("src/lib/competitions/lifecycle.ts")).toContain("lockDueCompetitions");
   });
 
-  it("ships one continuous pick per member and organization standings", () => {
-    expect(read("migrations/010_community_picks.sql")).toContain("user_id text primary key");
-    expect(read("src/lib/community-picks/store.ts")).toContain("on conflict (user_id) do update");
+  it("ships continuous accumulation picks with banked growth and swap endpoint", () => {
+    expect(read("migrations/013_continuous_pick_accumulation.sql")).toContain("banked_growth_factor");
+    expect(read("src/lib/community-picks/store.ts")).toContain("swapCommunityPick");
+    expect(read("src/lib/community-picks/store.ts")).toContain("createInitialCommunityPick");
     expect(read("src/components/CommunityPickCard.tsx")).toContain("Community standings");
-    expect(read("src/app/api/community-picks/route.ts")).toContain("validateTicker");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("Lifetime score");
+    expect(read("src/app/api/picks/swap/route.ts")).toContain("validateTicker");
+    expect(read("src/app/api/community-picks/route.ts")).toContain("createInitialCommunityPick");
   });
 });
