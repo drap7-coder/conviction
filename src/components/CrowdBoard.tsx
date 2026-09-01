@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CircleCheck, Eye } from "lucide-react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
-import type { CrowdSnapshot } from "@/lib/crowd/types";
+import { formatCrowdRowCount } from "@/lib/crowd/display";
+import type { CrowdHoldingRank, CrowdSnapshot, CrowdWatchRank } from "@/lib/crowd/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { loadPortfolioForViewer } from "@/lib/portfolio/client";
@@ -34,23 +36,6 @@ function readBrowserWatchlistTickers(): string[] {
   }
 }
 
-function formatSharePct(pct: number): string {
-  if (!Number.isFinite(pct) || pct < 0) return "—";
-  const rounded = Math.round(pct * 10) / 10;
-  return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
-}
-
-import { personalOwnershipLabel } from "@/lib/personal-marker";
-
-/** One quiet personal chip for the viewer only — never from the aggregate API. */
-export function crowdPersonalLabel(
-  ticker: string,
-  bookTickers: ReadonlySet<string>,
-  watchTickers: ReadonlySet<string>,
-): string | null {
-  return personalOwnershipLabel(ticker, bookTickers, watchTickers);
-}
-
 /** Quiet head meta: book/list counts + starter vs live mix. Aggregate only. */
 export function crowdBoardMetaLine(
   snapshot: CrowdSnapshot,
@@ -76,13 +61,65 @@ export function crowdBoardMetaLine(
   if (includesDemoBooks && liveBookCount > 0) {
     const liveLists = Math.min(listCount, liveBookCount);
     const starterLists = Math.max(0, listCount - liveLists);
-    // Prefer snapshot seed/live book mix for honesty when every book has a list.
     if (listCount === snapshot.bookCount) {
       return `Across ${listCount} lists · ${liveBookCount} live · ${seedBookCount} starter`;
     }
     return `Across ${listCount} lists · ${liveLists} live · ${starterLists} starter`;
   }
   return `Across ${listCount} ${listCount === 1 ? "list" : "lists"}`;
+}
+
+function crowdRowCount(
+  row: CrowdHoldingRank | CrowdWatchRank,
+  view: CrowdView,
+): string {
+  if (view === "held" && "holderCount" in row) {
+    return formatCrowdRowCount(row.holderCount, row.bookCount, "books");
+  }
+  if ("watcherCount" in row) {
+    return formatCrowdRowCount(row.watcherCount, row.listCount, "lists");
+  }
+  return "—";
+}
+
+function CrowdPersonalGlyphs({
+  ticker,
+  bookTickers,
+  watchTickers,
+}: {
+  ticker: string;
+  bookTickers: ReadonlySet<string>;
+  watchTickers: ReadonlySet<string>;
+}) {
+  const key = ticker.toUpperCase();
+  const owned = bookTickers.has(key);
+  const watched = watchTickers.has(key);
+  if (!owned && !watched) return null;
+
+  const labels: string[] = [];
+  if (owned) labels.push("In your book");
+  if (watched) labels.push("In your watchlist");
+
+  return (
+    <span className="crowd-glyphs" aria-label={labels.join(", ")}>
+      {owned ? (
+        <CircleCheck
+          className="crowd-glyph is-owned"
+          size={14}
+          strokeWidth={2.4}
+          aria-hidden="true"
+        />
+      ) : null}
+      {watched ? (
+        <Eye
+          className="crowd-glyph is-watched"
+          size={14}
+          strokeWidth={2.4}
+          aria-hidden="true"
+        />
+      ) : null}
+    </span>
+  );
 }
 
 export function CrowdBoard() {
@@ -159,7 +196,6 @@ export function CrowdBoard() {
           loadPortfolioForViewer(),
         ]);
         if (cancelled) return;
-        // Guest SoT = localStorage; signed-in = Neon (same as News / useWatchlistTracking).
         const watchAuthenticated = Boolean(watchData?.authenticated);
         const watchEntries = watchAuthenticated && Array.isArray(watchData?.entries)
           ? (watchData.entries as Array<{ ticker: string }>)
@@ -232,11 +268,10 @@ export function CrowdBoard() {
                 const ticker = row.ticker;
                 const quote = quotes[ticker];
                 const href = companyDetailHref(ticker);
-                const name = quote?.name ?? ticker;
                 const topThree = index < 3;
-                const sharePct = "holderPct" in row ? row.holderPct : row.watcherPct;
-                const shareLabel = view === "held" ? "of books" : "of lists";
-                const youLabel = crowdPersonalLabel(ticker, bookTickers, watchTickers);
+                const countLabel = crowdRowCount(row, view);
+                const owned = bookTickers.has(ticker.toUpperCase());
+                const watched = watchTickers.has(ticker.toUpperCase());
                 const body = (
                   <>
                     <span className={`crowd-rank${topThree ? " is-lead" : ""}`} aria-hidden="true">
@@ -246,17 +281,17 @@ export function CrowdBoard() {
                       <LogoDisplay ticker={ticker} size="detail" />
                     </span>
                     <span className="crowd-id">
-                      <strong>{ticker}</strong>
-                      <small>{name}</small>
-                      {youLabel ? (
-                        <span className="crowd-you" aria-hidden="true">
-                          <span className="crowd-you-chip">{youLabel}</span>
-                        </span>
-                      ) : null}
+                      <span className="crowd-ticker-line">
+                        <strong>{ticker}</strong>
+                        <CrowdPersonalGlyphs
+                          ticker={ticker}
+                          bookTickers={bookTickers}
+                          watchTickers={watchTickers}
+                        />
+                      </span>
                     </span>
-                    <span className="crowd-share" aria-hidden="true">
-                      <strong className="tnum">{formatSharePct(sharePct)}</strong>
-                      <small>{shareLabel}</small>
+                    <span className="crowd-count" aria-hidden="true">
+                      <strong className="tnum">{countLabel}</strong>
                     </span>
                     <SessionQuoteStack
                       lastPrice={quote?.price ?? null}
@@ -269,9 +304,9 @@ export function CrowdBoard() {
                 const aria = [
                   `#${index + 1}`,
                   ticker,
-                  name,
-                  `${formatSharePct(sharePct)} ${shareLabel}`,
-                  youLabel,
+                  countLabel,
+                  owned ? "In your book" : null,
+                  watched ? "In your watchlist" : null,
                 ].filter(Boolean).join(", ");
 
                 return (

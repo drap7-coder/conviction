@@ -15,8 +15,12 @@ export type CrowdBook = {
 export type CrowdHoldingRank = {
   ticker: string;
   holderCount: number;
+  /** Books with source live that hold this ticker. */
+  liveHolderCount: number;
+  /** Starter seed books that hold this ticker. */
+  seedHolderCount: number;
   bookCount: number;
-  /** 0–100 share of books that hold this ticker. */
+  /** Derived share — not used as primary UI metric (rounding collapses ties). */
   holderPct: number;
   /** Average weight among holders when cost basis exists; otherwise null. */
   avgWeightPct: number | null;
@@ -25,8 +29,12 @@ export type CrowdHoldingRank = {
 export type CrowdWatchRank = {
   ticker: string;
   watcherCount: number;
+  /** Live-member lists that watch this ticker. */
+  liveWatcherCount: number;
+  /** Starter lists that watch this ticker. */
+  seedWatcherCount: number;
   listCount: number;
-  /** 0–100 share of watchlists that follow this ticker. */
+  /** Derived share — not used as primary UI metric (rounding collapses ties). */
   watcherPct: number;
 };
 

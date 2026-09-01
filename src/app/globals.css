@@ -20644,10 +20644,11 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .crowd-row {
   display: grid;
-  grid-template-columns: 1.4rem 2.25rem minmax(0, 1fr) minmax(3.5rem, auto) auto;
+  grid-template-columns: 1.4rem 2.25rem minmax(0, 1fr) minmax(4.75rem, auto) auto;
   align-items: center;
   gap: 10px 12px;
-  padding: 12px 14px;
+  min-height: 52px;
+  padding: 10px 14px;
   color: inherit;
   text-decoration: none;
   border-bottom: 1px solid color-mix(in srgb, #ffffff 12%, transparent);
@@ -20674,11 +20675,13 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 }
 
 .crowd-rank {
+  align-self: center;
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   text-align: right;
   font-weight: 600;
+  line-height: 1;
 }
 
 .crowd-rank.is-lead {
@@ -20712,72 +20715,70 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 }
 
 .crowd-id {
-  display: grid;
-  gap: 2px;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 28px;
+}
+
+.crowd-ticker-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
 }
 
 .crowd-id strong {
   font-size: 0.95rem;
   letter-spacing: 0.02em;
-  line-height: 1.15;
+  line-height: 1;
 }
 
-.crowd-id small {
-  display: block;
-  font-size: 0.7rem;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.crowd-you {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 3px;
-  min-width: 0;
-}
-
-.crowd-you-chip {
+.crowd-glyphs {
   display: inline-flex;
   align-items: center;
-  min-height: 18px;
-  padding: 2px 6px;
-  border-radius: 999px;
-  background: var(--accent-dim);
-  color: var(--accent);
-  font-family: var(--font-mono);
-  font-size: 0.5rem;
-  font-weight: 750;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  text-transform: uppercase;
-  white-space: nowrap;
+  gap: 3px;
+  flex-shrink: 0;
 }
 
-.crowd-share {
-  display: grid;
-  gap: 1px;
-  justify-items: end;
+.crowd-glyph.is-owned {
+  color: color-mix(in srgb, #4263eb 88%, var(--ink));
+}
+
+.crowd-glyph.is-watched {
+  color: var(--accent);
+}
+
+.crowd-count {
+  display: flex;
+  align-items: center;
+  justify-self: end;
   text-align: right;
   min-width: 0;
 }
 
-.crowd-share strong {
-  font-size: 0.88rem;
-  font-weight: 650;
-  letter-spacing: 0.01em;
+.crowd-count strong {
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.15;
   color: var(--ink);
+  white-space: nowrap;
 }
 
-.crowd-share small {
-  font-size: 0.62rem;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+.crowd-row .session-quote {
+  justify-self: end;
+  opacity: 0.92;
+}
+
+.crowd-row .session-quote-last {
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.crowd-row .session-quote-change {
+  font-size: 0.68rem;
+  font-weight: 600;
 }
 
 .crowd-empty {
@@ -20796,13 +20797,13 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 @media (max-width: 720px) {
   .crowd-row {
-    grid-template-columns: 1.25rem 2.1rem minmax(0, 1fr) minmax(3.1rem, auto) auto;
+    grid-template-columns: 1.25rem 2.1rem minmax(0, 1fr) minmax(4rem, auto) auto;
     column-gap: 10px;
   }
 
   .crowd-rank { align-self: center; }
   .crowd-logo { align-self: center; }
-  .crowd-share { align-self: center; }
+  .crowd-count { align-self: center; }
 }
 
 /* ── Inline voice mic inside ticker fields ── */
