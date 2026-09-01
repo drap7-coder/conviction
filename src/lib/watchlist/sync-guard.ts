@@ -10,10 +10,20 @@ const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 let persistTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingEntries: WatchlistEntry[] | null = null;
 
-export function writeBrowserWatchlistNow(entries: WatchlistEntry[]): void {
-  if (typeof window === "undefined") return;
+function browserStorage(): Storage | null {
   try {
-    window.localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(entries));
+    const storage = globalThis.localStorage;
+    return storage ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeBrowserWatchlistNow(entries: WatchlistEntry[]): void {
+  const storage = browserStorage();
+  if (!storage) return;
+  try {
+    storage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(entries));
   } catch {
     // Browser persistence is best-effort.
   }
@@ -25,7 +35,6 @@ export function scheduleBrowserWatchlistWrite(
   delayMs = 280,
 ): void {
   pendingEntries = entries;
-  if (typeof window === "undefined") return;
   if (persistTimer) clearTimeout(persistTimer);
   persistTimer = setTimeout(() => {
     persistTimer = null;
