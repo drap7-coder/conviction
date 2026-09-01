@@ -98,12 +98,12 @@ describe("crowdBoardMetaLine", () => {
 });
 
 describe("crowdPersonalLabel", () => {
-  it("returns one unified pill for book, watchlist, or both", () => {
+  it("returns one unified pill for owned, watched, or both", () => {
     const book = new Set(["NVDA", "AAPL"]);
     const watch = new Set(["HOOD", "NVDA"]);
-    expect(crowdPersonalLabel("nvda", book, watch)).toBe("In your book & watchlist");
-    expect(crowdPersonalLabel("AAPL", book, watch)).toBe("In your book");
-    expect(crowdPersonalLabel("HOOD", book, watch)).toBe("In your watchlist");
+    expect(crowdPersonalLabel("nvda", book, watch)).toBe("Owned & Watched");
+    expect(crowdPersonalLabel("AAPL", book, watch)).toBe("Owned");
+    expect(crowdPersonalLabel("HOOD", book, watch)).toBe("Watched");
     expect(crowdPersonalLabel("MSFT", book, watch)).toBeNull();
   });
 });
@@ -124,14 +124,14 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-board-meta");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowdPersonalLabel");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-you-chip");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("In your book & watchlist");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("In your book");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("In your watchlist");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("Owned & Watched");
+    expect(read("src/components/CrowdBoard.tsx")).toContain('"Owned"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain('"Watched"');
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("youLabels.map");
     expect(read("src/components/CrowdBoard.tsx")).toContain("loadPortfolioForViewer");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("sync-universe");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
-    expect(read("src/app/api/crowd/route.ts")).not.toContain("In your book");
+    expect(read("src/app/api/crowd/route.ts")).not.toContain("Owned");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("pulse-movers-logo");
     expect(read("src/app/globals.css")).toContain(".pulse-movers-logo");
@@ -145,7 +145,7 @@ describe("Crowd surface wiring", () => {
     expect(read("AGENTS.md")).toContain("holderPct");
     expect(read("AGENTS.md")).toContain("crowd-board-meta");
     expect(read("AGENTS.md")).toContain("crowdPersonalLabel");
-    expect(read("AGENTS.md")).toContain("In your book & watchlist");
+    expect(read("AGENTS.md")).toContain("Owned & Watched");
   });
 
   it("covers Crowd seed tickers with logo domains or sector badges", () => {

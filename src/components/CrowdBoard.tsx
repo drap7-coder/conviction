@@ -49,9 +49,9 @@ export function crowdPersonalLabel(
   const key = ticker.toUpperCase();
   const inBook = bookTickers.has(key);
   const inWatch = watchTickers.has(key);
-  if (inBook && inWatch) return "In your book & watchlist";
-  if (inBook) return "In your book";
-  if (inWatch) return "In your watchlist";
+  if (inBook && inWatch) return "Owned & Watched";
+  if (inBook) return "Owned";
+  if (inWatch) return "Watched";
   return null;
 }
 
