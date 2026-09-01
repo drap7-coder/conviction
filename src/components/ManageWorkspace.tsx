@@ -36,7 +36,7 @@ const MANAGE_HERO = {
     eyebrow: "Community",
     headline: "Your school or company community.",
     summary:
-      "Join or edit on Crowd — search NCAA schools (William & Mary and RPI are live). One community per school; platform adds new schools over time.",
+      "Join or edit on Crowd — search any NCAA school. One community per school; your join activates the canonical campus community.",
     cta: "Open Crowd",
   },
 } as const;

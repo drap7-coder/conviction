@@ -7,7 +7,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import type { SchoolSuggestion } from "@/lib/groups/ncaa-schools";
+import type { SchoolSuggestion } from "@/lib/groups/ncaa-catalog";
 
 function highlightMatch(text: string, query: string) {
   const normalized = query.trim();
@@ -169,7 +169,7 @@ export function SchoolTypeahead({
               key={suggestion.ncaaId}
               role="option"
               aria-selected={index === activeIndex}
-              className={`ticker-suggestion school-suggestion${index === activeIndex ? " active" : ""}${suggestion.live ? " is-live" : " is-soon"}`}
+              className={`ticker-suggestion school-suggestion${index === activeIndex ? " active" : ""}`}
               onPointerDown={(event) => {
                 event.preventDefault();
                 selectSuggestion(suggestion);
@@ -179,9 +179,7 @@ export function SchoolTypeahead({
               <span className="ticker-suggestion-name">
                 {highlightMatch(suggestion.name, value)}
               </span>
-              <span className="school-suggestion-badge">
-                {suggestion.live ? "Join" : "Coming soon"}
-              </span>
+              <span className="school-suggestion-badge">Join</span>
             </li>
           ))}
         </ul>

@@ -8,6 +8,13 @@ import {
   listSeedCanonicalCommunities,
 } from "@/lib/groups/seed-groups";
 import {
+  findNcaaCatalogEntry,
+  catalogGroupId,
+  catalogInstitutionId,
+  catalogSlug,
+  getCatalogOverride,
+} from "@/lib/groups/ncaa-catalog";
+import {
   SEED_INSTITUTIONS,
   findSeedInstitutionByDomain,
   findSeedInstitutionById,
@@ -239,6 +246,16 @@ export async function getCanonicalGroupForInstitution(
         [institutionId, institution.name],
       );
       if (byName.rows[0]) return mapGroup(byName.rows[0], true);
+
+      if (institutionId.startsWith("institution-")) {
+        const derivedGroupId = `group-${institutionId.slice("institution-".length)}`;
+        const byCatalogId = await query<GroupRow>(
+          `select id, institution_id, name, invite_code, primary_color
+           from groups where id = $1 limit 1`,
+          [derivedGroupId],
+        );
+        if (byCatalogId.rows[0]) return mapGroup(byCatalogId.rows[0], true);
+      }
     }
     return seed;
   } catch {
@@ -537,12 +554,96 @@ export async function joinByInviteCode(input: {
   };
 }
 
+/** Upsert canonical institution + community group from the NCAA directory. */
+export async function provisionInstitutionFromCatalog(ncaaId: string): Promise<{
+  institution: Institution;
+  group: Group;
+}> {
+  const normalizedNcaaId = ncaaId.trim();
+  const entry = findNcaaCatalogEntry(normalizedNcaaId);
+  if (!entry) throw new Error("School not found in NCAA directory.");
+
+  const override = getCatalogOverride(normalizedNcaaId);
+  const institutionId = catalogInstitutionId(normalizedNcaaId);
+  const groupId = catalogGroupId(normalizedNcaaId);
+  const slug = catalogSlug(normalizedNcaaId);
+  const seedInstitution = findSeedInstitutionById(institutionId);
+
+  const institution: Institution = {
+    id: institutionId,
+    name: seedInstitution?.name ?? entry.name,
+    slug,
+    type: "university",
+    canonicalDomain: override?.canonicalDomain ?? seedInstitution?.canonicalDomain ?? null,
+    affiliationStatus: "unofficial",
+    accentColor: override?.accentColor ?? seedInstitution?.accentColor ?? null,
+  };
+
+  const group: Group = {
+    id: groupId,
+    institutionId,
+    name: institution.name,
+    inviteCode: override?.inviteCode ?? normalizedNcaaId,
+    primaryColor: institution.accentColor,
+    isCanonicalCommunity: true,
+  };
+
+  if (!isDatabaseConfigured()) {
+    return { institution, group };
+  }
+
+  await query(
+    `insert into institutions (
+       id, name, slug, type, canonical_domain, affiliation_status, accent_color,
+       ncaa_id, community_enabled
+     ) values ($1, $2, $3, 'university', $4, 'unofficial', $5, $6, true)
+     on conflict (id) do update set
+       name = excluded.name,
+       slug = excluded.slug,
+       ncaa_id = coalesce(institutions.ncaa_id, excluded.ncaa_id),
+       community_enabled = true,
+       canonical_domain = coalesce(institutions.canonical_domain, excluded.canonical_domain),
+       accent_color = coalesce(institutions.accent_color, excluded.accent_color)`,
+    [
+      institution.id,
+      institution.name,
+      institution.slug,
+      institution.canonicalDomain,
+      institution.accentColor,
+      normalizedNcaaId,
+    ],
+  );
+
+  await query(
+    `insert into groups (id, institution_id, name, type, primary_color, invite_code)
+     values ($1, $2, $3, 'group', $4, $5)
+     on conflict (id) do update set
+       institution_id = excluded.institution_id,
+       name = excluded.name,
+       primary_color = coalesce(groups.primary_color, excluded.primary_color),
+       invite_code = coalesce(groups.invite_code, excluded.invite_code)`,
+    [group.id, group.institutionId, group.name, group.primaryColor, group.inviteCode],
+  );
+
+  return { institution, group };
+}
+
 export async function joinCommunity(input: {
   userId: string;
-  institutionId: string;
+  institutionId?: string;
+  ncaaId?: string;
   isPrimary?: boolean;
 }): Promise<UserGroupMembership[]> {
-  const group = await getCanonicalGroupForInstitution(input.institutionId);
+  let institutionId = input.institutionId?.trim() ?? "";
+
+  if (!institutionId && input.ncaaId?.trim()) {
+    const provisioned = await provisionInstitutionFromCatalog(input.ncaaId);
+    institutionId = provisioned.institution.id;
+  }
+
+  if (!institutionId) throw new Error("School required.");
+
+  const group = await getCanonicalGroupForInstitution(institutionId);
   if (!group) throw new Error("Community not found");
   return addMembership({
     userId: input.userId,

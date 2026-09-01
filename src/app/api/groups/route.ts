@@ -11,6 +11,7 @@ import {
   listCommunities,
   listCommunityMembershipsForUser,
   listInstitutions,
+  provisionInstitutionFromCatalog,
   removeMembership,
   setPrimaryMembership,
   updateCommunityTheme,
@@ -84,6 +85,7 @@ export async function POST(request: Request) {
     groupId?: string;
     institutionId?: string;
     institutionSlug?: string;
+    ncaaId?: string;
     inviteCode?: string;
     primaryColor?: string | null;
     isPrimary?: boolean;
@@ -128,6 +130,10 @@ export async function POST(request: Request) {
 
     if (body.action === "join") {
       let institutionId = body.institutionId?.trim() ?? "";
+      if (!institutionId && body.ncaaId?.trim()) {
+        const provisioned = await provisionInstitutionFromCatalog(body.ncaaId.trim());
+        institutionId = provisioned.institution.id;
+      }
       if (!institutionId && body.institutionSlug) {
         const institution = await getInstitutionBySlug(body.institutionSlug);
         institutionId = institution?.id ?? "";
@@ -138,7 +144,10 @@ export async function POST(request: Request) {
           communities.find((c) => c.groupId === body.groupId)?.institution.id ?? "";
       }
       if (!institutionId) {
-        return NextResponse.json({ error: "institutionId required." }, { status: 400 });
+        return NextResponse.json(
+          { error: "ncaaId or institutionId required." },
+          { status: 400 },
+        );
       }
       const memberships = await joinCommunity({
         userId,
