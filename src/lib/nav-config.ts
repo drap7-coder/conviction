@@ -102,9 +102,11 @@ export function isOverflowNavPath(pathname: string): boolean {
   return menuNavPages.some((page) => isNavPathActive(pathname, page.href));
 }
 
-export const menuGroups: Array<{ id: NavGroup; label: string; pages: NavPage[] }> = [
-  { id: "account", label: "Your data", pages: navPages.filter((page) => page.group === "account") },
-  { id: "daily", label: "Daily", pages: primaryNavTabs },
-  { id: "more", label: "More", pages: navPages.filter((page) => page.group === "more") },
-  { id: "about", label: "About", pages: navPages.filter((page) => page.group === "about") },
-].filter((group) => group.pages.length > 0);
+export const menuGroups: Array<{ id: NavGroup; label: string; pages: NavPage[] }> = (
+  [
+    { id: "account", label: "Your data", pages: navPages.filter((page) => page.group === "account") },
+    { id: "daily", label: "Daily", pages: primaryNavTabs },
+    { id: "more", label: "More", pages: navPages.filter((page) => page.group === "more") },
+    { id: "about", label: "About", pages: navPages.filter((page) => page.group === "about") },
+  ] satisfies Array<{ id: NavGroup; label: string; pages: NavPage[] }>
+).filter((group) => group.pages.length > 0);
