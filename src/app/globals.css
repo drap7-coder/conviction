@@ -1386,18 +1386,35 @@ button.bottom-tab-item {
   height: 58px;
   object-fit: contain;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14));
-  /* Subtle primary-group tint on the bull mark when --group-accent is set. */
-  box-shadow: 0 0 0 0 transparent;
 }
 
 .app-brand:has(.app-logo) {
   position: relative;
+  isolation: isolate;
 }
 
-.app-logo {
-  outline: 1.5px solid color-mix(in srgb, var(--group-accent) 42%, transparent);
-  outline-offset: 2px;
-  border-radius: 10px;
+html[data-group-accent] .app-brand:has(.app-logo)::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  width: 88px;
+  height: 88px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--group-accent) 32%, transparent),
+    transparent 68%
+  );
+  pointer-events: none;
+  z-index: -1;
+}
+
+html[data-group-accent] .app-logo {
+  filter:
+    drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14))
+    drop-shadow(0 0 16px color-mix(in srgb, var(--group-accent) 28%, transparent));
 }
 
 .app-title {
@@ -20606,6 +20623,28 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 12px;
   min-width: 0;
   padding-bottom: 24px;
+  position: relative;
+}
+
+html[data-group-accent] .crowd-page::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: min(320px, 55vh);
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 95% 70% at 50% -8%,
+      color-mix(in srgb, var(--group-accent) 16%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(180deg, color-mix(in srgb, var(--group-accent) 5%, transparent), transparent);
+  z-index: 0;
+}
+
+html[data-group-accent] .crowd-page > * {
+  position: relative;
+  z-index: 1;
 }
 
 .crowd-page-body {
@@ -20616,6 +20655,17 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .crowd-community-panel {
   padding: 12px 14px 14px;
+}
+
+html[data-group-accent] .crowd-community-panel {
+  border-color: color-mix(in srgb, var(--group-accent) 24%, var(--border-raised));
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--group-accent) 11%, transparent), transparent 62%),
+    var(--card);
+}
+
+html[data-group-accent] .crowd-community-eyebrow {
+  color: color-mix(in srgb, var(--group-accent) 52%, var(--muted));
 }
 
 .crowd-community-head {
@@ -20810,6 +20860,17 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   padding: 16px;
 }
 
+html[data-group-accent] .community-pick-card {
+  border-color: color-mix(in srgb, var(--group-accent) 24%, var(--border-raised));
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--group-accent) 10%, transparent), transparent 58%),
+    var(--card);
+}
+
+html[data-group-accent] .community-pick-eyebrow {
+  color: color-mix(in srgb, var(--group-accent) 52%, var(--muted));
+}
+
 .community-pick-head,
 .community-standings-head {
   display: flex;
@@ -20913,8 +20974,30 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   grid-template-columns: 24px minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px;
-  padding: 9px 0;
+  padding: 9px 10px 9px 0;
   border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
+html[data-group-accent] .community-standings li.is-yours {
+  position: relative;
+  margin-inline: -4px;
+  padding: 9px 10px 9px 12px;
+  border-top-color: transparent;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--group-accent) 16%, transparent),
+    transparent 78%
+  );
+  box-shadow: inset 3px 0 0 var(--group-accent);
+}
+
+html[data-group-accent] .community-standings li.is-yours + li {
+  border-top-color: transparent;
+}
+
+html[data-group-accent] .community-standings li.is-yours .community-standing-name strong {
+  color: color-mix(in srgb, var(--group-accent) 42%, var(--ink));
 }
 
 .community-standing-rank {
@@ -21448,6 +21531,67 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 .group-settings-join-btn {
   margin-top: 8px;
   width: 100%;
+}
+
+.group-theme-section {
+  display: grid;
+  gap: 10px;
+}
+
+.group-theme-preview {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--group-accent) 26%, var(--border-raised));
+  border-radius: 14px;
+  background: var(--card);
+}
+
+.group-theme-preview-atmosphere {
+  height: 54px;
+  background:
+    radial-gradient(
+      ellipse 85% 120% at 18% 0%,
+      color-mix(in srgb, var(--group-accent) 24%, transparent),
+      transparent
+    ),
+    linear-gradient(180deg, color-mix(in srgb, var(--group-accent) 9%, transparent), transparent);
+}
+
+.group-theme-preview-standings {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 8px 10px 10px;
+  list-style: none;
+}
+
+.group-theme-preview-standings li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.group-theme-preview-standings li.is-yours {
+  color: var(--ink);
+  font-weight: 650;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--group-accent) 18%, transparent),
+    transparent 75%
+  );
+  box-shadow: inset 3px 0 0 var(--group-accent);
+}
+
+.group-theme-note {
+  margin: 0;
+  color: var(--quiet);
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .group-theme-swatches {
