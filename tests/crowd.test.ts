@@ -124,9 +124,10 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-board-meta");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowdPersonalLabel");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-you-chip");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("Owned & Watched");
-    expect(read("src/components/CrowdBoard.tsx")).toContain('"Owned"');
-    expect(read("src/components/CrowdBoard.tsx")).toContain('"Watched"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain("personalOwnershipLabel");
+    expect(read("src/lib/personal-marker.ts")).toContain("Owned & Watched");
+    expect(read("src/lib/personal-marker.ts")).toContain('"Owned"');
+    expect(read("src/lib/personal-marker.ts")).toContain('"Watched"');
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("youLabels.map");
     expect(read("src/components/CrowdBoard.tsx")).toContain("loadPortfolioForViewer");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("sync-universe");
