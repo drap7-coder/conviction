@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAccess } from "@/lib/api/cron-auth";
 import { applyMigrations } from "@/lib/db/migrate";
-import { ensureSeedGroups, ensureSeedInstitutions } from "@/lib/groups/store";
+import { ensureCommunitySchema } from "@/lib/db/ensure-community-schema";
 
 export const dynamic = "force-dynamic";
 
@@ -16,8 +16,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const migrations = await applyMigrations();
-    await ensureSeedInstitutions();
-    await ensureSeedGroups();
+    await ensureCommunitySchema();
     return NextResponse.json({
       success: true,
       migrations,

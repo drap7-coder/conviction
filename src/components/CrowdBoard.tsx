@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CircleCheck, Eye } from "lucide-react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { CrowdCommunityPanel } from "@/components/CrowdCommunityPanel";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
@@ -246,6 +247,8 @@ export function CrowdBoard() {
 
   return (
     <div className="crowd-page-body">
+      <CrowdCommunityPanel />
+
       <SurfaceSlicer
         label="Crowd view"
         options={VIEWS}

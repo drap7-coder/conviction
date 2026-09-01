@@ -20608,6 +20608,48 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   min-width: 0;
 }
 
+.crowd-community-panel {
+  padding: 12px 14px 14px;
+}
+
+.crowd-community-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.crowd-community-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.crowd-community-eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.crowd-community-summary {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.crowd-community-actions {
+  flex-shrink: 0;
+}
+
+.crowd-community-panel .group-settings {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+}
+
 .crowd-board {
   overflow: hidden;
   padding: 4px 0 2px;
@@ -21120,7 +21162,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   color: color-mix(in srgb, var(--group-accent, #115740) 80%, var(--ink));
 }
 
-.group-settings.is-onboarding .group-settings-join-btn {
+.group-settings-join-btn {
   margin-top: 8px;
   width: 100%;
 }

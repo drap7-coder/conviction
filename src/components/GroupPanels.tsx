@@ -198,7 +198,7 @@ export function CommunitySettingsPanel({
               }}
             />
           </label>
-          {onboarding && pickedSchool?.live ? (
+          {pickedSchool?.live ? (
             <button
               type="button"
               className="watchlist-add-button group-settings-join-btn"
@@ -208,38 +208,6 @@ export function CommunitySettingsPanel({
               Join community
             </button>
           ) : null}
-        </div>
-      ) : null}
-
-      {!onboarding && data.authenticated && data.memberships.length === 0 ? (
-        <div className="group-settings-join">
-          <label>
-            Or pick from live schools
-            <select
-              defaultValue=""
-              disabled={busy}
-              onChange={(event) => {
-                const institutionId = event.target.value;
-                if (!institutionId) return;
-                void post({
-                  action: "join",
-                  institutionId,
-                  primaryColor: themeColor,
-                  isPrimary: true,
-                });
-                event.target.value = "";
-              }}
-            >
-              <option value="">Select…</option>
-              {data.communities
-                .filter((community) => !memberIds.has(community.institution.id))
-                .map((community) => (
-                  <option key={community.institution.id} value={community.institution.id}>
-                    {community.institution.name}
-                  </option>
-                ))}
-            </select>
-          </label>
         </div>
       ) : null}
 
@@ -359,8 +327,8 @@ export function GroupOnboardingPrompt() {
       >
         <h2>Join your community</h2>
         <p>
-          Search your school, pick a color, then join. Tap outside to close — or manage anytime under
-          Manage → Community.
+          Search your school, pick a color, then join. Tap outside to close — or manage anytime on
+          Crowd.
         </p>
         <CommunitySettingsPanel
           compact

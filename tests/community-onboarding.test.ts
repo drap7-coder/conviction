@@ -22,15 +22,22 @@ describe("NCAA school search", () => {
 });
 
 describe("community onboarding wiring", () => {
-  it("supports backdrop dismiss, NCAA search, and Manage Community panel", () => {
+  it("supports backdrop dismiss, NCAA search, Crowd panel, and Manage Community", () => {
     expect(read("src/components/GroupPanels.tsx")).toContain("onClick={() => setOpen(false)}");
     expect(read("src/components/GroupPanels.tsx")).toContain("stopPropagation");
     expect(read("src/components/GroupPanels.tsx")).toContain("SchoolTypeahead");
     expect(read("src/components/GroupPanels.tsx")).toContain("onboarding");
     expect(read("src/components/GroupPanels.tsx")).toContain("Theme color");
     expect(read("src/app/api/schools/search/route.ts")).toContain("searchNcaaSchools");
+    expect(read("src/components/CrowdCommunityPanel.tsx")).toContain("CommunitySettingsPanel");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdCommunityPanel");
     expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');
     expect(read("src/app/layout.tsx")).toContain("GroupOnboardingPrompt");
+  });
+
+  it("auto-applies community schema before groups API writes", () => {
+    expect(read("src/app/api/groups/route.ts")).toContain("ensureCommunitySchema");
+    expect(read("src/lib/db/ensure-community-schema.ts")).toContain("applyMigrations");
   });
 
   it("join action accepts theme color in one step", () => {
