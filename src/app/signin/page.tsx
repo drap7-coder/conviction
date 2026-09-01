@@ -28,11 +28,10 @@ export default async function SignInPage({
 }: {
   searchParams: SignInSearchParams;
 }) {
-  const session = process.env.AUTH_SECRET ? await auth() : null;
-  if (session?.user) redirect("/manage");
-
   const params = await searchParams;
   const redirectTo = safeRedirectTo(params.callbackUrl);
+  const session = process.env.AUTH_SECRET ? await auth() : null;
+  if (session?.user) redirect(redirectTo);
   const hasError = Boolean(params.error);
   const configured = isAuthConfigured();
 

@@ -9,6 +9,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "migrate": "npx --yes tsx src/scripts/migrate.ts",
     "seed:crowd": "npx --yes tsx src/scripts/seed-crowd.ts"
   },
   "dependencies": {

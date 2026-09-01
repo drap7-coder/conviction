@@ -79,9 +79,9 @@ export function buildSeedCompetition(now = new Date()): Competition {
   const mondayUtc = Date.UTC(y, m - 1, d - offset, 13, 30, 0); // ~9:30 ET
   const fridayUtc = Date.UTC(y, m - 1, d - offset + 4, 20, 0, 0); // ~16:00 ET Fri
   return {
-    id: "competition-seed-wm-uva",
-    groupAId: "group-seed-wm",
-    groupBId: "group-seed-uva",
+    id: "competition-seed-wm-finance-kkg",
+    groupAId: "group-wm-finance",
+    groupBId: "group-wm-kkg",
     periodStart: new Date(mondayUtc).toISOString(),
     periodEnd: new Date(fridayUtc).toISOString(),
     metric: "avg_pct_return",
@@ -90,12 +90,12 @@ export function buildSeedCompetition(now = new Date()): Competition {
 
 /** Seed pick returns — only active pickers contribute (no zero-fill). */
 const SEED_PICK_RETURNS: Record<string, Array<{ groupId: string; pct: number }>> = {
-  "competition-seed-wm-uva": [
-    { groupId: "group-seed-wm", pct: 1.8 },
-    { groupId: "group-seed-wm", pct: 0.6 },
-    { groupId: "group-seed-wm", pct: -0.4 },
-    { groupId: "group-seed-uva", pct: 1.2 },
-    { groupId: "group-seed-uva", pct: 0.9 },
+  "competition-seed-wm-finance-kkg": [
+    { groupId: "group-wm-finance", pct: 1.8 },
+    { groupId: "group-wm-finance", pct: 0.6 },
+    { groupId: "group-wm-finance", pct: -0.4 },
+    { groupId: "group-wm-kkg", pct: 1.2 },
+    { groupId: "group-wm-kkg", pct: 0.9 },
   ],
 };
 
@@ -178,8 +178,15 @@ export async function listActiveCompetitionStandings(
     const standings: CompetitionStanding[] = [];
     for (const row of comps.rows) {
       const competition = mapCompetition(row);
-      const groups = await query<{ id: string; name: string; type: "school" | "org"; primary_color: string | null }>(
-        `select id, name, type, primary_color from groups where id = any($1::text[])`,
+      const groups = await query<{
+        id: string;
+        institution_id: string;
+        name: string;
+        invite_code: string | null;
+        primary_color: string | null;
+      }>(
+        `select id, institution_id, name, invite_code, primary_color
+         from groups where id = any($1::text[])`,
         [[competition.groupAId, competition.groupBId]],
       );
       const byId = new Map(
@@ -187,8 +194,9 @@ export async function listActiveCompetitionStandings(
           g.id,
           {
             id: g.id,
+            institutionId: g.institution_id,
             name: g.name,
-            type: g.type,
+            inviteCode: g.invite_code,
             primaryColor: g.primary_color,
           } satisfies Group,
         ]),
@@ -199,7 +207,7 @@ export async function listActiveCompetitionStandings(
 
       // Active picks only — averages stay null until a daily MTM job fills returns.
       // Seed demo competition keeps illustrative active-pick averages.
-      if (competition.id === "competition-seed-wm-uva") {
+      if (competition.id === "competition-seed-wm-finance-kkg") {
         const seedPicks = SEED_PICK_RETURNS[competition.id] ?? [];
         standings.push(
           buildStandingFromReturns({

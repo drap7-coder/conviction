@@ -1,11 +1,41 @@
 import { isDatabaseConfigured, query } from "@/lib/db";
-import { SEED_GROUPS, findSeedGroupByName } from "@/lib/groups/seed-groups";
-import type { Group, GroupType, UserGroupMembership } from "@/lib/groups/types";
+import {
+  SEED_GROUPS,
+  findSeedGroupById,
+  findSeedGroupByInviteCode,
+  findSeedGroupByName,
+  listSeedGroupsForInstitution,
+} from "@/lib/groups/seed-groups";
+import {
+  SEED_INSTITUTIONS,
+  findSeedInstitutionByDomain,
+  findSeedInstitutionById,
+  findSeedInstitutionBySlug,
+} from "@/lib/groups/seed-institutions";
+import type {
+  AffiliationStatus,
+  Group,
+  Institution,
+  InstitutionType,
+  UserGroupMembership,
+  UserInstitutionMembership,
+} from "@/lib/groups/types";
+
+type InstitutionRow = {
+  id: string;
+  name: string;
+  slug: string;
+  type: InstitutionType;
+  canonical_domain: string | null;
+  affiliation_status: AffiliationStatus;
+  accent_color: string | null;
+};
 
 type GroupRow = {
   id: string;
+  institution_id: string;
   name: string;
-  type: GroupType;
+  invite_code: string | null;
   primary_color: string | null;
 };
 
@@ -15,11 +45,29 @@ type MembershipRow = GroupRow & {
   is_primary: boolean;
 };
 
-function mapGroup(row: GroupRow): Group {
+type InstitutionMembershipRow = InstitutionRow & {
+  membership_id: string;
+  user_id: string;
+};
+
+function mapInstitution(row: InstitutionRow): Institution {
   return {
     id: row.id,
     name: row.name,
+    slug: row.slug,
     type: row.type,
+    canonicalDomain: row.canonical_domain,
+    affiliationStatus: row.affiliation_status,
+    accentColor: row.accent_color,
+  };
+}
+
+function mapGroup(row: GroupRow): Group {
+  return {
+    id: row.id,
+    institutionId: row.institution_id,
+    name: row.name,
+    inviteCode: row.invite_code,
     primaryColor: row.primary_color,
   };
 }
@@ -31,23 +79,172 @@ function normalizeHex(color: string | null | undefined): string | null {
   return trimmed.toUpperCase();
 }
 
-/** Groups that currently have ≥1 membership (active Crowd filter pool). */
-export async function listActiveGroups(): Promise<Group[]> {
-  if (!isDatabaseConfigured()) {
-    return SEED_GROUPS.slice();
-  }
+function slugifyInvite(name: string): string {
+  return name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 32);
+}
 
+export async function ensureSeedInstitutions(): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+  for (const institution of SEED_INSTITUTIONS) {
+    await query(
+      `insert into institutions (
+         id, name, slug, type, canonical_domain, affiliation_status, accent_color
+       ) values ($1, $2, $3, $4, $5, $6, $7)
+       on conflict (slug) do update set
+         name = excluded.name,
+         type = excluded.type,
+         canonical_domain = excluded.canonical_domain,
+         affiliation_status = excluded.affiliation_status,
+         accent_color = excluded.accent_color`,
+      [
+        institution.id,
+        institution.name,
+        institution.slug,
+        institution.type,
+        institution.canonicalDomain,
+        institution.affiliationStatus,
+        institution.accentColor,
+      ],
+    );
+  }
+}
+
+/** Ensure seed groups exist under their institutions (idempotent). */
+export async function ensureSeedGroups(): Promise<void> {
+  if (!isDatabaseConfigured()) return;
+  await ensureSeedInstitutions();
+  for (const group of SEED_GROUPS) {
+    await query(
+      `insert into groups (id, institution_id, name, type, primary_color, invite_code)
+       values ($1, $2, $3, 'group', $4, $5)
+       on conflict (id) do update set
+         institution_id = excluded.institution_id,
+         name = excluded.name,
+         primary_color = excluded.primary_color,
+         invite_code = coalesce(groups.invite_code, excluded.invite_code)`,
+      [
+        group.id,
+        group.institutionId,
+        group.name,
+        group.primaryColor,
+        group.inviteCode,
+      ],
+    );
+  }
+}
+
+export async function listInstitutions(): Promise<Institution[]> {
+  if (!isDatabaseConfigured()) return SEED_INSTITUTIONS.slice();
+  try {
+    const result = await query<InstitutionRow>(
+      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+       from institutions
+       order by name asc`,
+    );
+    const rows = result.rows.map(mapInstitution);
+    const missing = SEED_INSTITUTIONS.filter(
+      (seed) => !rows.some((row) => row.slug === seed.slug),
+    );
+    return [...rows, ...missing].sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return SEED_INSTITUTIONS.slice();
+  }
+}
+
+export async function getInstitutionBySlug(slug: string): Promise<Institution | null> {
+  const normalized = slug.trim().toLowerCase();
+  if (!normalized) return null;
+  if (!isDatabaseConfigured()) return findSeedInstitutionBySlug(normalized);
+  try {
+    const result = await query<InstitutionRow>(
+      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+       from institutions where slug = $1 limit 1`,
+      [normalized],
+    );
+    if (result.rows[0]) return mapInstitution(result.rows[0]);
+    return findSeedInstitutionBySlug(normalized);
+  } catch {
+    return findSeedInstitutionBySlug(normalized);
+  }
+}
+
+export async function getInstitutionById(id: string): Promise<Institution | null> {
+  if (!id) return null;
+  if (!isDatabaseConfigured()) return findSeedInstitutionById(id);
+  try {
+    const result = await query<InstitutionRow>(
+      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+       from institutions where id = $1 limit 1`,
+      [id],
+    );
+    if (result.rows[0]) return mapInstitution(result.rows[0]);
+    return findSeedInstitutionById(id);
+  } catch {
+    return findSeedInstitutionById(id);
+  }
+}
+
+/** Resolve institution from an email domain (future .edu auto-associate). */
+export async function findInstitutionByEmail(
+  email: string | null | undefined,
+): Promise<Institution | null> {
+  if (!email || !email.includes("@")) return null;
+  const domain = email.split("@").pop()?.trim().toLowerCase() ?? "";
+  if (!domain) return null;
+  if (!isDatabaseConfigured()) return findSeedInstitutionByDomain(domain);
+  try {
+    const result = await query<InstitutionRow>(
+      `select id, name, slug, type, canonical_domain, affiliation_status, accent_color
+       from institutions where lower(canonical_domain) = $1 limit 1`,
+      [domain],
+    );
+    if (result.rows[0]) return mapInstitution(result.rows[0]);
+    return findSeedInstitutionByDomain(domain);
+  } catch {
+    return findSeedInstitutionByDomain(domain);
+  }
+}
+
+export async function listGroupsForInstitution(institutionId: string): Promise<Group[]> {
+  if (!institutionId) return [];
+  if (!isDatabaseConfigured()) return listSeedGroupsForInstitution(institutionId);
   try {
     const result = await query<GroupRow>(
-      `select g.id, g.name, g.type, g.primary_color
+      `select id, institution_id, name, invite_code, primary_color
+       from groups
+       where institution_id = $1
+       order by name asc`,
+      [institutionId],
+    );
+    const rows = result.rows.map(mapGroup);
+    const missing = listSeedGroupsForInstitution(institutionId).filter(
+      (seed) => !rows.some((row) => row.id === seed.id || row.name === seed.name),
+    );
+    return [...rows, ...missing].sort((a, b) => a.name.localeCompare(b.name));
+  } catch {
+    return listSeedGroupsForInstitution(institutionId);
+  }
+}
+
+/** Groups that currently have ≥1 membership (active Crowd filter pool). */
+export async function listActiveGroups(): Promise<Group[]> {
+  if (!isDatabaseConfigured()) return SEED_GROUPS.slice();
+  try {
+    const result = await query<GroupRow>(
+      `select g.id, g.institution_id, g.name, g.invite_code, g.primary_color
        from groups g
-       where exists (
-         select 1 from user_group_memberships m where m.group_id = g.id
-       )
+       where g.institution_id is not null
+         and exists (
+           select 1 from user_group_memberships m where m.group_id = g.id
+         )
        order by g.name asc`,
     );
     if (result.rows.length > 0) return result.rows.map(mapGroup);
-    // Fresh DB — surface seeds until members join.
     return SEED_GROUPS.slice();
   } catch {
     return SEED_GROUPS.slice();
@@ -58,61 +255,145 @@ export async function listAllGroups(): Promise<Group[]> {
   if (!isDatabaseConfigured()) return SEED_GROUPS.slice();
   try {
     const result = await query<GroupRow>(
-      `select id, name, type, primary_color from groups order by name asc`,
+      `select id, institution_id, name, invite_code, primary_color
+       from groups
+       where institution_id is not null
+       order by name asc`,
     );
     const rows = result.rows.map(mapGroup);
-    const missing = SEED_GROUPS.filter((seed) => !rows.some((row) => row.name === seed.name));
+    const missing = SEED_GROUPS.filter(
+      (seed) => !rows.some((row) => row.id === seed.id || row.name === seed.name),
+    );
     return [...rows, ...missing].sort((a, b) => a.name.localeCompare(b.name));
   } catch {
     return SEED_GROUPS.slice();
   }
 }
 
-export async function findGroupByName(name: string): Promise<Group | null> {
-  if (!isDatabaseConfigured()) return findSeedGroupByName(name);
+export async function findGroupById(id: string): Promise<Group | null> {
+  if (!id) return null;
+  if (!isDatabaseConfigured()) return findSeedGroupById(id);
   try {
     const result = await query<GroupRow>(
-      `select id, name, type, primary_color from groups where name = $1 limit 1`,
-      [name],
+      `select id, institution_id, name, invite_code, primary_color
+       from groups where id = $1 limit 1`,
+      [id],
     );
     if (result.rows[0]) return mapGroup(result.rows[0]);
-    return findSeedGroupByName(name);
+    return findSeedGroupById(id);
   } catch {
-    return findSeedGroupByName(name);
+    return findSeedGroupById(id);
+  }
+}
+
+export async function findGroupByInviteCode(code: string): Promise<Group | null> {
+  const normalized = code.trim().toLowerCase();
+  if (!normalized) return null;
+  if (!isDatabaseConfigured()) return findSeedGroupByInviteCode(normalized);
+  try {
+    const result = await query<GroupRow>(
+      `select id, institution_id, name, invite_code, primary_color
+       from groups where lower(invite_code) = $1 limit 1`,
+      [normalized],
+    );
+    if (result.rows[0]) return mapGroup(result.rows[0]);
+    return findSeedGroupByInviteCode(normalized);
+  } catch {
+    return findSeedGroupByInviteCode(normalized);
   }
 }
 
 export async function createGroup(input: {
+  institutionId: string;
   name: string;
-  type: GroupType;
   primaryColor?: string | null;
+  createdBy?: string | null;
 }): Promise<Group> {
   const name = input.name.trim();
   if (!name) throw new Error("Group name is required");
+  const institution = await getInstitutionById(input.institutionId);
+  if (!institution) throw new Error("Institution not found");
   const primaryColor = normalizeHex(input.primaryColor ?? null);
 
   if (!isDatabaseConfigured()) {
-    const existing = findSeedGroupByName(name);
+    const existing = findSeedGroupByName(name, institution.id);
     if (existing) return existing;
     return {
       id: `group-local-${Date.now()}`,
+      institutionId: institution.id,
       name,
-      type: input.type,
+      inviteCode: `${institution.slug}-${slugifyInvite(name) || "group"}`,
       primaryColor,
     };
   }
 
-  const existing = await findGroupByName(name);
-  if (existing) return existing;
+  const existingRows = await query<GroupRow>(
+    `select id, institution_id, name, invite_code, primary_color
+     from groups
+     where institution_id = $1 and name = $2
+     limit 1`,
+    [institution.id, name],
+  );
+  if (existingRows.rows[0]) return mapGroup(existingRows.rows[0]);
+
+  let inviteCode = `${institution.slug}-${slugifyInvite(name) || "group"}`;
+  const clash = await query<{ id: string }>(
+    `select id from groups where lower(invite_code) = $1 limit 1`,
+    [inviteCode],
+  );
+  if (clash.rows[0]) {
+    inviteCode = `${inviteCode}-${Date.now().toString(36).slice(-4)}`;
+  }
 
   const result = await query<GroupRow>(
-    `insert into groups (name, type, primary_color)
-     values ($1, $2, $3)
-     on conflict (name) do update set name = excluded.name
-     returning id, name, type, primary_color`,
-    [name, input.type, primaryColor],
+    `insert into groups (institution_id, name, type, primary_color, invite_code, created_by)
+     values ($1, $2, 'group', $3, $4, $5)
+     returning id, institution_id, name, invite_code, primary_color`,
+    [institution.id, name, primaryColor, inviteCode, input.createdBy ?? null],
   );
   return mapGroup(result.rows[0]);
+}
+
+export async function listInstitutionMembershipsForUser(
+  userId: string,
+): Promise<UserInstitutionMembership[]> {
+  if (!userId || !isDatabaseConfigured()) return [];
+  try {
+    const result = await query<InstitutionMembershipRow>(
+      `select m.id as membership_id, m.user_id,
+              i.id, i.name, i.slug, i.type, i.canonical_domain,
+              i.affiliation_status, i.accent_color
+       from user_institution_memberships m
+       join institutions i on i.id = m.institution_id
+       where m.user_id = $1
+       order by i.name asc`,
+      [userId],
+    );
+    return result.rows.map((row) => ({
+      id: row.membership_id,
+      userId: row.user_id,
+      institutionId: row.id,
+      institution: mapInstitution(row),
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function addInstitutionMembership(input: {
+  userId: string;
+  institutionId: string;
+}): Promise<UserInstitutionMembership[]> {
+  if (!isDatabaseConfigured()) {
+    throw new Error("Sign in with a connected database to save institutions.");
+  }
+  await query(
+    `insert into user_institution_memberships (user_id, institution_id)
+     values ($1, $2)
+     on conflict (user_id, institution_id) do nothing`,
+    [input.userId, input.institutionId],
+  );
+  return listInstitutionMembershipsForUser(input.userId);
 }
 
 export async function listMembershipsForUser(userId: string): Promise<UserGroupMembership[]> {
@@ -122,7 +403,7 @@ export async function listMembershipsForUser(userId: string): Promise<UserGroupM
   try {
     const result = await query<MembershipRow>(
       `select m.id as membership_id, m.user_id, m.is_primary,
-              g.id, g.name, g.type, g.primary_color
+              g.id, g.institution_id, g.name, g.invite_code, g.primary_color
        from user_group_memberships m
        join groups g on g.id = m.group_id
        where m.user_id = $1
@@ -150,6 +431,14 @@ export async function addMembership(input: {
     throw new Error("Sign in with a connected database to save groups.");
   }
 
+  const group = await findGroupById(input.groupId);
+  if (!group?.institutionId) throw new Error("Group not found");
+
+  await addInstitutionMembership({
+    userId: input.userId,
+    institutionId: group.institutionId,
+  });
+
   const makePrimary = Boolean(input.isPrimary);
   if (makePrimary) {
     await query(
@@ -165,7 +454,6 @@ export async function addMembership(input: {
     [input.userId, input.groupId, makePrimary],
   );
 
-  // If this is the only membership, force primary.
   const memberships = await listMembershipsForUser(input.userId);
   if (memberships.length === 1 && !memberships[0].isPrimary) {
     await query(
@@ -177,7 +465,28 @@ export async function addMembership(input: {
   return memberships;
 }
 
-export async function removeMembership(userId: string, groupId: string): Promise<UserGroupMembership[]> {
+/** Invite link path: associate institution + join group in one step. */
+export async function joinByInviteCode(input: {
+  userId: string;
+  inviteCode: string;
+  isPrimary?: boolean;
+}): Promise<{ group: Group; institution: Institution; memberships: UserGroupMembership[] }> {
+  const group = await findGroupByInviteCode(input.inviteCode);
+  if (!group) throw new Error("Invite link not found.");
+  const institution = await getInstitutionById(group.institutionId);
+  if (!institution) throw new Error("Institution not found for this invite.");
+  const memberships = await addMembership({
+    userId: input.userId,
+    groupId: group.id,
+    isPrimary: input.isPrimary,
+  });
+  return { group, institution, memberships };
+}
+
+export async function removeMembership(
+  userId: string,
+  groupId: string,
+): Promise<UserGroupMembership[]> {
   if (!isDatabaseConfigured()) return [];
   await query(
     `delete from user_group_memberships where user_id = $1 and group_id = $2`,
@@ -194,7 +503,10 @@ export async function removeMembership(userId: string, groupId: string): Promise
   return remaining;
 }
 
-export async function setPrimaryMembership(userId: string, groupId: string): Promise<UserGroupMembership[]> {
+export async function setPrimaryMembership(
+  userId: string,
+  groupId: string,
+): Promise<UserGroupMembership[]> {
   if (!isDatabaseConfigured()) return [];
   await query(
     `update user_group_memberships set is_primary = false where user_id = $1`,
@@ -207,6 +519,31 @@ export async function setPrimaryMembership(userId: string, groupId: string): Pro
     [userId, groupId],
   );
   return listMembershipsForUser(userId);
+}
+
+export async function updateGroupTheme(input: {
+  userId: string;
+  groupId: string;
+  primaryColor: string | null;
+}): Promise<Group> {
+  const color = normalizeHex(input.primaryColor);
+  if (!isDatabaseConfigured()) {
+    const group = findSeedGroupById(input.groupId);
+    if (!group) throw new Error("Group not found");
+    return { ...group, primaryColor: color };
+  }
+  const memberships = await listMembershipsForUser(input.userId);
+  if (!memberships.some((m) => m.groupId === input.groupId)) {
+    throw new Error("Join the group before setting a theme.");
+  }
+  const result = await query<GroupRow>(
+    `update groups set primary_color = $1
+     where id = $2
+     returning id, institution_id, name, invite_code, primary_color`,
+    [color, input.groupId],
+  );
+  if (!result.rows[0]) throw new Error("Group not found");
+  return mapGroup(result.rows[0]);
 }
 
 /** User ids belonging to a group (for Crowd scoping). */
@@ -223,7 +560,6 @@ export async function listMemberUserIds(groupId: string): Promise<string[]> {
       [groupId],
     );
     if (result.rows.length > 0) return result.rows.map((row) => row.user_id);
-    // Fallback to seed book map when Neon has groups but no memberships yet.
     const { SEED_BOOK_GROUP_IDS } = await import("@/lib/groups/seed-groups");
     return Object.entries(SEED_BOOK_GROUP_IDS)
       .filter(([, ids]) => ids.includes(groupId))
@@ -236,17 +572,4 @@ export async function listMemberUserIds(groupId: string): Promise<string[]> {
 export async function getPrimaryGroupForUser(userId: string): Promise<Group | null> {
   const memberships = await listMembershipsForUser(userId);
   return memberships.find((m) => m.isPrimary)?.group ?? memberships[0]?.group ?? null;
-}
-
-/** Ensure seed groups exist in Neon (idempotent). */
-export async function ensureSeedGroups(): Promise<void> {
-  if (!isDatabaseConfigured()) return;
-  for (const group of SEED_GROUPS) {
-    await query(
-      `insert into groups (id, name, type, primary_color)
-       values ($1, $2, $3, $4)
-       on conflict (name) do nothing`,
-      [group.id, group.name, group.type, group.primaryColor],
-    );
-  }
 }

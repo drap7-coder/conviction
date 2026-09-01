@@ -33,8 +33,9 @@ const MANAGE_HERO = {
   },
   groups: {
     eyebrow: "Groups",
-    headline: "Schools and orgs you belong to.",
-    summary: "Optional. Add multiple groups, set a primary for accent color, change anytime.",
+    headline: "Campus groups under your institution.",
+    summary:
+      "Join or create groups under William & Mary (and later other campuses). Set a primary for your theme.",
     cta: "Add a group",
   },
 } as const;

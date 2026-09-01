@@ -14,6 +14,8 @@ export const REQUIRED_AUTH_TABLES = [
   "verification_token",
   "watchlist_entries",
   "portfolio_positions",
+  "institutions",
+  "user_institution_memberships",
   "groups",
   "user_group_memberships",
   "competitions",

@@ -1,5 +1,6 @@
 -- Multi-group membership, competitions, and weekly picks (v1).
--- Users may belong to many groups; schools and orgs are peers (no parent/child).
+-- Schools/orgs started as peer groups; 005_institutions.sql nests groups under
+-- canonical institutions (Platform → Institution → Groups → Members).
 
 create extension if not exists pgcrypto;
 

@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { CompetitionStanding, Group, GroupType, UserGroupMembership } from "@/lib/groups/types";
+import Link from "next/link";
+import type { Group, Institution, UserGroupMembership } from "@/lib/groups/types";
 import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
+
+const THEME_SWATCHES = ["#115740", "#0D7377", "#2E5A88", "#5B2C6F", "#C45C26", "#8B1E1E"];
 
 function formatCountdown(ms: number): string {
   if (ms <= 0) return "Ended";
@@ -21,7 +24,11 @@ function formatAvg(value: number | null): string {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-export function CompetitionCard({ standing }: { standing: CompetitionStanding }) {
+export function CompetitionCard({
+  standing,
+}: {
+  standing: import("@/lib/groups/types").CompetitionStanding;
+}) {
   const [remaining, setRemaining] = useState(standing.msRemaining);
 
   useEffect(() => {
@@ -72,9 +79,14 @@ export function CompetitionCard({ standing }: { standing: CompetitionStanding })
             {standing.groupA.groupName}
           </strong>
           <span className="tnum crowd-competition-avg">{formatAvg(standing.groupA.avgPctReturn)}</span>
-          <small>{standing.groupA.pickCount} active pick{standing.groupA.pickCount === 1 ? "" : "s"}</small>
+          <small>
+            {standing.groupA.pickCount} active pick
+            {standing.groupA.pickCount === 1 ? "" : "s"}
+          </small>
         </div>
-        <div className="crowd-competition-vs" aria-hidden="true">vs</div>
+        <div className="crowd-competition-vs" aria-hidden="true">
+          vs
+        </div>
         <div className="crowd-competition-side is-end">
           <strong
             style={
@@ -86,7 +98,10 @@ export function CompetitionCard({ standing }: { standing: CompetitionStanding })
             {standing.groupB.groupName}
           </strong>
           <span className="tnum crowd-competition-avg">{formatAvg(standing.groupB.avgPctReturn)}</span>
-          <small>{standing.groupB.pickCount} active pick{standing.groupB.pickCount === 1 ? "" : "s"}</small>
+          <small>
+            {standing.groupB.pickCount} active pick
+            {standing.groupB.pickCount === 1 ? "" : "s"}
+          </small>
         </div>
       </div>
       <footer className="crowd-competition-foot">
@@ -104,6 +119,8 @@ export function CompetitionCard({ standing }: { standing: CompetitionStanding })
 
 type GroupsPayload = {
   authenticated: boolean;
+  institutions: Institution[];
+  institution: Institution | null;
   groups: Group[];
   memberships: UserGroupMembership[];
   primaryGroup: Group | null;
@@ -111,8 +128,9 @@ type GroupsPayload = {
 
 export function GroupSettingsPanel({ compact = false }: { compact?: boolean }) {
   const [data, setData] = useState<GroupsPayload | null>(null);
+  const [institutionId, setInstitutionId] = useState("");
   const [name, setName] = useState("");
-  const [type, setType] = useState<GroupType>("school");
+  const [themeColor, setThemeColor] = useState(THEME_SWATCHES[0]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -121,9 +139,15 @@ export function GroupSettingsPanel({ compact = false }: { compact?: boolean }) {
     if (!res.ok) return;
     const json = (await res.json()) as GroupsPayload;
     setData(json);
+    if (!institutionId && json.institutions[0]) {
+      setInstitutionId(json.institutions[0].id);
+    }
     writeStoredPrimaryColor(json.primaryGroup?.primaryColor ?? null);
     if (json.primaryGroup?.primaryColor) {
-      document.documentElement.style.setProperty("--group-accent", json.primaryGroup.primaryColor);
+      document.documentElement.style.setProperty(
+        "--group-accent",
+        json.primaryGroup.primaryColor,
+      );
     }
   }
 
@@ -135,6 +159,22 @@ export function GroupSettingsPanel({ compact = false }: { compact?: boolean }) {
     () => new Set((data?.memberships ?? []).map((m) => m.groupId)),
     [data],
   );
+
+  const institutionGroups = useMemo(() => {
+    if (!data) return [];
+    const id = institutionId || data.institutions[0]?.id;
+    if (!id) return data.groups;
+    return data.groups.filter((group) => group.institutionId === id);
+  }, [data, institutionId]);
+
+  const activeInstitution = useMemo(() => {
+    if (!data) return null;
+    return (
+      data.institutions.find((row) => row.id === institutionId) ??
+      data.institutions[0] ??
+      null
+    );
+  }, [data, institutionId]);
 
   async function post(body: Record<string, unknown>) {
     setBusy(true);
@@ -164,7 +204,16 @@ export function GroupSettingsPanel({ compact = false }: { compact?: boolean }) {
     <section className={`group-settings${compact ? " is-compact" : ""}`} aria-label="Your groups">
       {!data.authenticated ? (
         <p className="group-settings-note">
-          Sign in to save school and org memberships. Guests can still browse Crowd group filters.
+          Sign in to join groups under a campus. Guests can still browse Crowd group filters.
+        </p>
+      ) : null}
+
+      {activeInstitution ? (
+        <p className="group-settings-note">
+          {activeInstitution.name}
+          {activeInstitution.affiliationStatus === "unofficial"
+            ? " · Unofficial community — not affiliated with the university"
+            : null}
         </p>
       ) : null}
 
@@ -208,7 +257,21 @@ export function GroupSettingsPanel({ compact = false }: { compact?: boolean }) {
         <>
           <div className="group-settings-join">
             <label>
-              Join an existing group
+              Institution
+              <select
+                value={institutionId || data.institutions[0]?.id || ""}
+                disabled={busy || data.institutions.length <= 1}
+                onChange={(event) => setInstitutionId(event.target.value)}
+              >
+                {data.institutions.map((institution) => (
+                  <option key={institution.id} value={institution.id}>
+                    {institution.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Join a group
               <select
                 defaultValue=""
                 disabled={busy}
@@ -220,11 +283,11 @@ export function GroupSettingsPanel({ compact = false }: { compact?: boolean }) {
                 }}
               >
                 <option value="">Select…</option>
-                {data.groups
+                {institutionGroups
                   .filter((group) => !memberIds.has(group.id))
                   .map((group) => (
                     <option key={group.id} value={group.id}>
-                      {group.name} ({group.type})
+                      {group.name}
                     </option>
                   ))}
               </select>
@@ -238,32 +301,45 @@ export function GroupSettingsPanel({ compact = false }: { compact?: boolean }) {
               if (!name.trim()) return;
               void post({
                 action: "create",
+                institutionId: institutionId || data.institutions[0]?.id,
                 name: name.trim(),
-                type,
+                primaryColor: themeColor,
                 isPrimary: (data.memberships ?? []).length === 0,
               }).then(() => setName(""));
             }}
           >
             <label>
-              Or create one
+              Create a group under {activeInstitution?.name ?? "this institution"}
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="William & Mary"
+                placeholder="Finance Club"
                 disabled={busy}
               />
             </label>
             <label>
-              Type
-              <select value={type} onChange={(event) => setType(event.target.value as GroupType)}>
-                <option value="school">School</option>
-                <option value="org">Org</option>
-              </select>
+              Theme
+              <span className="group-theme-swatches">
+                {THEME_SWATCHES.map((swatch) => (
+                  <button
+                    key={swatch}
+                    type="button"
+                    className={`group-theme-swatch${themeColor === swatch ? " is-selected" : ""}`}
+                    style={{ background: swatch }}
+                    aria-label={`Theme ${swatch}`}
+                    onClick={() => setThemeColor(swatch)}
+                  />
+                ))}
+              </span>
             </label>
             <button type="submit" disabled={busy || !name.trim()}>
               Add
             </button>
           </form>
+          <p className="group-settings-note">
+            Institutions are permanent campus containers. You can create as many groups as you want
+            underneath — you cannot create another {activeInstitution?.name ?? "institution"}.
+          </p>
         </>
       ) : null}
 
@@ -292,10 +368,13 @@ export function GroupOnboardingPrompt() {
   if (!open) return null;
 
   return (
-    <div className="group-onboarding" role="dialog" aria-label="Add your groups">
+    <div className="group-onboarding" role="dialog" aria-label="Join your groups">
       <div className="group-onboarding-card">
-        <h2>Add your school and any orgs/teams</h2>
-        <p>Optional — you can skip and manage this later under Manage → Groups.</p>
+        <h2>Join your campus groups</h2>
+        <p>
+          Pick the groups you belong to and a theme color. You can skip and manage this later under
+          Manage → Groups.
+        </p>
         <GroupSettingsPanel compact />
         <div className="group-onboarding-actions">
           <button
