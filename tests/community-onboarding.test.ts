@@ -69,4 +69,10 @@ describe("community onboarding wiring", () => {
     expect(read("src/components/GroupPanels.tsx")).toContain("ncaaId: pickedSchool.ncaaId");
     expect(read("src/lib/groups/store.ts")).toContain("provisionInstitutionFromCatalog");
   });
+
+  it("provisions institutions with id-based upsert for concurrent joins", () => {
+    const store = read("src/lib/groups/store.ts");
+    expect(store).toContain("on conflict (id) do update set");
+    expect(store).not.toMatch(/provisionInstitutionFromCatalog[\s\S]*on conflict \(slug\)/);
+  });
 });

@@ -597,8 +597,9 @@ export async function provisionInstitutionFromCatalog(ncaaId: string): Promise<{
        id, name, slug, type, canonical_domain, affiliation_status, accent_color,
        ncaa_id, community_enabled
      ) values ($1, $2, $3, 'university', $4, 'unofficial', $5, $6, true)
-     on conflict (slug) do update set
+     on conflict (id) do update set
        name = excluded.name,
+       slug = excluded.slug,
        ncaa_id = coalesce(institutions.ncaa_id, excluded.ncaa_id),
        community_enabled = true,
        canonical_domain = coalesce(institutions.canonical_domain, excluded.canonical_domain),
