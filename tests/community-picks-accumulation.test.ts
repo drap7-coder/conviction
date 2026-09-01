@@ -128,10 +128,12 @@ describe("continuous accumulation wiring", () => {
     expect(read("src/lib/community-picks/store.ts")).toContain("MIN_RANKED_MEMBERS");
   });
 
-  it("exposes POST /api/picks/swap and updated crowd card copy", () => {
+  it("exposes POST /api/picks/swap and explicit save/swap actions on crowd card", () => {
     expect(read("src/app/api/picks/swap/route.ts")).toContain("swapCommunityPick");
-    expect(read("src/components/CommunityPickCard.tsx")).toContain("/api/picks/swap");
-    expect(read("src/components/CommunityPickCard.tsx")).toContain("Lifetime score");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("Confirm Swap");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("Save Pick");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("community-pick-action");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("Swap confirmed.");
     expect(read("src/components/CommunityPickCard.tsx")).not.toContain("starts fresh");
   });
 

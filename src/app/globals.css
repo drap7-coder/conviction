@@ -20859,6 +20859,86 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 10px;
 }
 
+.community-pick-editor {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card-soft);
+}
+
+.community-pick-editor-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.community-pick-editor-head h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.88rem;
+}
+
+.community-pick-editor-current {
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.community-pick-editor-current strong {
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+
+.community-pick-editor-field {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.74rem;
+}
+
+.community-pick-editor-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.community-pick-editor-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.community-pick-action {
+  width: 100%;
+  min-height: 46px;
+  font-size: 0.92rem;
+}
+
+.community-pick-success {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--positive, #0f9f8f) 35%, var(--line));
+  background: color-mix(in srgb, var(--positive, #0f9f8f) 10%, var(--card));
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.community-pick-error {
+  margin: 0;
+}
+
 .community-pick-compose label {
   display: grid;
   gap: 6px;
