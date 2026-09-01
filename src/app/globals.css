@@ -20677,15 +20677,6 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   color: var(--ink);
 }
 
-.crowd-board-meta {
-  margin: 0;
-  font-size: 0.72rem;
-  color: var(--muted);
-  text-align: right;
-  line-height: 1.35;
-  max-width: 16rem;
-}
-
 .crowd-well {
   margin: 8px 12px 8px;
   padding: 0;
@@ -20700,7 +20691,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .crowd-row {
   display: grid;
-  grid-template-columns: 1.4rem 2.25rem minmax(0, 1fr) minmax(4.75rem, auto) auto;
+  grid-template-columns: 1.4rem 2.25rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 10px 12px;
   min-height: 52px;
@@ -20803,23 +20794,6 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .crowd-glyph.is-watched {
   color: var(--accent);
-}
-
-.crowd-count {
-  display: flex;
-  align-items: center;
-  justify-self: end;
-  text-align: right;
-  min-width: 0;
-}
-
-.crowd-count strong {
-  font-size: 0.92rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--ink);
-  white-space: nowrap;
 }
 
 .crowd-row .session-quote {
@@ -21272,13 +21246,12 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 @media (max-width: 720px) {
   .crowd-row {
-    grid-template-columns: 1.25rem 2.1rem minmax(0, 1fr) minmax(4rem, auto) auto;
+    grid-template-columns: 1.25rem 2.1rem minmax(0, 1fr) auto;
     column-gap: 10px;
   }
 
   .crowd-rank { align-self: center; }
   .crowd-logo { align-self: center; }
-  .crowd-count { align-self: center; }
 }
 
 /* ── Inline voice mic inside ticker fields ── */

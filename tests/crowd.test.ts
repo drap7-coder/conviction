@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { buildCrowdSnapshot, rankCrowdHoldings, rankCrowdWatched } from "@/lib/crowd/aggregate";
-import { formatCrowdRowCount } from "@/lib/crowd/display";
 import { CROWD_SEED_BOOKS, isCrowdSeedUserId, listCrowdSeedBooks } from "@/lib/crowd/seed-books";
 import { getSectorColors, hasDomainLogo } from "@/lib/market/logos";
 import type { CrowdBook } from "@/lib/crowd/types";
-import { crowdBoardMetaLine } from "@/components/CrowdBoard";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -29,15 +27,6 @@ describe("Crowd seed books", () => {
       expect(book.watchlist.length).toBeGreaterThanOrEqual(2);
       expect(book.source).toBe("seed");
     }
-  });
-});
-
-describe("formatCrowdRowCount", () => {
-  it("shows exact raw counts instead of rounded percentages", () => {
-    expect(formatCrowdRowCount(2, 11, "lists")).toBe("2 / 11 lists");
-    expect(formatCrowdRowCount(3, 11, "books")).toBe("3 / 11 books");
-    expect(formatCrowdRowCount(0, 10, "books")).toBe("0 / 10 books");
-    expect(formatCrowdRowCount(2, 0, "lists")).toBe("—");
   });
 });
 
@@ -126,12 +115,11 @@ describe("Crowd aggregation", () => {
 
   it("does not produce false ties when raw counts differ", () => {
     const held = rankCrowdHoldings(listCrowdSeedBooks());
-    const labels = held.map((row) => formatCrowdRowCount(row.holderCount, row.bookCount, "books"));
     const counts = held.map((row) => row.holderCount);
-    for (let i = 0; i < labels.length; i += 1) {
-      for (let j = i + 1; j < labels.length; j += 1) {
+    for (let i = 0; i < counts.length; i += 1) {
+      for (let j = i + 1; j < counts.length; j += 1) {
         if (counts[i] !== counts[j]) {
-          expect(labels[i]).not.toBe(labels[j]);
+          expect(counts[i]).not.toBe(counts[j]);
         }
       }
     }
@@ -170,28 +158,6 @@ describe("Crowd aggregation", () => {
   });
 });
 
-describe("crowdBoardMetaLine", () => {
-  it("names starter-only boards clearly", () => {
-    const snapshot = buildCrowdSnapshot(listCrowdSeedBooks());
-    expect(crowdBoardMetaLine(snapshot, "held")).toBe("Across 10 starter books");
-    expect(crowdBoardMetaLine(snapshot, "watched")).toMatch(/Across \d+ starter lists/);
-  });
-
-  it("splits live vs starter when both are present", () => {
-    const live: CrowdBook = {
-      id: "live-user-1",
-      label: "Member",
-      source: "live",
-      positions: [{ ticker: "NVDA", shares: 1, averageCost: 100 }],
-      watchlist: ["HOOD"],
-    };
-    const snapshot = buildCrowdSnapshot([...listCrowdSeedBooks(), live]);
-    expect(crowdBoardMetaLine(snapshot, "held")).toBe("Across 11 books · 1 live · 10 starter");
-    expect(crowdBoardMetaLine(snapshot, "watched")).toContain("live");
-    expect(crowdBoardMetaLine(snapshot, "watched")).toContain("starter");
-  });
-});
-
 describe("Crowd surface wiring", () => {
   it("keeps Crowd on the daily tab bar with sr-only page title", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
@@ -199,14 +165,13 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most held");
     expect(read("src/components/CrowdBoard.tsx")).toContain("Most watched");
     expect(read("src/components/CrowdBoard.tsx")).toContain("LogoDisplay");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("formatCrowdRowCount");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-count");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-count");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("holderPct");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("watcherPct");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("of books");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("of lists");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowdBoardMetaLine");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-board-meta");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowdBoardMetaLine");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-board-meta");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdPersonalGlyphs");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CircleCheck");
     expect(read("src/components/CrowdBoard.tsx")).toContain("Eye");
@@ -217,15 +182,14 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
     expect(read("src/app/api/crowd/route.ts")).not.toContain("Owned");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
-    expect(read("src/app/globals.css")).toContain(".crowd-count");
     expect(read("src/app/globals.css")).toContain(".crowd-glyphs");
-    expect(read("src/app/globals.css")).toContain(".crowd-board-meta");
+    expect(read("src/app/globals.css")).not.toContain(".crowd-count");
+    expect(read("src/app/globals.css")).not.toContain(".crowd-board-meta");
     expect(read("src/lib/nav-config.ts")).toContain('href: "/crowd"');
     expect(read("src/lib/nav-config.ts")).toContain('group: "daily"');
     expect(read("src/app/api/crowd/route.ts")).toContain("loadCrowdSnapshot");
     expect(read("AGENTS.md")).toContain("Crowd");
-    expect(read("AGENTS.md")).toContain("formatCrowdRowCount");
-    expect(read("AGENTS.md")).toContain("crowd-board-meta");
+    expect(read("AGENTS.md")).toContain("rank order is the UI");
     expect(read("AGENTS.md")).toContain("crowd-glyphs");
   });
 
