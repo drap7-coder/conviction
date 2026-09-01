@@ -9,7 +9,6 @@ const FETCH_HEADERS = {
   "Accept-Language": "en-US,en;q=0.8",
 };
 
-const REVALIDATE_SECONDS = 300;
 const FETCH_TIMEOUT_MS = 4_000;
 const BATCH_EXECUTE_URL = "https://news.google.com/_/DotsSplashUi/data/batchexecute";
 
@@ -43,7 +42,7 @@ export function isUsableArticleImage(url: string): boolean {
     if (host.endsWith("googleusercontent.com") && /s0-w300|gn_logo|google-news/.test(href)) {
       return false;
     }
-    if (/\b(1x1|pixel\.gif|spacer\.gif|tracking|default-logo|og-default|placeholder|no-image)\b/.test(href)) {
+    if (/(?:1x1|pixel\.gif|spacer\.gif|tracking|default[-_]?logo|og-default|placeholder|no-image|yahoo_default_logo)/i.test(href)) {
       return false;
     }
     return true;
@@ -95,12 +94,81 @@ export function extractOpenGraphImage(html: string): string | null {
   return null;
 }
 
+function pushImageCandidate(bucket: string[], value: unknown) {
+  if (typeof value !== "string") return;
+  const trimmed = value.trim();
+  if (!trimmed || bucket.includes(trimmed)) return;
+  bucket.push(trimmed);
+}
+
+/** JSON-LD / caas body photos when og:image is a publisher default logo. */
+export function extractEmbeddedArticleImage(html: string): string | null {
+  const candidates: string[] = [];
+
+  const jsonBlocks = html.match(
+    /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi,
+  ) ?? [];
+  for (const block of jsonBlocks) {
+    const body = block.replace(/^[\s\S]*?>/, "").replace(/<\/script>$/i, "");
+    try {
+      const data = JSON.parse(body) as unknown;
+      const walk = (node: unknown) => {
+        if (!node) return;
+        if (Array.isArray(node)) {
+          for (const item of node) walk(item);
+          return;
+        }
+        if (typeof node !== "object") return;
+        const record = node as Record<string, unknown>;
+        for (const [key, value] of Object.entries(record)) {
+          if (/image/i.test(key)) {
+            if (typeof value === "string") {
+              pushImageCandidate(candidates, value);
+            } else if (Array.isArray(value)) {
+              for (const item of value) {
+                if (typeof item === "string") pushImageCandidate(candidates, item);
+                else walk(item);
+              }
+            } else if (value && typeof value === "object") {
+              const nested = value as Record<string, unknown>;
+              pushImageCandidate(candidates, nested.url);
+              pushImageCandidate(candidates, nested.contentUrl);
+              walk(value);
+            }
+          } else {
+            walk(value);
+          }
+        }
+      };
+      walk(data);
+    } catch {
+      // ignore malformed JSON-LD
+    }
+  }
+
+  for (const match of html.matchAll(
+    /https?:\/\/(?:media\.zenfs\.com|s\.yimg\.com\/os\/creatr-uploaded-images)\/[^"'\\\s>]+/gi,
+  )) {
+    pushImageCandidate(candidates, match[0].replace(/&amp;/g, "&"));
+  }
+
+  for (const candidate of candidates) {
+    if (isUsableArticleImage(candidate)) return candidate;
+  }
+  return null;
+}
+
+/** Prefer a real article photo: og/twitter first, then JSON-LD / caas embeds. */
+export function extractArticleImage(html: string): string | null {
+  return extractOpenGraphImage(html) ?? extractEmbeddedArticleImage(html);
+}
+
 async function fetchHtml(url: string): Promise<{ url: string; html: string } | null> {
   try {
     const response = await fetch(url, {
       headers: FETCH_HEADERS,
       redirect: "follow",
-      next: { revalidate: REVALIDATE_SECONDS },
+      cache: "no-store",
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!response.ok) return null;
@@ -190,7 +258,7 @@ export async function unwrapGoogleNewsUrl(url: string): Promise<string | null> {
         Referer: "https://news.google.com/",
       },
       body: form.toString(),
-      next: { revalidate: REVALIDATE_SECONDS },
+      cache: "no-store",
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
     if (!response.ok) return null;
@@ -221,5 +289,5 @@ export async function resolveArticleImageUrl(
   }
   const page = await fetchHtml(target);
   if (!page) return null;
-  return extractOpenGraphImage(page.html);
+  return extractArticleImage(page.html);
 }

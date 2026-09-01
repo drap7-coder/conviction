@@ -142,4 +142,32 @@ describe("RSS news metadata", () => {
     expect(events[0]?.metadata?.publisher).toBe("Yahoo Finance");
     expect(events[0]?.title).toBe("Markets Slide - TSLA, INTC, and NFLX In Focus");
   });
+
+  it("falls back to feeds.finance.yahoo.com when the primary Yahoo RSS returns 429", async () => {
+    const fallbackXml = `
+      <rss><channel><item>
+        <title>Fallback oil headline</title>
+        <link>https://finance.yahoo.com/energy/articles/fallback-oil.html</link>
+        <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
+        <source url="https://reuters.com">Reuters</source>
+      </item></channel></rss>
+    `;
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("finance.yahoo.com/rss/headline")) {
+        return new Response("Edge: Too Many Requests", { status: 429 });
+      }
+      if (url.includes("feeds.finance.yahoo.com/rss/2.0/headline")) {
+        return new Response(fallbackXml, { status: 200 });
+      }
+      throw new Error(`unexpected fetch ${url}`);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const events = await fetchRssNews("USO", 1);
+    expect(events).toHaveLength(1);
+    expect(events[0]?.title).toBe("Fallback oil headline");
+    expect(events[0]?.sourceUrl).toContain("finance.yahoo.com/energy/articles/fallback-oil.html");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

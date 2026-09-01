@@ -4,5 +4,8 @@
       "path": "/api/cron/daily-sync",
       "schedule": "0 12 * * *"
     }
-  ]
+  ],
+  "env": {
+    "NODE_OPTIONS": "--max-http-header-size=1048576"
+  }
 }

@@ -17282,7 +17282,8 @@ button.portfolio-check-item:focus-visible {
   min-height: 220px;
 }
 
-.pulse-news-hero-media img {
+.pulse-news-hero-media img,
+.pulse-news-hero-img {
   display: block;
   width: 100%;
   height: 100%;

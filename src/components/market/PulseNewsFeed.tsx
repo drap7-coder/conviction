@@ -195,8 +195,11 @@ function NarrativeCard({
           <Image
             src={imageUrl!}
             alt=""
-            fill
+            width={960}
+            height={540}
             sizes="(max-width: 767px) 100vw, 58vw"
+            className="pulse-news-hero-img"
+            priority
             onError={() => setImageFailed(true)}
             referrerPolicy="no-referrer"
           />

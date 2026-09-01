@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  extractArticleImage,
   extractOpenGraphImage,
   isUsableArticleImage,
   resolveArticleImageUrl,
@@ -34,6 +35,20 @@ describe("extractOpenGraphImage", () => {
     expect(isUsableArticleImage(
       "https://s.yimg.com/cv/apiv2/social/images/yahoo-finance-default-logo.png",
     )).toBe(false);
+    expect(isUsableArticleImage(
+      "https://s.yimg.com/cv/apiv2/social/images/yahoo_default_logo-1200x1200.png",
+    )).toBe(false);
+  });
+
+  it("falls back to JSON-LD / zenfs embeds when og:image is a default logo", () => {
+    const html = `
+      <meta property="og:image" content="https://s.yimg.com/cv/apiv2/social/images/yahoo-finance-default-logo.png" />
+      <script type="application/ld+json">
+        {"@type":"NewsArticle","image":"https://media.zenfs.com/en/reuters.com/hero.jpg"}
+      </script>
+    `;
+    expect(extractOpenGraphImage(html)).toBeNull();
+    expect(extractArticleImage(html)).toBe("https://media.zenfs.com/en/reuters.com/hero.jpg");
   });
 });
 

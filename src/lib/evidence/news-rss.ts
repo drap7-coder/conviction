@@ -7,6 +7,8 @@ import type { EvidenceEvent } from "./types";
 import { getMarketInstrumentAlias } from "./market-instrument-aliases";
 
 const YAHOO_RSS_BASE = "https://finance.yahoo.com/rss/headline";
+/** Alternate Yahoo feed — stays up when finance.yahoo.com/rss returns 429. */
+const YAHOO_RSS_FALLBACK = "https://feeds.finance.yahoo.com/rss/2.0/headline";
 const GOOGLE_NEWS_RSS = "https://news.google.com/rss/search";
 
 interface RssItem {
@@ -179,7 +181,8 @@ async function fetchRssXml(url: string): Promise<string | null> {
       headers: {
         "User-Agent": "Conviction/1.0 (research tool; nathandrapkin@gmail.com)",
       },
-      next: { revalidate: 300 },
+      // Avoid caching Yahoo 429s that pin the feed on Google News wrappers.
+      cache: "no-store",
       signal: AbortSignal.timeout(8_000),
     });
     if (!response.ok) return null;
@@ -259,7 +262,8 @@ function googleNewsQuery(
 
 /**
  * Fetch recent RSS headlines for a ticker.
- * Tries Yahoo Finance first, then Google News when Yahoo is empty/off-topic upstream.
+ * Tries Yahoo Finance first (primary + 429-resistant fallback), then Google News
+ * when Yahoo is empty/off-topic upstream.
  */
 export async function fetchRssNews(
   ticker: string,
@@ -267,9 +271,13 @@ export async function fetchRssNews(
   companyName?: string | null,
 ): Promise<EvidenceEvent[]> {
   const upper = ticker.toUpperCase();
-  const yahooUrl = `${YAHOO_RSS_BASE}?s=${encodeURIComponent(upper)}`;
-  const yahooXml = await fetchRssXml(yahooUrl);
-  if (yahooXml) {
+  const yahooUrls = [
+    `${YAHOO_RSS_BASE}?s=${encodeURIComponent(upper)}`,
+    `${YAHOO_RSS_FALLBACK}?s=${encodeURIComponent(upper)}&region=US&lang=en-US`,
+  ];
+  for (const yahooUrl of yahooUrls) {
+    const yahooXml = await fetchRssXml(yahooUrl);
+    if (!yahooXml) continue;
     const yahooItems = parseRssXml(yahooXml);
     if (yahooItems.length > 0) {
       return itemsToEvents(yahooItems, upper, limit, "Yahoo Finance RSS");

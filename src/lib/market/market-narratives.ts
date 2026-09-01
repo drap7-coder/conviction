@@ -351,14 +351,37 @@ export function isNewsThemeHeadlineFresh(
   return age <= maxAgeDays;
 }
 
-function dedupeHeadlines(headlines: MarketNarrativeHeadline[]): MarketNarrativeHeadline[] {
+function preferHeadline(
+  existing: MarketNarrativeHeadline,
+  candidate: MarketNarrativeHeadline,
+): MarketNarrativeHeadline {
+  const score = (headline: MarketNarrativeHeadline) => {
+    let value = 0;
+    if (headline.imageUrl && isUsableArticleImage(headline.imageUrl)) value += 8;
+    if (headline.url && !isGoogleNewsUrl(headline.url)) value += 4;
+    value += publisherWeight(headline.publisher);
+    return value;
+  };
+  return score(candidate) > score(existing) ? candidate : existing;
+}
+
+/** Prefer fetchable publisher URLs / in-feed photos over Google News wrappers. */
+export function dedupeNarrativeHeadlines(
+  headlines: MarketNarrativeHeadline[],
+): MarketNarrativeHeadline[] {
   const kept: MarketNarrativeHeadline[] = [];
   for (const headline of headlines) {
-    const duplicate = kept.some((existing) =>
+    const index = kept.findIndex((existing) =>
       existing.title.trim().toLowerCase() === headline.title.trim().toLowerCase()
       || headlineSimilarity(existing.title, headline.title) >= 0.72,
     );
-    if (!duplicate) kept.push(headline);
+    if (index === -1) {
+      kept.push(headline);
+      continue;
+    }
+    // Keep publisher prestige when possible, but never drop a fetchable Yahoo URL
+    // for a Google News wrapper that blocks og:image hydration.
+    kept[index] = preferHeadline(kept[index], headline);
   }
   return kept;
 }
@@ -376,7 +399,7 @@ async function fetchTheme(
   ]);
 
   const pool = [...yahooHeadlines, ...googleTickerHeadlines, ...googleThemeHeadlines];
-  const headlines = dedupeHeadlines(
+  const headlines = dedupeNarrativeHeadlines(
     rankHeadlines(
       pool
         .map(toNarrativeHeadline)
@@ -485,7 +508,7 @@ export async function hydrateThemePrimaryImages(
   const unwrapBudget = new Set(
     [...themes]
       .sort((a, b) => b.score - a.score)
-      .slice(0, 2)
+      .slice(0, 4)
       .map((theme) => theme.id),
   );
 

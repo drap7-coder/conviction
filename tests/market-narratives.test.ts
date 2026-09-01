@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   MARKET_NARRATIVE_THEMES,
   NEWS_THEME_MAX_AGE_DAYS,
+  dedupeNarrativeHeadlines,
   hydrateThemePrimaryImages,
   isNewsThemeHeadlineFresh,
   narrativeSummary,
@@ -141,6 +142,28 @@ describe("narrativeSummary", () => {
       expect(summary.toLowerCase()).not.toMatch(/conversation|chatter|bluesky|twitter|stocktwits/);
       expect(summary).toContain("QQQ");
     }
+  });
+});
+
+describe("dedupeNarrativeHeadlines", () => {
+  it("keeps a Yahoo publisher URL over a Google News wrapper for the same story", () => {
+    const google = {
+      title: "Anthropic seals $35 billion cloud deal with Nvidia-backed Lambda",
+      url: "https://news.google.com/rss/articles/CBMiEXAMPLE?oc=5",
+      date: "2026-09-01T00:00:00.000Z",
+      publisher: "Reuters",
+      imageUrl: null,
+    };
+    const yahoo = {
+      title: "Anthropic Seals $35 Billion Cloud Deal With Nvidia-Backed Lambda",
+      url: "https://finance.yahoo.com/technology/ai/articles/anthropic-seals-35-billion-cloud-235404995.html",
+      date: "2026-08-31T23:54:04.000Z",
+      publisher: "Yahoo Finance",
+      imageUrl: null,
+    };
+    const deduped = dedupeNarrativeHeadlines([google, yahoo]);
+    expect(deduped).toHaveLength(1);
+    expect(deduped[0]?.url).toContain("finance.yahoo.com");
   });
 });
 

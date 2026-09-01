@@ -228,6 +228,10 @@ describe("production copy and fixture isolation", () => {
     expect(feed).toContain("pulse-news-lead-chip");
     expect(feed).toContain("headline.imageUrl");
     expect(feed).toContain("next/image");
+    expect(feed).toContain("width={960}");
+    expect(feed).toContain("height={540}");
+    expect(feed).toContain("pulse-news-hero-img");
+    expect(feed).toContain("priority");
     expect(feed).not.toContain("TypewriterText");
     expect(feed).toContain("HeadlineCard");
     expect(feed).not.toContain("pulse-news-row");
