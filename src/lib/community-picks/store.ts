@@ -1,13 +1,26 @@
-import { isDatabaseConfigured, query } from "@/lib/db";
-import { computeReturnPct } from "@/lib/competitions/scores";
+import { randomUUID } from "node:crypto";
+import { isDatabaseConfigured, query, withTransaction, type DbQuery } from "@/lib/db";
+import { MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
+import {
+  activeGrowthFactor,
+  activeReturnPct,
+  averageLifetimeReturnPct,
+  lifetimeReturnPct,
+  pickGrowthFactor,
+  pickReturnPct,
+  totalGrowthFactor,
+} from "@/lib/community-picks/growth";
+import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
 import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 import type {
   CommunityPick,
   CommunityPickGroup,
+  CommunityPickHistoryEntry,
   CommunityPicksPayload,
   CommunityStanding,
+  SwapPickResult,
 } from "@/lib/community-picks/types";
 
 type PickRow = {
@@ -15,7 +28,16 @@ type PickRow = {
   group_id: string;
   ticker: string;
   entry_price: string;
+  banked_growth_factor: string;
   picked_at: Date;
+};
+
+type HistoryRow = {
+  ticker: string;
+  start_spot: string;
+  exit_spot: string;
+  started_at: Date;
+  closed_at: Date;
 };
 
 type GroupRow = {
@@ -27,7 +49,9 @@ type GroupRow = {
 function livePrice(
   quote: Awaited<ReturnType<typeof fetchStockQuotes>>[number] | undefined,
 ): number | null {
-  return quote?.price ?? quote?.previousClose ?? null;
+  const spot = quote?.price ?? quote?.previousClose ?? null;
+  if (spot === null || !Number.isFinite(spot) || spot <= 0) return null;
+  return spot;
 }
 
 function groupPayload(group: GroupRow): CommunityPickGroup {
@@ -38,26 +62,194 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
   };
 }
 
-export async function setCommunityPick(input: {
+function mapHistoryRow(row: HistoryRow): CommunityPickHistoryEntry {
+  const startSpot = Number(row.start_spot);
+  const exitSpot = Number(row.exit_spot);
+  return {
+    ticker: row.ticker.toUpperCase(),
+    startSpot,
+    exitSpot,
+    pickReturnPct: pickReturnPct(startSpot, exitSpot),
+    startedAt: row.started_at.toISOString(),
+    closedAt: row.closed_at.toISOString(),
+  };
+}
+
+function buildPickView(
+  row: PickRow,
+  currentPrice: number | null,
+): CommunityPick {
+  const entryPrice = Number(row.entry_price);
+  const bankedGrowthFactor = Number(row.banked_growth_factor);
+  const activeFactor =
+    currentPrice === null ? 1 : activeGrowthFactor(entryPrice, currentPrice);
+  const totalFactor = totalGrowthFactor(bankedGrowthFactor, activeFactor);
+
+  return {
+    ticker: row.ticker.toUpperCase(),
+    entryPrice,
+    currentPrice,
+    activeReturnPct: currentPrice === null ? null : activeReturnPct(activeFactor),
+    lifetimeReturnPct: currentPrice === null ? null : lifetimeReturnPct(totalFactor),
+    bankedGrowthFactor,
+    pickedAt: row.picked_at.toISOString(),
+  };
+}
+
+export async function verifyGroupMembership(userId: string, groupId: string): Promise<boolean> {
+  if (!isDatabaseConfigured()) return false;
+  const result = await query<{ ok: boolean }>(
+    `select exists(
+       select 1 from user_group_memberships where user_id = $1 and group_id = $2
+     ) as ok`,
+    [userId, groupId],
+  );
+  return result.rows[0]?.ok ?? false;
+}
+
+async function loadPickRow(
+  queryFn: DbQuery,
+  userId: string,
+  groupId: string,
+  forUpdate = false,
+): Promise<PickRow | null> {
+  const lock = forUpdate ? " for update" : "";
+  const result = await queryFn<PickRow>(
+    `select user_id, group_id, ticker, entry_price, banked_growth_factor, picked_at
+     from community_picks
+     where user_id = $1 and group_id = $2${lock}`,
+    [userId, groupId],
+  );
+  return result.rows[0] ?? null;
+}
+
+async function loadPickHistory(userId: string, groupId: string): Promise<CommunityPickHistoryEntry[]> {
+  const result = await query<HistoryRow>(
+    `select ticker, start_spot, exit_spot, started_at, closed_at
+     from community_pick_history
+     where user_id = $1 and group_id = $2
+     order by closed_at desc`,
+    [userId, groupId],
+  );
+  return result.rows.map(mapHistoryRow);
+}
+
+export async function createInitialCommunityPick(input: {
   userId: string;
   groupId: string;
   ticker: string;
-  entryPrice: number;
-}): Promise<void> {
+}): Promise<SwapPickResult> {
   if (!isDatabaseConfigured()) throw new Error("Database required to save community picks.");
-  await query(
-    `insert into community_picks (user_id, group_id, ticker, entry_price)
-     values ($1, $2, $3, $4)
-     on conflict (user_id) do update set
-       group_id = excluded.group_id,
-       ticker = excluded.ticker,
-       entry_price = excluded.entry_price,
-       picked_at = now(),
-       updated_at = now()
-     where community_picks.group_id <> excluded.group_id
-        or community_picks.ticker <> excluded.ticker`,
-    [input.userId, input.groupId, input.ticker.toUpperCase(), input.entryPrice],
-  );
+
+  const isMember = await verifyGroupMembership(input.userId, input.groupId);
+  if (!isMember) throw new Error("Join this community before setting a pick.");
+
+  const ticker = input.ticker.trim().toUpperCase();
+  const spotResult = await fetchAuthoritativeSpot(ticker);
+  if (!spotResult.ok) throw new Error(spotResult.error);
+
+  const pickRow = await withTransaction(async (queryTx) => {
+    const existing = await loadPickRow(queryTx, input.userId, input.groupId, true);
+    if (existing) {
+      throw new Error("You already have an active pick. Use swap to change tickers.");
+    }
+
+    await queryTx(
+      `insert into community_picks (
+         user_id, group_id, ticker, entry_price, banked_growth_factor, picked_at, updated_at
+       ) values ($1, $2, $3, $4, 1.0, now(), now())`,
+      [input.userId, input.groupId, ticker, spotResult.spot],
+    );
+
+    const row = await loadPickRow(queryTx, input.userId, input.groupId);
+    if (!row) throw new Error("Could not save pick.");
+    return row;
+  });
+
+  const pick = buildPickView(pickRow, spotResult.spot);
+  return { pick, pickHistory: [] };
+}
+
+export async function swapCommunityPick(input: {
+  userId: string;
+  groupId: string;
+  newTicker: string;
+}): Promise<SwapPickResult> {
+  if (!isDatabaseConfigured()) throw new Error("Database required to save community picks.");
+
+  const isMember = await verifyGroupMembership(input.userId, input.groupId);
+  if (!isMember) throw new Error("Join this community before swapping a pick.");
+
+  const newTicker = input.newTicker.trim().toUpperCase();
+  const newSpotResult = await fetchAuthoritativeSpot(newTicker);
+  if (!newSpotResult.ok) throw new Error(newSpotResult.error);
+
+  const existing = await loadPickRow(query, input.userId, input.groupId);
+  if (!existing) {
+    throw new Error("Set an initial pick before swapping.");
+  }
+
+  const oldTicker = existing.ticker.toUpperCase();
+  if (oldTicker === newTicker) {
+    const currentSpot = await fetchAuthoritativeSpot(oldTicker);
+    const price = currentSpot.ok ? currentSpot.spot : null;
+    return {
+      pick: buildPickView(existing, price),
+      pickHistory: await loadPickHistory(input.userId, input.groupId),
+    };
+  }
+
+  const oldSpotResult = await fetchAuthoritativeSpot(oldTicker);
+  if (!oldSpotResult.ok) throw new Error(oldSpotResult.error);
+
+  const pickRow = await withTransaction(async (queryTx) => {
+    const locked = await loadPickRow(queryTx, input.userId, input.groupId, true);
+    if (!locked) throw new Error("Set an initial pick before swapping.");
+    if (locked.ticker.toUpperCase() !== oldTicker) {
+      throw new Error("Pick changed while swapping. Try again.");
+    }
+
+    const startSpot = Number(locked.entry_price);
+    const exitSpot = oldSpotResult.spot;
+    const oldLegFactor = pickGrowthFactor(startSpot, exitSpot);
+    const newBanked = Number(locked.banked_growth_factor) * oldLegFactor;
+
+    await queryTx(
+      `insert into community_pick_history (
+         id, user_id, group_id, ticker, start_spot, exit_spot, pick_growth_factor, started_at, closed_at
+       ) values ($1, $2, $3, $4, $5, $6, $7, $8, now())`,
+      [
+        randomUUID(),
+        input.userId,
+        input.groupId,
+        oldTicker,
+        startSpot,
+        exitSpot,
+        oldLegFactor,
+        locked.picked_at,
+      ],
+    );
+
+    await queryTx(
+      `update community_picks
+       set ticker = $3,
+           entry_price = $4,
+           banked_growth_factor = $5,
+           picked_at = now(),
+           updated_at = now()
+       where user_id = $1 and group_id = $2`,
+      [input.userId, input.groupId, newTicker, newSpotResult.spot, newBanked],
+    );
+
+    const row = await loadPickRow(queryTx, input.userId, input.groupId);
+    if (!row) throw new Error("Could not save pick.");
+    return row;
+  });
+
+  return {
+    pick: buildPickView(pickRow, newSpotResult.spot),
+    pickHistory: await loadPickHistory(input.userId, input.groupId),
+  };
 }
 
 export async function loadCommunityPicks(userId?: string): Promise<CommunityPicksPayload> {
@@ -66,19 +258,21 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
       authenticated: Boolean(userId),
       viewerGroup: null,
       viewerPick: null,
+      pickHistory: [],
       standings: listSeedCanonicalCommunities().map((group) => ({
         groupId: group.id,
         name: group.name,
         primaryColor: group.primaryColor,
         pickCount: 0,
-        avgReturnPct: null,
+        avgLifetimeReturnPct: null,
+        ranked: false,
       })),
     };
   }
 
   const [pickResult, groupResult, primaryGroup] = await Promise.all([
     query<PickRow>(
-      `select user_id, group_id, ticker, entry_price, picked_at
+      `select user_id, group_id, ticker, entry_price, banked_growth_factor, picked_at
        from community_picks
        order by picked_at asc`,
     ),
@@ -98,28 +292,27 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
   const tickers = [...new Set(pickResult.rows.map((row) => row.ticker.toUpperCase()))];
   const quotes = await fetchStockQuotes(tickers);
   const quoteByTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
-  const returnsByGroup = new Map<string, number[]>();
+  const lifetimeReturnsByGroup = new Map<string, number[]>();
 
   let viewerPick: CommunityPick | null = null;
+  let pickHistory: CommunityPickHistoryEntry[] = [];
+
   for (const row of pickResult.rows) {
     const ticker = row.ticker.toUpperCase();
-    const entryPrice = Number(row.entry_price);
     const currentPrice = livePrice(quoteByTicker.get(ticker));
-    const returnPct = currentPrice === null ? null : computeReturnPct(entryPrice, currentPrice);
-    if (returnPct !== null) {
-      const returns = returnsByGroup.get(row.group_id) ?? [];
-      returns.push(returnPct);
-      returnsByGroup.set(row.group_id, returns);
+    const pickView = buildPickView(row, currentPrice);
+    if (pickView.lifetimeReturnPct !== null) {
+      const returns = lifetimeReturnsByGroup.get(row.group_id) ?? [];
+      returns.push(pickView.lifetimeReturnPct);
+      lifetimeReturnsByGroup.set(row.group_id, returns);
     }
-    if (userId && row.user_id === userId) {
-      viewerPick = {
-        ticker,
-        entryPrice,
-        currentPrice,
-        returnPct,
-        pickedAt: row.picked_at.toISOString(),
-      };
+    if (userId && row.user_id === userId && primaryGroup && row.group_id === primaryGroup.id) {
+      viewerPick = pickView;
     }
+  }
+
+  if (userId && primaryGroup) {
+    pickHistory = await loadPickHistory(userId, primaryGroup.id);
   }
 
   const pickCounts = new Map<string, number>();
@@ -138,20 +331,24 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
 
   const standings: CommunityStanding[] = groups
     .map((group) => {
-      const returns = returnsByGroup.get(group.id) ?? [];
-      const avgReturnPct = returns.length > 0
-        ? Math.round((returns.reduce((sum, value) => sum + value, 0) / returns.length) * 100) / 100
-        : null;
+      const returns = lifetimeReturnsByGroup.get(group.id) ?? [];
+      const pickCount = pickCounts.get(group.id) ?? 0;
+      const avgLifetimeReturnPct = averageLifetimeReturnPct(returns);
+      const ranked = pickCount >= MIN_RANKED_MEMBERS && avgLifetimeReturnPct !== null;
       return {
         ...groupPayload(group),
-        pickCount: pickCounts.get(group.id) ?? 0,
-        avgReturnPct,
+        pickCount,
+        avgLifetimeReturnPct,
+        ranked,
       };
     })
     .sort((a, b) => {
-      if (a.avgReturnPct === null && b.avgReturnPct !== null) return 1;
-      if (a.avgReturnPct !== null && b.avgReturnPct === null) return -1;
-      if (a.avgReturnPct !== b.avgReturnPct) return (b.avgReturnPct ?? 0) - (a.avgReturnPct ?? 0);
+      if (a.ranked !== b.ranked) return a.ranked ? -1 : 1;
+      if (a.avgLifetimeReturnPct === null && b.avgLifetimeReturnPct !== null) return 1;
+      if (a.avgLifetimeReturnPct !== null && b.avgLifetimeReturnPct === null) return -1;
+      if (a.avgLifetimeReturnPct !== b.avgLifetimeReturnPct) {
+        return (b.avgLifetimeReturnPct ?? 0) - (a.avgLifetimeReturnPct ?? 0);
+      }
       if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
       return a.name.localeCompare(b.name);
     });
@@ -166,6 +363,7 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
         }
       : null,
     viewerPick,
+    pickHistory,
     standings,
   };
 }
