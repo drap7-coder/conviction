@@ -18,6 +18,15 @@ export const SEED_INSTITUTIONS: Institution[] = [
     /** Neutral UI accent — not official branding. */
     accentColor: "#115740",
   },
+  {
+    id: "institution-rpi",
+    name: "Rensselaer Polytechnic Institute",
+    slug: "rpi",
+    type: "university",
+    canonicalDomain: "rpi.edu",
+    affiliationStatus: "unofficial",
+    accentColor: "#D6001C",
+  },
 ];
 
 export function findSeedInstitutionBySlug(slug: string): Institution | null {

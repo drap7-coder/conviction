@@ -6,7 +6,7 @@
 
 import type { Group } from "@/lib/groups/types";
 
-/** Canonical community record for William & Mary (matches institution name). */
+/** One canonical community group per seeded school (matches institution name). */
 export const SEED_GROUPS: Group[] = [
   {
     id: "group-wm",
@@ -14,6 +14,14 @@ export const SEED_GROUPS: Group[] = [
     name: "William & Mary",
     inviteCode: "wm",
     primaryColor: "#115740",
+    isCanonicalCommunity: true,
+  },
+  {
+    id: "group-rpi",
+    institutionId: "institution-rpi",
+    name: "Rensselaer Polytechnic Institute",
+    inviteCode: "rpi",
+    primaryColor: "#D6001C",
     isCanonicalCommunity: true,
   },
 ];
@@ -42,14 +50,14 @@ export const LEGACY_INVITE_ALIASES: Record<string, string> = {
 export const SEED_BOOK_GROUP_IDS: Record<string, string[]> = {
   "crowd-seed-01": ["group-wm"],
   "crowd-seed-02": ["group-wm"],
-  "crowd-seed-03": ["group-wm"],
-  "crowd-seed-04": ["group-wm"],
+  "crowd-seed-03": ["group-rpi"],
+  "crowd-seed-04": ["group-rpi"],
   "crowd-seed-05": ["group-wm"],
-  "crowd-seed-06": ["group-wm"],
+  "crowd-seed-06": ["group-rpi"],
   "crowd-seed-07": ["group-wm"],
-  "crowd-seed-08": ["group-wm"],
+  "crowd-seed-08": ["group-rpi"],
   "crowd-seed-09": ["group-wm"],
-  "crowd-seed-10": ["group-wm"],
+  "crowd-seed-10": ["group-rpi"],
 };
 
 export function findSeedGroupById(id: string): Group | null {

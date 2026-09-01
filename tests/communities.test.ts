@@ -15,16 +15,16 @@ function read(path: string) {
 }
 
 describe("one-community seeds", () => {
-  it("seeds William & Mary as the only community (no club subgroups)", () => {
-    expect(SEED_INSTITUTIONS).toHaveLength(1);
-    const wm = SEED_INSTITUTIONS[0];
-    expect(wm.slug).toBe("wm");
-    expect(wm.canonicalDomain).toBe("wm.edu");
-    expect(wm.affiliationStatus).toBe("unofficial");
-    expect(SEED_GROUPS).toHaveLength(1);
-    expect(SEED_GROUPS[0].id).toBe("group-wm");
-    expect(SEED_GROUPS[0].name).toBe("William & Mary");
-    expect(SEED_GROUPS[0].isCanonicalCommunity).toBe(true);
+  it("seeds one group per school with no club subgroups", () => {
+    expect(SEED_INSTITUTIONS.length).toBeGreaterThanOrEqual(2);
+    const wm = SEED_INSTITUTIONS.find((row) => row.slug === "wm");
+    const rpi = SEED_INSTITUTIONS.find((row) => row.slug === "rpi");
+    expect(wm?.canonicalDomain).toBe("wm.edu");
+    expect(rpi?.canonicalDomain).toBe("rpi.edu");
+    expect(rpi?.affiliationStatus).toBe("unofficial");
+    expect(SEED_GROUPS).toHaveLength(SEED_INSTITUTIONS.length);
+    expect(SEED_GROUPS.find((g) => g.id === "group-wm")?.isCanonicalCommunity).toBe(true);
+    expect(SEED_GROUPS.find((g) => g.id === "group-rpi")?.inviteCode).toBe("rpi");
     expect(SEED_GROUPS.map((g) => g.name).join(",")).not.toMatch(/Finance Club|Class of 2028/);
   });
 
@@ -42,8 +42,10 @@ describe("Crowd community scoping", () => {
     expect(SEED_BOOK_GROUP_IDS["crowd-seed-01"]).toContain("group-wm");
     const all = await loadCrowdSnapshot();
     const wm = await loadCrowdSnapshot("group-wm");
-    expect(wm.bookCount).toBe(all.bookCount);
-    expect(wm.bookCount).toBeGreaterThan(0);
+    const rpi = await loadCrowdSnapshot("group-rpi");
+    expect(wm.bookCount).toBeLessThan(all.bookCount);
+    expect(rpi.bookCount).toBeLessThan(all.bookCount);
+    expect(wm.bookCount + rpi.bookCount).toBeGreaterThan(wm.bookCount);
   });
 });
 
@@ -54,6 +56,8 @@ describe("communities schema + wiring", () => {
     expect(read("migrations/005_institutions.sql")).toContain("group-wm");
     expect(read("migrations/006_one_community.sql")).toContain("group-wm");
     expect(read("migrations/006_one_community.sql")).toContain("Does NOT drop competitions");
+    expect(read("migrations/007_seed_rpi.sql")).toContain("institution-rpi");
+    expect(read("migrations/007_seed_rpi.sql")).toContain("group-rpi");
     expect(read("src/app/api/groups/route.ts")).toContain("Communities are permanent");
     expect(read("src/app/api/groups/route.ts")).not.toContain('action === "create" &&');
     expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');
