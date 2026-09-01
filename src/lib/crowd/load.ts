@@ -2,6 +2,8 @@ import { isDatabaseConfigured, query } from "@/lib/db";
 import { buildCrowdSnapshot } from "@/lib/crowd/aggregate";
 import { ensureCrowdSeedBooks } from "@/lib/crowd/ensure-seeds";
 import { isCrowdSeedUserId, listCrowdSeedBooks } from "@/lib/crowd/seed-books";
+import { SEED_BOOK_GROUP_IDS } from "@/lib/groups/seed-groups";
+import { ensureSeedGroups } from "@/lib/groups/store";
 import type { CrowdBook, CrowdSnapshot } from "@/lib/crowd/types";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
 
@@ -20,6 +22,12 @@ interface WatchlistRow {
   ticker: string;
 }
 
+interface MembershipRow {
+  [key: string]: unknown;
+  user_id: string;
+  group_id: string;
+}
+
 function rowToPosition(row: PortfolioRow): PersistedPosition {
   return {
     ticker: row.ticker.toUpperCase(),
@@ -27,6 +35,33 @@ function rowToPosition(row: PortfolioRow): PersistedPosition {
     averageCost: row.average_cost === null ? undefined : Number(row.average_cost),
     note: row.note || undefined,
   };
+}
+
+function withSeedGroupIds(books: CrowdBook[]): CrowdBook[] {
+  return books.map((book) => ({
+    ...book,
+    groupIds: book.groupIds ?? SEED_BOOK_GROUP_IDS[book.id] ?? [],
+  }));
+}
+
+async function attachLiveGroupIds(books: CrowdBook[]): Promise<CrowdBook[]> {
+  try {
+    const result = await query<MembershipRow>(
+      `select user_id, group_id from user_group_memberships`,
+    );
+    const byUser = new Map<string, string[]>();
+    for (const row of result.rows) {
+      const list = byUser.get(row.user_id) ?? [];
+      list.push(row.group_id);
+      byUser.set(row.user_id, list);
+    }
+    return books.map((book) => ({
+      ...book,
+      groupIds: byUser.get(book.id) ?? SEED_BOOK_GROUP_IDS[book.id] ?? [],
+    }));
+  } catch {
+    return withSeedGroupIds(books);
+  }
 }
 
 async function loadLiveBooksFromDb(): Promise<CrowdBook[]> {
@@ -70,9 +105,10 @@ async function loadLiveBooksFromDb(): Promise<CrowdBook[]> {
     byUser.set(id, existing);
   }
 
-  return [...byUser.values()].filter(
+  const books = [...byUser.values()].filter(
     (book) => book.positions.length > 0 || book.watchlist.length > 0,
   );
+  return attachLiveGroupIds(books);
 }
 
 /**
@@ -81,19 +117,22 @@ async function loadLiveBooksFromDb(): Promise<CrowdBook[]> {
  */
 export async function loadCrowdBooks(): Promise<CrowdBook[]> {
   if (!isDatabaseConfigured()) {
-    return listCrowdSeedBooks();
+    return withSeedGroupIds(listCrowdSeedBooks());
   }
 
   try {
     await ensureCrowdSeedBooks();
+    await ensureSeedGroups();
     return await loadLiveBooksFromDb();
   } catch {
-    // DB hiccup — still show starter books so the page is never empty.
-    return listCrowdSeedBooks();
+    return withSeedGroupIds(listCrowdSeedBooks());
   }
 }
 
-export async function loadCrowdSnapshot(): Promise<CrowdSnapshot> {
+export async function loadCrowdSnapshot(groupId?: string | null): Promise<CrowdSnapshot> {
   const books = await loadCrowdBooks();
-  return buildCrowdSnapshot(books);
+  const scoped = groupId
+    ? books.filter((book) => (book.groupIds ?? []).includes(groupId))
+    : books;
+  return buildCrowdSnapshot(scoped);
 }

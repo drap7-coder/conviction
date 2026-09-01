@@ -19,6 +19,8 @@
   --accent: #2dd4bf;
   --accent-dim: rgba(45, 212, 191, 0.14);
   --on-accent: #04121a;
+  /* Optional primary-group brand tint (set by GroupAccentProvider). */
+  --group-accent: var(--accent);
 
   /* ── Semantic (earned color) ── */
   --green: #3ddc97;
@@ -1382,6 +1384,18 @@ button.bottom-tab-item {
   height: 58px;
   object-fit: contain;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14));
+  /* Subtle primary-group tint on the bull mark when --group-accent is set. */
+  box-shadow: 0 0 0 0 transparent;
+}
+
+.app-brand:has(.app-logo) {
+  position: relative;
+}
+
+.app-logo {
+  outline: 1.5px solid color-mix(in srgb, var(--group-accent) 42%, transparent);
+  outline-offset: 2px;
+  border-radius: 10px;
 }
 
 .app-title {
@@ -20793,6 +20807,302 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   font-size: 0.72rem;
   color: var(--muted);
   line-height: 1.35;
+}
+
+.crowd-group-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  min-width: 0;
+}
+
+.crowd-group-filter > span {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.crowd-group-filter select {
+  appearance: none;
+  min-height: 34px;
+  min-width: 0;
+  max-width: min(100%, 280px);
+  padding: 7px 30px 7px 12px;
+  border: 1px solid var(--border-raised);
+  border-radius: 999px;
+  background:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%) calc(100% - 14px) calc(50% - 2px) / 5px 5px no-repeat,
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%) calc(100% - 10px) calc(50% - 2px) / 5px 5px no-repeat,
+    var(--card-soft);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.crowd-competition {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-raised);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--group-accent) 8%, transparent), transparent 55%),
+    var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.crowd-competition-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.crowd-competition-eyebrow {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.crowd-competition-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--group-accent) 36%, var(--border));
+  background: color-mix(in srgb, var(--group-accent) 16%, transparent);
+  color: color-mix(in srgb, var(--group-accent) 72%, var(--ink));
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.crowd-competition-status.is-tie {
+  border-color: var(--border-raised);
+  background: var(--card-soft);
+  color: var(--muted);
+}
+
+.crowd-competition-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.crowd-competition-side {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.crowd-competition-side.is-end {
+  text-align: right;
+  justify-items: end;
+}
+
+.crowd-competition-side strong {
+  font-size: 0.92rem;
+  line-height: 1.2;
+}
+
+.crowd-competition-avg {
+  font-size: 1.25rem;
+  font-weight: 750;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.crowd-competition-side small {
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
+.crowd-competition-vs {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.crowd-competition-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  color: var(--quiet);
+  font-size: 0.68rem;
+}
+
+.crowd-competition-lock {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.group-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--group-accent) 34%, var(--border));
+  background: color-mix(in srgb, var(--group-accent) 14%, transparent);
+  color: color-mix(in srgb, var(--group-accent) 78%, var(--ink));
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.group-settings {
+  display: grid;
+  gap: 14px;
+  padding: 4px 2px 12px;
+}
+
+.group-settings-note,
+.group-settings-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.group-settings-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.group-settings-list > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-raised);
+  border-radius: 12px;
+  background: var(--card);
+}
+
+.group-settings-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.group-settings-actions button,
+.group-settings-create button,
+.group-onboarding-actions button {
+  min-height: 30px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-raised);
+  background: var(--card-soft);
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.group-settings-join,
+.group-settings-create {
+  display: grid;
+  gap: 8px;
+}
+
+.group-settings-create {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: end;
+}
+
+.group-settings label {
+  display: grid;
+  gap: 4px;
+  color: var(--quiet);
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.group-settings input,
+.group-settings select {
+  min-height: 34px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-raised);
+  border-radius: 10px;
+  background: var(--card-soft);
+  color: var(--ink);
+}
+
+.group-onboarding {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: color-mix(in srgb, #000 55%, transparent);
+}
+
+.group-onboarding-card {
+  width: min(100%, 440px);
+  padding: 18px 16px 14px;
+  border: 1px solid var(--border-raised);
+  border-radius: 16px;
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow-md);
+}
+
+.group-onboarding-card h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.group-onboarding-card > p {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.group-onboarding-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+@media (max-width: 720px) {
+  .group-settings-create {
+    grid-template-columns: 1fr;
+  }
+
+  .crowd-competition-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .crowd-competition-vs {
+    justify-self: center;
+  }
+
+  .crowd-competition-side.is-end {
+    text-align: left;
+    justify-items: start;
+  }
 }
 
 @media (max-width: 720px) {

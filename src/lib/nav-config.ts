@@ -76,7 +76,7 @@ export const navPages: NavPage[] = [
     icon: SlidersHorizontal,
     tone: "teal",
     group: "account",
-    blurb: "Edit your watchlist and portfolio in one place.",
+    blurb: "Edit your watchlist, portfolio, and groups in one place.",
   },
   {
     href: "/signin",

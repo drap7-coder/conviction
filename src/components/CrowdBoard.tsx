@@ -9,11 +9,18 @@ import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { formatCrowdRowCount } from "@/lib/crowd/display";
 import type { CrowdHoldingRank, CrowdSnapshot, CrowdWatchRank } from "@/lib/crowd/types";
+import type { CompetitionStanding, Group } from "@/lib/groups/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { loadPortfolioForViewer } from "@/lib/portfolio/client";
+import { CompetitionCard } from "@/components/GroupPanels";
 
 type CrowdView = "held" | "watched";
+type CrowdApiPayload = CrowdSnapshot & {
+  groups?: Group[];
+  competitions?: CompetitionStanding[];
+  activeGroupId?: string | null;
+};
 
 const VIEWS: Array<{ id: CrowdView; label: string }> = [
   { id: "held", label: "Most held" },
@@ -124,7 +131,10 @@ function CrowdPersonalGlyphs({
 
 export function CrowdBoard() {
   const [view, setView] = useState<CrowdView>("held");
+  const [groupId, setGroupId] = useState<string>("all");
   const [snapshot, setSnapshot] = useState<CrowdSnapshot | null>(null);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [competitions, setCompetitions] = useState<CompetitionStanding[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -138,18 +148,24 @@ export function CrowdBoard() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch("/api/crowd", { cache: "no-store" });
+        const query = groupId !== "all" ? `?group=${encodeURIComponent(groupId)}` : "";
+        const res = await fetch(`/api/crowd${query}`, { cache: "no-store" });
         if (!res.ok) throw new Error("Could not load Crowd");
-        const data = (await res.json()) as CrowdSnapshot;
+        const data = (await res.json()) as CrowdApiPayload;
         if (cancelled) return;
         setSnapshot(data);
+        setGroups(data.groups ?? []);
+        setCompetitions(data.competitions ?? []);
 
         const tickers = [
           ...data.held.slice(0, 20).map((row) => row.ticker),
           ...data.watched.slice(0, 20).map((row) => row.ticker),
         ];
         const unique = [...new Set(tickers)];
-        if (unique.length === 0) return;
+        if (unique.length === 0) {
+          setQuotes({});
+          return;
+        }
 
         const quoteRes = await fetch(
           `/api/market/quotes?tickers=${encodeURIComponent(unique.join(","))}`,
@@ -175,7 +191,7 @@ export function CrowdBoard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [groupId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -240,6 +256,28 @@ export function CrowdBoard() {
         activeId={view}
         onChange={(id) => setView(id as CrowdView)}
       />
+
+      {groups.length > 0 ? (
+        <label className="crowd-group-filter">
+          <span>Group</span>
+          <select
+            value={groupId}
+            onChange={(event) => setGroupId(event.target.value)}
+            aria-label="Filter Crowd by group"
+          >
+            <option value="all">All members</option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+
+      {competitions.map((standing) => (
+        <CompetitionCard key={standing.competition.id} standing={standing} />
+      ))}
 
       <section className="surface-shell crowd-board" aria-label="Crowd rankings">
         <div className="crowd-board-head">

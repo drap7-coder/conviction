@@ -10,6 +10,8 @@ export type CrowdBook = {
   positions: PersistedPosition[];
   /** Tickers on that member's watchlist (may be empty). */
   watchlist: string[];
+  /** Optional group memberships for Crowd filters (never shown as identity). */
+  groupIds?: string[];
 };
 
 export type CrowdHoldingRank = {

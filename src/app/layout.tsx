@@ -6,6 +6,8 @@ import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
 import { MarketTape } from "@/components/MarketTape";
 import AnimatedTitle from "@/components/AnimatedTitle";
+import { GroupAccentProvider } from "@/components/GroupAccentProvider";
+import { GroupOnboardingPrompt } from "@/components/GroupPanels";
 import {
   SITE_DESCRIPTION,
   SITE_NAME,
@@ -82,28 +84,31 @@ export default function RootLayout({
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd()) }}
         />
-        <div className="app-shell">
-          <header className="app-header">
-            <div className="header-brand-row">
-              <Link className="app-brand" href="/pulse" aria-label="IQBulls home">
-                <img
-                  alt=""
-                  aria-hidden="true"
-                  className="app-logo"
-                  src="/conviction-bull.png"
-                />
-                <AnimatedTitle />
-              </Link>
-              <DesktopNav />
-              <div className="header-search">
-                <GlobalSearchPill />
+        <GroupAccentProvider>
+          <div className="app-shell">
+            <header className="app-header">
+              <div className="header-brand-row">
+                <Link className="app-brand" href="/pulse" aria-label="IQBulls home">
+                  <img
+                    alt=""
+                    aria-hidden="true"
+                    className="app-logo"
+                    src="/conviction-bull.png"
+                  />
+                  <AnimatedTitle />
+                </Link>
+                <DesktopNav />
+                <div className="header-search">
+                  <GlobalSearchPill />
+                </div>
               </div>
-            </div>
-          </header>
-          <MarketTape />
-          {children}
-        </div>
-        <MobileTabBar />
+            </header>
+            <MarketTape />
+            {children}
+          </div>
+          <MobileTabBar />
+          <GroupOnboardingPrompt />
+        </GroupAccentProvider>
       </body>
     </html>
   );

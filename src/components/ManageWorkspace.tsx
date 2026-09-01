@@ -8,12 +8,14 @@ import { PortfolioManager } from "@/components/PortfolioManager";
 import { PortfolioDataProvider } from "@/components/PortfolioData";
 import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
+import { GroupSettingsPanel } from "@/components/GroupPanels";
 
-export type ManageView = "watchlist" | "portfolio";
+export type ManageView = "watchlist" | "portfolio" | "groups";
 
 const MANAGE_VIEWS: SurfaceSlicerOption[] = [
   { id: "watchlist", label: "Watchlist" },
   { id: "portfolio", label: "Portfolio" },
+  { id: "groups", label: "Groups" },
 ];
 
 const MANAGE_HERO = {
@@ -29,10 +31,17 @@ const MANAGE_HERO = {
     summary: "Add shares and optional cost below. Edit or remove any holding in the list.",
     cta: "Add a holding",
   },
+  groups: {
+    eyebrow: "Groups",
+    headline: "Schools and orgs you belong to.",
+    summary: "Optional. Add multiple groups, set a primary for accent color, change anytime.",
+    cta: "Add a group",
+  },
 } as const;
 
 function parseManageView(value: string | null | undefined): ManageView {
-  return value === "portfolio" ? "portfolio" : "watchlist";
+  if (value === "portfolio" || value === "groups") return value;
+  return "watchlist";
 }
 
 function focusManageCompose() {
@@ -61,13 +70,13 @@ function ManageWorkspaceInner({
 
   useEffect(() => {
     const fromQuery = searchParams.get("view");
-    if (fromQuery === "watchlist" || fromQuery === "portfolio") {
+    if (fromQuery === "watchlist" || fromQuery === "portfolio" || fromQuery === "groups") {
       setActiveView(fromQuery);
       return;
     }
     if (typeof window === "undefined") return;
     const hash = window.location.hash.replace(/^#/, "");
-    if (hash === "portfolio" || hash === "watchlist") {
+    if (hash === "portfolio" || hash === "watchlist" || hash === "groups") {
       setActiveView(hash);
       const params = new URLSearchParams(searchParams.toString());
       params.set("view", hash);
@@ -117,13 +126,15 @@ function ManageWorkspaceInner({
             typewriterHeadline={false}
           >
             <div className="product-stage-actions data-manage-hero-actions">
-              <button
-                type="button"
-                className="data-manage-hero-cta"
-                onClick={focusManageCompose}
-              >
-                {hero.cta}
-              </button>
+              {activeView !== "groups" ? (
+                <button
+                  type="button"
+                  className="data-manage-hero-cta"
+                  onClick={focusManageCompose}
+                >
+                  {hero.cta}
+                </button>
+              ) : null}
             </div>
           </ProductStage>
           <GuestModeBanner
@@ -156,6 +167,16 @@ function ManageWorkspaceInner({
             <PortfolioManager />
           </PortfolioDataProvider>
         ) : null}
+      </div>
+
+      <div
+        id="manage-panel-groups"
+        role="tabpanel"
+        aria-labelledby="manage-tab-groups"
+        hidden={activeView !== "groups"}
+        className="data-manage-panel"
+      >
+        {activeView === "groups" ? <GroupSettingsPanel /> : null}
       </div>
     </div>
   );
