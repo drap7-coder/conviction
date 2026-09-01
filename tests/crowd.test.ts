@@ -4,7 +4,7 @@ import { buildCrowdSnapshot, rankCrowdHoldings, rankCrowdWatched } from "@/lib/c
 import { CROWD_SEED_BOOKS, isCrowdSeedUserId, listCrowdSeedBooks } from "@/lib/crowd/seed-books";
 import { getSectorColors, hasDomainLogo } from "@/lib/market/logos";
 import type { CrowdBook } from "@/lib/crowd/types";
-import { crowdBoardMetaLine } from "@/components/CrowdBoard";
+import { crowdBoardMetaLine, crowdPersonalLabels } from "@/components/CrowdBoard";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -97,6 +97,20 @@ describe("crowdBoardMetaLine", () => {
   });
 });
 
+describe("crowdPersonalLabels", () => {
+  it("marks book and watchlist separately without inventing either", () => {
+    const book = new Set(["NVDA", "AAPL"]);
+    const watch = new Set(["HOOD", "NVDA"]);
+    expect(crowdPersonalLabels("nvda", book, watch)).toEqual([
+      "In your book",
+      "In your watchlist",
+    ]);
+    expect(crowdPersonalLabels("AAPL", book, watch)).toEqual(["In your book"]);
+    expect(crowdPersonalLabels("HOOD", book, watch)).toEqual(["In your watchlist"]);
+    expect(crowdPersonalLabels("MSFT", book, watch)).toEqual([]);
+  });
+});
+
 describe("Crowd surface wiring", () => {
   it("keeps Crowd on the daily tab bar with sr-only page title", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
@@ -111,18 +125,27 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("of lists");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowdBoardMetaLine");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-board-meta");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowdPersonalLabels");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-you-chip");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("In your book");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("In your watchlist");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("loadPortfolioForViewer");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("sync-universe");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
+    expect(read("src/app/api/crowd/route.ts")).not.toContain("In your book");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("pulse-movers-logo");
     expect(read("src/app/globals.css")).toContain(".pulse-movers-logo");
     expect(read("src/app/globals.css")).toContain(".crowd-share");
     expect(read("src/app/globals.css")).toContain(".crowd-board-meta");
+    expect(read("src/app/globals.css")).toContain(".crowd-you-chip");
     expect(read("src/lib/nav-config.ts")).toContain('href: "/crowd"');
     expect(read("src/lib/nav-config.ts")).toContain('group: "daily"');
     expect(read("src/app/api/crowd/route.ts")).toContain("loadCrowdSnapshot");
     expect(read("AGENTS.md")).toContain("Crowd");
     expect(read("AGENTS.md")).toContain("holderPct");
     expect(read("AGENTS.md")).toContain("crowd-board-meta");
+    expect(read("AGENTS.md")).toContain("crowdPersonalLabels");
   });
 
   it("covers Crowd seed tickers with logo domains or sector badges", () => {

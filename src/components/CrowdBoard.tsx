@@ -8,6 +8,8 @@ import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import type { CrowdSnapshot } from "@/lib/crowd/types";
 import type { StockQuote } from "@/lib/market/quotes";
+import { loadPositions } from "@/lib/portfolio/persist";
+import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 
 type CrowdView = "held" | "watched";
 
@@ -16,10 +18,39 @@ const VIEWS: Array<{ id: CrowdView; label: string }> = [
   { id: "watched", label: "Most watched" },
 ];
 
+const PORTFOLIO_CHANGED_EVENT = "conviction-portfolio-changed";
+
+function readBrowserWatchlistTickers(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem("conviction-watchlist");
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((entry) => (typeof entry?.ticker === "string" ? entry.ticker.toUpperCase() : ""))
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 function formatSharePct(pct: number): string {
   if (!Number.isFinite(pct) || pct < 0) return "—";
   const rounded = Math.round(pct * 10) / 10;
   return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
+}
+
+/** Quiet personal chips for the viewer only — never from the aggregate API. */
+export function crowdPersonalLabels(
+  ticker: string,
+  bookTickers: ReadonlySet<string>,
+  watchTickers: ReadonlySet<string>,
+): string[] {
+  const key = ticker.toUpperCase();
+  const labels: string[] = [];
+  if (bookTickers.has(key)) labels.push("In your book");
+  if (watchTickers.has(key)) labels.push("In your watchlist");
+  return labels;
 }
 
 /** Quiet head meta: book/list counts + starter vs live mix. Aggregate only. */
@@ -62,6 +93,8 @@ export function CrowdBoard() {
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [bookTickers, setBookTickers] = useState<Set<string>>(() => new Set());
+  const [watchTickers, setWatchTickers] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +139,57 @@ export function CrowdBoard() {
     void load();
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    function applyLocal() {
+      setBookTickers(new Set(loadPositions().map((p) => p.ticker.toUpperCase())));
+      setWatchTickers(new Set(readBrowserWatchlistTickers()));
+    }
+
+    applyLocal();
+
+    async function hydrateViewer() {
+      try {
+        const [watchData, portfolio] = await Promise.all([
+          fetch("/api/watchlist", { cache: "no-store" }).then((r) =>
+            r.ok ? r.json() : null,
+          ),
+          loadPortfolioForViewer(),
+        ]);
+        if (cancelled) return;
+        // Guest SoT = localStorage; signed-in = Neon (same as News / useWatchlistTracking).
+        const watchAuthenticated = Boolean(watchData?.authenticated);
+        const watchEntries = watchAuthenticated && Array.isArray(watchData?.entries)
+          ? (watchData.entries as Array<{ ticker: string }>)
+          : [];
+        setBookTickers(
+          new Set(portfolio.positions.map((p) => p.ticker.toUpperCase())),
+        );
+        setWatchTickers(
+          new Set(
+            watchAuthenticated
+              ? watchEntries.map((e) => e.ticker.toUpperCase())
+              : readBrowserWatchlistTickers(),
+          ),
+        );
+      } catch {
+        if (!cancelled) applyLocal();
+      }
+    }
+
+    void hydrateViewer();
+
+    const onPortfolioChanged = () => {
+      void hydrateViewer();
+    };
+    window.addEventListener(PORTFOLIO_CHANGED_EVENT, onPortfolioChanged);
+    return () => {
+      cancelled = true;
+      window.removeEventListener(PORTFOLIO_CHANGED_EVENT, onPortfolioChanged);
     };
   }, []);
 
@@ -154,6 +238,7 @@ export function CrowdBoard() {
                 const topThree = index < 3;
                 const sharePct = "holderPct" in row ? row.holderPct : row.watcherPct;
                 const shareLabel = view === "held" ? "of books" : "of lists";
+                const youLabels = crowdPersonalLabels(ticker, bookTickers, watchTickers);
                 const body = (
                   <>
                     <span className={`crowd-rank${topThree ? " is-lead" : ""}`} aria-hidden="true">
@@ -165,6 +250,15 @@ export function CrowdBoard() {
                     <span className="crowd-id">
                       <strong>{ticker}</strong>
                       <small>{name}</small>
+                      {youLabels.length > 0 ? (
+                        <span className="crowd-you" aria-hidden="true">
+                          {youLabels.map((label) => (
+                            <span key={label} className="crowd-you-chip">
+                              {label}
+                            </span>
+                          ))}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="crowd-share" aria-hidden="true">
                       <strong className="tnum">{formatSharePct(sharePct)}</strong>
@@ -183,6 +277,7 @@ export function CrowdBoard() {
                   ticker,
                   name,
                   `${formatSharePct(sharePct)} ${shareLabel}`,
+                  ...youLabels,
                 ].join(", ");
 
                 return (
