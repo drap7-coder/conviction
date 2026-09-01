@@ -13,7 +13,7 @@ import {
   MarketMoversBoard,
   sessionLabelFromQuotes,
 } from "@/components/market/MarketMoversBoard";
-import { splitMarketMovers } from "@/lib/market/market-movers";
+import { shouldRankMoversByExtended, splitMarketMovers } from "@/lib/market/market-movers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
@@ -402,8 +402,10 @@ export default function Watchlist({
         sessionLabel: extended?.sessionLabel ?? null,
       };
     });
-    return splitMarketMovers(rows, Math.max(rows.length, 1));
-  }, [entries, quotes]);
+    return splitMarketMovers(rows, Math.max(rows.length, 1), {
+      rankBy: shouldRankMoversByExtended(watchlistSessionLabel) ? "extended" : "regular",
+    });
+  }, [entries, quotes, watchlistSessionLabel]);
 
   if (mode === "manage") {
     return (

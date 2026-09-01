@@ -3,11 +3,14 @@ import { isFiniteNumber } from "@/lib/display/format";
 export interface MarketMoverRow {
   ticker: string;
   name: string;
-  /** Regular-session % used to rank Top / Bottom. */
+  /**
+   * Primary session % used to rank Top / Bottom and shown in the bold stack line.
+   * Regular when the board is in RTH; pre/AH % when that badge is active.
+   */
   changePercent: number;
-  /** Display last: RTH close in extended hours, live when open. */
+  /** Display last for the ranked session (RTH close, or pre/AH print when ranking extended). */
   price?: number | null;
-  /** Regular-session $ change. */
+  /** Primary $ change for the ranked session. */
   change?: number | null;
   extendedPrice?: number | null;
   extendedChange?: number | null;
@@ -25,6 +28,8 @@ export interface MarketMoversSplit {
   bottom: MarketMoverRow[];
 }
 
+export type MarketMoversRankBy = "regular" | "extended";
+
 type MoverInput = {
   ticker: string;
   name: string;
@@ -40,7 +45,15 @@ type MoverInput = {
   dollarVolume?: number | null;
 };
 
-function toMoverRow(item: MoverInput, changePercent: number): MarketMoverRow {
+export type SplitMarketMoversOptions = {
+  /**
+   * `regular` — rank on RTH `changePercent` (default).
+   * `extended` — rank on pre/AH `extendedChangePercent` when that session badge is active.
+   */
+  rankBy?: MarketMoversRankBy;
+};
+
+function toRegularRankedRow(item: MoverInput, changePercent: number): MarketMoverRow {
   return {
     ticker: item.ticker,
     name: item.name,
@@ -58,17 +71,65 @@ function toMoverRow(item: MoverInput, changePercent: number): MarketMoverRow {
 }
 
 /**
+ * Promote pre/AH into the primary stack slots so Gainers/Losers % matches the
+ * session badge. Secondary Pre/AH line is cleared to avoid duplicating the same print.
+ */
+function toExtendedRankedRow(item: MoverInput, changePercent: number): MarketMoverRow {
+  return {
+    ticker: item.ticker,
+    name: item.name,
+    changePercent,
+    price: item.extendedPrice ?? item.price ?? null,
+    change: item.extendedChange ?? null,
+    extendedPrice: null,
+    extendedChange: null,
+    extendedChangePercent: null,
+    extendedNoTrades: false,
+    sessionLabel: null,
+    volume: item.volume ?? null,
+    dollarVolume: item.dollarVolume ?? null,
+  };
+}
+
+function toMoverRow(item: MoverInput, changePercent: number): MarketMoverRow {
+  return toRegularRankedRow(item, changePercent);
+}
+
+/**
  * Split a quote set into CNBC-style Top (gainers) / Bottom (losers) by session %.
  * Rows without a usable % are dropped. Each side is capped at `limit`.
+ *
+ * When `rankBy: "extended"`, sort and primary display use pre/AH % so a
+ * Pre-Market / After Hours badge matches the Gainers list order.
  */
 export function splitMarketMovers(
   items: MoverInput[],
   limit = 5,
+  options: SplitMarketMoversOptions = {},
 ): MarketMoversSplit {
   const capped = Math.max(1, Math.floor(limit));
-  const usable: MarketMoverRow[] = items
-    .filter((item) => isFiniteNumber(item.changePercent) && item.changePercent !== 0)
-    .map((item) => toMoverRow(item, item.changePercent as number));
+  const rankBy = options.rankBy ?? "regular";
+
+  const usable: MarketMoverRow[] =
+    rankBy === "extended"
+      ? items
+          .filter(
+            (item) =>
+              !item.extendedNoTrades &&
+              isFiniteNumber(item.extendedChangePercent) &&
+              item.extendedChangePercent !== 0,
+          )
+          .map((item) =>
+            toExtendedRankedRow(item, item.extendedChangePercent as number),
+          )
+      : items
+          .filter(
+            (item) =>
+              isFiniteNumber(item.changePercent) && item.changePercent !== 0,
+          )
+          .map((item) =>
+            toRegularRankedRow(item, item.changePercent as number),
+          );
 
   const top = usable
     .filter((item) => item.changePercent > 0)
@@ -109,4 +170,11 @@ export function rankByVolume(items: MoverInput[], limit = 5): MarketMoverRow[] {
 export function moverBarHeight(changePercent: number, columnMaxAbs: number): number {
   if (!isFiniteNumber(changePercent) || columnMaxAbs <= 0) return 0;
   return Math.max(8, Math.min(100, (Math.abs(changePercent) / columnMaxAbs) * 100));
+}
+
+/** True when Pulse/Watchlist should rank Gainers on the extended session print. */
+export function shouldRankMoversByExtended(
+  sessionLabel: string | null | undefined,
+): boolean {
+  return sessionLabel === "Pre-Market" || sessionLabel === "After Hours";
 }

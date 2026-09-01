@@ -8,7 +8,7 @@ import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MarketMoversBoard } from "@/components/market/MarketMoversBoard";
-import { rankByVolume, splitMarketMovers } from "@/lib/market/market-movers";
+import { rankByVolume, shouldRankMoversByExtended, splitMarketMovers } from "@/lib/market/market-movers";
 import { fetchMarketTrending } from "@/lib/market/client-market-data";
 
 interface TrendingCompany {
@@ -90,7 +90,7 @@ export function MarketMovesPanel() {
       return {
         ticker: idea.ticker,
         name: shortenCompanyName(idea.companyName),
-        // Rank Top/Bottom on the regular session move; extended sits on its own row.
+        // RTH move kept for regular ranking / volume card; extended sits beside it.
         changePercent: quote.changePercent ?? live.changePercent,
         change: quote.change ?? null,
         price: inExtended ? (quote.price ?? null) : (live.price ?? quote.price ?? null),
@@ -103,8 +103,6 @@ export function MarketMovesPanel() {
         dollarVolume: quote.dollarVolume ?? null,
       };
     });
-  const movers = splitMarketMovers(mapped, 5);
-  const volume = rankByVolume(mapped, 5);
 
   const sessionLabel =
     trending
@@ -113,6 +111,12 @@ export function MarketMovesPanel() {
         return extended.sessionLabel ?? getLivePrice(idea.quote).label;
       })
       .find((label): label is string => Boolean(label)) ?? null;
+
+  // Pre-Market / AH Gainers must order by that session's %, not yesterday's RTH print.
+  const movers = splitMarketMovers(mapped, 5, {
+    rankBy: shouldRankMoversByExtended(sessionLabel) ? "extended" : "regular",
+  });
+  const volume = rankByVolume(mapped, 5);
 
   return (
     <div className="market-moves-panel">

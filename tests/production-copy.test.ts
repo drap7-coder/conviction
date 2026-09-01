@@ -272,6 +272,8 @@ describe("production copy and fixture isolation", () => {
     expect(pulse).toContain("MarketMovesPanel");
     expect(panel).toContain("MarketMoversBoard");
     expect(panel).toContain("splitMarketMovers");
+    expect(panel).toContain("shouldRankMoversByExtended");
+    expect(panel).toContain('rankBy: shouldRankMoversByExtended(sessionLabel) ? "extended" : "regular"');
     expect(panel).not.toContain("StockHeatmap");
     expect(panel).not.toContain("TrendingManageChips");
     expect(panel).not.toContain("wl-manage-row");

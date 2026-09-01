@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { moverBarHeight, rankByVolume, splitMarketMovers } from "@/lib/market/market-movers";
+import {
+  moverBarHeight,
+  rankByVolume,
+  shouldRankMoversByExtended,
+  splitMarketMovers,
+} from "@/lib/market/market-movers";
 
 describe("splitMarketMovers", () => {
   it("splits gainers and losers by session percent", () => {
@@ -45,6 +50,123 @@ describe("splitMarketMovers", () => {
     const split = splitMarketMovers(items, items.length);
     expect(split.top).toHaveLength(12);
     expect(split.bottom).toHaveLength(0);
+  });
+
+  it("ranks Pre-Market Gainers descending by extendedChangePercent, not RTH %", () => {
+    const split = splitMarketMovers(
+      [
+        {
+          ticker: "FLAT_PRE_UP",
+          name: "Flat RTH, hot pre",
+          changePercent: 0.1,
+          price: 100,
+          change: 0.1,
+          extendedPrice: 108,
+          extendedChange: 8,
+          extendedChangePercent: 8,
+          sessionLabel: "Pre-Market",
+        },
+        {
+          ticker: "HOT_RTH_COOL_PRE",
+          name: "Hot RTH, cool pre",
+          changePercent: 5,
+          price: 50,
+          change: 2.5,
+          extendedPrice: 50.5,
+          extendedChange: 0.5,
+          extendedChangePercent: 1,
+          sessionLabel: "Pre-Market",
+        },
+        {
+          ticker: "MID_PRE",
+          name: "Mid pre",
+          changePercent: -2,
+          price: 20,
+          change: -0.4,
+          extendedPrice: 21,
+          extendedChange: 1,
+          extendedChangePercent: 5,
+          sessionLabel: "Pre-Market",
+        },
+        {
+          ticker: "PRE_DOWN",
+          name: "Pre loser",
+          changePercent: 3,
+          price: 40,
+          change: 1.2,
+          extendedPrice: 38,
+          extendedChange: -2,
+          extendedChangePercent: -5,
+          sessionLabel: "Pre-Market",
+        },
+        {
+          ticker: "NO_PRINT",
+          name: "No trades",
+          changePercent: 9,
+          price: 10,
+          change: 0.9,
+          extendedNoTrades: true,
+          extendedChangePercent: null,
+          sessionLabel: "Pre-Market",
+        },
+      ],
+      5,
+      { rankBy: "extended" },
+    );
+
+    expect(split.top.map((row) => row.ticker)).toEqual([
+      "FLAT_PRE_UP",
+      "MID_PRE",
+      "HOT_RTH_COOL_PRE",
+    ]);
+    expect(split.top.map((row) => row.changePercent)).toEqual([8, 5, 1]);
+    // Primary stack promotes pre print / % so the badge matches the bold number.
+    expect(split.top[0].price).toBe(108);
+    expect(split.top[0].change).toBe(8);
+    expect(split.top[0].extendedChangePercent).toBeNull();
+    expect(split.bottom.map((row) => row.ticker)).toEqual(["PRE_DOWN"]);
+    expect(split.bottom[0].changePercent).toBe(-5);
+
+    // Strict descending order by the ranked (pre) %.
+    let previous = Infinity;
+    for (const row of split.top) {
+      expect(row.changePercent).toBeLessThanOrEqual(previous);
+      previous = row.changePercent;
+    }
+  });
+
+  it("keeps RTH ranking when rankBy is regular even if pre fields exist", () => {
+    const split = splitMarketMovers(
+      [
+        {
+          ticker: "A",
+          name: "A",
+          changePercent: 2,
+          extendedChangePercent: 9,
+          sessionLabel: "Pre-Market",
+        },
+        {
+          ticker: "B",
+          name: "B",
+          changePercent: 4,
+          extendedChangePercent: 1,
+          sessionLabel: "Pre-Market",
+        },
+      ],
+      5,
+      { rankBy: "regular" },
+    );
+    expect(split.top.map((row) => row.ticker)).toEqual(["B", "A"]);
+    expect(split.top[0].changePercent).toBe(4);
+  });
+});
+
+describe("shouldRankMoversByExtended", () => {
+  it("is true only for Pre-Market and After Hours badges", () => {
+    expect(shouldRankMoversByExtended("Pre-Market")).toBe(true);
+    expect(shouldRankMoversByExtended("After Hours")).toBe(true);
+    expect(shouldRankMoversByExtended(null)).toBe(false);
+    expect(shouldRankMoversByExtended("Regular")).toBe(false);
   });
 });
 
