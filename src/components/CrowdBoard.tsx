@@ -7,6 +7,7 @@ import { CircleCheck, Eye } from "lucide-react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { CrowdCommunityPanel } from "@/components/CrowdCommunityPanel";
 import { CommunityPickCard } from "@/components/CommunityPickCard";
+import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
@@ -243,6 +244,7 @@ export function CrowdBoard() {
 
       {view === "rivalry" ? (
         <div className="crowd-rivalry-panel" role="tabpanel" aria-label="Community picks">
+          <HeadToHeadMatchCard />
           <CommunityPickCard />
           <p className="crowd-hedge">
             One current ticker per member. Community scores are the equal-weighted average return of active picks.

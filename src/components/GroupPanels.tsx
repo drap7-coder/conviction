@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SchoolSuggestion } from "@/lib/groups/ncaa-catalog";
 import type { Community, UserCommunityMembership } from "@/lib/groups/types";
 import { SchoolTypeahead } from "@/components/SchoolTypeahead";
-import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
+import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY, applyGroupAccent } from "@/components/GroupAccentProvider";
 
 export const THEME_SWATCHES = ["#115740", "#0D7377", "#2E5A88", "#5B2C6F", "#C45C26", "#8B1E1E", "#D6001C"];
 
@@ -45,7 +45,7 @@ export function CommunitySettingsPanel({
       json.primaryCommunity?.primaryColor ?? json.primaryGroup?.primaryColor ?? null;
     writeStoredPrimaryColor(accent);
     if (accent) {
-      document.documentElement.style.setProperty("--group-accent", accent);
+      applyGroupAccent(accent);
       setThemeColor(accent);
     }
     return json;
@@ -54,6 +54,10 @@ export function CommunitySettingsPanel({
   useEffect(() => {
     void reload().catch(() => undefined);
   }, [reload]);
+
+  useEffect(() => {
+    if (onboarding) applyGroupAccent(themeColor);
+  }, [onboarding, themeColor]);
 
   const memberIds = useMemo(
     () => new Set((data?.memberships ?? []).map((m) => m.institutionId)),
@@ -99,7 +103,7 @@ export function CommunitySettingsPanel({
     });
     if (ok) {
       writeStoredPrimaryColor(themeColor);
-      document.documentElement.style.setProperty("--group-accent", themeColor);
+      applyGroupAccent(themeColor);
       setPickedSchool(null);
       setSchoolQuery("");
       onJoined?.();
@@ -128,14 +132,7 @@ export function CommunitySettingsPanel({
       <ul className="group-settings-list">
         {(data.memberships ?? []).map((membership) => (
           <li key={membership.institutionId}>
-            <span
-              className="group-badge"
-              style={
-                membership.primaryColor
-                  ? { ["--group-accent" as string]: membership.primaryColor }
-                  : undefined
-              }
-            >
+            <span className="group-badge">
               {membership.institution.name}
               {membership.isPrimary ? " · Primary" : ""}
             </span>
@@ -204,9 +201,30 @@ export function CommunitySettingsPanel({
       ) : null}
 
       {showTheme && data.authenticated ? (
-        <div className="group-settings-create">
+        <div className="group-theme-section">
+          <div
+            className="group-theme-preview"
+            style={{ ["--group-accent" as string]: themeColor }}
+            aria-hidden="true"
+          >
+            <div className="group-theme-preview-atmosphere" />
+            <ol className="group-theme-preview-standings">
+              <li className="is-yours">
+                <span>Your school</span>
+                <span>+2.4%</span>
+              </li>
+              <li>
+                <span>Other campus</span>
+                <span>+1.1%</span>
+              </li>
+              <li>
+                <span>Another school</span>
+                <span>−0.3%</span>
+              </li>
+            </ol>
+          </div>
           <label>
-            Theme color
+            Your Crowd color
             <span className="group-theme-swatches">
               {THEME_SWATCHES.map((swatch) => (
                 <button
@@ -215,10 +233,13 @@ export function CommunitySettingsPanel({
                   className={`group-theme-swatch${themeColor === swatch ? " is-selected" : ""}`}
                   style={{ background: swatch }}
                   aria-label={`Theme ${swatch}`}
+                  aria-pressed={themeColor === swatch}
                   disabled={busy}
                   onClick={() => {
                     setThemeColor(swatch);
-                    if (onboarding && !pickedSchool) return;
+                    writeStoredPrimaryColor(swatch);
+                    applyGroupAccent(swatch);
+                    if (onboarding && data.memberships.length === 0) return;
                     const primary =
                       data.memberships.find((m) => m.isPrimary) ?? data.memberships[0];
                     if (primary) {
@@ -233,6 +254,10 @@ export function CommunitySettingsPanel({
               ))}
             </span>
           </label>
+          <p className="group-theme-note">
+            Personal to you — tints Crowd and highlights your school in standings, not official
+            branding.
+          </p>
         </div>
       ) : null}
 

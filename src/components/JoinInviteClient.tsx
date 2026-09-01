@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { Community, Group, Institution } from "@/lib/groups/types";
-import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
+import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY, applyGroupAccent } from "@/components/GroupAccentProvider";
 
 type InvitePayload = {
   institution: Institution;
@@ -66,7 +66,7 @@ export function JoinInviteClient({ code }: { code: string }) {
         invite.community.primaryColor ??
         invite.institution.accentColor;
       writeStoredPrimaryColor(color);
-      if (color) document.documentElement.style.setProperty("--group-accent", color);
+      if (color) applyGroupAccent(color);
       window.localStorage.setItem(SKIP_ONBOARDING_KEY, "1");
       setDone(true);
     } finally {

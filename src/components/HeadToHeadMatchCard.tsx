@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { RivalryCountdown } from "@/components/RivalryCountdown";
+import { weekWindowContaining } from "@/lib/competitions/schedule";
 import type { HeadToHeadPayload } from "@/lib/competitions/types";
 
 function formatReturn(value: number | null): string {
@@ -17,8 +19,10 @@ function returnTone(value: number | null): "up" | "down" | "quiet" {
   return "quiet";
 }
 
+/** Weekly 1v1 rivalry card — returns null when no scoped active competition. */
 export function HeadToHeadMatchCard() {
   const [data, setData] = useState<HeadToHeadPayload | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [ticker, setTicker] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -26,35 +30,29 @@ export function HeadToHeadMatchCard() {
 
   async function reload() {
     const res = await fetch("/api/competitions/active", { cache: "no-store", credentials: "include" });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setLoaded(true);
+      return;
+    }
     setData((await res.json()) as HeadToHeadPayload);
+    setLoaded(true);
   }
 
   useEffect(() => {
     void reload();
   }, []);
 
-  if (data === null) {
-    return (
-      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Weekly rivalry">
-        <p className="crowd-empty">Loading weekly rivalry…</p>
-      </section>
-    );
-  }
+  if (!loaded) return null;
 
-  if (!data.available || !data.competition || !data.groupA || !data.groupB) {
-    return (
-      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Weekly rivalry">
-        <p className="crowd-empty">
-          Weekly rivalry opens when a head-to-head is active. Join a community above, then check back.
-        </p>
-      </section>
-    );
+  if (!data?.available || !data.competition || !data.groupA || !data.groupB) {
+    return null;
   }
 
   const { competition, groupA, groupB, statusLabel, viewer } = data;
-  const accentA = groupA.primaryColor ?? "#115740";
-  const accentB = groupB.primaryColor ?? "#D6001C";
+  const accentA = groupA.accentColor ?? groupA.primaryColor ?? "#115740";
+  const accentB = groupB.accentColor ?? groupB.primaryColor ?? "#D6001C";
+  const window = weekWindowContaining(new Date(competition.periodStart));
+  const lockAt = competition.lockedAt ?? window.lockAt.toISOString();
 
   async function submitPick() {
     if (viewer.kind !== "can_submit") return;
@@ -85,7 +83,7 @@ export function HeadToHeadMatchCard() {
   }
 
   return (
-    <section className="surface-shell h2h-card" aria-label="Weekly rivalry">
+    <section className="surface-shell h2h-card" aria-label="Weekly rivalry matchup">
       <div className="h2h-card-head">
         <div className="h2h-rivalry">
           <span className="h2h-school" style={{ ["--h2h-accent" as string]: accentA }}>
@@ -98,6 +96,8 @@ export function HeadToHeadMatchCard() {
         </div>
         <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>{statusLabel}</span>
       </div>
+
+      <RivalryCountdown lockAt={lockAt} periodEnd={competition.periodEnd} />
 
       <div className="h2h-scoreboard">
         <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentA }}>
@@ -123,10 +123,14 @@ export function HeadToHeadMatchCard() {
           <p className="h2h-note">{viewer.message}</p>
         ) : viewer.kind === "can_submit" ? (
           <>
-            <button type="button" className="watchlist-add-button" onClick={() => {
-              if (viewer.existingTicker && !ticker) setTicker(viewer.existingTicker);
-              setModalOpen(true);
-            }}>
+            <button
+              type="button"
+              className="watchlist-add-button"
+              onClick={() => {
+                if (viewer.existingTicker && !ticker) setTicker(viewer.existingTicker);
+                setModalOpen(true);
+              }}
+            >
               {viewer.existingTicker ? "Change Pick" : "Submit Pick"}
             </button>
             {modalOpen ? (

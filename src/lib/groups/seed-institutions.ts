@@ -27,6 +27,24 @@ export const SEED_INSTITUTIONS: Institution[] = [
     affiliationStatus: "unofficial",
     accentColor: "#D6001C",
   },
+  {
+    id: "institution-njit",
+    name: "New Jersey Institute of Technology",
+    slug: "njit",
+    type: "university",
+    canonicalDomain: "njit.edu",
+    affiliationStatus: "unofficial",
+    accentColor: "#CC0000",
+  },
+  {
+    id: "institution-stevens",
+    name: "Stevens Institute of Technology",
+    slug: "stevens",
+    type: "university",
+    canonicalDomain: "stevens.edu",
+    affiliationStatus: "unofficial",
+    accentColor: "#A32638",
+  },
 ];
 
 export function findSeedInstitutionBySlug(slug: string): Institution | null {

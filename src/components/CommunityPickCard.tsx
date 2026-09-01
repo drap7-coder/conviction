@@ -79,8 +79,15 @@ export function CommunityPickCard() {
           <h2>{data.viewerGroup?.name ?? "Choose a community"}</h2>
         </div>
         {data.viewerPick ? (
-          <div className="community-pick-current">
-            <strong>{data.viewerPick.ticker}</strong>
+          <div
+            className="community-pick-current"
+            style={
+              data.viewerGroup?.accentColor
+                ? { ["--campus-accent" as string]: data.viewerGroup.accentColor }
+                : undefined
+            }
+          >
+            <strong className="community-pick-ticker">{data.viewerPick.ticker}</strong>
             <span className={`is-${returnTone(data.viewerPick.returnPct)}`}>
               {formatReturn(data.viewerPick.returnPct)}
             </span>
@@ -135,7 +142,12 @@ export function CommunityPickCard() {
         ) : (
           <ol>
             {data.standings.map((standing, index) => (
-              <li key={standing.groupId}>
+              <li
+                key={standing.groupId}
+                className={
+                  standing.groupId === data.viewerGroup?.groupId ? "is-yours" : undefined
+                }
+              >
                 <span className="community-standing-rank">{index + 1}</span>
                 <span className="community-standing-name">
                   <strong>{standing.name}</strong>

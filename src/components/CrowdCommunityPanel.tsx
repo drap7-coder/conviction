@@ -52,7 +52,18 @@ export function CrowdCommunityPanel() {
       <div className="crowd-community-head">
         <div className="crowd-community-copy">
           <p className="crowd-community-eyebrow">Your community</p>
-          <p className="crowd-community-summary">{summary}</p>
+          <div className="crowd-community-summary-row">
+            {primary?.institution.accentColor ? (
+              <span
+                className="crowd-community-badge"
+                style={{ ["--campus-accent" as string]: primary.institution.accentColor }}
+              >
+                {primary.institution.name}
+              </span>
+            ) : (
+              <p className="crowd-community-summary">{summary}</p>
+            )}
+          </div>
         </div>
         <div className="crowd-community-actions">
           {!data?.authenticated ? (

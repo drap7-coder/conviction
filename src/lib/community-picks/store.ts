@@ -1,7 +1,8 @@
 import { isDatabaseConfigured, query } from "@/lib/db";
 import { computeReturnPct } from "@/lib/competitions/scores";
 import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
-import { getPrimaryGroupForUser } from "@/lib/groups/store";
+import { findSeedInstitutionById } from "@/lib/groups/seed-institutions";
+import { listCommunityMembershipsForUser } from "@/lib/groups/store";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 import type {
   CommunityPick,
@@ -22,6 +23,7 @@ type GroupRow = {
   id: string;
   name: string;
   primary_color: string | null;
+  accent_color: string | null;
 };
 
 function livePrice(
@@ -30,11 +32,12 @@ function livePrice(
   return quote?.price ?? quote?.previousClose ?? null;
 }
 
-function groupPayload(group: GroupRow): CommunityPickGroup {
+function groupPayload(group: GroupRow, accentColor: string | null = null): CommunityPickGroup {
   return {
     groupId: group.id,
     name: group.name,
     primaryColor: group.primary_color,
+    accentColor,
   };
 }
 
@@ -70,21 +73,23 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
         groupId: group.id,
         name: group.name,
         primaryColor: group.primaryColor,
+        accentColor: findSeedInstitutionById(group.institutionId)?.accentColor ?? group.primaryColor,
         pickCount: 0,
         avgReturnPct: null,
       })),
     };
   }
 
-  const [pickResult, groupResult, primaryGroup] = await Promise.all([
+  const [pickResult, groupResult, primaryMembership] = await Promise.all([
     query<PickRow>(
       `select user_id, group_id, ticker, entry_price, picked_at
        from community_picks
        order by picked_at asc`,
     ),
     query<GroupRow>(
-      `select g.id, g.name, g.primary_color
+      `select g.id, g.name, g.primary_color, i.accent_color
        from groups g
+       left join institutions i on i.id = g.institution_id
        where exists (
          select 1 from user_group_memberships m where m.group_id = g.id
        ) or exists (
@@ -92,8 +97,13 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
        )
        order by g.name asc`,
     ),
-    userId ? getPrimaryGroupForUser(userId) : Promise.resolve(null),
+    userId ? listCommunityMembershipsForUser(userId) : Promise.resolve([]),
   ]);
+
+  const primaryGroup =
+    primaryMembership.find((membership) => membership.isPrimary) ??
+    primaryMembership[0] ??
+    null;
 
   const tickers = [...new Set(pickResult.rows.map((row) => row.ticker.toUpperCase()))];
   const quotes = await fetchStockQuotes(tickers);
@@ -128,11 +138,12 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
   }
 
   const groups = groupResult.rows.slice();
-  if (primaryGroup && !groups.some((group) => group.id === primaryGroup.id)) {
+  if (primaryGroup && !groups.some((group) => group.id === primaryGroup.groupId)) {
     groups.push({
-      id: primaryGroup.id,
-      name: primaryGroup.name,
+      id: primaryGroup.groupId,
+      name: primaryGroup.institution.name,
       primary_color: primaryGroup.primaryColor,
+      accent_color: primaryGroup.institution.accentColor,
     });
   }
 
@@ -143,7 +154,7 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
         ? Math.round((returns.reduce((sum, value) => sum + value, 0) / returns.length) * 100) / 100
         : null;
       return {
-        ...groupPayload(group),
+        ...groupPayload(group, group.accent_color),
         pickCount: pickCounts.get(group.id) ?? 0,
         avgReturnPct,
       };
@@ -160,9 +171,10 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
     authenticated: Boolean(userId),
     viewerGroup: primaryGroup
       ? {
-          groupId: primaryGroup.id,
-          name: primaryGroup.name,
+          groupId: primaryGroup.groupId,
+          name: primaryGroup.institution.name,
           primaryColor: primaryGroup.primaryColor,
+          accentColor: primaryGroup.institution.accentColor,
         }
       : null,
     viewerPick,

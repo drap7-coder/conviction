@@ -1,5 +1,6 @@
 import { isDatabaseConfigured, query } from "@/lib/db";
 import { findSeedGroupById } from "@/lib/groups/seed-groups";
+import { findSeedInstitutionById } from "@/lib/groups/seed-institutions";
 import type {
   Competition,
   CompetitionGroupSide,
@@ -18,6 +19,7 @@ import { computeSideScore, countSubmittedPicks } from "@/lib/competitions/scores
 /** Platform-seeded rivalries — data-driven, not hardcoded in UI. */
 export const RIVALRY_PAIRS: Array<{ groupAId: string; groupBId: string; slug: string }> = [
   { groupAId: "group-wm", groupBId: "group-rpi", slug: "wm-rpi" },
+  { groupAId: "group-njit", groupBId: "group-stevens", slug: "njit-stevens" },
 ];
 
 type CompetitionRow = {
@@ -76,20 +78,84 @@ function mapPick(row: PickRow): CompetitionPick {
   };
 }
 
-async function groupMeta(groupId: string): Promise<{ name: string; primaryColor: string | null }> {
+async function groupMeta(
+  groupId: string,
+): Promise<{ name: string; primaryColor: string | null; accentColor: string | null }> {
   const seed = findSeedGroupById(groupId);
-  if (seed) return { name: seed.name, primaryColor: seed.primaryColor };
-  if (!isDatabaseConfigured()) return { name: groupId, primaryColor: null };
+  if (seed) {
+    const institution = findSeedInstitutionById(seed.institutionId);
+    return {
+      name: seed.name,
+      primaryColor: seed.primaryColor,
+      accentColor: institution?.accentColor ?? seed.primaryColor,
+    };
+  }
+  if (!isDatabaseConfigured()) return { name: groupId, primaryColor: null, accentColor: null };
   try {
-    const result = await query<{ name: string; primary_color: string | null }>(
-      `select name, primary_color from groups where id = $1 limit 1`,
+    const result = await query<{
+      name: string;
+      primary_color: string | null;
+      accent_color: string | null;
+    }>(
+      `select g.name, g.primary_color, i.accent_color
+       from groups g
+       left join institutions i on i.id = g.institution_id
+       where g.id = $1
+       limit 1`,
       [groupId],
     );
     const row = result.rows[0];
-    return { name: row?.name ?? groupId, primaryColor: row?.primary_color ?? null };
+    return {
+      name: row?.name ?? groupId,
+      primaryColor: row?.primary_color ?? null,
+      accentColor: row?.accent_color ?? row?.primary_color ?? null,
+    };
   } catch {
-    return { name: groupId, primaryColor: null };
+    return { name: groupId, primaryColor: null, accentColor: null };
   }
+}
+
+function pairMatchesCompetition(
+  pair: (typeof RIVALRY_PAIRS)[number],
+  competition: Competition,
+): boolean {
+  return (
+    (competition.groupAId === pair.groupAId && competition.groupBId === pair.groupBId) ||
+    (competition.groupAId === pair.groupBId && competition.groupBId === pair.groupAId)
+  );
+}
+
+export async function listActiveCompetitions(): Promise<Competition[]> {
+  if (!isDatabaseConfigured()) return [];
+  await ensureWeeklyCompetitions();
+  const result = await query<CompetitionRow>(
+    `select id, group_a_id, group_b_id, period_start, period_end, status, metric, locked_at, winner_group_id
+     from competitions
+     where status in ('open', 'live', 'final')
+     order by period_start desc`,
+  );
+  return result.rows.map((row) => mapCompetition(row));
+}
+
+export async function resolveActiveCompetition(scopeGroupIds: string[] = []): Promise<Competition | null> {
+  const competitions = await listActiveCompetitions();
+  if (competitions.length === 0) return null;
+
+  if (scopeGroupIds.length > 0) {
+    for (const competition of competitions) {
+      const sideIds = [competition.groupAId, competition.groupBId];
+      if (scopeGroupIds.some((id) => sideIds.includes(id))) {
+        return competition;
+      }
+    }
+  }
+
+  for (const pair of RIVALRY_PAIRS) {
+    const featured = competitions.find((competition) => pairMatchesCompetition(pair, competition));
+    if (featured) return featured;
+  }
+
+  return null;
 }
 
 export async function ensureWeeklyCompetitions(now = new Date()): Promise<void> {
@@ -107,18 +173,8 @@ export async function ensureWeeklyCompetitions(now = new Date()): Promise<void> 
   }
 }
 
-export async function getActiveCompetition(): Promise<Competition | null> {
-  if (!isDatabaseConfigured()) return null;
-  await ensureWeeklyCompetitions();
-  const result = await query<CompetitionRow>(
-    `select id, group_a_id, group_b_id, period_start, period_end, status, metric, locked_at, winner_group_id
-     from competitions
-     where status in ('open', 'live', 'final')
-     order by period_start desc
-     limit 1`,
-  );
-  const row = result.rows[0];
-  return row ? mapCompetition(row) : null;
+export async function getActiveCompetition(scopeGroupIds: string[] = []): Promise<Competition | null> {
+  return resolveActiveCompetition(scopeGroupIds);
 }
 
 export async function listPicksForCompetition(competitionId: string): Promise<CompetitionPick[]> {
@@ -208,8 +264,13 @@ export async function submitPick(input: {
 
 export async function buildHeadToHeadPayload(input: {
   userId?: string;
+  scopeGroupIds?: string[];
 }): Promise<HeadToHeadPayload> {
-  const competition = await getActiveCompetition();
+  const scopeGroupIds =
+    input.scopeGroupIds ??
+    (input.userId ? await userMembershipGroupIds(input.userId) : []);
+
+  const competition = await resolveActiveCompetition(scopeGroupIds);
   if (!competition) {
     return {
       available: false,
@@ -240,6 +301,7 @@ export async function buildHeadToHeadPayload(input: {
     groupId: competition.groupAId,
     name: metaA.name,
     primaryColor: metaA.primaryColor,
+    accentColor: metaA.accentColor,
     avgReturnPct: computeSideScore(picks, competition.groupAId).avgReturnPct,
     pickCount: countSubmittedPicks(picks, competition.groupAId),
   };
@@ -247,6 +309,7 @@ export async function buildHeadToHeadPayload(input: {
     groupId: competition.groupBId,
     name: metaB.name,
     primaryColor: metaB.primaryColor,
+    accentColor: metaB.accentColor,
     avgReturnPct: computeSideScore(picks, competition.groupBId).avgReturnPct,
     pickCount: countSubmittedPicks(picks, competition.groupBId),
   };

@@ -24,6 +24,22 @@ export const SEED_GROUPS: Group[] = [
     primaryColor: "#D6001C",
     isCanonicalCommunity: true,
   },
+  {
+    id: "group-njit",
+    institutionId: "institution-njit",
+    name: "New Jersey Institute of Technology",
+    inviteCode: "njit",
+    primaryColor: "#CC0000",
+    isCanonicalCommunity: true,
+  },
+  {
+    id: "group-stevens",
+    institutionId: "institution-stevens",
+    name: "Stevens Institute of Technology",
+    inviteCode: "stevens",
+    primaryColor: "#A32638",
+    isCanonicalCommunity: true,
+  },
 ];
 
 /**
