@@ -31,4 +31,11 @@ describe("crowd communities loading", () => {
     expect(read("src/components/CrowdCommunityPanel.tsx")).toContain("setLoading(false)");
     expect(read("src/components/CrowdCommunityPanel.tsx")).toContain("Retry");
   });
+
+  it("joins school and theme color through one Save & join action", () => {
+    expect(read("src/components/GroupPanels.tsx")).toContain("Save & join");
+    expect(read("src/components/GroupPanels.tsx")).toContain("primaryColor: themeColor");
+    expect(read("src/components/GroupPanels.tsx")).toContain("Theme color saved.");
+    expect(read("src/app/api/groups/route.ts")).toContain("primaryCommunity: primary");
+  });
 });
