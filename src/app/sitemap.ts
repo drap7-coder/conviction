@@ -9,6 +9,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
+      // Apex redirects to /pulse; still list both so Search Console can pick either.
+      url: `${SITE_URL}/`,
+      lastModified: now,
+      changeFrequency: "hourly",
+      priority: 1,
+    },
+    {
       url: `${SITE_URL}/pulse`,
       lastModified: now,
       changeFrequency: "hourly",
@@ -56,7 +63,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "hourly",
       priority: 0.8,
     },
-
     {
       url: `${SITE_URL}/portfolio`,
       lastModified: now,

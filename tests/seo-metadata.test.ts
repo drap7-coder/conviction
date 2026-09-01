@@ -60,6 +60,7 @@ describe("SEO metadata", () => {
   it("includes the main tabs, sectors, seed names, and Pulse instruments in the sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
 
+    expect(urls).toContain(`${SITE_URL}/`);
     expect(urls).toContain(`${SITE_URL}/pulse`);
     expect(urls).toContain(`${SITE_URL}/portfolio`);
     expect(urls).toContain(`${SITE_URL}/portfolio?view=watchlist`);
@@ -84,6 +85,16 @@ describe("SEO metadata", () => {
     for (const instrument of listMarketInstruments()) {
       expect(urls).toContain(`${SITE_URL}/companies/${encodeURIComponent(instrument.ticker)}`);
     }
+  });
+
+  it("ships App Router file-convention icons and robots/sitemap generators", () => {
+    expect(read("src/app/layout.tsx")).not.toContain("icons:");
+    expect(read("src/app/layout.tsx")).not.toContain("iqbulls-favicon.png");
+    expect(read("src/app/manifest.ts")).toContain('src: "/icon.png"');
+    expect(read("src/app/manifest.ts")).toContain('src: "/apple-icon.png"');
+    expect(read("src/app/robots.ts")).toContain('userAgent: "*"');
+    expect(read("src/app/robots.ts")).toContain("sitemap.xml");
+    expect(read("src/app/robots.ts")).toContain("SITE_URL");
   });
 
   it("publishes Organization, WebSite, and SoftwareApplication JSON-LD plus breadcrumbs", () => {

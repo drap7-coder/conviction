@@ -1,6 +1,11 @@
 import type { MetadataRoute } from "next";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site";
 
+/**
+ * PWA manifest icons use the App Router file-convention routes
+ * (`app/icon.png`, `app/apple-icon.png`) so the mark stays in sync
+ * with the document <head> tags Next injects automatically.
+ */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: SITE_TITLE,
@@ -11,8 +16,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#0A0E14",
     theme_color: "#0A0E14",
     icons: [
-      { src: "/iqbulls-favicon.png?v=20260831d", sizes: "512x512", type: "image/png" },
-      { src: "/iqbulls-apple-icon.png?v=20260831d", sizes: "180x180", type: "image/png" },
+      { src: "/icon.png", sizes: "512x512", type: "image/png" },
+      { src: "/apple-icon.png", sizes: "180x180", type: "image/png" },
     ],
   };
 }
