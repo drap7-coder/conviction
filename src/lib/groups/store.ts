@@ -114,6 +114,31 @@ function toCommunity(institution: Institution, group: Group): Community {
   };
 }
 
+function seedCommunities(): Community[] {
+  return SEED_INSTITUTIONS.flatMap((institution) => {
+    const group = getCanonicalSeedGroupForInstitution(institution.id);
+    return group ? [toCommunity(institution, group)] : [];
+  });
+}
+
+function pickCanonicalGroup(institution: Institution, groups: Group[]): Group | null {
+  const seed = getCanonicalSeedGroupForInstitution(institution.id);
+  if (seed && groups.some((group) => group.id === seed.id)) return seed;
+
+  const byName = groups.find(
+    (group) => group.institutionId === institution.id && group.name === institution.name,
+  );
+  if (byName) return byName;
+
+  if (institution.id.startsWith("institution-")) {
+    const derivedGroupId = `group-${institution.id.slice("institution-".length)}`;
+    const byCatalogId = groups.find((group) => group.id === derivedGroupId);
+    if (byCatalogId) return byCatalogId;
+  }
+
+  return groups.find((group) => group.institutionId === institution.id) ?? seed ?? null;
+}
+
 export async function ensureSeedInstitutions(): Promise<void> {
   if (!isDatabaseConfigured()) return;
   for (const institution of SEED_INSTITUTIONS) {
@@ -284,48 +309,69 @@ export async function getCanonicalGroupForInstitution(
 }
 
 export async function listCommunities(): Promise<Community[]> {
-  const institutions = await listInstitutions();
-  const communities: Community[] = [];
-  for (const institution of institutions) {
-    const group = await getCanonicalGroupForInstitution(institution.id);
-    if (!group) continue;
-    communities.push(toCommunity(institution, group));
+  if (!isDatabaseConfigured()) return seedCommunities();
+
+  try {
+    const [instResult, groupResult] = await Promise.all([
+      query<InstitutionRow>(
+        `select ${INSTITUTION_COLUMNS}
+         from institutions
+         where community_enabled = true
+         order by name asc`,
+      ),
+      query<GroupRow>(
+        `select id, institution_id, name, invite_code, primary_color
+         from groups`,
+      ),
+    ]);
+
+    const groupsByInstitution = new Map<string, Group[]>();
+    for (const row of groupResult.rows) {
+      const group = mapGroup(row, true);
+      const list = groupsByInstitution.get(group.institutionId) ?? [];
+      list.push(group);
+      groupsByInstitution.set(group.institutionId, list);
+    }
+
+    const communities: Community[] = [];
+    for (const row of instResult.rows) {
+      const institution = mapInstitution(row);
+      const group = pickCanonicalGroup(
+        institution,
+        groupsByInstitution.get(institution.id) ?? [],
+      );
+      if (group) communities.push(toCommunity(institution, group));
+    }
+
+    for (const seed of seedCommunities()) {
+      if (!communities.some((community) => community.institution.id === seed.institution.id)) {
+        communities.push(seed);
+      }
+    }
+
+    return communities.sort((a, b) => a.institution.name.localeCompare(b.institution.name));
+  } catch {
+    return seedCommunities();
   }
-  return communities;
 }
 
 /** Active communities for Crowd filter (have ≥1 membership on the canonical group). */
 export async function listActiveGroups(): Promise<Group[]> {
-  const communities = await listCommunities();
   if (!isDatabaseConfigured()) {
-    return communities.map((c) => ({
-      id: c.groupId,
-      institutionId: c.institution.id,
-      name: c.institution.name,
-      inviteCode: c.inviteCode,
-      primaryColor: c.primaryColor,
-      isCanonicalCommunity: true,
-    }));
+    return SEED_GROUPS.slice();
   }
   try {
-    const ids = communities.map((c) => c.groupId);
-    if (ids.length === 0) return [];
-    const result = await query<{ group_id: string }>(
-      `select distinct group_id from user_group_memberships where group_id = any($1::text[])`,
-      [ids],
+    const result = await query<GroupRow>(
+      `select distinct g.id, g.institution_id, g.name, g.invite_code, g.primary_color
+       from groups g
+       where exists (
+         select 1 from user_group_memberships m where m.group_id = g.id
+       )
+       order by g.name asc`,
     );
-    const live = new Set(result.rows.map((row) => row.group_id));
-    // Surface all seed communities in guest/demo even before live memberships.
-    const active = communities.filter((c) => live.has(c.groupId));
-    const source = active.length > 0 ? active : communities;
-    return source.map((c) => ({
-      id: c.groupId,
-      institutionId: c.institution.id,
-      name: c.institution.name,
-      inviteCode: c.inviteCode,
-      primaryColor: c.primaryColor,
-      isCanonicalCommunity: true,
-    }));
+    const live = result.rows.map((row) => mapGroup(row, true));
+    if (live.length > 0) return live;
+    return SEED_GROUPS.slice();
   } catch {
     return SEED_GROUPS.slice();
   }

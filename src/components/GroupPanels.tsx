@@ -16,6 +16,14 @@ type CommunitiesPayload = {
   primaryGroup: { primaryColor: string | null } | null;
 };
 
+const EMPTY_COMMUNITIES_PAYLOAD: CommunitiesPayload = {
+  authenticated: false,
+  communities: [],
+  memberships: [],
+  primaryCommunity: null,
+  primaryGroup: null,
+};
+
 export function CommunitySettingsPanel({
   compact = false,
   onboarding = false,
@@ -27,6 +35,8 @@ export function CommunitySettingsPanel({
   onJoined?: () => void;
 }) {
   const [data, setData] = useState<CommunitiesPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [themeColor, setThemeColor] = useState(THEME_SWATCHES[0]);
   const [schoolQuery, setSchoolQuery] = useState("");
   const [pickedSchool, setPickedSchool] = useState<InstitutionSearchSuggestion | null>(null);
@@ -34,25 +44,36 @@ export function CommunitySettingsPanel({
   const [message, setMessage] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
-    const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
-    if (!res.ok) {
-      setMessage("Could not load communities. Try again.");
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
+      if (!res.ok) {
+        throw new Error("Could not load communities. Try again.");
+      }
+      const json = (await res.json()) as CommunitiesPayload;
+      setData(json);
+      const accent =
+        json.primaryCommunity?.primaryColor ?? json.primaryGroup?.primaryColor ?? null;
+      writeStoredPrimaryColor(accent);
+      if (accent) {
+        document.documentElement.style.setProperty("--group-accent", accent);
+        setThemeColor(accent);
+      }
+      return json;
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not load communities. Try again.";
+      setLoadError(message);
+      setData((current) => current ?? EMPTY_COMMUNITIES_PAYLOAD);
       return null;
+    } finally {
+      setLoading(false);
     }
-    const json = (await res.json()) as CommunitiesPayload;
-    setData(json);
-    const accent =
-      json.primaryCommunity?.primaryColor ?? json.primaryGroup?.primaryColor ?? null;
-    writeStoredPrimaryColor(accent);
-    if (accent) {
-      document.documentElement.style.setProperty("--group-accent", accent);
-      setThemeColor(accent);
-    }
-    return json;
   }, []);
 
   useEffect(() => {
-    void reload().catch(() => undefined);
+    void reload();
   }, [reload]);
 
   const memberIds = useMemo(
@@ -106,27 +127,43 @@ export function CommunitySettingsPanel({
     }
   }
 
-  if (!data) {
+  if (loading && !data) {
     return <p className="crowd-empty">Loading communities…</p>;
   }
 
-  const showTheme = onboarding || data.memberships.length > 0;
+  const panelData = data ?? EMPTY_COMMUNITIES_PAYLOAD;
+
+  if (loadError && panelData.memberships.length === 0) {
+    return (
+      <div className="group-settings group-settings-error">
+        <p className="crowd-empty">{loadError}</p>
+        <button type="button" className="brief-link" onClick={() => void reload()}>
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  const showTheme = onboarding || panelData.memberships.length > 0;
   const showJoinSearch =
-    data.authenticated && (onboarding || data.memberships.length === 0 || !compact);
+    panelData.authenticated &&
+    (onboarding || panelData.memberships.length === 0 || !compact);
 
   return (
     <section
       className={`group-settings${compact ? " is-compact" : ""}${onboarding ? " is-onboarding" : ""}`}
       aria-label="Your communities"
     >
-      {!data.authenticated ? (
+      {loadError ? <p className="group-settings-message">{loadError}</p> : null}
+
+      {!panelData.authenticated ? (
         <p className="group-settings-note">
           Sign in to join a campus community. Guests can still browse Crowd filters.
         </p>
       ) : null}
 
       <ul className="group-settings-list">
-        {(data.memberships ?? []).map((membership) => (
+        {(panelData.memberships ?? []).map((membership) => (
           <li key={membership.institutionId}>
             <span
               className="group-badge"
@@ -182,7 +219,7 @@ export function CommunitySettingsPanel({
               onChange={setSchoolQuery}
               selectedInstitutionId={pickedSchool?.institutionId}
               onClearSelection={() => setPickedSchool(null)}
-              disabled={busy || !data.authenticated}
+              disabled={busy || !panelData.authenticated}
               onSelect={(suggestion) => {
                 setPickedSchool(suggestion);
                 setSchoolQuery(suggestion.name);
@@ -203,7 +240,7 @@ export function CommunitySettingsPanel({
         </div>
       ) : null}
 
-      {showTheme && data.authenticated ? (
+      {showTheme && panelData.authenticated ? (
         <div className="group-settings-create">
           <label>
             Theme color
@@ -220,7 +257,7 @@ export function CommunitySettingsPanel({
                     setThemeColor(swatch);
                     if (onboarding && !pickedSchool) return;
                     const primary =
-                      data.memberships.find((m) => m.isPrimary) ?? data.memberships[0];
+                      panelData.memberships.find((m) => m.isPrimary) ?? panelData.memberships[0];
                     if (primary) {
                       void post({
                         action: "theme",

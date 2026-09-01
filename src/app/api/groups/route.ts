@@ -28,12 +28,13 @@ export async function GET(request: Request) {
   const userId = session?.user?.id ?? "";
   const { searchParams } = new URL(request.url);
   const institutionSlug = searchParams.get("institution")?.trim().toLowerCase() ?? "";
+  const includeCatalog = searchParams.get("include") === "catalog" || Boolean(institutionSlug);
 
   await ensureCommunitySchema().catch(() => undefined);
 
   const [institutions, communities, memberships] = await Promise.all([
-    listInstitutions(),
-    listCommunities(),
+    includeCatalog ? listInstitutions() : Promise.resolve([]),
+    includeCatalog ? listCommunities() : Promise.resolve([]),
     userId ? listCommunityMembershipsForUser(userId) : Promise.resolve([]),
   ]);
 
@@ -41,18 +42,20 @@ export async function GET(request: Request) {
     ? await getInstitutionBySlug(institutionSlug)
     : null;
 
+  const visibleCommunities = institution
+    ? communities.filter((c) => c.institution.id === institution.id)
+    : communities;
+
   const primary = memberships.find((m) => m.isPrimary) ?? memberships[0] ?? null;
 
   return NextResponse.json({
     authenticated: Boolean(userId),
     institutions,
-    communities: institution
-      ? communities.filter((c) => c.institution.id === institution.id)
-      : communities,
+    communities: visibleCommunities,
     memberships,
     primaryCommunity: primary,
     // Compat aliases for GroupAccentProvider / older clients.
-    groups: communities.map((c) => ({
+    groups: visibleCommunities.map((c) => ({
       id: c.groupId,
       institutionId: c.institution.id,
       name: c.institution.name,
