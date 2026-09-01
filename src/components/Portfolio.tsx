@@ -37,6 +37,7 @@ import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import { PROFILE_BENCHMARK } from "@/lib/portfolio/fit";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
+import { generateSleeveMoves, visibleCompareMoves } from "@/lib/portfolio/sleeve-moves";
 import {
   buildSparklineGeometry,
   sparklineStroke,
@@ -551,10 +552,15 @@ export default function Portfolio() {
   })))
     .slice()
     .sort((a, b) => b.weight - a.weight);
-  // Concentration comparison vs the user's real book — only when they have one.
-  const studyDelta = positions.length > 0 && valueBrief.largest
+  // Concentration + quiet moves vs the user's real book — only when they have one.
+  // Prefer personalPositions so a sample-load path cannot pollute “your book.”
+  const hasLiveBook = personalPositions.length > 0 && activeBookId === null;
+  const studyDelta = hasLiveBook && valueBrief.largest
     ? Math.round(valueBrief.largest.weight - sampleBookLargestWeight(studyBook))
     : null;
+  const studyMoves = hasLiveBook
+    ? visibleCompareMoves(generateSleeveMoves(bookHoldings, studyBook))
+    : [];
 
   function goLive() {
     const params = new URLSearchParams(searchParams.toString());
@@ -682,16 +688,31 @@ export default function Portfolio() {
         />
       </div>
 
-      {studyDelta !== null ? (
+      {studyDelta !== null || studyMoves.length > 0 ? (
         <section className="pf-study-board surface-shell" aria-label="Your book vs this template">
           <header className="pf-study-board-head">
             <span className="pf-section-eyebrow">Vs your book</span>
             <h2>
-              {Math.abs(studyDelta) < 1
-                ? "About the same concentration"
-                : `${studyDelta > 0 ? "+" : "−"}${Math.abs(studyDelta)}pt ${studyDelta > 0 ? "more" : "less"} concentrated`}
+              {studyDelta === null
+                ? `Toward ${studyBook.label}`
+                : Math.abs(studyDelta) < 1
+                  ? "About the same concentration"
+                  : `${studyDelta > 0 ? "+" : "−"}${Math.abs(studyDelta)}pt ${studyDelta > 0 ? "more" : "less"} concentrated`}
             </h2>
           </header>
+          {studyMoves.length > 0 ? (
+            <div className="pf-study-moves surface-well">
+              <span>Moves vs your book</span>
+              <ul>
+                {studyMoves.map((move) => (
+                  <li key={`${move.action}-${move.ticker}-${move.label}`}>
+                    <strong>{move.label}</strong>
+                    <em>{move.why}</em>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </section>
       ) : null}
     </div>

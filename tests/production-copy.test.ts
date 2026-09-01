@@ -46,8 +46,18 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).not.toContain("pf-risk");
     expect(portfolio).not.toContain("pf-moves-block");
     expect(portfolio).not.toContain("FIT_HEDGE");
-    expect(portfolio).not.toContain("generateSleeveMoves");
-    expect(portfolio).not.toContain("pf-study-moves");
+    // Study-only Moves vs your book (never Live advice chrome).
+    expect(portfolio).toContain("generateSleeveMoves");
+    expect(portfolio).toContain("visibleCompareMoves");
+    expect(portfolio).toContain("pf-study-moves");
+    expect(portfolio).toContain("Moves vs your book");
+    expect(portfolio).toContain("hasLiveBook");
+    expect(portfolio.indexOf("pf-study-ladder")).toBeLessThan(portfolio.indexOf("pf-study-moves"));
+    const liveStart = portfolio.lastIndexOf("<ProductStage");
+    const liveRender = portfolio.slice(liveStart);
+    expect(liveRender).not.toContain("pf-study-moves");
+    expect(liveRender).not.toContain("Moves vs your book");
+    expect(liveRender).not.toContain("generateSleeveMoves");
     expect(portfolio).not.toContain("pf-live-machine");
     expect(portfolio).not.toContain("What has to go right");
     expect(portfolio).not.toContain("Capital Map");
@@ -61,8 +71,6 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).not.toContain("Position weight vs. risk thresholds");
     expect(portfolio).toContain("pf-hero-diagnosis");
     expect(portfolio).toContain("PROFILE_BENCHMARK");
-    const liveStart = portfolio.lastIndexOf("<ProductStage");
-    const liveRender = portfolio.slice(liveStart);
     expect(liveRender.indexOf("{sectorMixCard}")).toBeLessThan(liveRender.indexOf("{allocationPanel}"));
     expect(liveRender.indexOf("{allocationPanel}")).toBeLessThan(liveRender.indexOf("<PortfolioBenchmarkChart"));
     expect(liveRender.indexOf("<PortfolioBenchmarkChart")).toBeLessThan(liveRender.indexOf('id="portfolio-panel-holdings"'));
@@ -77,7 +85,6 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).not.toContain("namedTicker");
     expect(portfolio).not.toContain("moveVerb");
     expect(portfolio).not.toContain("moveFocus");
-    expect(portfolio).not.toContain("visibleCompareMoves");
     expect(portfolio).toContain('metricsPlacement="above"');
     expect(portfolio).toContain("formatPortfolioDollars");
     expect(portfolio).not.toContain("compactCurrency");
