@@ -40,17 +40,19 @@ function formatSharePct(pct: number): string {
   return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
 }
 
-/** Quiet personal chips for the viewer only — never from the aggregate API. */
-export function crowdPersonalLabels(
+/** One quiet personal chip for the viewer only — never from the aggregate API. */
+export function crowdPersonalLabel(
   ticker: string,
   bookTickers: ReadonlySet<string>,
   watchTickers: ReadonlySet<string>,
-): string[] {
+): string | null {
   const key = ticker.toUpperCase();
-  const labels: string[] = [];
-  if (bookTickers.has(key)) labels.push("In your book");
-  if (watchTickers.has(key)) labels.push("In your watchlist");
-  return labels;
+  const inBook = bookTickers.has(key);
+  const inWatch = watchTickers.has(key);
+  if (inBook && inWatch) return "In your book & watchlist";
+  if (inBook) return "In your book";
+  if (inWatch) return "In your watchlist";
+  return null;
 }
 
 /** Quiet head meta: book/list counts + starter vs live mix. Aggregate only. */
@@ -238,7 +240,7 @@ export function CrowdBoard() {
                 const topThree = index < 3;
                 const sharePct = "holderPct" in row ? row.holderPct : row.watcherPct;
                 const shareLabel = view === "held" ? "of books" : "of lists";
-                const youLabels = crowdPersonalLabels(ticker, bookTickers, watchTickers);
+                const youLabel = crowdPersonalLabel(ticker, bookTickers, watchTickers);
                 const body = (
                   <>
                     <span className={`crowd-rank${topThree ? " is-lead" : ""}`} aria-hidden="true">
@@ -250,13 +252,9 @@ export function CrowdBoard() {
                     <span className="crowd-id">
                       <strong>{ticker}</strong>
                       <small>{name}</small>
-                      {youLabels.length > 0 ? (
+                      {youLabel ? (
                         <span className="crowd-you" aria-hidden="true">
-                          {youLabels.map((label) => (
-                            <span key={label} className="crowd-you-chip">
-                              {label}
-                            </span>
-                          ))}
+                          <span className="crowd-you-chip">{youLabel}</span>
                         </span>
                       ) : null}
                     </span>
@@ -277,8 +275,8 @@ export function CrowdBoard() {
                   ticker,
                   name,
                   `${formatSharePct(sharePct)} ${shareLabel}`,
-                  ...youLabels,
-                ].join(", ");
+                  youLabel,
+                ].filter(Boolean).join(", ");
 
                 return (
                   <li key={ticker} className={topThree ? "is-lead" : undefined}>

@@ -4,7 +4,7 @@ import { buildCrowdSnapshot, rankCrowdHoldings, rankCrowdWatched } from "@/lib/c
 import { CROWD_SEED_BOOKS, isCrowdSeedUserId, listCrowdSeedBooks } from "@/lib/crowd/seed-books";
 import { getSectorColors, hasDomainLogo } from "@/lib/market/logos";
 import type { CrowdBook } from "@/lib/crowd/types";
-import { crowdBoardMetaLine, crowdPersonalLabels } from "@/components/CrowdBoard";
+import { crowdBoardMetaLine, crowdPersonalLabel } from "@/components/CrowdBoard";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -97,17 +97,14 @@ describe("crowdBoardMetaLine", () => {
   });
 });
 
-describe("crowdPersonalLabels", () => {
-  it("marks book and watchlist separately without inventing either", () => {
+describe("crowdPersonalLabel", () => {
+  it("returns one unified pill for book, watchlist, or both", () => {
     const book = new Set(["NVDA", "AAPL"]);
     const watch = new Set(["HOOD", "NVDA"]);
-    expect(crowdPersonalLabels("nvda", book, watch)).toEqual([
-      "In your book",
-      "In your watchlist",
-    ]);
-    expect(crowdPersonalLabels("AAPL", book, watch)).toEqual(["In your book"]);
-    expect(crowdPersonalLabels("HOOD", book, watch)).toEqual(["In your watchlist"]);
-    expect(crowdPersonalLabels("MSFT", book, watch)).toEqual([]);
+    expect(crowdPersonalLabel("nvda", book, watch)).toBe("In your book & watchlist");
+    expect(crowdPersonalLabel("AAPL", book, watch)).toBe("In your book");
+    expect(crowdPersonalLabel("HOOD", book, watch)).toBe("In your watchlist");
+    expect(crowdPersonalLabel("MSFT", book, watch)).toBeNull();
   });
 });
 
@@ -125,10 +122,12 @@ describe("Crowd surface wiring", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("of lists");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowdBoardMetaLine");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-board-meta");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowdPersonalLabels");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowdPersonalLabel");
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-you-chip");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("In your book & watchlist");
     expect(read("src/components/CrowdBoard.tsx")).toContain("In your book");
     expect(read("src/components/CrowdBoard.tsx")).toContain("In your watchlist");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("youLabels.map");
     expect(read("src/components/CrowdBoard.tsx")).toContain("loadPortfolioForViewer");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("sync-universe");
     expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
@@ -145,7 +144,8 @@ describe("Crowd surface wiring", () => {
     expect(read("AGENTS.md")).toContain("Crowd");
     expect(read("AGENTS.md")).toContain("holderPct");
     expect(read("AGENTS.md")).toContain("crowd-board-meta");
-    expect(read("AGENTS.md")).toContain("crowdPersonalLabels");
+    expect(read("AGENTS.md")).toContain("crowdPersonalLabel");
+    expect(read("AGENTS.md")).toContain("In your book & watchlist");
   });
 
   it("covers Crowd seed tickers with logo domains or sector badges", () => {
