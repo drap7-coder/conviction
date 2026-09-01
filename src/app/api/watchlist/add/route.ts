@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import { validateTicker } from "@/lib/watchlist/validate";
 import { addUserWatchlistEntry } from "@/lib/user-watchlist";
+import { sanitizeWatchlistInput } from "@/lib/watchlist/sanitize-ticker";
 
 /**
  * POST /api/watchlist/add
@@ -16,7 +17,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
-  const input = (body.ticker || body.company || "").trim();
+  const input = sanitizeWatchlistInput(body.ticker || body.company || "");
 
   if (!input) {
     return NextResponse.json(

@@ -18,6 +18,13 @@ import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import { subscribeMarketData } from "@/lib/market/client-market-data";
+import { sanitizeWatchlistInput, isWatchlistSymbolFormat } from "@/lib/watchlist/sanitize-ticker";
+import {
+  createMutationQueue,
+  flushBrowserWatchlistWrite,
+  scheduleBrowserWatchlistWrite,
+  writeBrowserWatchlistNow,
+} from "@/lib/watchlist/sync-guard";
 
 const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
 const WATCHLIST_MIGRATION_KEY = "conviction-watchlist-migrated";
@@ -53,15 +60,6 @@ function readBrowserWatchlist(): WatchlistEntry[] | null {
   }
 }
 
-function writeBrowserWatchlist(entries: WatchlistEntry[]) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(WATCHLIST_STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    // Browser persistence is best-effort; server persistence still runs.
-  }
-}
-
 function hasMigratedBrowserWatchlist() {
   if (typeof window === "undefined") return true;
   return window.localStorage.getItem(WATCHLIST_MIGRATION_KEY) === "1";
@@ -82,6 +80,8 @@ export default function Watchlist({
   const [entries, setEntries] = useState<WatchlistEntry[]>([]);
   const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
   const [authenticated, setAuthenticated] = useState(false);
+  const authenticatedRef = useRef(false);
+  authenticatedRef.current = authenticated;
   const [persistence, setPersistence] = useState<"browser" | "neon" | "unconfigured">("browser");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,8 +92,12 @@ export default function Watchlist({
   const [adding, setAdding] = useState(false);
   const [addMessage, setAddMessage] = useState<{ type: "success" | "error" | "info"; text: string } | null>(null);
 
-  // Removal state
+  // Removal state — confirm before wipe; serialize sync
   const [removing, setRemoving] = useState<string | null>(null);
+  const [pendingRemoval, setPendingRemoval] = useState<string | null>(null);
+  const enqueueMutation = useMemo(() => createMutationQueue(), []);
+  const entriesRef = useRef(entries);
+  entriesRef.current = entries;
 
   // Search state
   const [searchResult, setSearchResult] = useState<{ type: "navigate" | "filter" | "unrecognized"; text: string } | null>(null);
@@ -133,7 +137,7 @@ export default function Watchlist({
 
       setEntries(nextEntries);
       // Guests own localStorage only — never adopt the ops/seed sync universe.
-      if (!isAuthenticated && browserEntries) writeBrowserWatchlist(nextEntries);
+      if (!isAuthenticated && browserEntries) writeBrowserWatchlistNow(nextEntries);
       setAuthenticated(isAuthenticated);
       setPersistence(data.persistence ?? (isAuthenticated ? "neon" : "browser"));
     } catch {
@@ -147,6 +151,12 @@ export default function Watchlist({
 
   useEffect(() => {
     loadWatchlist();
+  }, [loadWatchlist]);
+
+  useEffect(() => {
+    return () => {
+      flushBrowserWatchlistWrite();
+    };
   }, []);
 
   useEffect(() => {
@@ -177,78 +187,92 @@ export default function Watchlist({
   }, [entries, mode]);
 
   const handleAddValue = async (value?: string) => {
-    const input = (value ?? addInput).trim();
-    if (!input) return;
+    const input = sanitizeWatchlistInput(value ?? addInput);
+    if (!input) {
+      setAddMessage({ type: "error", text: "Please enter a valid ticker or company name." });
+      return;
+    }
+
+    if (entriesRef.current.some((entry) => entry.ticker === input)) {
+      setAddMessage({ type: "info", text: `${input} is already in your watchlist.` });
+      return;
+    }
 
     setAdding(true);
     setAddMessage(null);
 
-    try {
-      const res = await fetch("/api/watchlist/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticker: input }),
-      });
+    await enqueueMutation(async () => {
+      try {
+        const res = await fetch("/api/watchlist/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ticker: input }),
+        });
 
-      const data = await res.json();
+        const data = await res.json();
 
-      if (!data.success) {
-        setAddMessage({ type: "error", text: data.error || "Failed to add" });
-      } else {
-        const nextEntries = authenticated
-          ? data.entries
-          : [
-              ...entries.filter((entry) => entry.ticker !== data.added.ticker),
-              data.added,
-            ];
-        setEntries(nextEntries);
-        if (!authenticated) writeBrowserWatchlist(nextEntries);
-        if (!value) setAddInput("");
-
-        if (data.initialSync?.skipped) {
-          setAddMessage({ type: "info", text: data.initialSync.reason });
-        } else if (data.initialSync?.failed) {
-          setAddMessage({
-            type: "error",
-            text: `${data.added.ticker} added, but ownership data is still loading: ${data.initialSync.errors?.join("; ")}`,
-          });
+        if (!data.success) {
+          setAddMessage({ type: "error", text: data.error || "Failed to add" });
         } else {
-          const syncMsg = data.initialSync?.newTransactions > 0
-            ? `Found ${data.initialSync.newTransactions} new ownership update${data.initialSync.newTransactions === 1 ? "" : "s"}.`
-            : "No new ownership updates yet.";
-          setAddMessage({ type: "success", text: `${data.added.companyName} (${data.added.ticker}) added. ${syncMsg}` });
+          const current = entriesRef.current;
+          const nextEntries = authenticatedRef.current
+            ? data.entries
+            : [
+                ...current.filter((entry) => entry.ticker !== data.added.ticker),
+                data.added,
+              ];
+          setEntries(nextEntries);
+          if (!authenticatedRef.current) scheduleBrowserWatchlistWrite(nextEntries);
+          if (!value) setAddInput("");
+
+          if (data.initialSync?.skipped) {
+            setAddMessage({ type: "info", text: data.initialSync.reason });
+          } else if (data.initialSync?.failed) {
+            setAddMessage({
+              type: "error",
+              text: `${data.added.ticker} added, but ownership data is still loading: ${data.initialSync.errors?.join("; ")}`,
+            });
+          } else {
+            const syncMsg = data.initialSync?.newTransactions > 0
+              ? `Found ${data.initialSync.newTransactions} new ownership update${data.initialSync.newTransactions === 1 ? "" : "s"}.`
+              : "No new ownership updates yet.";
+            setAddMessage({ type: "success", text: `${data.added.companyName} (${data.added.ticker}) added. ${syncMsg}` });
+          }
         }
+      } catch {
+        setAddMessage({ type: "error", text: "Network error — try again" });
+      } finally {
+        setAdding(false);
       }
-    } catch {
-      setAddMessage({ type: "error", text: "Network error — try again" });
-    } finally {
-      setAdding(false);
-    }
+    });
   };
 
   const handleAdd = async () => {
-    // Natural language search support
-    const input = addInput.trim().toLowerCase();
+    const sanitized = sanitizeWatchlistInput(addInput);
+    const rawLower = addInput.trim().toLowerCase();
 
     // Exact ticker in watchlist -> navigate to it
     if (
-      entries.some(
-        (e) => e.ticker.toLowerCase() === input && input.length <= 5 && /^[a-z]+$/.test(input),
-      )
+      sanitized &&
+      isWatchlistSymbolFormat(sanitized) &&
+      entries.some((e) => e.ticker === sanitized)
     ) {
-      window.location.href = `/companies/${input.toUpperCase()}`;
+      window.location.href = `/companies/${encodeURIComponent(sanitized)}`;
       return;
     }
 
     // "Why is [ticker] moving?" or "What changed for [ticker]?"
-    const whyMatch = input.match(/^(why\s+is\s+|what\s+changed\s+for\s+)([a-z]+)/);
-    if (whyMatch && entries.some((e) => e.ticker.toLowerCase() === whyMatch[2])) {
-      window.location.href = `/companies/${whyMatch[2].toUpperCase()}`;
-      return;
+    const whyMatch = rawLower.match(/^(why\s+is\s+|what\s+changed\s+for\s+)([a-z0-9.\-]+)/);
+    if (whyMatch) {
+      const whyTicker = sanitizeWatchlistInput(whyMatch[2]);
+      if (whyTicker && entries.some((e) => e.ticker === whyTicker)) {
+        window.location.href = `/companies/${encodeURIComponent(whyTicker)}`;
+        return;
+      }
     }
 
-    // Unrecognized natural language query
-    if (input.length > 5 && !/^[a-z0-9.]+$/.test(input)) {
+    // Unrecognized natural language query (not a ticker / company-shaped string)
+    if (rawLower.length > 5 && !/^[a-z0-9.\-\s&']+$/i.test(addInput.trim())) {
       setSearchResult({
         type: "unrecognized",
         text: "Search accepts ticker symbols and company names. Try a ticker like \"AAPL\" or a name like \"Apple\".",
@@ -260,28 +284,41 @@ export default function Watchlist({
     await handleAddValue();
   };
 
-  const handleRemove = async (ticker: string) => {
+  const executeRemove = async (ticker: string) => {
+    const previous = entriesRef.current;
+    const nextEntries = previous.filter((entry) => entry.ticker !== ticker);
+    setPendingRemoval(null);
     setRemoving(ticker);
-    const nextEntries = entries.filter((entry) => entry.ticker !== ticker);
     setEntries(nextEntries);
 
-    if (!authenticated) {
-      writeBrowserWatchlist(nextEntries);
+    if (!authenticatedRef.current) {
+      scheduleBrowserWatchlistWrite(nextEntries);
       setRemoving(null);
       return;
     }
 
-    try {
-      const res = await fetch(`/api/watchlist/${ticker}`, { method: "DELETE" });
-      const data = await res.json();
-      if (data.success) {
-        setEntries(data.entries);
+    await enqueueMutation(async () => {
+      try {
+        const res = await fetch(`/api/watchlist/${encodeURIComponent(ticker)}`, {
+          method: "DELETE",
+        });
+        const data = await res.json();
+        if (data.success) {
+          setEntries(data.entries);
+        } else {
+          setEntries(previous);
+          setAddMessage({
+            type: "error",
+            text: data.error || `Failed to remove ${ticker}.`,
+          });
+        }
+      } catch {
+        setEntries(previous);
+        setAddMessage({ type: "error", text: `Failed to remove ${ticker}.` });
+      } finally {
+        setRemoving(null);
       }
-    } catch {
-      // ignore
-    } finally {
-      setRemoving(null);
-    }
+    });
   };
 
   // Shortcut: press K to focus Track compose.
@@ -439,7 +476,10 @@ export default function Watchlist({
           />
         ) : entries.length > 0 ? (
           <div className="data-manager-list surface-well" aria-label="Watchlist names">
-            {entries.map((entry) => (
+            {entries.map((entry) => {
+              const confirming = pendingRemoval === entry.ticker;
+              const busy = removing === entry.ticker;
+              return (
               <div key={entry.ticker} className="data-manager-row">
                 <div className="data-manager-row-copy">
                   <span className="data-manager-logo" aria-hidden="true">
@@ -453,17 +493,40 @@ export default function Watchlist({
                     <span>{entry.companyName}</span>
                   </Link>
                 </div>
-                <button
-                  type="button"
-                  className="data-manager-action is-danger"
-                  onClick={() => void handleRemove(entry.ticker)}
-                  disabled={removing === entry.ticker}
-                  aria-label={`Remove ${entry.ticker} from watchlist`}
-                >
-                  {removing === entry.ticker ? "Removing…" : "Remove"}
-                </button>
+                {confirming ? (
+                  <div className="data-manager-confirm-actions" role="group" aria-label={`Confirm remove ${entry.ticker}`}>
+                    <span className="data-manager-confirm">Remove?</span>
+                    <button
+                      type="button"
+                      className="data-manager-action is-danger"
+                      onClick={() => void executeRemove(entry.ticker)}
+                      disabled={busy}
+                    >
+                      {busy ? "Removing…" : "Yes"}
+                    </button>
+                    <button
+                      type="button"
+                      className="data-manager-action"
+                      onClick={() => setPendingRemoval(null)}
+                      disabled={busy}
+                    >
+                      No
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="data-manager-action is-danger"
+                    onClick={() => setPendingRemoval(entry.ticker)}
+                    disabled={busy || adding}
+                    aria-label={`Remove ${entry.ticker} from watchlist`}
+                  >
+                    {busy ? "Removing…" : "Remove"}
+                  </button>
+                )}
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="data-manager-empty">

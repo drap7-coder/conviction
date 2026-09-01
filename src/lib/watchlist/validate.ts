@@ -16,6 +16,11 @@ import { CIK_MAP } from "@/lib/sec/cik";
 import { resolveCompanyByTicker, resolveCompanyByName, getCompanyTickerDataset } from "@/lib/sec/company-tickers";
 import { findInstitutionalIdeaSecurity } from "@/lib/sec/institutional";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
+import {
+  EQUITY_TICKER_REGEX,
+  SHARE_CLASS_TICKER_REGEX,
+  sanitizeWatchlistInput,
+} from "@/lib/watchlist/sanitize-ticker";
 
 // ---------------------------------------------------------------------------
 // Alias map — only for common names that the SEC dataset cannot resolve.
@@ -287,9 +292,6 @@ const FALLBACK_DISPLAY_NAMES: Record<string, string> = {
   BRKB: "Berkshire Hathaway Inc.",
 };
 
-const TICKER_REGEX = /^[A-Z]{1,5}$/;
-const SHARE_CLASS_REGEX = /^[A-Z]{1,4}[.\-][A-Z]{1,2}$/; // BRK.B, BF.A
-
 export interface TickerValidationResult {
   valid: boolean;
   ticker: string;
@@ -317,14 +319,14 @@ export interface TickerValidationResult {
  *  5. SEC company tickers dataset (name match)
  */
 export async function validateTicker(input: string): Promise<TickerValidationResult> {
-  const cleaned = input.trim();
+  const cleaned = sanitizeWatchlistInput(input);
 
   if (!cleaned) {
     return { valid: false, ticker: cleaned, error: "Enter a ticker or company name" };
   }
 
-  const upperName = cleaned.toUpperCase();
-  const upperTicker = cleaned.toUpperCase();
+  const upperName = cleaned;
+  const upperTicker = cleaned;
 
   // 0. Known market instruments (crypto / Pulse ETFs) — price/chart/news, no SEC signals
   const marketInstrument = getMarketInstrument(upperTicker);
@@ -346,7 +348,7 @@ export async function validateTicker(input: string): Promise<TickerValidationRes
   }
 
   // 2. Validate ticker format (allow share classes like BRK.B)
-  if (!TICKER_REGEX.test(upperTicker) && !SHARE_CLASS_REGEX.test(upperTicker)) {
+  if (!EQUITY_TICKER_REGEX.test(upperTicker) && !SHARE_CLASS_TICKER_REGEX.test(upperTicker)) {
     // Not a ticker format — try name resolution
     const nameResult = await resolveByName(upperName);
     if (nameResult) return nameResult;

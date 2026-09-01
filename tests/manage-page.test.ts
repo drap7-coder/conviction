@@ -158,6 +158,11 @@ describe("data management workspace", () => {
     expect(watchlist).toContain("data-manager-compose list-compose surface-well");
     expect(watchlist).not.toContain("list-compose ink-panel");
     expect(manager).toContain("data-manager-compose list-compose surface-well");
+    expect(watchlist).toContain("pendingRemoval");
+    expect(watchlist).toContain("data-manager-confirm");
+    expect(watchlist).toContain("sanitizeWatchlistInput");
+    expect(watchlist).toContain("scheduleBrowserWatchlistWrite");
+    expect(css).toContain("data-manager-confirm-actions");
   });
 });
 

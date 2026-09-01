@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import { removeUserWatchlistEntry, updateUserWatchlistNote } from "@/lib/user-watchlist";
+import { sanitizeWatchlistSymbol } from "@/lib/watchlist/sanitize-ticker";
 
 /**
  * DELETE /api/watchlist/[ticker]
@@ -10,15 +11,22 @@ import { removeUserWatchlistEntry, updateUserWatchlistNote } from "@/lib/user-wa
  */
 export const dynamic = "force-dynamic";
 
+function resolvePathTicker(raw: string): string | null {
+  try {
+    return sanitizeWatchlistSymbol(decodeURIComponent(raw));
+  } catch {
+    return sanitizeWatchlistSymbol(raw);
+  }
+}
+
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ ticker: string }> },
 ) {
   const { ticker } = await params;
-  const upperTicker = ticker.toUpperCase();
+  const upperTicker = resolvePathTicker(ticker);
 
-  // Validate ticker format
-  if (!/^[A-Z]{1,5}$/.test(upperTicker)) {
+  if (!upperTicker) {
     return NextResponse.json(
       { success: false, error: `Invalid ticker: "${ticker}"` },
       { status: 400 },
@@ -64,9 +72,9 @@ export async function PATCH(
   { params }: { params: Promise<{ ticker: string }> },
 ) {
   const { ticker } = await params;
-  const upperTicker = ticker.toUpperCase();
+  const upperTicker = resolvePathTicker(ticker);
 
-  if (!/^[A-Z]{1,5}$/.test(upperTicker)) {
+  if (!upperTicker) {
     return NextResponse.json(
       { success: false, error: `Invalid ticker: "${ticker}"` },
       { status: 400 },
