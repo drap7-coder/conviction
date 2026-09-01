@@ -40,19 +40,15 @@ function formatSharePct(pct: number): string {
   return `${Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)}%`;
 }
 
+import { personalOwnershipLabel } from "@/lib/personal-marker";
+
 /** One quiet personal chip for the viewer only — never from the aggregate API. */
 export function crowdPersonalLabel(
   ticker: string,
   bookTickers: ReadonlySet<string>,
   watchTickers: ReadonlySet<string>,
 ): string | null {
-  const key = ticker.toUpperCase();
-  const inBook = bookTickers.has(key);
-  const inWatch = watchTickers.has(key);
-  if (inBook && inWatch) return "Owned & Watched";
-  if (inBook) return "Owned";
-  if (inWatch) return "Watched";
-  return null;
+  return personalOwnershipLabel(ticker, bookTickers, watchTickers);
 }
 
 /** Quiet head meta: book/list counts + starter vs live mix. Aggregate only. */

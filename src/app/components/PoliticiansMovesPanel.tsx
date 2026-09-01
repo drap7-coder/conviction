@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "@/app/components/evidence-request";
 import { SmartMoneyProductStage } from "@/components/SmartMoneyProductStage";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
+import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import type { PoliticalTrade } from "@/lib/political-trades";
 import {
   formatCompactMoney,
@@ -15,8 +16,17 @@ import {
   POLITICIAN_STAGE_IDLE,
   buildPoliticianStageSummary,
 } from "@/lib/market/smart-money-stage";
+import { personalTrackingBadges } from "@/lib/personal-marker";
+import { loadPositions } from "@/lib/portfolio/persist";
+import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 
 type DirectionFilter = "all" | "purchase" | "sale";
+
+const DIRECTION_FILTERS = [
+  { id: "all", label: "All" },
+  { id: "purchase", label: "Buys", tone: "up" as const },
+  { id: "sale", label: "Sells", tone: "down" as const },
+];
 
 function formatDate(value: string): string {
   if (!value) return "—";
@@ -65,12 +75,14 @@ function groupDate(group: PoliticalTradeGroup): string {
 function PoliticalMoveRow({
   group,
   alt,
+  bookTickers,
   trackedTickers,
   addingTicker,
   onAdd,
 }: {
   group: PoliticalTradeGroup;
   alt: boolean;
+  bookTickers: Set<string>;
   trackedTickers: Set<string>;
   addingTicker: string | null;
   onAdd: (idea: { ticker: string; companyName: string }) => void;
@@ -78,6 +90,7 @@ function PoliticalMoveRow({
   const tracked = trackedTickers.has(group.ticker.toUpperCase());
   const adding = addingTicker === group.ticker;
   const chip = directionChip(group);
+  const youBadges = personalTrackingBadges(group.ticker, bookTickers, trackedTickers);
 
   return (
     <article
@@ -89,9 +102,23 @@ function PoliticalMoveRow({
           <strong>{group.ticker}</strong>
           <span>{group.assetName}</span>
         </Link>
+        {youBadges.length > 0 ? (
+          <span
+            className="sm-you"
+            aria-label={youBadges.map((badge) => badge.label).join(", ")}
+          >
+            {youBadges.map((badge) => (
+              <span key={badge.id} className={`sm-you-chip is-${badge.id}`}>
+                {badge.label}
+              </span>
+            ))}
+          </span>
+        ) : null}
       </div>
       <div className="smart-money-row-move">
-        <span className={`ink-chip ink-chip--${chip.tone}`}>{chip.label}</span>
+        <span className={`sm-action-chip ${chip.tone === "up" ? "is-up" : chip.tone === "down" ? "is-down" : "is-quiet"}`}>
+          {chip.label.toUpperCase()}
+        </span>
         <span>{groupAction(group)}</span>
       </div>
       <div className="smart-money-row-size">
@@ -124,6 +151,32 @@ export function PoliticiansMovesPanel({
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [filter, setFilter] = useState<DirectionFilter>("all");
   const [requestKey, setRequestKey] = useState(0);
+  const [bookTickers, setBookTickers] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    const local = new Set(loadPositions().map((position) => position.ticker.toUpperCase()));
+    setBookTickers(local);
+
+    void loadPortfolioForViewer()
+      .then((portfolio) => {
+        if (cancelled) return;
+        setBookTickers(new Set([
+          ...local,
+          ...portfolio.positions.map((position) => position.ticker.toUpperCase()),
+        ]));
+      })
+      .catch(() => undefined);
+
+    const onChange = () => {
+      setBookTickers(new Set(loadPositions().map((position) => position.ticker.toUpperCase())));
+    };
+    window.addEventListener("conviction-portfolio-changed", onChange);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("conviction-portfolio-changed", onChange);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -209,65 +262,53 @@ export function PoliticiansMovesPanel({
 
       {status === "success" ? (
         <>
-      <div className="investor-filter-row" role="group" aria-label="Filter by trade direction">
-        <button
-          type="button"
-          aria-pressed={filter === "all"}
-          className={filter === "all" ? "active" : ""}
-          onClick={() => setFilter("all")}
-        >
-          All
-        </button>
-        <button
-          type="button"
-          aria-pressed={filter === "purchase"}
-          className={filter === "purchase" ? "active" : ""}
-          onClick={() => setFilter("purchase")}
-        >
-          Buys
-        </button>
-        <button
-          type="button"
-          aria-pressed={filter === "sale"}
-          className={filter === "sale" ? "active" : ""}
-          onClick={() => setFilter("sale")}
-        >
-          Sells
-        </button>
-      </div>
+          <div className="smart-money-control-row">
+            <SurfaceSlicer
+              label="Filter by trade direction"
+              options={DIRECTION_FILTERS}
+              activeId={filter}
+              onChange={(id) => setFilter(id as DirectionFilter)}
+              className="investor-book-slicer"
+            />
+          </div>
 
-      {visibleGroups.length === 0 ? (
-        <div className="investor-moves-filter-empty">
-          No disclosures match this filter right now.
-        </div>
-      ) : (
-        <>
-          <div className="smart-money-toolbar">
-            <p>
+          <div className="smart-money-meta-row">
+            <span className="smart-money-lag-chip">STOCK Act lag</span>
+            <span className="smart-money-meta-pill">
               {visibleGroups.length} name{visibleGroups.length === 1 ? "" : "s"}
               {" · "}
               {visibleTrades.length} disclosure{visibleTrades.length === 1 ? "" : "s"}
-              {latestVisibleTradeDate ? ` · through ${formatDate(latestVisibleTradeDate)}` : ""}
-            </p>
+            </span>
+            {latestVisibleTradeDate ? (
+              <span className="smart-money-meta-pill">
+                Through {formatDate(latestVisibleTradeDate)}
+              </span>
+            ) : null}
           </div>
-          <div className="smart-money-stream" role="list">
-            {visibleGroups.map((group, index) => (
-              <PoliticalMoveRow
-                key={group.ticker}
-                group={group}
-                alt={index % 2 === 1}
-                trackedTickers={trackedTickers}
-                addingTicker={addingTicker}
-                onAdd={onAdd}
-              />
-            ))}
-          </div>
-        </>
-      )}
 
-      <p className="investor-moves-disclaimer">
-        Filings can lag the trade. Amounts are ranges, not exact sizes.
-      </p>
+          {visibleGroups.length === 0 ? (
+            <div className="investor-moves-filter-empty">
+              No disclosures match this filter right now.
+            </div>
+          ) : (
+            <div className="smart-money-stream" role="list">
+              {visibleGroups.map((group, index) => (
+                <PoliticalMoveRow
+                  key={group.ticker}
+                  group={group}
+                  alt={index % 2 === 1}
+                  bookTickers={bookTickers}
+                  trackedTickers={trackedTickers}
+                  addingTicker={addingTicker}
+                  onAdd={onAdd}
+                />
+              ))}
+            </div>
+          )}
+
+          <p className="investor-moves-disclaimer">
+            Filings can lag the trade. Amounts are ranges, not exact sizes.
+          </p>
         </>
       ) : null}
     </section>

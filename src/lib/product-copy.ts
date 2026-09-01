@@ -38,7 +38,7 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Smart Money",
     href: "/smart-money",
-    blurb: "Institution filings and political trades under Menu → More.",
+    blurb: "Institution filings and political trades.",
   },
 ];
 
@@ -87,7 +87,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Smart Money?",
     answer:
-      "Smart Money (under Menu → More) shows recent institutional 13F-style activity and political trades so you can see what notable investors and lawmakers reported buying, selling, or holding.",
+      "Smart Money shows recent institutional 13F-style activity and political trades so you can see what notable investors and lawmakers reported buying, selling, or holding.",
   },
   {
     question: "What is Crowd?",

@@ -51,7 +51,7 @@ export const navPages: NavPage[] = [
     label: "Smart Money",
     icon: Landmark,
     tone: "violet",
-    group: "more",
+    group: "daily",
     blurb: "Institution filings and political trades.",
   },
   {
@@ -107,4 +107,4 @@ export const menuGroups: Array<{ id: NavGroup; label: string; pages: NavPage[] }
   { id: "daily", label: "Daily", pages: primaryNavTabs },
   { id: "more", label: "More", pages: navPages.filter((page) => page.group === "more") },
   { id: "about", label: "About", pages: navPages.filter((page) => page.group === "about") },
-];
+].filter((group) => group.pages.length > 0);

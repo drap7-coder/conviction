@@ -20,4 +20,10 @@ export const INSTITUTIONAL_MANAGERS: InstitutionalManager[] = [
   { manager: "Viking Global Investors", cik: "0001103804", displayName: "Viking Global" },
   { manager: "Soros Fund Management", cik: "0001029160", displayName: "Soros Fund" },
   { manager: "Scion Asset Management", cik: "0001649339", displayName: "Scion" },
+  // Tier-1 activists / macro / liquid alts
+  { manager: "Carl C. Icahn", cik: "0000921669", displayName: "Icahn Enterprises" },
+  { manager: "Greenlight Capital", cik: "0001079114", displayName: "Greenlight Capital" },
+  { manager: "Point72 Asset Management", cik: "0001603466", displayName: "Point72" },
+  { manager: "Oaktree Capital Management", cik: "0000949509", displayName: "Oaktree Capital" },
+  { manager: "ARK Investment Management", cik: "0001697748", displayName: "ARK Invest" },
 ];

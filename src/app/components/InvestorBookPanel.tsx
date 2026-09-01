@@ -9,17 +9,20 @@ import {
 } from "@/app/components/evidence-request";
 import { SmartMoneyProductStage } from "@/components/SmartMoneyProductStage";
 import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
+import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { INSTITUTIONAL_MANAGERS } from "@/lib/sec/institutional-managers";
 import { fmtCompactCurrency } from "@/lib/display/format";
 import type {
   AccumulationStatus,
   InstitutionalManagerBook,
 } from "@/lib/sec/institutional";
-import { inkChipClass } from "@/lib/display/ink-tone";
 import {
   INSTITUTION_STAGE_IDLE,
   buildInstitutionStageSummary,
 } from "@/lib/market/smart-money-stage";
+import { personalTrackingBadges } from "@/lib/personal-marker";
+import { loadPositions } from "@/lib/portfolio/persist";
+import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 
 type ManagerOption = {
   cik: string;
@@ -37,6 +40,13 @@ type InvestorBookResponse = {
 type PositionFilter = "changes" | "added" | "trimmed" | "all";
 
 const DEFAULT_MANAGER = "Berkshire Hathaway";
+
+const POSITION_FILTERS = [
+  { id: "changes", label: "Changes" },
+  { id: "added", label: "Added" },
+  { id: "trimmed", label: "Trimmed" },
+  { id: "all", label: "All" },
+] as const;
 
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -67,9 +77,9 @@ function formatShares(value: number): string {
 }
 
 function statusChipClass(status: AccumulationStatus): string {
-  if (status === "Reduced" || status === "Exited") return inkChipClass("down");
-  if (status === "New" || status === "Increased") return inkChipClass("up");
-  return inkChipClass("quiet");
+  if (status === "Reduced" || status === "Exited") return "sm-action-chip is-down";
+  if (status === "New" || status === "Increased") return "sm-action-chip is-up";
+  return "sm-action-chip is-quiet";
 }
 
 function statusRowClass(status: AccumulationStatus): string {
@@ -79,11 +89,11 @@ function statusRowClass(status: AccumulationStatus): string {
 }
 
 function statusLabel(status: AccumulationStatus): string {
-  if (status === "New") return "New";
-  if (status === "Increased") return "Added";
-  if (status === "Reduced") return "Trimmed";
-  if (status === "Exited") return "Exited";
-  return "Held";
+  if (status === "New") return "NEW";
+  if (status === "Increased") return "ADDED";
+  if (status === "Reduced") return "TRIMMED";
+  if (status === "Exited") return "EXITED";
+  return "HELD";
 }
 
 function changeSummary(position: InstitutionalManagerBook["positions"][number]): string {
@@ -126,6 +136,32 @@ export function InvestorBookPanel({
   const [message, setMessage] = useState<string | null>(null);
   const [requestKey, setRequestKey] = useState(0);
   const [positionFilter, setPositionFilter] = useState<PositionFilter>("changes");
+  const [bookTickers, setBookTickers] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    let cancelled = false;
+    const local = new Set(loadPositions().map((position) => position.ticker.toUpperCase()));
+    setBookTickers(local);
+
+    void loadPortfolioForViewer()
+      .then((portfolio) => {
+        if (cancelled) return;
+        setBookTickers(new Set([
+          ...local,
+          ...portfolio.positions.map((position) => position.ticker.toUpperCase()),
+        ]));
+      })
+      .catch(() => undefined);
+
+    const onChange = () => {
+      setBookTickers(new Set(loadPositions().map((position) => position.ticker.toUpperCase())));
+    };
+    window.addEventListener("conviction-portfolio-changed", onChange);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("conviction-portfolio-changed", onChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (!selectedCik) return;
@@ -181,6 +217,10 @@ export function InvestorBookPanel({
     ? buildInstitutionStageSummary(book)
     : INSTITUTION_STAGE_IDLE;
 
+  const selectedManager = MANAGER_OPTIONS.find((manager) => manager.cik === selectedCik);
+  const addCount = book?.positions.filter((p) => p.status === "New" || p.status === "Increased").length ?? 0;
+  const trimCount = book?.positions.filter((p) => p.status === "Reduced" || p.status === "Exited").length ?? 0;
+
   return (
     <section
       className="investor-book-panel smart-money-panel"
@@ -194,12 +234,13 @@ export function InvestorBookPanel({
       />
 
       <div className="smart-money-control-row">
-        <label className="investor-manager-picker">
-          <span>Selected manager</span>
+        <label className="investor-manager-slicer">
+          <span className="investor-manager-slicer-label">Manager</span>
           <select
             value={selectedCik}
             onChange={(event) => setSelectedCik(event.target.value)}
             aria-label="Choose an investor"
+            className="investor-manager-select"
           >
             {MANAGER_OPTIONS.map((manager) => (
               <option key={manager.cik} value={manager.cik}>
@@ -208,32 +249,32 @@ export function InvestorBookPanel({
             ))}
           </select>
         </label>
-        <div className="investor-filter-row investor-book-filters" role="group" aria-label="Filter positions">
-          {(
-            [
-              ["changes", "Changes"],
-              ["added", "Added"],
-              ["trimmed", "Trimmed"],
-              ["all", "All"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              aria-pressed={positionFilter === value}
-              className={positionFilter === value ? "active" : ""}
-              onClick={() => setPositionFilter(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <SurfaceSlicer
+          label="Filter positions"
+          options={[...POSITION_FILTERS]}
+          activeId={positionFilter}
+          onChange={(id) => setPositionFilter(id as PositionFilter)}
+          className="investor-book-slicer"
+        />
       </div>
 
-      <p className="smart-money-disclosure-note">
-        13F holdings are quarter-end snapshots and can arrive up to 45 days later.
-        {book ? <> Holdings {formatDate(book.filingQuarter)} · filed {formatDate(book.filingDate)}.</> : null}
-      </p>
+      <div className="smart-money-meta-row">
+        <span className="smart-money-lag-chip">13F lag · up to 45 days</span>
+        {book ? (
+          <>
+            <span className="smart-money-meta-pill">
+              Holdings {formatDate(book.filingQuarter)}
+            </span>
+            <span className="smart-money-meta-pill">
+              Filed {formatDate(book.filingDate)}
+            </span>
+          </>
+        ) : (
+          <span className="smart-money-meta-pill">
+            {selectedManager?.displayName ?? "Select a manager"}
+          </span>
+        )}
+      </div>
 
       {status === "error" || status === "timeout" || status === "empty" ? (
         <div className="empty-state compact">
@@ -247,23 +288,54 @@ export function InvestorBookPanel({
 
       {status === "success" && book ? (
         <>
-          <div className="smart-money-toolbar">
-            <p>
-              Showing {visiblePositions.length} position{visiblePositions.length === 1 ? "" : "s"}
-              {" · "}
-              as of {formatDate(book.filingQuarter)}
-              {book.previousQuarter ? ` · vs ${formatDate(book.previousQuarter)}` : ""}
-              {" · "}
-              {fmtCompactCurrency(book.totalReportedValue)}
-            </p>
+          <div className="smart-money-stat-row" aria-label="Book summary">
+            <div className="smart-money-stat-chip is-up">
+              <span>Net adds</span>
+              <strong className="tnum">{addCount}</strong>
+            </div>
+            <div className="smart-money-stat-chip is-down">
+              <span>Net trims</span>
+              <strong className="tnum">{trimCount}</strong>
+            </div>
+            <div className="smart-money-stat-chip">
+              <span>Reported book</span>
+              <strong className="tnum">{fmtCompactCurrency(book.totalReportedValue)}</strong>
+            </div>
+            <div className="smart-money-stat-chip">
+              <span>Showing</span>
+              <strong className="tnum">
+                {visiblePositions.length}
+                <small>/{book.positions.length}</small>
+              </strong>
+            </div>
           </div>
+          {(addCount > 0 || trimCount > 0) ? (
+            <div
+              className="smart-money-metrics-bar"
+              role="img"
+              aria-label={`${addCount} adds, ${trimCount} trims`}
+            >
+              <span
+                className="is-up"
+                style={{ flexGrow: Math.max(addCount, 0.01) }}
+              />
+              <span
+                className="is-down"
+                style={{ flexGrow: Math.max(trimCount, 0.01) }}
+              />
+            </div>
+          ) : null}
 
           {visiblePositions.length > 0 ? (
             <div className="smart-money-stream" role="list">
               {visiblePositions.map((position, index) => {
                 const key = `${position.cusip}-${position.issuer}-${position.status}`;
-                const tracked = position.ticker ? trackedTickers.has(position.ticker.toUpperCase()) : false;
-                const adding = position.ticker ? addingTicker === position.ticker : false;
+                const ticker = position.ticker?.toUpperCase() ?? "";
+                const tracked = ticker ? trackedTickers.has(ticker) : false;
+                const adding = ticker ? addingTicker === position.ticker : false;
+                const youBadges = ticker
+                  ? personalTrackingBadges(ticker, bookTickers, trackedTickers)
+                  : [];
                 return (
                   <article
                     className={`smart-money-row${index % 2 === 1 ? " is-alt" : ""}${statusRowClass(position.status)}`}
@@ -282,6 +354,21 @@ export function InvestorBookPanel({
                           <span>{position.classTitle || "Common"}</span>
                         </div>
                       )}
+                      {youBadges.length > 0 ? (
+                        <span
+                          className="sm-you"
+                          aria-label={youBadges.map((badge) => badge.label).join(", ")}
+                        >
+                          {youBadges.map((badge) => (
+                            <span
+                              key={badge.id}
+                              className={`sm-you-chip is-${badge.id}`}
+                            >
+                              {badge.label}
+                            </span>
+                          ))}
+                        </span>
+                      ) : null}
                     </div>
                     <div className="smart-money-row-move">
                       <span className={statusChipClass(position.status)}>
