@@ -15,12 +15,10 @@ export async function ensureCommunitySchema(): Promise<void> {
   if (!ready) {
     ready = (async () => {
       const result = await query<{ ready: boolean }>(
-        `select exists (
-           select 1
-           from information_schema.tables
-           where table_schema = 'public'
-             and table_name = 'user_institution_memberships'
-         ) as ready`,
+        `select count(*) = 2 as ready
+         from information_schema.tables
+         where table_schema = 'public'
+           and table_name in ('user_institution_memberships', 'community_picks')`,
       );
       if (!result.rows[0]?.ready) {
         await applyMigrations();

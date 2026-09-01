@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CircleCheck, Eye } from "lucide-react";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { CrowdCommunityPanel } from "@/components/CrowdCommunityPanel";
-import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
+import { CommunityPickCard } from "@/components/CommunityPickCard";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
@@ -23,7 +23,7 @@ type CrowdApiPayload = CrowdSnapshot & {
 };
 
 const VIEWS: Array<{ id: CrowdView; label: string }> = [
-  { id: "rivalry", label: "Rivalry" },
+  { id: "rivalry", label: "Picks" },
   { id: "held", label: "Most held" },
   { id: "watched", label: "Most watched" },
 ];
@@ -242,10 +242,10 @@ export function CrowdBoard() {
       />
 
       {view === "rivalry" ? (
-        <div className="crowd-rivalry-panel" role="tabpanel" aria-label="Weekly rivalry">
-          <HeadToHeadMatchCard />
+        <div className="crowd-rivalry-panel" role="tabpanel" aria-label="Community picks">
+          <CommunityPickCard />
           <p className="crowd-hedge">
-            One ticker per member per week — separate from what people hold or watch in the boards.
+            One current ticker per member. Community scores are the equal-weighted average return of active picks.
           </p>
         </div>
       ) : (

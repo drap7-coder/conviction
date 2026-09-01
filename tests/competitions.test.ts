@@ -72,25 +72,31 @@ describe("competition schedule", () => {
   });
 });
 
-describe("weekly picks wiring", () => {
-  it("splits Rivalry from held/watched via Crowd SurfaceSlicer", () => {
+describe("community picks wiring", () => {
+  it("splits Picks from held/watched via Crowd SurfaceSlicer", () => {
     expect(parseCrowdView(null)).toBe("rivalry");
     expect(parseCrowdView("held")).toBe("held");
     expect(parseCrowdView("watched")).toBe("watched");
     expect(read("src/components/CrowdBoard.tsx")).toContain('"rivalry"');
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-rivalry-panel");
-    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "Rivalry"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "Picks"');
   });
 
-  it("seeds data-driven W&M vs RPI rivalry and H2H card", () => {
+  it("keeps weekly competition foundations dormant for a future mode", () => {
     expect(RIVALRY_PAIRS[0]?.groupAId).toBe("group-wm");
     expect(RIVALRY_PAIRS[0]?.groupBId).toBe("group-rpi");
     expect(read("migrations/008_weekly_picks.sql")).toContain("return_pct");
     expect(read("migrations/008_weekly_picks.sql")).toContain("competition_picks_one_per_user_idx");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("HeadToHeadMatchCard />\n\n      <SurfaceSlicer");
-    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("picks submitted");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("HeadToHeadMatchCard");
     expect(read("src/app/api/cron/competitions/route.ts")).toContain("runCompetitionLifecycleTick");
     expect(read("src/lib/competitions/lifecycle.ts")).toContain("lockDueCompetitions");
+  });
+
+  it("ships one continuous pick per member and organization standings", () => {
+    expect(read("migrations/010_community_picks.sql")).toContain("user_id text primary key");
+    expect(read("src/lib/community-picks/store.ts")).toContain("on conflict (user_id) do update");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("Community standings");
+    expect(read("src/app/api/community-picks/route.ts")).toContain("validateTicker");
   });
 });

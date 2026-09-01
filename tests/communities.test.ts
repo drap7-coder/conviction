@@ -62,17 +62,18 @@ describe("communities schema + wiring", () => {
     expect(read("src/app/api/groups/route.ts")).not.toContain('action === "create" &&');
     expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-group-filter");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
     expect(read("src/app/layout.tsx")).toContain("GroupAccentProvider");
     expect(read("src/app/globals.css")).toContain("--group-accent");
     expect(read("src/lib/auth-readiness.ts")).toContain("institutions");
     expect(read("src/app/join/[code]/page.tsx")).toContain("JoinInviteClient");
   });
 
-  it("exposes weekly head-to-head picks on Crowd with dormant schema extended", () => {
+  it("keeps weekly head-to-head foundations while Crowd uses continuous picks", () => {
     expect(read("src/lib/competitions/store.ts")).toContain("RIVALRY_PAIRS");
     expect(read("src/app/api/competitions/active/route.ts")).toContain("buildHeadToHeadPayload");
     expect(read("migrations/004_groups_competitions.sql")).toContain("competitions");
     expect(read("migrations/008_weekly_picks.sql")).toContain("locked_at");
+    expect(read("migrations/010_community_picks.sql")).toContain("community_picks");
   });
 });
