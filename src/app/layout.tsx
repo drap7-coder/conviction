@@ -1,11 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
-import Link from "next/link";
 import "./globals.css";
-import MobileTabBar, { DesktopNav } from "@/components/BottomTabBar";
-import { GlobalSearchPill } from "@/components/GlobalSearchPill";
+import MobileTabBar from "@/components/BottomTabBar";
+import { AppHeader } from "@/components/AppHeader";
 import { MarketTape } from "@/components/MarketTape";
-import AnimatedTitle from "@/components/AnimatedTitle";
 import { GroupAccentProvider } from "@/components/GroupAccentProvider";
 import { GroupOnboardingPrompt } from "@/components/GroupPanels";
 import {
@@ -86,23 +84,7 @@ export default function RootLayout({
         />
         <GroupAccentProvider>
           <div className="app-shell">
-            <header className="app-header">
-              <div className="header-brand-row">
-                <Link className="app-brand" href="/pulse" aria-label="IQBulls home">
-                  <img
-                    alt=""
-                    aria-hidden="true"
-                    className="app-logo"
-                    src="/conviction-bull.png"
-                  />
-                  <AnimatedTitle />
-                </Link>
-                <DesktopNav />
-                <div className="header-search">
-                  <GlobalSearchPill />
-                </div>
-              </div>
-            </header>
+            <AppHeader />
             <MarketTape />
             {children}
           </div>
