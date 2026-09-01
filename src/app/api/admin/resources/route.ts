@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getStoredTransactions, getAllTrackedTickers, getAllDedupKeys } from "@/lib/sec/persist";
 import { getSyncLog } from "@/lib/sync/sync-log";
 import { SYNC_CONFIG } from "@/lib/sync/sync-config";
-import { getWatchlist, isKvEnabled } from "@/lib/watchlist/persist";
+import { getSyncUniverse, isSyncUniverseKvEnabled } from "@/lib/evidence/sync-universe";
 import { requireAdminAccess } from "@/lib/api/cron-auth";
 
 /**
@@ -16,7 +16,7 @@ import { requireAdminAccess } from "@/lib/api/cron-auth";
  * - Database row counts by ticker
  * - Approximate stored payload size
  * - Sync execution history
- * - Watchlist count and entries
+ * - Ops sync-universe count and entries
  * - KV persistence status (vs local JSON fallback)
  * - Unsupported/error tickers
  * - Limits and infrastructure notes
@@ -29,8 +29,8 @@ export async function GET(request: NextRequest) {
 
   const tickers = await getAllTrackedTickers();
   const syncLog = getSyncLog();
-  const watchlistEntries = await getWatchlist();
-  const kvEnabled = isKvEnabled();
+  const syncUniverseEntries = await getSyncUniverse();
+  const kvEnabled = isSyncUniverseKvEnabled();
 
   // Per-ticker statistics
   const byTicker: Record<string, {
@@ -71,12 +71,12 @@ export async function GET(request: NextRequest) {
       },
       byTicker,
     },
-    watchlist: {
-      count: watchlistEntries.length,
-      activeCount: watchlistEntries.filter((e) => e.status === "active").length,
-      unsupportedCount: watchlistEntries.filter((e) => e.status === "unsupported").length,
-      errorCount: watchlistEntries.filter((e) => e.status === "error").length,
-      entries: watchlistEntries.map((e) => ({
+    syncUniverse: {
+      count: syncUniverseEntries.length,
+      activeCount: syncUniverseEntries.filter((e) => e.status === "active").length,
+      unsupportedCount: syncUniverseEntries.filter((e) => e.status === "unsupported").length,
+      errorCount: syncUniverseEntries.filter((e) => e.status === "error").length,
+      entries: syncUniverseEntries.map((e) => ({
         ticker: e.ticker,
         companyName: e.companyName,
         status: e.status,
@@ -88,7 +88,24 @@ export async function GET(request: NextRequest) {
       persistence: kvEnabled ? "kv" : "local-json",
       warning: kvEnabled
         ? undefined
-        : "KV not configured — watchlist is stored in local JSON. Set KV_URL and KV_REST_API_URL for production durability.",
+        : "KV not configured — sync universe is stored in local JSON. Set KV_URL and KV_REST_API_URL for production durability.",
+    },
+    /** @deprecated Prefer syncUniverse — kept for older ops clients. */
+    watchlist: {
+      count: syncUniverseEntries.length,
+      activeCount: syncUniverseEntries.filter((e) => e.status === "active").length,
+      unsupportedCount: syncUniverseEntries.filter((e) => e.status === "unsupported").length,
+      errorCount: syncUniverseEntries.filter((e) => e.status === "error").length,
+      entries: syncUniverseEntries.map((e) => ({
+        ticker: e.ticker,
+        companyName: e.companyName,
+        status: e.status,
+        statusMessage: e.statusMessage,
+        addedAt: e.addedAt,
+        lastSyncedAt: e.lastSyncedAt,
+      })),
+      kvEnabled,
+      persistence: kvEnabled ? "kv" : "local-json",
     },
     sync: {
       totalRuns: syncLog.totalRuns,
@@ -125,12 +142,17 @@ export async function GET(request: NextRequest) {
       postgresql: "not configured",
       redis: "Vercel KV (optional)",
       storagePath: ".conviction/store.json (local)",
-      watchlistStorage: kvEnabled ? "Vercel KV (conviction:watchlist)" : "local JSON (.conviction/watchlist.json)",
+      syncUniverseStorage: kvEnabled
+        ? "Vercel KV (conviction:sync-universe)"
+        : "local JSON (.conviction/sync-universe.json)",
+      watchlistStorage: kvEnabled
+        ? "Vercel KV (conviction:sync-universe)"
+        : "local JSON (.conviction/sync-universe.json)",
     },
     notes: [
       "Page loads read persisted data only — no external provider calls.",
       "Ingestion is incremental: only unseen filing IDs trigger new records.",
-      "Ops sync universe (KV/JSON) drives daily evidence refresh — not guest or Neon personal watchlists.",
+      "Daily sync queue = ops sync universe (LRU) then popular Neon member tickers (excludes crowd seeds), capped by MAX_COMPANIES_PER_SYNC.",
       "Dedup keys are pruned to max 5,000 entries.",
       "Transaction records are capped at 100 per ticker (newest).",
       "Sync log entries are capped at 100 (oldest evicted).",

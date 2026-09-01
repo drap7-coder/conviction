@@ -4,7 +4,7 @@ import {
   getInstitutionalAccumulationForCompany,
 } from "@/lib/sec/institutional";
 import { isRequestTimeout, withTimeout } from "@/lib/request-timeout";
-import { getWatchlist } from "@/lib/watchlist/persist";
+import { getSyncUniverse } from "@/lib/evidence/sync-universe";
 import { validateTicker } from "@/lib/watchlist/validate";
 
 export const dynamic = "force-dynamic";
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const entries = await getWatchlist();
+  const entries = await getSyncUniverse();
   const entry = entries.find((item) => item.ticker === ticker);
   let resolvedTicker: string;
   let resolvedCompanyName: string;

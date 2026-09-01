@@ -12,7 +12,8 @@ describe("watchlist store contracts", () => {
     const watchlist = read("src/components/Watchlist.tsx");
     const tracking = read("src/app/components/use-watchlist-tracking.ts");
     const news = read("src/components/market/PulseNewsFeed.tsx");
-    const persist = read("src/lib/watchlist/persist.ts");
+    const universe = read("src/lib/evidence/sync-universe.ts");
+    const shim = read("src/lib/watchlist/persist.ts");
     const admin = read("src/app/api/admin/resources/route.ts");
     const agents = read("AGENTS.md");
 
@@ -21,9 +22,11 @@ describe("watchlist store contracts", () => {
     expect(route).toContain('persistence: "browser"');
     expect(route).toContain("suggestions: SEED_WATCHLIST");
     expect(route).toContain("ops/cron");
+    expect(route).toContain("isSyncUniverseKvEnabled");
 
     expect(add).not.toContain("addToWatchlist");
     expect(add).not.toContain("updateWatchlistSync");
+    expect(add).not.toContain("addToSyncUniverse");
     expect(add).toContain('persistence: "browser"');
     expect(add).toContain("Never mutates the shared ops/cron");
 
@@ -36,14 +39,30 @@ describe("watchlist store contracts", () => {
     expect(tracking).toContain("readBrowserWatchlist()");
     expect(news).not.toContain("guestEntries");
 
-    expect(persist).toContain("Evidence sync universe");
-    expect(admin).toContain("Ops sync universe");
-    expect(agents).toContain("ops/cron evidence sync universe");
+    expect(universe).toContain("Evidence sync universe");
+    expect(universe).toContain("conviction:sync-universe");
+    expect(universe).toContain("buildDailySyncQueue");
+    expect(universe).toContain("listPopularMemberWatchlistTickers");
+    expect(shim).toContain("@/lib/evidence/sync-universe");
+    expect(admin).toContain("syncUniverse");
+    expect(admin).toContain("popular Neon member tickers");
+    expect(agents).toContain("sync-universe");
+    expect(agents).toContain("buildDailySyncQueue");
   });
 
   it("labels the Watchlist compose combobox for accessibility", () => {
     const typeahead = read("src/components/CompanyTypeahead.tsx");
     expect(typeahead).toContain("inputAriaLabel");
     expect(typeahead).toContain("aria-label={inputAriaLabel ?? placeholder}");
+  });
+});
+
+describe("daily sync queue wiring", () => {
+  it("full evidence refresh uses buildDailySyncQueue", () => {
+    const refresh = read("src/app/api/evidence/refresh/route.ts");
+    expect(refresh).toContain("buildDailySyncQueue");
+    expect(refresh).toContain("updateSyncUniverseStatus");
+    expect(refresh).not.toContain("getWatchlistSortedBySyncPriority");
+    expect(refresh).not.toContain("updateWatchlistSync");
   });
 });

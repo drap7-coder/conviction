@@ -1,5 +1,6 @@
 import { query, isDatabaseConfigured } from "@/lib/db";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
+import { CROWD_SEED_ID_PREFIX } from "@/lib/crowd/seed-books";
 
 export interface UserWatchlistEntry extends WatchlistEntry {
   id: string;
@@ -145,3 +146,53 @@ export async function migrateUserWatchlist(
 
   return { imported, entries: await getUserWatchlist(userId) };
 }
+
+export type PopularWatchlistTicker = {
+  ticker: string;
+  companyName: string;
+  cik?: string;
+  addedAt: string;
+  holderCount: number;
+};
+
+/**
+ * Distinct active tickers across real member watchlists (excludes crowd-seed-*),
+ * ordered by how many members track them. Used to fill daily sync slots.
+ */
+export async function listPopularMemberWatchlistTickers(
+  limit = 20,
+): Promise<PopularWatchlistTicker[]> {
+  if (!isDatabaseConfigured()) return [];
+  const safeLimit = Math.max(1, Math.min(100, Math.floor(limit)));
+
+  const result = await query<{
+    [key: string]: unknown;
+    ticker: string;
+    company_name: string;
+    cik: string | null;
+    holders: string | number;
+    first_added: Date | string;
+  }>(
+    `select ticker,
+            max(company_name) as company_name,
+            max(cik) as cik,
+            count(*)::int as holders,
+            min(created_at) as first_added
+     from watchlist_entries
+     where status = 'active'
+       and user_id not like $1
+     group by ticker
+     order by holders desc, ticker asc
+     limit $2`,
+    [`${CROWD_SEED_ID_PREFIX}%`, safeLimit],
+  );
+
+  return result.rows.map((row) => ({
+    ticker: row.ticker.toUpperCase(),
+    companyName: row.company_name,
+    cik: row.cik ?? undefined,
+    addedAt: new Date(row.first_added).toISOString(),
+    holderCount: Number(row.holders) || 0,
+  }));
+}
+

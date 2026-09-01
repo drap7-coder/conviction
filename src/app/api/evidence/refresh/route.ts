@@ -4,8 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
  * POST /api/evidence/refresh
  * Fetches new insider transactions for a specific ticker or all watchlist tickers.
  *
- * Reads from the persisted watchlist. If no ticker is specified, syncs the
- * least-recently-synced active tickers first, up to MAX_COMPANIES_PER_SYNC.
+ * Reads from the ops sync universe (plus popular Neon member tickers on full sync).
+ * If no ticker is specified, syncs the least-recently-synced actives first,
+ * up to MAX_COMPANIES_PER_SYNC.
  *
  * Auth:
  * - Full sync (no ticker): requires `Authorization: Bearer <CRON_SECRET>`
@@ -31,9 +32,9 @@ import {
 } from "@/lib/sec/persist";
 import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
 import { recordSync } from "@/lib/sync/sync-log";
-import { getWatchlistSortedBySyncPriority, updateWatchlistSync } from "@/lib/watchlist/persist";
 import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
-import { isValidCronBearer, requireCronSecret } from "@/lib/api/cron-auth";
+import { buildDailySyncQueue, updateSyncUniverseStatus } from "@/lib/evidence/sync-universe";
+import { requireCronSecret, isValidCronBearer } from "@/lib/api/cron-auth";
 import {
   checkSingleTickerCooldown,
   checkSingleTickerIpLimit,
@@ -123,7 +124,7 @@ export async function POST(request: NextRequest) {
       await storeTransactions(tickersToProcess[0], newRecords, newDedupKeys);
     }
     await setLastFetchTime(tickersToProcess[0], result.fetchedAt);
-    await updateWatchlistSync(
+    await updateSyncUniverseStatus(
       tickersToProcess[0],
       result.errors.length > 0 ? "error" : "active",
     );
@@ -172,18 +173,16 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // Full sync — read from saved watchlist, LRU ordering
-  const sortedEntries = await getWatchlistSortedBySyncPriority();
-  const tickersToProcess = sortedEntries
-    .slice(0, SYNC_CONFIG.MAX_COMPANIES_PER_SYNC)
-    .map((e) => e.ticker);
+  // Full sync — ops universe LRU, then fill with popular Neon member tickers
+  const sortedEntries = await buildDailySyncQueue();
+  const tickersToProcess = sortedEntries.map((e) => e.ticker);
 
   if (tickersToProcess.length === 0) {
     return NextResponse.json({
       success: true,
       results: {},
       summary: { totalNewEvents: 0, totalErrors: 0, tickersProcessed: 0, durationMs: 0 },
-      note: "No active tickers in watchlist to sync",
+      note: "No active tickers in the sync queue",
     });
   }
 
@@ -211,7 +210,7 @@ export async function POST(request: NextRequest) {
       await storeTransactions(t, newRecords, newDedupKeys);
     }
     await setLastFetchTime(t, result.fetchedAt);
-    await updateWatchlistSync(t, result.errors.length > 0 ? "error" : "active");
+    await updateSyncUniverseStatus(t, result.errors.length > 0 ? "error" : "active");
 
     results[t] = {
       newEvents: result.newTransactions.length,

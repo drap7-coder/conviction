@@ -5,7 +5,7 @@ import {
   summarizeInstitutionalEvidence,
 } from "@/lib/sec/institutional";
 import { isRequestTimeout, withTimeout } from "@/lib/request-timeout";
-import { getWatchlist } from "@/lib/watchlist/persist";
+import { getSyncUniverse } from "@/lib/evidence/sync-universe";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -21,7 +21,7 @@ function filingRecencyScore(filingDate: string): number {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const refresh = searchParams.get("refresh") === "1";
-  const entries = (await getWatchlist()).filter((entry) => entry.status === "active");
+  const entries = (await getSyncUniverse()).filter((entry) => entry.status === "active");
   if (refresh) clearInstitutionalCache();
 
   try {

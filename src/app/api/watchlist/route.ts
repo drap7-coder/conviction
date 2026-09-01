@@ -2,7 +2,7 @@ import { after, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import { isAuthConfigured } from "@/lib/auth-readiness";
 import { getConvictionScoresForTickers } from "@/lib/conviction/score";
-import { isKvEnabled } from "@/lib/watchlist/persist";
+import { isSyncUniverseKvEnabled } from "@/lib/evidence/sync-universe";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { getUserWatchlist, isUserWatchlistAvailable } from "@/lib/user-watchlist";
 
@@ -33,7 +33,7 @@ export async function GET() {
   try {
     const session = await getOptionalSession();
     const userId = session?.user?.id;
-    const kvEnabled = isKvEnabled();
+    const kvEnabled = isSyncUniverseKvEnabled();
 
     if (userId) {
       const entries = await getUserWatchlist(userId);
