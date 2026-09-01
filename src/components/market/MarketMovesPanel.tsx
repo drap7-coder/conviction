@@ -8,7 +8,14 @@ import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { shortenCompanyName } from "@/lib/display/company-name";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { MarketMoversBoard } from "@/components/market/MarketMoversBoard";
-import { promoteMoversExtendedPrimary, rankByVolume, shouldRankMoversByExtended, splitMarketMovers } from "@/lib/market/market-movers";
+import {
+  isOffHoursMoversSession,
+  moversInsufficientDataLabel,
+  moversSessionDisplayLabel,
+  rankByVolume,
+  resolveMoversActiveSession,
+  splitMarketMovers,
+} from "@/lib/market/market-movers";
 import { fetchMarketTrending } from "@/lib/market/client-market-data";
 
 interface TrendingCompany {
@@ -83,43 +90,51 @@ export function MarketMovesPanel() {
   }
 
   const mapped = trending.map((idea) => {
-      const quote = idea.quote;
-      const live = getLivePrice(quote);
-      const extended = getExtendedSessionQuote(quote);
-      const inExtended = Boolean(extended.sessionLabel);
-      return {
-        ticker: idea.ticker,
-        name: shortenCompanyName(idea.companyName),
-        // RTH move kept for regular ranking / volume card; extended sits beside it.
-        changePercent: quote.changePercent ?? live.changePercent,
-        change: quote.change ?? null,
-        price: inExtended ? (quote.price ?? null) : (live.price ?? quote.price ?? null),
-        extendedPrice: extended.price,
-        extendedChange: extended.change,
-        extendedChangePercent: extended.changePercent,
-        extendedNoTrades: extended.noTrades,
-        sessionLabel: extended.sessionLabel,
-        volume: quote.volume ?? null,
-        dollarVolume: quote.dollarVolume ?? null,
-      };
-    });
+    const quote = idea.quote;
+    const live = getLivePrice(quote);
+    const extended = getExtendedSessionQuote(quote);
+    const inExtended = Boolean(extended.sessionLabel);
+    return {
+      ticker: idea.ticker,
+      name: shortenCompanyName(idea.companyName),
+      // RTH fields kept as the regular-session baseline / prior-close secondary.
+      changePercent: quote.changePercent ?? live.changePercent,
+      change: quote.change ?? null,
+      price: inExtended ? (quote.price ?? null) : (live.price ?? quote.price ?? null),
+      // Off-hours print — mapped from preMarket* / postMarket* inside getExtendedSessionQuote.
+      extendedPrice: extended.price,
+      extendedChange: extended.change,
+      extendedChangePercent: extended.changePercent,
+      extendedNoTrades: extended.noTrades,
+      sessionLabel: extended.sessionLabel,
+      volume: quote.volume ?? null,
+      dollarVolume: quote.dollarVolume ?? null,
+    };
+  });
 
-  const sessionLabel =
+  const sessionHint =
     trending
       .map((idea) => {
         const extended = getExtendedSessionQuote(idea.quote);
-        return extended.sessionLabel ?? getLivePrice(idea.quote).label;
+        const live = getLivePrice(idea.quote);
+        return {
+          sessionLabel: extended.sessionLabel ?? live.label,
+          clockSession: live.session,
+        };
       })
-      .find((label): label is string => Boolean(label)) ?? null;
+      .find((entry) => Boolean(entry.sessionLabel) || entry.clockSession !== "regular")
+    ?? null;
 
-  // Pre-Market / AH Gainers must order by that session's %, not yesterday's RTH print.
-  const rankExtended = shouldRankMoversByExtended(sessionLabel);
-  const movers = splitMarketMovers(mapped, 5, {
-    rankBy: rankExtended ? "extended" : "regular",
+  const session = resolveMoversActiveSession({
+    sessionLabel: sessionHint?.sessionLabel ?? null,
+    clockSession: sessionHint?.clockSession ?? null,
   });
-  const volume = rankExtended
-    ? rankByVolume(mapped, 5).map(promoteMoversExtendedPrimary)
-    : rankByVolume(mapped, 5);
+  const sessionLabel = moversSessionDisplayLabel(session);
+  const movers = splitMarketMovers(mapped, 5, { session });
+  const volume = rankByVolume(mapped, 5, { session });
+  const insufficient = isOffHoursMoversSession(session)
+    ? moversInsufficientDataLabel(session)
+    : undefined;
 
   return (
     <div className="market-moves-panel">
@@ -130,6 +145,9 @@ export function MarketMovesPanel() {
         volume={volume}
         showVolume
         sessionLabel={sessionLabel}
+        topEmptyLabel={insufficient ?? "No gainers yet."}
+        bottomEmptyLabel={insufficient ?? "No losers yet."}
+        volumeEmptyLabel={insufficient ?? "No volume leaders yet."}
       />
     </div>
   );

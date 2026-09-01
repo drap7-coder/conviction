@@ -13,7 +13,13 @@ import {
   MarketMoversBoard,
   sessionLabelFromQuotes,
 } from "@/components/market/MarketMoversBoard";
-import { shouldRankMoversByExtended, splitMarketMovers } from "@/lib/market/market-movers";
+import {
+  isOffHoursMoversSession,
+  moversInsufficientDataLabel,
+  moversSessionDisplayLabel,
+  resolveMoversActiveSession,
+  splitMarketMovers,
+} from "@/lib/market/market-movers";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
@@ -408,13 +414,33 @@ export default function Watchlist({
     </section>
   );
 
-  const watchlistSessionLabel = sessionLabelFromQuotes(
-    entries.map((entry) => {
-      const quote = quotes[entry.ticker];
-      if (!quote) return null;
-      return getExtendedSessionQuote(quote).sessionLabel ?? getLivePrice(quote).label;
-    }),
-  );
+  const watchlistSession = useMemo(() => {
+    const hint = entries
+      .map((entry) => {
+        const quote = quotes[entry.ticker];
+        if (!quote) return null;
+        const extended = getExtendedSessionQuote(quote);
+        const live = getLivePrice(quote);
+        return {
+          sessionLabel: extended.sessionLabel ?? live.label,
+          clockSession: live.session,
+        };
+      })
+      .find((entry) => entry && (Boolean(entry.sessionLabel) || entry.clockSession !== "regular"));
+    return resolveMoversActiveSession({
+      sessionLabel: hint?.sessionLabel ?? null,
+      clockSession: hint?.clockSession ?? null,
+    });
+  }, [entries, quotes]);
+
+  const watchlistSessionLabel = moversSessionDisplayLabel(watchlistSession)
+    ?? sessionLabelFromQuotes(
+      entries.map((entry) => {
+        const quote = quotes[entry.ticker];
+        if (!quote) return null;
+        return getExtendedSessionQuote(quote).sessionLabel ?? getLivePrice(quote).label;
+      }),
+    );
 
   const { top: watchlistTop, bottom: watchlistBottom } = useMemo(() => {
     const rows = entries.map((entry) => {
@@ -440,9 +466,13 @@ export default function Watchlist({
       };
     });
     return splitMarketMovers(rows, Math.max(rows.length, 1), {
-      rankBy: shouldRankMoversByExtended(watchlistSessionLabel) ? "extended" : "regular",
+      session: watchlistSession,
     });
-  }, [entries, quotes, watchlistSessionLabel]);
+  }, [entries, quotes, watchlistSession]);
+
+  const watchlistEmptyLabel = isOffHoursMoversSession(watchlistSession)
+    ? moversInsufficientDataLabel(watchlistSession)
+    : null;
 
   if (mode === "manage") {
     return (
@@ -589,8 +619,8 @@ export default function Watchlist({
                   : "both"
             }
             showWhenEmpty={entries.length > 0 || Boolean(children)}
-            topEmptyLabel="No gainers yet."
-            bottomEmptyLabel="No losers yet."
+            topEmptyLabel={watchlistEmptyLabel ?? "No gainers yet."}
+            bottomEmptyLabel={watchlistEmptyLabel ?? "No losers yet."}
             footer={children}
           />
         </>

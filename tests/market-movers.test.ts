@@ -1,11 +1,97 @@
 import { describe, expect, it } from "vitest";
 import {
+  isOffHoursMoversSession,
   moverBarHeight,
+  moversInsufficientDataLabel,
   promoteMoversExtendedPrimary,
   rankByVolume,
+  resolveActiveSessionMetrics,
+  resolveMoversActiveSession,
   shouldRankMoversByExtended,
   splitMarketMovers,
 } from "@/lib/market/market-movers";
+
+describe("resolveMoversActiveSession", () => {
+  it("resolves PRE_MARKET / REGULAR / AFTER_HOURS from label, clock, or override", () => {
+    expect(resolveMoversActiveSession({ sessionLabel: "Pre-Market" })).toBe("PRE_MARKET");
+    expect(resolveMoversActiveSession({ sessionLabel: "After Hours" })).toBe("AFTER_HOURS");
+    expect(resolveMoversActiveSession({ clockSession: "pre_market" })).toBe("PRE_MARKET");
+    expect(resolveMoversActiveSession({ clockSession: "after_hours" })).toBe("AFTER_HOURS");
+    expect(resolveMoversActiveSession({})).toBe("REGULAR");
+    expect(
+      resolveMoversActiveSession({
+        override: "REGULAR",
+        sessionLabel: "Pre-Market",
+      }),
+    ).toBe("REGULAR");
+  });
+});
+
+describe("resolveActiveSessionMetrics", () => {
+  it("binds Pre-Market to extended fields and marks missing prints insufficient", () => {
+    const live = resolveActiveSessionMetrics(
+      {
+        ticker: "A",
+        name: "A",
+        changePercent: 2,
+        price: 100,
+        change: 2,
+        extendedPrice: 105,
+        extendedChange: 5,
+        extendedChangePercent: 5,
+        sessionLabel: "Pre-Market",
+        volume: 1_000,
+      },
+      "PRE_MARKET",
+    );
+    expect(live).toMatchObject({
+      session: "PRE_MARKET",
+      price: 105,
+      change: 5,
+      pct: 5,
+      hasSessionData: true,
+      insufficientData: false,
+    });
+
+    const missing = resolveActiveSessionMetrics(
+      {
+        ticker: "B",
+        name: "B",
+        changePercent: 9,
+        price: 10,
+        extendedNoTrades: true,
+        extendedChangePercent: null,
+        sessionLabel: "Pre-Market",
+        dollarVolume: 9_000,
+      },
+      "PRE_MARKET",
+    );
+    expect(missing.hasSessionData).toBe(false);
+    expect(missing.insufficientData).toBe(true);
+    expect(missing.pct).toBeNull();
+    expect(missing.volume).toBeNull();
+  });
+
+  it("binds Regular to RTH fields", () => {
+    const active = resolveActiveSessionMetrics(
+      {
+        ticker: "C",
+        name: "C",
+        changePercent: -1.5,
+        price: 40,
+        change: -0.6,
+      },
+      "REGULAR",
+    );
+    expect(active).toMatchObject({
+      session: "REGULAR",
+      price: 40,
+      change: -0.6,
+      pct: -1.5,
+      hasSessionData: true,
+    });
+  });
+});
 
 describe("splitMarketMovers", () => {
   it("splits gainers and losers by session percent", () => {
@@ -53,7 +139,7 @@ describe("splitMarketMovers", () => {
     expect(split.bottom).toHaveLength(0);
   });
 
-  it("ranks Pre-Market Gainers descending by extendedChangePercent, not RTH %", () => {
+  it("ranks Pre-Market Gainers descending by active session pct, not RTH %", () => {
     const split = splitMarketMovers(
       [
         {
@@ -110,9 +196,20 @@ describe("splitMarketMovers", () => {
           extendedChangePercent: null,
           sessionLabel: "Pre-Market",
         },
+        {
+          ticker: "RTH_UP_PRE_FLAT",
+          name: "RTH gainer, flat pre",
+          changePercent: 7,
+          price: 30,
+          change: 2,
+          extendedPrice: 30,
+          extendedChange: 0,
+          extendedChangePercent: 0,
+          sessionLabel: "Pre-Market",
+        },
       ],
       5,
-      { rankBy: "extended" },
+      { session: "PRE_MARKET" },
     );
 
     expect(split.top.map((row) => row.ticker)).toEqual([
@@ -132,16 +229,22 @@ describe("splitMarketMovers", () => {
     expect(split.bottom.map((row) => row.ticker)).toEqual(["PRE_DOWN"]);
     expect(split.bottom[0].changePercent).toBe(-5);
     expect(split.bottom[0].extendedChangePercent).toBe(3);
+    // Strict: RTH-only winners / no-print names stay out of off-hours Gainers.
+    expect(split.top.map((row) => row.ticker)).not.toContain("NO_PRINT");
+    expect(split.top.map((row) => row.ticker)).not.toContain("RTH_UP_PRE_FLAT");
 
-    // Strict descending order by the ranked (pre) %.
     let previous = Infinity;
     for (const row of split.top) {
+      expect(row.changePercent).toBeGreaterThan(0);
       expect(row.changePercent).toBeLessThanOrEqual(previous);
       previous = row.changePercent;
     }
+    for (const row of split.bottom) {
+      expect(row.changePercent).toBeLessThan(0);
+    }
   });
 
-  it("keeps RTH ranking when rankBy is regular even if pre fields exist", () => {
+  it("keeps RTH ranking when session is REGULAR even if pre fields exist", () => {
     const split = splitMarketMovers(
       [
         {
@@ -149,6 +252,7 @@ describe("splitMarketMovers", () => {
           name: "A",
           changePercent: 2,
           extendedChangePercent: 9,
+          extendedPrice: 12,
           sessionLabel: "Pre-Market",
         },
         {
@@ -156,14 +260,43 @@ describe("splitMarketMovers", () => {
           name: "B",
           changePercent: 4,
           extendedChangePercent: 1,
+          extendedPrice: 11,
           sessionLabel: "Pre-Market",
         },
       ],
       5,
-      { rankBy: "regular" },
+      { session: "REGULAR" },
     );
     expect(split.top.map((row) => row.ticker)).toEqual(["B", "A"]);
     expect(split.top[0].changePercent).toBe(4);
+  });
+
+  it("honors legacy rankBy: extended via session resolution", () => {
+    const split = splitMarketMovers(
+      [
+        {
+          ticker: "A",
+          name: "A",
+          changePercent: 1,
+          extendedPrice: 10,
+          extendedChange: 1,
+          extendedChangePercent: 3,
+          sessionLabel: "After Hours",
+        },
+        {
+          ticker: "B",
+          name: "B",
+          changePercent: 8,
+          extendedPrice: 20,
+          extendedChange: 2,
+          extendedChangePercent: 1,
+          sessionLabel: "After Hours",
+        },
+      ],
+      5,
+      { rankBy: "extended" },
+    );
+    expect(split.top.map((row) => row.ticker)).toEqual(["A", "B"]);
   });
 });
 
@@ -173,6 +306,9 @@ describe("shouldRankMoversByExtended", () => {
     expect(shouldRankMoversByExtended("After Hours")).toBe(true);
     expect(shouldRankMoversByExtended(null)).toBe(false);
     expect(shouldRankMoversByExtended("Regular")).toBe(false);
+    expect(isOffHoursMoversSession("PRE_MARKET")).toBe(true);
+    expect(isOffHoursMoversSession("REGULAR")).toBe(false);
+    expect(moversInsufficientDataLabel("PRE_MARKET")).toContain("pre-market");
   });
 });
 
@@ -221,6 +357,38 @@ describe("rankByVolume", () => {
       2,
     );
     expect(rows.map((row) => row.ticker)).toEqual(["B", "A"]);
+  });
+
+  it("excludes off-hours names without a live print from Highest volume", () => {
+    const rows = rankByVolume(
+      [
+        {
+          ticker: "HOT",
+          name: "Hot",
+          changePercent: 1,
+          price: 10,
+          extendedPrice: 11,
+          extendedChange: 1,
+          extendedChangePercent: 10,
+          sessionLabel: "Pre-Market",
+          dollarVolume: 5_000,
+        },
+        {
+          ticker: "NO_PRINT",
+          name: "No print",
+          changePercent: 9,
+          price: 10,
+          extendedNoTrades: true,
+          sessionLabel: "Pre-Market",
+          dollarVolume: 99_000,
+        },
+      ],
+      5,
+      { session: "PRE_MARKET" },
+    );
+    expect(rows.map((row) => row.ticker)).toEqual(["HOT"]);
+    expect(rows[0].priorCloseSecondary).toBe(true);
+    expect(rows[0].changePercent).toBe(10);
   });
 });
 
