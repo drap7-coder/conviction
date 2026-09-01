@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
+import { parseCrowdView } from "@/components/CrowdBoard";
 import { computeReturnPct, computeSideScore } from "@/lib/competitions/scores";
 import { weekWindowContaining } from "@/lib/competitions/schedule";
 import { RIVALRY_PAIRS } from "@/lib/competitions/store";
@@ -72,12 +73,22 @@ describe("competition schedule", () => {
 });
 
 describe("weekly picks wiring", () => {
-  it("seeds data-driven W&M vs RPI rivalry and Crowd H2H card", () => {
+  it("splits Rivalry from held/watched via Crowd SurfaceSlicer", () => {
+    expect(parseCrowdView(null)).toBe("rivalry");
+    expect(parseCrowdView("held")).toBe("held");
+    expect(parseCrowdView("watched")).toBe("watched");
+    expect(read("src/components/CrowdBoard.tsx")).toContain('"rivalry"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-rivalry-panel");
+    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "Rivalry"');
+  });
+
+  it("seeds data-driven W&M vs RPI rivalry and H2H card", () => {
     expect(RIVALRY_PAIRS[0]?.groupAId).toBe("group-wm");
     expect(RIVALRY_PAIRS[0]?.groupBId).toBe("group-rpi");
     expect(read("migrations/008_weekly_picks.sql")).toContain("return_pct");
     expect(read("migrations/008_weekly_picks.sql")).toContain("competition_picks_one_per_user_idx");
     expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("HeadToHeadMatchCard />\n\n      <SurfaceSlicer");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("picks submitted");
     expect(read("src/app/api/cron/competitions/route.ts")).toContain("runCompetitionLifecycleTick");
     expect(read("src/lib/competitions/lifecycle.ts")).toContain("lockDueCompetitions");

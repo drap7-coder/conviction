@@ -34,8 +34,22 @@ export function HeadToHeadMatchCard() {
     void reload();
   }, []);
 
-  if (!data?.available || !data.competition || !data.groupA || !data.groupB) {
-    return null;
+  if (data === null) {
+    return (
+      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Weekly rivalry">
+        <p className="crowd-empty">Loading weekly rivalry…</p>
+      </section>
+    );
+  }
+
+  if (!data.available || !data.competition || !data.groupA || !data.groupB) {
+    return (
+      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Weekly rivalry">
+        <p className="crowd-empty">
+          Weekly rivalry opens when a head-to-head is active. Join a community above, then check back.
+        </p>
+      </section>
+    );
   }
 
   const { competition, groupA, groupB, statusLabel, viewer } = data;

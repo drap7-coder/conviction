@@ -20795,6 +20795,15 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   color: var(--negative, #e64980);
 }
 
+.crowd-rivalry-panel {
+  display: grid;
+  gap: 10px;
+}
+
+.h2h-card--empty {
+  padding: 16px;
+}
+
 .crowd-board {
   overflow: hidden;
   padding: 4px 0 2px;
