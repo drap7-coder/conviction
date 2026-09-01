@@ -26,7 +26,7 @@ export function writeStoredPrimaryColor(color: string | null) {
   }
 }
 
-/** Injects --group-accent from the viewer's primary group (guest localStorage or API). */
+/** Injects --group-accent from the viewer's primary community (guest localStorage or API). */
 export function GroupAccentProvider({ children }: { children: React.ReactNode }) {
   const [color, setColor] = useState<string | null>(null);
 
@@ -35,14 +35,22 @@ export function GroupAccentProvider({ children }: { children: React.ReactNode })
     let cancelled = false;
     void fetch("/api/groups", { cache: "no-store" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data: { primaryGroup?: Group | null } | null) => {
-        if (cancelled || !data) return;
-        const next = data.primaryGroup?.primaryColor ?? null;
-        if (next) {
-          writeStoredPrimaryColor(next);
-          setColor(next);
-        }
-      })
+      .then(
+        (
+          data: {
+            primaryGroup?: Group | null;
+            primaryCommunity?: { primaryColor?: string | null } | null;
+          } | null,
+        ) => {
+          if (cancelled || !data) return;
+          const next =
+            data.primaryCommunity?.primaryColor ?? data.primaryGroup?.primaryColor ?? null;
+          if (next) {
+            writeStoredPrimaryColor(next);
+            setColor(next);
+          }
+        },
+      )
       .catch(() => undefined);
     return () => {
       cancelled = true;

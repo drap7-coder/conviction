@@ -1,5 +1,7 @@
--- Platform → Institution → Groups → Members → Portfolios/Competitions
--- Institutions are canonical (seeded/admin). Users create groups under an institution.
+-- Platform → Community (Institution) → Members → Portfolios
+-- Institutions are the public community. One canonical groups row per institution
+-- is kept for membership / Crowd scoping. Subgroup / competition tables from 004
+-- remain for future compatibility but are not product-facing.
 -- Do not store official logos or protected branding — accent_color is optional UI only.
 
 create extension if not exists pgcrypto;
@@ -39,7 +41,7 @@ alter table groups add column if not exists institution_id text references insti
 alter table groups add column if not exists invite_code text;
 alter table groups add column if not exists created_by text references users(id) on delete set null;
 
--- Groups are no longer peer schools/orgs — type collapses to 'group'.
+-- Groups type collapses to 'group' (compatibility row under an institution).
 alter table groups drop constraint if exists groups_type_check;
 update groups set type = 'group' where type is distinct from 'group';
 alter table groups alter column type set default 'group';
@@ -55,7 +57,7 @@ create unique index if not exists groups_invite_code_uidx
   where invite_code is not null;
 create index if not exists groups_institution_idx on groups(institution_id);
 
--- Canonical first institution (William & Mary). Unofficial — not affiliated.
+-- Canonical first community (William & Mary). Unofficial — not affiliated.
 insert into institutions (
   id, name, slug, type, canonical_domain, affiliation_status, accent_color
 ) values (
@@ -68,11 +70,20 @@ insert into institutions (
   '#115740'
 ) on conflict (slug) do nothing;
 
--- Remap legacy flat "William & Mary" school container → Campus group under the institution.
+-- One public community row for W&M (id group-wm). Legacy flat school container remaps here.
+insert into groups (id, institution_id, name, type, primary_color, invite_code)
+values ('group-wm', 'institution-wm', 'William & Mary', 'group', '#115740', 'wm')
+on conflict (id) do update set
+  institution_id = excluded.institution_id,
+  name = excluded.name,
+  primary_color = excluded.primary_color,
+  invite_code = coalesce(groups.invite_code, excluded.invite_code);
+
 update groups
 set institution_id = 'institution-wm',
     type = 'group',
-    name = case when name = 'William & Mary' then 'Campus' else name end,
-    invite_code = coalesce(invite_code, 'wm-campus')
-where name in ('William & Mary', 'Campus')
-   or id = 'group-seed-wm';
+    name = 'William & Mary',
+    invite_code = coalesce(nullif(invite_code, ''), 'wm')
+where id in ('group-seed-wm', 'group-wm')
+   or (name = 'William & Mary' and (institution_id is null or institution_id = 'institution-wm'))
+   or name = 'Campus';

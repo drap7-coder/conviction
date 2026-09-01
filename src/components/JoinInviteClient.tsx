@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { Group, Institution } from "@/lib/groups/types";
+import type { Community, Group, Institution } from "@/lib/groups/types";
 import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
 
 type InvitePayload = {
   institution: Institution;
   group: Group;
+  community: Community;
   unofficial: boolean;
 };
 
@@ -60,7 +61,10 @@ export function JoinInviteClient({ code }: { code: string }) {
         setError(json.error ?? "Could not join.");
         return;
       }
-      const color = (json.group as Group | undefined)?.primaryColor ?? invite.group.primaryColor;
+      const color =
+        (json.community as Community | undefined)?.primaryColor ??
+        invite.community.primaryColor ??
+        invite.institution.accentColor;
       writeStoredPrimaryColor(color);
       if (color) document.documentElement.style.setProperty("--group-accent", color);
       window.localStorage.setItem(SKIP_ONBOARDING_KEY, "1");
@@ -92,38 +96,30 @@ export function JoinInviteClient({ code }: { code: string }) {
     );
   }
 
-  const { institution, group, unofficial } = invite;
+  const { institution, community, unofficial } = invite;
+  const accent = community.primaryColor ?? institution.accentColor;
 
   return (
     <main className="join-page">
       <section
         className="join-card"
-        style={
-          group.primaryColor
-            ? { ["--group-accent" as string]: group.primaryColor }
-            : institution.accentColor
-              ? { ["--group-accent" as string]: institution.accentColor }
-              : undefined
-        }
+        style={accent ? { ["--group-accent" as string]: accent } : undefined}
       >
-        <p className="join-eyebrow">{institution.name}</p>
-        <h1>Join {group.name}</h1>
+        <p className="join-eyebrow">Community</p>
+        <h1>Join {institution.name}</h1>
         {unofficial ? (
           <p className="join-hedge">
             Unofficial community workspace — not affiliated with {institution.name}. No official
-            logos or university branding.
+            logos or protected branding.
           </p>
         ) : null}
         <p className="join-copy">
-          Sign in with Google, get associated with {institution.name}, join {group.name}, and start
-          adding stocks.
+          Sign in with Google, join the {institution.name} community, and start adding stocks.
         </p>
 
         {done ? (
           <div className="join-done">
-            <p>
-              You&apos;re in {group.name} under {institution.name}.
-            </p>
+            <p>You&apos;re in the {institution.name} community.</p>
             <nav className="join-actions">
               <Link className="watchlist-add-button" href="/manage?view=portfolio">
                 Add stocks

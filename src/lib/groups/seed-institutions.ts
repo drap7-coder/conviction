@@ -1,5 +1,6 @@
 /**
  * Canonical institutions — seeded/admin only. Users cannot create institutions.
+ * In the one-community product, each institution IS the joinable community.
  * Domains are the long-term identifier (e.g. later .edu email verification).
  * Never ship official university logos or protected wordmarks.
  */

@@ -11,8 +11,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { code } = await params;
   return pageMetadata({
-    title: "Join group",
-    description: "Accept a campus group invite on IQBulls.",
+    title: "Join community",
+    description: "Accept a campus or company community invite on IQBulls.",
     path: `/join/${code}`,
     index: false,
   });

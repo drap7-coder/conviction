@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 type Params = { params: Promise<{ code: string }> };
 
-/** Resolve an invite code → institution + group (pre-auth preview). */
+/** Resolve an invite code → community (pre-auth preview). Legacy club codes map to W&M. */
 export async function GET(_request: Request, { params }: Params) {
   await ensureSeedInstitutions().catch(() => undefined);
   await ensureSeedGroups().catch(() => undefined);
@@ -22,12 +22,18 @@ export async function GET(_request: Request, { params }: Params) {
   }
   const institution = await getInstitutionById(group.institutionId);
   if (!institution) {
-    return NextResponse.json({ error: "Institution not found." }, { status: 404 });
+    return NextResponse.json({ error: "Community not found." }, { status: 404 });
   }
 
   return NextResponse.json({
     institution,
     group,
+    community: {
+      institution,
+      groupId: group.id,
+      inviteCode: group.inviteCode,
+      primaryColor: group.primaryColor ?? institution.accentColor,
+    },
     unofficial: institution.affiliationStatus === "unofficial",
   });
 }

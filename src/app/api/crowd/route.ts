@@ -1,24 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loadCrowdSnapshot } from "@/lib/crowd/load";
 import { listActiveGroups } from "@/lib/groups/store";
-import { listActiveCompetitionStandings } from "@/lib/groups/competitions";
 
 export const dynamic = "force-dynamic";
 
-/** Aggregate most-held / most-watched across member books (optional group scope). */
+/** Aggregate most-held / most-watched across member books (optional community scope). */
 export async function GET(request: NextRequest) {
   try {
     const groupId = request.nextUrl.searchParams.get("group");
-    const [snapshot, groups, competitions] = await Promise.all([
+    const [snapshot, groups] = await Promise.all([
       loadCrowdSnapshot(groupId),
       listActiveGroups(),
-      listActiveCompetitionStandings(),
     ]);
     return NextResponse.json(
       {
         ...snapshot,
         groups,
-        competitions,
+        communities: groups,
         activeGroupId: groupId,
       },
       {
