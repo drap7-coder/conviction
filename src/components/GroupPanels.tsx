@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { SchoolSuggestion } from "@/lib/groups/ncaa-schools";
+import type { SchoolSuggestion } from "@/lib/groups/ncaa-catalog";
 import type { Community, UserCommunityMembership } from "@/lib/groups/types";
 import { SchoolTypeahead } from "@/components/SchoolTypeahead";
 import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
@@ -83,12 +83,8 @@ export function CommunitySettingsPanel({
   }
 
   async function joinPickedSchool() {
-    if (!pickedSchool?.institutionId) {
-      setMessage(
-        pickedSchool
-          ? `${pickedSchool.name} is not live yet — William & Mary and RPI are available now.`
-          : "Search and pick your school first.",
-      );
+    if (!pickedSchool) {
+      setMessage("Search and pick your school first.");
       return;
     }
     if (memberIds.has(pickedSchool.institutionId)) {
@@ -97,7 +93,7 @@ export function CommunitySettingsPanel({
     }
     const ok = await post({
       action: "join",
-      institutionId: pickedSchool.institutionId,
+      ncaaId: pickedSchool.ncaaId,
       isPrimary: (data?.memberships ?? []).length === 0,
       primaryColor: themeColor,
     });
@@ -190,15 +186,11 @@ export function CommunitySettingsPanel({
               onSelect={(suggestion) => {
                 setPickedSchool(suggestion);
                 setSchoolQuery(suggestion.name);
-                if (!suggestion.live) {
-                  setMessage(`${suggestion.name} is coming soon. William & Mary and RPI are live.`);
-                } else {
-                  setMessage(null);
-                }
+                setMessage(null);
               }}
             />
           </label>
-          {pickedSchool?.live ? (
+          {pickedSchool ? (
             <button
               type="button"
               className="watchlist-add-button group-settings-join-btn"
@@ -226,7 +218,7 @@ export function CommunitySettingsPanel({
                   disabled={busy}
                   onClick={() => {
                     setThemeColor(swatch);
-                    if (onboarding && !pickedSchool?.live) return;
+                    if (onboarding && !pickedSchool) return;
                     const primary =
                       data.memberships.find((m) => m.isPrimary) ?? data.memberships[0];
                     if (primary) {
@@ -246,8 +238,8 @@ export function CommunitySettingsPanel({
 
       {!onboarding ? (
         <p className="group-settings-note">
-          Search NCAA schools to join. Only live communities can be joined — more schools roll out
-          over time.
+          Search any NCAA school to join its community. You will be the first member if nobody
+          from your school has joined yet.
         </p>
       ) : null}
 
