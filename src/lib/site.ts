@@ -27,8 +27,7 @@ export const SITE_DESCRIPTION =
   "IQBulls raises your market IQ — Pulse, Crowd, your portfolio and watchlist, news, and smart-money filings, organized around you.";
 
 export const SITE_OG_IMAGE = {
-  // Fresh path (not iqbulls-og.png) so iMessage/SMS scrapers drop the stale
-  // flat-bull card; query strings alone often do not bust Apple's share cache.
+  // Canonical share card. Do not reintroduce /iqbulls-og.png — scrapers cache that stale path.
   url: "/iqbulls-share.png",
   width: 1200,
   height: 630,

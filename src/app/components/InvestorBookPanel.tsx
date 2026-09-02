@@ -35,6 +35,7 @@ type InvestorBookResponse = {
   managers?: ManagerOption[];
   status?: "success" | "timeout" | "error" | "empty";
   message?: string;
+  attemptedAt?: string;
 };
 
 type PositionFilter = "changes" | "added" | "trimmed" | "all";
@@ -88,6 +89,24 @@ function statusRowClass(status: AccumulationStatus): string {
   return " is-neutral";
 }
 
+function formatAttemptedAt(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function emptyHeadline(status: EvidenceStatus): string {
+  if (status === "timeout") return "SEC timed out — try again.";
+  if (status === "error") return "Could not load this 13F.";
+  return "No filing yet for this investor.";
+}
+
 function statusLabel(status: AccumulationStatus): string {
   if (status === "New") return "NEW";
   if (status === "Increased") return "ADDED";
@@ -134,6 +153,7 @@ export function InvestorBookPanel({
   const [book, setBook] = useState<InstitutionalManagerBook | null>(null);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
   const [message, setMessage] = useState<string | null>(null);
+  const [attemptedAt, setAttemptedAt] = useState<string | null>(null);
   const [requestKey, setRequestKey] = useState(0);
   const [positionFilter, setPositionFilter] = useState<PositionFilter>("changes");
   const [bookTickers, setBookTickers] = useState<Set<string>>(() => new Set());
@@ -171,6 +191,7 @@ export function InvestorBookPanel({
     async function loadBook() {
       setStatus("loading");
       setMessage(null);
+      setAttemptedAt(null);
       try {
         const data = await fetchJsonWithTimeout<InvestorBookResponse>(
           `/api/market/investor-book?manager=${encodeURIComponent(selectedCik)}`,
@@ -180,6 +201,7 @@ export function InvestorBookPanel({
         if (cancelled) return;
         setBook(data.book ?? null);
         setMessage(data.message ?? null);
+        setAttemptedAt(data.attemptedAt ?? data.book?.fetchedAt ?? new Date().toISOString());
         if (data.status === "timeout") setStatus("timeout");
         else if (data.status === "error") setStatus("error");
         else if (!data.book || data.status === "empty") setStatus("empty");
@@ -187,6 +209,7 @@ export function InvestorBookPanel({
       } catch (error) {
         if (!cancelled) {
           setBook(null);
+          setAttemptedAt(new Date().toISOString());
           setStatus(classifyClientError(error));
         }
       }
@@ -278,8 +301,11 @@ export function InvestorBookPanel({
 
       {status === "error" || status === "timeout" || status === "empty" ? (
         <div className="empty-state compact">
-          <p>{message ?? "No filing book is available for this investor right now."}</p>
-          <small>13Fs arrive on a quarterly cadence and can lag quarter-end by up to 45 days.</small>
+          <p>{emptyHeadline(status)}</p>
+          <small>
+            {message ?? "13Fs arrive on a quarterly cadence and can lag quarter-end by up to 45 days."}
+            {formatAttemptedAt(attemptedAt) ? <> Last tried {formatAttemptedAt(attemptedAt)}.</> : null}
+          </small>
           <button type="button" className="brief-link" onClick={() => setRequestKey((key) => key + 1)}>
             Retry →
           </button>

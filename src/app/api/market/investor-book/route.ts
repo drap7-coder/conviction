@@ -66,13 +66,14 @@ export async function GET(request: NextRequest) {
           book: null,
           status: "empty",
           message: "No recent 13F filing was available for this investor.",
+          attemptedAt: new Date().toISOString(),
         },
         { headers: { "Cache-Control": "no-store" } },
       );
     }
 
     return NextResponse.json(
-      { book, status: "success" },
+      { book, status: "success", attemptedAt: book.fetchedAt ?? new Date().toISOString() },
       {
         headers: {
           "Cache-Control": refresh ? "no-store" : CACHE_CONTROL,
@@ -86,8 +87,9 @@ export async function GET(request: NextRequest) {
         book: null,
         status: timedOut ? "timeout" : "error",
         message: timedOut
-          ? "This investor’s filing is taking longer than usual."
-          : "Investor book could not be loaded.",
+          ? "SEC timed out before this 13F finished loading."
+          : "This investor’s 13F could not be loaded.",
+        attemptedAt: new Date().toISOString(),
       },
       { headers: { "Cache-Control": "no-store" } },
     );

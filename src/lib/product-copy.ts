@@ -18,7 +18,7 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Crowd",
     href: "/crowd",
-    blurb: "Campus picks, standings, and your community — slicer at the top of Crowd.",
+    blurb: "Campus head-to-head, standings, and My Pick — slicer at the top of Crowd.",
   },
   {
     name: "Portfolio",
@@ -92,6 +92,6 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Crowd?",
     answer:
-      "Crowd is a daily tab that ranks names by how often they appear in member portfolios and watchlists — a simple “most held / most watched” board. Starter books fill the board while membership is small. It is an aggregate, not advice, and it never shows who owns what.",
+      "Crowd is campus head-to-head, community standings, and your My Pick — equal-weight returns over Today, Weekly, Monthly, or YTD. Starter books fill the board while membership is small. It is an aggregate, not advice, and it never shows who owns what.",
   },
 ];

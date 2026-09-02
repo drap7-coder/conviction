@@ -149,6 +149,7 @@ export function PoliticiansMovesPanel({
 }: PoliticiansMovesPanelProps) {
   const [trades, setTrades] = useState<PoliticalTrade[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
+  const [attemptedAt, setAttemptedAt] = useState<string | null>(null);
   const [filter, setFilter] = useState<DirectionFilter>("all");
   const [requestKey, setRequestKey] = useState(0);
   const [bookTickers, setBookTickers] = useState<Set<string>>(() => new Set());
@@ -184,8 +185,15 @@ export function PoliticiansMovesPanel({
 
     async function load() {
       setStatus("loading");
+      setAttemptedAt(null);
       try {
-        const data = await fetchJsonWithTimeout<{ trades?: PoliticalTrade[] }>(
+        const data = await fetchJsonWithTimeout<{
+          trades?: PoliticalTrade[];
+          attemptedAt?: string;
+          fetchedAt?: string;
+          status?: string;
+          message?: string;
+        }>(
           "/api/evidence/political/recent?limit=48",
           10_000,
           controller.signal,
@@ -193,10 +201,13 @@ export function PoliticiansMovesPanel({
         if (cancelled) return;
         const next = data.trades ?? [];
         setTrades(next);
-        setStatus(next.length > 0 ? "success" : "empty");
+        setAttemptedAt(data.attemptedAt ?? data.fetchedAt ?? new Date().toISOString());
+        if (data.status === "error") setStatus("error");
+        else setStatus(next.length > 0 ? "success" : "empty");
       } catch (err) {
         if (!cancelled) {
           setTrades([]);
+          setAttemptedAt(new Date().toISOString());
           setStatus(classifyClientError(err));
         }
       }
@@ -253,7 +264,35 @@ export function PoliticiansMovesPanel({
 
       {status === "error" || status === "timeout" || status === "empty" ? (
         <div className="empty-state compact">
-          <p>No STOCK Act filings are available right now.</p>
+          <p>
+            {status === "timeout"
+              ? "STOCK Act feed timed out — try again."
+              : status === "error"
+                ? "Could not load STOCK Act filings."
+                : "No STOCK Act filings yet."}
+          </p>
+          <small>
+            Filings can lag the trade date.
+            {attemptedAt
+              ? (() => {
+                  const date = new Date(attemptedAt);
+                  if (Number.isNaN(date.getTime())) return null;
+                  return (
+                    <>
+                      {" "}
+                      Last tried{" "}
+                      {date.toLocaleString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })}
+                      .
+                    </>
+                  );
+                })()
+              : null}
+          </small>
           <button className="retry-button" type="button" onClick={() => setRequestKey((key) => key + 1)}>
             Retry
           </button>

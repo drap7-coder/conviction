@@ -12,8 +12,16 @@ import {
   parseH2HPerfRange,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
+import type { HeadToHeadPayload } from "@/lib/competitions/types";
+import type { CommunityPicksPayload } from "@/lib/community-picks/types";
 
 export type CrowdTab = "pick" | "standings" | "community";
+
+export type CrowdStandingsPayload = {
+  range: H2HPerfRange;
+  headToHead: HeadToHeadPayload;
+  community: CommunityPicksPayload;
+};
 
 const TABS: Array<{ id: CrowdTab; label: string }> = [
   { id: "standings", label: "Standings" },
@@ -29,6 +37,17 @@ export function parseCrowdView(value: string | null | undefined): CrowdTab {
   return "standings";
 }
 
+async function loadCrowdStandings(range: H2HPerfRange): Promise<CrowdStandingsPayload> {
+  const params = new URLSearchParams();
+  params.set("range", range);
+  const res = await fetch(`/api/crowd/standings?${params.toString()}`, {
+    cache: "no-store",
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error("Could not load standings.");
+  return res.json() as Promise<CrowdStandingsPayload>;
+}
+
 export function CrowdBoard() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -38,6 +57,8 @@ export function CrowdBoard() {
   const [range, setRange] = useState<H2HPerfRange>(() =>
     parseH2HPerfRange(searchParams.get("range")),
   );
+  const [standings, setStandings] = useState<CrowdStandingsPayload | null>(null);
+  const [standingsError, setStandingsError] = useState<string | null>(null);
 
   useEffect(() => {
     setTab(parseCrowdView(searchParams.get("tab") ?? searchParams.get("view")));
@@ -51,6 +72,28 @@ export function CrowdBoard() {
       router.replace(`/portfolio?view=${legacy}`, { scroll: false });
     }
   }, [router, searchParams]);
+
+  // Standings tab: one combined fetch for H2H + community board.
+  useEffect(() => {
+    if (tab !== "standings") return;
+    let cancelled = false;
+    setStandingsError(null);
+    void loadCrowdStandings(range)
+      .then((payload) => {
+        if (!cancelled) setStandings(payload);
+      })
+      .catch((reason) => {
+        if (!cancelled) {
+          setStandings(null);
+          setStandingsError(
+            reason instanceof Error ? reason.message : "Could not load standings.",
+          );
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, range]);
 
   function selectTab(next: CrowdTab) {
     setTab(next);
@@ -92,8 +135,17 @@ export function CrowdBoard() {
           <div className="crowd-standings-toolbar">
             <PerfRangeSelect value={range} onChange={selectRange} />
           </div>
-          <HeadToHeadMatchCard range={range} />
-          <CommunityPickCard variant="standings" range={range} />
+          {standingsError ? (
+            <p className="crowd-empty" role="alert">
+              {standingsError}
+            </p>
+          ) : null}
+          <HeadToHeadMatchCard range={range} initialPayload={standings?.headToHead ?? null} />
+          <CommunityPickCard
+            variant="standings"
+            range={range}
+            initialPayload={standings?.community ?? null}
+          />
           <p className="crowd-hedge">
             Head-to-head and community standings use the same Performance window — equal-weight
             My Pick returns for that range. Schools below the member threshold stay unranked on

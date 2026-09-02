@@ -86,13 +86,16 @@ function SchoolSideSelect({
 /** Continuous campus vs campus scoreboard — period My Pick averages. */
 export function HeadToHeadMatchCard({
   range = DEFAULT_H2H_PERF_RANGE,
+  initialPayload = null,
 }: {
   /** Shared Standings performance window (default YTD). */
   range?: H2HPerfRange;
+  /** From parent `/api/crowd/standings` — skips the first self-fetch when present. */
+  initialPayload?: HeadToHeadPayload | null;
 }) {
-  const [data, setData] = useState<HeadToHeadPayload | null>(null);
-  const [sideA, setSideA] = useState<string>("");
-  const [sideB, setSideB] = useState<string>("");
+  const [data, setData] = useState<HeadToHeadPayload | null>(initialPayload);
+  const [sideA, setSideA] = useState<string>(initialPayload?.groupA?.groupId ?? "");
+  const [sideB, setSideB] = useState<string>(initialPayload?.groupB?.groupId ?? "");
 
   async function reload(nextA?: string, nextB?: string, nextRange?: H2HPerfRange) {
     const a = nextA ?? sideA;
@@ -115,10 +118,15 @@ export function HeadToHeadMatchCard({
   }
 
   useEffect(() => {
+    if (initialPayload) {
+      setData(initialPayload);
+      if (initialPayload.groupA?.groupId) setSideA(initialPayload.groupA.groupId);
+      if (initialPayload.groupB?.groupId) setSideB(initialPayload.groupB.groupId);
+      return;
+    }
     void reload(undefined, undefined, range);
-    // Reload when shared performance range changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range]);
+  }, [range, initialPayload]);
 
   const schools = data?.schools ?? [];
 

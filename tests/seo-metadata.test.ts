@@ -198,6 +198,9 @@ describe("SEO metadata", () => {
     ]);
     expect(meta.twitter?.images).toEqual([`${SITE_URL}/iqbulls-share.png`]);
     expect(meta.openGraph?.locale).toBe("en_US");
+    expect(SITE_OG_IMAGE.url).toBe("/iqbulls-share.png");
+    expect(existsSync(new URL("../public/iqbulls-og.png", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../public/iqbulls-share.png", import.meta.url))).toBe(true);
   });
 
   it("uses the brand title on Pulse so Google and SMS cards are not Pulse · IQBulls", () => {
