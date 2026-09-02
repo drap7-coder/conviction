@@ -62,12 +62,11 @@ export function siteJsonLd() {
         name: SITE_NAME,
         url: SITE_URL,
         description: SITE_DESCRIPTION,
-        logo: absoluteUrl("/conviction-bull.png"),
+        logo: absoluteUrl("/icon.png"),
       },
       {
         "@type": "WebSite",
         name: SITE_NAME,
-        alternateName: "Conviction",
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         publisher: { "@type": "Organization", name: SITE_NAME },
