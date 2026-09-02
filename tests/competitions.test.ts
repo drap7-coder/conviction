@@ -3,6 +3,13 @@ import { readFileSync } from "node:fs";
 import { parseCrowdView } from "@/components/CrowdBoard";
 import { computeReturnPct, computeSideScore } from "@/lib/competitions/scores";
 import { weekWindowContaining } from "@/lib/competitions/schedule";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  parseH2HPerfRange,
+  periodReturnPct,
+  resolvePickPeriodStart,
+  seedRangeScale,
+} from "@/lib/competitions/perf-range";
 import { canonicalCompetitionSlug, pickDefaultH2HPair, RIVALRY_PAIRS } from "@/lib/competitions/store";
 import type { CompetitionPick, HeadToHeadSchoolOption } from "@/lib/competitions/types";
 
@@ -75,6 +82,60 @@ describe("competition schedule", () => {
     expect(window.weekKey).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(window.lockAt.getTime()).toBeGreaterThan(window.periodStart.getTime());
     expect(window.periodEnd.getTime()).toBeGreaterThan(window.lockAt.getTime());
+  });
+});
+
+describe("h2h performance ranges", () => {
+  it("defaults to YTD and parses known windows", () => {
+    expect(DEFAULT_H2H_PERF_RANGE).toBe("ytd");
+    expect(parseH2HPerfRange(null)).toBe("ytd");
+    expect(parseH2HPerfRange("bogus")).toBe("ytd");
+    expect(parseH2HPerfRange("1d")).toBe("1d");
+    expect(parseH2HPerfRange("1W")).toBe("1w");
+    expect(parseH2HPerfRange("1m")).toBe("1m");
+    expect(parseH2HPerfRange("ytd")).toBe("ytd");
+    expect(seedRangeScale("1d")).toBeLessThan(seedRangeScale("ytd"));
+  });
+
+  it("scores mid-window picks from entry and earlier picks from period open", () => {
+    expect(periodReturnPct(100, 110)).toBe(10);
+    expect(
+      resolvePickPeriodStart({
+        periodStartPrice: 90,
+        periodStartAt: "2026-01-02T14:30:00.000Z",
+        entryPrice: 100,
+        pickedAt: "2026-03-01T15:00:00.000Z",
+      }),
+    ).toBe(100);
+    expect(
+      resolvePickPeriodStart({
+        periodStartPrice: 90,
+        periodStartAt: "2026-01-02T14:30:00.000Z",
+        entryPrice: 100,
+        pickedAt: "2025-12-15T15:00:00.000Z",
+      }),
+    ).toBe(90);
+    expect(
+      resolvePickPeriodStart({
+        periodStartPrice: 95,
+        periodStartAt: null,
+        entryPrice: 100,
+        pickedAt: new Date().toISOString(),
+        sameEtDayIsMidWindow: true,
+      }),
+    ).toBe(100);
+  });
+
+  it("wires a Performance dropdown defaulting to YTD on the H2H card", () => {
+    const card = read("src/components/HeadToHeadMatchCard.tsx");
+    expect(card).toContain("Performance");
+    expect(card).toContain("DEFAULT_H2H_PERF_RANGE");
+    expect(card).toContain("H2H_PERF_RANGE_OPTIONS");
+    expect(card).toContain('params.set("range", perfRange)');
+    expect(read("src/app/api/competitions/active/route.ts")).toContain("parseH2HPerfRange");
+    expect(read("src/lib/competitions/store.ts")).toContain("fetchPeriodBaselines");
+    expect(read("src/lib/market/quotes.ts")).toContain('"ytd"');
+    expect(read("src/app/globals.css")).toContain("h2h-range-select");
   });
 });
 

@@ -20,11 +20,12 @@ const RANGE_SUBTITLE: Record<StockHistoryRange, string> = {
   "1m": "Normalized · 1 month",
   "6m": "Normalized · 6 months",
   "1y": "Normalized · 1 year",
+  ytd: "Normalized · year to date",
 };
 
 /** Bucket key so holdings + benchmark can align across Yahoo timestamps. */
 function alignKey(date: string, range: StockHistoryRange): string {
-  if (range === "1m" || range === "6m" || range === "1y") {
+  if (range === "1m" || range === "6m" || range === "1y" || range === "ytd") {
     return date.slice(0, 10);
   }
   const ms = Date.parse(date);

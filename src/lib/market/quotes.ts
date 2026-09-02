@@ -32,7 +32,7 @@ export interface StockQuote {
   sparkline: StockHistoryPoint[];
 }
 
-export type StockHistoryRange = "1d" | "1w" | "1m" | "6m" | "1y";
+export type StockHistoryRange = "1d" | "1w" | "1m" | "6m" | "1y" | "ytd";
 
 export interface StockHistoryPoint {
   date: string;
@@ -177,6 +177,7 @@ function rangeToYahooParams(range: StockHistoryRange) {
   if (range === "1w") return { range: "5d", interval: "30m", revalidate: 5 * 60 };
   if (range === "1m") return { range: "1mo", interval: "1d", revalidate: 30 * 60 };
   if (range === "6m") return { range: "6mo", interval: "1d", revalidate: 60 * 60 };
+  if (range === "ytd") return { range: "ytd", interval: "1d", revalidate: 60 * 60 };
   return { range: "1y", interval: "1d", revalidate: 60 * 60 };
 }
 
