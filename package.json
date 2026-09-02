@@ -10,7 +10,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "migrate": "npx --yes tsx src/scripts/migrate.ts",
-    "seed:crowd": "npx --yes tsx src/scripts/seed-crowd.ts"
+    "seed:crowd": "npx --yes tsx src/scripts/seed-crowd.ts",
+    "seed:campus": "npx --yes tsx src/scripts/seed-campus.ts"
   },
   "dependencies": {
     "@auth/neon-adapter": "^1.11.2",

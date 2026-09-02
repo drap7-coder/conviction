@@ -32,4 +32,13 @@ export const NCAA_CATALOG_OVERRIDES: Record<string, NcaaCatalogOverride> = {
     inviteCode: "rpi",
     searchAliases: ["RPI"],
   },
+  "north-carolina": {
+    institutionId: "institution-north-carolina",
+    groupId: "group-unc",
+    slug: "unc",
+    canonicalDomain: "unc.edu",
+    accentColor: "#7BAFD4",
+    inviteCode: "unc",
+    searchAliases: ["UNC", "Chapel Hill", "Tar Heels"],
+  },
 };

@@ -10,13 +10,12 @@ import {
   type SchoolSuggestion,
 } from "@/lib/groups/ncaa-catalog";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
-import { findSeedInstitutionById } from "@/lib/groups/seed-institutions";
+import { findSeedInstitutionById, SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 
 /** Pre-live canonical schools — always seeded as active communities. */
-export const LIVE_COMMUNITY_INSTITUTION_IDS = new Set([
-  "institution-wm",
-  "institution-rpi",
-]);
+export const LIVE_COMMUNITY_INSTITUTION_IDS = new Set(
+  SEED_INSTITUTIONS.filter((row) => row.communityEnabled).map((row) => row.id),
+);
 
 export type InstitutionSearchSuggestion = SchoolSuggestion & {
   canonicalDomain: string | null;
