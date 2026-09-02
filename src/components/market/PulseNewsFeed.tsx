@@ -16,6 +16,7 @@ import {
   primaryHeadline,
   usableHeadlineImage,
 } from "@/lib/market/news-hero";
+import { isNextImageRemoteAllowed } from "@/lib/media/next-image-hosts";
 
 type ThemeFilter = "all" | "yours" | string;
 
@@ -143,6 +144,7 @@ function NarrativeCard({
 
   const imageUrl = usableHeadlineImage(headline.imageUrl);
   const showImage = Boolean(imageUrl) && !imageFailed;
+  const optimizeImage = Boolean(imageUrl && isNextImageRemoteAllowed(imageUrl));
   const copy = (
     <>
       <div className="pulse-news-narrative-top">
@@ -211,17 +213,33 @@ function NarrativeCard({
     >
       {showImage ? (
         <div className="pulse-news-hero-media">
-          <Image
-            src={imageUrl!}
-            alt=""
-            width={960}
-            height={540}
-            sizes="(max-width: 767px) 100vw, (max-width: 1100px) 92vw, 860px"
-            className="pulse-news-hero-img"
-            priority={featured}
-            onError={() => setImageFailed(true)}
-            referrerPolicy="no-referrer"
-          />
+          {optimizeImage ? (
+            <Image
+              src={imageUrl!}
+              alt=""
+              width={960}
+              height={540}
+              sizes="(max-width: 767px) 100vw, (max-width: 1100px) 92vw, 860px"
+              className="pulse-news-hero-img"
+              priority={featured}
+              onError={() => setImageFailed(true)}
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            // Publisher host outside Next image allowlist — skip /_next/image.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl!}
+              alt=""
+              width={960}
+              height={540}
+              className="pulse-news-hero-img"
+              loading={featured ? "eager" : "lazy"}
+              decoding="async"
+              referrerPolicy="no-referrer"
+              onError={() => setImageFailed(true)}
+            />
+          )}
         </div>
       ) : null}
       {showImage ? <div className="pulse-news-hero-copy">{copy}</div> : copy}
