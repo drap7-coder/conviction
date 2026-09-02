@@ -12987,6 +12987,15 @@ a.signal-block-conclusion-link:hover {
   .smart-money-insight-eyebrow i::before,
   .smart-money-stream > .smart-money-row,
   .pf-value-stage,
+  .for-you-feed-card,
+  .pulse-news-narrative,
+  .pulse-why-card,
+  .portfolio-insight-card,
+  .pf-holding-card,
+  .investor-idea-card,
+  .company-briefing > * {
+    animation: none;
+  }
 }
 
 /* ── Watchlist daily brief ── */
