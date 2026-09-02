@@ -38,6 +38,7 @@ function quote(ticker: string, price: number): StockQuote {
     postMarketChange: null,
     postMarketChangePercent: null,
     source: "yahoo-chart",
+    asOf: null,
     sparkline: [],
   };
 }
@@ -125,6 +126,7 @@ describe("continuous accumulation wiring", () => {
     expect(read("src/lib/community-picks/store.ts")).toContain("swapCommunityPick");
     expect(read("src/lib/community-picks/store.ts")).toContain("withTransaction");
     expect(read("src/lib/community-picks/store.ts")).toContain("fetchAuthoritativeSpot");
+    expect(read("src/lib/community-picks/pricing.ts")).toContain("fetchFreshStockQuotes");
     expect(read("src/lib/community-picks/store.ts")).toContain("MIN_RANKED_MEMBERS");
   });
 

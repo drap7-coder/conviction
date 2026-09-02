@@ -1,6 +1,6 @@
 import { isDatabaseConfigured, query } from "@/lib/db";
 import { buildCrowdSnapshot } from "@/lib/crowd/aggregate";
-import { ensureCrowdSeedBooks } from "@/lib/crowd/ensure-seeds";
+import { ensureCrowdSeedBooksIfNeeded } from "@/lib/crowd/ensure-seeds";
 import { isCrowdSeedUserId, listCrowdSeedBooks } from "@/lib/crowd/seed-books";
 import { SEED_BOOK_GROUP_IDS } from "@/lib/groups/seed-groups";
 import { ensureSeedGroups } from "@/lib/groups/store";
@@ -121,7 +121,7 @@ export async function loadCrowdBooks(): Promise<CrowdBook[]> {
   }
 
   try {
-    await ensureCrowdSeedBooks();
+    await ensureCrowdSeedBooksIfNeeded();
     await ensureSeedGroups();
     return await loadLiveBooksFromDb();
   } catch {

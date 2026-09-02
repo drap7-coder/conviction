@@ -63,7 +63,6 @@ export type { ConvictionScoreView } from "./view";
 export {
   getCachedConvictionScore,
   setCachedConvictionScore,
-  warmConvictionScoreCache,
 } from "./cache";
 
 export { calculateQualityComposite } from "./quality/calculate";

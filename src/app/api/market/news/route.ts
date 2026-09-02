@@ -6,7 +6,8 @@ import {
 } from "@/lib/market/market-narratives";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 
-export const dynamic = "force-dynamic";
+/** Public news themes — ~5–10 minute CDN cache is fine; not user-specific. */
+export const revalidate = 300;
 
 export async function GET() {
   const tickers = Array.from(new Set(
@@ -21,8 +22,15 @@ export async function GET() {
   }));
   const marketNarratives = await fetchMarketNarrativePulse(moves);
 
-  return NextResponse.json({
-    marketNarratives,
-    fetchedAt: new Date().toISOString(),
-  });
+  return NextResponse.json(
+    {
+      marketNarratives,
+      fetchedAt: new Date().toISOString(),
+    },
+    {
+      headers: {
+        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+      },
+    },
+  );
 }

@@ -1,7 +1,8 @@
 /**
  * Short-lived in-memory cache for Conviction Score views.
- * Keeps Watchlist/Trending rings from re-running the full SEC + quality
- * pipeline on every navigation within the same server instance.
+ * Company dashboard (`/api/conviction/score`) reuses this within a server
+ * instance so Today's read / filing lanes do not re-run the full pipeline
+ * on every expand within ~10 minutes.
  */
 
 import type { ConvictionScoreView } from "./view";
@@ -35,12 +36,4 @@ export function setCachedConvictionScore(view: ConvictionScoreView): void {
     expiresAt: Date.now() + TTL_MS,
     view,
   });
-}
-
-export function warmConvictionScoreCache(
-  views: Iterable<ConvictionScoreView>,
-): void {
-  for (const view of views) {
-    setCachedConvictionScore(view);
-  }
 }

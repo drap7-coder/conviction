@@ -7,8 +7,9 @@ import {
 } from "@/lib/crowd/seed-books";
 
 /**
- * Idempotent upsert of the ten Crowd starter books into Neon.
- * Safe to call on every Crowd read — conflict paths keep fixtures current.
+ * Full upsert of the ten Crowd starter books into Neon.
+ * Use from ops/scripts (`npm run seed:crowd`) or when seeds are missing.
+ * Do not call on every Crowd GET — prefer {@link ensureCrowdSeedBooksIfNeeded}.
  */
 export async function ensureCrowdSeedBooks(): Promise<{ seeded: boolean; bookCount: number }> {
   if (!isDatabaseConfigured()) {
@@ -71,4 +72,43 @@ export async function countCrowdSeedUsersInDb(): Promise<number> {
     [`${CROWD_SEED_ID_PREFIX}%`],
   );
   return Number(result.rows[0]?.count ?? 0);
+}
+
+/**
+ * Read-path guard: only rewrite demo books when they are missing.
+ * Avoids ~100 delete/insert writes on every Crowd GET once seeds exist.
+ */
+export async function ensureCrowdSeedBooksIfNeeded(): Promise<{
+  seeded: boolean;
+  bookCount: number;
+  skipped: boolean;
+}> {
+  if (!isDatabaseConfigured()) {
+    return { seeded: false, bookCount: CROWD_SEED_BOOKS.length, skipped: true };
+  }
+
+  const seedIds = CROWD_SEED_BOOKS.map((book) => book.id);
+  const users = await query<{ count: string }>(
+    `select count(*)::text as count from users where id = any($1::text[])`,
+    [seedIds],
+  );
+  const userCount = Number(users.rows[0]?.count ?? 0);
+  if (userCount < seedIds.length) {
+    const result = await ensureCrowdSeedBooks();
+    return { ...result, skipped: false };
+  }
+
+  const positions = await query<{ count: string }>(
+    `select count(*)::text as count
+     from portfolio_positions
+     where user_id = any($1::text[])`,
+    [seedIds],
+  );
+  const positionCount = Number(positions.rows[0]?.count ?? 0);
+  if (positionCount === 0) {
+    const result = await ensureCrowdSeedBooks();
+    return { ...result, skipped: false };
+  }
+
+  return { seeded: false, bookCount: userCount, skipped: true };
 }

@@ -26,6 +26,8 @@ export interface StockQuote {
   postMarketChange: number | null;
   postMarketChangePercent: number | null;
   source: "yahoo-chart";
+  /** Provider quote time when available (ISO). */
+  asOf: string | null;
   /** Intraday sparkline points (up to ~42) extracted from the same chart response */
   sparkline: StockHistoryPoint[];
 }
@@ -70,6 +72,7 @@ interface YahooChartResult {
     marketCap?: number;
     currency?: string;
     marketState?: string;
+    regularMarketTime?: number;
     preMarketPrice?: number;
     preMarketChange?: number;
     preMarketChangePercent?: number;
@@ -265,6 +268,10 @@ function buildQuote(ticker: string, result?: YahooChartResult): StockQuote {
     postMarketChange,
     postMarketChangePercent,
     source: "yahoo-chart",
+    asOf: (() => {
+      const epoch = toFiniteNumber(result?.meta?.regularMarketTime);
+      return epoch !== null ? new Date(epoch * 1000).toISOString() : null;
+    })(),
     sparkline: sparkline.slice(-42),
   };
 }
@@ -306,8 +313,28 @@ export function buildHistory(ticker: string, range: StockHistoryRange, result?: 
 }
 
 export async function fetchStockQuotes(tickers: string[]): Promise<StockQuote[]> {
+  return fetchStockQuotesInternal(tickers, "display");
+}
+
+/**
+ * Uncached Yahoo quotes for authoritative pick entry/exit pricing.
+ * Display boards should keep using {@link fetchStockQuotes} (5-minute cache).
+ */
+export async function fetchFreshStockQuotes(tickers: string[]): Promise<StockQuote[]> {
+  return fetchStockQuotesInternal(tickers, "execution");
+}
+
+async function fetchStockQuotesInternal(
+  tickers: string[],
+  mode: "display" | "execution",
+): Promise<StockQuote[]> {
   const uniqueTickers = Array.from(new Set(tickers.map(normalizeTicker).filter(Boolean)));
   if (uniqueTickers.length === 0) return [];
+
+  const cacheInit =
+    mode === "execution"
+      ? ({ cache: "no-store" } as const)
+      : ({ next: { revalidate: 300 } } as const);
 
   const responses = await Promise.all(
     uniqueTickers.map(async (ticker) => {
@@ -320,7 +347,7 @@ export async function fetchStockQuotes(tickers: string[]): Promise<StockQuote[]>
               "User-Agent": "Conviction/1.0",
               Accept: "application/json",
             },
-            next: { revalidate: 300 },
+            ...cacheInit,
           },
           6_000,
         );
