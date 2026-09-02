@@ -20767,6 +20767,50 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   min-width: 0;
 }
 
+.h2h-rivalry--selectors {
+  flex: 1;
+  align-items: stretch;
+}
+
+.h2h-school-select {
+  display: grid;
+  gap: 4px;
+  min-width: min(100%, 180px);
+  flex: 1;
+}
+
+.h2h-school-select-label {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.h2h-school-select-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 4px 8px 4px 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--h2h-accent, var(--accent)) 55%, var(--line));
+  background: color-mix(in srgb, var(--h2h-accent, var(--accent)) 8%, transparent);
+}
+
+.h2h-school-select-control select {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 650;
+  outline: none;
+  cursor: pointer;
+}
+
 .h2h-school {
   display: inline-flex;
   align-items: center;

@@ -3,8 +3,14 @@ import { readFileSync } from "node:fs";
 import { parseCrowdView } from "@/components/CrowdBoard";
 import { computeReturnPct, computeSideScore } from "@/lib/competitions/scores";
 import { weekWindowContaining } from "@/lib/competitions/schedule";
-import { RIVALRY_PAIRS } from "@/lib/competitions/store";
-import type { CompetitionPick } from "@/lib/competitions/types";
+import { pickDefaultH2HPair, RIVALRY_PAIRS } from "@/lib/competitions/store";
+import type { CompetitionPick, HeadToHeadSchoolOption } from "@/lib/competitions/types";
+
+const H2H_SCHOOLS: HeadToHeadSchoolOption[] = [
+  { groupId: "group-wm", name: "William & Mary", primaryColor: "#115740" },
+  { groupId: "group-rpi", name: "RPI", primaryColor: "#D6001C" },
+  { groupId: "group-kean", name: "Kean", primaryColor: "#000000" },
+];
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -105,5 +111,31 @@ describe("community picks wiring", () => {
     expect(read("src/components/CommunityPickCard.tsx")).toContain("Lifetime score");
     expect(read("src/app/api/picks/swap/route.ts")).toContain("validateTicker");
     expect(read("src/app/api/community-picks/route.ts")).toContain("createInitialCommunityPick");
+  });
+
+  it("lets head-to-head pick schools from dropdowns defaulting to the viewer school", () => {
+    expect(pickDefaultH2HPair(H2H_SCHOOLS, "group-wm")).toEqual({
+      groupAId: "group-wm",
+      groupBId: "group-rpi",
+    });
+    expect(pickDefaultH2HPair(H2H_SCHOOLS, "group-kean")).toEqual({
+      groupAId: "group-kean",
+      groupBId: "group-wm",
+    });
+    expect(pickDefaultH2HPair(H2H_SCHOOLS, null)).toEqual({
+      groupAId: "group-wm",
+      groupBId: "group-rpi",
+    });
+    expect(read("src/lib/competitions/store.ts")).toContain("listHeadToHeadSchools");
+    expect(read("src/lib/competitions/store.ts")).toContain("getOrCreateCompetitionForPair");
+    expect(read("src/lib/competitions/types.ts")).toContain("viewerPrimaryGroupId");
+    expect(read("src/app/api/competitions/active/route.ts")).toContain('searchParams.get("a")');
+    expect(read("src/app/api/competitions/active/route.ts")).toContain('searchParams.get("b")');
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("SchoolSideSelect");
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("Your side");
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("Opponent");
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain('params.set("a"');
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain('params.set("b"');
+    expect(read("src/app/globals.css")).toContain("h2h-school-select");
   });
 });

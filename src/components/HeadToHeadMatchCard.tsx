@@ -4,7 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
-import type { HeadToHeadPayload } from "@/lib/competitions/types";
+import type {
+  HeadToHeadPayload,
+  HeadToHeadSchoolOption,
+} from "@/lib/competitions/types";
 
 function formatReturn(value: number | null): string {
   if (value === null) return "—";
@@ -19,22 +22,97 @@ function returnTone(value: number | null): "up" | "down" | "quiet" {
   return "quiet";
 }
 
+function schoolById(
+  schools: HeadToHeadSchoolOption[],
+  groupId: string | null | undefined,
+): HeadToHeadSchoolOption | null {
+  if (!groupId) return null;
+  return schools.find((school) => school.groupId === groupId) ?? null;
+}
+
+function SchoolSideSelect({
+  label,
+  value,
+  schools,
+  otherValue,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  schools: HeadToHeadSchoolOption[];
+  otherValue: string;
+  onChange: (groupId: string) => void;
+}) {
+  const selected = schoolById(schools, value);
+  const accent = selected?.accentColor ?? selected?.primaryColor ?? "#115740";
+
+  return (
+    <label className="h2h-school-select" style={{ ["--h2h-accent" as string]: accent }}>
+      <span className="h2h-school-select-label">{label}</span>
+      <span className="h2h-school-select-control">
+        {selected ? (
+          <SchoolLogo
+            name={selected.name}
+            domain={selected.domain}
+            ncaaId={selected.ncaaId}
+            accentColor={accent}
+            size={28}
+          />
+        ) : null}
+        <select
+          value={value}
+          aria-label={label}
+          onChange={(event) => onChange(event.target.value)}
+        >
+          {schools.map((school) => (
+            <option
+              key={school.groupId}
+              value={school.groupId}
+              disabled={school.groupId === otherValue}
+            >
+              {school.name}
+            </option>
+          ))}
+        </select>
+      </span>
+    </label>
+  );
+}
+
 export function HeadToHeadMatchCard() {
   const [data, setData] = useState<HeadToHeadPayload | null>(null);
+  const [sideA, setSideA] = useState<string>("");
+  const [sideB, setSideB] = useState<string>("");
   const [ticker, setTicker] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
-  async function reload() {
-    const res = await fetch("/api/competitions/active", { cache: "no-store", credentials: "include" });
+  async function reload(nextA?: string, nextB?: string) {
+    const a = nextA ?? sideA;
+    const b = nextB ?? sideB;
+    const params = new URLSearchParams();
+    if (a) params.set("a", a);
+    if (b) params.set("b", b);
+    const qs = params.toString();
+    const res = await fetch(`/api/competitions/active${qs ? `?${qs}` : ""}`, {
+      cache: "no-store",
+      credentials: "include",
+    });
     if (!res.ok) return;
-    setData((await res.json()) as HeadToHeadPayload);
+    const payload = (await res.json()) as HeadToHeadPayload;
+    setData(payload);
+    if (payload.groupA?.groupId) setSideA(payload.groupA.groupId);
+    if (payload.groupB?.groupId) setSideB(payload.groupB.groupId);
   }
 
   useEffect(() => {
     void reload();
+    // Initial load only — subsequent reloads pass explicit sides.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const schools = data?.schools ?? [];
 
   if (data === null) {
     return (
@@ -44,22 +122,34 @@ export function HeadToHeadMatchCard() {
     );
   }
 
-  if (!data.available || !data.competition || !data.groupA || !data.groupB) {
+  if (schools.length < 2) {
     return (
       <section className="surface-shell h2h-card h2h-card--empty" aria-label="Weekly rivalry">
         <p className="crowd-empty">
-          Weekly rivalry opens when a head-to-head is active. Join a community above, then check back.
+          Join a school community to open head-to-head rivalries.
         </p>
       </section>
     );
   }
 
   const { competition, groupA, groupB, statusLabel, viewer } = data;
-  const accentA = groupA.accentColor ?? groupA.primaryColor ?? "#115740";
-  const accentB = groupB.accentColor ?? groupB.primaryColor ?? "#D6001C";
+  const selectedA = schoolById(schools, sideA);
+  const selectedB = schoolById(schools, sideB);
+  const accentA = groupA?.accentColor ?? groupA?.primaryColor ?? selectedA?.accentColor ?? "#115740";
+  const accentB = groupB?.accentColor ?? groupB?.primaryColor ?? selectedB?.accentColor ?? "#D6001C";
+
+  async function changeSide(which: "a" | "b", groupId: string) {
+    const nextA = which === "a" ? groupId : sideA;
+    const nextB = which === "b" ? groupId : sideB;
+    if (!nextA || !nextB || nextA === nextB) return;
+    setSideA(nextA);
+    setSideB(nextB);
+    setMessage(null);
+    await reload(nextA, nextB);
+  }
 
   async function submitPick() {
-    if (viewer.kind !== "can_submit") return;
+    if (viewer.kind !== "can_submit" || !competition) return;
     setBusy(true);
     setMessage(null);
     try {
@@ -80,7 +170,7 @@ export function HeadToHeadMatchCard() {
       }
       setModalOpen(false);
       setTicker("");
-      await reload();
+      await reload(sideA, sideB);
     } finally {
       setBusy(false);
     }
@@ -89,46 +179,46 @@ export function HeadToHeadMatchCard() {
   return (
     <section className="surface-shell h2h-card" aria-label="Weekly rivalry">
       <div className="h2h-card-head">
-        <div className="h2h-rivalry">
-          <span className="h2h-school" style={{ ["--h2h-accent" as string]: accentA }}>
-            <SchoolLogo
-              name={groupA.name}
-              domain={groupA.domain}
-              ncaaId={groupA.ncaaId}
-              accentColor={accentA}
-              size={28}
-            />
-            {groupA.name}
-          </span>
+        <div className="h2h-rivalry h2h-rivalry--selectors">
+          <SchoolSideSelect
+            label="Your side"
+            value={sideA}
+            schools={schools}
+            otherValue={sideB}
+            onChange={(groupId) => void changeSide("a", groupId)}
+          />
           <span className="h2h-vs">vs</span>
-          <span className="h2h-school" style={{ ["--h2h-accent" as string]: accentB }}>
-            <SchoolLogo
-              name={groupB.name}
-              domain={groupB.domain}
-              ncaaId={groupB.ncaaId}
-              accentColor={accentB}
-              size={28}
-            />
-            {groupB.name}
-          </span>
+          <SchoolSideSelect
+            label="Opponent"
+            value={sideB}
+            schools={schools}
+            otherValue={sideA}
+            onChange={(groupId) => void changeSide("b", groupId)}
+          />
         </div>
-        <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>{statusLabel}</span>
+        <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>
+          {statusLabel || "Open"}
+        </span>
       </div>
 
-      <div className="h2h-scoreboard">
-        <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentA }}>
-          <strong className={`h2h-return is-${returnTone(groupA.avgReturnPct)}`}>
-            {formatReturn(groupA.avgReturnPct)}
-          </strong>
-          <span className="h2h-picks">{groupA.pickCount} picks submitted</span>
+      {data.available && groupA && groupB ? (
+        <div className="h2h-scoreboard">
+          <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentA }}>
+            <strong className={`h2h-return is-${returnTone(groupA.avgReturnPct)}`}>
+              {formatReturn(groupA.avgReturnPct)}
+            </strong>
+            <span className="h2h-picks">{groupA.pickCount} picks submitted</span>
+          </div>
+          <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentB }}>
+            <strong className={`h2h-return is-${returnTone(groupB.avgReturnPct)}`}>
+              {formatReturn(groupB.avgReturnPct)}
+            </strong>
+            <span className="h2h-picks">{groupB.pickCount} picks submitted</span>
+          </div>
         </div>
-        <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentB }}>
-          <strong className={`h2h-return is-${returnTone(groupB.avgReturnPct)}`}>
-            {formatReturn(groupB.avgReturnPct)}
-          </strong>
-          <span className="h2h-picks">{groupB.pickCount} picks submitted</span>
-        </div>
-      </div>
+      ) : (
+        <p className="h2h-note">Pick two schools to compare this week&apos;s picks.</p>
+      )}
 
       <div className="h2h-action">
         {viewer.kind === "guest" ? (

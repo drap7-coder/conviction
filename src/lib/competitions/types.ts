@@ -37,6 +37,16 @@ export type CompetitionGroupSide = {
   pickCount: number;
 };
 
+/** School option for H2H dropdowns (no live scores). */
+export type HeadToHeadSchoolOption = {
+  groupId: string;
+  name: string;
+  primaryColor: string | null;
+  domain?: string | null;
+  ncaaId?: string | null;
+  accentColor?: string | null;
+};
+
 export type CompetitionViewerState =
   | { kind: "guest" }
   | { kind: "not_member"; message: string }
@@ -50,4 +60,8 @@ export type HeadToHeadPayload = {
   groupB: CompetitionGroupSide | null;
   statusLabel: string;
   viewer: CompetitionViewerState;
+  /** Communities available in the school dropdowns. */
+  schools: HeadToHeadSchoolOption[];
+  /** Viewer's primary community group id when signed in + joined. */
+  viewerPrimaryGroupId: string | null;
 };
