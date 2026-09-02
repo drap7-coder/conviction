@@ -33,7 +33,8 @@ import {
 import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
 import { recordSync } from "@/lib/sync/sync-log";
 import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
-import { buildDailySyncQueue, updateSyncUniverseStatus } from "@/lib/evidence/sync-universe";
+import { updateSyncUniverseStatus } from "@/lib/evidence/sync-universe";
+import { runFullEvidenceSync } from "@/lib/evidence/full-sync";
 import { requireCronSecret, isValidCronBearer } from "@/lib/api/cron-auth";
 import {
   checkSingleTickerCooldown,
@@ -64,6 +65,25 @@ export async function POST(request: NextRequest) {
   if (!ticker) {
     const denied = requireCronSecret(request);
     if (denied) return denied;
+
+    try {
+      const data = await runFullEvidenceSync();
+      return NextResponse.json(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      const status =
+        typeof err === "object" && err && "status" in err && typeof (err as { status: unknown }).status === "number"
+          ? (err as { status: number }).status
+          : 500;
+      const tickersToProcess =
+        typeof err === "object" && err && "tickersToProcess" in err
+          ? (err as { tickersToProcess?: string[] }).tickersToProcess
+          : undefined;
+      return NextResponse.json(
+        { success: false, error: message, ...(tickersToProcess ? { tickersToProcess } : {}) },
+        { status },
+      );
+    }
   }
 
   const startTime = Date.now();
@@ -78,182 +98,79 @@ export async function POST(request: NextRequest) {
   let allNewEventsCount = 0;
   let totalErrors = 0;
 
-  if (ticker) {
-    // Sync a single ticker
-    const tickersToProcess = [ticker.toUpperCase()];
+  // Sync a single ticker
+  const tickersToProcess = [ticker.toUpperCase()];
 
-    if (!cronAuthorized) {
-      const ipLimit = checkSingleTickerIpLimit(clientIpFromRequest(request.headers));
-      if (!ipLimit.ok) {
-        return rateLimitedResponse(
-          ipLimit.retryAfterSec,
-          "Too many evidence refreshes from this client. Try again shortly.",
-        );
-      }
-
-      const lastFetch = await getLastFetchTime(tickersToProcess[0]);
-      const cooldown = checkSingleTickerCooldown(lastFetch);
-      if (!cooldown.ok) {
-        return rateLimitedResponse(
-          cooldown.retryAfterSec,
-          `Evidence for ${tickersToProcess[0]} was refreshed recently. Try again in ${cooldown.retryAfterSec}s.`,
-        );
-      }
-    }
-
-    const boundsCheck = checkSyncBounds({
-      companyCount: 1,
-      filingCount: SYNC_CONFIG.MAX_FILINGS_PER_COMPANY,
-      recordCount: SYNC_CONFIG.MAX_RECORDS_PER_SYNC,
-    });
-
-    if (!boundsCheck.ok) {
-      return NextResponse.json(
-        { success: false, error: boundsCheck.reason },
-        { status: 429 },
+  if (!cronAuthorized) {
+    const ipLimit = checkSingleTickerIpLimit(clientIpFromRequest(request.headers));
+    if (!ipLimit.ok) {
+      return rateLimitedResponse(
+        ipLimit.retryAfterSec,
+        "Too many evidence refreshes from this client. Try again shortly.",
       );
     }
 
-    const dedupKeys = await getAllDedupKeys();
-    const result = await fetchInsiderTransactions(tickersToProcess[0], dedupKeys);
-
-    const newRecords = result.newTransactions.map(txToRecord);
-    const newDedupKeys = result.newTransactions.map((tx) => tx.id);
-
-    if (newRecords.length > 0) {
-      await storeTransactions(tickersToProcess[0], newRecords, newDedupKeys);
+    const lastFetch = await getLastFetchTime(tickersToProcess[0]);
+    const cooldown = checkSingleTickerCooldown(lastFetch);
+    if (!cooldown.ok) {
+      return rateLimitedResponse(
+        cooldown.retryAfterSec,
+        `Evidence for ${tickersToProcess[0]} was refreshed recently. Try again in ${cooldown.retryAfterSec}s.`,
+      );
     }
-    await setLastFetchTime(tickersToProcess[0], result.fetchedAt);
-    await updateSyncUniverseStatus(
-      tickersToProcess[0],
-      result.errors.length > 0 ? "error" : "active",
-    );
-
-    results[tickersToProcess[0]] = {
-      newEvents: result.newTransactions.length,
-      totalEvents: result.allTransactions.length,
-      errors: result.errors,
-      fetchedAt: result.fetchedAt,
-    };
-    allNewEventsCount += result.newTransactions.length;
-    totalErrors += result.errors.length;
-
-    const elapsedMs = Date.now() - startTime;
-    recordSync({
-      timestamp: new Date().toISOString(),
-      source: "sec-edgar",
-      ticker: tickersToProcess[0],
-      durationMs: elapsedMs,
-      newRecords: result.newTransactions.length,
-      totalRecords: result.allTransactions.length,
-      errors: result.errors.length,
-      errorMessages: result.errors,
-    });
-
-    if (result.errors.length === 0) {
-      results[tickersToProcess[0]].transition = await refreshConvictionTransitionForTicker(tickersToProcess[0]);
-    }
-
-    return NextResponse.json({
-      success: true,
-      results,
-      summary: {
-        totalNewEvents: allNewEventsCount,
-        totalErrors,
-        tickersProcessed: 1,
-        durationMs: elapsedMs,
-      },
-      _limits: {
-        maxCompaniesPerSync: SYNC_CONFIG.MAX_COMPANIES_PER_SYNC,
-        maxDurationSeconds: SYNC_CONFIG.MAX_SYNC_DURATION_SECONDS,
-        singleTickerCooldownSeconds: SYNC_CONFIG.SINGLE_TICKER_COOLDOWN_SECONDS,
-        singleTickerIpMax: SYNC_CONFIG.SINGLE_TICKER_IP_MAX,
-        syncFrequency: "daily (Vercel Hobby constraint)",
-      },
-    });
-  }
-
-  // Full sync — ops universe LRU, then fill with popular Neon member tickers
-  const sortedEntries = await buildDailySyncQueue();
-  const tickersToProcess = sortedEntries.map((e) => e.ticker);
-
-  if (tickersToProcess.length === 0) {
-    return NextResponse.json({
-      success: true,
-      results: {},
-      summary: { totalNewEvents: 0, totalErrors: 0, tickersProcessed: 0, durationMs: 0 },
-      note: "No active tickers in the sync queue",
-    });
   }
 
   const boundsCheck = checkSyncBounds({
-    companyCount: tickersToProcess.length,
+    companyCount: 1,
     filingCount: SYNC_CONFIG.MAX_FILINGS_PER_COMPANY,
     recordCount: SYNC_CONFIG.MAX_RECORDS_PER_SYNC,
   });
 
   if (!boundsCheck.ok) {
     return NextResponse.json(
-      { success: false, error: boundsCheck.reason, tickersToProcess },
+      { success: false, error: boundsCheck.reason },
       { status: 429 },
     );
   }
 
-  for (const t of tickersToProcess) {
-    const dedupKeys = await getAllDedupKeys();
-    const result = await fetchInsiderTransactions(t, dedupKeys);
+  const dedupKeys = await getAllDedupKeys();
+  const result = await fetchInsiderTransactions(tickersToProcess[0], dedupKeys);
 
-    const newRecords = result.newTransactions.map(txToRecord);
-    const newDedupKeys = result.newTransactions.map((tx) => tx.id);
+  const newRecords = result.newTransactions.map(txToRecord);
+  const newDedupKeys = result.newTransactions.map((tx) => tx.id);
 
-    if (newRecords.length > 0) {
-      await storeTransactions(t, newRecords, newDedupKeys);
-    }
-    await setLastFetchTime(t, result.fetchedAt);
-    await updateSyncUniverseStatus(t, result.errors.length > 0 ? "error" : "active");
-
-    results[t] = {
-      newEvents: result.newTransactions.length,
-      totalEvents: result.allTransactions.length,
-      errors: result.errors,
-      fetchedAt: result.fetchedAt,
-    };
-
-    if (result.errors.length === 0) {
-      results[t].transition = await refreshConvictionTransitionForTicker(t);
-    }
-
-    allNewEventsCount += result.newTransactions.length;
-    totalErrors += result.errors.length;
-
-    // Check max runtime
-    const elapsed = Date.now() - startTime;
-    if (elapsed > SYNC_CONFIG.MAX_SYNC_DURATION_SECONDS * 1000) {
-      results["_timeout"] = {
-        newEvents: 0,
-        totalEvents: 0,
-        errors: [`Sync approaching ${SYNC_CONFIG.MAX_SYNC_DURATION_SECONDS}s limit after ${t}`],
-        fetchedAt: new Date().toISOString(),
-      };
-      break;
-    }
+  if (newRecords.length > 0) {
+    await storeTransactions(tickersToProcess[0], newRecords, newDedupKeys);
   }
+  await setLastFetchTime(tickersToProcess[0], result.fetchedAt);
+  await updateSyncUniverseStatus(
+    tickersToProcess[0],
+    result.errors.length > 0 ? "error" : "active",
+  );
+
+  results[tickersToProcess[0]] = {
+    newEvents: result.newTransactions.length,
+    totalEvents: result.allTransactions.length,
+    errors: result.errors,
+    fetchedAt: result.fetchedAt,
+  };
+  allNewEventsCount += result.newTransactions.length;
+  totalErrors += result.errors.length;
 
   const elapsedMs = Date.now() - startTime;
+  recordSync({
+    timestamp: new Date().toISOString(),
+    source: "sec-edgar",
+    ticker: tickersToProcess[0],
+    durationMs: elapsedMs,
+    newRecords: result.newTransactions.length,
+    totalRecords: result.allTransactions.length,
+    errors: result.errors.length,
+    errorMessages: result.errors,
+  });
 
-  // Record sync log for each ticker
-  for (const [t, r] of Object.entries(results)) {
-    if (t === "_timeout") continue;
-    recordSync({
-      timestamp: new Date().toISOString(),
-      source: "sec-edgar",
-      ticker: t,
-      durationMs: elapsedMs,
-      newRecords: r.newEvents,
-      totalRecords: r.totalEvents,
-      errors: r.errors.length,
-      errorMessages: r.errors,
-    });
+  if (result.errors.length === 0) {
+    results[tickersToProcess[0]].transition = await refreshConvictionTransitionForTicker(tickersToProcess[0]);
   }
 
   return NextResponse.json({
@@ -262,13 +179,14 @@ export async function POST(request: NextRequest) {
     summary: {
       totalNewEvents: allNewEventsCount,
       totalErrors,
-      tickersProcessed: tickersToProcess.length,
+      tickersProcessed: 1,
       durationMs: elapsedMs,
-      lruOrder: tickersToProcess,
     },
     _limits: {
       maxCompaniesPerSync: SYNC_CONFIG.MAX_COMPANIES_PER_SYNC,
       maxDurationSeconds: SYNC_CONFIG.MAX_SYNC_DURATION_SECONDS,
+      singleTickerCooldownSeconds: SYNC_CONFIG.SINGLE_TICKER_COOLDOWN_SECONDS,
+      singleTickerIpMax: SYNC_CONFIG.SINGLE_TICKER_IP_MAX,
       syncFrequency: "daily (Vercel Hobby constraint)",
     },
   });

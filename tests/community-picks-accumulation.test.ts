@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
 import {
   CAMPUS_SEED_STUDENTS_PER_SCHOOL,
@@ -164,12 +164,13 @@ describe("continuous accumulation wiring", () => {
     expect(read("src/components/CommunityPickCard.tsx")).not.toContain("starts fresh");
   });
 
-  it("keeps competition lifecycle available but off the daily sync path", () => {
+  it("keeps competition lifecycle lib available but off cron and daily sync", () => {
     const vercel = JSON.parse(read("vercel.json"));
     const paths = vercel.crons.map((job: { path: string }) => job.path);
     expect(paths).toContain("/api/cron/daily-sync");
     expect(paths).not.toContain("/api/cron/competitions");
     expect(read("src/app/api/cron/daily-sync/route.ts")).not.toContain("runCompetitionLifecycleTick");
-    expect(read("src/app/api/cron/competitions/route.ts")).toContain("runCompetitionLifecycleTick");
+    expect(existsSync(new URL("../src/app/api/cron/competitions/route.ts", import.meta.url))).toBe(false);
+    expect(read("src/lib/competitions/lifecycle.ts")).toContain("runCompetitionLifecycleTick");
   });
 });

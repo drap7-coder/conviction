@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import {
   fetchStockHistory,
   fetchStockQuotes,
@@ -22,16 +23,15 @@ function historyRangeForPerf(range: H2HPerfRange): StockHistoryRange {
   return range;
 }
 
-/**
- * Batch period open + current prices for H2H scoring.
- * Today uses quote previousClose (session %); longer windows use Yahoo history open.
- */
-export async function fetchPeriodBaselines(
-  tickers: string[],
+function normalizeTickers(tickers: string[]): string[] {
+  return [...new Set(tickers.map((ticker) => ticker.trim().toUpperCase()).filter(Boolean))].sort();
+}
+
+async function fetchPeriodBaselinesUncached(
+  unique: string[],
   range: H2HPerfRange,
-): Promise<Map<string, PeriodBaseline>> {
-  const unique = [...new Set(tickers.map((ticker) => ticker.trim().toUpperCase()).filter(Boolean))];
-  const out = new Map<string, PeriodBaseline>();
+): Promise<Record<string, PeriodBaseline>> {
+  const out: Record<string, PeriodBaseline> = {};
   if (unique.length === 0) return out;
 
   const quotes = await fetchStockQuotes(unique);
@@ -39,8 +39,7 @@ export async function fetchPeriodBaselines(
 
   if (range === "1d") {
     for (const ticker of unique) {
-      const quote = byTicker.get(ticker);
-      out.set(ticker, baselineFromTodayQuote(quote));
+      out[ticker] = baselineFromTodayQuote(byTicker.get(ticker));
     }
     return out;
   }
@@ -65,14 +64,39 @@ export async function fetchPeriodBaselines(
       quote?.previousClose ??
       history?.endPrice ??
       null;
-    out.set(ticker, {
+    out[ticker] = {
       startPrice: history?.startPrice ?? null,
       startAt: history?.points[0]?.date ?? null,
       currentPrice: current !== null && Number.isFinite(current) && current > 0 ? current : null,
-    });
+    };
   }
 
   return out;
+}
+
+/** Cache TTL: align with quote refresh (~5m). Longer windows still benefit from shared hits. */
+const getCachedPeriodBaselines = unstable_cache(
+  async (tickerKey: string, range: H2HPerfRange) => {
+    const unique = tickerKey.split(",").filter(Boolean);
+    return fetchPeriodBaselinesUncached(unique, range);
+  },
+  ["period-baselines"],
+  { revalidate: 5 * 60 },
+);
+
+/**
+ * Batch period open + current prices for H2H / standings scoring.
+ * Today uses quote previousClose (session %); longer windows use Yahoo history open.
+ * Results are cached ~5 minutes so Crowd H2H + standings share one Yahoo fan-out.
+ */
+export async function fetchPeriodBaselines(
+  tickers: string[],
+  range: H2HPerfRange,
+): Promise<Map<string, PeriodBaseline>> {
+  const unique = normalizeTickers(tickers);
+  if (unique.length === 0) return new Map();
+  const record = await getCachedPeriodBaselines(unique.join(","), range);
+  return new Map(Object.entries(record));
 }
 
 /** Today = regular session result vs prior close (brokerage “Today %”). */

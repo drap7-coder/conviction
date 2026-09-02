@@ -62,10 +62,12 @@ describe("watchlist store contracts", () => {
 
 describe("daily sync queue wiring", () => {
   it("full evidence refresh uses buildDailySyncQueue", () => {
+    const fullSync = read("src/lib/evidence/full-sync.ts");
     const refresh = read("src/app/api/evidence/refresh/route.ts");
-    expect(refresh).toContain("buildDailySyncQueue");
-    expect(refresh).toContain("updateSyncUniverseStatus");
-    expect(refresh).not.toContain("getWatchlistSortedBySyncPriority");
-    expect(refresh).not.toContain("updateWatchlistSync");
+    expect(fullSync).toContain("buildDailySyncQueue");
+    expect(fullSync).toContain("updateSyncUniverseStatus");
+    expect(refresh).toContain("runFullEvidenceSync");
+    expect(fullSync).not.toContain("getWatchlistSortedBySyncPriority");
+    expect(fullSync).not.toContain("updateWatchlistSync");
   });
 });
