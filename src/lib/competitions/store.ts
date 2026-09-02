@@ -1,13 +1,21 @@
 import { isDatabaseConfigured, query } from "@/lib/db";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
-import { findSeedGroupById } from "@/lib/groups/seed-groups";
+import {
+  findSeedGroupById,
+  listSeedCanonicalCommunities,
+} from "@/lib/groups/seed-groups";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
+import {
+  getPrimaryGroupForUser,
+  listActiveGroups,
+} from "@/lib/groups/store";
 import type {
   Competition,
   CompetitionGroupSide,
   CompetitionPick,
   CompetitionStatus,
   HeadToHeadPayload,
+  HeadToHeadSchoolOption,
   CompetitionViewerState,
 } from "@/lib/competitions/types";
 import {
@@ -172,6 +180,126 @@ export async function getActiveCompetition(): Promise<Competition | null> {
   return row ? mapCompetition(row) : null;
 }
 
+function pairSlug(groupAId: string, groupBId: string): string {
+  return [groupAId, groupBId]
+    .map((id) => id.replace(/[^a-z0-9_-]+/gi, "-").toLowerCase())
+    .join("-vs-");
+}
+
+function syntheticCompetition(groupAId: string, groupBId: string, now = new Date()): Competition {
+  const window = weekWindowContaining(now);
+  return {
+    id: `comp-${pairSlug(groupAId, groupBId)}-${window.weekKey}`,
+    groupAId,
+    groupBId,
+    periodStart: window.periodStart.toISOString(),
+    periodEnd: window.periodEnd.toISOString(),
+    status: "open",
+    metric: "avg_pct_return",
+    lockedAt: null,
+    winnerGroupId: null,
+  };
+}
+
+/** Ensure a weekly H2H row exists for an arbitrary school pair (display order preserved). */
+export async function getOrCreateCompetitionForPair(
+  groupAId: string,
+  groupBId: string,
+  now = new Date(),
+): Promise<Competition | null> {
+  const a = groupAId.trim();
+  const b = groupBId.trim();
+  if (!a || !b || a === b) return null;
+
+  if (!isDatabaseConfigured()) {
+    return syntheticCompetition(a, b, now);
+  }
+
+  const window = weekWindowContaining(now);
+  const id = `comp-${pairSlug(a, b)}-${window.weekKey}`;
+  await query(
+    `insert into competitions (
+       id, group_a_id, group_b_id, period_start, period_end, status, metric
+     ) values ($1, $2, $3, $4, $5, 'open', 'avg_pct_return')
+     on conflict (id) do nothing`,
+    [id, a, b, window.periodStart, window.periodEnd],
+  );
+
+  const result = await query<CompetitionRow>(
+    `select id, group_a_id, group_b_id, period_start, period_end, status, metric, locked_at, winner_group_id
+     from competitions where id = $1 limit 1`,
+    [id],
+  );
+  const row = result.rows[0];
+  return row ? mapCompetition(row) : syntheticCompetition(a, b, now);
+}
+
+function schoolOptionFromMeta(groupId: string, meta: GroupLogoMeta): HeadToHeadSchoolOption {
+  return {
+    groupId,
+    name: meta.name,
+    primaryColor: meta.primaryColor,
+    domain: meta.domain,
+    ncaaId: meta.ncaaId,
+    accentColor: meta.accentColor,
+  };
+}
+
+export async function listHeadToHeadSchools(): Promise<HeadToHeadSchoolOption[]> {
+  const byId = new Map<string, HeadToHeadSchoolOption>();
+
+  for (const group of listSeedCanonicalCommunities()) {
+    const meta = await groupMeta(group.id);
+    byId.set(group.id, schoolOptionFromMeta(group.id, meta));
+  }
+
+  try {
+    const active = await listActiveGroups();
+    for (const group of active) {
+      if (byId.has(group.id)) continue;
+      const meta = await groupMeta(group.id);
+      byId.set(group.id, schoolOptionFromMeta(group.id, meta));
+    }
+  } catch {
+    // Seed list is enough offline.
+  }
+
+  return [...byId.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Default A = viewer's school (or W&M); B = classic rival or first other school. */
+export function pickDefaultH2HPair(
+  schools: HeadToHeadSchoolOption[],
+  viewerPrimaryGroupId: string | null,
+): { groupAId: string; groupBId: string } {
+  const ids = schools.map((school) => school.groupId);
+  const fallbackA = ids.includes("group-wm") ? "group-wm" : ids[0] ?? "group-wm";
+  const fallbackB = ids.includes("group-rpi") && fallbackA !== "group-rpi"
+    ? "group-rpi"
+    : ids.find((id) => id !== fallbackA) ?? "group-rpi";
+
+  const primary =
+    viewerPrimaryGroupId && ids.includes(viewerPrimaryGroupId)
+      ? viewerPrimaryGroupId
+      : fallbackA;
+
+  const rivalPair = RIVALRY_PAIRS.find(
+    (pair) => pair.groupAId === primary || pair.groupBId === primary,
+  );
+  let other =
+    rivalPair
+      ? rivalPair.groupAId === primary
+        ? rivalPair.groupBId
+        : rivalPair.groupAId
+      : ids.find((id) => id !== primary) ?? fallbackB;
+
+  if (!ids.includes(other) || other === primary) {
+    other = ids.find((id) => id !== primary) ?? fallbackB;
+  }
+
+  return { groupAId: primary, groupBId: other };
+}
+
 export async function listPicksForCompetition(competitionId: string): Promise<CompetitionPick[]> {
   if (!isDatabaseConfigured()) return [];
   const result = await query<PickRow>(
@@ -259,17 +387,41 @@ export async function submitPick(input: {
 
 export async function buildHeadToHeadPayload(input: {
   userId?: string;
+  groupAId?: string | null;
+  groupBId?: string | null;
 }): Promise<HeadToHeadPayload> {
-  const competition = await getActiveCompetition();
+  const schools = await listHeadToHeadSchools();
+  const primaryGroup = input.userId ? await getPrimaryGroupForUser(input.userId) : null;
+  const viewerPrimaryGroupId = primaryGroup?.id ?? null;
+  const defaults = pickDefaultH2HPair(schools, viewerPrimaryGroupId);
+
+  const requestedA = input.groupAId?.trim() || defaults.groupAId;
+  const requestedB = input.groupBId?.trim() || defaults.groupBId;
+  const schoolIds = new Set(schools.map((school) => school.groupId));
+  const groupAId = schoolIds.has(requestedA) ? requestedA : defaults.groupAId;
+  const groupBId =
+    schoolIds.has(requestedB) && requestedB !== groupAId
+      ? requestedB
+      : pickDefaultH2HPair(schools, groupAId).groupBId;
+
+  const empty = (viewer: CompetitionViewerState): HeadToHeadPayload => ({
+    available: false,
+    competition: null,
+    groupA: null,
+    groupB: null,
+    statusLabel: "",
+    viewer,
+    schools,
+    viewerPrimaryGroupId,
+  });
+
+  if (!groupAId || !groupBId || groupAId === groupBId) {
+    return empty(input.userId ? { kind: "not_member", message: "Pick two schools to compare." } : { kind: "guest" });
+  }
+
+  const competition = await getOrCreateCompetitionForPair(groupAId, groupBId);
   if (!competition) {
-    return {
-      available: false,
-      competition: null,
-      groupA: null,
-      groupB: null,
-      statusLabel: "",
-      viewer: { kind: "guest" },
-    };
+    return empty(input.userId ? { kind: "not_member", message: "Could not open this rivalry." } : { kind: "guest" });
   }
 
   const window = weekWindowContaining(new Date(competition.periodStart));
@@ -283,41 +435,42 @@ export async function buildHeadToHeadPayload(input: {
 
   const picks = await listPicksForCompetition(competition.id);
   const [metaA, metaB] = await Promise.all([
-    groupMeta(competition.groupAId),
-    groupMeta(competition.groupBId),
+    groupMeta(groupAId),
+    groupMeta(groupBId),
   ]);
 
   const groupA: CompetitionGroupSide = {
-    groupId: competition.groupAId,
+    groupId: groupAId,
     name: metaA.name,
     primaryColor: metaA.primaryColor,
     domain: metaA.domain,
     ncaaId: metaA.ncaaId,
     accentColor: metaA.accentColor,
-    avgReturnPct: computeSideScore(picks, competition.groupAId).avgReturnPct,
-    pickCount: countSubmittedPicks(picks, competition.groupAId),
+    avgReturnPct: computeSideScore(picks, groupAId).avgReturnPct,
+    pickCount: countSubmittedPicks(picks, groupAId),
   };
   const groupB: CompetitionGroupSide = {
-    groupId: competition.groupBId,
+    groupId: groupBId,
     name: metaB.name,
     primaryColor: metaB.primaryColor,
     domain: metaB.domain,
     ncaaId: metaB.ncaaId,
     accentColor: metaB.accentColor,
-    avgReturnPct: computeSideScore(picks, competition.groupBId).avgReturnPct,
-    pickCount: countSubmittedPicks(picks, competition.groupBId),
+    avgReturnPct: computeSideScore(picks, groupBId).avgReturnPct,
+    pickCount: countSubmittedPicks(picks, groupBId),
   };
 
   let viewer: CompetitionViewerState = { kind: "guest" };
   if (input.userId) {
     const memberships = await userMembershipGroupIds(input.userId);
     const side =
-      memberships.find(
-        (id) => id === competition.groupAId || id === competition.groupBId,
-      ) ?? null;
+      memberships.find((id) => id === groupAId || id === groupBId) ?? null;
     const existing = picks.find((p) => p.userId === input.userId) ?? null;
     if (!side) {
-      viewer = { kind: "not_member", message: "Join Group to Participate" };
+      viewer = {
+        kind: "not_member",
+        message: "Join one of these schools to submit a weekly pick.",
+      };
     } else if (existing?.lockedAt) {
       viewer = {
         kind: "locked_pick",
@@ -350,5 +503,7 @@ export async function buildHeadToHeadPayload(input: {
     groupB,
     statusLabel,
     viewer,
+    schools,
+    viewerPrimaryGroupId,
   };
 }

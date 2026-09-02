@@ -18,15 +18,15 @@ const EMPTY_PAYLOAD: CommunitiesPayload = {
   primaryCommunity: null,
 };
 
-/** Crowd campus hub — join/edit community with optional expanded roster chrome. */
+/** Crowd campus hub — join/edit community with school-colored chrome. */
 export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }) {
   const [data, setData] = useState<CommunitiesPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
 
-  const reload = useCallback(async () => {
-    setLoading(true);
+  const reload = useCallback(async (opts?: { quiet?: boolean }) => {
+    if (!opts?.quiet) setLoading(true);
     setLoadError(null);
     try {
       const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
@@ -43,21 +43,18 @@ export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }
       setData((current) => current ?? EMPTY_PAYLOAD);
       return null;
     } finally {
-      setLoading(false);
+      if (!opts?.quiet) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void reload().then((json) => {
-      if (expanded) {
-        setOpen(true);
-        return;
-      }
+      // Open join/edit only when they still need a school — not every My Community visit.
       if (json?.authenticated && (json.memberships ?? []).length === 0) {
         setOpen(true);
       }
     });
-  }, [expanded, reload]);
+  }, [reload]);
 
   const panelData = data ?? EMPTY_PAYLOAD;
   const primary =
@@ -65,8 +62,9 @@ export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }
     panelData.memberships?.find((m) => m.isPrimary) ??
     panelData.memberships?.[0] ??
     null;
+  // Prefer the theme they chose; fall back to the school's default mark color.
   const campusAccent =
-    primary?.institution.accentColor ?? primary?.primaryColor ?? null;
+    primary?.primaryColor ?? primary?.institution.accentColor ?? null;
 
   let summary = "Loading…";
   if (!loading && loadError && !primary) {
@@ -105,15 +103,10 @@ export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }
             {expanded ? "My community" : "Your community"}
           </p>
           <p className="crowd-community-summary">{summary}</p>
-          {expanded && primary ? (
+          {expanded && primary?.institution.conference ? (
             <p className="crowd-community-meta">
-              {[
-                primary.institution.conference,
-                primary.institution.canonicalDomain,
-                primary.isPrimary ? "Primary campus" : null,
-              ]
-                .filter(Boolean)
-                .join(" · ") || "Campus community"}
+              {primary.institution.conference}
+              {primary.isPrimary ? " · Primary campus" : ""}
             </p>
           ) : null}
         </div>
@@ -140,39 +133,20 @@ export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }
       </div>
 
       {expanded && primary ? (
-        <div className="crowd-community-roster" aria-label="Campus members">
-          <div className="crowd-community-roster-card">
-            <span className="crowd-community-roster-label">Campus</span>
-            <strong className="crowd-community-roster-campus">
-              <SchoolLogo
-                name={primary.institution.name}
-                domain={primary.institution.canonicalDomain}
-                ncaaId={primary.institution.ncaaId}
-                accentColor={campusAccent}
-                size={22}
-              />
-              {primary.institution.name}
-            </strong>
-          </div>
-          <div className="crowd-community-roster-card">
-            <span className="crowd-community-roster-label">Accent</span>
-            <strong className="crowd-community-swatch" style={{ background: campusAccent ?? undefined }}>
-              {campusAccent ?? "—"}
-            </strong>
-          </div>
-          <div className="crowd-community-roster-card">
-            <span className="crowd-community-roster-label">Memberships</span>
-            <strong>{panelData.memberships.length}</strong>
-          </div>
-        </div>
+        <p className="crowd-hedge crowd-community-lead">
+          Campus standings and rivalry use this school. Tap Edit to change school or theme.
+        </p>
       ) : null}
 
       {open && panelData.authenticated ? (
         <CommunitySettingsPanel
           compact={!expanded}
           onboarding={panelData.memberships.length === 0}
+          onChanged={() => {
+            void reload({ quiet: true });
+          }}
           onJoined={() => {
-            void reload();
+            void reload({ quiet: true });
           }}
         />
       ) : null}
