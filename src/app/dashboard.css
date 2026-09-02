@@ -566,6 +566,13 @@
   width: 62%;
 }
 
+.company-evidence-attempted {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
 @keyframes company-catalyst-shimmer {
   to {
     background: var(--dashboard-border-active);

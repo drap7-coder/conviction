@@ -8,6 +8,7 @@ import { buildMoveDriverView } from "@/lib/evidence/move-driver-brief";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { NewsDriverBrief } from "./NewsDriverBrief";
 import { SignalBlock } from "@/components/display/SignalBlock";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 
 interface NewsEvidenceResponse {
   events: EvidenceEvent[];
@@ -50,17 +51,15 @@ export function MaterialNewsCard({ ticker, companyName, showEmpty = false }: Mat
             8_000,
             controller.signal,
           ),
-          fetch(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`, {
-            signal: controller.signal,
-          })
-            .then((res) => (res.ok ? res.json() as Promise<{ quotes?: StockQuote[] }> : null))
-            .catch(() => null),
+          fetchMarketQuotes([ticker], { reason: "initial", signal: controller.signal }).catch(
+            () => [] as StockQuote[],
+          ),
         ]);
         if (cancelled) return;
 
         setEvents(news.events ?? []);
         setDriver(news.driver ?? null);
-        const change = quotes?.quotes?.[0]?.changePercent;
+        const change = quotes[0]?.changePercent;
         setAbsChangePercent(
           typeof change === "number" && Number.isFinite(change) ? Math.abs(change) : null,
         );

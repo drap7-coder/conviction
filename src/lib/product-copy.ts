@@ -94,4 +94,9 @@ export const PRODUCT_FAQ: FaqItem[] = [
     answer:
       "Crowd is campus head-to-head, community standings, and your My Pick — equal-weight returns over Today, Weekly, Monthly, or YTD. Starter books fill the board while membership is small. It is an aggregate, not advice, and it never shows who owns what.",
   },
+  {
+    question: "Where are Most held and Most watched?",
+    answer:
+      "On Portfolio. Use the Live / Watchlist / Most held / Most watched / Study slicer. Crowd is for campus picks and standings — not the member holdings board.",
+  },
 ];

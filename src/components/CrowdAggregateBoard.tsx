@@ -9,6 +9,7 @@ import { companyDetailHref } from "@/lib/market/company-detail-href";
 import type { CrowdSnapshot } from "@/lib/crowd/types";
 import type { Group } from "@/lib/groups/types";
 import type { StockQuote } from "@/lib/market/quotes";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 
@@ -111,14 +112,10 @@ export function CrowdAggregateBoard({ mode }: { mode: CrowdAggregateMode }) {
           return;
         }
 
-        const quoteRes = await fetch(
-          `/api/market/quotes?tickers=${encodeURIComponent(unique.join(","))}`,
-          { cache: "no-store" },
-        );
-        if (!quoteRes.ok || cancelled) return;
-        const quoteJson = (await quoteRes.json()) as { quotes?: StockQuote[] };
+        const quoteList = await fetchMarketQuotes(unique, { reason: "initial" });
+        if (cancelled) return;
         const map: Record<string, StockQuote> = {};
-        for (const quote of quoteJson.quotes ?? []) {
+        for (const quote of quoteList) {
           map[quote.ticker.toUpperCase()] = quote;
         }
         if (!cancelled) setQuotes(map);

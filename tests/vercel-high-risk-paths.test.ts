@@ -193,5 +193,21 @@ describe("Vercel high-risk path fixes", () => {
     expect(pols).toContain("No STOCK Act filings yet.");
     expect(pols).toContain("Last tried");
   });
+
+  it("company evidence empty states name timeout/empty and show last tried", () => {
+    const card = read("src/app/components/CompanyEvidenceCard.tsx");
+    expect(card).toContain("Evidence feed timed out — try again.");
+    expect(card).toContain("No filing or catalyst in the current feed.");
+    expect(card).toContain("Last tried");
+    expect(card).toContain("attemptedAt");
+  });
+
+  it("keeps Most held on Portfolio and Crowd as campus picks", () => {
+    expect(read("src/lib/nav-config.ts")).toContain("Most held / watched");
+    expect(read("src/lib/nav-config.ts")).toContain("Campus head-to-head");
+    expect(read("src/lib/product-copy.ts")).toContain("Where are Most held and Most watched?");
+    expect(read("src/lib/product-copy.ts")).toContain("On Portfolio");
+    expect(read("src/lib/product-copy.ts")).not.toMatch(/Crowd is a daily tab that ranks names/);
+  });
 });
 
