@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { resolveEspnTeamId } from "@/lib/groups/espn-team-ids";
+import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 
 export type SchoolLogoProps = {
   /** Full institution name (e.g. "William & Mary"). */
@@ -16,30 +18,7 @@ export type SchoolLogoProps = {
   className?: string;
 };
 
-/**
- * Slug → ESPN team id for schools whose catalog `ncaaId` is a slug, not a number.
- * ESPN CDN: https://a.espncdn.com/i/teamlogos/ncaa/500/{id}.png
- */
-const ESPN_TEAM_IDS: Record<string, string> = {
-  "william-mary": "2729",
-  rensselaer: "2528",
-  njit: "2885",
-  stevens: "2847",
-  duke: "150",
-  "north-carolina": "153",
-  virginia: "258",
-  villanova: "222",
-};
-
 type LogoStage = "espn" | "favicon" | "badge";
-
-function resolveEspnId(ncaaId: string | number | null | undefined): string | null {
-  if (ncaaId === null || ncaaId === undefined) return null;
-  const raw = String(ncaaId).trim();
-  if (!raw) return null;
-  if (/^\d+$/.test(raw)) return raw;
-  return ESPN_TEAM_IDS[raw.toLowerCase()] ?? null;
-}
 
 /** Derive compact initials: "William & Mary" → "W&M", "Rensselaer Polytechnic Institute" → "RPI". */
 export function schoolInitials(name: string): string {
@@ -109,15 +88,20 @@ export function SchoolLogo({
   size = 32,
   className,
 }: SchoolLogoProps) {
-  const espnId = useMemo(() => resolveEspnId(ncaaId), [ncaaId]);
-  const hasDomain = Boolean(domain?.trim());
+  const espnId = useMemo(() => resolveEspnTeamId(ncaaId), [ncaaId]);
+  const resolvedDomain = useMemo(() => {
+    const explicit = domain?.trim();
+    if (explicit) return explicit;
+    return resolveNcaaDomain(ncaaId == null ? null : String(ncaaId));
+  }, [domain, ncaaId]);
+  const hasDomain = Boolean(resolvedDomain);
 
   const initialStage: LogoStage = espnId ? "espn" : hasDomain ? "favicon" : "badge";
   const [stage, setStage] = useState<LogoStage>(initialStage);
 
   useEffect(() => {
     setStage(espnId ? "espn" : hasDomain ? "favicon" : "badge");
-  }, [espnId, hasDomain, name, domain, ncaaId]);
+  }, [espnId, hasDomain, name, resolvedDomain, ncaaId]);
 
   const initials = schoolInitials(name);
   const bg = accentColor?.trim() || "var(--card-soft, #e5e7eb)";
@@ -140,11 +124,11 @@ export function SchoolLogo({
     );
   }
 
-  if (stage === "favicon" && hasDomain && domain) {
+  if (stage === "favicon" && hasDomain && resolvedDomain) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={faviconUrl(domain)}
+        src={faviconUrl(resolvedDomain)}
         alt=""
         width={size}
         height={size}

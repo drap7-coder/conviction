@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import type { Community, Group, Institution } from "@/lib/groups/types";
 import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
 
@@ -106,7 +107,17 @@ export function JoinInviteClient({ code }: { code: string }) {
         style={accent ? { ["--group-accent" as string]: accent } : undefined}
       >
         <p className="join-eyebrow">Community</p>
-        <h1>Join {institution.name}</h1>
+        <div className="join-title-row">
+          <SchoolLogo
+            name={institution.name}
+            domain={institution.canonicalDomain}
+            ncaaId={institution.ncaaId}
+            accentColor={accent}
+            size={48}
+            className="join-school-logo"
+          />
+          <h1>Join {institution.name}</h1>
+        </div>
         {unofficial ? (
           <p className="join-hedge">
             Unofficial community workspace — not affiliated with {institution.name}. No official

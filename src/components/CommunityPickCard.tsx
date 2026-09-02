@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
 
@@ -151,12 +152,27 @@ export function CommunityPickCard({
       {showPick ? (
         <>
           <div className="community-pick-head">
-            <div>
-              <p className="community-pick-eyebrow">Your community pick</p>
-              <h2>{data.viewerGroup?.name ?? "Choose a community"}</h2>
+            <div className="community-pick-title">
+              {data.viewerGroup ? (
+                <SchoolLogo
+                  name={data.viewerGroup.name}
+                  domain={data.viewerGroup.domain}
+                  ncaaId={data.viewerGroup.ncaaId}
+                  accentColor={data.viewerGroup.accentColor ?? data.viewerGroup.primaryColor}
+                  size={36}
+                  className="community-pick-school-logo"
+                />
+              ) : null}
+              <div>
+                <p className="community-pick-eyebrow">Your community pick</p>
+                <h2>{data.viewerGroup?.name ?? "Choose a community"}</h2>
+              </div>
             </div>
             {data.viewerPick ? (
               <div className="community-pick-current">
+                <span className="crowd-logo community-pick-ticker-logo" aria-hidden="true">
+                  <LogoDisplay ticker={data.viewerPick.ticker} size="detail" />
+                </span>
                 <strong>{data.viewerPick.ticker}</strong>
                 <span className={`is-${returnTone(data.viewerPick.lifetimeReturnPct)}`}>
                   {formatReturn(data.viewerPick.lifetimeReturnPct)}
@@ -173,7 +189,12 @@ export function CommunityPickCard({
             <div className="community-pick-metrics">
               <div>
                 <span className="community-pick-metric-label">Active ticker</span>
-                <strong>{data.viewerPick.ticker}</strong>
+                <strong className="community-pick-ticker-row">
+                  <span className="crowd-logo community-pick-ticker-logo" aria-hidden="true">
+                    <LogoDisplay ticker={data.viewerPick.ticker} size="detail" />
+                  </span>
+                  {data.viewerPick.ticker}
+                </strong>
                 <small>from ${data.viewerPick.entryPrice.toFixed(2)}</small>
               </div>
               <div>
@@ -201,7 +222,13 @@ export function CommunityPickCard({
                 <h3>{hasExistingPick ? "Change your pick" : "Set your pick"}</h3>
                 {hasExistingPick ? (
                   <span className="community-pick-editor-current">
-                    Active: <strong>{data.viewerPick?.ticker}</strong>
+                    Active:{" "}
+                    <span className="community-pick-ticker-row">
+                      <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
+                        <LogoDisplay ticker={data.viewerPick!.ticker} size="badge" />
+                      </span>
+                      <strong>{data.viewerPick?.ticker}</strong>
+                    </span>
                   </span>
                 ) : null}
               </div>
@@ -257,7 +284,12 @@ export function CommunityPickCard({
               <ol>
                 {data.pickHistory.map((entry) => (
                   <li key={`${entry.ticker}-${entry.closedAt}`}>
-                    <strong>{entry.ticker}</strong>
+                    <span className="community-pick-ticker-row">
+                      <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
+                        <LogoDisplay ticker={entry.ticker} size="badge" />
+                      </span>
+                      <strong>{entry.ticker}</strong>
+                    </span>
                     <span className={`is-${returnTone(entry.pickReturnPct)}`}>
                       {formatReturn(entry.pickReturnPct)}
                     </span>

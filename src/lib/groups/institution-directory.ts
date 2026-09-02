@@ -9,6 +9,7 @@ import {
   searchNcaaSchools,
   type SchoolSuggestion,
 } from "@/lib/groups/ncaa-catalog";
+import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 import { findSeedInstitutionById } from "@/lib/groups/seed-institutions";
 
 /** Pre-live canonical schools — always seeded as active communities. */
@@ -38,7 +39,7 @@ type DirectoryRow = {
 let directoryReady: Promise<void> | null = null;
 
 function defaultDomain(ncaaId: string): string | null {
-  return getCatalogOverride(ncaaId)?.canonicalDomain ?? null;
+  return getCatalogOverride(ncaaId)?.canonicalDomain ?? resolveNcaaDomain(ncaaId);
 }
 
 function defaultAccent(ncaaId: string): string | null {
@@ -231,7 +232,7 @@ export async function activateCommunityFromCatalog(ncaaId: string): Promise<{
   const slug = catalogSlug(normalizedNcaaId);
   const seedInstitution = findSeedInstitutionById(institutionId);
   const name = seedInstitution?.name ?? entry.name;
-  const domain = override?.canonicalDomain ?? seedInstitution?.canonicalDomain ?? null;
+  const domain = override?.canonicalDomain ?? seedInstitution?.canonicalDomain ?? resolveNcaaDomain(normalizedNcaaId);
   const accent = override?.accentColor ?? seedInstitution?.accentColor ?? null;
   const inviteCode = override?.inviteCode ?? normalizedNcaaId;
 
