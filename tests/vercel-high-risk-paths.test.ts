@@ -99,4 +99,15 @@ describe("Vercel high-risk path fixes", () => {
     expect(read("src/app/components/CompanyDecisionBrief.tsx")).toContain("/api/conviction/score");
     expect(read("src/app/components/ConvictionSignalsCard.tsx")).toContain("/api/conviction/score");
   });
+
+  it("loads Today's read only after the reader expands the disclosure", () => {
+    const brief = read("src/app/components/CompanyDecisionBrief.tsx");
+    expect(brief).toContain("<details");
+    expect(brief).toContain('id="todays-read"');
+    expect(brief).toContain("company-decision-disclosure");
+    expect(brief).toContain("if (!expanded || loadedTicker === ticker) return");
+    expect(brief).toContain("/api/conviction/score");
+    // Must not auto-fetch on mount — only when expanded.
+    expect(brief).not.toMatch(/useEffect\(\(\) => \{[\s\S]*void load\(\);[\s\S]*\}, \[ticker\]\)/);
+  });
 });

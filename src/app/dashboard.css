@@ -682,6 +682,7 @@
 .company-detail-page .company-quote-card,
 .company-detail-page .company-quote-card.ink-panel,
 .company-detail-page .company-decision-brief,
+.company-detail-page .company-decision-disclosure,
 .company-detail-page .company-market-scope,
 .company-detail-page .evidence-sources,
 .company-briefing .company-driver-module .signal-block {
@@ -1803,6 +1804,66 @@ body {
   .company-decision-skeleton::after {
     animation: none;
   }
+}
+
+/* Today's read collapsed by default — score work only after expand. */
+.company-decision-disclosure {
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.company-decision-disclosure:not([open]) {
+  box-shadow: var(--shadow-sm);
+}
+
+.company-decision-disclosure-summary {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.company-decision-disclosure-summary::-webkit-details-marker {
+  display: none;
+}
+
+.company-decision-disclosure-summary::before {
+  content: "▸";
+  float: right;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  transition: transform 160ms ease;
+}
+
+.company-decision-disclosure[open] .company-decision-disclosure-summary::before {
+  transform: rotate(90deg);
+}
+
+.company-decision-disclosure-label {
+  color: var(--ink);
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.company-decision-disclosure-copy {
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  padding-right: 1.25rem;
+}
+
+.company-decision-disclosure[open] .company-decision-brief {
+  margin: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
 }
 
 /* Sources collapsed by default — power-user filing detail only. */
