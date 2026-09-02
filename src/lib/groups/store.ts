@@ -143,19 +143,22 @@ function pickCanonicalGroup(institution: Institution, groups: Group[]): Group | 
 export async function ensureSeedInstitutions(): Promise<void> {
   if (!isDatabaseConfigured()) return;
   for (const institution of SEED_INSTITUTIONS) {
+    // Upsert by primary key. Conflict-on-slug alone breaks when the NCAA directory
+    // already created the same id under a different slug (e.g. north-carolina → unc).
     await query(
       `insert into institutions (
          id, name, slug, type, canonical_domain, affiliation_status, accent_color,
          ncaa_id, conference, community_enabled
        ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       on conflict (slug) do update set
+       on conflict (id) do update set
          name = excluded.name,
+         slug = excluded.slug,
          type = excluded.type,
-         canonical_domain = excluded.canonical_domain,
+         canonical_domain = coalesce(excluded.canonical_domain, institutions.canonical_domain),
          affiliation_status = excluded.affiliation_status,
-         accent_color = excluded.accent_color,
+         accent_color = coalesce(excluded.accent_color, institutions.accent_color),
          ncaa_id = coalesce(institutions.ncaa_id, excluded.ncaa_id),
-         conference = coalesce(institutions.conference, excluded.conference),
+         conference = coalesce(excluded.conference, institutions.conference),
          community_enabled = institutions.community_enabled or excluded.community_enabled`,
       [
         institution.id,

@@ -11,9 +11,14 @@ import { validateTicker } from "@/lib/watchlist/validate";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  await ensureCommunitySchema();
-  const session = await getOptionalSession();
-  return NextResponse.json(await loadCommunityPicks(session?.user?.id));
+  try {
+    await ensureCommunitySchema().catch(() => undefined);
+    const session = await getOptionalSession();
+    return NextResponse.json(await loadCommunityPicks(session?.user?.id));
+  } catch (error) {
+    const message = formatCommunityDbError(error);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {

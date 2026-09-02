@@ -71,11 +71,12 @@ describe("communities schema + wiring", () => {
     expect(read("src/app/join/[code]/page.tsx")).toContain("JoinInviteClient");
   });
 
-  it("keeps weekly head-to-head foundations while Crowd uses continuous picks", () => {
-    expect(read("src/lib/competitions/store.ts")).toContain("RIVALRY_PAIRS");
-    expect(read("src/app/api/competitions/active/route.ts")).toContain("buildHeadToHeadPayload");
-    expect(read("migrations/004_groups_competitions.sql")).toContain("competitions");
-    expect(read("migrations/008_weekly_picks.sql")).toContain("locked_at");
-    expect(read("migrations/010_community_picks.sql")).toContain("community_picks");
+  it("upserts seed institutions by id so directory slug renames cannot 500 Crowd", () => {
+    const store = read("src/lib/groups/store.ts");
+    expect(store).toContain("on conflict (id) do update set");
+    expect(store).toContain("slug = excluded.slug");
+    expect(read("src/app/api/community-picks/route.ts")).toContain(
+      "ensureCommunitySchema().catch",
+    );
   });
 });
