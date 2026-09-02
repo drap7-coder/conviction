@@ -5,26 +5,17 @@
  */
 
 import type { Group } from "@/lib/groups/types";
+import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 
 /** One canonical community group per seeded school (matches institution name). */
-export const SEED_GROUPS: Group[] = [
-  {
-    id: "group-wm",
-    institutionId: "institution-wm",
-    name: "William & Mary",
-    inviteCode: "wm",
-    primaryColor: "#115740",
-    isCanonicalCommunity: true,
-  },
-  {
-    id: "group-rpi",
-    institutionId: "institution-rpi",
-    name: "Rensselaer Polytechnic Institute",
-    inviteCode: "rpi",
-    primaryColor: "#D6001C",
-    isCanonicalCommunity: true,
-  },
-];
+export const SEED_GROUPS: Group[] = SEED_INSTITUTIONS.map((institution) => ({
+  id: `group-${institution.slug}`,
+  institutionId: institution.id,
+  name: institution.name,
+  inviteCode: institution.slug,
+  primaryColor: institution.accentColor,
+  isCanonicalCommunity: true,
+}));
 
 /**
  * Old club / class invite tokens → canonical W&M community.

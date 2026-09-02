@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
 import {
+  CAMPUS_SEED_STUDENTS_PER_SCHOOL,
+  listCampusSeedStudents,
+  seedCampusStandings,
+} from "@/lib/community-picks/seed-students";
+import {
   activeGrowthFactor,
   activeReturnPct,
   averageLifetimeReturnPct,
@@ -12,6 +17,10 @@ import {
 } from "@/lib/community-picks/growth";
 import { spotFromQuote } from "@/lib/community-picks/pricing";
 import type { StockQuote } from "@/lib/market/quotes";
+
+function read(path: string) {
+  return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+}
 
 function quote(ticker: string, price: number): StockQuote {
   return {
@@ -109,13 +118,26 @@ describe("community ranking threshold", () => {
   it("defaults to five scored members before ranking", () => {
     expect(MIN_RANKED_MEMBERS).toBe(5);
   });
+
+  it("seeds five students across fifteen schools for ranked standings", () => {
+    const students = listCampusSeedStudents();
+    const schools = new Set(students.map((row) => row.groupId));
+    expect(schools.size).toBe(15);
+    expect(students.length).toBe(15 * MIN_RANKED_MEMBERS);
+    expect(CAMPUS_SEED_STUDENTS_PER_SCHOOL).toBe(MIN_RANKED_MEMBERS);
+    for (const groupId of schools) {
+      expect(students.filter((row) => row.groupId === groupId)).toHaveLength(5);
+    }
+    const standings = seedCampusStandings();
+    expect(standings).toHaveLength(15);
+    expect(standings.every((row) => row.ranked && row.pickCount === 5)).toBe(true);
+    expect(read("src/lib/community-picks/store.ts")).toContain("ensureCampusPickSeedsIfNeeded");
+    expect(read("src/lib/community-picks/ensure-seeds.ts")).toContain("community_picks");
+    expect(read("package.json")).toContain("seed:campus");
+  });
 });
 
 describe("continuous accumulation wiring", () => {
-  function read(path: string) {
-    return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-  }
-
   it("stores banked growth factor and pick history in migration 013", () => {
     expect(read("migrations/013_continuous_pick_accumulation.sql")).toContain("banked_growth_factor");
     expect(read("migrations/013_continuous_pick_accumulation.sql")).toContain("community_pick_history");

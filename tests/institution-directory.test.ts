@@ -30,6 +30,7 @@ describe("institution directory", () => {
     expect(listNcaaCatalog().length).toBeGreaterThan(1000);
     expect(LIVE_COMMUNITY_INSTITUTION_IDS.has("institution-wm")).toBe(true);
     expect(LIVE_COMMUNITY_INSTITUTION_IDS.has("institution-rpi")).toBe(true);
+    expect(LIVE_COMMUNITY_INSTITUTION_IDS.size).toBe(15);
   });
 
   it("ships institutions search API and decoupled community_enabled migration", () => {

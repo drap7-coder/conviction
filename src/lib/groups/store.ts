@@ -146,8 +146,8 @@ export async function ensureSeedInstitutions(): Promise<void> {
     await query(
       `insert into institutions (
          id, name, slug, type, canonical_domain, affiliation_status, accent_color,
-         ncaa_id, community_enabled
-       ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ncaa_id, conference, community_enabled
+       ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        on conflict (slug) do update set
          name = excluded.name,
          type = excluded.type,
@@ -155,6 +155,7 @@ export async function ensureSeedInstitutions(): Promise<void> {
          affiliation_status = excluded.affiliation_status,
          accent_color = excluded.accent_color,
          ncaa_id = coalesce(institutions.ncaa_id, excluded.ncaa_id),
+         conference = coalesce(institutions.conference, excluded.conference),
          community_enabled = institutions.community_enabled or excluded.community_enabled`,
       [
         institution.id,
@@ -165,6 +166,7 @@ export async function ensureSeedInstitutions(): Promise<void> {
         institution.affiliationStatus,
         institution.accentColor,
         institution.ncaaId,
+        institution.conference,
         institution.communityEnabled,
       ],
     );

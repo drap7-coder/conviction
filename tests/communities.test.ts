@@ -16,7 +16,7 @@ function read(path: string) {
 
 describe("one-community seeds", () => {
   it("seeds one group per school with no club subgroups", () => {
-    expect(SEED_INSTITUTIONS.length).toBeGreaterThanOrEqual(2);
+    expect(SEED_INSTITUTIONS).toHaveLength(15);
     const wm = SEED_INSTITUTIONS.find((row) => row.slug === "wm");
     const rpi = SEED_INSTITUTIONS.find((row) => row.slug === "rpi");
     expect(wm?.canonicalDomain).toBe("wm.edu");

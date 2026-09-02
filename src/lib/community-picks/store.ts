@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { isDatabaseConfigured, query, withTransaction, type DbQuery } from "@/lib/db";
 import { MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
+import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seeds";
 import {
   activeGrowthFactor,
   activeReturnPct,
@@ -11,7 +12,7 @@ import {
   totalGrowthFactor,
 } from "@/lib/community-picks/growth";
 import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
-import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
+import { seedCampusStandings } from "@/lib/community-picks/seed-students";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
@@ -73,21 +74,7 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
 }
 
 function seedStandings(): CommunityStanding[] {
-  return listSeedCanonicalCommunities().map((group) => {
-    const institution = SEED_INSTITUTIONS.find((row) => row.id === group.institutionId);
-    const ncaaId = institution?.ncaaId ?? null;
-    return {
-      groupId: group.id,
-      name: group.name,
-      primaryColor: group.primaryColor,
-      domain: institution?.canonicalDomain ?? resolveNcaaDomain(ncaaId),
-      ncaaId,
-      accentColor: institution?.accentColor ?? group.primaryColor,
-      pickCount: 0,
-      avgLifetimeReturnPct: null,
-      ranked: false,
-    };
-  });
+  return seedCampusStandings();
 }
 
 function mapHistoryRow(row: HistoryRow): CommunityPickHistoryEntry {
@@ -290,6 +277,8 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
       standings: seedStandings(),
     };
   }
+
+  await ensureCampusPickSeedsIfNeeded().catch(() => undefined);
 
   const [pickResult, groupResult, primaryGroup] = await Promise.all([
     query<PickRow>(
