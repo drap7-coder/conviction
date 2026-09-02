@@ -12,7 +12,7 @@ describe("validateTicker market instruments", () => {
     expect(eth.ticker).toBe("ETH-USD");
     expect(eth.companyName).toBe("Ethereum");
     expect(eth.instrumentKind).toBe("crypto");
-    expect(eth.supportsConvictionSignals).toBe(false);
+    expect(eth.source).toBe("market_instrument");
     expect(eth.cik).toBeUndefined();
   });
 
@@ -22,7 +22,7 @@ describe("validateTicker market instruments", () => {
     expect(rsp.ticker).toBe("RSP");
     expect(rsp.companyName).toBe("S&P 500 Equal Weight");
     expect(rsp.instrumentKind).toBe("etf");
-    expect(rsp.supportsConvictionSignals).toBe(false);
+    expect(rsp.source).toBe("market_instrument");
     expect(rsp.cik).toBeUndefined();
   });
 
@@ -30,7 +30,7 @@ describe("validateTicker market instruments", () => {
     const xlk = await validateTicker("XLK");
     expect(xlk.valid).toBe(true);
     expect(xlk.instrumentKind).toBe("etf");
-    expect(xlk.supportsConvictionSignals).toBe(false);
+    expect(xlk.source).toBe("market_instrument");
     expect(getMarketInstrument("XLK")?.tag).toBe("Sector");
   });
 
@@ -53,7 +53,7 @@ describe("validateTicker market instruments", () => {
       expect(result.ticker).toBe(item.ticker);
       expect(result.companyName).toBe(item.name);
       expect(result.instrumentKind).toBe("etf");
-      expect(result.supportsConvictionSignals).toBe(false);
+      expect(result.source).toBe("market_instrument");
       expect(getMarketInstrument(item.ticker)?.tag).toBe(item.tag);
       expect(getMarketInstrument(item.ticker)?.portfolioExposure).toBe(item.exposure);
     }
@@ -62,16 +62,6 @@ describe("validateTicker market instruments", () => {
   it("maps sector ETFs into the same exposure buckets as stocks", () => {
     expect(getMarketInstrument("XLK")?.portfolioExposure).toBe("Technology");
     expect(getMarketInstrument("XLV")?.portfolioExposure).toBe("Health Care");
-  });
-
-  it("keeps curated institutional quote links valid without the SEC directory", async () => {
-    const brookfield = await validateTicker("BN");
-    expect(brookfield).toMatchObject({
-      valid: true,
-      ticker: "BN",
-      companyName: "Brookfield Corporation",
-      source: "fallback",
-    });
   });
 });
 

@@ -16,7 +16,6 @@ const WORKSPACE_PATHS = new Set([
   "/portfolio",
   "/pulse",
   "/news",
-  "/smart-money",
   "/watchlist",
   "/manage",
 ]);

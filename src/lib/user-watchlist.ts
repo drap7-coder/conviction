@@ -1,6 +1,6 @@
 import { query, isDatabaseConfigured } from "@/lib/db";
 import type { WatchlistEntry } from "@/lib/watchlist/types";
-import { CROWD_SEED_ID_PREFIX } from "@/lib/crowd/seed-books";
+import { CROWD_SEED_ID_PREFIX } from "@/lib/crowd/seed-ids";
 
 export interface UserWatchlistEntry extends WatchlistEntry {
   id: string;

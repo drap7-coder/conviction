@@ -32,7 +32,6 @@ import {
 } from "@/lib/sec/persist";
 import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
 import { recordSync } from "@/lib/sync/sync-log";
-import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
 import { updateSyncUniverseStatus } from "@/lib/evidence/sync-universe";
 import { runFullEvidenceSync } from "@/lib/evidence/full-sync";
 import { requireCronSecret, isValidCronBearer } from "@/lib/api/cron-auth";
@@ -92,7 +91,6 @@ export async function POST(request: NextRequest) {
     totalEvents: number;
     errors: string[];
     fetchedAt: string;
-    transition?: Awaited<ReturnType<typeof refreshConvictionTransitionForTicker>>;
   }> = {};
 
   let allNewEventsCount = 0;
@@ -168,10 +166,6 @@ export async function POST(request: NextRequest) {
     errors: result.errors.length,
     errorMessages: result.errors,
   });
-
-  if (result.errors.length === 0) {
-    results[tickersToProcess[0]].transition = await refreshConvictionTransitionForTicker(tickersToProcess[0]);
-  }
 
   return NextResponse.json({
     success: true,

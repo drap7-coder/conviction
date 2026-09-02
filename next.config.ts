@@ -107,6 +107,23 @@ const nextConfig: NextConfig = {
         destination: "/portfolio?view=watchlist",
         permanent: true,
       },
+      {
+        source: "/smart-money",
+        destination: "/crowd",
+        permanent: true,
+      },
+      {
+        source: "/portfolio",
+        has: [{ type: "query", key: "view", value: "held" }],
+        destination: "/portfolio",
+        permanent: true,
+      },
+      {
+        source: "/portfolio",
+        has: [{ type: "query", key: "view", value: "watched" }],
+        destination: "/portfolio",
+        permanent: true,
+      },
     ];
   },
 };

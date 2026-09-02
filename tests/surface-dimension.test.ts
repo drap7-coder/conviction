@@ -24,7 +24,6 @@ describe("surface dimension layer", () => {
     expect(css).toContain(".pf-table-wrap");
     expect(css).toMatch(/\.pf-table-wrap[\s\S]*box-shadow: var\(--shadow-sm\)/);
     expect(css).toMatch(/\.product-stage[\s\S]*box-shadow: var\(--shadow-sm\)/);
-    expect(css).toMatch(/\.smart-money-insight-card[\s\S]*box-shadow: var\(--shadow-sm\)/);
     expect(css).toMatch(/\.for-you-feed-card:hover[\s\S]*box-shadow: var\(--shadow-md\)/);
     expect(css).toContain(".surface-shell");
     expect(css).toMatch(/\.surface-shell[\s\S]*box-shadow: var\(--shadow-sm\)/);

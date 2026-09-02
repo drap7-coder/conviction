@@ -14,24 +14,12 @@ const cache = new Map<string, CacheEntry<unknown>>();
 const inflight = new Map<string, Promise<unknown>>();
 
 const DEFAULT_TTL: Record<string, number> = {
-  // Evidence data: institutional 13F filings are quarterly, cache longer
-  "/api/evidence/institutional": 60 * 60 * 1000, // 1 hour
-  // Insider filings are more frequent
-  "/api/evidence/insider": 30 * 60 * 1000, // 30 minutes
-  // Earnings estimates change less frequently
-  "/api/evidence/earnings": 60 * 60 * 1000, // 1 hour
-  // Political trades are batched
-  "/api/evidence/political": 60 * 60 * 1000, // 1 hour
   // Market quotes — slow browser refresh; server also caches
   "/api/market/quotes": 5 * 60 * 1000, // 5 minutes
   // Trending universe is expensive — refresh rarely
   "/api/market/trending": 12 * 60 * 1000, // 12 minutes
-  // Short interest is bi-monthly
-  "/api/market/short-interest": 24 * 60 * 60 * 1000, // 24 hours
-  // Ownership filings are infrequent
-  "/api/evidence/ownership": 60 * 60 * 1000, // 1 hour
-  // Corporate disclosures
-  "/api/evidence/disclosures": 60 * 60 * 1000, // 1 hour
+  // Catalyst news for company pages
+  "/api/evidence/news": 15 * 60 * 1000, // 15 minutes
 };
 
 function getDefaultTtl(url: string): number {

@@ -7,7 +7,6 @@ import {
 } from "@/lib/sec/persist";
 import { SYNC_CONFIG, checkSyncBounds } from "@/lib/sync/sync-config";
 import { recordSync } from "@/lib/sync/sync-log";
-import { refreshConvictionTransitionForTicker } from "@/lib/conviction/refresh";
 import { buildDailySyncQueue, updateSyncUniverseStatus } from "@/lib/evidence/sync-universe";
 
 export type FullEvidenceSyncTickerResult = {
@@ -15,7 +14,6 @@ export type FullEvidenceSyncTickerResult = {
   totalEvents: number;
   errors: string[];
   fetchedAt: string;
-  transition?: Awaited<ReturnType<typeof refreshConvictionTransitionForTicker>>;
 };
 
 export type FullEvidenceSyncResult = {
@@ -39,6 +37,7 @@ export type FullEvidenceSyncResult = {
 /**
  * Full watchlist / ops-universe evidence sync (LRU queue).
  * Used by cron daily-sync in-process and by POST /api/evidence/refresh with no ticker.
+ * Persists insider filings only — conviction score / transition fan-out is retired.
  */
 export async function runFullEvidenceSync(): Promise<FullEvidenceSyncResult> {
   const startTime = Date.now();
@@ -95,10 +94,6 @@ export async function runFullEvidenceSync(): Promise<FullEvidenceSyncResult> {
       errors: result.errors,
       fetchedAt: result.fetchedAt,
     };
-
-    if (result.errors.length === 0) {
-      results[t].transition = await refreshConvictionTransitionForTicker(t);
-    }
 
     allNewEventsCount += result.newTransactions.length;
     totalErrors += result.errors.length;

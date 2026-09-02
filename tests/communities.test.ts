@@ -7,8 +7,7 @@ import {
   findSeedGroupByInviteCode,
 } from "@/lib/groups/seed-groups";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
-import { loadCrowdSnapshot } from "@/lib/crowd/load";
-import { listCrowdSeedBooks } from "@/lib/crowd/seed-books";
+import { CROWD_SEED_ID_PREFIX, isCrowdSeedUserId } from "@/lib/crowd/seed-ids";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -36,16 +35,12 @@ describe("one-community seeds", () => {
   });
 });
 
-describe("Crowd community scoping", () => {
-  it("attaches seed community ids and can scope Most Held", async () => {
-    void listCrowdSeedBooks();
+describe("Crowd seed ids", () => {
+  it("keeps synthetic seed user ids identifiable without aggregate books", () => {
+    expect(CROWD_SEED_ID_PREFIX).toBe("crowd-seed-");
+    expect(isCrowdSeedUserId("crowd-seed-01")).toBe(true);
+    expect(isCrowdSeedUserId("google-user-123")).toBe(false);
     expect(SEED_BOOK_GROUP_IDS["crowd-seed-01"]).toContain("group-wm");
-    const all = await loadCrowdSnapshot();
-    const wm = await loadCrowdSnapshot("group-wm");
-    const rpi = await loadCrowdSnapshot("group-rpi");
-    expect(wm.bookCount).toBeLessThan(all.bookCount);
-    expect(rpi.bookCount).toBeLessThan(all.bookCount);
-    expect(wm.bookCount + rpi.bookCount).toBeGreaterThan(wm.bookCount);
   });
 });
 
@@ -62,8 +57,8 @@ describe("communities schema + wiring", () => {
     expect(read("src/app/api/groups/route.ts")).not.toContain('action === "create" &&');
     expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');
     expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdCommunityPanel");
-    expect(read("src/components/Portfolio.tsx")).toContain("CrowdAggregateBoard");
-    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("crowd-group-filter");
+    expect(read("src/components/Portfolio.tsx")).not.toContain("CrowdAggregateBoard");
+    expect(read("src/components/Portfolio.tsx")).not.toContain('label: "Most held"');
     expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
     expect(read("src/app/layout.tsx")).toContain("GroupAccentProvider");
     expect(read("src/app/globals.css")).toContain("--group-accent");

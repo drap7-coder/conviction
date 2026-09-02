@@ -6,7 +6,6 @@ import { TypewriterText } from "@/components/TypewriterText";
 export type ProductStageVariant =
   | "pulse"
   | "news"
-  | "smart-money"
   | "watchlist"
   | "portfolio"
   | "manage";

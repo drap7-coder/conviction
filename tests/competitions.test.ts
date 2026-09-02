@@ -210,7 +210,7 @@ describe("community picks wiring", () => {
       read("src/components/CrowdBoard.tsx").indexOf('label: "My Pick"'),
     );
     expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
-    expect(read("src/components/Portfolio.tsx")).toContain("CrowdAggregateBoard");
+    expect(read("src/components/Portfolio.tsx")).not.toContain("CrowdAggregateBoard");
   });
 
   it("keeps weekly competition foundations available for Standings rivalry", () => {
