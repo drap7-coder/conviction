@@ -73,5 +73,10 @@ describe("site menu nav", () => {
     expect(read("src/components/Portfolio.tsx")).not.toContain('label: "Most held"');
     expect(read("src/app/watchlist/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/globals.css")).toContain(".site-menu");
+    expect(read("src/components/BottomTabBar.tsx")).toContain("createPortal");
+    expect(read("src/components/BottomTabBar.tsx")).toContain("MENU_OPEN_GUARD_MS");
+    expect(read("src/app/globals.css")).toContain("z-index: calc(var(--ticker-z) + 12)");
+    expect(read("src/app/globals.css")).toContain("contain: style;");
+    expect(read("src/app/globals.css")).not.toContain("contain: layout style");
   });
 });

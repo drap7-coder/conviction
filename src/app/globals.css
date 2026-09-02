@@ -626,7 +626,7 @@ details > summary::before {
   /* Stick under the scrollport top — StockTwits-style chrome that stays put. */
   position: sticky;
   top: 0;
-  z-index: calc(var(--ticker-z) - 10);
+  z-index: calc(var(--ticker-z) + 12);
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
@@ -638,7 +638,8 @@ details > summary::before {
   background: color-mix(in srgb, var(--bg) 88%, transparent);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  contain: layout style;
+  /* style-only: layout containment traps position:fixed Menu overlay in the header. */
+  contain: style;
   touch-action: manipulation;
 }
 
@@ -960,7 +961,8 @@ a.market-tape-item:focus-visible {
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: var(--ticker-z);
+  /* Above the full-page menu overlay so Menu never gets covered / stolen. */
+  z-index: calc(var(--ticker-z) + 12);
   align-items: stretch;
   justify-items: stretch;
   min-height: calc(var(--bottom-tab-height) + env(safe-area-inset-bottom));
@@ -1208,6 +1210,8 @@ button.bottom-tab-item {
   width: auto;
   max-width: none;
   padding: 22px var(--page-gutter) 28px;
+  /* Clear the sticky header so Close / groups are not hidden under it. */
+  padding-top: 96px;
   border: 0;
   border-radius: 0;
   box-shadow: none;

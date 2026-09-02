@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import {
@@ -11,14 +12,48 @@ import {
   primaryNavTabs,
 } from "@/lib/nav-config";
 
+/** Ignore the leftover click that lands on the overlay/button after open. */
+const MENU_OPEN_GUARD_MS = 400;
+
+function useMenuOpen(pathname: string) {
+  const [open, setOpen] = useState(false);
+  const ignoreUntilRef = useRef(0);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  function close() {
+    setOpen(false);
+  }
+
+  function toggle() {
+    const now = Date.now();
+    if (now < ignoreUntilRef.current) return;
+    setOpen((current) => {
+      if (!current) ignoreUntilRef.current = now + MENU_OPEN_GUARD_MS;
+      return !current;
+    });
+  }
+
+  function onBackdropClick() {
+    if (Date.now() < ignoreUntilRef.current) return;
+    setOpen(false);
+  }
+
+  return { open, close, toggle, onBackdropClick };
+}
+
 function SiteMenu({
   open,
   onClose,
+  onBackdropClick,
   menuId,
   placement,
 }: {
   open: boolean;
   onClose: () => void;
+  onBackdropClick: () => void;
   menuId: string;
   placement: "sheet" | "header";
 }) {
@@ -35,13 +70,13 @@ function SiteMenu({
 
   if (!open) return null;
 
-  return (
+  const node = (
     <div className={`site-menu-root site-menu-root--${placement}`}>
       <button
         type="button"
         className="site-menu-backdrop"
         aria-label="Close menu"
-        onClick={onClose}
+        onClick={onBackdropClick}
       />
       <div
         id={menuId}
@@ -87,18 +122,17 @@ function SiteMenu({
       </div>
     </div>
   );
+
+  if (typeof document === "undefined") return node;
+  return createPortal(node, document.body);
 }
 
 export function MobileTabBar() {
   const pathname = usePathname();
   const menuId = useId();
-  const [open, setOpen] = useState(false);
+  const { open, close, toggle, onBackdropClick } = useMenuOpen(pathname);
   const overflowActive = isOverflowNavPath(pathname);
   const menuActive = open || overflowActive;
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   return (
     <>
@@ -126,7 +160,7 @@ export function MobileTabBar() {
           aria-expanded={open}
           aria-controls={menuId}
           aria-haspopup="dialog"
-          onClick={() => setOpen((value) => !value)}
+          onClick={toggle}
         >
           <span className="bottom-tab-icon" aria-hidden="true">
             <Menu size={20} strokeWidth={menuActive ? 2.4 : 2} />
@@ -136,7 +170,8 @@ export function MobileTabBar() {
       </nav>
       <SiteMenu
         open={open}
-        onClose={() => setOpen(false)}
+        onClose={close}
+        onBackdropClick={onBackdropClick}
         menuId={menuId}
         placement="sheet"
       />
@@ -147,13 +182,9 @@ export function MobileTabBar() {
 export function DesktopNav() {
   const pathname = usePathname();
   const menuId = useId();
-  const [open, setOpen] = useState(false);
+  const { open, close, toggle, onBackdropClick } = useMenuOpen(pathname);
   const overflowActive = isOverflowNavPath(pathname);
   const menuActive = open || overflowActive;
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   return (
     <nav className="desktop-nav" aria-label="Primary">
@@ -179,14 +210,15 @@ export function DesktopNav() {
           aria-expanded={open}
           aria-controls={menuId}
           aria-haspopup="dialog"
-          onClick={() => setOpen((value) => !value)}
+          onClick={toggle}
         >
           <Menu size={16} />
           <span className="desktop-nav-label">Menu</span>
         </button>
         <SiteMenu
           open={open}
-          onClose={() => setOpen(false)}
+          onClose={close}
+          onBackdropClick={onBackdropClick}
           menuId={menuId}
           placement="header"
         />
