@@ -109,11 +109,14 @@ describe("cron / admin / refresh auth wiring", () => {
     expect(auth).toContain("CRON_SECRET is not configured");
     expect(auth).toContain("requireAdminAccess");
     expect(cron).toContain("requireCronSecret(request)");
-    expect(cron).toContain("Authorization: `Bearer ${cronSecret}`");
-    expect(cron).toContain("SITE_URL");
+    expect(cron).toContain("runFullEvidenceSync");
+    expect(cron).not.toContain("SITE_URL");
+    expect(cron).not.toContain('"/api/evidence/refresh"');
     expect(cron).not.toContain("process.env.VERCEL_URL");
+    expect(cron).not.toContain("await fetch(");
     expect(refresh).toContain("requireCronSecret(request)");
     expect(refresh).toContain("if (!ticker)");
+    expect(refresh).toContain("runFullEvidenceSync");
     expect(admin).toContain("requireAdminAccess(request)");
     expect(admin).toContain("ADMIN_EMAILS");
     expect(envExample).toContain("ADMIN_EMAILS=");

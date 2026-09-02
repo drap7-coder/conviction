@@ -158,5 +158,19 @@ describe("Vercel high-risk path fixes", () => {
     expect(existsSync(new URL("../src/components/GaugeRing.tsx", import.meta.url))).toBe(false);
     expect(read("src/lib/market/smart-money-brief.ts")).not.toContain("buildInstitutionalBrief");
   });
+
+  it("hobby runtime: daily-sync is in-process; period baselines cached; dead ops routes gone", () => {
+    const cron = read("src/app/api/cron/daily-sync/route.ts");
+    expect(cron).toContain("runFullEvidenceSync");
+    expect(cron).not.toContain("await fetch(");
+    expect(cron).not.toContain("SITE_URL");
+    expect(read("src/lib/evidence/full-sync.ts")).toContain("buildDailySyncQueue");
+    const baselines = read("src/lib/competitions/period-baselines.ts");
+    expect(baselines).toContain("unstable_cache");
+    expect(baselines).toContain("period-baselines");
+    expect(read("src/lib/competitions/store.ts")).toContain("listCampusSeedStudents");
+    expect(existsSync(new URL("../src/app/api/health/auth/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/cron/competitions/route.ts", import.meta.url))).toBe(false);
+  });
 });
 

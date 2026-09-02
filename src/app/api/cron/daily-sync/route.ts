@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireCronSecret } from "@/lib/api/cron-auth";
-import { SITE_URL } from "@/lib/site";
+import { runFullEvidenceSync } from "@/lib/evidence/full-sync";
 
 /**
  * GET /api/cron/daily-sync
  * Daily scheduled synchronization for all active watchlist companies.
  *
- * Reads from the persisted watchlist and syncs least-recently-synced
- * active companies first, respecting all sync-config limits.
+ * Runs the full evidence sync in-process (no self-HTTP to the refresh route)
+ * so Hobby plans are not billed a second serverless invocation.
  *
  * Vercel Hobby plan: native cron supports at most once per day.
  * This endpoint is idempotent: repeated calls within the same day
@@ -15,10 +15,6 @@ import { SITE_URL } from "@/lib/site";
  *
  * Security: Fail-closed on `CRON_SECRET`. Requests without a valid
  * `Authorization: Bearer <CRON_SECRET>` header are rejected.
- *
- * For external schedulers (e.g., cron-job.org, GitHub Actions):
- * Send header: Authorization: Bearer ${CRON_SECRET}
- * to this endpoint URL.
  */
 
 export const dynamic = "force-dynamic";
@@ -28,31 +24,8 @@ export async function GET(request: NextRequest) {
   const denied = requireCronSecret(request);
   if (denied) return denied;
 
-  const cronSecret = process.env.CRON_SECRET!.trim();
-
   try {
-    // Call the public canonical host — not VERCEL_URL. Deployment URLs are
-    // behind Vercel Authentication and return 401 SSO challenges on fetch.
-    const origin = SITE_URL;
-
-    const response = await fetch(`${origin}/api/evidence/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${cronSecret}`,
-      },
-      body: JSON.stringify({}),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      return NextResponse.json(
-        { success: false, error: `Refresh returned ${response.status}`, detail: text },
-        { status: 502 },
-      );
-    }
-
-    const data = await response.json();
+    const data = await runFullEvidenceSync();
 
     return NextResponse.json({
       success: true,
@@ -64,9 +37,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { success: false, error: message },
-      { status: 500 },
-    );
+    const status =
+      typeof err === "object" && err && "status" in err && typeof (err as { status: unknown }).status === "number"
+        ? (err as { status: number }).status
+        : 500;
+    return NextResponse.json({ success: false, error: message }, { status });
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { parseCrowdView } from "@/components/CrowdBoard";
 import { computeReturnPct, computeSideScore } from "@/lib/competitions/scores";
 import { weekWindowContaining } from "@/lib/competitions/schedule";
@@ -220,7 +220,7 @@ describe("community picks wiring", () => {
     expect(read("migrations/008_weekly_picks.sql")).toContain("competition_picks_one_per_user_idx");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
     expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
-    expect(read("src/app/api/cron/competitions/route.ts")).toContain("runCompetitionLifecycleTick");
+    expect(existsSync(new URL("../src/app/api/cron/competitions/route.ts", import.meta.url))).toBe(false);
     expect(read("src/lib/competitions/lifecycle.ts")).toContain("lockDueCompetitions");
   });
 

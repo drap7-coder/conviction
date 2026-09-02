@@ -622,10 +622,18 @@ async function loadSharedBaselinesForGroups(
   groupIds: string[],
   range: H2HPerfRange,
 ): Promise<Map<string, PeriodBaseline> | undefined> {
-  if (!isDatabaseConfigured()) return undefined;
-  await ensureCampusPickSeedsIfNeeded().catch(() => undefined);
   const ids = groupIds.filter(Boolean);
   if (ids.length === 0) return undefined;
+
+  // Guest / no-DB: still union seed tickers once so both campus sides share one Yahoo fan-out.
+  if (!isDatabaseConfigured()) {
+    const students = listCampusSeedStudents().filter((row) => ids.includes(row.groupId));
+    const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
+    if (tickers.length === 0) return new Map();
+    return fetchPeriodBaselines(tickers, range);
+  }
+
+  await ensureCampusPickSeedsIfNeeded().catch(() => undefined);
 
   const result = await query<{ ticker: string }>(
     `select distinct ticker from community_picks where group_id = any($1::text[])`,
