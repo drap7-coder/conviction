@@ -29,6 +29,17 @@ describe("market-data CPU architecture", () => {
     expect(watchlist).toContain("subscribeMarketData");
   });
 
+  it("routes browser quote loads through fetchMarketQuotes (shared cache with tape)", () => {
+    expect(read("src/app/components/CompanyQuoteCard.tsx")).toContain("fetchMarketQuotes");
+    expect(read("src/app/components/CompanyEvidenceCard.tsx")).toContain("fetchMarketQuotes");
+    expect(read("src/app/components/MaterialNewsCard.tsx")).toContain("fetchMarketQuotes");
+    expect(read("src/app/components/TechnicalsDetailSection.tsx")).toContain("fetchMarketQuotes");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("fetchMarketQuotes");
+    expect(read("src/components/Portfolio.tsx")).toContain("fetchMarketQuotes");
+    expect(read("src/app/components/CompanyQuoteCard.tsx")).not.toContain('/api/market/quotes?tickers=');
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain('/api/market/quotes?tickers=');
+  });
+
   it("keeps quote refresh at ~5 min and trending at ~12 min", () => {
     expect(QUOTE_TTL_MS).toBe(5 * 60_000);
     expect(TRENDING_TTL_MS).toBe(12 * 60_000);

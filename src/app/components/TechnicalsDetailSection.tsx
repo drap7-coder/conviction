@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { TechnicalStateCard } from "@/app/components/TechnicalStateCard";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
-import type { StockQuote } from "@/lib/market/quotes";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 
 interface StockHistoryPoint {
   date: string;
@@ -32,24 +32,20 @@ export function TechnicalsDetailSection({ ticker }: { ticker: string }) {
     async function load() {
       setStatus("loading");
       try {
-        const [historyRes, quoteData] = await Promise.all([
+        const [historyRes, quotes] = await Promise.all([
           fetchJsonWithTimeout<{ history?: StockHistory | null }>(
             `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=1y`,
             14_000,
             controller.signal,
           ),
-          fetchJsonWithTimeout<{ quotes?: StockQuote[] }>(
-            `/api/market/quotes?tickers=${encodeURIComponent(ticker)}`,
-            10_000,
-            controller.signal,
-          ),
+          fetchMarketQuotes([ticker], { reason: "initial", signal: controller.signal }),
         ]);
         if (cancelled) return;
         // /api/market/history wraps the series as { history, fetchedAt }.
         const historyData = historyRes?.history ?? null;
         const points = Array.isArray(historyData?.points) ? historyData.points : [];
         setHistory(points.length > 0 && historyData ? { ...historyData, points } : null);
-        setCurrentPrice(quoteData.quotes?.[0]?.price ?? historyData?.endPrice ?? null);
+        setCurrentPrice(quotes[0]?.price ?? historyData?.endPrice ?? null);
         setStatus(points.length > 0 ? "success" : "empty");
       } catch (caught) {
         if (!cancelled) {

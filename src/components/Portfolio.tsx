@@ -23,6 +23,7 @@ import {
 import type { PortfolioPosition } from "@/lib/portfolio/types";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import { getSectorForCompany, normalizeSectorName } from "@/lib/market/industries";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
 import { isFiniteNumber } from "@/lib/display/format";
@@ -498,15 +499,13 @@ export default function Portfolio() {
 
     const priceMap: Record<string, number | null> = {};
     try {
-      const res = await fetch(`/api/market/quotes?tickers=${book.tickers.join(",")}`, {
+      const quotes = await fetchMarketQuotes(book.tickers, {
+        reason: "manual",
         signal: controller.signal,
       });
-      if (res.ok) {
-        const data = (await res.json()) as { quotes?: StockQuote[] };
-        for (const quote of data.quotes ?? []) {
-          const live = getLivePrice(quote);
-          priceMap[quote.ticker.toUpperCase()] = live.price ?? quote.price ?? null;
-        }
+      for (const quote of quotes) {
+        const live = getLivePrice(quote);
+        priceMap[quote.ticker.toUpperCase()] = live.price ?? quote.price ?? null;
       }
     } catch {
       if (controller.signal.aborted) return;

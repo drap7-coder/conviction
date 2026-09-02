@@ -14,6 +14,7 @@ import type { WatchlistTransition } from "@/components/WatchlistDailyBrief";
 import { classifyClientError, fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
 import { NewsDriverBrief } from "./NewsDriverBrief";
 import { SignalBlock } from "@/components/display/SignalBlock";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 
 interface NewsEvidenceResponse {
   events: EvidenceEvent[];
@@ -45,6 +46,7 @@ export function CompanyEvidenceCard({
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [transitions, setTransitions] = useState<WatchlistTransition[]>([]);
   const [status, setStatus] = useState<EvidenceStatus>("idle");
+  const [attemptedAt, setAttemptedAt] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +54,7 @@ export function CompanyEvidenceCard({
 
     async function load() {
       setStatus("loading");
+      setAttemptedAt(null);
       try {
         const [news, quotes, transitionResult] = await Promise.all([
           fetchJsonWithTimeout<NewsEvidenceResponse>(
@@ -59,11 +62,7 @@ export function CompanyEvidenceCard({
             8_000,
             controller.signal,
           ),
-          fetch(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`, {
-            signal: controller.signal,
-          })
-            .then((res) => (res.ok ? res.json() as Promise<{ quotes?: StockQuote[] }> : null))
-            .catch(() => null),
+          fetchMarketQuotes([ticker], { reason: "initial", signal: controller.signal }).catch(() => [] as StockQuote[]),
           fetchJsonWithTimeout<{ transitions?: WatchlistTransition[] }>(
             "/api/conviction/transitions",
             8_000,
@@ -74,12 +73,13 @@ export function CompanyEvidenceCard({
 
         setEvents(news.events ?? []);
         setDriver(news.driver ?? null);
-        setQuote(quotes?.quotes?.[0] ?? null);
+        setQuote(quotes[0] ?? null);
         setTransitions(
           (transitionResult.transitions ?? []).filter(
             (item) => item.ticker.toUpperCase() === ticker.toUpperCase(),
           ),
         );
+        setAttemptedAt(new Date().toISOString());
         setStatus(
           news.status === "timeout" || news.status === "error" || news.status === "unsupported"
             ? news.status
@@ -90,6 +90,7 @@ export function CompanyEvidenceCard({
       } catch (caught) {
         if (!cancelled) {
           const next = classifyClientError(caught);
+          setAttemptedAt(new Date().toISOString());
           setStatus(next === "idle" ? "error" : next);
         }
       }
@@ -147,6 +148,31 @@ export function CompanyEvidenceCard({
     [ticker, companyName, driver, headlines, absChangePercent],
   );
 
+  function formatAttemptedAt(value: string | null): string | null {
+    if (!value) return null;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleString(undefined, {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
+
+  function evidenceEmptyBlock(conclusion: string) {
+    const tried = formatAttemptedAt(attemptedAt);
+    return (
+      <DriverShell>
+        <SignalBlock conclusion={conclusion} hideMeta>
+          {tried ? (
+            <p className="company-evidence-attempted">Last tried {tried}.</p>
+          ) : null}
+        </SignalBlock>
+      </DriverShell>
+    );
+  }
+
   if (status === "loading" || status === "idle") {
     return showEmpty ? (
       <DriverShell>
@@ -201,14 +227,13 @@ export function CompanyEvidenceCard({
 
   if (status === "timeout" || status === "error") {
     if (absChangePercent == null || absChangePercent < 1) {
-      return showEmpty ? (
-        <DriverShell>
-          <SignalBlock
-            conclusion="No fresh company-specific catalyst is confirmed in the current feed."
-            hideMeta
-          />
-        </DriverShell>
-      ) : null;
+      return showEmpty
+        ? evidenceEmptyBlock(
+            status === "timeout"
+              ? "Evidence feed timed out — try again."
+              : "Could not load company evidence right now.",
+          )
+        : null;
     }
     return (
       <DriverShell>
@@ -222,19 +247,23 @@ export function CompanyEvidenceCard({
           showWhy={false}
           eyebrow={null}
         />
+        {formatAttemptedAt(attemptedAt) ? (
+          <p className="company-evidence-attempted">
+            Last tried {formatAttemptedAt(attemptedAt)}.
+          </p>
+        ) : null}
       </DriverShell>
     );
   }
 
-  if (view.mode === "hidden") {
-    return showEmpty ? (
-      <DriverShell>
-        <SignalBlock
-          conclusion="No fresh company-specific catalyst is confirmed in the current feed."
-          hideMeta
-        />
-      </DriverShell>
-    ) : null;
+  if (view.mode === "hidden" || status === "empty" || status === "unsupported") {
+    return showEmpty
+      ? evidenceEmptyBlock(
+          status === "unsupported"
+            ? "Evidence is unavailable for this ticker."
+            : "No filing or catalyst in the current feed.",
+        )
+      : null;
   }
 
   return (

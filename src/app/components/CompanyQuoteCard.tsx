@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getLivePrice } from "@/lib/market/live-quote";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import type { StockQuote } from "@/lib/market/quotes";
 import type { SectorProfile } from "@/lib/market/sector-profile";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
@@ -59,15 +60,12 @@ export function CompanyQuoteCard({
     let cancelled = false;
     async function load() {
       try {
-        const [quoteRes, profileRes] = await Promise.all([
-          fetch(`/api/market/quotes?tickers=${encodeURIComponent(ticker)}`),
+        const [quotes, profileRes] = await Promise.all([
+          fetchMarketQuotes([ticker], { reason: "initial" }),
           fetch(`/api/market/sector-profile?tickers=${encodeURIComponent(ticker)}`),
         ]);
 
-        if (quoteRes.ok) {
-          const data = (await quoteRes.json()) as { quotes?: StockQuote[] };
-          if (!cancelled) setQuote((data.quotes ?? [])[0] ?? null);
-        }
+        if (!cancelled) setQuote(quotes[0] ?? null);
 
         if (profileRes.ok) {
           const data = (await profileRes.json()) as { profiles?: SectorProfile[] };
