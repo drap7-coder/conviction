@@ -7,7 +7,8 @@ export type H2HPerfRange = (typeof H2H_PERF_RANGES)[number];
 export const DEFAULT_H2H_PERF_RANGE: H2HPerfRange = "ytd";
 
 export const H2H_PERF_RANGE_OPTIONS: Array<{ value: H2HPerfRange; label: string }> = [
-  { value: "1d", label: "Daily" },
+  /** Session return vs prior close — same idea as brokerage “Today”. */
+  { value: "1d", label: "Today" },
   { value: "1w", label: "Weekly" },
   { value: "1m", label: "Monthly" },
   { value: "ytd", label: "YTD" },
@@ -26,7 +27,7 @@ export function parseH2HPerfRange(raw: string | null | undefined): H2HPerfRange 
 }
 
 /**
- * Offline demo scale so Daily / Weekly / Monthly / YTD don't all show the same
+ * Offline demo scale so Today / Weekly / Monthly / YTD don't all show the same
  * fabricated banked lifetime % when Yahoo isn't available.
  */
 export function seedRangeScale(range: H2HPerfRange): number {
@@ -64,7 +65,7 @@ export function isSameEtCalendarDay(
 /**
  * Resolve the score baseline for one active pick over a window.
  * Mid-window picks use entry; earlier picks use the period open.
- * For Daily (`sameEtDayIsMidWindow`), mid-window means picked today in ET.
+ * For Today (`sameEtDayIsMidWindow`), mid-window means picked today in ET.
  */
 export function resolvePickPeriodStart(input: {
   periodStartPrice: number | null;

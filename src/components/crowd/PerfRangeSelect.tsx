@@ -6,7 +6,7 @@ import {
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 
-/** Shared Daily / Weekly / Monthly / YTD control for Crowd Standings + H2H. */
+/** Shared Today / Weekly / Monthly / YTD control for Crowd Standings + H2H. */
 export function PerfRangeSelect({
   value,
   onChange,

@@ -5,6 +5,7 @@ import { computeReturnPct, computeSideScore } from "@/lib/competitions/scores";
 import { weekWindowContaining } from "@/lib/competitions/schedule";
 import {
   DEFAULT_H2H_PERF_RANGE,
+  h2hPerfRangeLabel,
   parseH2HPerfRange,
   periodReturnPct,
   resolvePickPeriodStart,
@@ -95,6 +96,7 @@ describe("h2h performance ranges", () => {
     expect(parseH2HPerfRange("1m")).toBe("1m");
     expect(parseH2HPerfRange("ytd")).toBe("ytd");
     expect(seedRangeScale("1d")).toBeLessThan(seedRangeScale("ytd"));
+    expect(h2hPerfRangeLabel("1d")).toBe("Today");
   });
 
   it("scores mid-window picks from entry and earlier picks from period open", () => {
