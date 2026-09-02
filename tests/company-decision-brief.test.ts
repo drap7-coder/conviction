@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { buildCompanyDecisionBrief } from "@/lib/company/company-decision-brief";
 import type { ConvictionScoreView } from "@/lib/conviction/score/view";
 import type { EarningsEvidence } from "@/lib/earnings/types";
@@ -97,5 +98,15 @@ describe("company decision brief", () => {
     expect(brief.scoreValue).toBe("—");
     expect(brief.earningsValue).toBe("Not sourced");
     expect(brief.headline).toContain("Still reading");
+  });
+
+  it("wires click-to-load disclosure so score is not fetched on page open", () => {
+    const source = readFileSync(
+      new URL("../src/app/components/CompanyDecisionBrief.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(source).toContain("company-decision-disclosure");
+    expect(source).toContain("if (!expanded || loadedTicker === ticker) return");
+    expect(source).toContain("/api/conviction/score");
   });
 });
