@@ -26,16 +26,12 @@ const DEFAULT_TTL: Record<string, number> = {
   "/api/market/quotes": 5 * 60 * 1000, // 5 minutes
   // Trending universe is expensive — refresh rarely
   "/api/market/trending": 12 * 60 * 1000, // 12 minutes
-  // News is fast-changing
-  "/api/evidence/news-batch": 5 * 60 * 1000, // 5 minutes
   // Short interest is bi-monthly
   "/api/market/short-interest": 24 * 60 * 60 * 1000, // 24 hours
   // Ownership filings are infrequent
   "/api/evidence/ownership": 60 * 60 * 1000, // 1 hour
   // Corporate disclosures
   "/api/evidence/disclosures": 60 * 60 * 1000, // 1 hour
-  // Move evidence
-  "/api/evidence/move": 5 * 60 * 1000, // 5 minutes
 };
 
 function getDefaultTtl(url: string): number {

@@ -1,6 +1,5 @@
-import { fetchStockHistory, fetchStockQuotes, type StockHistoryPoint, type StockQuote } from "@/lib/market/quotes";
+import { fetchStockQuotes, type StockHistoryPoint, type StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
-import { validateTicker } from "@/lib/watchlist/validate";
 
 const TRENDING_UNIVERSE = [
   "NVDA",
@@ -46,8 +45,6 @@ export interface TrendingCompany {
   activityLabel: string;
 }
 
-type TrendingCompanyCandidate = Omit<TrendingCompany, "activityRank">;
-
 function activityScore(quote: StockQuote) {
   const dollarVolumeScore = Math.log10(Math.max(1, quote.dollarVolume ?? 0));
   const moveScore = Math.min(12, Math.abs(quote.changePercent ?? 0)) * 0.7;
@@ -61,6 +58,10 @@ function formatDollarVolume(value: number | null) {
   return "Market activity";
 }
 
+/**
+ * Rank a fixed equity universe by live activity.
+ * Uses quote payloads only (incl. 1d sparkline) — no per-ticker history fan-out.
+ */
 export async function fetchTrendingCompanies(limit = 8): Promise<TrendingCompany[]> {
   const quotes = await fetchStockQuotes(TRENDING_UNIVERSE);
 
@@ -84,25 +85,13 @@ export async function fetchTrendingCompanies(limit = 8): Promise<TrendingCompany
     .sort((a, b) => b.score - a.score)
     .slice(0, Math.max(1, Math.min(limit, TRENDING_UNIVERSE.length)));
 
-  const resolved: Array<TrendingCompanyCandidate | null> = await Promise.all(
-    ranked.map(async ({ quote, score }) => {
-      const validation = await validateTicker(quote.ticker);
-      if (!validation.valid) return null;
-      const history = await fetchStockHistory(quote.ticker, "1w");
-      return {
-        ticker: validation.ticker,
-        companyName: validation.companyName ?? validation.ticker,
-        cik: validation.cik,
-        quote,
-        sparkline: history.points,
-        activityScore: score,
-        activityLabel: formatDollarVolume(quote.dollarVolume),
-      };
-    }),
-  );
-
-  return resolved
-    .filter((company): company is TrendingCompanyCandidate => company !== null)
-    .slice(0, limit)
-    .map((company, index) => ({ ...company, activityRank: index + 1 }));
+  return ranked.map(({ quote, score }, index) => ({
+    ticker: quote.ticker,
+    companyName: quote.name?.trim() || quote.ticker,
+    quote,
+    sparkline: quote.sparkline ?? [],
+    activityScore: score,
+    activityLabel: formatDollarVolume(quote.dollarVolume),
+    activityRank: index + 1,
+  }));
 }

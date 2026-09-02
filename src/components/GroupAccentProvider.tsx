@@ -26,14 +26,29 @@ export function writeStoredPrimaryColor(color: string | null) {
   }
 }
 
+/** True when a NextAuth / Auth.js session cookie is present (signed-in hint). */
+export function hasSessionCookie(): boolean {
+  if (typeof document === "undefined") return false;
+  const cookies = document.cookie;
+  return (
+    cookies.includes("authjs.session-token") ||
+    cookies.includes("__Secure-authjs.session-token") ||
+    cookies.includes("next-auth.session-token") ||
+    cookies.includes("__Secure-next-auth.session-token")
+  );
+}
+
 /** Injects --group-accent from the viewer's primary community (guest localStorage or API). */
 export function GroupAccentProvider({ children }: { children: React.ReactNode }) {
   const [color, setColor] = useState<string | null>(null);
 
   useEffect(() => {
     setColor(readStoredPrimaryColor());
+    // Guests: localStorage only — do not hit /api/groups on every page.
+    if (!hasSessionCookie()) return;
+
     let cancelled = false;
-    void fetch("/api/groups", { cache: "no-store" })
+    void fetch("/api/groups", { cache: "no-store", credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then(
         (
