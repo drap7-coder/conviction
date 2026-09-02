@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
-  buildInstitutionalBrief,
   buildPoliticalBrief,
   classifyInstitutionalIdea,
   groupPoliticalTrades,
@@ -84,10 +83,6 @@ describe("Smart Money decision briefs", () => {
       grade: "A",
       label: "Research now",
       tone: "positive",
-    });
-    expect(buildInstitutionalBrief([meta], 15)).toMatchObject({
-      tone: "positive",
-      headline: "Fresh fund buying converges on META.",
     });
   });
 

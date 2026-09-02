@@ -8,7 +8,7 @@
 
 import type { InstitutionalAccumulation } from "@/lib/sec/institutional";
 import { summarizeInstitutionalEvidence } from "@/lib/sec/institutional";
-import type { GaugeTone } from "@/components/GaugeRing";
+export type GaugeTone = "green" | "amber" | "red" | "neutral";
 import {
   institutionalDollarWeight,
   managerStyleMultiplier,

@@ -13,7 +13,7 @@ describe("shared surface well", () => {
     expect(css).toContain("--surface-well-radius:");
     expect(css).toContain("--surface-well-highlight:");
     expect(css).toMatch(
-      /\.surface-well,\s*\.stock-heat-grid,\s*\.market-heatmap-shell \.market-heatmap,\s*\.market-macro-chart--depth/,
+      /\.surface-well,\s*\.market-macro-chart--depth/,
     );
     expect(css).toContain("var(--card-inset)");
     expect(css).toContain("var(--surface-well-highlight)");

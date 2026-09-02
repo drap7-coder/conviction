@@ -99,53 +99,6 @@ export function classifyInstitutionalIdea(idea: InstitutionalMarketIdea): Instit
   };
 }
 
-export function buildInstitutionalBrief(
-  ideas: InstitutionalMarketIdea[],
-  managerCount: number,
-): SmartMoneyBrief {
-  const top = ideas[0];
-  if (!top) {
-    return {
-      eyebrow: "Institutional research queue",
-      headline: "No filing signal clears the screen right now.",
-      summary: "The latest 13F comparison has not produced a research-worthy ownership change.",
-      tone: "neutral",
-      metrics: [
-        { label: "Research now", value: "0" },
-        { label: "Fresh opens", value: "0" },
-        { label: "Managers read", value: String(managerCount) },
-      ],
-    };
-  }
-
-  const priority = classifyInstitutionalIdea(top);
-  const researchNow = ideas.filter((idea) => classifyInstitutionalIdea(idea).grade === "A").length;
-  const freshOpens = ideas.reduce((sum, idea) => sum + idea.newPositionCount, 0);
-
-  let headline = `${top.ticker} leads the institutional research queue.`;
-  let summary = `${plural(top.holderCount, "tracked manager")} hold the company. This is a filing signal to investigate, not a live trade recommendation.`;
-
-  if (priority.grade === "A") {
-    headline = `Fresh fund buying converges on ${top.ticker}.`;
-    summary = `${plural(top.newPositionCount, "manager")} opened positions and ${plural(top.increasedCount, "manager")} added, while ${top.holderCount} of ${managerCount} tracked managers hold it. The convergence earns deeper research.`;
-  } else if (top.newPositionCount > 0) {
-    headline = `A fresh position puts ${top.ticker} at the front of the queue.`;
-    summary = `${plural(top.newPositionCount, "manager")} opened a position and ${plural(top.increasedCount, "manager")} added. Confirm the thesis and current valuation before treating the filing as actionable.`;
-  }
-
-  return {
-    eyebrow: "Institutional research queue",
-    headline,
-    summary,
-    tone: priority.tone,
-    metrics: [
-      { label: "Research now", value: String(researchNow), tone: researchNow > 0 ? "positive" : "neutral" },
-      { label: "Fresh opens", value: String(freshOpens), tone: freshOpens > 0 ? "positive" : "neutral" },
-      { label: "Managers read", value: String(managerCount) },
-    ],
-  };
-}
-
 function median(values: number[]): number | null {
   if (values.length === 0) return null;
   const sorted = [...values].sort((a, b) => a - b);

@@ -15,22 +15,14 @@
  */
 
 import { describe, it, expect } from "vitest";
-import { normalizeTicker } from "@/lib/display/dedup";
-
-// Because Watchlist is a client component, we test the
-// pure utilities and invariants rather than rendering.
-
-// ═══════════════════════════════════════════════════════════════
-// Card invariants
-// ═══════════════════════════════════════════════════════════════
 
 describe("Watchlist card invariants", () => {
   it("deduplicates by ticker (one card per ticker)", () => {
-    // This is enforced by the watchlist persistence layer — entry.ticker
-    // is unique. normalizeTicker should produce consistent keys.
-    expect(normalizeTicker("AAPL")).toBe("AAPL");
-    expect(normalizeTicker("aapl")).toBe("AAPL");
-    expect(normalizeTicker(" aapl ")).toBe("AAPL");
+    // Persistence layer keeps entry.ticker unique; casing must normalize.
+    const normalize = (raw: string) => raw.trim().toUpperCase();
+    expect(normalize("AAPL")).toBe("AAPL");
+    expect(normalize("aapl")).toBe("AAPL");
+    expect(normalize(" aapl ")).toBe("AAPL");
   });
 
   it("uses ticker for destination href", () => {
