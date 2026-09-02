@@ -24,6 +24,9 @@ export type CommunityPickGroup = {
   groupId: string;
   name: string;
   primaryColor: string | null;
+  domain?: string | null;
+  ncaaId?: string | null;
+  accentColor?: string | null;
 };
 
 export type CommunityStanding = CommunityPickGroup & {

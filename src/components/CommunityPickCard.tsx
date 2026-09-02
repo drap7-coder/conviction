@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
 
 const TICKER_INPUT_PATTERN = /^[A-Z][A-Z0-9.-]{0,9}$/;
@@ -287,12 +288,21 @@ export function CommunityPickCard({
                       <span className="community-standing-rank">
                         {standing.ranked ? rank : "—"}
                       </span>
-                      <span className="community-standing-name">
-                        <strong>{standing.name}</strong>
-                        <small>
-                          {standing.pickCount} {standing.pickCount === 1 ? "member" : "members"}
-                          {!standing.ranked && standing.pickCount > 0 ? " · unranked" : ""}
-                        </small>
+                      <span className="community-standing-school">
+                        <SchoolLogo
+                          name={standing.name}
+                          domain={standing.domain}
+                          ncaaId={standing.ncaaId}
+                          accentColor={standing.accentColor ?? standing.primaryColor}
+                          size={28}
+                        />
+                        <span className="community-standing-name">
+                          <strong>{standing.name}</strong>
+                          <small>
+                            {standing.pickCount} {standing.pickCount === 1 ? "member" : "members"}
+                            {!standing.ranked && standing.pickCount > 0 ? " · unranked" : ""}
+                          </small>
+                        </span>
                       </span>
                       <strong className={`community-standing-return is-${returnTone(standing.avgLifetimeReturnPct)}`}>
                         {formatReturn(standing.avgLifetimeReturnPct)}

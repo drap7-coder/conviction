@@ -12,6 +12,7 @@ import {
 } from "@/lib/community-picks/growth";
 import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
 import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
+import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 import type {
@@ -44,6 +45,10 @@ type GroupRow = {
   id: string;
   name: string;
   primary_color: string | null;
+  institution_id: string | null;
+  canonical_domain: string | null;
+  ncaa_id: string | null;
+  accent_color: string | null;
 };
 
 function livePrice(
@@ -59,7 +64,27 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
     groupId: group.id,
     name: group.name,
     primaryColor: group.primary_color,
+    domain: group.canonical_domain,
+    ncaaId: group.ncaa_id,
+    accentColor: group.accent_color ?? group.primary_color,
   };
+}
+
+function seedStandings(): CommunityStanding[] {
+  return listSeedCanonicalCommunities().map((group) => {
+    const institution = SEED_INSTITUTIONS.find((row) => row.id === group.institutionId);
+    return {
+      groupId: group.id,
+      name: group.name,
+      primaryColor: group.primaryColor,
+      domain: institution?.canonicalDomain ?? null,
+      ncaaId: institution?.ncaaId ?? null,
+      accentColor: institution?.accentColor ?? group.primaryColor,
+      pickCount: 0,
+      avgLifetimeReturnPct: null,
+      ranked: false,
+    };
+  });
 }
 
 function mapHistoryRow(row: HistoryRow): CommunityPickHistoryEntry {
@@ -259,14 +284,7 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
       viewerGroup: null,
       viewerPick: null,
       pickHistory: [],
-      standings: listSeedCanonicalCommunities().map((group) => ({
-        groupId: group.id,
-        name: group.name,
-        primaryColor: group.primaryColor,
-        pickCount: 0,
-        avgLifetimeReturnPct: null,
-        ranked: false,
-      })),
+      standings: seedStandings(),
     };
   }
 
@@ -277,8 +295,13 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
        order by picked_at asc`,
     ),
     query<GroupRow>(
-      `select g.id, g.name, g.primary_color
+      `select g.id, g.name, g.primary_color,
+              i.id as institution_id,
+              i.canonical_domain,
+              i.ncaa_id,
+              i.accent_color
        from groups g
+       left join institutions i on i.id = g.institution_id
        where exists (
          select 1 from user_group_memberships m where m.group_id = g.id
        ) or exists (
@@ -322,10 +345,15 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
 
   const groups = groupResult.rows.slice();
   if (primaryGroup && !groups.some((group) => group.id === primaryGroup.id)) {
+    const institution = SEED_INSTITUTIONS.find((row) => row.id === primaryGroup.institutionId);
     groups.push({
       id: primaryGroup.id,
       name: primaryGroup.name,
       primary_color: primaryGroup.primaryColor,
+      institution_id: primaryGroup.institutionId,
+      canonical_domain: institution?.canonicalDomain ?? null,
+      ncaa_id: institution?.ncaaId ?? null,
+      accent_color: institution?.accentColor ?? null,
     });
   }
 
@@ -353,13 +381,20 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
       return a.name.localeCompare(b.name);
     });
 
+  const viewerStanding = primaryGroup
+    ? standings.find((row) => row.groupId === primaryGroup.id) ?? null
+    : null;
+
   return {
     authenticated: Boolean(userId),
-    viewerGroup: primaryGroup
+    viewerGroup: viewerStanding
       ? {
-          groupId: primaryGroup.id,
-          name: primaryGroup.name,
-          primaryColor: primaryGroup.primaryColor,
+          groupId: viewerStanding.groupId,
+          name: viewerStanding.name,
+          primaryColor: viewerStanding.primaryColor,
+          domain: viewerStanding.domain,
+          ncaaId: viewerStanding.ncaaId,
+          accentColor: viewerStanding.accentColor,
         }
       : null,
     viewerPick,

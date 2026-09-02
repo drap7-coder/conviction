@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import { CommunitySettingsPanel } from "@/components/GroupPanels";
 import type { UserCommunityMembership } from "@/lib/groups/types";
 
@@ -89,6 +90,16 @@ export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }
       }
     >
       <div className="crowd-community-head">
+        {primary ? (
+          <SchoolLogo
+            name={primary.institution.name}
+            domain={primary.institution.canonicalDomain}
+            ncaaId={primary.institution.ncaaId}
+            accentColor={campusAccent}
+            size={expanded ? 44 : 36}
+            className="crowd-community-logo"
+          />
+        ) : null}
         <div className="crowd-community-copy">
           <p className="crowd-community-eyebrow">
             {expanded ? "My community" : "Your community"}
@@ -132,7 +143,16 @@ export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }
         <div className="crowd-community-roster" aria-label="Campus members">
           <div className="crowd-community-roster-card">
             <span className="crowd-community-roster-label">Campus</span>
-            <strong>{primary.institution.name}</strong>
+            <strong className="crowd-community-roster-campus">
+              <SchoolLogo
+                name={primary.institution.name}
+                domain={primary.institution.canonicalDomain}
+                ncaaId={primary.institution.ncaaId}
+                accentColor={campusAccent}
+                size={22}
+              />
+              {primary.institution.name}
+            </strong>
           </div>
           <div className="crowd-community-roster-card">
             <span className="crowd-community-roster-label">Accent</span>
