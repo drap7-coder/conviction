@@ -24,6 +24,16 @@ import {
   weekWindowContaining,
 } from "@/lib/competitions/schedule";
 import { computeSideScore, countSubmittedPicks } from "@/lib/competitions/scores";
+import { refreshCompetitionScores } from "@/lib/competitions/refresh";
+import {
+  averageLifetimeReturnPct,
+  lifetimeReturnPct,
+  totalGrowthFactor,
+  activeGrowthFactor,
+} from "@/lib/community-picks/growth";
+import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seeds";
+import { listCampusSeedStudents } from "@/lib/community-picks/seed-students";
+import { fetchStockQuotes } from "@/lib/market/quotes";
 
 type GroupLogoMeta = {
   name: string;
@@ -180,16 +190,32 @@ export async function getActiveCompetition(): Promise<Competition | null> {
   return row ? mapCompetition(row) : null;
 }
 
-function pairSlug(groupAId: string, groupBId: string): string {
+function normalizeGroupToken(groupId: string): string {
+  return groupId.replace(/[^a-z0-9_-]+/gi, "-").toLowerCase();
+}
+
+/** Stable rivalry slug — order-independent; classic pairs keep legacy short slugs. */
+export function canonicalCompetitionSlug(groupAId: string, groupBId: string): string {
+  const rivalry = RIVALRY_PAIRS.find(
+    (pair) =>
+      (pair.groupAId === groupAId && pair.groupBId === groupBId) ||
+      (pair.groupAId === groupBId && pair.groupBId === groupAId),
+  );
+  if (rivalry) return rivalry.slug;
   return [groupAId, groupBId]
-    .map((id) => id.replace(/[^a-z0-9_-]+/gi, "-").toLowerCase())
+    .map(normalizeGroupToken)
+    .sort()
     .join("-vs-");
+}
+
+function competitionIdForWeek(slug: string, weekKey: string): string {
+  return `comp-${slug}-${weekKey}`;
 }
 
 function syntheticCompetition(groupAId: string, groupBId: string, now = new Date()): Competition {
   const window = weekWindowContaining(now);
   return {
-    id: `comp-${pairSlug(groupAId, groupBId)}-${window.weekKey}`,
+    id: competitionIdForWeek(canonicalCompetitionSlug(groupAId, groupBId), window.weekKey),
     groupAId,
     groupBId,
     periodStart: window.periodStart.toISOString(),
@@ -201,7 +227,7 @@ function syntheticCompetition(groupAId: string, groupBId: string, now = new Date
   };
 }
 
-/** Ensure a weekly H2H row exists for an arbitrary school pair (display order preserved). */
+/** Ensure a weekly H2H row exists. Display order (A/B) is preserved; id is canonical. */
 export async function getOrCreateCompetitionForPair(
   groupAId: string,
   groupBId: string,
@@ -216,7 +242,36 @@ export async function getOrCreateCompetitionForPair(
   }
 
   const window = weekWindowContaining(now);
-  const id = `comp-${pairSlug(a, b)}-${window.weekKey}`;
+  const slug = canonicalCompetitionSlug(a, b);
+  const id = competitionIdForWeek(slug, window.weekKey);
+
+  // Prefer an existing same-week row for this pair (either order / legacy id) that already has picks.
+  const existing = await query<CompetitionRow & { pick_count: string }>(
+    `select c.id, c.group_a_id, c.group_b_id, c.period_start, c.period_end, c.status, c.metric,
+            c.locked_at, c.winner_group_id,
+            (select count(*)::text from competition_picks p where p.competition_id = c.id) as pick_count
+     from competitions c
+     where c.period_start = $1
+       and (
+         c.id = $2
+         or (c.group_a_id = $3 and c.group_b_id = $4)
+         or (c.group_a_id = $4 and c.group_b_id = $3)
+       )
+     order by (select count(*) from competition_picks p where p.competition_id = c.id) desc,
+              case when c.id = $2 then 0 else 1 end
+     limit 1`,
+    [window.periodStart, id, a, b],
+  );
+  if (existing.rows[0]) {
+    const row = existing.rows[0];
+    // Keep caller's display sides even if the stored row flipped A/B.
+    return {
+      ...mapCompetition(row),
+      groupAId: a,
+      groupBId: b,
+    };
+  }
+
   await query(
     `insert into competitions (
        id, group_a_id, group_b_id, period_start, period_end, status, metric
@@ -231,7 +286,12 @@ export async function getOrCreateCompetitionForPair(
     [id],
   );
   const row = result.rows[0];
-  return row ? mapCompetition(row) : syntheticCompetition(a, b, now);
+  if (!row) return syntheticCompetition(a, b, now);
+  return {
+    ...mapCompetition(row),
+    groupAId: a,
+    groupBId: b,
+  };
 }
 
 function schoolOptionFromMeta(groupId: string, meta: GroupLogoMeta): HeadToHeadSchoolOption {
@@ -310,6 +370,67 @@ export async function listPicksForCompetition(competitionId: string): Promise<Co
     [competitionId],
   );
   return result.rows.map((row) => mapPick(row));
+}
+
+/** Campus lifetime scores — used when the weekly rivalry has no locked picks yet. */
+export async function scoreCampusSide(
+  groupId: string,
+): Promise<{ avgReturnPct: number | null; pickCount: number }> {
+  if (!groupId) return { avgReturnPct: null, pickCount: 0 };
+
+  if (!isDatabaseConfigured()) {
+    const students = listCampusSeedStudents().filter((row) => row.groupId === groupId);
+    if (students.length === 0) return { avgReturnPct: null, pickCount: 0 };
+    const returns = students.map((row) => (row.bankedGrowthFactor - 1) * 100);
+    return {
+      avgReturnPct: averageLifetimeReturnPct(returns),
+      pickCount: students.length,
+    };
+  }
+
+  await ensureCampusPickSeedsIfNeeded().catch(() => undefined);
+
+  const result = await query<{
+    ticker: string;
+    entry_price: string;
+    banked_growth_factor: string;
+  }>(
+    `select ticker, entry_price, banked_growth_factor
+     from community_picks
+     where group_id = $1`,
+    [groupId],
+  );
+  if (result.rows.length === 0) return { avgReturnPct: null, pickCount: 0 };
+
+  const tickers = [...new Set(result.rows.map((row) => row.ticker.toUpperCase()))];
+  const quotes = await fetchStockQuotes(tickers);
+  const byTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
+  const returns: number[] = [];
+
+  for (const row of result.rows) {
+    const quote = byTicker.get(row.ticker.toUpperCase());
+    const current = quote?.price ?? quote?.previousClose ?? null;
+    if (current === null || !Number.isFinite(current) || current <= 0) continue;
+    const entry = Number(row.entry_price);
+    const banked = Number(row.banked_growth_factor);
+    if (!Number.isFinite(entry) || entry <= 0) continue;
+    const total = totalGrowthFactor(banked, activeGrowthFactor(entry, current));
+    returns.push(lifetimeReturnPct(total));
+  }
+
+  return {
+    avgReturnPct: averageLifetimeReturnPct(returns),
+    pickCount: result.rows.length,
+  };
+}
+
+function sideFromWeeklyOrCampus(
+  weekly: { avgReturnPct: number | null; pickCount: number },
+  campus: { avgReturnPct: number | null; pickCount: number },
+): { avgReturnPct: number | null; pickCount: number } {
+  // Weekly rivalry picks win once anyone has submitted; otherwise show campus book scores.
+  if (weekly.pickCount > 0) return weekly;
+  return campus;
 }
 
 export async function getUserPick(
@@ -424,20 +545,48 @@ export async function buildHeadToHeadPayload(input: {
     return empty(input.userId ? { kind: "not_member", message: "Could not open this rivalry." } : { kind: "guest" });
   }
 
-  const window = weekWindowContaining(new Date(competition.periodStart));
-  const lockAt = competition.lockedAt ? new Date(competition.lockedAt) : window.lockAt;
-  const periodEnd = new Date(competition.periodEnd);
+  await refreshCompetitionScores(competition.id).catch(() => undefined);
+
+  const refreshed = isDatabaseConfigured()
+    ? await query<CompetitionRow>(
+        `select id, group_a_id, group_b_id, period_start, period_end, status, metric, locked_at, winner_group_id
+         from competitions where id = $1 limit 1`,
+        [competition.id],
+      ).then((result) => (result.rows[0] ? mapCompetition(result.rows[0]) : competition))
+    : competition;
+  const liveCompetition = {
+    ...refreshed,
+    groupAId,
+    groupBId,
+  };
+
+  const window = weekWindowContaining(new Date(liveCompetition.periodStart));
+  const lockAt = liveCompetition.lockedAt ? new Date(liveCompetition.lockedAt) : window.lockAt;
+  const periodEnd = new Date(liveCompetition.periodEnd);
   const statusLabel = competitionStatusLabel(
-    competition.status,
+    liveCompetition.status,
     lockAt,
     periodEnd,
   );
 
-  const picks = await listPicksForCompetition(competition.id);
-  const [metaA, metaB] = await Promise.all([
+  const picks = await listPicksForCompetition(liveCompetition.id);
+  const [metaA, metaB, campusA, campusB] = await Promise.all([
     groupMeta(groupAId),
     groupMeta(groupBId),
+    scoreCampusSide(groupAId),
+    scoreCampusSide(groupBId),
   ]);
+
+  const weeklyA = {
+    avgReturnPct: computeSideScore(picks, groupAId).avgReturnPct,
+    pickCount: countSubmittedPicks(picks, groupAId),
+  };
+  const weeklyB = {
+    avgReturnPct: computeSideScore(picks, groupBId).avgReturnPct,
+    pickCount: countSubmittedPicks(picks, groupBId),
+  };
+  const scoreA = sideFromWeeklyOrCampus(weeklyA, campusA);
+  const scoreB = sideFromWeeklyOrCampus(weeklyB, campusB);
 
   const groupA: CompetitionGroupSide = {
     groupId: groupAId,
@@ -446,8 +595,8 @@ export async function buildHeadToHeadPayload(input: {
     domain: metaA.domain,
     ncaaId: metaA.ncaaId,
     accentColor: metaA.accentColor,
-    avgReturnPct: computeSideScore(picks, groupAId).avgReturnPct,
-    pickCount: countSubmittedPicks(picks, groupAId),
+    avgReturnPct: scoreA.avgReturnPct,
+    pickCount: scoreA.pickCount,
   };
   const groupB: CompetitionGroupSide = {
     groupId: groupBId,
@@ -456,8 +605,8 @@ export async function buildHeadToHeadPayload(input: {
     domain: metaB.domain,
     ncaaId: metaB.ncaaId,
     accentColor: metaB.accentColor,
-    avgReturnPct: computeSideScore(picks, groupBId).avgReturnPct,
-    pickCount: countSubmittedPicks(picks, groupBId),
+    avgReturnPct: scoreB.avgReturnPct,
+    pickCount: scoreB.pickCount,
   };
 
   let viewer: CompetitionViewerState = { kind: "guest" };
@@ -478,7 +627,7 @@ export async function buildHeadToHeadPayload(input: {
         returnPct: existing.returnPct,
         groupId: existing.groupId,
       };
-    } else if (isSubmissionOpen(competition.status, lockAt)) {
+    } else if (isSubmissionOpen(liveCompetition.status, lockAt)) {
       viewer = {
         kind: "can_submit",
         groupId: side,
@@ -492,13 +641,16 @@ export async function buildHeadToHeadPayload(input: {
         groupId: existing.groupId,
       };
     } else {
-      viewer = { kind: "not_member", message: "Pick window closed." };
+      viewer = {
+        kind: "not_member",
+        message: "Weekly pick window closed — campus scores still update from My Pick.",
+      };
     }
   }
 
   return {
     available: true,
-    competition,
+    competition: liveCompetition,
     groupA,
     groupB,
     statusLabel,
