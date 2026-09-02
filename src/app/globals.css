@@ -21163,7 +21163,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .community-pick-history li {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 6px 0;
