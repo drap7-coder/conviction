@@ -19,6 +19,9 @@ describe("watchlist store contracts", () => {
 
     expect(route).not.toContain("guestEntries");
     expect(route).not.toContain("getWatchlist()");
+    expect(route).not.toContain("warmScores");
+    expect(route).not.toContain("getConvictionScoresForTickers");
+    expect(route).not.toContain("after(");
     expect(route).toContain('persistence: "browser"');
     expect(route).toContain("suggestions: SEED_WATCHLIST");
     expect(route).toContain("ops/cron");

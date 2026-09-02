@@ -17,7 +17,7 @@
 import { describe, it, expect } from "vitest";
 import { normalizeTicker } from "@/lib/display/dedup";
 
-// Because WatchlistCard and Watchlist are client components, we test the
+// Because Watchlist is a client component, we test the
 // pure utilities and invariants rather than rendering.
 
 // ═══════════════════════════════════════════════════════════════
@@ -43,7 +43,7 @@ describe("Watchlist card invariants", () => {
     // This is a runtime behavior — we verify the contract:
     // The kebab's onClick handler calls e.preventDefault() and
     // e.stopPropagation() before the Link's native navigation fires.
-    // See WatchlistCard.tsx handleKebabClick.
+    // Menu / kebab handlers live on the Watchlist manage surface.
     expect(true).toBe(true);
   });
 });

@@ -32,6 +32,7 @@ function makeQuote(overrides: Partial<StockQuote> = {}): StockQuote {
     postMarketChange: null,
     postMarketChangePercent: null,
     source: "yahoo-chart" as const,
+    asOf: null,
     sparkline: [{ date: "2026-07-15", close: 99 }, { date: "2026-07-16", close: 100 }],
     ...overrides,
   };
