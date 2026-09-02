@@ -33,11 +33,8 @@ describe("market-data CPU architecture", () => {
     expect(read("src/app/components/CompanyQuoteCard.tsx")).toContain("fetchMarketQuotes");
     expect(read("src/app/components/CompanyEvidenceCard.tsx")).toContain("fetchMarketQuotes");
     expect(read("src/app/components/MaterialNewsCard.tsx")).toContain("fetchMarketQuotes");
-    expect(read("src/app/components/TechnicalsDetailSection.tsx")).toContain("fetchMarketQuotes");
-    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("fetchMarketQuotes");
     expect(read("src/components/Portfolio.tsx")).toContain("fetchMarketQuotes");
     expect(read("src/app/components/CompanyQuoteCard.tsx")).not.toContain('/api/market/quotes?tickers=');
-    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain('/api/market/quotes?tickers=');
   });
 
   it("keeps quote refresh at ~5 min and trending at ~12 min", () => {

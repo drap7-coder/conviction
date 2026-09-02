@@ -7,7 +7,7 @@ import styles from "../legal.module.css";
 export const metadata: Metadata = pageMetadata({
   title: "Q&A",
   description:
-    "Answers about IQBulls — Pulse, Crowd, Portfolio, Watchlist, data, accounts, and Smart Money.",
+    "Answers about IQBulls — Pulse, Crowd, Portfolio, Watchlist, data, and accounts.",
   path: "/faq",
 });
 

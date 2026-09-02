@@ -15,7 +15,7 @@ import { getUserWatchlist, isUserWatchlistAvailable } from "@/lib/user-watchlist
  *
  * Lightweight read only — no conviction-score warming and no long-running
  * Next.js after callbacks or other side effects. Watchlist UI does not display
- * conviction scores; company pages fetch `/api/conviction/score` on demand.
+ * conviction scores; company pages use quote + catalyst news only.
  */
 export const dynamic = "force-dynamic";
 

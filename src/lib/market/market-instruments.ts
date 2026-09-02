@@ -101,7 +101,7 @@ export function listMarketInstruments(): MarketInstrument[] {
   return Object.values(MARKET_INSTRUMENTS);
 }
 
-/** Ownership / insider / short-interest conviction stack requires an SEC issuer. */
+/** Market instruments (crypto / Pulse ETFs) skip equity-only SEC issuer paths. */
 export function supportsConvictionSignals(ticker: string): boolean {
   return getMarketInstrument(ticker) == null && !ticker.trim().startsWith("^");
 }

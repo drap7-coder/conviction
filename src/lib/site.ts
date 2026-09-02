@@ -24,7 +24,7 @@ export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
  * One job: say what it is. Then name the surfaces.
  */
 export const SITE_DESCRIPTION =
-  "IQBulls raises your market IQ — Pulse, Crowd, your portfolio and watchlist, news, and smart-money filings, organized around you.";
+  "IQBulls raises your market IQ — Pulse, Crowd, your portfolio and watchlist, and news, organized around you.";
 
 export const SITE_OG_IMAGE = {
   // Canonical share card. Do not reintroduce /iqbulls-og.png — scrapers cache that stale path.

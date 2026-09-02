@@ -11,7 +11,7 @@ import styles from "../legal.module.css";
 export const metadata: Metadata = pageMetadata({
   title: "About",
   description:
-    "What IQBulls is: raising your market IQ with Pulse, Crowd, Portfolio, News, and Smart Money.",
+    "What IQBulls is: raising your market IQ with Pulse, Crowd, Portfolio, and News.",
   path: "/about",
 });
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
 import { spotFromQuote } from "@/lib/community-picks/pricing";
 import type { StockQuote } from "@/lib/market/quotes";
-import { CROWD_SEED_BOOKS } from "@/lib/crowd/seed-books";
+import { isCrowdSeedUserId } from "@/lib/crowd/seed-ids";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -83,32 +83,30 @@ describe("Vercel high-risk path fixes", () => {
     expect(history).not.toContain('dynamic = "force-dynamic"');
   });
 
-  it("skips Crowd demo rewrite when seed books already exist", () => {
-    const seeds = read("src/lib/crowd/ensure-seeds.ts");
-    const load = read("src/lib/crowd/load.ts");
-    expect(seeds).toContain("ensureCrowdSeedBooksIfNeeded");
-    expect(seeds).toContain("skipped: true");
-    expect(load).toContain("ensureCrowdSeedBooksIfNeeded");
-    expect(load).not.toMatch(/await ensureCrowdSeedBooks\(\)/);
-    expect(CROWD_SEED_BOOKS).toHaveLength(10);
+  it("company pages stay quote + catalyst — no conviction score cascade", () => {
+    const page = read("src/app/companies/[ticker]/page.tsx");
+    expect(page).toContain("CompanyQuoteCard");
+    expect(page).toContain("CompanyEvidenceCard");
+    expect(page).not.toContain("CompanyDecisionBrief");
+    expect(page).not.toContain("ConvictionSignalsCard");
+    expect(existsSync(new URL("../src/app/components/CompanyDecisionBrief.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/components/ConvictionSignalsCard.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/conviction/score/route.ts", import.meta.url))).toBe(false);
   });
 
-  it("company pages still consume conviction score on demand", () => {
-    expect(read("src/app/companies/[ticker]/page.tsx")).toContain("CompanyDecisionBrief");
-    expect(read("src/app/companies/[ticker]/page.tsx")).toContain("ConvictionSignalsCard");
-    expect(read("src/app/components/CompanyDecisionBrief.tsx")).toContain("/api/conviction/score");
-    expect(read("src/app/components/ConvictionSignalsCard.tsx")).toContain("/api/conviction/score");
-  });
-
-  it("loads Today's read only after the reader expands the disclosure", () => {
-    const brief = read("src/app/components/CompanyDecisionBrief.tsx");
-    expect(brief).toContain("<details");
-    expect(brief).toContain('id="todays-read"');
-    expect(brief).toContain("company-decision-disclosure");
-    expect(brief).toContain("if (!expanded || loadedTicker === ticker) return");
-    expect(brief).toContain("/api/conviction/score");
-    // Must not auto-fetch on mount — only when expanded.
-    expect(brief).not.toMatch(/useEffect\(\(\) => \{[\s\S]*void load\(\);[\s\S]*\}, \[ticker\]\)/);
+  it("retires Smart Money, Most held/watched, and deep evidence APIs", () => {
+    expect(existsSync(new URL("../src/app/smart-money/page.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/components/CrowdAggregateBoard.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/crowd/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/market/investor-book/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/evidence/institutional/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/evidence/political/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/lib/sec/institutional.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/lib/crowd/seed-books.ts", import.meta.url))).toBe(false);
+    expect(read("next.config.ts")).toContain('source: "/smart-money"');
+    expect(read("src/components/Portfolio.tsx")).not.toContain('label: "Most held"');
+    expect(read("src/lib/nav-config.ts")).not.toContain("/smart-money");
+    expect(isCrowdSeedUserId("crowd-seed-01")).toBe(true);
   });
 
   it("deletes dead high-cost Smart Money / evidence surfaces", () => {
@@ -118,7 +116,6 @@ describe("Vercel high-risk path fixes", () => {
     expect(existsSync(new URL("../src/app/api/evidence/news-batch/route.ts", import.meta.url))).toBe(false);
     expect(existsSync(new URL("../src/app/api/evidence/move/route.ts", import.meta.url))).toBe(false);
     expect(existsSync(new URL("../src/app/api/knowledge/route.ts", import.meta.url))).toBe(false);
-    expect(read("src/lib/sec/institutional.ts")).not.toContain("getInstitutionalMarketIdeas");
   });
 
   it("keeps guests off /api/groups on every page load", () => {
@@ -156,7 +153,7 @@ describe("Vercel high-risk path fixes", () => {
     expect(existsSync(new URL("../src/components/MyListShell.tsx", import.meta.url))).toBe(false);
     expect(existsSync(new URL("../src/components/market/SmartMoneyDecisionCard.tsx", import.meta.url))).toBe(false);
     expect(existsSync(new URL("../src/components/GaugeRing.tsx", import.meta.url))).toBe(false);
-    expect(read("src/lib/market/smart-money-brief.ts")).not.toContain("buildInstitutionalBrief");
+    expect(existsSync(new URL("../src/lib/market/smart-money-brief.ts", import.meta.url))).toBe(false);
   });
 
   it("hobby runtime: daily-sync is in-process; period baselines cached; dead ops routes gone", () => {
@@ -165,6 +162,7 @@ describe("Vercel high-risk path fixes", () => {
     expect(cron).not.toContain("await fetch(");
     expect(cron).not.toContain("SITE_URL");
     expect(read("src/lib/evidence/full-sync.ts")).toContain("buildDailySyncQueue");
+    expect(read("src/lib/evidence/full-sync.ts")).not.toContain("refreshConvictionTransitionForTicker");
     const baselines = read("src/lib/competitions/period-baselines.ts");
     expect(baselines).toContain("unstable_cache");
     expect(baselines).toContain("period-baselines");
@@ -182,18 +180,6 @@ describe("Vercel high-risk path fixes", () => {
     expect(read("src/app/api/crowd/standings/route.ts")).toContain("loadCommunityPicks");
   });
 
-  it("Smart Money empty states name timeout/empty and show last tried", () => {
-    const book = read("src/app/components/InvestorBookPanel.tsx");
-    expect(book).toContain("No filing yet for this investor.");
-    expect(book).toContain("SEC timed out — try again.");
-    expect(book).toContain("Last tried");
-    expect(book).toContain("attemptedAt");
-    expect(read("src/app/api/market/investor-book/route.ts")).toContain("attemptedAt");
-    const pols = read("src/app/components/PoliticiansMovesPanel.tsx");
-    expect(pols).toContain("No STOCK Act filings yet.");
-    expect(pols).toContain("Last tried");
-  });
-
   it("company evidence empty states name timeout/empty and show last tried", () => {
     const card = read("src/app/components/CompanyEvidenceCard.tsx");
     expect(card).toContain("Evidence feed timed out — try again.");
@@ -202,12 +188,11 @@ describe("Vercel high-risk path fixes", () => {
     expect(card).toContain("attemptedAt");
   });
 
-  it("keeps Most held on Portfolio and Crowd as campus picks", () => {
-    expect(read("src/lib/nav-config.ts")).toContain("Most held / watched");
+  it("keeps Crowd campus-first and Portfolio without Most held", () => {
     expect(read("src/lib/nav-config.ts")).toContain("Campus head-to-head");
-    expect(read("src/lib/product-copy.ts")).toContain("Where are Most held and Most watched?");
-    expect(read("src/lib/product-copy.ts")).toContain("On Portfolio");
+    expect(read("src/lib/nav-config.ts")).toContain("Live book, Watchlist, and Study");
+    expect(read("src/lib/product-copy.ts")).not.toContain("Where are Most held and Most watched?");
+    expect(read("src/lib/product-copy.ts")).not.toContain("What is Smart Money?");
     expect(read("src/lib/product-copy.ts")).not.toMatch(/Crowd is a daily tab that ranks names/);
   });
 });
-

@@ -1,11 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CompanyQuoteCard } from "@/app/components/CompanyQuoteCard";
-import { ConvictionSignalsCard } from "@/app/components/ConvictionSignalsCard";
 import { CompanyEvidenceCard } from "@/app/components/CompanyEvidenceCard";
 import { RelatedCompanies } from "@/app/components/RelatedCompanies";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
-import { CompanyDecisionBrief } from "@/app/components/CompanyDecisionBrief";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
 import { getMarketInstrument, listMarketInstruments } from "@/lib/market/market-instruments";
@@ -31,12 +29,12 @@ export async function generateMetadata({
   const upperTicker = ticker.toUpperCase();
   const resolvedCompany = await validateTicker(upperTicker);
   const companyName = resolvedCompany.companyName ?? upperTicker;
-  const supportsSignals = resolvedCompany.supportsConvictionSignals !== false;
+  const isMarketInstrument = resolvedCompany.source === "market_instrument";
 
   const title = `${companyName} (${upperTicker})`;
-  const description = supportsSignals
-    ? `Live quote, news, and company detail for ${companyName} (${upperTicker}) on IQBulls.`
-    : `Price, chart, and news for ${companyName} (${upperTicker}) on IQBulls.`;
+  const description = isMarketInstrument
+    ? `Price, chart, and news for ${companyName} (${upperTicker}) on IQBulls.`
+    : `Live quote, news, and company detail for ${companyName} (${upperTicker}) on IQBulls.`;
 
   return pageMetadata({
     title,
@@ -55,14 +53,14 @@ export default async function CompanyPage({
   const resolvedCompany = await validateTicker(upperTicker);
   if (!resolvedCompany.valid) notFound();
   const companyName = resolvedCompany.companyName ?? upperTicker;
-  const supportsSignals = resolvedCompany.supportsConvictionSignals !== false;
+  const isMarketInstrument = resolvedCompany.source === "market_instrument";
   const marketInstrument = getMarketInstrument(upperTicker);
-  const sector = supportsSignals
-    ? getSectorForCompany(upperTicker)
-    : getSectorByTicker(upperTicker);
-  const sectorName = supportsSignals
-    ? (sector?.name ?? null)
-    : (marketInstrument?.tag ?? "Market");
+  const sector = isMarketInstrument
+    ? getSectorByTicker(upperTicker)
+    : getSectorForCompany(upperTicker);
+  const sectorName = isMarketInstrument
+    ? (marketInstrument?.tag ?? "Market")
+    : (sector?.name ?? null);
 
   const path = `/companies/${encodeURIComponent(upperTicker)}`;
   const jsonLd = {
@@ -70,11 +68,11 @@ export default async function CompanyPage({
     "@type": "WebPage",
     name: `${companyName} (${upperTicker}) · ${SITE_NAME}`,
     url: `${SITE_URL}${path}`,
-    description: supportsSignals
-      ? `Today’s move, what changed, and source filings for ${companyName} (${upperTicker}).`
-      : `Price, chart, and news for ${companyName} (${upperTicker}).`,
+    description: isMarketInstrument
+      ? `Price, chart, and news for ${companyName} (${upperTicker}).`
+      : `Today’s move and catalyst news for ${companyName} (${upperTicker}).`,
     mainEntity: {
-      "@type": supportsSignals ? "Corporation" : "InvestmentFund",
+      "@type": isMarketInstrument ? "InvestmentFund" : "Corporation",
       name: companyName,
       identifier: upperTicker,
       url: `${SITE_URL}${path}`,
@@ -117,9 +115,7 @@ export default async function CompanyPage({
                 logoUrl={getLogoUrl(upperTicker) ?? null}
               />
             </div>
-            {supportsSignals ? (
-              <CompanyDecisionBrief ticker={upperTicker} />
-            ) : (
+            {isMarketInstrument ? (
               <section className="company-market-scope">
                 <span>Price + news view</span>
                 <p>
@@ -127,7 +123,7 @@ export default async function CompanyPage({
                   live tape and catalyst feed below.
                 </p>
               </section>
-            )}
+            ) : null}
             <div className="company-catalyst-stack">
               <CompanyEvidenceCard
                 key={upperTicker}
@@ -136,9 +132,6 @@ export default async function CompanyPage({
                 showEmpty
               />
             </div>
-            {supportsSignals ? (
-              <ConvictionSignalsCard ticker={upperTicker} />
-            ) : null}
             <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
           </>
         }

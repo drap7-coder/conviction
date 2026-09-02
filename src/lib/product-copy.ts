@@ -4,10 +4,10 @@
  */
 
 export const PRODUCT_ONE_LINER =
-  "Raising your market IQ — Pulse, Crowd, Portfolio, News, and Smart Money.";
+  "Raising your market IQ — Pulse, Crowd, Portfolio, and News.";
 
 export const PRODUCT_ABOUT_LEDE =
-  "IQBulls raises your market IQ: the tape, the crowd, your book, the stories that matter, and the filings behind them.";
+  "IQBulls raises your market IQ: the tape, the crowd, your book, and the stories that matter.";
 
 export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string }> = [
   {
@@ -23,7 +23,7 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Portfolio",
     href: "/portfolio",
-    blurb: "Live book, Watchlist, Most held / watched, and Study — slicer on Portfolio.",
+    blurb: "Live book, Watchlist, and Study — slicer on Portfolio.",
   },
   {
     name: "Watchlist",
@@ -34,11 +34,6 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
     name: "News",
     href: "/news",
     blurb: "A featured brief and the themes that matter, not a wire dump.",
-  },
-  {
-    name: "Smart Money",
-    href: "/smart-money",
-    blurb: "Institution filings and political trades.",
   },
 ];
 
@@ -52,7 +47,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is IQBulls?",
     answer:
-      "IQBulls raises your market IQ. Pulse, Crowd, your portfolio and watchlist, news, and smart-money filings — organized around you, not a single research feature.",
+      "IQBulls raises your market IQ. Pulse, Crowd, your portfolio and watchlist, and news — organized around you, not a single research feature.",
   },
   {
     question: "What is Pulse?",
@@ -72,7 +67,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "Where does the market data come from?",
     answer:
-      "Live quotes and charts come from public market feeds (including Yahoo Finance). Filings and ownership data use SEC EDGAR and related public sources. Some panels can be empty when a source is delayed or blocked.",
+      "Live quotes and charts come from public market feeds (including Yahoo Finance). Catalyst news uses public RSS and related sources. Some panels can be empty when a source is delayed or blocked.",
   },
   {
     question: "Do I need an account?",
@@ -82,21 +77,11 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "Is IQBulls investment advice?",
     answer:
-      "No. IQBulls is a research and organization tool, not a brokerage or adviser. Quotes, briefs, portfolio fit, and filings are informational. You are responsible for your own decisions.",
-  },
-  {
-    question: "What is Smart Money?",
-    answer:
-      "Smart Money shows recent institutional 13F-style activity and political trades so you can see what notable investors and lawmakers reported buying, selling, or holding.",
+      "No. IQBulls is a research and organization tool, not a brokerage or adviser. Quotes, briefs, and portfolio fit are informational. You are responsible for your own decisions.",
   },
   {
     question: "What is Crowd?",
     answer:
-      "Crowd is campus head-to-head, community standings, and your My Pick — equal-weight returns over Today, Weekly, Monthly, or YTD. Starter books fill the board while membership is small. It is an aggregate, not advice, and it never shows who owns what.",
-  },
-  {
-    question: "Where are Most held and Most watched?",
-    answer:
-      "On Portfolio. Use the Live / Watchlist / Most held / Most watched / Study slicer. Crowd is for campus picks and standings — not the member holdings board.",
+      "Crowd is campus head-to-head, community standings, and your My Pick — equal-weight returns over Today, Weekly, Monthly, or YTD. It is competitive fun, not advice, and it never shows who owns what.",
   },
 ];

@@ -22,7 +22,7 @@ describe("SEO metadata", () => {
     expect(SITE_DESCRIPTION).toContain("Pulse");
     expect(SITE_DESCRIPTION).toContain("watchlist");
     expect(SITE_DESCRIPTION).toContain("portfolio");
-    expect(SITE_DESCRIPTION).toContain("smart-money");
+    expect(SITE_DESCRIPTION).not.toContain("smart-money");
     expect(SITE_DESCRIPTION).toContain("Crowd");
     expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
     expect(SITE_DESCRIPTION).not.toContain("Ownership Signals");
@@ -67,7 +67,7 @@ describe("SEO metadata", () => {
     expect(urls).not.toContain(`${SITE_URL}/watchlist`);
     expect(urls).toContain(`${SITE_URL}/news`);
     expect(urls).toContain(`${SITE_URL}/crowd`);
-    expect(urls).toContain(`${SITE_URL}/smart-money`);
+    expect(urls).not.toContain(`${SITE_URL}/smart-money`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=international`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=crypto`);
     expect(urls).toContain(`${SITE_URL}/pulse?view=movers`);
@@ -156,7 +156,6 @@ describe("SEO metadata", () => {
     for (const path of [
       "src/app/pulse/layout.tsx",
       "src/app/news/layout.tsx",
-      "src/app/smart-money/layout.tsx",
       "src/app/crowd/layout.tsx",
       "src/app/international/layout.tsx",
       "src/app/sectors/layout.tsx",
@@ -174,7 +173,6 @@ describe("SEO metadata", () => {
     expect(read("src/app/news/page.tsx")).toContain('sr-only');
     expect(read("src/app/not-found.tsx")).toContain("index: false");
     expect(read("src/app/pulse/page.tsx")).toContain('sr-only');
-    expect(read("src/app/smart-money/page.tsx")).toContain('sr-only');
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
@@ -183,6 +181,7 @@ describe("SEO metadata", () => {
     expect(read("next.config.ts")).toContain("https://iqbulls.com");
     expect(read("next.config.ts")).toContain("www.iqbulls.com");
     expect(read("next.config.ts")).toContain("gotconviction.com");
+    expect(read("next.config.ts")).toContain('source: "/smart-money"');
     expect(read("src/app/industries/[ticker]/page.tsx")).not.toContain("Ownership signals");
   });
 

@@ -40,12 +40,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     {
-      url: `${SITE_URL}/smart-money`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.9,
-    },
-    {
       url: `${SITE_URL}/pulse?view=movers`,
       lastModified: now,
       changeFrequency: "hourly",

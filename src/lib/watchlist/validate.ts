@@ -14,7 +14,6 @@
 
 import { CIK_MAP } from "@/lib/sec/cik";
 import { resolveCompanyByTicker, resolveCompanyByName, getCompanyTickerDataset } from "@/lib/sec/company-tickers";
-import { findInstitutionalIdeaSecurity } from "@/lib/sec/institutional";
 import { getMarketInstrument } from "@/lib/market/market-instruments";
 import {
   EQUITY_TICKER_REGEX,
@@ -302,8 +301,6 @@ export interface TickerValidationResult {
   source?: "hardcoded" | "dataset" | "name_match" | "alias" | "fallback" | "market_instrument" | "not_found";
   /** Present for crypto / ETF Pulse instruments without an equity SEC stack. */
   instrumentKind?: "crypto" | "etf";
-  /** False for market instruments — no ownership / insider conviction stack. */
-  supportsConvictionSignals?: boolean;
 }
 
 /**
@@ -337,7 +334,6 @@ export async function validateTicker(input: string): Promise<TickerValidationRes
       companyName: marketInstrument.name,
       source: "market_instrument",
       instrumentKind: marketInstrument.kind,
-      supportsConvictionSignals: false,
     };
   }
 
@@ -370,19 +366,7 @@ export async function validateTicker(input: string): Promise<TickerValidationRes
     return resolveTickerFromCikMap(fallbackName);
   }
 
-  // 5. Curated 13F rows must still open a quote when the SEC ticker directory is unavailable.
-  const institutionalSecurity = findInstitutionalIdeaSecurity(upperTicker);
-  if (institutionalSecurity) {
-    return {
-      valid: true,
-      ticker: institutionalSecurity.ticker,
-      companyName: institutionalSecurity.companyName,
-      source: "fallback",
-      supportsConvictionSignals: true,
-    };
-  }
-
-  // 6. Try SEC dataset (dynamic)
+  // 5. Try SEC dataset (dynamic)
   return resolveTickerFromDataset(upperName);
 }
 
@@ -408,7 +392,6 @@ async function resolveTickerFromCikMap(ticker: string): Promise<TickerValidation
     companyName: name,
     isForeignIssuer,
     source: "hardcoded",
-    supportsConvictionSignals: true,
   };
 }
 

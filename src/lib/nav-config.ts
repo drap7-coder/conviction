@@ -1,4 +1,4 @@
-import { Briefcase, BarChart3, CircleHelp, Info, Landmark, LogIn, Newspaper, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
+import { Briefcase, BarChart3, CircleHelp, Info, LogIn, Newspaper, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
 export type NavGroup = "daily" | "more" | "about" | "account";
@@ -36,7 +36,7 @@ export const navPages: NavPage[] = [
     icon: Briefcase,
     tone: "blue",
     group: "daily",
-    blurb: "Live book, Watchlist, Most held / watched, and Study.",
+    blurb: "Live book, Watchlist, and Study.",
   },
   {
     href: "/news",
@@ -45,14 +45,6 @@ export const navPages: NavPage[] = [
     tone: "rose",
     group: "daily",
     blurb: "Brief for the few that matter.",
-  },
-  {
-    href: "/smart-money",
-    label: "Smart Money",
-    icon: Landmark,
-    tone: "violet",
-    group: "more",
-    blurb: "Institution filings and political trades.",
   },
   {
     href: "/about",
