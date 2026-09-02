@@ -19,7 +19,7 @@ function historyRangeForPerf(range: H2HPerfRange): StockHistoryRange {
 
 /**
  * Batch period open + current prices for H2H scoring.
- * Daily uses quote previousClose; longer windows use Yahoo history open.
+ * Today uses quote previousClose (session %); longer windows use Yahoo history open.
  */
 export async function fetchPeriodBaselines(
   tickers: string[],
@@ -35,7 +35,7 @@ export async function fetchPeriodBaselines(
   if (range === "1d") {
     for (const ticker of unique) {
       const quote = byTicker.get(ticker);
-      out.set(ticker, baselineFromDailyQuote(quote));
+      out.set(ticker, baselineFromTodayQuote(quote));
     }
     return out;
   }
@@ -70,10 +70,12 @@ export async function fetchPeriodBaselines(
   return out;
 }
 
-function baselineFromDailyQuote(quote: StockQuote | undefined): PeriodBaseline {
+/** Today = regular session result vs prior close (brokerage “Today %”). */
+function baselineFromTodayQuote(quote: StockQuote | undefined): PeriodBaseline {
   if (!quote) {
     return { startPrice: null, startAt: null, currentPrice: null };
   }
+  // Prefer live last; fall back to previous close so a quiet tape still scores 0%.
   const current = quote.price ?? quote.previousClose;
   return {
     startPrice: quote.previousClose,

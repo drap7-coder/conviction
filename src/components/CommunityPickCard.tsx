@@ -319,7 +319,11 @@ export function CommunityPickCard({
         <div className={`community-standings${showPick ? "" : " is-standalone"}`}>
           <div className="community-standings-head">
             <h3>Community standings</h3>
-            <span>Average {h2hPerfRangeLabel(data.range ?? standingsRange)} return</span>
+            <span>
+              {standingsRange === "1d" || data.range === "1d"
+                ? "Today's average return"
+                : `Average ${h2hPerfRangeLabel(data.range ?? standingsRange)} return`}
+            </span>
           </div>
           {data.standings.length === 0 ? (
             <p className="crowd-empty">Standings begin with the first community pick.</p>
