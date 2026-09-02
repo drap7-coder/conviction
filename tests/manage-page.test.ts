@@ -172,7 +172,7 @@ describe("logo + position formatting consistency", () => {
     expect(read("src/components/PortfolioAllocationLadder.tsx")).toContain("LogoDisplay");
     expect(read("src/app/components/CompanyQuoteCard.tsx")).toContain("LogoDisplay");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("LogoDisplay");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("LogoDisplay");
     expect(read("src/app/components/InvestorMovesPanel.tsx")).toContain("LogoDisplay");
   });
 

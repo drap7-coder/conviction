@@ -1,363 +1,95 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CircleCheck, Eye } from "lucide-react";
-import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { CrowdCommunityPanel } from "@/components/CrowdCommunityPanel";
 import { CommunityPickCard } from "@/components/CommunityPickCard";
+import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
-import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
-import { companyDetailHref } from "@/lib/market/company-detail-href";
-import type { CrowdSnapshot } from "@/lib/crowd/types";
-import type { Group } from "@/lib/groups/types";
-import type { StockQuote } from "@/lib/market/quotes";
-import { loadPositions } from "@/lib/portfolio/persist";
-import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 
-export type CrowdView = "rivalry" | "held" | "watched";
-type CrowdApiPayload = CrowdSnapshot & {
-  groups?: Group[];
-  activeGroupId?: string | null;
-};
+export type CrowdTab = "pick" | "standings" | "community";
 
-const VIEWS: Array<{ id: CrowdView; label: string }> = [
-  { id: "rivalry", label: "Picks" },
-  { id: "held", label: "Most held" },
-  { id: "watched", label: "Most watched" },
+const TABS: Array<{ id: CrowdTab; label: string }> = [
+  { id: "pick", label: "My Pick" },
+  { id: "standings", label: "Standings" },
+  { id: "community", label: "My Community" },
 ];
 
-const PORTFOLIO_CHANGED_EVENT = "conviction-portfolio-changed";
-
-export function parseCrowdView(value: string | null | undefined): CrowdView {
-  if (value === "held" || value === "watched" || value === "rivalry") return value;
-  return "rivalry";
-}
-
-function readBrowserWatchlistTickers(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem("conviction-watchlist");
-    const parsed = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((entry) => (typeof entry?.ticker === "string" ? entry.ticker.toUpperCase() : ""))
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
-function CrowdPersonalGlyphs({
-  ticker,
-  bookTickers,
-  watchTickers,
-}: {
-  ticker: string;
-  bookTickers: ReadonlySet<string>;
-  watchTickers: ReadonlySet<string>;
-}) {
-  const key = ticker.toUpperCase();
-  const owned = bookTickers.has(key);
-  const watched = watchTickers.has(key);
-  if (!owned && !watched) return null;
-
-  const labels: string[] = [];
-  if (owned) labels.push("In your book");
-  if (watched) labels.push("In your watchlist");
-
-  return (
-    <span className="crowd-glyphs" aria-label={labels.join(", ")}>
-      {owned ? (
-        <CircleCheck
-          className="crowd-glyph is-owned"
-          size={14}
-          strokeWidth={2.4}
-          aria-hidden="true"
-        />
-      ) : null}
-      {watched ? (
-        <Eye
-          className="crowd-glyph is-watched"
-          size={14}
-          strokeWidth={2.4}
-          aria-hidden="true"
-        />
-      ) : null}
-    </span>
-  );
+/** Parse Crowd tab from `?tab=` with legacy `?view=` fallbacks. */
+export function parseCrowdView(value: string | null | undefined): CrowdTab {
+  if (value === "standings" || value === "community" || value === "pick") return value;
+  // Legacy Crowd aggregations moved to Portfolio.
+  if (value === "held" || value === "watched" || value === "rivalry") return "pick";
+  return "pick";
 }
 
 export function CrowdBoard() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [view, setView] = useState<CrowdView>(() => parseCrowdView(searchParams.get("view")));
-  const [groupId, setGroupId] = useState<string>("all");
-  const [snapshot, setSnapshot] = useState<CrowdSnapshot | null>(null);
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [quotes, setQuotes] = useState<Record<string, StockQuote>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [bookTickers, setBookTickers] = useState<Set<string>>(() => new Set());
-  const [watchTickers, setWatchTickers] = useState<Set<string>>(() => new Set());
+  const tabParam = searchParams.get("tab") ?? searchParams.get("view");
+  const [tab, setTab] = useState<CrowdTab>(() => parseCrowdView(tabParam));
 
   useEffect(() => {
-    setView(parseCrowdView(searchParams.get("view")));
+    setTab(parseCrowdView(searchParams.get("tab") ?? searchParams.get("view")));
   }, [searchParams]);
 
-  function selectView(next: CrowdView) {
-    setView(next);
+  // Redirect legacy held/watched query params to Portfolio.
+  useEffect(() => {
+    const legacy = searchParams.get("view");
+    if (legacy === "held" || legacy === "watched") {
+      router.replace(`/portfolio?view=${legacy}`, { scroll: false });
+    }
+  }, [router, searchParams]);
+
+  function selectTab(next: CrowdTab) {
+    setTab(next);
     const params = new URLSearchParams(searchParams.toString());
-    if (next === "rivalry") {
-      params.delete("view");
+    params.delete("view");
+    if (next === "pick") {
+      params.delete("tab");
     } else {
-      params.set("view", next);
+      params.set("tab", next);
     }
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
-  useEffect(() => {
-    if (view !== "held" && view !== "watched") return;
-
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const query = groupId !== "all" ? `?group=${encodeURIComponent(groupId)}` : "";
-        const res = await fetch(`/api/crowd${query}`, { cache: "no-store" });
-        if (!res.ok) throw new Error("Could not load Crowd");
-        const data = (await res.json()) as CrowdApiPayload;
-        if (cancelled) return;
-        setSnapshot(data);
-        setGroups(data.groups ?? []);
-
-        const tickers = [
-          ...data.held.slice(0, 20).map((row) => row.ticker),
-          ...data.watched.slice(0, 20).map((row) => row.ticker),
-        ];
-        const unique = [...new Set(tickers)];
-        if (unique.length === 0) {
-          setQuotes({});
-          return;
-        }
-
-        const quoteRes = await fetch(
-          `/api/market/quotes?tickers=${encodeURIComponent(unique.join(","))}`,
-          { cache: "no-store" },
-        );
-        if (!quoteRes.ok || cancelled) return;
-        const quoteJson = (await quoteRes.json()) as { quotes?: StockQuote[] };
-        const map: Record<string, StockQuote> = {};
-        for (const quote of quoteJson.quotes ?? []) {
-          map[quote.ticker.toUpperCase()] = quote;
-        }
-        if (!cancelled) setQuotes(map);
-      } catch (err) {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Could not load Crowd");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [groupId, view]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    function applyLocal() {
-      setBookTickers(new Set(loadPositions().map((p) => p.ticker.toUpperCase())));
-      setWatchTickers(new Set(readBrowserWatchlistTickers()));
-    }
-
-    applyLocal();
-
-    async function hydrateViewer() {
-      try {
-        const [watchData, portfolio] = await Promise.all([
-          fetch("/api/watchlist", { cache: "no-store" }).then((r) =>
-            r.ok ? r.json() : null,
-          ),
-          loadPortfolioForViewer(),
-        ]);
-        if (cancelled) return;
-        const watchAuthenticated = Boolean(watchData?.authenticated);
-        const watchEntries = watchAuthenticated && Array.isArray(watchData?.entries)
-          ? (watchData.entries as Array<{ ticker: string }>)
-          : [];
-        setBookTickers(
-          new Set(portfolio.positions.map((p) => p.ticker.toUpperCase())),
-        );
-        setWatchTickers(
-          new Set(
-            watchAuthenticated
-              ? watchEntries.map((e) => e.ticker.toUpperCase())
-              : readBrowserWatchlistTickers(),
-          ),
-        );
-      } catch {
-        if (!cancelled) applyLocal();
-      }
-    }
-
-    void hydrateViewer();
-
-    const onPortfolioChanged = () => {
-      void hydrateViewer();
-    };
-    window.addEventListener(PORTFOLIO_CHANGED_EVENT, onPortfolioChanged);
-    return () => {
-      cancelled = true;
-      window.removeEventListener(PORTFOLIO_CHANGED_EVENT, onPortfolioChanged);
-    };
-  }, []);
-
-  const rows =
-    view === "held"
-      ? (snapshot?.held ?? []).slice(0, 20)
-      : view === "watched"
-        ? (snapshot?.watched ?? []).slice(0, 20)
-        : [];
-
   return (
     <div className="crowd-page-body">
-      <CrowdCommunityPanel />
-
       <SurfaceSlicer
         label="Crowd view"
-        options={VIEWS}
-        activeId={view}
-        onChange={(id) => selectView(parseCrowdView(id))}
+        options={TABS}
+        activeId={tab}
+        onChange={(id) => selectTab(parseCrowdView(id))}
         role="tablist"
       />
 
-      {view === "rivalry" ? (
-        <div className="crowd-rivalry-panel" role="tabpanel" aria-label="Community picks">
-          <CommunityPickCard />
+      {tab === "pick" ? (
+        <div className="crowd-pick-panel" role="tabpanel" aria-label="My pick">
+          <CommunityPickCard variant="pick" />
           <p className="crowd-hedge">
-            One current ticker per member. Community scores are the equal-weighted average return of active picks.
+            One current ticker per member. Swapping banks the old pick into your lifetime score.
           </p>
         </div>
-      ) : (
-        <>
-          {groups.length > 0 ? (
-            <label className="crowd-group-filter">
-              <span>Community</span>
-              <select
-                value={groupId}
-                onChange={(event) => setGroupId(event.target.value)}
-                aria-label="Filter Crowd by community"
-              >
-                <option value="all">All members</option>
-                {groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+      ) : null}
 
-          <section
-            className="surface-shell crowd-board"
-            aria-label="Crowd rankings"
-            role="tabpanel"
-          >
-            <div className="crowd-board-head">
-              <div className="crowd-board-title">
-                <h2>{view === "held" ? "Most held" : "Most watched"}</h2>
-              </div>
-            </div>
+      {tab === "standings" ? (
+        <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">
+          <HeadToHeadMatchCard />
+          <CommunityPickCard variant="standings" />
+          <p className="crowd-hedge">
+            Campus scores are the equal-weighted average of member lifetime returns. Schools below
+            the member threshold stay unranked.
+          </p>
+        </div>
+      ) : null}
 
-            <div className="surface-well crowd-well">
-              {loading && !snapshot ? (
-                <p className="crowd-empty">Loading member books…</p>
-              ) : error ? (
-                <p className="crowd-empty">{error}</p>
-              ) : rows.length === 0 ? (
-                <p className="crowd-empty">
-                  {view === "held"
-                    ? "No holdings to rank yet."
-                    : "No watchlists to rank yet."}
-                </p>
-              ) : (
-                <ol className="crowd-list">
-                  {rows.map((row, index) => {
-                    const ticker = row.ticker;
-                    const quote = quotes[ticker];
-                    const href = companyDetailHref(ticker);
-                    const topThree = index < 3;
-                    const owned = bookTickers.has(ticker.toUpperCase());
-                    const watched = watchTickers.has(ticker.toUpperCase());
-                    const body = (
-                      <>
-                        <span className={`crowd-rank${topThree ? " is-lead" : ""}`} aria-hidden="true">
-                          {index + 1}
-                        </span>
-                        <span className="crowd-logo" aria-hidden="true">
-                          <LogoDisplay ticker={ticker} size="detail" />
-                        </span>
-                        <span className="crowd-id">
-                          <span className="crowd-ticker-line">
-                            <strong>{ticker}</strong>
-                            <CrowdPersonalGlyphs
-                              ticker={ticker}
-                              bookTickers={bookTickers}
-                              watchTickers={watchTickers}
-                            />
-                          </span>
-                        </span>
-                        <SessionQuoteStack
-                          lastPrice={quote?.price ?? null}
-                          change={quote?.change ?? null}
-                          changePercent={quote?.changePercent ?? null}
-                          compact
-                        />
-                      </>
-                    );
-                    const aria = [
-                      `#${index + 1}`,
-                      ticker,
-                      owned ? "In your book" : null,
-                      watched ? "In your watchlist" : null,
-                    ].filter(Boolean).join(", ");
-
-                    return (
-                      <li key={ticker} className={topThree ? "is-lead" : undefined}>
-                        {href ? (
-                          <Link href={href} className="crowd-row" aria-label={aria}>
-                            {body}
-                          </Link>
-                        ) : (
-                          <div className="crowd-row" aria-label={aria}>
-                            {body}
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-            </div>
-
-            <p className="crowd-hedge">
-              {snapshot?.includesDemoBooks
-                ? "Starter books fill the board while membership is small. Aggregate of member books — not a recommendation."
-                : "Aggregate of member books — not a recommendation."}
-            </p>
-          </section>
-        </>
-      )}
+      {tab === "community" ? (
+        <div className="crowd-community-tab" role="tabpanel" aria-label="My community">
+          <CrowdCommunityPanel expanded />
+        </div>
+      ) : null}
     </div>
   );
 }

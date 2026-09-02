@@ -35,6 +35,7 @@ import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import Watchlist from "@/components/Watchlist";
+import { CrowdAggregateBoard } from "@/components/CrowdAggregateBoard";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import { PROFILE_BENCHMARK } from "@/lib/portfolio/fit";
@@ -240,17 +241,20 @@ function enrichWithPrices(
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
-type PortfolioView = "live" | "watchlist" | "study";
+type PortfolioView = "live" | "watchlist" | "held" | "watched" | "study";
 
 const PORTFOLIO_VIEWS: SurfaceSlicerOption[] = [
   { id: "live", label: "Live" },
   { id: "watchlist", label: "Watchlist" },
+  { id: "held", label: "Most held" },
+  { id: "watched", label: "Most watched" },
   { id: "study", label: "Study" },
 ];
 
 function parsePortfolioView(searchParams: URLSearchParams): PortfolioView {
   if (searchParams.get("mode") === "study") return "study";
-  if (searchParams.get("view") === "watchlist") return "watchlist";
+  const view = searchParams.get("view");
+  if (view === "watchlist" || view === "held" || view === "watched") return view;
   return "live";
 }
 
@@ -589,6 +593,13 @@ export default function Portfolio() {
     params.set("view", "watchlist");
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
+  function goAggregate(mode: "held" | "watched") {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("mode");
+    params.delete("template");
+    params.set("view", mode);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
   function goStudy(template?: string) {
     const params = new URLSearchParams(searchParams.toString());
     params.delete("view");
@@ -600,6 +611,7 @@ export default function Portfolio() {
   function selectView(next: PortfolioView) {
     if (next === "live") goLive();
     else if (next === "watchlist") goWatchlist();
+    else if (next === "held" || next === "watched") goAggregate(next);
     else goStudy();
   }
 
@@ -743,6 +755,10 @@ export default function Portfolio() {
       {view === "watchlist" ? (
         <div className="pf-watchlist">
           <Watchlist />
+        </div>
+      ) : view === "held" || view === "watched" ? (
+        <div className="pf-crowd-aggregate">
+          <CrowdAggregateBoard mode={view} />
         </div>
       ) : view === "study" ? (
         studyRegion

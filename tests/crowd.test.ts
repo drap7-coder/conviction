@@ -159,27 +159,32 @@ describe("Crowd aggregation", () => {
 });
 
 describe("Crowd surface wiring", () => {
-  it("keeps Crowd on the daily tab bar with sr-only page title", () => {
+  it("keeps Crowd on the daily tab bar with campus pick / standings / community tabs", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/crowd/page.tsx")).toContain("CrowdBoard");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("Most held");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("Most watched");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("LogoDisplay");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-count");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("holderPct");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("watcherPct");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("of books");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("of lists");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowdBoardMetaLine");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-board-meta");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdPersonalGlyphs");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("CircleCheck");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("Eye");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-you-chip");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowdPersonalLabel");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("loadPortfolioForViewer");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("sync-universe");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("not a recommendation");
+    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "My Pick"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "Standings"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "My Community"');
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("Most held");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("Most watched");
+    expect(read("src/components/Portfolio.tsx")).toContain('label: "Most held"');
+    expect(read("src/components/Portfolio.tsx")).toContain('label: "Most watched"');
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("LogoDisplay");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("crowd-count");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("holderPct");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("watcherPct");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("of books");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("of lists");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("crowdBoardMetaLine");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("crowd-board-meta");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("CrowdPersonalGlyphs");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("CircleCheck");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("Eye");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("crowd-you-chip");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("crowdPersonalLabel");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("loadPortfolioForViewer");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).not.toContain("sync-universe");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("not a recommendation");
     expect(read("src/app/api/crowd/route.ts")).not.toContain("Owned");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
     expect(read("src/app/globals.css")).toContain(".crowd-glyphs");

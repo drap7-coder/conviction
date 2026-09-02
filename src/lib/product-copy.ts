@@ -18,12 +18,12 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Crowd",
     href: "/crowd",
-    blurb: "Most held and most watched names across member books.",
+    blurb: "Campus picks, standings, and your community — slicer at the top of Crowd.",
   },
   {
     name: "Portfolio",
     href: "/portfolio",
-    blurb: "Live book, Watchlist, and Study templates — slicer at the top of Portfolio.",
+    blurb: "Live book, Watchlist, Most held / watched, and Study — slicer on Portfolio.",
   },
   {
     name: "Watchlist",

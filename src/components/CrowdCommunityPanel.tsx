@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import { CommunitySettingsPanel } from "@/components/GroupPanels";
 import type { UserCommunityMembership } from "@/lib/groups/types";
@@ -17,8 +17,8 @@ const EMPTY_PAYLOAD: CommunitiesPayload = {
   primaryCommunity: null,
 };
 
-/** Crowd-native community identity — join or edit without leaving the board. */
-export function CrowdCommunityPanel() {
+/** Crowd campus hub — join/edit community with optional expanded roster chrome. */
+export function CrowdCommunityPanel({ expanded = false }: { expanded?: boolean }) {
   const [data, setData] = useState<CommunitiesPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -48,11 +48,15 @@ export function CrowdCommunityPanel() {
 
   useEffect(() => {
     void reload().then((json) => {
+      if (expanded) {
+        setOpen(true);
+        return;
+      }
       if (json?.authenticated && (json.memberships ?? []).length === 0) {
         setOpen(true);
       }
     });
-  }, [reload]);
+  }, [expanded, reload]);
 
   const panelData = data ?? EMPTY_PAYLOAD;
   const primary =
@@ -60,6 +64,8 @@ export function CrowdCommunityPanel() {
     panelData.memberships?.find((m) => m.isPrimary) ??
     panelData.memberships?.[0] ??
     null;
+  const campusAccent =
+    primary?.institution.accentColor ?? primary?.primaryColor ?? null;
 
   let summary = "Loading…";
   if (!loading && loadError && !primary) {
@@ -73,11 +79,32 @@ export function CrowdCommunityPanel() {
   }
 
   return (
-    <section className="surface-shell crowd-community-panel" aria-label="Your community">
+    <section
+      className={`surface-shell crowd-community-panel${expanded ? " is-expanded" : ""}`}
+      aria-label="Your community"
+      style={
+        campusAccent
+          ? ({ ["--campus-accent" as string]: campusAccent } as CSSProperties)
+          : undefined
+      }
+    >
       <div className="crowd-community-head">
         <div className="crowd-community-copy">
-          <p className="crowd-community-eyebrow">Your community</p>
+          <p className="crowd-community-eyebrow">
+            {expanded ? "My community" : "Your community"}
+          </p>
           <p className="crowd-community-summary">{summary}</p>
+          {expanded && primary ? (
+            <p className="crowd-community-meta">
+              {[
+                primary.institution.conference,
+                primary.institution.canonicalDomain,
+                primary.isPrimary ? "Primary campus" : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "Campus community"}
+            </p>
+          ) : null}
         </div>
         <div className="crowd-community-actions">
           {!loading && loadError && !primary ? (
@@ -101,14 +128,39 @@ export function CrowdCommunityPanel() {
         </div>
       </div>
 
+      {expanded && primary ? (
+        <div className="crowd-community-roster" aria-label="Campus members">
+          <div className="crowd-community-roster-card">
+            <span className="crowd-community-roster-label">Campus</span>
+            <strong>{primary.institution.name}</strong>
+          </div>
+          <div className="crowd-community-roster-card">
+            <span className="crowd-community-roster-label">Accent</span>
+            <strong className="crowd-community-swatch" style={{ background: campusAccent ?? undefined }}>
+              {campusAccent ?? "—"}
+            </strong>
+          </div>
+          <div className="crowd-community-roster-card">
+            <span className="crowd-community-roster-label">Memberships</span>
+            <strong>{panelData.memberships.length}</strong>
+          </div>
+        </div>
+      ) : null}
+
       {open && panelData.authenticated ? (
         <CommunitySettingsPanel
-          compact
+          compact={!expanded}
           onboarding={panelData.memberships.length === 0}
           onJoined={() => {
             void reload();
           }}
         />
+      ) : null}
+
+      {expanded && !panelData.authenticated && !loading ? (
+        <p className="crowd-hedge">
+          Join your school to unlock campus standings, rivalry, and a permanent pick score.
+        </p>
       ) : null}
     </section>
   );
