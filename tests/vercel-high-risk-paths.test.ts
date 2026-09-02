@@ -172,5 +172,26 @@ describe("Vercel high-risk path fixes", () => {
     expect(existsSync(new URL("../src/app/api/health/auth/route.ts", import.meta.url))).toBe(false);
     expect(existsSync(new URL("../src/app/api/cron/competitions/route.ts", import.meta.url))).toBe(false);
   });
+
+  it("Crowd Standings loads H2H + board through one /api/crowd/standings fetch", () => {
+    const board = read("src/components/CrowdBoard.tsx");
+    expect(board).toContain("/api/crowd/standings");
+    expect(board).toContain("initialPayload={standings?.headToHead");
+    expect(board).toContain("initialPayload={standings?.community");
+    expect(read("src/app/api/crowd/standings/route.ts")).toContain("buildHeadToHeadPayload");
+    expect(read("src/app/api/crowd/standings/route.ts")).toContain("loadCommunityPicks");
+  });
+
+  it("Smart Money empty states name timeout/empty and show last tried", () => {
+    const book = read("src/app/components/InvestorBookPanel.tsx");
+    expect(book).toContain("No filing yet for this investor.");
+    expect(book).toContain("SEC timed out — try again.");
+    expect(book).toContain("Last tried");
+    expect(book).toContain("attemptedAt");
+    expect(read("src/app/api/market/investor-book/route.ts")).toContain("attemptedAt");
+    const pols = read("src/app/components/PoliticiansMovesPanel.tsx");
+    expect(pols).toContain("No STOCK Act filings yet.");
+    expect(pols).toContain("Last tried");
+  });
 });
 

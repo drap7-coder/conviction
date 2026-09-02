@@ -54,13 +54,16 @@ async function loadCommunityPicksPayload(
 export function CommunityPickCard({
   variant = "full",
   range = DEFAULT_H2H_PERF_RANGE,
+  initialPayload = null,
 }: {
   /** pick = editor only; standings = board only; full = both (legacy). */
   variant?: "pick" | "standings" | "full";
   /** Shared Standings performance window (default YTD). Ignored for pick-only. */
   range?: H2HPerfRange;
+  /** From parent `/api/crowd/standings` — skips the standings self-fetch when present. */
+  initialPayload?: CommunityPicksPayload | null;
 }) {
-  const [data, setData] = useState<CommunityPicksPayload | null>(null);
+  const [data, setData] = useState<CommunityPicksPayload | null>(initialPayload);
   const [ticker, setTicker] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,6 +72,10 @@ export function CommunityPickCard({
   const standingsRange = variant === "pick" ? DEFAULT_H2H_PERF_RANGE : range;
 
   useEffect(() => {
+    if (variant === "standings" && initialPayload) {
+      setData(initialPayload);
+      return;
+    }
     let cancelled = false;
     loadCommunityPicksPayload(standingsRange)
       .then((payload) => {
@@ -82,7 +89,7 @@ export function CommunityPickCard({
     return () => {
       cancelled = true;
     };
-  }, [standingsRange]);
+  }, [standingsRange, variant, initialPayload]);
 
   const normalizedTicker = normalizeTickerInput(ticker);
   const hasExistingPick = Boolean(data?.viewerPick);
