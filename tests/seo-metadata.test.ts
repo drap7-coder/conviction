@@ -88,7 +88,8 @@ describe("SEO metadata", () => {
   });
 
   it("ships App Router file-convention icons and robots/sitemap generators", () => {
-    expect(read("src/app/layout.tsx")).not.toContain("icons:");
+    expect(read("src/app/layout.tsx")).toContain('url: "/favicon-48.png"');
+    expect(read("src/app/layout.tsx")).toContain('sizes: "48x48"');
     expect(read("src/app/layout.tsx")).not.toContain("iqbulls-favicon.png");
     expect(read("src/app/manifest.ts")).toContain('src: "/icon.png"');
     expect(read("src/app/manifest.ts")).toContain('src: "/apple-icon.png"');
@@ -124,6 +125,8 @@ describe("SEO metadata", () => {
     });
     expect(JSON.stringify(site)).not.toContain("Conviction");
     expect(JSON.stringify(site)).toContain("/icon.png");
+    expect(JSON.stringify(site)).toContain("ImageObject");
+    expect(JSON.stringify(site)).toContain('"width":512');
 
     const crumbs = breadcrumbJsonLd([
       { name: "Pulse", path: "/pulse" },
