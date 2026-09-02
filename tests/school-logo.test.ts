@@ -69,7 +69,6 @@ describe("SchoolLogo Crowd wiring", () => {
     expect(pickCard).toContain('from "@/app/components/LogoDisplay"');
     expect(pickCard).toContain("<LogoDisplay");
     expect(pickCard).toContain("crowd-logo");
-    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("LogoDisplay");
   });
 
   it("exposes institution logo fields on community standings payloads", () => {

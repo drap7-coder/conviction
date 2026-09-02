@@ -8,6 +8,11 @@ import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 import { MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
 import type { CommunityStanding } from "@/lib/community-picks/types";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  seedRangeScale,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 
 export const CAMPUS_SEED_ID_PREFIX = "campus-seed-";
@@ -79,7 +84,9 @@ export function listCampusSeedStudents(): CampusSeedStudent[] {
 }
 
 /** Offline / no-DB standings so guest Standings still shows a full board. */
-export function seedCampusStandings(): CommunityStanding[] {
+export function seedCampusStandings(
+  range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
+): CommunityStanding[] {
   const students = listCampusSeedStudents();
   const byGroup = new Map<string, CampusSeedStudent[]>();
   for (const student of students) {
@@ -88,12 +95,16 @@ export function seedCampusStandings(): CommunityStanding[] {
     byGroup.set(student.groupId, rows);
   }
 
+  const scale = seedRangeScale(range);
+
   return listSeedCanonicalCommunities()
     .map((group) => {
       const institution = SEED_INSTITUTIONS.find((row) => row.id === group.institutionId);
       const ncaaId = institution?.ncaaId ?? null;
       const members = byGroup.get(group.id) ?? [];
-      const returns = members.map((member) => (member.bankedGrowthFactor - 1) * 100);
+      const returns = members.map(
+        (member) => Math.round((member.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
+      );
       const avg =
         returns.length === 0
           ? null
@@ -107,16 +118,16 @@ export function seedCampusStandings(): CommunityStanding[] {
         ncaaId,
         accentColor: institution?.accentColor ?? group.primaryColor,
         pickCount,
-        avgLifetimeReturnPct: avg,
+        avgReturnPct: avg,
         ranked: pickCount >= MIN_RANKED_MEMBERS && avg !== null,
       };
     })
     .sort((a, b) => {
       if (a.ranked !== b.ranked) return a.ranked ? -1 : 1;
-      if (a.avgLifetimeReturnPct === null && b.avgLifetimeReturnPct !== null) return 1;
-      if (a.avgLifetimeReturnPct !== null && b.avgLifetimeReturnPct === null) return -1;
-      if (a.avgLifetimeReturnPct !== b.avgLifetimeReturnPct) {
-        return (b.avgLifetimeReturnPct ?? 0) - (a.avgLifetimeReturnPct ?? 0);
+      if (a.avgReturnPct === null && b.avgReturnPct !== null) return 1;
+      if (a.avgReturnPct !== null && b.avgReturnPct === null) return -1;
+      if (a.avgReturnPct !== b.avgReturnPct) {
+        return (b.avgReturnPct ?? 0) - (a.avgReturnPct ?? 0);
       }
       return a.name.localeCompare(b.name);
     });

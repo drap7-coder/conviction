@@ -1,3 +1,5 @@
+import type { H2HPerfRange } from "@/lib/competitions/perf-range";
+
 export type CommunityPickHistoryEntry = {
   ticker: string;
   startSpot: number;
@@ -32,7 +34,8 @@ export type CommunityPickGroup = {
 export type CommunityStanding = CommunityPickGroup & {
   /** Members with a valid submitted pick contributing to the average. */
   pickCount: number;
-  avgLifetimeReturnPct: number | null;
+  /** Equal-weight average My Pick return over the selected performance window. */
+  avgReturnPct: number | null;
   /** False when pickCount is below MIN_RANKED_MEMBERS. */
   ranked: boolean;
 };
@@ -43,6 +46,8 @@ export type CommunityPicksPayload = {
   viewerPick: CommunityPick | null;
   pickHistory: CommunityPickHistoryEntry[];
   standings: CommunityStanding[];
+  /** Performance window used for standings avgReturnPct (default ytd). */
+  range: H2HPerfRange;
 };
 
 export type SwapPickResult = {

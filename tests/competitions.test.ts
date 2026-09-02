@@ -126,16 +126,19 @@ describe("h2h performance ranges", () => {
     ).toBe(100);
   });
 
-  it("wires a Performance dropdown defaulting to YTD on the H2H card", () => {
-    const card = read("src/components/HeadToHeadMatchCard.tsx");
-    expect(card).toContain("Performance");
-    expect(card).toContain("DEFAULT_H2H_PERF_RANGE");
-    expect(card).toContain("H2H_PERF_RANGE_OPTIONS");
-    expect(card).toContain('params.set("range", perfRange)');
+  it("wires a shared Performance dropdown for H2H and standings (YTD default)", () => {
+    expect(read("src/components/CrowdBoard.tsx")).toContain("PerfRangeSelect");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("range={range}");
+    expect(read("src/components/crowd/PerfRangeSelect.tsx")).toContain("H2H_PERF_RANGE_OPTIONS");
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain('params.set("range", perfRange)');
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("H2H_PERF_RANGE_OPTIONS");
     expect(read("src/app/api/competitions/active/route.ts")).toContain("parseH2HPerfRange");
+    expect(read("src/app/api/community-picks/route.ts")).toContain("parseH2HPerfRange");
     expect(read("src/lib/competitions/store.ts")).toContain("fetchPeriodBaselines");
+    expect(read("src/lib/community-picks/store.ts")).toContain("fetchPeriodBaselines");
     expect(read("src/lib/market/quotes.ts")).toContain('"ytd"');
     expect(read("src/app/globals.css")).toContain("h2h-range-select");
+    expect(read("src/app/globals.css")).toContain("crowd-standings-toolbar");
   });
 });
 
@@ -208,7 +211,7 @@ describe("community picks wiring", () => {
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit Pick");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit weekly");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("this week");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("continuous");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("Performance window");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("Weekly rivalry");
     expect(read("src/app/api/cron/daily-sync/route.ts")).not.toContain("runCompetitionLifecycleTick");
     expect(read("src/app/globals.css")).toContain("h2h-school-select");

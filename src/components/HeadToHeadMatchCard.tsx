@@ -5,7 +5,6 @@ import Link from "next/link";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import {
   DEFAULT_H2H_PERF_RANGE,
-  H2H_PERF_RANGE_OPTIONS,
   parseH2HPerfRange,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
@@ -84,12 +83,16 @@ function SchoolSideSelect({
   );
 }
 
-/** Continuous campus vs campus scoreboard — period My Pick averages with range control. */
-export function HeadToHeadMatchCard() {
+/** Continuous campus vs campus scoreboard — period My Pick averages. */
+export function HeadToHeadMatchCard({
+  range = DEFAULT_H2H_PERF_RANGE,
+}: {
+  /** Shared Standings performance window (default YTD). */
+  range?: H2HPerfRange;
+}) {
   const [data, setData] = useState<HeadToHeadPayload | null>(null);
   const [sideA, setSideA] = useState<string>("");
   const [sideB, setSideB] = useState<string>("");
-  const [range, setRange] = useState<H2HPerfRange>(DEFAULT_H2H_PERF_RANGE);
 
   async function reload(nextA?: string, nextB?: string, nextRange?: H2HPerfRange) {
     const a = nextA ?? sideA;
@@ -109,14 +112,13 @@ export function HeadToHeadMatchCard() {
     setData(payload);
     if (payload.groupA?.groupId) setSideA(payload.groupA.groupId);
     if (payload.groupB?.groupId) setSideB(payload.groupB.groupId);
-    setRange(parseH2HPerfRange(payload.range));
   }
 
   useEffect(() => {
-    void reload();
-    // Initial load only — subsequent reloads pass explicit sides/range.
+    void reload(undefined, undefined, range);
+    // Reload when shared performance range changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [range]);
 
   const schools = data?.schools ?? [];
 
@@ -143,6 +145,7 @@ export function HeadToHeadMatchCard() {
   const selectedB = schoolById(schools, sideB);
   const accentA = groupA?.accentColor ?? groupA?.primaryColor ?? selectedA?.accentColor ?? "#115740";
   const accentB = groupB?.accentColor ?? groupB?.primaryColor ?? selectedB?.accentColor ?? "#D6001C";
+  const activeRange = parseH2HPerfRange(data.range ?? range);
 
   async function changeSide(which: "a" | "b", groupId: string) {
     const nextA = which === "a" ? groupId : sideA;
@@ -150,12 +153,7 @@ export function HeadToHeadMatchCard() {
     if (!nextA || !nextB || nextA === nextB) return;
     setSideA(nextA);
     setSideB(nextB);
-    await reload(nextA, nextB, range);
-  }
-
-  async function changeRange(next: H2HPerfRange) {
-    setRange(next);
-    await reload(sideA, sideB, next);
+    await reload(nextA, nextB, activeRange);
   }
 
   return (
@@ -178,25 +176,9 @@ export function HeadToHeadMatchCard() {
             onChange={(groupId) => void changeSide("b", groupId)}
           />
         </div>
-        <div className="h2h-card-meta">
-          <label className="h2h-range-select">
-            <span className="h2h-range-select-label">Performance</span>
-            <select
-              value={range}
-              aria-label="Performance range"
-              onChange={(event) => void changeRange(parseH2HPerfRange(event.target.value))}
-            >
-              {H2H_PERF_RANGE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>
-            {statusLabel || "Live"}
-          </span>
-        </div>
+        <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>
+          {statusLabel || "Live"}
+        </span>
       </div>
 
       {data.available && groupA && groupB ? (
