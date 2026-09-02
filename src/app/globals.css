@@ -17025,8 +17025,12 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-index-board-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
   flex-wrap: nowrap;
+  line-height: 1.2;
 }
 
 .pulse-index-board-action {
@@ -17037,7 +17041,6 @@ a.pulse-news-narrative-title:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-left: 2px;
   color: var(--amber);
   font-family: var(--font-mono);
   font-size: 0.58rem;
@@ -17530,6 +17533,20 @@ a.pulse-news-narrative-title:focus-visible {
   font-size: 0.78rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+}
+
+/* Section mark + title (Gainers, Indexes, …) — gap was lost in the dead-CSS purge. */
+.market-heatmap-shell .market-panel-header h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
 }
 
 .market-panel-header p {
