@@ -159,12 +159,19 @@ describe("Crowd aggregation", () => {
 });
 
 describe("Crowd surface wiring", () => {
-  it("keeps Crowd on the daily tab bar with campus pick / standings / community tabs", () => {
+  it("keeps Crowd on the daily tab bar with campus standings / pick / community tabs", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/crowd/page.tsx")).toContain("CrowdBoard");
     expect(read("src/components/CrowdBoard.tsx")).toContain('label: "My Pick"');
     expect(read("src/components/CrowdBoard.tsx")).toContain('label: "Standings"');
     expect(read("src/components/CrowdBoard.tsx")).toContain('label: "My Community"');
+    expect(read("src/components/CrowdBoard.tsx").indexOf('label: "Standings"')).toBeLessThan(
+      read("src/components/CrowdBoard.tsx").indexOf('label: "My Pick"'),
+    );
+    expect(read("src/components/CrowdBoard.tsx")).toContain('return "standings"');
+    expect(read("src/components/CrowdCommunityPanel.tsx")).not.toContain("crowd-community-swatch");
+    expect(read("src/components/CrowdCommunityPanel.tsx")).not.toContain(">Accent<");
+    expect(read("src/components/CrowdCommunityPanel.tsx")).toContain("primaryColor ??");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("Most held");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("Most watched");
     expect(read("src/components/Portfolio.tsx")).toContain('label: "Most held"');

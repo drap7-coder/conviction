@@ -9,6 +9,16 @@ import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/Group
 
 export const THEME_SWATCHES = ["#115740", "#0D7377", "#2E5A88", "#5B2C6F", "#C45C26", "#8B1E1E", "#D6001C"];
 
+const THEME_SWATCH_LABELS: Record<string, string> = {
+  "#115740": "Forest",
+  "#0D7377": "Teal",
+  "#2E5A88": "Navy",
+  "#5B2C6F": "Plum",
+  "#C45C26": "Copper",
+  "#8B1E1E": "Garnet",
+  "#D6001C": "Crimson",
+};
+
 type CommunitiesPayload = {
   authenticated: boolean;
   communities: Community[];
@@ -29,11 +39,14 @@ export function CommunitySettingsPanel({
   compact = false,
   onboarding = false,
   onJoined,
+  onChanged,
 }: {
   compact?: boolean;
   /** Onboarding: theme before join, search-first UX. */
   onboarding?: boolean;
   onJoined?: () => void;
+  /** Fired after any successful membership/theme mutation. */
+  onChanged?: () => void;
 }) {
   const [data, setData] = useState<CommunitiesPayload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -113,8 +126,10 @@ export function CommunitySettingsPanel({
           document.documentElement.style.setProperty("--group-accent", accent);
           setThemeColor(accent);
         }
+        onChanged?.();
       } else {
         await reload();
+        onChanged?.();
       }
       return true;
     } finally {
@@ -313,7 +328,7 @@ export function CommunitySettingsPanel({
                   type="button"
                   className={`group-theme-swatch${themeColor === swatch ? " is-selected" : ""}`}
                   style={{ background: swatch }}
-                  aria-label={`Theme ${swatch}`}
+                  aria-label={THEME_SWATCH_LABELS[swatch] ?? "Theme color"}
                   aria-pressed={themeColor === swatch}
                   disabled={busy}
                   onClick={() => handleThemePick(swatch)}

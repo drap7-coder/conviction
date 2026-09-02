@@ -79,15 +79,18 @@ describe("competition schedule", () => {
 });
 
 describe("community picks wiring", () => {
-  it("splits My Pick / Standings / My Community via Crowd SurfaceSlicer", () => {
-    expect(parseCrowdView(null)).toBe("pick");
+  it("splits Standings / My Pick / My Community via Crowd SurfaceSlicer", () => {
+    expect(parseCrowdView(null)).toBe("standings");
     expect(parseCrowdView("standings")).toBe("standings");
     expect(parseCrowdView("community")).toBe("community");
-    expect(parseCrowdView("held")).toBe("pick");
-    expect(parseCrowdView("watched")).toBe("pick");
-    expect(read("src/components/CrowdBoard.tsx")).toContain('"pick"');
+    expect(parseCrowdView("pick")).toBe("pick");
+    expect(parseCrowdView("held")).toBe("standings");
+    expect(parseCrowdView("watched")).toBe("standings");
+    expect(read("src/components/CrowdBoard.tsx")).toContain('"standings"');
     expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-standings-panel");
-    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "My Pick"');
+    expect(read("src/components/CrowdBoard.tsx").indexOf('label: "Standings"')).toBeLessThan(
+      read("src/components/CrowdBoard.tsx").indexOf('label: "My Pick"'),
+    );
     expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
     expect(read("src/components/Portfolio.tsx")).toContain("CrowdAggregateBoard");
   });

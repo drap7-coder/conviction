@@ -10,17 +10,17 @@ import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 export type CrowdTab = "pick" | "standings" | "community";
 
 const TABS: Array<{ id: CrowdTab; label: string }> = [
-  { id: "pick", label: "My Pick" },
   { id: "standings", label: "Standings" },
+  { id: "pick", label: "My Pick" },
   { id: "community", label: "My Community" },
 ];
 
-/** Parse Crowd tab from `?tab=` with legacy `?view=` fallbacks. */
+/** Parse Crowd tab from `?tab=` with legacy `?view=` fallbacks. Default: Standings. */
 export function parseCrowdView(value: string | null | undefined): CrowdTab {
   if (value === "standings" || value === "community" || value === "pick") return value;
   // Legacy Crowd aggregations moved to Portfolio.
-  if (value === "held" || value === "watched" || value === "rivalry") return "pick";
-  return "pick";
+  if (value === "held" || value === "watched" || value === "rivalry") return "standings";
+  return "standings";
 }
 
 export function CrowdBoard() {
@@ -46,7 +46,7 @@ export function CrowdBoard() {
     setTab(next);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("view");
-    if (next === "pick") {
+    if (next === "standings") {
       params.delete("tab");
     } else {
       params.set("tab", next);
@@ -65,15 +65,6 @@ export function CrowdBoard() {
         role="tablist"
       />
 
-      {tab === "pick" ? (
-        <div className="crowd-pick-panel" role="tabpanel" aria-label="My pick">
-          <CommunityPickCard variant="pick" />
-          <p className="crowd-hedge">
-            One current ticker per member. Swapping banks the old pick into your lifetime score.
-          </p>
-        </div>
-      ) : null}
-
       {tab === "standings" ? (
         <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">
           <HeadToHeadMatchCard />
@@ -81,6 +72,15 @@ export function CrowdBoard() {
           <p className="crowd-hedge">
             Campus scores are the equal-weighted average of member lifetime returns. Schools below
             the member threshold stay unranked.
+          </p>
+        </div>
+      ) : null}
+
+      {tab === "pick" ? (
+        <div className="crowd-pick-panel" role="tabpanel" aria-label="My pick">
+          <CommunityPickCard variant="pick" />
+          <p className="crowd-hedge">
+            One current ticker per member. Swapping banks the old pick into your lifetime score.
           </p>
         </div>
       ) : null}
