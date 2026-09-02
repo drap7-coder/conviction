@@ -50,14 +50,15 @@ export type HeadToHeadSchoolOption = {
 export type CompetitionViewerState =
   | { kind: "guest" }
   | { kind: "not_member"; message: string }
-  | { kind: "can_submit"; groupId: string; existingTicker?: string | null }
-  | { kind: "locked_pick"; ticker: string; returnPct: number | null; groupId: string };
+  | { kind: "member"; groupId: string };
 
 export type HeadToHeadPayload = {
   available: boolean;
+  /** Legacy weekly competition row — unused for continuous campus H2H. */
   competition: Competition | null;
   groupA: CompetitionGroupSide | null;
   groupB: CompetitionGroupSide | null;
+  /** Always "Live" for continuous campus scores. */
   statusLabel: string;
   viewer: CompetitionViewerState;
   /** Communities available in the school dropdowns. */

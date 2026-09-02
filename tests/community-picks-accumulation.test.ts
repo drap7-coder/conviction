@@ -161,11 +161,12 @@ describe("continuous accumulation wiring", () => {
     expect(read("src/components/CommunityPickCard.tsx")).not.toContain("starts fresh");
   });
 
-  it("runs competition lifecycle from daily sync without a separate competitions cron", () => {
+  it("keeps competition lifecycle available but off the daily sync path", () => {
     const vercel = JSON.parse(read("vercel.json"));
     const paths = vercel.crons.map((job: { path: string }) => job.path);
     expect(paths).toContain("/api/cron/daily-sync");
     expect(paths).not.toContain("/api/cron/competitions");
-    expect(read("src/app/api/cron/daily-sync/route.ts")).toContain("runCompetitionLifecycleTick");
+    expect(read("src/app/api/cron/daily-sync/route.ts")).not.toContain("runCompetitionLifecycleTick");
+    expect(read("src/app/api/cron/competitions/route.ts")).toContain("runCompetitionLifecycleTick");
   });
 });
