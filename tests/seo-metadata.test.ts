@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { breadcrumbJsonLd, pageMetadata, siteJsonLd } from "@/lib/seo";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_TAGLINE, SITE_TITLE, SITE_URL } from "@/lib/site";
@@ -92,9 +92,22 @@ describe("SEO metadata", () => {
     expect(read("src/app/layout.tsx")).not.toContain("iqbulls-favicon.png");
     expect(read("src/app/manifest.ts")).toContain('src: "/icon.png"');
     expect(read("src/app/manifest.ts")).toContain('src: "/apple-icon.png"');
+    expect(read("src/app/manifest.ts")).toContain('src: "/favicon-48.png"');
+    expect(read("src/app/manifest.ts")).toContain('src: "/favicon-192.png"');
+    expect(existsSync(new URL("../src/app/icon.png", import.meta.url))).toBe(true);
+    expect(existsSync(new URL("../src/app/favicon.ico", import.meta.url))).toBe(true);
+    expect(existsSync(new URL("../public/favicon-48.png", import.meta.url))).toBe(true);
     expect(read("src/app/robots.ts")).toContain('userAgent: "*"');
     expect(read("src/app/robots.ts")).toContain("sitemap.xml");
     expect(read("src/app/robots.ts")).toContain("SITE_URL");
+  });
+
+  it("keeps public account and legal pages on IQBulls, not Conviction", () => {
+    for (const path of ["src/app/signin/page.tsx", "src/app/privacy/page.tsx", "src/app/terms/page.tsx"]) {
+      const source = read(path);
+      expect(source).toContain("IQBulls");
+      expect(source).not.toContain("Conviction");
+    }
   });
 
   it("publishes Organization, WebSite, and SoftwareApplication JSON-LD plus breadcrumbs", () => {
@@ -107,9 +120,10 @@ describe("SEO metadata", () => {
     expect(site["@graph"][1]).toMatchObject({
       "@type": "WebSite",
       name: SITE_NAME,
-      alternateName: "Conviction",
       url: SITE_URL,
     });
+    expect(JSON.stringify(site)).not.toContain("Conviction");
+    expect(JSON.stringify(site)).toContain("/icon.png");
 
     const crumbs = breadcrumbJsonLd([
       { name: "Pulse", path: "/pulse" },

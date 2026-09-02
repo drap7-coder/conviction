@@ -123,7 +123,7 @@ export default async function CompanyPage({
               <section className="company-market-scope">
                 <span>Price + news view</span>
                 <p>
-                  Filing-based conviction signals do not apply to this market instrument. Use the
+                  Filing-based signal reads do not apply to this market instrument. Use the
                   live tape and catalyst feed below.
                 </p>
               </section>

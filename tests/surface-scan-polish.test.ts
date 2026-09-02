@@ -98,10 +98,11 @@ describe("surface scan polish", () => {
     expect(css).toContain(".app-title-bulls");
     expect(css).toContain(".typewriter-period");
     expect(css).toContain(".boot-sound-toggle");
-    expect(layout).toContain('src="/conviction-bull.png"');
-    expect(layout).toContain("<AnimatedTitle");
+    const header = read("src/components/AppHeader.tsx");
+    expect(header).toContain('src="/iqbulls-bull.png"');
+    expect(header).toContain("<AnimatedTitle");
     expect(layout).not.toContain("iqbulls-favicon.png");
     expect(layout).not.toContain("icons:");
-    expect(layout).toContain('aria-label="IQBulls home"');
+    expect(header).toContain('aria-label="IQBulls home"');
   });
 });

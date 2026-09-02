@@ -115,7 +115,7 @@ function ManageWorkspaceInner({
             mark={
               <img
                 className="product-stage-brand-mark"
-                src="/conviction-bull.png"
+                src="/iqbulls-bull.png"
                 alt=""
                 aria-hidden="true"
                 width={22}

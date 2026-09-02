@@ -21,7 +21,7 @@ export default function AboutPage() {
       <header className={styles.hero}>
         <img
           className={styles.brandMark}
-          src="/conviction-bull.png"
+          src="/iqbulls-bull.png"
           alt=""
           aria-hidden="true"
           width={40}

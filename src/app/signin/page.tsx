@@ -8,7 +8,7 @@ import styles from "./signin.module.css";
 
 export const metadata: Metadata = pageMetadata({
   title: "Sign in",
-  description: "Create or access your Conviction account with Google.",
+  description: "Create or access your IQBulls account with Google.",
   path: "/signin",
   index: false,
 });
@@ -43,7 +43,7 @@ export default async function SignInPage({
   return (
     <main className={styles.page}>
       <section className={styles.card} aria-labelledby="signin-title">
-        <span className={styles.eyebrow}>Your Conviction account</span>
+        <span className={styles.eyebrow}>Your IQBulls account</span>
 
         <div className={styles.copy}>
           <h1 id="signin-title">Your lists. On every device.</h1>
@@ -51,12 +51,12 @@ export default async function SignInPage({
         </div>
 
         <p className={styles.accountNote}>
-          New to Conviction? Your first sign-in creates the account automatically. No separate
+          New to IQBulls? Your first sign-in creates the account automatically. No separate
           username or password.
         </p>
 
         <p className={styles.detail}>
-          Google confirms who you are. Conviction stores your account, watchlist, and portfolio
+          Google confirms who you are. IQBulls stores your account, watchlist, and portfolio
           privately in Neon.
         </p>
 

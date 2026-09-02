@@ -25,7 +25,7 @@ export function AppHeader() {
     <header className="app-header">
       <div className="header-brand-row">
         <Link className="app-brand" href="/pulse" aria-label="IQBulls home">
-          <img alt="" aria-hidden="true" className="app-logo" src="/conviction-bull.png" />
+          <img alt="" aria-hidden="true" className="app-logo" src="/iqbulls-bull.png" />
           <AnimatedTitle />
         </Link>
         {showDesktopNav ? <DesktopNav /> : null}

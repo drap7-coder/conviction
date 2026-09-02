@@ -147,18 +147,34 @@ describe("h2h performance ranges", () => {
         },
       }),
     ).toBe(3);
+  });
+
+  it("scores Weekly/Monthly/YTD as ticker period return, not pick entry", () => {
+    // Same-day seed picks still use history open → last, not fabricated entry.
     expect(
       pickPeriodReturnPct({
         range: "1w",
-        entryPrice: 110,
-        pickedAt: "2026-03-01T15:00:00.000Z",
+        entryPrice: 50,
+        pickedAt: new Date().toISOString(),
         baseline: {
           startPrice: 100,
           startAt: "2026-02-24T14:30:00.000Z",
-          currentPrice: 121,
+          currentPrice: 110,
         },
       }),
     ).toBe(10);
+    expect(
+      pickPeriodReturnPct({
+        range: "ytd",
+        entryPrice: 200,
+        pickedAt: new Date().toISOString(),
+        baseline: {
+          startPrice: 100,
+          startAt: "2026-01-02T14:30:00.000Z",
+          currentPrice: 120,
+        },
+      }),
+    ).toBe(20);
   });
 
   it("wires a shared Performance dropdown for H2H and standings (YTD default)", () => {

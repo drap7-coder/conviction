@@ -269,7 +269,7 @@ export function InsiderActivitySection({ ticker, hideHeader = false }: InsiderAc
                 </span>
               </h3>
               <p style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", color: "var(--muted)" }}>
-                Conviction score:{" "}
+                Signal score:{" "}
                 <span className={inkChipClass(
                   netScore > 0 ? "up" : netScore < 0 ? "down" : "quiet",
                 )}>

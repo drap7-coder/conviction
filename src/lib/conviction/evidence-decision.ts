@@ -81,7 +81,7 @@ function decisionHeadline(
     return {
       stance: "against",
       headline: "The evidence is deteriorating.",
-      explanation: "Multiple independent lanes are pushing against the case. Conviction needs fresh proof before it improves.",
+      explanation: "Multiple independent lanes are pushing against the case. Fresh proof is needed before it improves.",
     };
   }
 
@@ -104,7 +104,7 @@ function decisionHeadline(
   if (mixedCount > 0) {
     return {
       stance: "mixed",
-      headline: "Conviction is not earned yet.",
+      headline: "A clear read is not earned yet.",
       explanation: "The available evidence is informative but non-directional. Wait for a cleaner confirming or disconfirming signal.",
     };
   }

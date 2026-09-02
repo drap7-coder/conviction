@@ -114,7 +114,7 @@ export function getMoveEvent(ticker: string, companyName?: string): MoveEvent {
     date: new Date().toISOString().slice(0, 10),
     headline: "No sourced same-day catalyst loaded.",
     answer:
-      "Conviction does not have a sourced same-day catalyst for this move yet.",
+      "No sourced same-day catalyst for this move yet.",
     category: "no-clear-catalyst",
     confidence: "low",
     details: [],
