@@ -29,8 +29,7 @@ import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seed
 import { listCampusSeedStudents } from "@/lib/community-picks/seed-students";
 import {
   DEFAULT_H2H_PERF_RANGE,
-  periodReturnPct,
-  resolvePickPeriodStart,
+  pickPeriodReturnPct,
   seedRangeScale,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
@@ -387,6 +386,25 @@ export async function scoreCampusSide(
   if (!isDatabaseConfigured()) {
     const students = listCampusSeedStudents().filter((row) => row.groupId === groupId);
     if (students.length === 0) return { avgReturnPct: null, pickCount: 0 };
+    const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
+    const byTicker = baselines ?? (await fetchPeriodBaselines(tickers, range));
+    const liveReturns: number[] = [];
+    for (const student of students) {
+      const ret = pickPeriodReturnPct({
+        range,
+        entryPrice: student.entryPrice,
+        pickedAt: null,
+        baseline: byTicker.get(student.ticker.toUpperCase()),
+      });
+      if (ret !== null) liveReturns.push(ret);
+    }
+    if (liveReturns.length > 0) {
+      return {
+        avgReturnPct: averageLifetimeReturnPct(liveReturns),
+        pickCount: students.length,
+      };
+    }
+    // Quotes unavailable — fall back to scaled demo so ranges still differ.
     const scale = seedRangeScale(range);
     const returns = students.map(
       (row) => Math.round((row.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
@@ -417,19 +435,13 @@ export async function scoreCampusSide(
 
   for (const row of result.rows) {
     const ticker = row.ticker.toUpperCase();
-    const baseline = byTicker.get(ticker);
-    const current = baseline?.currentPrice ?? null;
-    if (current === null) continue;
-    const entry = Number(row.entry_price);
-    const start = resolvePickPeriodStart({
-      periodStartPrice: baseline?.startPrice ?? null,
-      periodStartAt: baseline?.startAt ?? null,
-      entryPrice: entry,
+    const ret = pickPeriodReturnPct({
+      range,
+      entryPrice: Number(row.entry_price),
       pickedAt: row.picked_at?.toISOString?.() ?? null,
-      sameEtDayIsMidWindow: range === "1d",
+      baseline: byTicker.get(ticker),
     });
-    if (start === null) continue;
-    returns.push(periodReturnPct(start, current));
+    if (ret !== null) returns.push(ret);
   }
 
   return {

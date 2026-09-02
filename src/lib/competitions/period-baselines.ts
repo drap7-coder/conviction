@@ -10,6 +10,11 @@ export type PeriodBaseline = {
   startPrice: number | null;
   startAt: string | null;
   currentPrice: number | null;
+  /**
+   * Today only: brokerage session % (quote.changePercent) when Yahoo provides it.
+   * Prefer this over recomputing from spots so Campus matches ticker boards.
+   */
+  sessionReturnPct?: number | null;
 };
 
 function historyRangeForPerf(range: H2HPerfRange): StockHistoryRange {
@@ -73,13 +78,29 @@ export async function fetchPeriodBaselines(
 /** Today = regular session result vs prior close (brokerage “Today %”). */
 function baselineFromTodayQuote(quote: StockQuote | undefined): PeriodBaseline {
   if (!quote) {
-    return { startPrice: null, startAt: null, currentPrice: null };
+    return { startPrice: null, startAt: null, currentPrice: null, sessionReturnPct: null };
   }
   // Prefer live last; fall back to previous close so a quiet tape still scores 0%.
   const current = quote.price ?? quote.previousClose;
+  const start = quote.previousClose;
+  const currentOk = current !== null && Number.isFinite(current) && current > 0;
+  let sessionReturnPct: number | null =
+    typeof quote.changePercent === "number" && Number.isFinite(quote.changePercent)
+      ? Math.round(quote.changePercent * 100) / 100
+      : null;
+  if (
+    sessionReturnPct === null &&
+    start !== null &&
+    Number.isFinite(start) &&
+    start > 0 &&
+    currentOk
+  ) {
+    sessionReturnPct = Math.round(((current! - start) / start) * 10000) / 100;
+  }
   return {
-    startPrice: quote.previousClose,
+    startPrice: start,
     startAt: null,
-    currentPrice: current !== null && Number.isFinite(current) && current > 0 ? current : null,
+    currentPrice: currentOk ? current : null,
+    sessionReturnPct,
   };
 }
