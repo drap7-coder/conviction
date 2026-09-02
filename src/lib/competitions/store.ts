@@ -24,13 +24,20 @@ import {
 } from "@/lib/competitions/schedule";
 import {
   averageLifetimeReturnPct,
-  lifetimeReturnPct,
-  totalGrowthFactor,
-  activeGrowthFactor,
 } from "@/lib/community-picks/growth";
 import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seeds";
 import { listCampusSeedStudents } from "@/lib/community-picks/seed-students";
-import { fetchStockQuotes } from "@/lib/market/quotes";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  periodReturnPct,
+  resolvePickPeriodStart,
+  seedRangeScale,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
+import {
+  fetchPeriodBaselines,
+  type PeriodBaseline,
+} from "@/lib/competitions/period-baselines";
 
 type GroupLogoMeta = {
   name: string;
@@ -369,16 +376,21 @@ export async function listPicksForCompetition(competitionId: string): Promise<Co
   return result.rows.map((row) => mapPick(row));
 }
 
-/** Continuous campus lifetime scores for a school (My Pick / community_picks). */
+/** Campus My Pick averages over a performance window (default YTD). */
 export async function scoreCampusSide(
   groupId: string,
+  range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
+  baselines?: Map<string, PeriodBaseline>,
 ): Promise<{ avgReturnPct: number | null; pickCount: number }> {
   if (!groupId) return { avgReturnPct: null, pickCount: 0 };
 
   if (!isDatabaseConfigured()) {
     const students = listCampusSeedStudents().filter((row) => row.groupId === groupId);
     if (students.length === 0) return { avgReturnPct: null, pickCount: 0 };
-    const returns = students.map((row) => (row.bankedGrowthFactor - 1) * 100);
+    const scale = seedRangeScale(range);
+    const returns = students.map(
+      (row) => Math.round((row.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
+    );
     return {
       avgReturnPct: averageLifetimeReturnPct(returns),
       pickCount: students.length,
@@ -390,9 +402,9 @@ export async function scoreCampusSide(
   const result = await query<{
     ticker: string;
     entry_price: string;
-    banked_growth_factor: string;
+    picked_at: Date;
   }>(
-    `select ticker, entry_price, banked_growth_factor
+    `select ticker, entry_price, picked_at
      from community_picks
      where group_id = $1`,
     [groupId],
@@ -400,19 +412,24 @@ export async function scoreCampusSide(
   if (result.rows.length === 0) return { avgReturnPct: null, pickCount: 0 };
 
   const tickers = [...new Set(result.rows.map((row) => row.ticker.toUpperCase()))];
-  const quotes = await fetchStockQuotes(tickers);
-  const byTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
+  const byTicker = baselines ?? (await fetchPeriodBaselines(tickers, range));
   const returns: number[] = [];
 
   for (const row of result.rows) {
-    const quote = byTicker.get(row.ticker.toUpperCase());
-    const current = quote?.price ?? quote?.previousClose ?? null;
-    if (current === null || !Number.isFinite(current) || current <= 0) continue;
+    const ticker = row.ticker.toUpperCase();
+    const baseline = byTicker.get(ticker);
+    const current = baseline?.currentPrice ?? null;
+    if (current === null) continue;
     const entry = Number(row.entry_price);
-    const banked = Number(row.banked_growth_factor);
-    if (!Number.isFinite(entry) || entry <= 0) continue;
-    const total = totalGrowthFactor(banked, activeGrowthFactor(entry, current));
-    returns.push(lifetimeReturnPct(total));
+    const start = resolvePickPeriodStart({
+      periodStartPrice: baseline?.startPrice ?? null,
+      periodStartAt: baseline?.startAt ?? null,
+      entryPrice: entry,
+      pickedAt: row.picked_at?.toISOString?.() ?? null,
+      sameEtDayIsMidWindow: range === "1d",
+    });
+    if (start === null) continue;
+    returns.push(periodReturnPct(start, current));
   }
 
   return {
@@ -498,7 +515,9 @@ export async function buildHeadToHeadPayload(input: {
   userId?: string;
   groupAId?: string | null;
   groupBId?: string | null;
+  range?: H2HPerfRange | null;
 }): Promise<HeadToHeadPayload> {
+  const range = input.range ?? DEFAULT_H2H_PERF_RANGE;
   const schools = await listHeadToHeadSchools();
   const primaryGroup = input.userId ? await getPrimaryGroupForUser(input.userId) : null;
   const viewerPrimaryGroupId = primaryGroup?.id ?? null;
@@ -522,17 +541,20 @@ export async function buildHeadToHeadPayload(input: {
     viewer,
     schools,
     viewerPrimaryGroupId,
+    range,
   });
 
   if (!groupAId || !groupBId || groupAId === groupBId) {
     return empty(input.userId ? { kind: "not_member", message: "Pick two schools to compare." } : { kind: "guest" });
   }
 
+  const sharedBaselines = await loadSharedBaselinesForGroups([groupAId, groupBId], range);
+
   const [metaA, metaB, campusA, campusB] = await Promise.all([
     groupMeta(groupAId),
     groupMeta(groupBId),
-    scoreCampusSide(groupAId),
-    scoreCampusSide(groupBId),
+    scoreCampusSide(groupAId, range, sharedBaselines),
+    scoreCampusSide(groupBId, range, sharedBaselines),
   ]);
 
   const groupA: CompetitionGroupSide = {
@@ -580,5 +602,24 @@ export async function buildHeadToHeadPayload(input: {
     viewer,
     schools,
     viewerPrimaryGroupId,
+    range,
   };
+}
+
+async function loadSharedBaselinesForGroups(
+  groupIds: string[],
+  range: H2HPerfRange,
+): Promise<Map<string, PeriodBaseline> | undefined> {
+  if (!isDatabaseConfigured()) return undefined;
+  await ensureCampusPickSeedsIfNeeded().catch(() => undefined);
+  const ids = groupIds.filter(Boolean);
+  if (ids.length === 0) return undefined;
+
+  const result = await query<{ ticker: string }>(
+    `select distinct ticker from community_picks where group_id = any($1::text[])`,
+    [ids],
+  );
+  const tickers = result.rows.map((row) => row.ticker);
+  if (tickers.length === 0) return new Map();
+  return fetchPeriodBaselines(tickers, range);
 }

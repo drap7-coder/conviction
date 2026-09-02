@@ -20718,6 +20718,45 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 12px;
 }
 
+.h2h-card-meta {
+  display: grid;
+  gap: 8px;
+  justify-items: end;
+  flex-shrink: 0;
+}
+
+.h2h-range-select {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.h2h-range-select-label {
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.h2h-range-select select {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--card-soft);
+  color: var(--ink);
+  border-radius: 8px;
+  padding: 6px 28px 6px 10px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
 .h2h-rivalry {
   display: flex;
   flex-wrap: wrap;

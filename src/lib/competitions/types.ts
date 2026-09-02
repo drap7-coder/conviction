@@ -1,3 +1,5 @@
+import type { H2HPerfRange } from "@/lib/competitions/perf-range";
+
 export type CompetitionStatus = "open" | "live" | "final" | "archived";
 
 export type Competition = {
@@ -65,4 +67,6 @@ export type HeadToHeadPayload = {
   schools: HeadToHeadSchoolOption[];
   /** Viewer's primary community group id when signed in + joined. */
   viewerPrimaryGroupId: string | null;
+  /** Performance window used for avgReturnPct (default ytd). */
+  range: H2HPerfRange;
 };

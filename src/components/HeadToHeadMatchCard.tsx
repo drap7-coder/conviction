@@ -3,6 +3,12 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  H2H_PERF_RANGE_OPTIONS,
+  parseH2HPerfRange,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
 import type {
   HeadToHeadPayload,
   HeadToHeadSchoolOption,
@@ -78,20 +84,23 @@ function SchoolSideSelect({
   );
 }
 
-/** Continuous campus vs campus scoreboard — lifetime My Pick averages, no weekly window. */
+/** Continuous campus vs campus scoreboard — period My Pick averages with range control. */
 export function HeadToHeadMatchCard() {
   const [data, setData] = useState<HeadToHeadPayload | null>(null);
   const [sideA, setSideA] = useState<string>("");
   const [sideB, setSideB] = useState<string>("");
+  const [range, setRange] = useState<H2HPerfRange>(DEFAULT_H2H_PERF_RANGE);
 
-  async function reload(nextA?: string, nextB?: string) {
+  async function reload(nextA?: string, nextB?: string, nextRange?: H2HPerfRange) {
     const a = nextA ?? sideA;
     const b = nextB ?? sideB;
+    const perfRange = nextRange ?? range;
     const params = new URLSearchParams();
     if (a) params.set("a", a);
     if (b) params.set("b", b);
+    params.set("range", perfRange);
     const qs = params.toString();
-    const res = await fetch(`/api/competitions/active${qs ? `?${qs}` : ""}`, {
+    const res = await fetch(`/api/competitions/active?${qs}`, {
       cache: "no-store",
       credentials: "include",
     });
@@ -100,11 +109,12 @@ export function HeadToHeadMatchCard() {
     setData(payload);
     if (payload.groupA?.groupId) setSideA(payload.groupA.groupId);
     if (payload.groupB?.groupId) setSideB(payload.groupB.groupId);
+    setRange(parseH2HPerfRange(payload.range));
   }
 
   useEffect(() => {
     void reload();
-    // Initial load only — subsequent reloads pass explicit sides.
+    // Initial load only — subsequent reloads pass explicit sides/range.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -140,7 +150,12 @@ export function HeadToHeadMatchCard() {
     if (!nextA || !nextB || nextA === nextB) return;
     setSideA(nextA);
     setSideB(nextB);
-    await reload(nextA, nextB);
+    await reload(nextA, nextB, range);
+  }
+
+  async function changeRange(next: H2HPerfRange) {
+    setRange(next);
+    await reload(sideA, sideB, next);
   }
 
   return (
@@ -163,9 +178,25 @@ export function HeadToHeadMatchCard() {
             onChange={(groupId) => void changeSide("b", groupId)}
           />
         </div>
-        <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>
-          {statusLabel || "Live"}
-        </span>
+        <div className="h2h-card-meta">
+          <label className="h2h-range-select">
+            <span className="h2h-range-select-label">Performance</span>
+            <select
+              value={range}
+              aria-label="Performance range"
+              onChange={(event) => void changeRange(parseH2HPerfRange(event.target.value))}
+            >
+              {H2H_PERF_RANGE_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>
+            {statusLabel || "Live"}
+          </span>
+        </div>
       </div>
 
       {data.available && groupA && groupB ? (
