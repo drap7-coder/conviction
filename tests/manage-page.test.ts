@@ -55,7 +55,7 @@ describe("data management workspace", () => {
     expect(workspace).not.toContain("Jump to add");
     expect(css).toContain(".data-manage-deck");
     expect(workspace).toContain("product-stage-brand-mark");
-    expect(workspace).toContain("/conviction-bull.png");
+    expect(workspace).toContain("/iqbulls-bull.png");
     expect(stage).toContain("mark ??");
     expect(css).toContain(".data-manage-hero-cta");
     expect(css).toContain(".data-manage-hero .product-stage");
@@ -173,7 +173,6 @@ describe("logo + position formatting consistency", () => {
     expect(read("src/app/components/CompanyQuoteCard.tsx")).toContain("LogoDisplay");
     expect(read("src/components/market/MarketMoversBoard.tsx")).toContain("LogoDisplay");
     expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("LogoDisplay");
-    expect(read("src/app/components/InvestorMovesPanel.tsx")).toContain("LogoDisplay");
   });
 
   it("formats holding figures with shared display helpers", () => {

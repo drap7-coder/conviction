@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const migrations = await applyMigrations();
-    await ensureCommunitySchema();
+    await ensureCommunitySchema({ includeDirectory: true });
     return NextResponse.json({
       success: true,
       migrations,

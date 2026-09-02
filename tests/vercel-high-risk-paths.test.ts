@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { spotFromQuote } from "@/lib/community-picks/pricing";
 import type { StockQuote } from "@/lib/market/quotes";
 import { CROWD_SEED_BOOKS } from "@/lib/crowd/seed-books";
@@ -109,5 +109,41 @@ describe("Vercel high-risk path fixes", () => {
     expect(brief).toContain("/api/conviction/score");
     // Must not auto-fetch on mount — only when expanded.
     expect(brief).not.toMatch(/useEffect\(\(\) => \{[\s\S]*void load\(\);[\s\S]*\}, \[ticker\]\)/);
+  });
+
+  it("deletes dead high-cost Smart Money / evidence surfaces", () => {
+    expect(existsSync(new URL("../src/app/components/InvestorMovesPanel.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/market/investor-moves/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/evidence/institutional/emerging/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/evidence/news-batch/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/evidence/move/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/knowledge/route.ts", import.meta.url))).toBe(false);
+    expect(read("src/lib/sec/institutional.ts")).not.toContain("getInstitutionalMarketIdeas");
+  });
+
+  it("keeps guests off /api/groups on every page load", () => {
+    const accent = read("src/components/GroupAccentProvider.tsx");
+    expect(accent).toContain("hasSessionCookie");
+    expect(accent).toContain("if (!hasSessionCookie()) return");
+    const onboarding = read("src/components/GroupPanels.tsx");
+    expect(onboarding).toContain("hasSessionCookie");
+    expect(onboarding).not.toContain("visibilitychange");
+  });
+
+  it("skips NCAA directory upsert on hot community schema ensures", () => {
+    const schema = read("src/lib/db/ensure-community-schema.ts");
+    expect(schema).toContain("includeDirectory");
+    expect(schema).toContain("ensureNcaaInstitutionDirectory");
+    expect(read("src/app/api/groups/route.ts")).toContain("includeDirectory: includeCatalog");
+    expect(read("src/app/api/institutions/search/route.ts")).toContain("includeDirectory: true");
+    expect(read("src/app/api/admin/migrate/route.ts")).toContain("includeDirectory: true");
+  });
+
+  it("ranks trending from quotes only — no per-ticker history fan-out", () => {
+    const trending = read("src/lib/market/trending.ts");
+    expect(trending).not.toContain("fetchStockHistory");
+    expect(trending).not.toContain("validateTicker");
+    expect(trending).toContain("quote.sparkline");
+    expect(trending).toContain("fetchStockQuotes");
   });
 });

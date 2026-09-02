@@ -4,13 +4,24 @@ import { ensureSeedGroups, ensureSeedInstitutions } from "@/lib/groups/store";
 import { ensureNcaaInstitutionDirectory } from "@/lib/groups/institution-directory";
 
 let ready: Promise<void> | null = null;
+let directoryReady: Promise<void> | null = null;
+
+export type EnsureCommunitySchemaOptions = {
+  /**
+   * Upsert the full NCAA directory (~1k schools). Expensive on cold process —
+   * only needed for institution search / join / admin migrate, not hot GETs.
+   */
+  includeDirectory?: boolean;
+};
 
 /**
  * Idempotent: apply pending SQL migrations when community tables are missing,
- * then upsert platform seed institutions/groups. Safe to call on every
- * /api/groups request — runs migrations at most once per process.
+ * then upsert platform seed institutions/groups. Safe to call on community
+ * routes — runs migrations at most once per process.
  */
-export async function ensureCommunitySchema(): Promise<void> {
+export async function ensureCommunitySchema(
+  options: EnsureCommunitySchemaOptions = {},
+): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
   if (!ready) {
@@ -26,7 +37,6 @@ export async function ensureCommunitySchema(): Promise<void> {
       }
       await ensureSeedInstitutions();
       await ensureSeedGroups();
-      await ensureNcaaInstitutionDirectory();
     })().catch((error) => {
       ready = null;
       throw error;
@@ -34,6 +44,16 @@ export async function ensureCommunitySchema(): Promise<void> {
   }
 
   await ready;
+
+  if (options.includeDirectory) {
+    if (!directoryReady) {
+      directoryReady = ensureNcaaInstitutionDirectory().catch((error) => {
+        directoryReady = null;
+        throw error;
+      });
+    }
+    await directoryReady;
+  }
 }
 
 export function formatCommunityDbError(error: unknown): string {

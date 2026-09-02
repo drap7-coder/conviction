@@ -340,13 +340,9 @@ interface HoldingMatch {
 }
 
 const filingCache = new Map<string, { filing: InstitutionalFiling; cachedAt: number }>();
-let marketIdeasCache: { result: InstitutionalMarketResult; cachedAt: number } | null = null;
-let marketIdeasInFlight: Promise<InstitutionalMarketResult> | null = null;
 
 export function clearInstitutionalCache() {
   filingCache.clear();
-  marketIdeasCache = null;
-  marketIdeasInFlight = null;
 }
 
 export function getInstitutionalFilingCacheKey(managerCik: string, quarter: string) {
@@ -794,70 +790,4 @@ export function buildInstitutionalMarketIdeas(
       moves: moves.slice(0, 4),
     }];
   }).sort((a, b) => b.score - a.score || a.ticker.localeCompare(b.ticker));
-}
-
-export async function getInstitutionalMarketIdeas(
-  options: { forceRefresh?: boolean } = {},
-): Promise<InstitutionalMarketResult> {
-  if (
-    !options.forceRefresh &&
-    marketIdeasCache &&
-    Date.now() - marketIdeasCache.cachedAt < CACHE_TTL_MS
-  ) {
-    return marketIdeasCache.result;
-  }
-
-  if (!options.forceRefresh && marketIdeasInFlight) {
-    return marketIdeasInFlight;
-  }
-
-  const request = buildInstitutionalMarketResult(options);
-  if (!options.forceRefresh) marketIdeasInFlight = request;
-
-  try {
-    return await request;
-  } finally {
-    if (marketIdeasInFlight === request) marketIdeasInFlight = null;
-  }
-}
-
-async function buildInstitutionalMarketResult(
-  options: { forceRefresh?: boolean },
-): Promise<InstitutionalMarketResult> {
-  const snapshots = (await Promise.all(
-    INSTITUTIONAL_MANAGERS.map(async (manager): Promise<InstitutionalManagerSnapshot | null> => {
-      const filings = await fetchManagerSubmissions(manager);
-      if (filings.length < 1) return null;
-      const [latest, previous] = await Promise.all([
-        getParsedFiling(manager, filings[0], options.forceRefresh),
-        filings[1]
-          ? getParsedFiling(manager, filings[1], options.forceRefresh)
-          : Promise.resolve(null),
-      ]);
-      if (!latest) return null;
-      return { manager, latest, previous };
-    }),
-  )).filter((snapshot): snapshot is InstitutionalManagerSnapshot => snapshot !== null);
-
-  const ideas = buildInstitutionalMarketIdeas(snapshots);
-  const result: InstitutionalMarketResult = {
-    ideas,
-    managerCount: snapshots.length,
-    filingQuarter: snapshots.reduce<string | null>(
-      (latest, snapshot) => !latest || snapshot.latest.quarter > latest
-        ? snapshot.latest.quarter
-        : latest,
-      null,
-    ),
-    latestFilingDate: snapshots.reduce<string | null>(
-      (latest, snapshot) => !latest || snapshot.latest.filingDate > latest
-        ? snapshot.latest.filingDate
-        : latest,
-      null,
-    ),
-    fetchedAt: new Date().toISOString(),
-    source: "sec-13f",
-  };
-  marketIdeasCache = { result, cachedAt: Date.now() };
-  return result;
 }

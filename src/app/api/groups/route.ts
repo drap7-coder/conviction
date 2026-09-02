@@ -30,7 +30,7 @@ export async function GET(request: Request) {
   const institutionSlug = searchParams.get("institution")?.trim().toLowerCase() ?? "";
   const includeCatalog = searchParams.get("include") === "catalog" || Boolean(institutionSlug);
 
-  await ensureCommunitySchema().catch(() => undefined);
+  await ensureCommunitySchema({ includeDirectory: includeCatalog }).catch(() => undefined);
 
   const [institutions, communities, memberships] = await Promise.all([
     includeCatalog ? listInstitutions() : Promise.resolve([]),
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await ensureCommunitySchema();
+    await ensureCommunitySchema({ includeDirectory: true });
 
     if (body.action === "create") {
       return NextResponse.json(

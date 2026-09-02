@@ -5,7 +5,7 @@ import type { InstitutionSearchSuggestion } from "@/lib/groups/institution-direc
 import type { Community, UserCommunityMembership } from "@/lib/groups/types";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import { SchoolTypeahead } from "@/components/SchoolTypeahead";
-import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
+import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY, hasSessionCookie } from "@/components/GroupAccentProvider";
 
 export const THEME_SWATCHES = ["#115740", "#0D7377", "#2E5A88", "#5B2C6F", "#C45C26", "#8B1E1E", "#D6001C"];
 
@@ -385,6 +385,8 @@ export function GroupOnboardingPrompt() {
   const evaluate = useCallback(async () => {
     if (typeof window === "undefined") return;
     if (window.localStorage.getItem(SKIP_ONBOARDING_KEY)) return;
+    // Guests never need onboarding — skip the membership probe.
+    if (!hasSessionCookie()) return;
     try {
       const res = await fetch("/api/groups", { cache: "no-store", credentials: "include" });
       if (!res.ok) return;
@@ -397,16 +399,7 @@ export function GroupOnboardingPrompt() {
 
   useEffect(() => {
     void evaluate();
-    const onFocus = () => void evaluate();
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") void evaluate();
-    };
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisibility);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisibility);
-    };
+    // Once per mount — do not re-hit /api/groups on every focus/visibility.
   }, [evaluate]);
 
   useEffect(() => {

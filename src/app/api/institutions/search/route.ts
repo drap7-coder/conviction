@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 /** Canonical institution directory search — all NCAA schools, any activation state. */
 export async function GET(request: NextRequest) {
-  await ensureCommunitySchema().catch(() => undefined);
+  await ensureCommunitySchema({ includeDirectory: true }).catch(() => undefined);
 
   const q = request.nextUrl.searchParams.get("q")?.trim() ?? "";
   if (!q) {
