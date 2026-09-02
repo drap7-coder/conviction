@@ -35,6 +35,14 @@ export async function GET(request: NextRequest) {
     // behind Vercel Authentication and return 401 SSO challenges on fetch.
     const origin = SITE_URL;
 
+    const { runCompetitionLifecycleTick } = await import("@/lib/competitions/lifecycle");
+    const competitionTick = await runCompetitionLifecycleTick().catch((error) => ({
+      locked: 0,
+      synced: 0,
+      settled: 0,
+      error: error instanceof Error ? error.message : String(error),
+    }));
+
     const response = await fetch(`${origin}/api/evidence/refresh`, {
       method: "POST",
       headers: {
@@ -47,7 +55,7 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       const text = await response.text();
       return NextResponse.json(
-        { success: false, error: `Refresh returned ${response.status}`, detail: text },
+        { success: false, error: `Refresh returned ${response.status}`, detail: text, competitionTick },
         { status: 502 },
       );
     }
@@ -60,6 +68,7 @@ export async function GET(request: NextRequest) {
       note: "Vercel Hobby: max once per day. Upgrade to Pro for sub-daily schedules.",
       results: data.summary,
       lruOrder: data.summary?.lruOrder,
+      competitionTick,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {

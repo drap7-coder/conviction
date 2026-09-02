@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { parseCrowdView } from "@/components/CrowdBoard";
 import { computeReturnPct, computeSideScore } from "@/lib/competitions/scores";
 import { weekWindowContaining } from "@/lib/competitions/schedule";
-import { pickDefaultH2HPair, RIVALRY_PAIRS } from "@/lib/competitions/store";
+import { canonicalCompetitionSlug, pickDefaultH2HPair, RIVALRY_PAIRS } from "@/lib/competitions/store";
 import type { CompetitionPick, HeadToHeadSchoolOption } from "@/lib/competitions/types";
 
 const H2H_SCHOOLS: HeadToHeadSchoolOption[] = [
@@ -129,8 +129,16 @@ describe("community picks wiring", () => {
       groupAId: "group-wm",
       groupBId: "group-rpi",
     });
+    expect(canonicalCompetitionSlug("group-wm", "group-rpi")).toBe("wm-rpi");
+    expect(canonicalCompetitionSlug("group-rpi", "group-wm")).toBe("wm-rpi");
+    expect(canonicalCompetitionSlug("group-duke", "group-virginia")).toBe(
+      canonicalCompetitionSlug("group-virginia", "group-duke"),
+    );
     expect(read("src/lib/competitions/store.ts")).toContain("listHeadToHeadSchools");
-    expect(read("src/lib/competitions/store.ts")).toContain("getOrCreateCompetitionForPair");
+    expect(read("src/lib/competitions/store.ts")).toContain("scoreCampusSide");
+    expect(read("src/lib/competitions/store.ts")).toContain("refreshCompetitionScores");
+    expect(read("src/lib/competitions/refresh.ts")).toContain("refreshCompetitionScores");
+    expect(read("src/app/api/cron/daily-sync/route.ts")).toContain("runCompetitionLifecycleTick");
     expect(read("src/lib/competitions/types.ts")).toContain("viewerPrimaryGroupId");
     expect(read("src/app/api/competitions/active/route.ts")).toContain('searchParams.get("a")');
     expect(read("src/app/api/competitions/active/route.ts")).toContain('searchParams.get("b")');
