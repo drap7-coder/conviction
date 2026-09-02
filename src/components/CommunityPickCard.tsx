@@ -40,7 +40,12 @@ async function loadCommunityPicksPayload(): Promise<CommunityPicksPayload> {
   return response.json() as Promise<CommunityPicksPayload>;
 }
 
-export function CommunityPickCard() {
+export function CommunityPickCard({
+  variant = "full",
+}: {
+  /** pick = editor only; standings = board only; full = both (legacy). */
+  variant?: "pick" | "standings" | "full";
+}) {
   const [data, setData] = useState<CommunityPicksPayload | null>(null);
   const [ticker, setTicker] = useState("");
   const [busy, setBusy] = useState(false);
@@ -134,160 +139,172 @@ export function CommunityPickCard() {
     );
   }
 
+  const showPick = variant === "pick" || variant === "full";
+  const showStandings = variant === "standings" || variant === "full";
+
   return (
-    <section className="surface-shell community-pick-card" aria-label="Community picks">
-      <div className="community-pick-head">
-        <div>
-          <p className="community-pick-eyebrow">Your community pick</p>
-          <h2>{data.viewerGroup?.name ?? "Choose a community"}</h2>
-        </div>
-        {data.viewerPick ? (
-          <div className="community-pick-current">
-            <strong>{data.viewerPick.ticker}</strong>
-            <span className={`is-${returnTone(data.viewerPick.lifetimeReturnPct)}`}>
-              {formatReturn(data.viewerPick.lifetimeReturnPct)}
-            </span>
-          </div>
-        ) : null}
-      </div>
-
-      {!data.authenticated ? (
-        <Link href="/signin" className="brief-link">Sign in to pick a stock</Link>
-      ) : !data.viewerGroup ? (
-        <p className="community-pick-note">Join a community above to pick a stock.</p>
-      ) : data.viewerPick ? (
-        <div className="community-pick-metrics">
-          <div>
-            <span className="community-pick-metric-label">Active ticker</span>
-            <strong>{data.viewerPick.ticker}</strong>
-            <small>from ${data.viewerPick.entryPrice.toFixed(2)}</small>
-          </div>
-          <div>
-            <span className="community-pick-metric-label">Current pick</span>
-            <strong className={`is-${returnTone(data.viewerPick.activeReturnPct)}`}>
-              {formatReturn(data.viewerPick.activeReturnPct)}
-            </strong>
-          </div>
-          <div>
-            <span className="community-pick-metric-label">Lifetime score</span>
-            <strong className={`is-${returnTone(data.viewerPick.lifetimeReturnPct)}`}>
-              {formatReturn(data.viewerPick.lifetimeReturnPct)}
-            </strong>
-          </div>
-          <div>
-            <span className="community-pick-metric-label">Started</span>
-            <strong>{formatStartedAt(data.viewerPick.pickedAt)}</strong>
-          </div>
-        </div>
-      ) : null}
-
-      {data.authenticated && data.viewerGroup ? (
-        <div className="community-pick-editor">
-          <div className="community-pick-editor-head">
-            <h3>{hasExistingPick ? "Change your pick" : "Set your pick"}</h3>
-            {hasExistingPick ? (
-              <span className="community-pick-editor-current">
-                Active: <strong>{data.viewerPick?.ticker}</strong>
-              </span>
+    <section
+      className="surface-shell community-pick-card"
+      aria-label={variant === "standings" ? "Community standings" : "Community picks"}
+    >
+      {showPick ? (
+        <>
+          <div className="community-pick-head">
+            <div>
+              <p className="community-pick-eyebrow">Your community pick</p>
+              <h2>{data.viewerGroup?.name ?? "Choose a community"}</h2>
+            </div>
+            {data.viewerPick ? (
+              <div className="community-pick-current">
+                <strong>{data.viewerPick.ticker}</strong>
+                <span className={`is-${returnTone(data.viewerPick.lifetimeReturnPct)}`}>
+                  {formatReturn(data.viewerPick.lifetimeReturnPct)}
+                </span>
+              </div>
             ) : null}
           </div>
 
-          <label className="community-pick-editor-field">
-            <span>{hasExistingPick ? "New ticker" : "Ticker"}</span>
-            <input
-              value={ticker}
-              onChange={(event) => {
-                setTicker(event.target.value.toUpperCase());
-                setError(null);
-                setSuccess(null);
-              }}
-              placeholder="AAPL"
-              autoComplete="off"
-              spellCheck={false}
-              inputMode="text"
-              aria-describedby="community-pick-action-hint"
-              disabled={busy}
-            />
-          </label>
-
-          <p id="community-pick-action-hint" className="community-pick-editor-hint">
-            {actionHint}
-          </p>
-
-          <button
-            type="button"
-            className="watchlist-add-button community-pick-action"
-            disabled={busy || !canSubmit}
-            aria-busy={busy}
-            onClick={() => void submitTicker()}
-          >
-            {actionLabel}
-          </button>
-
-          {success ? (
-            <p className="community-pick-success" role="status">
-              {success}
-            </p>
+          {!data.authenticated ? (
+            <Link href="/signin" className="brief-link">Sign in to pick a stock</Link>
+          ) : !data.viewerGroup ? (
+            <p className="community-pick-note">Join a community to pick a stock.</p>
+          ) : data.viewerPick ? (
+            <div className="community-pick-metrics">
+              <div>
+                <span className="community-pick-metric-label">Active ticker</span>
+                <strong>{data.viewerPick.ticker}</strong>
+                <small>from ${data.viewerPick.entryPrice.toFixed(2)}</small>
+              </div>
+              <div>
+                <span className="community-pick-metric-label">Current pick</span>
+                <strong className={`is-${returnTone(data.viewerPick.activeReturnPct)}`}>
+                  {formatReturn(data.viewerPick.activeReturnPct)}
+                </strong>
+              </div>
+              <div>
+                <span className="community-pick-metric-label">Lifetime score</span>
+                <strong className={`is-${returnTone(data.viewerPick.lifetimeReturnPct)}`}>
+                  {formatReturn(data.viewerPick.lifetimeReturnPct)}
+                </strong>
+              </div>
+              <div>
+                <span className="community-pick-metric-label">Started</span>
+                <strong>{formatStartedAt(data.viewerPick.pickedAt)}</strong>
+              </div>
+            </div>
           ) : null}
-          {error ? (
-            <p className="community-pick-error h2h-error" role="alert">
-              {error}
-            </p>
+
+          {data.authenticated && data.viewerGroup ? (
+            <div className="community-pick-editor">
+              <div className="community-pick-editor-head">
+                <h3>{hasExistingPick ? "Change your pick" : "Set your pick"}</h3>
+                {hasExistingPick ? (
+                  <span className="community-pick-editor-current">
+                    Active: <strong>{data.viewerPick?.ticker}</strong>
+                  </span>
+                ) : null}
+              </div>
+
+              <label className="community-pick-editor-field">
+                <span>{hasExistingPick ? "New ticker" : "Ticker"}</span>
+                <input
+                  value={ticker}
+                  onChange={(event) => {
+                    setTicker(event.target.value.toUpperCase());
+                    setError(null);
+                    setSuccess(null);
+                  }}
+                  placeholder="AAPL"
+                  autoComplete="off"
+                  spellCheck={false}
+                  inputMode="text"
+                  aria-describedby="community-pick-action-hint"
+                  disabled={busy}
+                />
+              </label>
+
+              <p id="community-pick-action-hint" className="community-pick-editor-hint">
+                {actionHint}
+              </p>
+
+              <button
+                type="button"
+                className="watchlist-add-button community-pick-action"
+                disabled={busy || !canSubmit}
+                aria-busy={busy}
+                onClick={() => void submitTicker()}
+              >
+                {actionLabel}
+              </button>
+
+              {success ? (
+                <p className="community-pick-success" role="status">
+                  {success}
+                </p>
+              ) : null}
+              {error ? (
+                <p className="community-pick-error h2h-error" role="alert">
+                  {error}
+                </p>
+              ) : null}
+            </div>
           ) : null}
-        </div>
-      ) : null}
 
-      {data.pickHistory.length > 0 ? (
-        <div className="community-pick-history">
-          <h3>Closed picks</h3>
-          <ol>
-            {data.pickHistory.map((entry) => (
-              <li key={`${entry.ticker}-${entry.closedAt}`}>
-                <strong>{entry.ticker}</strong>
-                <span className={`is-${returnTone(entry.pickReturnPct)}`}>
-                  {formatReturn(entry.pickReturnPct)}
-                </span>
-              </li>
-            ))}
-          </ol>
-        </div>
-      ) : null}
-
-      <div className="community-standings">
-        <div className="community-standings-head">
-          <h3>Community standings</h3>
-          <span>Average lifetime return</span>
-        </div>
-        {data.standings.length === 0 ? (
-          <p className="crowd-empty">Standings begin with the first community pick.</p>
-        ) : (
-          <ol>
-            {(() => {
-              let rank = 0;
-              return data.standings.map((standing) => {
-                if (standing.ranked) rank += 1;
-                return (
-                  <li key={standing.groupId} className={standing.ranked ? undefined : "is-unranked"}>
-                    <span className="community-standing-rank">
-                      {standing.ranked ? rank : "—"}
+          {data.pickHistory.length > 0 ? (
+            <div className="community-pick-history">
+              <h3>Closed picks</h3>
+              <ol>
+                {data.pickHistory.map((entry) => (
+                  <li key={`${entry.ticker}-${entry.closedAt}`}>
+                    <strong>{entry.ticker}</strong>
+                    <span className={`is-${returnTone(entry.pickReturnPct)}`}>
+                      {formatReturn(entry.pickReturnPct)}
                     </span>
-                    <span className="community-standing-name">
-                      <strong>{standing.name}</strong>
-                      <small>
-                        {standing.pickCount} {standing.pickCount === 1 ? "member" : "members"}
-                        {!standing.ranked && standing.pickCount > 0 ? " · unranked" : ""}
-                      </small>
-                    </span>
-                    <strong className={`community-standing-return is-${returnTone(standing.avgLifetimeReturnPct)}`}>
-                      {formatReturn(standing.avgLifetimeReturnPct)}
-                    </strong>
                   </li>
-                );
-              });
-            })()}
-          </ol>
-        )}
-      </div>
+                ))}
+              </ol>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
+      {showStandings ? (
+        <div className={`community-standings${showPick ? "" : " is-standalone"}`}>
+          <div className="community-standings-head">
+            <h3>Community standings</h3>
+            <span>Average lifetime return</span>
+          </div>
+          {data.standings.length === 0 ? (
+            <p className="crowd-empty">Standings begin with the first community pick.</p>
+          ) : (
+            <ol>
+              {(() => {
+                let rank = 0;
+                return data.standings.map((standing) => {
+                  if (standing.ranked) rank += 1;
+                  return (
+                    <li key={standing.groupId} className={standing.ranked ? undefined : "is-unranked"}>
+                      <span className="community-standing-rank">
+                        {standing.ranked ? rank : "—"}
+                      </span>
+                      <span className="community-standing-name">
+                        <strong>{standing.name}</strong>
+                        <small>
+                          {standing.pickCount} {standing.pickCount === 1 ? "member" : "members"}
+                          {!standing.ranked && standing.pickCount > 0 ? " · unranked" : ""}
+                        </small>
+                      </span>
+                      <strong className={`community-standing-return is-${returnTone(standing.avgLifetimeReturnPct)}`}>
+                        {formatReturn(standing.avgLifetimeReturnPct)}
+                      </strong>
+                    </li>
+                  );
+                });
+              })()}
+            </ol>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }

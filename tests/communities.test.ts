@@ -61,7 +61,9 @@ describe("communities schema + wiring", () => {
     expect(read("src/app/api/groups/route.ts")).toContain("Communities are permanent");
     expect(read("src/app/api/groups/route.ts")).not.toContain('action === "create" &&');
     expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-group-filter");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdCommunityPanel");
+    expect(read("src/components/Portfolio.tsx")).toContain("CrowdAggregateBoard");
+    expect(read("src/components/CrowdAggregateBoard.tsx")).toContain("crowd-group-filter");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
     expect(read("src/app/layout.tsx")).toContain("GroupAccentProvider");
     expect(read("src/app/globals.css")).toContain("--group-accent");

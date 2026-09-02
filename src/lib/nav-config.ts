@@ -28,7 +28,7 @@ export const navPages: NavPage[] = [
     icon: Users,
     tone: "teal",
     group: "daily",
-    blurb: "Names members hold and watch most.",
+    blurb: "Campus picks, standings, and your community.",
   },
   {
     href: "/portfolio",
@@ -36,7 +36,7 @@ export const navPages: NavPage[] = [
     icon: Briefcase,
     tone: "blue",
     group: "daily",
-    blurb: "Live book, Watchlist, and Study templates.",
+    blurb: "Live book, Watchlist, Most held / watched, and Study.",
   },
   {
     href: "/news",

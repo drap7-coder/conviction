@@ -73,22 +73,26 @@ describe("competition schedule", () => {
 });
 
 describe("community picks wiring", () => {
-  it("splits Picks from held/watched via Crowd SurfaceSlicer", () => {
-    expect(parseCrowdView(null)).toBe("rivalry");
-    expect(parseCrowdView("held")).toBe("held");
-    expect(parseCrowdView("watched")).toBe("watched");
-    expect(read("src/components/CrowdBoard.tsx")).toContain('"rivalry"');
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-rivalry-panel");
-    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "Picks"');
+  it("splits My Pick / Standings / My Community via Crowd SurfaceSlicer", () => {
+    expect(parseCrowdView(null)).toBe("pick");
+    expect(parseCrowdView("standings")).toBe("standings");
+    expect(parseCrowdView("community")).toBe("community");
+    expect(parseCrowdView("held")).toBe("pick");
+    expect(parseCrowdView("watched")).toBe("pick");
+    expect(read("src/components/CrowdBoard.tsx")).toContain('"pick"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-standings-panel");
+    expect(read("src/components/CrowdBoard.tsx")).toContain('label: "My Pick"');
+    expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
+    expect(read("src/components/Portfolio.tsx")).toContain("CrowdAggregateBoard");
   });
 
-  it("keeps weekly competition foundations dormant for a future mode", () => {
+  it("keeps weekly competition foundations available for Standings rivalry", () => {
     expect(RIVALRY_PAIRS[0]?.groupAId).toBe("group-wm");
     expect(RIVALRY_PAIRS[0]?.groupBId).toBe("group-rpi");
     expect(read("migrations/008_weekly_picks.sql")).toContain("return_pct");
     expect(read("migrations/008_weekly_picks.sql")).toContain("competition_picks_one_per_user_idx");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CommunityPickCard");
-    expect(read("src/components/CrowdBoard.tsx")).not.toContain("HeadToHeadMatchCard");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("HeadToHeadMatchCard");
     expect(read("src/app/api/cron/competitions/route.ts")).toContain("runCompetitionLifecycleTick");
     expect(read("src/lib/competitions/lifecycle.ts")).toContain("lockDueCompetitions");
   });
