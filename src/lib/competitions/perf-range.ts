@@ -45,34 +45,16 @@ export function periodReturnPct(startPrice: number, currentPrice: number): numbe
   return Math.round(((currentPrice - startPrice) / startPrice) * 10000) / 100;
 }
 
-const etDayFmt = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "America/New_York",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-});
-
-export function isSameEtCalendarDay(
-  left: string | Date,
-  right: string | Date = new Date(),
-): boolean {
-  const leftMs = left instanceof Date ? left.getTime() : Date.parse(left);
-  const rightMs = right instanceof Date ? right.getTime() : Date.parse(right);
-  if (!Number.isFinite(leftMs) || !Number.isFinite(rightMs)) return false;
-  return etDayFmt.format(new Date(leftMs)) === etDayFmt.format(new Date(rightMs));
-}
-
 /**
- * Resolve the score baseline for one active pick over a window.
+ * Resolve the score baseline for one active pick over a longer window.
  * Mid-window picks use entry; earlier picks use the period open.
- * For Today (`sameEtDayIsMidWindow`), mid-window means picked today in ET.
+ * Today does not use this — use ticker session % via {@link pickPeriodReturnPct}.
  */
 export function resolvePickPeriodStart(input: {
   periodStartPrice: number | null;
   periodStartAt: string | null;
   entryPrice: number;
   pickedAt: string | null;
-  sameEtDayIsMidWindow?: boolean;
 }): number | null {
   const entry = input.entryPrice;
   if (!Number.isFinite(entry) || entry <= 0) return null;
@@ -80,11 +62,6 @@ export function resolvePickPeriodStart(input: {
   const periodStart = input.periodStartPrice;
   if (periodStart === null || !Number.isFinite(periodStart) || periodStart <= 0) {
     return entry;
-  }
-
-  if (input.sameEtDayIsMidWindow) {
-    if (input.pickedAt && isSameEtCalendarDay(input.pickedAt)) return entry;
-    return periodStart;
   }
 
   if (!input.pickedAt || !input.periodStartAt) {
@@ -100,4 +77,48 @@ export function resolvePickPeriodStart(input: {
   // Pick opened after the window started — score from entry, not period open.
   if (pickedMs > periodMs) return entry;
   return periodStart;
+}
+
+/**
+ * Period return for one campus pick.
+ * Today is always the ticker's session % (e.g. AAPL +2%) — never entry-based.
+ * Longer windows use period open, or entry when the pick started mid-window.
+ */
+export function pickPeriodReturnPct(input: {
+  range: H2HPerfRange;
+  entryPrice: number;
+  pickedAt: string | null;
+  baseline: {
+    startPrice: number | null;
+    startAt: string | null;
+    currentPrice: number | null;
+    sessionReturnPct?: number | null;
+  } | null | undefined;
+}): number | null {
+  const baseline = input.baseline;
+  if (!baseline) return null;
+
+  if (input.range === "1d") {
+    if (
+      typeof baseline.sessionReturnPct === "number" &&
+      Number.isFinite(baseline.sessionReturnPct)
+    ) {
+      return baseline.sessionReturnPct;
+    }
+    const start = baseline.startPrice;
+    const current = baseline.currentPrice;
+    if (start === null || current === null) return null;
+    return periodReturnPct(start, current);
+  }
+
+  const current = baseline.currentPrice;
+  if (current === null) return null;
+  const start = resolvePickPeriodStart({
+    periodStartPrice: baseline.startPrice,
+    periodStartAt: baseline.startAt,
+    entryPrice: input.entryPrice,
+    pickedAt: input.pickedAt,
+  });
+  if (start === null) return null;
+  return periodReturnPct(start, current);
 }

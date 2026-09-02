@@ -8,6 +8,7 @@ import {
   h2hPerfRangeLabel,
   parseH2HPerfRange,
   periodReturnPct,
+  pickPeriodReturnPct,
   resolvePickPeriodStart,
   seedRangeScale,
 } from "@/lib/competitions/perf-range";
@@ -117,15 +118,47 @@ describe("h2h performance ranges", () => {
         pickedAt: "2025-12-15T15:00:00.000Z",
       }),
     ).toBe(90);
+  });
+
+  it("scores Today as the ticker session %, never from pick entry", () => {
     expect(
-      resolvePickPeriodStart({
-        periodStartPrice: 95,
-        periodStartAt: null,
-        entryPrice: 100,
+      pickPeriodReturnPct({
+        range: "1d",
+        entryPrice: 50,
         pickedAt: new Date().toISOString(),
-        sameEtDayIsMidWindow: true,
+        baseline: {
+          startPrice: 100,
+          startAt: null,
+          currentPrice: 102,
+          sessionReturnPct: 2,
+        },
       }),
-    ).toBe(100);
+    ).toBe(2);
+    expect(
+      pickPeriodReturnPct({
+        range: "1d",
+        entryPrice: 50,
+        pickedAt: new Date().toISOString(),
+        baseline: {
+          startPrice: 100,
+          startAt: null,
+          currentPrice: 103,
+          sessionReturnPct: null,
+        },
+      }),
+    ).toBe(3);
+    expect(
+      pickPeriodReturnPct({
+        range: "1w",
+        entryPrice: 110,
+        pickedAt: "2026-03-01T15:00:00.000Z",
+        baseline: {
+          startPrice: 100,
+          startAt: "2026-02-24T14:30:00.000Z",
+          currentPrice: 121,
+        },
+      }),
+    ).toBe(10);
   });
 
   it("wires a shared Performance dropdown for H2H and standings (YTD default)", () => {
@@ -137,7 +170,10 @@ describe("h2h performance ranges", () => {
     expect(read("src/app/api/competitions/active/route.ts")).toContain("parseH2HPerfRange");
     expect(read("src/app/api/community-picks/route.ts")).toContain("parseH2HPerfRange");
     expect(read("src/lib/competitions/store.ts")).toContain("fetchPeriodBaselines");
+    expect(read("src/lib/competitions/store.ts")).toContain("pickPeriodReturnPct");
     expect(read("src/lib/community-picks/store.ts")).toContain("fetchPeriodBaselines");
+    expect(read("src/lib/community-picks/store.ts")).toContain("pickPeriodReturnPct");
+    expect(read("src/lib/competitions/period-baselines.ts")).toContain("sessionReturnPct");
     expect(read("src/lib/market/quotes.ts")).toContain('"ytd"');
     expect(read("src/app/globals.css")).toContain("h2h-range-select");
     expect(read("src/app/globals.css")).toContain("crowd-standings-toolbar");

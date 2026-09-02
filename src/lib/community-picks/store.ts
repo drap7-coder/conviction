@@ -12,14 +12,15 @@ import {
   totalGrowthFactor,
 } from "@/lib/community-picks/growth";
 import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
-import { seedCampusStandings } from "@/lib/community-picks/seed-students";
+import { seedCampusStandings, listCampusSeedStudents } from "@/lib/community-picks/seed-students";
 import {
   DEFAULT_H2H_PERF_RANGE,
-  periodReturnPct,
-  resolvePickPeriodStart,
+  pickPeriodReturnPct,
+  seedRangeScale,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 import { fetchPeriodBaselines } from "@/lib/competitions/period-baselines";
+import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
@@ -73,6 +74,79 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
 
 function seedStandings(range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE): CommunityStanding[] {
   return seedCampusStandings(range);
+}
+
+/** Guest / no-DB standings: prefer live Yahoo period returns for seed tickers. */
+async function scoreOfflineStandings(range: H2HPerfRange): Promise<CommunityStanding[]> {
+  const students = listCampusSeedStudents();
+  const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
+  const baselines = await fetchPeriodBaselines(tickers, range);
+  const returnsByGroup = new Map<string, number[]>();
+  let liveHits = 0;
+
+  for (const student of students) {
+    const ret = pickPeriodReturnPct({
+      range,
+      entryPrice: student.entryPrice,
+      pickedAt: null,
+      baseline: baselines.get(student.ticker.toUpperCase()),
+    });
+    if (ret === null) continue;
+    liveHits += 1;
+    const rows = returnsByGroup.get(student.groupId) ?? [];
+    rows.push(ret);
+    returnsByGroup.set(student.groupId, rows);
+  }
+
+  if (liveHits === 0) return seedStandings(range);
+
+  const byGroup = new Map<string, typeof students>();
+  for (const student of students) {
+    const rows = byGroup.get(student.groupId) ?? [];
+    rows.push(student);
+    byGroup.set(student.groupId, rows);
+  }
+
+  return listSeedCanonicalCommunities()
+    .map((group) => {
+      const institution = SEED_INSTITUTIONS.find((row) => row.id === group.institutionId);
+      const ncaaId = institution?.ncaaId ?? null;
+      const members = byGroup.get(group.id) ?? [];
+      const returns = returnsByGroup.get(group.id) ?? [];
+      // If a school had no quote hits, fall back to scaled demo for that campus only.
+      const avg =
+        returns.length > 0
+          ? averageLifetimeReturnPct(returns)
+          : (() => {
+              const scale = seedRangeScale(range);
+              const demo = members.map(
+                (member) =>
+                  Math.round((member.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
+              );
+              return averageLifetimeReturnPct(demo);
+            })();
+      const pickCount = members.length;
+      return {
+        groupId: group.id,
+        name: group.name,
+        primaryColor: group.primaryColor,
+        domain: institution?.canonicalDomain ?? resolveNcaaDomain(ncaaId),
+        ncaaId,
+        accentColor: institution?.accentColor ?? group.primaryColor,
+        pickCount,
+        avgReturnPct: avg,
+        ranked: pickCount >= MIN_RANKED_MEMBERS && avg !== null,
+      };
+    })
+    .sort((a, b) => {
+      if (a.ranked !== b.ranked) return a.ranked ? -1 : 1;
+      if (a.avgReturnPct === null && b.avgReturnPct !== null) return 1;
+      if (a.avgReturnPct !== null && b.avgReturnPct === null) return -1;
+      if (a.avgReturnPct !== b.avgReturnPct) {
+        return (b.avgReturnPct ?? 0) - (a.avgReturnPct ?? 0);
+      }
+      return a.name.localeCompare(b.name);
+    });
 }
 
 function mapHistoryRow(row: HistoryRow): CommunityPickHistoryEntry {
@@ -270,12 +344,13 @@ export async function loadCommunityPicks(
   range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
 ): Promise<CommunityPicksPayload> {
   if (!isDatabaseConfigured()) {
+    const standings = await scoreOfflineStandings(range);
     return {
       authenticated: Boolean(userId),
       viewerGroup: null,
       viewerPick: null,
       pickHistory: [],
-      standings: seedStandings(range),
+      standings,
       range,
     };
   }
@@ -318,17 +393,16 @@ export async function loadCommunityPicks(
     const baseline = baselines.get(ticker);
     const currentPrice = baseline?.currentPrice ?? null;
     const pickView = buildPickView(row, currentPrice);
-    if (currentPrice !== null) {
-      const start = resolvePickPeriodStart({
-        periodStartPrice: baseline?.startPrice ?? null,
-        periodStartAt: baseline?.startAt ?? null,
+    if (currentPrice !== null || range === "1d") {
+      const ret = pickPeriodReturnPct({
+        range,
         entryPrice: Number(row.entry_price),
         pickedAt: row.picked_at?.toISOString?.() ?? null,
-        sameEtDayIsMidWindow: range === "1d",
+        baseline,
       });
-      if (start !== null) {
+      if (ret !== null) {
         const returns = periodReturnsByGroup.get(row.group_id) ?? [];
-        returns.push(periodReturnPct(start, currentPrice));
+        returns.push(ret);
         periodReturnsByGroup.set(row.group_id, returns);
       }
     }
