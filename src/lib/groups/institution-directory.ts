@@ -19,6 +19,7 @@ export const LIVE_COMMUNITY_INSTITUTION_IDS = new Set([
 
 export type InstitutionSearchSuggestion = SchoolSuggestion & {
   canonicalDomain: string | null;
+  accentColor: string | null;
   conference: string | null;
   communityEnabled: boolean;
   memberCount: number;
@@ -69,6 +70,7 @@ export function enrichInstitutionSuggestions(
     return {
       ...suggestion,
       canonicalDomain: row?.canonical_domain ?? defaultDomain(suggestion.ncaaId),
+      accentColor: defaultAccent(suggestion.ncaaId),
       conference: row?.conference ?? null,
       communityEnabled,
       memberCount,

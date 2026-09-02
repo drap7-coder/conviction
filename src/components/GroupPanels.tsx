@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { InstitutionSearchSuggestion } from "@/lib/groups/institution-directory";
 import type { Community, UserCommunityMembership } from "@/lib/groups/types";
+import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import { SchoolTypeahead } from "@/components/SchoolTypeahead";
 import { writeStoredPrimaryColor, SKIP_ONBOARDING_KEY } from "@/components/GroupAccentProvider";
 
@@ -227,6 +228,16 @@ export function CommunitySettingsPanel({
                   : undefined
               }
             >
+              <SchoolLogo
+                name={membership.institution.name}
+                domain={membership.institution.canonicalDomain}
+                ncaaId={membership.institution.ncaaId}
+                accentColor={
+                  membership.institution.accentColor ?? membership.primaryColor
+                }
+                size={22}
+                className="group-badge-logo"
+              />
               {membership.institution.name}
               {membership.isPrimary ? " · Primary" : ""}
             </span>

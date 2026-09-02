@@ -20702,9 +20702,22 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 12px;
 }
 
+.crowd-community-logo {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
 .crowd-community-copy {
+  flex: 1;
+  min-width: 0;
   display: grid;
   gap: 2px;
+}
+
+.crowd-community-roster-campus {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -21161,6 +21174,13 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   font-size: 0.72rem;
 }
 
+.community-standing-school {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .community-standing-name {
   display: grid;
   gap: 2px;
@@ -21520,6 +21540,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 .group-badge {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   min-height: 24px;
   padding: 3px 10px;
   border-radius: 999px;
@@ -21528,6 +21549,10 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   color: color-mix(in srgb, var(--group-accent) 78%, var(--ink));
   font-size: 0.78rem;
   font-weight: 650;
+}
+
+.group-badge-logo {
+  flex-shrink: 0;
 }
 
 .group-settings {
@@ -21670,16 +21695,45 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 8px;
 }
 
+.school-suggestion-logo {
+  flex-shrink: 0;
+}
+
 .school-suggestion-copy {
   display: grid;
   gap: 2px;
   min-width: 0;
+  flex: 1;
 }
 
 .school-suggestion-meta {
   color: var(--quiet);
   font-size: 0.66rem;
   line-height: 1.2;
+}
+
+.school-logo {
+  display: inline-block;
+  flex-shrink: 0;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.school-logo-img {
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--card-soft, #f3f4f6) 80%, transparent);
+}
+
+.school-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  user-select: none;
 }
 
 .school-suggestion-badge {

@@ -7,6 +7,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import type { InstitutionSearchSuggestion } from "@/lib/groups/institution-directory";
 
 function highlightMatch(text: string, query: string) {
@@ -176,6 +177,14 @@ export function SchoolTypeahead({
               }}
               onPointerEnter={() => setActiveIndex(index)}
             >
+              <SchoolLogo
+                name={suggestion.name}
+                domain={suggestion.canonicalDomain}
+                ncaaId={suggestion.ncaaId}
+                accentColor={suggestion.accentColor}
+                size={28}
+                className="school-suggestion-logo"
+              />
               <span className="school-suggestion-copy">
                 <span className="ticker-suggestion-name">
                   {highlightMatch(suggestion.name, value)}
