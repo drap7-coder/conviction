@@ -146,4 +146,17 @@ describe("Vercel high-risk path fixes", () => {
     expect(trending).toContain("quote.sparkline");
     expect(trending).toContain("fetchStockQuotes");
   });
+
+  it("elon-pass: orphan knowledge / industries / schools / dead panels are gone", () => {
+    expect(existsSync(new URL("../src/lib/knowledge", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/market/industries/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/schools/search/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/app/api/competitions/picks/route.ts", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/components/DesktopNav.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/components/MyListShell.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/components/market/SmartMoneyDecisionCard.tsx", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../src/components/GaugeRing.tsx", import.meta.url))).toBe(false);
+    expect(read("src/lib/market/smart-money-brief.ts")).not.toContain("buildInstitutionalBrief");
+  });
 });
+

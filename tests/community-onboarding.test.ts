@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { searchNcaaSchools } from "@/lib/groups/ncaa-catalog";
 import {
   catalogGroupId,
@@ -48,7 +48,7 @@ describe("community onboarding wiring", () => {
     expect(read("src/components/GroupPanels.tsx")).toContain("onboarding");
     expect(read("src/components/GroupPanels.tsx")).toContain("Theme color");
     expect(read("src/app/api/institutions/search/route.ts")).toContain("searchInstitutionDirectory");
-    expect(read("src/app/api/schools/search/route.ts")).toContain("searchInstitutionDirectory");
+    expect(existsSync(new URL("../src/app/api/schools/search/route.ts", import.meta.url))).toBe(false);
     expect(read("src/components/CrowdCommunityPanel.tsx")).toContain("CommunitySettingsPanel");
     expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdCommunityPanel");
     expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');
