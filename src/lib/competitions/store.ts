@@ -1,5 +1,7 @@
 import { isDatabaseConfigured, query } from "@/lib/db";
+import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 import { findSeedGroupById } from "@/lib/groups/seed-groups";
+import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 import type {
   Competition,
   CompetitionGroupSide,
@@ -14,6 +16,14 @@ import {
   weekWindowContaining,
 } from "@/lib/competitions/schedule";
 import { computeSideScore, countSubmittedPicks } from "@/lib/competitions/scores";
+
+type GroupLogoMeta = {
+  name: string;
+  primaryColor: string | null;
+  domain: string | null;
+  ncaaId: string | null;
+  accentColor: string | null;
+};
 
 /** Platform-seeded rivalries — data-driven, not hardcoded in UI. */
 export const RIVALRY_PAIRS: Array<{ groupAId: string; groupBId: string; slug: string }> = [
@@ -76,19 +86,60 @@ function mapPick(row: PickRow): CompetitionPick {
   };
 }
 
-async function groupMeta(groupId: string): Promise<{ name: string; primaryColor: string | null }> {
+async function groupMeta(groupId: string): Promise<GroupLogoMeta> {
   const seed = findSeedGroupById(groupId);
-  if (seed) return { name: seed.name, primaryColor: seed.primaryColor };
-  if (!isDatabaseConfigured()) return { name: groupId, primaryColor: null };
+  if (seed) {
+    const institution = SEED_INSTITUTIONS.find((row) => row.id === seed.institutionId);
+    return {
+      name: seed.name,
+      primaryColor: seed.primaryColor,
+      domain: institution?.canonicalDomain ?? resolveNcaaDomain(institution?.ncaaId) ?? null,
+      ncaaId: institution?.ncaaId ?? null,
+      accentColor: institution?.accentColor ?? seed.primaryColor,
+    };
+  }
+  if (!isDatabaseConfigured()) {
+    return {
+      name: groupId,
+      primaryColor: null,
+      domain: null,
+      ncaaId: null,
+      accentColor: null,
+    };
+  }
   try {
-    const result = await query<{ name: string; primary_color: string | null }>(
-      `select name, primary_color from groups where id = $1 limit 1`,
+    const result = await query<{
+      name: string;
+      primary_color: string | null;
+      canonical_domain: string | null;
+      ncaa_id: string | null;
+      accent_color: string | null;
+    }>(
+      `select g.name, g.primary_color,
+              i.canonical_domain, i.ncaa_id, i.accent_color
+       from groups g
+       left join institutions i on i.id = g.institution_id
+       where g.id = $1
+       limit 1`,
       [groupId],
     );
     const row = result.rows[0];
-    return { name: row?.name ?? groupId, primaryColor: row?.primary_color ?? null };
+    const ncaaId = row?.ncaa_id ?? null;
+    return {
+      name: row?.name ?? groupId,
+      primaryColor: row?.primary_color ?? null,
+      domain: row?.canonical_domain ?? resolveNcaaDomain(ncaaId),
+      ncaaId,
+      accentColor: row?.accent_color ?? row?.primary_color ?? null,
+    };
   } catch {
-    return { name: groupId, primaryColor: null };
+    return {
+      name: groupId,
+      primaryColor: null,
+      domain: null,
+      ncaaId: null,
+      accentColor: null,
+    };
   }
 }
 
@@ -240,6 +291,9 @@ export async function buildHeadToHeadPayload(input: {
     groupId: competition.groupAId,
     name: metaA.name,
     primaryColor: metaA.primaryColor,
+    domain: metaA.domain,
+    ncaaId: metaA.ncaaId,
+    accentColor: metaA.accentColor,
     avgReturnPct: computeSideScore(picks, competition.groupAId).avgReturnPct,
     pickCount: countSubmittedPicks(picks, competition.groupAId),
   };
@@ -247,6 +301,9 @@ export async function buildHeadToHeadPayload(input: {
     groupId: competition.groupBId,
     name: metaB.name,
     primaryColor: metaB.primaryColor,
+    domain: metaB.domain,
+    ncaaId: metaB.ncaaId,
+    accentColor: metaB.accentColor,
     avgReturnPct: computeSideScore(picks, competition.groupBId).avgReturnPct,
     pickCount: countSubmittedPicks(picks, competition.groupBId),
   };

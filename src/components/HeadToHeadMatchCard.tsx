@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import type { HeadToHeadPayload } from "@/lib/competitions/types";
 
 function formatReturn(value: number | null): string {
@@ -53,8 +55,8 @@ export function HeadToHeadMatchCard() {
   }
 
   const { competition, groupA, groupB, statusLabel, viewer } = data;
-  const accentA = groupA.primaryColor ?? "#115740";
-  const accentB = groupB.primaryColor ?? "#D6001C";
+  const accentA = groupA.accentColor ?? groupA.primaryColor ?? "#115740";
+  const accentB = groupB.accentColor ?? groupB.primaryColor ?? "#D6001C";
 
   async function submitPick() {
     if (viewer.kind !== "can_submit") return;
@@ -89,10 +91,24 @@ export function HeadToHeadMatchCard() {
       <div className="h2h-card-head">
         <div className="h2h-rivalry">
           <span className="h2h-school" style={{ ["--h2h-accent" as string]: accentA }}>
+            <SchoolLogo
+              name={groupA.name}
+              domain={groupA.domain}
+              ncaaId={groupA.ncaaId}
+              accentColor={accentA}
+              size={28}
+            />
             {groupA.name}
           </span>
           <span className="h2h-vs">vs</span>
           <span className="h2h-school" style={{ ["--h2h-accent" as string]: accentB }}>
+            <SchoolLogo
+              name={groupB.name}
+              domain={groupB.domain}
+              ncaaId={groupB.ncaaId}
+              accentColor={accentB}
+              size={28}
+            />
             {groupB.name}
           </span>
         </div>
@@ -133,13 +149,20 @@ export function HeadToHeadMatchCard() {
               <div className="h2h-modal" role="dialog" aria-label="Submit weekly pick">
                 <label>
                   Ticker
-                  <input
-                    value={ticker}
-                    onChange={(event) => setTicker(event.target.value.toUpperCase())}
-                    placeholder="NVDA"
-                    autoComplete="off"
-                    spellCheck={false}
-                  />
+                  <span className="h2h-ticker-input-row">
+                    {ticker.trim() ? (
+                      <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
+                        <LogoDisplay ticker={ticker.trim()} size="badge" />
+                      </span>
+                    ) : null}
+                    <input
+                      value={ticker}
+                      onChange={(event) => setTicker(event.target.value.toUpperCase())}
+                      placeholder="NVDA"
+                      autoComplete="off"
+                      spellCheck={false}
+                    />
+                  </span>
                 </label>
                 <div className="h2h-modal-actions">
                   <button type="button" className="brief-link" onClick={() => setModalOpen(false)}>
@@ -158,8 +181,12 @@ export function HeadToHeadMatchCard() {
             ) : null}
           </>
         ) : viewer.kind === "locked_pick" ? (
-          <p className="h2h-note">
-            Your Pick: <strong>{viewer.ticker}</strong> ({formatReturn(viewer.returnPct)})
+          <p className="h2h-note community-pick-ticker-row">
+            Your Pick:{" "}
+            <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
+              <LogoDisplay ticker={viewer.ticker} size="badge" />
+            </span>
+            <strong>{viewer.ticker}</strong> ({formatReturn(viewer.returnPct)})
           </p>
         ) : null}
         {message ? <p className="h2h-error">{message}</p> : null}

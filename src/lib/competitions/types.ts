@@ -30,6 +30,9 @@ export type CompetitionGroupSide = {
   groupId: string;
   name: string;
   primaryColor: string | null;
+  domain?: string | null;
+  ncaaId?: string | null;
+  accentColor?: string | null;
   avgReturnPct: number | null;
   pickCount: number;
 };

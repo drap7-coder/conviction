@@ -14,6 +14,7 @@ import {
   catalogSlug,
   getCatalogOverride,
 } from "@/lib/groups/ncaa-catalog";
+import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 import {
   activateCommunityFromCatalog,
   ensureNcaaInstitutionDirectory,
@@ -640,7 +641,10 @@ export async function provisionInstitutionFromCatalog(ncaaId: string): Promise<{
     name: seedInstitution?.name ?? entry.name,
     slug,
     type: "university",
-    canonicalDomain: override?.canonicalDomain ?? seedInstitution?.canonicalDomain ?? null,
+    canonicalDomain:
+      override?.canonicalDomain ??
+      seedInstitution?.canonicalDomain ??
+      resolveNcaaDomain(normalizedNcaaId),
     affiliationStatus: "unofficial",
     accentColor: override?.accentColor ?? seedInstitution?.accentColor ?? null,
     ncaaId: normalizedNcaaId,

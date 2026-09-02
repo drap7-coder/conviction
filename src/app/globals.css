@@ -20768,6 +20768,9 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 }
 
 .h2h-school {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   padding: 4px 10px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--h2h-accent, var(--accent)) 55%, var(--line));
@@ -20873,6 +20876,17 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   font: inherit;
 }
 
+.h2h-ticker-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.h2h-ticker-input-row input {
+  flex: 1;
+  min-width: 0;
+}
+
 .h2h-modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -20908,6 +20922,17 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 12px;
 }
 
+.community-pick-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.community-pick-school-logo {
+  flex-shrink: 0;
+}
+
 .community-pick-eyebrow {
   margin: 0 0 3px;
   color: var(--muted);
@@ -20926,9 +20951,34 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .community-pick-current {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 8px;
   font-family: var(--font-mono);
+}
+
+.community-pick-ticker-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.community-pick-ticker-logo {
+  width: 32px;
+  height: 32px;
+}
+
+.community-pick-ticker-logo.is-compact {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}
+
+.community-pick-ticker-logo.is-compact .card-logo,
+.community-pick-ticker-logo.is-compact .logo-badge {
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
 }
 
 .community-pick-current > strong {
@@ -21113,7 +21163,7 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
 
 .community-pick-history li {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 6px 0;
@@ -21803,6 +21853,17 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--group-accent, var(--muted)) 70%, var(--muted));
+}
+
+.join-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.join-school-logo {
+  flex-shrink: 0;
 }
 
 .join-card h1 {

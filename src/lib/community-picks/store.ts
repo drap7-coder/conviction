@@ -13,6 +13,7 @@ import {
 import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
 import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
+import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
 import { fetchStockQuotes } from "@/lib/market/quotes";
 import type {
@@ -60,12 +61,13 @@ function livePrice(
 }
 
 function groupPayload(group: GroupRow): CommunityPickGroup {
+  const ncaaId = group.ncaa_id;
   return {
     groupId: group.id,
     name: group.name,
     primaryColor: group.primary_color,
-    domain: group.canonical_domain,
-    ncaaId: group.ncaa_id,
+    domain: group.canonical_domain ?? resolveNcaaDomain(ncaaId),
+    ncaaId,
     accentColor: group.accent_color ?? group.primary_color,
   };
 }
@@ -73,12 +75,13 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
 function seedStandings(): CommunityStanding[] {
   return listSeedCanonicalCommunities().map((group) => {
     const institution = SEED_INSTITUTIONS.find((row) => row.id === group.institutionId);
+    const ncaaId = institution?.ncaaId ?? null;
     return {
       groupId: group.id,
       name: group.name,
       primaryColor: group.primaryColor,
-      domain: institution?.canonicalDomain ?? null,
-      ncaaId: institution?.ncaaId ?? null,
+      domain: institution?.canonicalDomain ?? resolveNcaaDomain(ncaaId),
+      ncaaId,
       accentColor: institution?.accentColor ?? group.primaryColor,
       pickCount: 0,
       avgLifetimeReturnPct: null,
@@ -351,7 +354,7 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
       name: primaryGroup.name,
       primary_color: primaryGroup.primaryColor,
       institution_id: primaryGroup.institutionId,
-      canonical_domain: institution?.canonicalDomain ?? null,
+      canonical_domain: institution?.canonicalDomain ?? resolveNcaaDomain(institution?.ncaaId) ?? null,
       ncaa_id: institution?.ncaaId ?? null,
       accent_color: institution?.accentColor ?? null,
     });
