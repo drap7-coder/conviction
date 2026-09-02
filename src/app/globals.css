@@ -20656,6 +20656,16 @@ a.heat-tile--live:focus-visible .heat-tile-glow {
   gap: 14px;
 }
 
+.crowd-standings-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.crowd-standings-toolbar .h2h-range-select {
+  justify-items: end;
+}
+
 .crowd-aggregate-panel {
   display: grid;
   gap: 12px;

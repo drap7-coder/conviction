@@ -4,6 +4,11 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  h2hPerfRangeLabel,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
 
 const TICKER_INPUT_PATTERN = /^[A-Z][A-Z0-9.-]{0,9}$/;
@@ -33,8 +38,12 @@ function isValidTickerInput(value: string): boolean {
   return TICKER_INPUT_PATTERN.test(ticker);
 }
 
-async function loadCommunityPicksPayload(): Promise<CommunityPicksPayload> {
-  const response = await fetch("/api/community-picks", {
+async function loadCommunityPicksPayload(
+  range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
+): Promise<CommunityPicksPayload> {
+  const params = new URLSearchParams();
+  params.set("range", range);
+  const response = await fetch(`/api/community-picks?${params.toString()}`, {
     cache: "no-store",
     credentials: "include",
   });
@@ -44,9 +53,12 @@ async function loadCommunityPicksPayload(): Promise<CommunityPicksPayload> {
 
 export function CommunityPickCard({
   variant = "full",
+  range = DEFAULT_H2H_PERF_RANGE,
 }: {
   /** pick = editor only; standings = board only; full = both (legacy). */
   variant?: "pick" | "standings" | "full";
+  /** Shared Standings performance window (default YTD). Ignored for pick-only. */
+  range?: H2HPerfRange;
 }) {
   const [data, setData] = useState<CommunityPicksPayload | null>(null);
   const [ticker, setTicker] = useState("");
@@ -54,9 +66,11 @@ export function CommunityPickCard({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const standingsRange = variant === "pick" ? DEFAULT_H2H_PERF_RANGE : range;
+
   useEffect(() => {
     let cancelled = false;
-    loadCommunityPicksPayload()
+    loadCommunityPicksPayload(standingsRange)
       .then((payload) => {
         if (!cancelled) setData(payload);
       })
@@ -68,7 +82,7 @@ export function CommunityPickCard({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [standingsRange]);
 
   const normalizedTicker = normalizeTickerInput(ticker);
   const hasExistingPick = Boolean(data?.viewerPick);
@@ -117,7 +131,7 @@ export function CommunityPickCard({
         return;
       }
 
-      const refreshed = await loadCommunityPicksPayload();
+      const refreshed = await loadCommunityPicksPayload(standingsRange);
       setData(refreshed);
       setTicker("");
       const savedTicker = refreshed.viewerPick?.ticker ?? normalizedTicker;
@@ -305,7 +319,7 @@ export function CommunityPickCard({
         <div className={`community-standings${showPick ? "" : " is-standalone"}`}>
           <div className="community-standings-head">
             <h3>Community standings</h3>
-            <span>Average lifetime return</span>
+            <span>Average {h2hPerfRangeLabel(data.range ?? standingsRange)} return</span>
           </div>
           {data.standings.length === 0 ? (
             <p className="crowd-empty">Standings begin with the first community pick.</p>
@@ -336,8 +350,8 @@ export function CommunityPickCard({
                           </small>
                         </span>
                       </span>
-                      <strong className={`community-standing-return is-${returnTone(standing.avgLifetimeReturnPct)}`}>
-                        {formatReturn(standing.avgLifetimeReturnPct)}
+                      <strong className={`community-standing-return is-${returnTone(standing.avgReturnPct)}`}>
+                        {formatReturn(standing.avgReturnPct)}
                       </strong>
                     </li>
                   );

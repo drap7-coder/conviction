@@ -13,6 +13,10 @@ export const H2H_PERF_RANGE_OPTIONS: Array<{ value: H2HPerfRange; label: string 
   { value: "ytd", label: "YTD" },
 ];
 
+export function h2hPerfRangeLabel(range: H2HPerfRange): string {
+  return H2H_PERF_RANGE_OPTIONS.find((option) => option.value === range)?.label ?? "YTD";
+}
+
 export function parseH2HPerfRange(raw: string | null | undefined): H2HPerfRange {
   const value = raw?.trim().toLowerCase();
   if (value === "1d" || value === "1w" || value === "1m" || value === "ytd") {

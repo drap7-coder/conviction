@@ -5,7 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CrowdCommunityPanel } from "@/components/CrowdCommunityPanel";
 import { CommunityPickCard } from "@/components/CommunityPickCard";
 import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
+import { PerfRangeSelect } from "@/components/crowd/PerfRangeSelect";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  parseH2HPerfRange,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
 
 export type CrowdTab = "pick" | "standings" | "community";
 
@@ -29,9 +35,13 @@ export function CrowdBoard() {
   const pathname = usePathname();
   const tabParam = searchParams.get("tab") ?? searchParams.get("view");
   const [tab, setTab] = useState<CrowdTab>(() => parseCrowdView(tabParam));
+  const [range, setRange] = useState<H2HPerfRange>(() =>
+    parseH2HPerfRange(searchParams.get("range")),
+  );
 
   useEffect(() => {
     setTab(parseCrowdView(searchParams.get("tab") ?? searchParams.get("view")));
+    setRange(parseH2HPerfRange(searchParams.get("range")));
   }, [searchParams]);
 
   // Redirect legacy held/watched query params to Portfolio.
@@ -55,6 +65,18 @@ export function CrowdBoard() {
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
+  function selectRange(next: H2HPerfRange) {
+    setRange(next);
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === DEFAULT_H2H_PERF_RANGE) {
+      params.delete("range");
+    } else {
+      params.set("range", next);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
+
   return (
     <div className="crowd-page-body">
       <SurfaceSlicer
@@ -67,12 +89,15 @@ export function CrowdBoard() {
 
       {tab === "standings" ? (
         <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">
-          <HeadToHeadMatchCard />
-          <CommunityPickCard variant="standings" />
+          <div className="crowd-standings-toolbar">
+            <PerfRangeSelect value={range} onChange={selectRange} />
+          </div>
+          <HeadToHeadMatchCard range={range} />
+          <CommunityPickCard variant="standings" range={range} />
           <p className="crowd-hedge">
-            Head-to-head compares each school&apos;s average My Pick lifetime return — continuous,
-            not a weekly window. Schools below the member threshold stay unranked on the board
-            below.
+            Head-to-head and community standings use the same Performance window — equal-weight
+            My Pick returns for that range. Schools below the member threshold stay unranked on
+            the board below.
           </p>
         </div>
       ) : null}

@@ -1,20 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
 import {
   createInitialCommunityPick,
   loadCommunityPicks,
 } from "@/lib/community-picks/store";
+import { parseH2HPerfRange } from "@/lib/competitions/perf-range";
 import { ensureCommunitySchema, formatCommunityDbError } from "@/lib/db/ensure-community-schema";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
 import { validateTicker } from "@/lib/watchlist/validate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     await ensureCommunitySchema().catch(() => undefined);
     const session = await getOptionalSession();
-    return NextResponse.json(await loadCommunityPicks(session?.user?.id));
+    const range = parseH2HPerfRange(request.nextUrl.searchParams.get("range"));
+    return NextResponse.json(await loadCommunityPicks(session?.user?.id, range));
   } catch (error) {
     const message = formatCommunityDbError(error);
     return NextResponse.json({ error: message }, { status: 500 });

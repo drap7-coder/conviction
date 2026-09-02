@@ -13,10 +13,16 @@ import {
 } from "@/lib/community-picks/growth";
 import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
 import { seedCampusStandings } from "@/lib/community-picks/seed-students";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  periodReturnPct,
+  resolvePickPeriodStart,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
+import { fetchPeriodBaselines } from "@/lib/competitions/period-baselines";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
-import { fetchStockQuotes } from "@/lib/market/quotes";
 import type {
   CommunityPick,
   CommunityPickGroup,
@@ -53,14 +59,6 @@ type GroupRow = {
   accent_color: string | null;
 };
 
-function livePrice(
-  quote: Awaited<ReturnType<typeof fetchStockQuotes>>[number] | undefined,
-): number | null {
-  const spot = quote?.price ?? quote?.previousClose ?? null;
-  if (spot === null || !Number.isFinite(spot) || spot <= 0) return null;
-  return spot;
-}
-
 function groupPayload(group: GroupRow): CommunityPickGroup {
   const ncaaId = group.ncaa_id;
   return {
@@ -73,8 +71,8 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
   };
 }
 
-function seedStandings(): CommunityStanding[] {
-  return seedCampusStandings();
+function seedStandings(range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE): CommunityStanding[] {
+  return seedCampusStandings(range);
 }
 
 function mapHistoryRow(row: HistoryRow): CommunityPickHistoryEntry {
@@ -267,14 +265,18 @@ export async function swapCommunityPick(input: {
   };
 }
 
-export async function loadCommunityPicks(userId?: string): Promise<CommunityPicksPayload> {
+export async function loadCommunityPicks(
+  userId?: string,
+  range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
+): Promise<CommunityPicksPayload> {
   if (!isDatabaseConfigured()) {
     return {
       authenticated: Boolean(userId),
       viewerGroup: null,
       viewerPick: null,
       pickHistory: [],
-      standings: seedStandings(),
+      standings: seedStandings(range),
+      range,
     };
   }
 
@@ -305,21 +307,30 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
   ]);
 
   const tickers = [...new Set(pickResult.rows.map((row) => row.ticker.toUpperCase()))];
-  const quotes = await fetchStockQuotes(tickers);
-  const quoteByTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
-  const lifetimeReturnsByGroup = new Map<string, number[]>();
+  const baselines = await fetchPeriodBaselines(tickers, range);
+  const periodReturnsByGroup = new Map<string, number[]>();
 
   let viewerPick: CommunityPick | null = null;
   let pickHistory: CommunityPickHistoryEntry[] = [];
 
   for (const row of pickResult.rows) {
     const ticker = row.ticker.toUpperCase();
-    const currentPrice = livePrice(quoteByTicker.get(ticker));
+    const baseline = baselines.get(ticker);
+    const currentPrice = baseline?.currentPrice ?? null;
     const pickView = buildPickView(row, currentPrice);
-    if (pickView.lifetimeReturnPct !== null) {
-      const returns = lifetimeReturnsByGroup.get(row.group_id) ?? [];
-      returns.push(pickView.lifetimeReturnPct);
-      lifetimeReturnsByGroup.set(row.group_id, returns);
+    if (currentPrice !== null) {
+      const start = resolvePickPeriodStart({
+        periodStartPrice: baseline?.startPrice ?? null,
+        periodStartAt: baseline?.startAt ?? null,
+        entryPrice: Number(row.entry_price),
+        pickedAt: row.picked_at?.toISOString?.() ?? null,
+        sameEtDayIsMidWindow: range === "1d",
+      });
+      if (start !== null) {
+        const returns = periodReturnsByGroup.get(row.group_id) ?? [];
+        returns.push(periodReturnPct(start, currentPrice));
+        periodReturnsByGroup.set(row.group_id, returns);
+      }
     }
     if (userId && row.user_id === userId && primaryGroup && row.group_id === primaryGroup.id) {
       viewerPick = pickView;
@@ -351,23 +362,23 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
 
   const standings: CommunityStanding[] = groups
     .map((group) => {
-      const returns = lifetimeReturnsByGroup.get(group.id) ?? [];
+      const returns = periodReturnsByGroup.get(group.id) ?? [];
       const pickCount = pickCounts.get(group.id) ?? 0;
-      const avgLifetimeReturnPct = averageLifetimeReturnPct(returns);
-      const ranked = pickCount >= MIN_RANKED_MEMBERS && avgLifetimeReturnPct !== null;
+      const avgReturnPct = averageLifetimeReturnPct(returns);
+      const ranked = pickCount >= MIN_RANKED_MEMBERS && avgReturnPct !== null;
       return {
         ...groupPayload(group),
         pickCount,
-        avgLifetimeReturnPct,
+        avgReturnPct,
         ranked,
       };
     })
     .sort((a, b) => {
       if (a.ranked !== b.ranked) return a.ranked ? -1 : 1;
-      if (a.avgLifetimeReturnPct === null && b.avgLifetimeReturnPct !== null) return 1;
-      if (a.avgLifetimeReturnPct !== null && b.avgLifetimeReturnPct === null) return -1;
-      if (a.avgLifetimeReturnPct !== b.avgLifetimeReturnPct) {
-        return (b.avgLifetimeReturnPct ?? 0) - (a.avgLifetimeReturnPct ?? 0);
+      if (a.avgReturnPct === null && b.avgReturnPct !== null) return 1;
+      if (a.avgReturnPct !== null && b.avgReturnPct === null) return -1;
+      if (a.avgReturnPct !== b.avgReturnPct) {
+        return (b.avgReturnPct ?? 0) - (a.avgReturnPct ?? 0);
       }
       if (a.pickCount !== b.pickCount) return b.pickCount - a.pickCount;
       return a.name.localeCompare(b.name);
@@ -392,5 +403,6 @@ export async function loadCommunityPicks(userId?: string): Promise<CommunityPick
     viewerPick,
     pickHistory,
     standings,
+    range,
   };
 }
