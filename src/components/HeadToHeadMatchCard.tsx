@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import type {
   HeadToHeadPayload,
@@ -79,14 +78,11 @@ function SchoolSideSelect({
   );
 }
 
+/** Continuous campus vs campus scoreboard — lifetime My Pick averages, no weekly window. */
 export function HeadToHeadMatchCard() {
   const [data, setData] = useState<HeadToHeadPayload | null>(null);
   const [sideA, setSideA] = useState<string>("");
   const [sideB, setSideB] = useState<string>("");
-  const [ticker, setTicker] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
 
   async function reload(nextA?: string, nextB?: string) {
     const a = nextA ?? sideA;
@@ -116,23 +112,23 @@ export function HeadToHeadMatchCard() {
 
   if (data === null) {
     return (
-      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Weekly rivalry">
-        <p className="crowd-empty">Loading weekly rivalry…</p>
+      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Head to head">
+        <p className="crowd-empty">Loading head-to-head…</p>
       </section>
     );
   }
 
   if (schools.length < 2) {
     return (
-      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Weekly rivalry">
+      <section className="surface-shell h2h-card h2h-card--empty" aria-label="Head to head">
         <p className="crowd-empty">
-          Join a school community to open head-to-head rivalries.
+          Join a school community to open head-to-head.
         </p>
       </section>
     );
   }
 
-  const { competition, groupA, groupB, statusLabel, viewer } = data;
+  const { groupA, groupB, statusLabel, viewer } = data;
   const selectedA = schoolById(schools, sideA);
   const selectedB = schoolById(schools, sideB);
   const accentA = groupA?.accentColor ?? groupA?.primaryColor ?? selectedA?.accentColor ?? "#115740";
@@ -144,40 +140,11 @@ export function HeadToHeadMatchCard() {
     if (!nextA || !nextB || nextA === nextB) return;
     setSideA(nextA);
     setSideB(nextB);
-    setMessage(null);
     await reload(nextA, nextB);
   }
 
-  async function submitPick() {
-    if (viewer.kind !== "can_submit" || !competition) return;
-    setBusy(true);
-    setMessage(null);
-    try {
-      const res = await fetch("/api/competitions/picks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-          competitionId: competition.id,
-          groupId: viewer.groupId,
-          ticker: ticker.trim(),
-        }),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setMessage(json.error ?? "Could not submit pick.");
-        return;
-      }
-      setModalOpen(false);
-      setTicker("");
-      await reload(sideA, sideB);
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
-    <section className="surface-shell h2h-card" aria-label="Weekly rivalry">
+    <section className="surface-shell h2h-card" aria-label="Head to head">
       <div className="h2h-card-head">
         <div className="h2h-rivalry h2h-rivalry--selectors">
           <SchoolSideSelect
@@ -197,7 +164,7 @@ export function HeadToHeadMatchCard() {
           />
         </div>
         <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>
-          {statusLabel || "Open"}
+          {statusLabel || "Live"}
         </span>
       </div>
 
@@ -207,79 +174,35 @@ export function HeadToHeadMatchCard() {
             <strong className={`h2h-return is-${returnTone(groupA.avgReturnPct)}`}>
               {formatReturn(groupA.avgReturnPct)}
             </strong>
-            <span className="h2h-picks">{groupA.pickCount} picks submitted</span>
+            <span className="h2h-picks">
+              {groupA.pickCount} {groupA.pickCount === 1 ? "pick" : "picks"}
+            </span>
           </div>
           <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentB }}>
             <strong className={`h2h-return is-${returnTone(groupB.avgReturnPct)}`}>
               {formatReturn(groupB.avgReturnPct)}
             </strong>
-            <span className="h2h-picks">{groupB.pickCount} picks submitted</span>
+            <span className="h2h-picks">
+              {groupB.pickCount} {groupB.pickCount === 1 ? "pick" : "picks"}
+            </span>
           </div>
         </div>
       ) : (
-        <p className="h2h-note">Pick two schools to compare this week&apos;s picks.</p>
+        <p className="h2h-note">Pick two schools to compare campus scores.</p>
       )}
 
       <div className="h2h-action">
         {viewer.kind === "guest" ? (
           <Link href="/signin" className="brief-link">
-            Sign in to submit a weekly pick
+            Sign in to add your My Pick
           </Link>
         ) : viewer.kind === "not_member" ? (
           <p className="h2h-note">{viewer.message}</p>
-        ) : viewer.kind === "can_submit" ? (
-          <>
-            <button type="button" className="watchlist-add-button" onClick={() => {
-              if (viewer.existingTicker && !ticker) setTicker(viewer.existingTicker);
-              setModalOpen(true);
-            }}>
-              {viewer.existingTicker ? "Change Pick" : "Submit Pick"}
-            </button>
-            {modalOpen ? (
-              <div className="h2h-modal" role="dialog" aria-label="Submit weekly pick">
-                <label>
-                  Ticker
-                  <span className="h2h-ticker-input-row">
-                    {ticker.trim() ? (
-                      <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
-                        <LogoDisplay ticker={ticker.trim()} size="badge" />
-                      </span>
-                    ) : null}
-                    <input
-                      value={ticker}
-                      onChange={(event) => setTicker(event.target.value.toUpperCase())}
-                      placeholder="NVDA"
-                      autoComplete="off"
-                      spellCheck={false}
-                    />
-                  </span>
-                </label>
-                <div className="h2h-modal-actions">
-                  <button type="button" className="brief-link" onClick={() => setModalOpen(false)}>
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="watchlist-add-button"
-                    disabled={busy || !ticker.trim()}
-                    onClick={() => void submitPick()}
-                  >
-                    {busy ? "Saving…" : "Save pick"}
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </>
-        ) : viewer.kind === "locked_pick" ? (
-          <p className="h2h-note community-pick-ticker-row">
-            Your Pick:{" "}
-            <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
-              <LogoDisplay ticker={viewer.ticker} size="badge" />
-            </span>
-            <strong>{viewer.ticker}</strong> ({formatReturn(viewer.returnPct)})
-          </p>
+        ) : viewer.kind === "member" ? (
+          <Link href="/crowd?tab=pick" className="brief-link">
+            Update your My Pick
+          </Link>
         ) : null}
-        {message ? <p className="h2h-error">{message}</p> : null}
       </div>
     </section>
   );

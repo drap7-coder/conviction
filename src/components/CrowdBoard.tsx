@@ -70,9 +70,9 @@ export function CrowdBoard() {
           <HeadToHeadMatchCard />
           <CommunityPickCard variant="standings" />
           <p className="crowd-hedge">
-            Head-to-head shows campus pick scores for each school. Weekly rivalry picks take over
-            once members submit for the matchup. Schools below the member threshold stay unranked
-            on the board below.
+            Head-to-head compares each school&apos;s average My Pick lifetime return — continuous,
+            not a weekly window. Schools below the member threshold stay unranked on the board
+            below.
           </p>
         </div>
       ) : null}

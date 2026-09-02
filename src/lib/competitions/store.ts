@@ -19,12 +19,9 @@ import type {
   CompetitionViewerState,
 } from "@/lib/competitions/types";
 import {
-  competitionStatusLabel,
   isSubmissionOpen,
   weekWindowContaining,
 } from "@/lib/competitions/schedule";
-import { computeSideScore, countSubmittedPicks } from "@/lib/competitions/scores";
-import { refreshCompetitionScores } from "@/lib/competitions/refresh";
 import {
   averageLifetimeReturnPct,
   lifetimeReturnPct,
@@ -372,7 +369,7 @@ export async function listPicksForCompetition(competitionId: string): Promise<Co
   return result.rows.map((row) => mapPick(row));
 }
 
-/** Campus lifetime scores — used when the weekly rivalry has no locked picks yet. */
+/** Continuous campus lifetime scores for a school (My Pick / community_picks). */
 export async function scoreCampusSide(
   groupId: string,
 ): Promise<{ avgReturnPct: number | null; pickCount: number }> {
@@ -422,15 +419,6 @@ export async function scoreCampusSide(
     avgReturnPct: averageLifetimeReturnPct(returns),
     pickCount: result.rows.length,
   };
-}
-
-function sideFromWeeklyOrCampus(
-  weekly: { avgReturnPct: number | null; pickCount: number },
-  campus: { avgReturnPct: number | null; pickCount: number },
-): { avgReturnPct: number | null; pickCount: number } {
-  // Weekly rivalry picks win once anyone has submitted; otherwise show campus book scores.
-  if (weekly.pickCount > 0) return weekly;
-  return campus;
 }
 
 export async function getUserPick(
@@ -540,53 +528,12 @@ export async function buildHeadToHeadPayload(input: {
     return empty(input.userId ? { kind: "not_member", message: "Pick two schools to compare." } : { kind: "guest" });
   }
 
-  const competition = await getOrCreateCompetitionForPair(groupAId, groupBId);
-  if (!competition) {
-    return empty(input.userId ? { kind: "not_member", message: "Could not open this rivalry." } : { kind: "guest" });
-  }
-
-  await refreshCompetitionScores(competition.id).catch(() => undefined);
-
-  const refreshed = isDatabaseConfigured()
-    ? await query<CompetitionRow>(
-        `select id, group_a_id, group_b_id, period_start, period_end, status, metric, locked_at, winner_group_id
-         from competitions where id = $1 limit 1`,
-        [competition.id],
-      ).then((result) => (result.rows[0] ? mapCompetition(result.rows[0]) : competition))
-    : competition;
-  const liveCompetition = {
-    ...refreshed,
-    groupAId,
-    groupBId,
-  };
-
-  const window = weekWindowContaining(new Date(liveCompetition.periodStart));
-  const lockAt = liveCompetition.lockedAt ? new Date(liveCompetition.lockedAt) : window.lockAt;
-  const periodEnd = new Date(liveCompetition.periodEnd);
-  const statusLabel = competitionStatusLabel(
-    liveCompetition.status,
-    lockAt,
-    periodEnd,
-  );
-
-  const picks = await listPicksForCompetition(liveCompetition.id);
   const [metaA, metaB, campusA, campusB] = await Promise.all([
     groupMeta(groupAId),
     groupMeta(groupBId),
     scoreCampusSide(groupAId),
     scoreCampusSide(groupBId),
   ]);
-
-  const weeklyA = {
-    avgReturnPct: computeSideScore(picks, groupAId).avgReturnPct,
-    pickCount: countSubmittedPicks(picks, groupAId),
-  };
-  const weeklyB = {
-    avgReturnPct: computeSideScore(picks, groupBId).avgReturnPct,
-    pickCount: countSubmittedPicks(picks, groupBId),
-  };
-  const scoreA = sideFromWeeklyOrCampus(weeklyA, campusA);
-  const scoreB = sideFromWeeklyOrCampus(weeklyB, campusB);
 
   const groupA: CompetitionGroupSide = {
     groupId: groupAId,
@@ -595,8 +542,8 @@ export async function buildHeadToHeadPayload(input: {
     domain: metaA.domain,
     ncaaId: metaA.ncaaId,
     accentColor: metaA.accentColor,
-    avgReturnPct: scoreA.avgReturnPct,
-    pickCount: scoreA.pickCount,
+    avgReturnPct: campusA.avgReturnPct,
+    pickCount: campusA.pickCount,
   };
   const groupB: CompetitionGroupSide = {
     groupId: groupBId,
@@ -605,8 +552,8 @@ export async function buildHeadToHeadPayload(input: {
     domain: metaB.domain,
     ncaaId: metaB.ncaaId,
     accentColor: metaB.accentColor,
-    avgReturnPct: scoreB.avgReturnPct,
-    pickCount: scoreB.pickCount,
+    avgReturnPct: campusB.avgReturnPct,
+    pickCount: campusB.pickCount,
   };
 
   let viewer: CompetitionViewerState = { kind: "guest" };
@@ -614,46 +561,22 @@ export async function buildHeadToHeadPayload(input: {
     const memberships = await userMembershipGroupIds(input.userId);
     const side =
       memberships.find((id) => id === groupAId || id === groupBId) ?? null;
-    const existing = picks.find((p) => p.userId === input.userId) ?? null;
     if (!side) {
       viewer = {
         kind: "not_member",
-        message: "Join one of these schools to submit a weekly pick.",
-      };
-    } else if (existing?.lockedAt) {
-      viewer = {
-        kind: "locked_pick",
-        ticker: existing.ticker,
-        returnPct: existing.returnPct,
-        groupId: existing.groupId,
-      };
-    } else if (isSubmissionOpen(liveCompetition.status, lockAt)) {
-      viewer = {
-        kind: "can_submit",
-        groupId: side,
-        existingTicker: existing?.lockedAt ? null : existing?.ticker ?? null,
-      };
-    } else if (existing) {
-      viewer = {
-        kind: "locked_pick",
-        ticker: existing.ticker,
-        returnPct: existing.returnPct,
-        groupId: existing.groupId,
+        message: "Join one of these schools — your My Pick counts toward that campus.",
       };
     } else {
-      viewer = {
-        kind: "not_member",
-        message: "Weekly pick window closed — campus scores still update from My Pick.",
-      };
+      viewer = { kind: "member", groupId: side };
     }
   }
 
   return {
     available: true,
-    competition: liveCompetition,
+    competition: null,
     groupA,
     groupB,
-    statusLabel,
+    statusLabel: "Live",
     viewer,
     schools,
     viewerPrimaryGroupId,
