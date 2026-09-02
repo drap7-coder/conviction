@@ -62,7 +62,12 @@ export function siteJsonLd() {
         name: SITE_NAME,
         url: SITE_URL,
         description: SITE_DESCRIPTION,
-        logo: absoluteUrl("/icon.png"),
+        logo: {
+          "@type": "ImageObject",
+          url: absoluteUrl("/icon.png"),
+          width: 512,
+          height: 512,
+        },
       },
       {
         "@type": "WebSite",
