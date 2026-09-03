@@ -75,8 +75,11 @@ describe("Vercel high-risk path fixes", () => {
 
   it("adds public caching to market news and history routes", () => {
     const news = read("src/app/api/market/news/route.ts");
+    const newsData = read("src/lib/market/news-data.ts");
     const history = read("src/app/api/market/history/route.ts");
     expect(news).toContain("s-maxage=300");
+    expect(newsData).toContain("unstable_cache");
+    expect(newsData).toContain("market-news-v1");
     expect(news).not.toContain('dynamic = "force-dynamic"');
     expect(history).toContain("s-maxage=60");
     expect(history).toContain("s-maxage=1800");

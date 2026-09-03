@@ -38,6 +38,7 @@
 
   /* Legacy tint aliases */
   --card-accent: var(--card-soft);
+  --line: var(--border);
   --card-positive: var(--green-dim);
   --card-negative: var(--red-dim);
   --card-warning: var(--amber-dim);
@@ -17210,7 +17211,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .session-quote-change.is-up,
 .session-quote-extended.is-up {
-  color: var(--accent);
+  color: var(--green);
 }
 
 .session-quote-change.is-down,

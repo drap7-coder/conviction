@@ -7,45 +7,50 @@ function read(path: string) {
 
 describe("Pulse API stays lean and cached", () => {
   it("caches the payload and drops unused triage / narrative / regime fan-out", () => {
+    const data = read("src/lib/market/pulse-data.ts");
     const route = read("src/app/api/market/pulse/route.ts");
+    const page = read("src/app/pulse/page.tsx");
 
-    expect(route).toContain("unstable_cache");
-    expect(route).toContain("market-pulse-v2");
+    expect(data).toContain("unstable_cache");
+    expect(data).toContain("market-pulse-v2");
+    expect(route).toContain("loadPulseData");
     expect(route).toContain("s-maxage=300");
     expect(route).toContain("export const revalidate = 300");
+    expect(page).toContain("loadPulseData");
+    expect(page).toContain("export const revalidate = 300");
     expect(route).not.toContain("force-dynamic");
 
-    expect(route).not.toContain("getWatchlist");
-    expect(route).not.toContain("runTriage");
-    expect(route).not.toContain("fetchMarketNarrativePulse");
-    expect(route).not.toContain("classifyMacroRegime");
-    expect(route).not.toContain("classifySectorLeadership");
-    expect(route).not.toContain("macroRegime");
-    expect(route).not.toContain("sectorLeadership");
-    expect(route).not.toContain("marketNarratives");
-    expect(route).not.toMatch(/\btriage\b/);
+    expect(data).not.toContain("getWatchlist");
+    expect(data).not.toContain("runTriage");
+    expect(data).not.toContain("fetchMarketNarrativePulse");
+    expect(data).not.toContain("classifyMacroRegime");
+    expect(data).not.toContain("classifySectorLeadership");
+    expect(data).not.toContain("macroRegime");
+    expect(data).not.toContain("sectorLeadership");
+    expect(data).not.toContain("marketNarratives");
+    expect(data).not.toMatch(/\btriage\b/);
 
     // Gauges only need VIX + 10Y; indexes stay DIA/SPY/QQQ/IWM (no MDY/RSP).
-    expect(route).toContain('"^VIX"');
-    expect(route).toContain('"^TNX"');
-    expect(route).not.toContain('ticker: "UUP"');
-    expect(route).not.toContain('ticker: "MDY"');
-    expect(route).not.toContain('ticker: "RSP"');
-    expect(route).toContain('ticker: "DIA"');
-    expect(route).toContain('ticker: "IWM"');
-    expect(route).toContain('ticker: "UNG"');
-    expect(route).not.toContain("SOL-USD");
+    expect(data).toContain('"^VIX"');
+    expect(data).toContain('"^TNX"');
+    expect(data).not.toContain('ticker: "UUP"');
+    expect(data).not.toContain('ticker: "MDY"');
+    expect(data).not.toContain('ticker: "RSP"');
+    expect(data).toContain('ticker: "DIA"');
+    expect(data).toContain('ticker: "IWM"');
+    expect(data).toContain('ticker: "UNG"');
+    expect(data).not.toContain("SOL-USD");
   });
 
-  it("Pulse page only consumes scoreboard fields from the lean payload", () => {
-    const page = read("src/app/pulse/page.tsx");
-    expect(page).toContain("data.indicators");
-    expect(page).toContain("data?.globalMarkets");
-    expect(page).toContain("data?.sectors");
-    expect(page).toContain("data.sessionLabel");
-    expect(page).not.toContain("macroRegime");
-    expect(page).not.toContain("marketNarratives");
-    expect(page).not.toContain("sectorLeadership");
-    expect(page).not.toMatch(/data\.triage|\.triage\b/);
+  it("Pulse board only consumes scoreboard fields from the lean payload", () => {
+    const board = read("src/components/market/PulseBoard.tsx");
+    expect(board).toContain("data.indicators");
+    expect(board).toContain("data?.globalMarkets");
+    expect(board).toContain("data?.sectors");
+    expect(board).toContain("data.sessionLabel");
+    expect(board).not.toContain("macroRegime");
+    expect(board).not.toContain("marketNarratives");
+    expect(board).not.toContain("sectorLeadership");
+    expect(board).not.toMatch(/data\.triage|\.triage\b/);
   });
 });

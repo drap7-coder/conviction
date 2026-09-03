@@ -38,7 +38,7 @@ function MoverCard({
 
   return (
     <section
-      className="market-heatmap-shell pulse-index-board pulse-movers-card"
+      className="surface-shell market-heatmap-shell pulse-index-board pulse-movers-card"
       aria-label={title}
     >
       <div className="market-heatmap-copy">

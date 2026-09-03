@@ -223,7 +223,7 @@ describe("production copy and fixture isolation", () => {
   });
 
   it("drops the News ProductStage count strip", () => {
-    const news = read("src/app/news/page.tsx");
+    const news = read("src/components/market/NewsBoard.tsx");
 
     expect(news).not.toContain("ProductStage");
     expect(news).not.toContain("buildNewsPageBrief");
@@ -276,7 +276,7 @@ describe("production copy and fixture isolation", () => {
 
   it("keeps Pulse Trending as Market Movers, not a watchlist chip editor", () => {
     const panel = read("src/components/market/MarketMovesPanel.tsx");
-    const pulse = read("src/app/pulse/page.tsx");
+    const pulse = read("src/components/market/PulseBoard.tsx");
 
     expect(pulse).toContain("MarketMovesPanel");
     expect(panel).toContain("MarketMoversBoard");

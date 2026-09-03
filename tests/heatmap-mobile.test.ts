@@ -15,7 +15,7 @@ describe("quote scoreboards (no product heatmaps)", () => {
 
   it("uses movers-style Top/Bottom boards on Watchlist and index scoreboards on Pulse", () => {
     const watchlist = read("src/components/Watchlist.tsx");
-    const pulse = read("src/app/pulse/page.tsx");
+    const pulse = read("src/components/market/PulseBoard.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const movers = read("src/components/market/MarketMoversBoard.tsx");
 
@@ -34,7 +34,7 @@ describe("quote scoreboards (no product heatmaps)", () => {
   });
 
   it("keeps Pulse free of heatmap shells for markets", () => {
-    const page = read("src/app/pulse/page.tsx");
+    const page = read("src/components/market/PulseBoard.tsx");
     expect(page).not.toContain("GlobalMarketsHeatmap");
     expect(page).not.toContain("StockHeatmap");
     expect(page).toContain("IndexScoreboard");

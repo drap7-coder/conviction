@@ -5,6 +5,8 @@ import {
   resolveArticleImageUrl,
 } from "@/lib/evidence/article-image";
 import { fetchGoogleNewsRss, fetchRssNews } from "@/lib/evidence/news-rss";
+import { getLivePrice } from "@/lib/market/live-quote";
+import { fetchStockQuotes } from "@/lib/market/quotes";
 
 const CACHE_SECONDS = 5 * 60;
 /** Drop stories older than this from News themes — RSS can keep wire pieces for days. */
@@ -386,19 +388,26 @@ export function dedupeNarrativeHeadlines(
   return kept;
 }
 
-async function fetchTheme(
+type ThemeCoverage = {
+  config: NarrativeThemeConfig;
+  headlines: MarketNarrativeHeadline[];
+};
+
+/** RSS only — safe to run in parallel with Yahoo quotes. */
+async function fetchThemeCoverage(
   config: NarrativeThemeConfig,
-  assets: NarrativeAssetMove[],
   now: Date,
-): Promise<MarketNarrativeTheme> {
-  // Yahoo by ticker + Google by ticker/theme query for broader, more relevant coverage.
-  const [yahooHeadlines, googleTickerHeadlines, googleThemeHeadlines] = await Promise.all([
+): Promise<ThemeCoverage> {
+  // Yahoo by ticker + Google by query. Drop the third label-only Google pass —
+  // it mostly duplicated the query feed and inflated cold TTFB.
+  const [yahooHeadlines, googleTickerHeadlines] = await Promise.all([
     fetchRssNews(config.newsTicker, 10).catch(() => []),
-    fetchGoogleNewsRss(config.newsTicker, 10, config.query, { recentDays: NEWS_THEME_MAX_AGE_DAYS }).catch(() => []),
-    fetchGoogleNewsRss(config.newsTicker, 8, config.label, { recentDays: NEWS_THEME_MAX_AGE_DAYS }).catch(() => []),
+    fetchGoogleNewsRss(config.newsTicker, 10, config.query, {
+      recentDays: NEWS_THEME_MAX_AGE_DAYS,
+    }).catch(() => []),
   ]);
 
-  const pool = [...yahooHeadlines, ...googleTickerHeadlines, ...googleThemeHeadlines];
+  const pool = [...yahooHeadlines, ...googleTickerHeadlines];
   const headlines = dedupeNarrativeHeadlines(
     rankHeadlines(
       pool
@@ -410,6 +419,15 @@ async function fetchTheme(
     ),
   ).slice(0, 10);
 
+  return { config, headlines };
+}
+
+function themeFromCoverage(
+  coverage: ThemeCoverage,
+  assets: NarrativeAssetMove[],
+  now: Date,
+): MarketNarrativeTheme {
+  const { config, headlines } = coverage;
   const matchedHeadlines = headlines.filter((headline) =>
     config.headlinePattern.test(headline.title),
   ).length;
@@ -481,8 +499,10 @@ function candidateImageUrls(
 async function hydratePrimaryHeadline(
   primary: MarketNarrativeHeadline,
   headlines: MarketNarrativeHeadline[],
-  allowUnwrap: boolean,
+  options: { allowHtmlFetch?: boolean; allowUnwrap?: boolean } = {},
 ): Promise<MarketNarrativeHeadline> {
+  const allowHtmlFetch = options.allowHtmlFetch ?? true;
+  const allowUnwrap = options.allowUnwrap ?? false;
   if (primary.imageUrl && !isUsableArticleImage(primary.imageUrl)) {
     primary = { ...primary, imageUrl: null };
   }
@@ -490,7 +510,7 @@ async function hydratePrimaryHeadline(
     const siblingImage = siblingArticleImage(primary, headlines);
     if (siblingImage) return { ...primary, imageUrl: siblingImage };
   }
-  if (primary.imageUrl) return primary;
+  if (primary.imageUrl || !allowHtmlFetch) return primary;
 
   for (const url of candidateImageUrls(primary, headlines)) {
     const imageUrl = await resolveArticleImageUrl(url, {
@@ -501,25 +521,27 @@ async function hydratePrimaryHeadline(
   return primary;
 }
 
-/** Attach og:image to each theme's primary headline without refetching the rest of the feed. */
+/**
+ * Attach og:image to theme primaries. Caps HTML fetches — sibling RSS photos
+ * still attach for free. Cold News TTFB is dominated by og:image unwraps.
+ */
 export async function hydrateThemePrimaryImages(
   themes: MarketNarrativeTheme[],
+  options: { maxHtmlThemes?: number; maxUnwrapThemes?: number } = {},
 ): Promise<MarketNarrativeTheme[]> {
-  const unwrapBudget = new Set(
-    [...themes]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 4)
-      .map((theme) => theme.id),
-  );
+  const maxHtmlThemes = options.maxHtmlThemes ?? 2;
+  const maxUnwrapThemes = options.maxUnwrapThemes ?? 1;
+  const ranked = [...themes].sort((a, b) => b.score - a.score);
+  const htmlBudget = new Set(ranked.slice(0, maxHtmlThemes).map((theme) => theme.id));
+  const unwrapBudget = new Set(ranked.slice(0, maxUnwrapThemes).map((theme) => theme.id));
 
   return Promise.all(themes.map(async (theme) => {
     const primary = theme.headline ?? theme.headlines[0] ?? null;
     if (!primary) return theme;
-    const hydrated = await hydratePrimaryHeadline(
-      primary,
-      theme.headlines,
-      unwrapBudget.has(theme.id),
-    );
+    const hydrated = await hydratePrimaryHeadline(primary, theme.headlines, {
+      allowHtmlFetch: htmlBudget.has(theme.id),
+      allowUnwrap: unwrapBudget.has(theme.id),
+    });
     if (hydrated.imageUrl === primary.imageUrl) return theme;
     return {
       ...theme,
@@ -533,26 +555,62 @@ export async function hydrateThemePrimaryImages(
   }));
 }
 
+/**
+ * Build narrative pulse. When `assetMoves` is omitted, Yahoo quotes load in
+ * parallel with theme RSS (biggest cold-path win for News).
+ */
 export async function fetchMarketNarrativePulse(
-  assetMoves: Map<string, number | null>,
+  assetMoves?: Map<string, number | null>,
   now = new Date(),
 ): Promise<MarketNarrativePulse> {
   const bucketMs = CACHE_SECONDS * 1_000;
   const bucketedNow = new Date(Math.floor(now.getTime() / bucketMs) * bucketMs);
-  const settled = await Promise.allSettled(MARKET_NARRATIVE_THEMES.map((config) => {
-    const assets = config.assets.map((asset) => ({
-      ...asset,
-      changePercent: assetMoves.get(asset.ticker) ?? null,
-    }));
-    return fetchTheme(config, assets, bucketedNow);
-  }));
-  const themes = await hydrateThemePrimaryImages(
-    settled
-      .filter((result): result is PromiseFulfilledResult<MarketNarrativeTheme> => result.status === "fulfilled")
-      .map((result) => result.value)
-      .sort((a, b) => b.score - a.score),
+  const tickers = Array.from(
+    new Set(MARKET_NARRATIVE_THEMES.flatMap((theme) => theme.assets.map((asset) => asset.ticker))),
   );
-  const failures = settled.length - themes.length;
+
+  const coveragePromise = Promise.allSettled(
+    MARKET_NARRATIVE_THEMES.map((config) => fetchThemeCoverage(config, bucketedNow)),
+  );
+
+  let moves = assetMoves ?? null;
+  let settled: PromiseSettledResult<ThemeCoverage>[];
+
+  if (moves) {
+    settled = await coveragePromise;
+  } else {
+    const [quotes, coverageSettled] = await Promise.all([
+      fetchStockQuotes(tickers),
+      coveragePromise,
+    ]);
+    settled = coverageSettled;
+    const quoteMap = new Map(quotes.map((quote) => [quote.ticker, quote]));
+    moves = new Map(
+      tickers.map((ticker) => {
+        const quote = quoteMap.get(ticker);
+        const live = quote ? getLivePrice(quote) : null;
+        return [ticker, live?.changePercent ?? quote?.changePercent ?? null] as const;
+      }),
+    );
+  }
+
+  const assembled = settled
+    .filter((result): result is PromiseFulfilledResult<ThemeCoverage> => result.status === "fulfilled")
+    .map((result) => {
+      const coverage = result.value;
+      const assets = coverage.config.assets.map((asset) => ({
+        ...asset,
+        changePercent: moves!.get(asset.ticker) ?? null,
+      }));
+      return themeFromCoverage(coverage, assets, bucketedNow);
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const themes = await hydrateThemePrimaryImages(assembled, {
+    maxHtmlThemes: 2,
+    maxUnwrapThemes: 1,
+  });
+  const failures = settled.length - assembled.length;
 
   return {
     status: themes.length === 0 ? "unavailable" : failures > 0 ? "partial" : "live",
