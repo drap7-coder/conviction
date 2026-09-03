@@ -88,10 +88,10 @@ describe("competition schedule", () => {
 });
 
 describe("h2h performance ranges", () => {
-  it("defaults to YTD and parses known windows", () => {
-    expect(DEFAULT_H2H_PERF_RANGE).toBe("ytd");
-    expect(parseH2HPerfRange(null)).toBe("ytd");
-    expect(parseH2HPerfRange("bogus")).toBe("ytd");
+  it("defaults to weekly and parses known windows", () => {
+    expect(DEFAULT_H2H_PERF_RANGE).toBe("1w");
+    expect(parseH2HPerfRange(null)).toBe("1w");
+    expect(parseH2HPerfRange("bogus")).toBe("1w");
     expect(parseH2HPerfRange("1d")).toBe("1d");
     expect(parseH2HPerfRange("1W")).toBe("1w");
     expect(parseH2HPerfRange("1m")).toBe("1m");
@@ -181,6 +181,9 @@ describe("h2h performance ranges", () => {
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("PerfRangeSelect");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-chrome-bar");
     expect(read("src/components/CrowdBoard.tsx")).toContain("$100,000");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("waitForParent");
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain('params.set("range", range)');
+    expect(read("src/app/api/competitions/active/route.ts")).toContain('rawRange ?? "1w"');
     expect(read("src/lib/community-picks/store.ts")).toContain("pickPeriodReturnPct");
     expect(read("src/lib/community-picks/store.ts")).toContain("fetchPeriodBaselines");
     expect(read("src/lib/competitions/store.ts")).toContain("pickPeriodReturnPct");

@@ -4,7 +4,8 @@ export const H2H_PERF_RANGES = ["1d", "1w", "1m", "ytd"] as const;
 
 export type H2HPerfRange = (typeof H2H_PERF_RANGES)[number];
 
-export const DEFAULT_H2H_PERF_RANGE: H2HPerfRange = "ytd";
+/** Weekly default — keeps H2H and standings from snowballing on lifetime/YTD. */
+export const DEFAULT_H2H_PERF_RANGE: H2HPerfRange = "1w";
 
 export const H2H_PERF_RANGE_OPTIONS: Array<{ value: H2HPerfRange; label: string }> = [
   /** Session return vs prior close — same idea as brokerage “Today”. */
