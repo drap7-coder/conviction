@@ -10,7 +10,6 @@ import { MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
 import type { CommunityStanding } from "@/lib/community-picks/types";
 import {
   DEFAULT_H2H_PERF_RANGE,
-  seedRangeScale,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
@@ -85,7 +84,7 @@ export function listCampusSeedStudents(): CampusSeedStudent[] {
 
 /** Offline / no-DB standings so guest Standings still shows a full board. */
 export function seedCampusStandings(
-  range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
+  _range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
 ): CommunityStanding[] {
   const students = listCampusSeedStudents();
   const byGroup = new Map<string, CampusSeedStudent[]>();
@@ -95,20 +94,11 @@ export function seedCampusStandings(
     byGroup.set(student.groupId, rows);
   }
 
-  const scale = seedRangeScale(range);
-
   return listSeedCanonicalCommunities()
     .map((group) => {
       const institution = SEED_INSTITUTIONS.find((row) => row.id === group.institutionId);
       const ncaaId = institution?.ncaaId ?? null;
       const members = byGroup.get(group.id) ?? [];
-      const returns = members.map(
-        (member) => Math.round((member.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
-      );
-      const avg =
-        returns.length === 0
-          ? null
-          : Math.round((returns.reduce((sum, value) => sum + value, 0) / returns.length) * 100) / 100;
       const pickCount = members.length;
       return {
         groupId: group.id,
@@ -118,14 +108,13 @@ export function seedCampusStandings(
         ncaaId,
         accentColor: institution?.accentColor ?? group.primaryColor,
         pickCount,
-        avgReturnPct: avg,
-        ranked: pickCount >= MIN_RANKED_MEMBERS && avg !== null,
+        // Starting $100k book — live tape fills real P&L when quotes resolve.
+        avgReturnPct: 0,
+        ranked: pickCount >= MIN_RANKED_MEMBERS,
       };
     })
     .sort((a, b) => {
       if (a.ranked !== b.ranked) return a.ranked ? -1 : 1;
-      if (a.avgReturnPct === null && b.avgReturnPct !== null) return 1;
-      if (a.avgReturnPct !== null && b.avgReturnPct === null) return -1;
       if (a.avgReturnPct !== b.avgReturnPct) {
         return (b.avgReturnPct ?? 0) - (a.avgReturnPct ?? 0);
       }

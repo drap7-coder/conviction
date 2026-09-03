@@ -6,20 +6,13 @@ import { CrowdCommunityPanel } from "@/components/CrowdCommunityPanel";
 import { CommunityPickCard } from "@/components/CommunityPickCard";
 import { YourPicksCard } from "@/components/YourPicksCard";
 import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
-import { PerfRangeSelect } from "@/components/crowd/PerfRangeSelect";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
-import {
-  DEFAULT_H2H_PERF_RANGE,
-  parseH2HPerfRange,
-  type H2HPerfRange,
-} from "@/lib/competitions/perf-range";
 import type { HeadToHeadPayload } from "@/lib/competitions/types";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
 
 export type CrowdTab = "pick" | "standings" | "community";
 
 export type CrowdStandingsPayload = {
-  range: H2HPerfRange;
   headToHead: HeadToHeadPayload;
   community: CommunityPicksPayload;
 };
@@ -38,10 +31,8 @@ export function parseCrowdView(value: string | null | undefined): CrowdTab {
   return "standings";
 }
 
-async function loadCrowdStandings(range: H2HPerfRange): Promise<CrowdStandingsPayload> {
-  const params = new URLSearchParams();
-  params.set("range", range);
-  const res = await fetch(`/api/crowd/standings?${params.toString()}`, {
+async function loadCrowdStandings(): Promise<CrowdStandingsPayload> {
+  const res = await fetch("/api/crowd/standings", {
     cache: "no-store",
     credentials: "include",
   });
@@ -55,15 +46,11 @@ export function CrowdBoard() {
   const pathname = usePathname();
   const tabParam = searchParams.get("tab") ?? searchParams.get("view");
   const [tab, setTab] = useState<CrowdTab>(() => parseCrowdView(tabParam));
-  const [range, setRange] = useState<H2HPerfRange>(() =>
-    parseH2HPerfRange(searchParams.get("range")),
-  );
   const [standings, setStandings] = useState<CrowdStandingsPayload | null>(null);
   const [standingsError, setStandingsError] = useState<string | null>(null);
 
   useEffect(() => {
     setTab(parseCrowdView(searchParams.get("tab") ?? searchParams.get("view")));
-    setRange(parseH2HPerfRange(searchParams.get("range")));
   }, [searchParams]);
 
   // Redirect legacy held/watched query params to Portfolio.
@@ -74,12 +61,12 @@ export function CrowdBoard() {
     }
   }, [router, searchParams]);
 
-  // Standings tab: one combined fetch for H2H + community board.
+  // Standings tab: one combined fetch for H2H + community board (lifetime $100k books).
   useEffect(() => {
     if (tab !== "standings") return;
     let cancelled = false;
     setStandingsError(null);
-    void loadCrowdStandings(range)
+    void loadCrowdStandings()
       .then((payload) => {
         if (!cancelled) setStandings(payload);
       })
@@ -94,12 +81,13 @@ export function CrowdBoard() {
     return () => {
       cancelled = true;
     };
-  }, [tab, range]);
+  }, [tab]);
 
   function selectTab(next: CrowdTab) {
     setTab(next);
     const params = new URLSearchParams(searchParams.toString());
     params.delete("view");
+    params.delete("range");
     if (next === "standings") {
       params.delete("tab");
     } else {
@@ -109,55 +97,35 @@ export function CrowdBoard() {
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   }
 
-  function selectRange(next: H2HPerfRange) {
-    setRange(next);
-    const params = new URLSearchParams(searchParams.toString());
-    if (next === DEFAULT_H2H_PERF_RANGE) {
-      params.delete("range");
-    } else {
-      params.set("range", next);
-    }
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  }
-
   return (
     <div className="crowd-page-body">
-      <div className="crowd-chrome-bar">
-        <SurfaceSlicer
-          label="Crowd view"
-          options={TABS}
-          activeId={tab}
-          onChange={(id) => selectTab(parseCrowdView(id))}
-          role="tablist"
-          className="crowd-view-slicer"
-        />
-        {tab === "standings" ? (
-          <PerfRangeSelect value={range} onChange={selectRange} />
-        ) : null}
-      </div>
+      <SurfaceSlicer
+        label="Crowd view"
+        options={TABS}
+        activeId={tab}
+        onChange={(id) => selectTab(parseCrowdView(id))}
+        role="tablist"
+      />
 
       {tab === "standings" ? (
         <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">
           <p className="crowd-bankroll-lead">
             Each player starts with <strong>$100,000</strong>. School score is the average student
-            balance — more members don&apos;t inflate the dollars.
+            balance on that book — more members don&apos;t inflate the dollars.
           </p>
           {standingsError ? (
             <p className="crowd-empty" role="alert">
               {standingsError}
             </p>
           ) : null}
-          <HeadToHeadMatchCard range={range} initialPayload={standings?.headToHead ?? null} />
+          <HeadToHeadMatchCard initialPayload={standings?.headToHead ?? null} />
           <CommunityPickCard
             variant="standings"
-            range={range}
             initialPayload={standings?.community ?? null}
           />
           <p className="crowd-hedge">
-            Head-to-head and community standings use the same Performance window — equal-weight My
-            Pick returns on a $100,000 book per player, averaged across campus. Schools below the
-            member threshold stay unranked on the board below.
+            Head-to-head and community standings use each player&apos;s lifetime My Pick return on a
+            $100,000 book, averaged across campus. Schools below the member threshold stay unranked.
           </p>
         </div>
       ) : null}

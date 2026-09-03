@@ -23,7 +23,10 @@ import {
   weekWindowContaining,
 } from "@/lib/competitions/schedule";
 import {
+  activeGrowthFactor,
   averageLifetimeReturnPct,
+  lifetimeReturnPct,
+  totalGrowthFactor,
 } from "@/lib/community-picks/growth";
 import { pricingSymbolForStored } from "@/lib/community-picks/asset-maps";
 import { CALL_SLOTS, CALLS_REQUIRED, type CallSlot } from "@/lib/community-picks/call-slots";
@@ -31,14 +34,27 @@ import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seed
 import { listCampusSeedStudents } from "@/lib/community-picks/seed-students";
 import {
   DEFAULT_H2H_PERF_RANGE,
-  pickPeriodReturnPct,
-  seedRangeScale,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
+import { fetchFreshStockQuotes } from "@/lib/market/quotes";
 import {
   fetchPeriodBaselines,
   type PeriodBaseline,
 } from "@/lib/competitions/period-baselines";
+
+async function currentPricesForSymbols(symbols: string[]): Promise<Map<string, number>> {
+  const unique = [...new Set(symbols.map((symbol) => symbol.toUpperCase()).filter(Boolean))];
+  if (unique.length === 0) return new Map();
+  const quotes = await fetchFreshStockQuotes(unique);
+  const prices = new Map<string, number>();
+  for (const quote of quotes) {
+    const spot = quote.price ?? quote.previousClose;
+    if (spot !== null && Number.isFinite(spot) && spot > 0) {
+      prices.set(quote.ticker.toUpperCase(), spot);
+    }
+  }
+  return prices;
+}
 
 type GroupLogoMeta = {
   name: string;
@@ -377,42 +393,31 @@ export async function listPicksForCompetition(competitionId: string): Promise<Co
   return result.rows.map((row) => mapPick(row));
 }
 
-/** Campus IQBulls averages over a performance window (default YTD).
+/** Campus IQBulls averages on the lifetime $100k book.
  * Only members with all five calls filled contribute. */
 export async function scoreCampusSide(
   groupId: string,
-  range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
-  baselines?: Map<string, PeriodBaseline>,
+  _range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
+  _baselines?: Map<string, PeriodBaseline>,
 ): Promise<{ avgReturnPct: number | null; pickCount: number }> {
   if (!groupId) return { avgReturnPct: null, pickCount: 0 };
 
   if (!isDatabaseConfigured()) {
     const students = listCampusSeedStudents().filter((row) => row.groupId === groupId);
-    if (students.length === 0) return { avgReturnPct: null, pickCount: 0 };
+    if (students.length === 0) return { avgReturnPct: 0, pickCount: 0 };
     const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
-    const byTicker = baselines ?? (await fetchPeriodBaselines(tickers, range));
+    const prices = await currentPricesForSymbols(tickers);
     const liveReturns: number[] = [];
     for (const student of students) {
-      const ret = pickPeriodReturnPct({
-        range,
-        entryPrice: student.entryPrice,
-        pickedAt: null,
-        baseline: byTicker.get(student.ticker.toUpperCase()),
-      });
-      if (ret !== null) liveReturns.push(ret);
+      const current = prices.get(student.ticker.toUpperCase());
+      const active =
+        current === undefined ? 1 : activeGrowthFactor(student.entryPrice, current);
+      liveReturns.push(
+        lifetimeReturnPct(totalGrowthFactor(student.bankedGrowthFactor, active)),
+      );
     }
-    if (liveReturns.length > 0) {
-      return {
-        avgReturnPct: averageLifetimeReturnPct(liveReturns),
-        pickCount: students.length,
-      };
-    }
-    const scale = seedRangeScale(range);
-    const returns = students.map(
-      (row) => Math.round((row.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
-    );
     return {
-      avgReturnPct: averageLifetimeReturnPct(returns),
+      avgReturnPct: averageLifetimeReturnPct(liveReturns) ?? 0,
       pickCount: students.length,
     };
   }
@@ -424,14 +429,15 @@ export async function scoreCampusSide(
     call_slot: string;
     ticker: string;
     entry_price: string;
+    banked_growth_factor: string;
     picked_at: Date;
   }>(
-    `select user_id, call_slot, ticker, entry_price, picked_at
+    `select user_id, call_slot, ticker, entry_price, banked_growth_factor, picked_at
      from community_picks
      where group_id = $1`,
     [groupId],
   );
-  if (result.rows.length === 0) return { avgReturnPct: null, pickCount: 0 };
+  if (result.rows.length === 0) return { avgReturnPct: 0, pickCount: 0 };
 
   const pricingSymbols = [
     ...new Set(
@@ -440,7 +446,7 @@ export async function scoreCampusSide(
       ),
     ),
   ];
-  const byTicker = baselines ?? (await fetchPeriodBaselines(pricingSymbols, range));
+  const prices = await currentPricesForSymbols(pricingSymbols);
 
   const byUser = new Map<string, typeof result.rows>();
   for (const row of result.rows) {
@@ -455,13 +461,14 @@ export async function scoreCampusSide(
     const slotReturns = new Map<string, number>();
     for (const row of rows) {
       const symbol = pricingSymbolForStored(row.call_slot as CallSlot, row.ticker);
-      const ret = pickPeriodReturnPct({
-        range,
-        entryPrice: Number(row.entry_price),
-        pickedAt: row.picked_at?.toISOString?.() ?? null,
-        baseline: byTicker.get(symbol),
-      });
-      if (ret !== null) slotReturns.set(row.call_slot, ret);
+      const entry = Number(row.entry_price);
+      const banked = Number(row.banked_growth_factor);
+      const current = prices.get(symbol);
+      const active = current === undefined ? 1 : activeGrowthFactor(entry, current);
+      slotReturns.set(
+        row.call_slot,
+        lifetimeReturnPct(totalGrowthFactor(banked, active)),
+      );
     }
     if (slotReturns.size < CALLS_REQUIRED) continue;
     const values = CALL_SLOTS.map((slot) => slotReturns.get(slot)).filter(
@@ -473,7 +480,7 @@ export async function scoreCampusSide(
   }
 
   return {
-    avgReturnPct: averageLifetimeReturnPct(memberReturns),
+    avgReturnPct: averageLifetimeReturnPct(memberReturns) ?? 0,
     pickCount: memberReturns.length,
   };
 }

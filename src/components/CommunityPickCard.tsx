@@ -6,7 +6,6 @@ import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import {
   DEFAULT_H2H_PERF_RANGE,
-  h2hPerfRangeLabel,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
@@ -332,11 +331,7 @@ export function CommunityPickCard({
         <div className={`community-standings${showPick ? "" : " is-standalone"}`}>
           <div className="community-standings-head">
             <h3>Community standings</h3>
-            <span>
-              {standingsRange === "1d" || data.range === "1d"
-                ? "Avg student balance · Today"
-                : `Avg student balance · ${h2hPerfRangeLabel(data.range ?? standingsRange)}`}
-            </span>
+            <span>Avg student balance · $100,000 book</span>
           </div>
           {data.standings.length === 0 ? (
             <p className="crowd-empty">Standings begin with the first community pick.</p>
@@ -371,11 +366,11 @@ export function CommunityPickCard({
                       </span>
                       <span className={`community-standing-perf is-${returnTone(standing.avgReturnPct)}`}>
                         <strong className="community-standing-return">
-                          {avgBalance === null ? "—" : formatUsd(avgBalance)}
+                          {formatUsd(avgBalance)}
                         </strong>
                         <small>
                           {formatUsdDelta(avgDelta)}
-                          <em>({formatReturn(standing.avgReturnPct)})</em>
+                          <em>({formatReturn(standing.avgReturnPct ?? 0)})</em>
                         </small>
                       </span>
                     </li>

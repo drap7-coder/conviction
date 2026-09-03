@@ -177,24 +177,14 @@ describe("h2h performance ranges", () => {
     ).toBe(20);
   });
 
-  it("wires a shared Performance dropdown for H2H and standings (YTD default)", () => {
-    expect(read("src/components/CrowdBoard.tsx")).toContain("PerfRangeSelect");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("range={range}");
-    expect(read("src/components/crowd/PerfRangeSelect.tsx")).toContain("H2H_PERF_RANGE_OPTIONS");
-    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain('params.set("range", perfRange)');
-    expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("H2H_PERF_RANGE_OPTIONS");
-    expect(read("src/app/api/competitions/active/route.ts")).toContain("parseH2HPerfRange");
-    expect(read("src/app/api/community-picks/route.ts")).toContain("parseH2HPerfRange");
-    expect(read("src/lib/competitions/store.ts")).toContain("fetchPeriodBaselines");
-    expect(read("src/lib/competitions/store.ts")).toContain("pickPeriodReturnPct");
-    expect(read("src/lib/community-picks/store.ts")).toContain("fetchPeriodBaselines");
-    expect(read("src/lib/community-picks/store.ts")).toContain("pickPeriodReturnPct");
-    expect(read("src/lib/competitions/period-baselines.ts")).toContain("sessionReturnPct");
-    expect(read("src/lib/market/quotes.ts")).toContain('"ytd"');
-    expect(read("src/app/globals.css")).toContain("h2h-range-select");
-    expect(read("src/app/globals.css")).toContain("crowd-chrome-bar");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-chrome-bar");
-    expect(read("src/components/crowd/PerfRangeSelect.tsx")).toContain("h2h-range-select-icon");
+  it("scores Crowd standings on lifetime $100k books (no Performance range chrome)", () => {
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("PerfRangeSelect");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-chrome-bar");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("$100,000");
+    expect(read("src/lib/community-picks/store.ts")).toContain("currentPricesForSymbols");
+    expect(read("src/lib/community-picks/store.ts")).toContain("lifetimeReturnPct");
+    expect(read("src/lib/community-picks/store.ts")).toContain("ensureSeedCampusGroups");
+    expect(read("src/lib/community-picks/notional.ts")).toContain("PLAYER_BANKROLL_USD");
   });
 });
 
@@ -267,7 +257,7 @@ describe("community picks wiring", () => {
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit Pick");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit weekly");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("this week");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("Performance window");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("$100,000 book");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("Weekly rivalry");
     expect(read("src/app/api/cron/daily-sync/route.ts")).not.toContain("runCompetitionLifecycleTick");
     expect(read("src/app/globals.css")).toContain("h2h-school-select");

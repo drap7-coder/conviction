@@ -28,11 +28,9 @@ import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
 import { seedCampusStandings, listCampusSeedStudents } from "@/lib/community-picks/seed-students";
 import {
   DEFAULT_H2H_PERF_RANGE,
-  pickPeriodReturnPct,
-  seedRangeScale,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
-import { fetchPeriodBaselines } from "@/lib/competitions/period-baselines";
+import { fetchFreshStockQuotes } from "@/lib/market/quotes";
 import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
 import { resolveNcaaDomain } from "@/lib/groups/ncaa-domains";
@@ -45,6 +43,20 @@ import type {
   CommunityStanding,
   SwapPickResult,
 } from "@/lib/community-picks/types";
+
+async function currentPricesForSymbols(symbols: string[]): Promise<Map<string, number>> {
+  const unique = [...new Set(symbols.map((symbol) => symbol.toUpperCase()).filter(Boolean))];
+  if (unique.length === 0) return new Map();
+  const quotes = await fetchFreshStockQuotes(unique);
+  const prices = new Map<string, number>();
+  for (const quote of quotes) {
+    const spot = quote.price ?? quote.previousClose;
+    if (spot !== null && Number.isFinite(spot) && spot > 0) {
+      prices.set(quote.ticker.toUpperCase(), spot);
+    }
+  }
+  return prices;
+}
 
 type PickRow = {
   user_id: string;
@@ -87,6 +99,26 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
   };
 }
 
+/** Every seeded campus stays on the board with a $100k starting book. */
+function ensureSeedCampusGroups(groups: GroupRow[]): GroupRow[] {
+  const out = groups.slice();
+  for (const seed of listSeedCanonicalCommunities()) {
+    if (out.some((group) => group.id === seed.id)) continue;
+    const institution = SEED_INSTITUTIONS.find((row) => row.id === seed.institutionId);
+    out.push({
+      id: seed.id,
+      name: seed.name,
+      primary_color: seed.primaryColor,
+      institution_id: seed.institutionId,
+      canonical_domain:
+        institution?.canonicalDomain ?? resolveNcaaDomain(institution?.ncaaId) ?? null,
+      ncaa_id: institution?.ncaaId ?? null,
+      accent_color: institution?.accentColor ?? seed.primaryColor,
+    });
+  }
+  return out;
+}
+
 function seedStandings(range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE): CommunityStanding[] {
   return seedCampusStandings(range);
 }
@@ -124,7 +156,8 @@ function buildPickView(row: PickRow, currentPrice: number | null): CommunityPick
     entryPrice,
     currentPrice,
     activeReturnPct: currentPrice === null ? null : activeReturnPct(activeFactor),
-    lifetimeReturnPct: currentPrice === null ? null : lifetimeReturnPct(totalFactor),
+    // Missing spot → active factor 1, so lifetime is banked-only (0% on a fresh $100k book).
+    lifetimeReturnPct: lifetimeReturnPct(totalFactor),
     bankedGrowthFactor,
     pickedAt: row.picked_at.toISOString(),
   };
@@ -163,29 +196,29 @@ function summarizePicks(picks: Partial<Record<CallSlot, CommunityPick>>) {
   };
 }
 
-/** Guest / no-DB standings: prefer live Yahoo period returns for seed tickers. */
-async function scoreOfflineStandings(range: H2HPerfRange): Promise<CommunityStanding[]> {
+/** Guest / no-DB standings: lifetime $100k book returns from live spots. */
+async function scoreOfflineStandings(_range?: H2HPerfRange): Promise<CommunityStanding[]> {
   const students = listCampusSeedStudents();
   const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
-  const baselines = await fetchPeriodBaselines(tickers, range);
+  const prices = await currentPricesForSymbols(tickers);
   const returnsByGroup = new Map<string, number[]>();
   let liveHits = 0;
 
   for (const student of students) {
-    const ret = pickPeriodReturnPct({
-      range,
-      entryPrice: student.entryPrice,
-      pickedAt: null,
-      baseline: baselines.get(student.ticker.toUpperCase()),
-    });
-    if (ret === null) continue;
+    const current = prices.get(student.ticker.toUpperCase());
+    if (current === undefined) continue;
+    const total = totalGrowthFactor(
+      student.bankedGrowthFactor,
+      activeGrowthFactor(student.entryPrice, current),
+    );
+    const ret = lifetimeReturnPct(total);
     liveHits += 1;
     const rows = returnsByGroup.get(student.groupId) ?? [];
     rows.push(ret);
     returnsByGroup.set(student.groupId, rows);
   }
 
-  if (liveHits === 0) return seedStandings(range);
+  if (liveHits === 0) return seedStandings();
 
   const byGroup = new Map<string, typeof students>();
   for (const student of students) {
@@ -203,14 +236,9 @@ async function scoreOfflineStandings(range: H2HPerfRange): Promise<CommunityStan
       const avg =
         returns.length > 0
           ? averageLifetimeReturnPct(returns)
-          : (() => {
-              const scale = seedRangeScale(range);
-              const demo = members.map(
-                (member) =>
-                  Math.round((member.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
-              );
-              return averageLifetimeReturnPct(demo);
-            })();
+          : averageLifetimeReturnPct(
+              members.map((member) => lifetimeReturnPct(member.bankedGrowthFactor)),
+            );
       const pickCount = members.length;
       return {
         groupId: group.id,
@@ -220,14 +248,12 @@ async function scoreOfflineStandings(range: H2HPerfRange): Promise<CommunityStan
         ncaaId,
         accentColor: institution?.accentColor ?? group.primaryColor,
         pickCount,
-        avgReturnPct: avg,
-        ranked: pickCount >= MIN_RANKED_MEMBERS && avg !== null,
+        avgReturnPct: avg ?? 0,
+        ranked: pickCount >= MIN_RANKED_MEMBERS,
       };
     })
     .sort((a, b) => {
       if (a.ranked !== b.ranked) return a.ranked ? -1 : 1;
-      if (a.avgReturnPct === null && b.avgReturnPct !== null) return 1;
-      if (a.avgReturnPct !== null && b.avgReturnPct === null) return -1;
       if (a.avgReturnPct !== b.avgReturnPct) {
         return (b.avgReturnPct ?? 0) - (a.avgReturnPct ?? 0);
       }
@@ -549,9 +575,9 @@ export async function loadCommunityPicks(
       pickResult.rows.map((row) => pricingSymbolForStored(row.call_slot, row.ticker)),
     ),
   ];
-  const baselines = await fetchPeriodBaselines(pricingSymbols, range);
+  const prices = await currentPricesForSymbols(pricingSymbols);
 
-  /** memberKey = userId::groupId → slot returns (only when board complete). */
+  /** memberKey = userId::groupId → slot lifetime returns (only when board complete). */
   const memberSlotReturns = new Map<string, Map<CallSlot, number>>();
   const memberSlotCounts = new Map<string, number>();
   const viewerPicks: Partial<Record<CallSlot, CommunityPick>> = {};
@@ -561,27 +587,20 @@ export async function loadCommunityPicks(
     memberSlotCounts.set(memberKey, (memberSlotCounts.get(memberKey) ?? 0) + 1);
 
     const symbol = pricingSymbolForStored(row.call_slot, row.ticker);
-    const baseline = baselines.get(symbol);
-    const currentPrice = baseline?.currentPrice ?? null;
+    const currentPrice = prices.get(symbol) ?? null;
     const pickView = buildPickView(row, currentPrice);
 
     if (userId && primaryGroup && row.user_id === userId && row.group_id === primaryGroup.id) {
       viewerPicks[row.call_slot] = pickView;
     }
 
-    const ret = pickPeriodReturnPct({
-      range,
-      entryPrice: Number(row.entry_price),
-      pickedAt: row.picked_at?.toISOString?.() ?? null,
-      baseline,
-    });
-    if (ret === null) continue;
+    if (pickView.lifetimeReturnPct === null) continue;
     const slotMap = memberSlotReturns.get(memberKey) ?? new Map();
-    slotMap.set(row.call_slot, ret);
+    slotMap.set(row.call_slot, pickView.lifetimeReturnPct);
     memberSlotReturns.set(memberKey, slotMap);
   }
 
-  // Campus score: only completed boards (5/5) contribute one IQBulls period return.
+  // Campus score: completed boards only — average lifetime IQBulls on the $100k book.
   const periodReturnsByGroup = new Map<string, number[]>();
   const eligibleCountByGroup = new Map<string, number>();
 
@@ -607,7 +626,7 @@ export async function loadCommunityPicks(
     pickHistory = await loadPickHistory(userId, primaryGroup.id);
   }
 
-  const groups = groupResult.rows.slice();
+  const groups = ensureSeedCampusGroups(groupResult.rows.slice());
   if (primaryGroup && !groups.some((group) => group.id === primaryGroup.id)) {
     const institution = SEED_INSTITUTIONS.find((row) => row.id === primaryGroup.institutionId);
     groups.push({
@@ -625,8 +644,9 @@ export async function loadCommunityPicks(
     .map((group) => {
       const returns = periodReturnsByGroup.get(group.id) ?? [];
       const pickCount = eligibleCountByGroup.get(group.id) ?? 0;
-      const avgReturnPct = averageLifetimeReturnPct(returns);
-      const ranked = pickCount >= MIN_RANKED_MEMBERS && avgReturnPct !== null;
+      // Always populate the $100k premise — flat/missing tape → 0%.
+      const avgReturnPct = averageLifetimeReturnPct(returns) ?? 0;
+      const ranked = pickCount >= MIN_RANKED_MEMBERS;
       return {
         ...groupPayload(group),
         pickCount,
