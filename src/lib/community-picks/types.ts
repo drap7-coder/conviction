@@ -67,7 +67,7 @@ export type CommunityPicksPayload = {
   leaderboardEligible: boolean;
   pickHistory: CommunityPickHistoryEntry[];
   standings: CommunityStanding[];
-  /** Performance window used for standings avgReturnPct (default ytd). */
+  /** Performance window used for standings avgReturnPct (default 1w). */
   range: H2HPerfRange;
 };
 

@@ -63,7 +63,7 @@ export function CommunityPickCard({
 }: {
   /** pick = editor only; standings = board only; full = both (legacy). */
   variant?: "pick" | "standings" | "full";
-  /** Shared Standings performance window (default YTD). Ignored for pick-only. */
+  /** Shared Standings performance window (default weekly). Ignored for pick-only. */
   range?: H2HPerfRange;
   /** From parent `/api/crowd/standings` — skips the standings self-fetch when present. */
   initialPayload?: CommunityPicksPayload | null;
