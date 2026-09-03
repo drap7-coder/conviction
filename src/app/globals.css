@@ -19589,11 +19589,13 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .your-picks-binary-btn {
-  display: grid;
-  gap: 6px;
-  justify-items: center;
-  min-height: 72px;
-  padding: 14px 12px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;

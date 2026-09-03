@@ -3,11 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
-import {
-  DEFAULT_H2H_PERF_RANGE,
-  parseH2HPerfRange,
-  type H2HPerfRange,
-} from "@/lib/competitions/perf-range";
 import type {
   HeadToHeadPayload,
   HeadToHeadSchoolOption,
@@ -89,13 +84,10 @@ function SchoolSideSelect({
   );
 }
 
-/** Continuous campus vs campus scoreboard — period My Pick averages. */
+/** Continuous campus vs campus scoreboard — lifetime $100k My Pick averages. */
 export function HeadToHeadMatchCard({
-  range = DEFAULT_H2H_PERF_RANGE,
   initialPayload = null,
 }: {
-  /** Shared Standings performance window (default YTD). */
-  range?: H2HPerfRange;
   /** From parent `/api/crowd/standings` — skips the first self-fetch when present. */
   initialPayload?: HeadToHeadPayload | null;
 }) {
@@ -103,14 +95,12 @@ export function HeadToHeadMatchCard({
   const [sideA, setSideA] = useState<string>(initialPayload?.groupA?.groupId ?? "");
   const [sideB, setSideB] = useState<string>(initialPayload?.groupB?.groupId ?? "");
 
-  async function reload(nextA?: string, nextB?: string, nextRange?: H2HPerfRange) {
+  async function reload(nextA?: string, nextB?: string) {
     const a = nextA ?? sideA;
     const b = nextB ?? sideB;
-    const perfRange = nextRange ?? range;
     const params = new URLSearchParams();
     if (a) params.set("a", a);
     if (b) params.set("b", b);
-    params.set("range", perfRange);
     const qs = params.toString();
     const res = await fetch(`/api/competitions/active?${qs}`, {
       cache: "no-store",
@@ -130,9 +120,9 @@ export function HeadToHeadMatchCard({
       if (initialPayload.groupB?.groupId) setSideB(initialPayload.groupB.groupId);
       return;
     }
-    void reload(undefined, undefined, range);
+    void reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [range, initialPayload]);
+  }, [initialPayload]);
 
   const schools = data?.schools ?? [];
 
@@ -159,7 +149,6 @@ export function HeadToHeadMatchCard({
   const selectedB = schoolById(schools, sideB);
   const accentA = groupA?.accentColor ?? groupA?.primaryColor ?? selectedA?.accentColor ?? "#115740";
   const accentB = groupB?.accentColor ?? groupB?.primaryColor ?? selectedB?.accentColor ?? "#D6001C";
-  const activeRange = parseH2HPerfRange(data.range ?? range);
 
   async function changeSide(which: "a" | "b", groupId: string) {
     const nextA = which === "a" ? groupId : sideA;
@@ -167,7 +156,7 @@ export function HeadToHeadMatchCard({
     if (!nextA || !nextB || nextA === nextB) return;
     setSideA(nextA);
     setSideB(nextB);
-    await reload(nextA, nextB, activeRange);
+    await reload(nextA, nextB);
   }
 
   return (
@@ -207,11 +196,11 @@ export function HeadToHeadMatchCard({
                 style={{ ["--h2h-accent" as string]: accent }}
               >
                 <strong className={`h2h-return is-${returnTone(group.avgReturnPct)}`}>
-                  {balance === null ? "—" : formatUsd(balance)}
+                  {formatUsd(balance)}
                 </strong>
                 <span className={`h2h-delta is-${returnTone(group.avgReturnPct)}`}>
                   {formatUsdDelta(notionalDeltaUsd(group.avgReturnPct))}
-                  <em>({formatReturn(group.avgReturnPct)})</em>
+                  <em>({formatReturn(group.avgReturnPct ?? 0)})</em>
                 </span>
                 <span className="h2h-picks">
                   {group.pickCount} {group.pickCount === 1 ? "member" : "members"} · avg book

@@ -131,9 +131,8 @@ describe("community ranking threshold", () => {
     const standings = seedCampusStandings();
     expect(standings).toHaveLength(15);
     expect(standings.every((row) => row.ranked && row.pickCount === 5)).toBe(true);
-    expect(standings.every((row) => typeof row.avgReturnPct === "number")).toBe(true);
-    const daily = seedCampusStandings("1d");
-    expect(daily[0]?.avgReturnPct).toBeLessThan(standings[0]?.avgReturnPct ?? 0);
+    // Starting $100k books — flat until live quotes move the average.
+    expect(standings.every((row) => row.avgReturnPct === 0)).toBe(true);
     expect(read("src/lib/community-picks/store.ts")).toContain("ensureCampusPickSeedsIfNeeded");
     expect(read("src/lib/community-picks/ensure-seeds.ts")).toContain("community_picks");
     expect(read("package.json")).toContain("seed:campus");

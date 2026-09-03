@@ -61,14 +61,19 @@ describe("$100k notional premise", () => {
     expect(notionalValueUsd(1.24)).toBe(101_240);
     expect(notionalDeltaUsd(1.24)).toBe(1_240);
     expect(averageStudentBalanceUsd(1.24)).toBe(101_240);
+    // Missing / flat returns still show the starting $100k book.
+    expect(averageStudentBalanceUsd(null)).toBe(100_000);
+    expect(notionalDeltaUsd(null)).toBe(0);
+    expect(formatUsdDelta(null)).toBe("$0");
     // Same avg % → same dollars whether 5 or 500 members.
     expect(averageStudentBalanceUsd(2.5)).toBe(notionalValueUsd(2.5));
     expect(formatUsd(100_000)).toBe("$100,000");
     expect(formatUsdDelta(1_240)).toBe("+$1,240");
     const notional = read("src/lib/community-picks/notional.ts");
     expect(notional).not.toContain("playerCount");
-    expect(notional).toContain("Independent of member count");
+    expect(notional).toContain("defaults to $100k");
     expect(read("src/components/CommunityPickCard.tsx")).toContain("averageStudentBalanceUsd");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("averageStudentBalanceUsd");
+    expect(read("src/lib/community-picks/store.ts")).toContain("ensureSeedCampusGroups");
   });
 });

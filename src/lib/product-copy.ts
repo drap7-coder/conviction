@@ -82,6 +82,6 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Crowd?",
     answer:
-      "Crowd is campus head-to-head, community standings, and your My Pick — equal-weight returns over Today, Weekly, Monthly, or YTD. It is competitive fun, not advice, and it never shows who owns what.",
+      "Crowd is campus head-to-head, community standings, and your My Pick — equal-weight returns on a $100,000 book per player. It is competitive fun, not advice, and it never shows who owns what.",
   },
 ];
