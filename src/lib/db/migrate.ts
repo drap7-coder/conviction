@@ -52,17 +52,91 @@ export async function applyMigrations(): Promise<{
   return { applied, skipped };
 }
 
-/** Strip line comments and split on statement terminators. */
-function splitSqlStatements(sql: string): string[] {
-  const withoutLineComments = sql
-    .split("\n")
-    .map((line) => {
-      const idx = line.indexOf("--");
-      return idx >= 0 ? line.slice(0, idx) : line;
-    })
-    .join("\n");
-  return withoutLineComments
-    .split(";")
-    .map((part) => part.trim())
-    .filter(Boolean);
+/**
+ * Strip line comments and split on statement terminators.
+ * Respects dollar-quoted bodies (`$$ … $$` / `$tag$ … $tag$`) so DO blocks
+ * in migrations are not shredded on internal semicolons.
+ */
+export function splitSqlStatements(sql: string): string[] {
+  // Strip `--` line comments only outside dollar-quoted bodies.
+  const withoutLineComments = (() => {
+    let out = "";
+    let i = 0;
+    let dollarTag: string | null = null;
+    while (i < sql.length) {
+      if (dollarTag) {
+        if (sql.startsWith(dollarTag, i)) {
+          out += dollarTag;
+          i += dollarTag.length;
+          dollarTag = null;
+          continue;
+        }
+        out += sql[i]!;
+        i += 1;
+        continue;
+      }
+      if (sql[i] === "$") {
+        const match = sql.slice(i).match(/^\$[A-Za-z0-9_]*\$/);
+        if (match) {
+          dollarTag = match[0];
+          out += dollarTag;
+          i += dollarTag.length;
+          continue;
+        }
+      }
+      if (sql[i] === "-" && sql[i + 1] === "-") {
+        while (i < sql.length && sql[i] !== "\n") i += 1;
+        continue;
+      }
+      out += sql[i]!;
+      i += 1;
+    }
+    return out;
+  })();
+
+  const statements: string[] = [];
+  let current = "";
+  let i = 0;
+  let dollarTag: string | null = null;
+
+  while (i < withoutLineComments.length) {
+    const ch = withoutLineComments[i]!;
+
+    if (dollarTag) {
+      if (withoutLineComments.startsWith(dollarTag, i)) {
+        current += dollarTag;
+        i += dollarTag.length;
+        dollarTag = null;
+        continue;
+      }
+      current += ch;
+      i += 1;
+      continue;
+    }
+
+    if (ch === "$") {
+      const match = withoutLineComments.slice(i).match(/^\$[A-Za-z0-9_]*\$/);
+      if (match) {
+        dollarTag = match[0];
+        current += dollarTag;
+        i += dollarTag.length;
+        continue;
+      }
+    }
+
+    if (ch === ";") {
+      const trimmed = current.trim();
+      if (trimmed) statements.push(trimmed);
+      current = "";
+      i += 1;
+      continue;
+    }
+
+    current += ch;
+    i += 1;
+  }
+
+  const trimmed = current.trim();
+  if (trimmed) statements.push(trimmed);
+  return statements;
 }

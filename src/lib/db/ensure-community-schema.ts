@@ -1,4 +1,4 @@
-import { isDatabaseConfigured, query } from "@/lib/db";
+import { isDatabaseConfigured } from "@/lib/db";
 import { applyMigrations } from "@/lib/db/migrate";
 import { ensureSeedGroups, ensureSeedInstitutions } from "@/lib/groups/store";
 import { ensureNcaaInstitutionDirectory } from "@/lib/groups/institution-directory";
@@ -15,9 +15,10 @@ export type EnsureCommunitySchemaOptions = {
 };
 
 /**
- * Idempotent: apply pending SQL migrations when community tables are missing,
- * then upsert platform seed institutions/groups. Safe to call on community
- * routes — runs migrations at most once per process.
+ * Idempotent: apply any pending SQL migrations, then upsert platform seed
+ * institutions/groups. Safe to call on community routes — runs at most once
+ * per process. Always runs applyMigrations (tracked in schema_migrations) so
+ * additive columns like call_slot land even when base tables already exist.
  */
 export async function ensureCommunitySchema(
   options: EnsureCommunitySchemaOptions = {},
@@ -26,15 +27,7 @@ export async function ensureCommunitySchema(
 
   if (!ready) {
     ready = (async () => {
-      const result = await query<{ ready: boolean }>(
-        `select count(*) = 3 as ready
-         from information_schema.tables
-         where table_schema = 'public'
-           and table_name in ('user_institution_memberships', 'community_picks', 'community_pick_history')`,
-      );
-      if (!result.rows[0]?.ready) {
-        await applyMigrations();
-      }
+      await applyMigrations();
       await ensureSeedInstitutions();
       await ensureSeedGroups();
     })().catch((error) => {
