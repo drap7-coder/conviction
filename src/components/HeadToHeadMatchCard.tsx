@@ -12,6 +12,12 @@ import type {
   HeadToHeadPayload,
   HeadToHeadSchoolOption,
 } from "@/lib/competitions/types";
+import {
+  averageStudentBalanceUsd,
+  formatUsd,
+  formatUsdDelta,
+  notionalDeltaUsd,
+} from "@/lib/community-picks/notional";
 
 function formatReturn(value: number | null): string {
   if (value === null) return "—";
@@ -191,22 +197,28 @@ export function HeadToHeadMatchCard({
 
       {data.available && groupA && groupB ? (
         <div className="h2h-scoreboard">
-          <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentA }}>
-            <strong className={`h2h-return is-${returnTone(groupA.avgReturnPct)}`}>
-              {formatReturn(groupA.avgReturnPct)}
-            </strong>
-            <span className="h2h-picks">
-              {groupA.pickCount} {groupA.pickCount === 1 ? "pick" : "picks"}
-            </span>
-          </div>
-          <div className="h2h-side" style={{ ["--h2h-accent" as string]: accentB }}>
-            <strong className={`h2h-return is-${returnTone(groupB.avgReturnPct)}`}>
-              {formatReturn(groupB.avgReturnPct)}
-            </strong>
-            <span className="h2h-picks">
-              {groupB.pickCount} {groupB.pickCount === 1 ? "pick" : "picks"}
-            </span>
-          </div>
+          {([groupA, groupB] as const).map((group, index) => {
+            const accent = index === 0 ? accentA : accentB;
+            const balance = averageStudentBalanceUsd(group.avgReturnPct);
+            return (
+              <div
+                key={group.groupId}
+                className="h2h-side"
+                style={{ ["--h2h-accent" as string]: accent }}
+              >
+                <strong className={`h2h-return is-${returnTone(group.avgReturnPct)}`}>
+                  {balance === null ? "—" : formatUsd(balance)}
+                </strong>
+                <span className={`h2h-delta is-${returnTone(group.avgReturnPct)}`}>
+                  {formatUsdDelta(notionalDeltaUsd(group.avgReturnPct))}
+                  <em>({formatReturn(group.avgReturnPct)})</em>
+                </span>
+                <span className="h2h-picks">
+                  {group.pickCount} {group.pickCount === 1 ? "member" : "members"} · avg book
+                </span>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <p className="h2h-note">Pick two schools to compare campus scores.</p>

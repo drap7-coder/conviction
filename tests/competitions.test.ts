@@ -192,7 +192,9 @@ describe("h2h performance ranges", () => {
     expect(read("src/lib/competitions/period-baselines.ts")).toContain("sessionReturnPct");
     expect(read("src/lib/market/quotes.ts")).toContain('"ytd"');
     expect(read("src/app/globals.css")).toContain("h2h-range-select");
-    expect(read("src/app/globals.css")).toContain("crowd-standings-toolbar");
+    expect(read("src/app/globals.css")).toContain("crowd-chrome-bar");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-chrome-bar");
+    expect(read("src/components/crowd/PerfRangeSelect.tsx")).toContain("h2h-range-select-icon");
   });
 });
 

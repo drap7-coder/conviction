@@ -15,6 +15,13 @@ import {
   type CallSlot,
   type StockSlot,
 } from "@/lib/community-picks/call-slots";
+import {
+  formatUsd,
+  formatUsdDelta,
+  notionalDeltaUsd,
+  notionalValueUsd,
+  PLAYER_BANKROLL_USD,
+} from "@/lib/community-picks/notional";
 import type { CommunityPick, CommunityPicksPayload } from "@/lib/community-picks/types";
 
 const TICKER_INPUT_PATTERN = /^[A-Z][A-Z0-9.-]{0,9}$/;
@@ -243,6 +250,34 @@ export function YourPicksCard() {
         </p>
       ) : null}
 
+      <div className="your-picks-bankroll" aria-label="Your $100,000 performance">
+        <div className="your-picks-bankroll-main">
+          <p className="your-picks-bankroll-label">Starting book</p>
+          <strong className="your-picks-bankroll-start">{formatUsd(PLAYER_BANKROLL_USD)}</strong>
+        </div>
+        <div className="your-picks-bankroll-perf">
+          <p className="your-picks-bankroll-label">Performance</p>
+          {data.iqbullsReturnPct !== null ? (
+            <>
+              <strong className={`your-picks-bankroll-value is-${returnTone(data.iqbullsReturnPct)}`}>
+                {formatUsd(notionalValueUsd(data.iqbullsReturnPct) ?? PLAYER_BANKROLL_USD)}
+              </strong>
+              <span className={`your-picks-bankroll-delta is-${returnTone(data.iqbullsReturnPct)}`}>
+                {formatUsdDelta(notionalDeltaUsd(data.iqbullsReturnPct))}
+                <em>({formatReturn(data.iqbullsReturnPct)})</em>
+              </span>
+            </>
+          ) : (
+            <>
+              <strong className="your-picks-bankroll-value is-quiet">
+                {formatUsd(PLAYER_BANKROLL_USD)}
+              </strong>
+              <span className="your-picks-bankroll-delta is-quiet">Add a pick to start</span>
+            </>
+          )}
+        </div>
+      </div>
+
       <div className="your-picks-section">
         <h3 className="your-picks-section-label">Stocks</h3>
         <ul className="your-picks-stock-list">
@@ -394,10 +429,7 @@ export function YourPicksCard() {
                   void commit("BTC_GOLD", asset.id, isSwap, asset.label);
                 }}
               >
-                <span className="your-picks-asset your-picks-asset--stack">
-                  <span className="your-picks-logo" aria-hidden="true">
-                    <LogoDisplay ticker={asset.pricingSymbol} size="badge" />
-                  </span>
+                <span className="your-picks-asset">
                   <span>{asset.label}</span>
                   {justSaved ? <span className="your-picks-added-chip">Added</span> : null}
                 </span>
@@ -421,9 +453,6 @@ export function YourPicksCard() {
             onClick={() => setIntlOpen((open) => !open)}
           >
             <span className="your-picks-asset">
-              <span className="your-picks-logo" aria-hidden="true">
-                <LogoDisplay ticker={picks.INTERNATIONAL.pricingSymbol} size="badge" />
-              </span>
               <strong>{picks.INTERNATIONAL.label}</strong>
               {justSavedSlot === "INTERNATIONAL" ? (
                 <span className="your-picks-added-chip">Added</span>
@@ -464,9 +493,6 @@ export function YourPicksCard() {
                   }
                 >
                   <span className="your-picks-asset">
-                    <span className="your-picks-logo" aria-hidden="true">
-                      <LogoDisplay ticker={asset.pricingSymbol} size="badge" />
-                    </span>
                     <span>{asset.label}</span>
                   </span>
                 </button>
@@ -476,20 +502,11 @@ export function YourPicksCard() {
         ) : null}
       </div>
 
-      {data.iqbullsReturnPct !== null ? (
-        <div className="your-picks-iqbulls">
-          <span>IQBulls</span>
-          <strong className={`your-picks-return is-${returnTone(data.iqbullsReturnPct)}`}>
-            {formatReturn(data.iqbullsReturnPct)}
-          </strong>
-        </div>
-      ) : null}
-
       {error ? <p className="your-picks-error" role="alert">{error}</p> : null}
 
       <p className="your-picks-hedge">
-        Pick 3 stocks. Choose Bitcoin or Gold. Pick one international market. Build your track
-        record.
+        Pick 3 stocks. Choose Bitcoin or Gold. Pick one international market. Equal-weight on a
+        $100,000 book.
       </p>
     </section>
   );

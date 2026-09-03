@@ -123,19 +123,26 @@ export function CrowdBoard() {
 
   return (
     <div className="crowd-page-body">
-      <SurfaceSlicer
-        label="Crowd view"
-        options={TABS}
-        activeId={tab}
-        onChange={(id) => selectTab(parseCrowdView(id))}
-        role="tablist"
-      />
+      <div className="crowd-chrome-bar">
+        <SurfaceSlicer
+          label="Crowd view"
+          options={TABS}
+          activeId={tab}
+          onChange={(id) => selectTab(parseCrowdView(id))}
+          role="tablist"
+          className="crowd-view-slicer"
+        />
+        {tab === "standings" ? (
+          <PerfRangeSelect value={range} onChange={selectRange} />
+        ) : null}
+      </div>
 
       {tab === "standings" ? (
         <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">
-          <div className="crowd-standings-toolbar">
-            <PerfRangeSelect value={range} onChange={selectRange} />
-          </div>
+          <p className="crowd-bankroll-lead">
+            Each player starts with <strong>$100,000</strong>. School score is the average student
+            balance — more members don&apos;t inflate the dollars.
+          </p>
           {standingsError ? (
             <p className="crowd-empty" role="alert">
               {standingsError}
@@ -148,9 +155,9 @@ export function CrowdBoard() {
             initialPayload={standings?.community ?? null}
           />
           <p className="crowd-hedge">
-            Head-to-head and community standings use the same Performance window — equal-weight
-            My Pick returns for that range. Schools below the member threshold stay unranked on
-            the board below.
+            Head-to-head and community standings use the same Performance window — equal-weight My
+            Pick returns on a $100,000 book per player, averaged across campus. Schools below the
+            member threshold stay unranked on the board below.
           </p>
         </div>
       ) : null}
@@ -159,8 +166,8 @@ export function CrowdBoard() {
         <div className="crowd-pick-panel" role="tabpanel" aria-label="My pick">
           <YourPicksCard />
           <p className="crowd-hedge">
-            Pick 3 stocks. Choose Bitcoin or Gold. Pick one international market. Incomplete boards
-            can play immediately; finish all five calls to join the leaderboard.
+            Each player starts with $100,000 — equal-weight across your five calls. Incomplete boards
+            can play immediately; finish all five to join the leaderboard.
           </p>
         </div>
       ) : null}
