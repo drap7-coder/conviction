@@ -1,5 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { isDatabaseConfigured, query, withTransaction, type DbQuery } from "@/lib/db";
+import {
+  displayAssetLabel,
+  pricingSymbolForStored,
+  resolveBtcGoldAsset,
+  resolveInternationalAsset,
+} from "@/lib/community-picks/asset-maps";
+import {
+  CALL_SLOTS,
+  CALLS_REQUIRED,
+  STOCK_SLOTS,
+  type CallSlot,
+  isStockSlot,
+} from "@/lib/community-picks/call-slots";
 import { MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
 import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seeds";
 import {
@@ -36,6 +49,7 @@ import type {
 type PickRow = {
   user_id: string;
   group_id: string;
+  call_slot: CallSlot;
   ticker: string;
   entry_price: string;
   banked_growth_factor: string;
@@ -43,6 +57,7 @@ type PickRow = {
 };
 
 type HistoryRow = {
+  call_slot: CallSlot;
   ticker: string;
   start_spot: string;
   exit_spot: string;
@@ -74,6 +89,78 @@ function groupPayload(group: GroupRow): CommunityPickGroup {
 
 function seedStandings(range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE): CommunityStanding[] {
   return seedCampusStandings(range);
+}
+
+/** Resolve what we store in `ticker` column: asset id for macro, symbol for stocks. */
+export function normalizeStoredAsset(slot: CallSlot, raw: string): string {
+  const value = raw.trim().toUpperCase();
+  if (slot === "BTC_GOLD") {
+    const asset = resolveBtcGoldAsset(value);
+    if (!asset) throw new Error("Choose Bitcoin or Gold.");
+    return asset.id;
+  }
+  if (slot === "INTERNATIONAL") {
+    const asset = resolveInternationalAsset(value);
+    if (!asset) throw new Error("Choose a listed international market.");
+    return asset.id;
+  }
+  if (!value) throw new Error("Enter a ticker.");
+  return value;
+}
+
+function buildPickView(row: PickRow, currentPrice: number | null): CommunityPick {
+  const entryPrice = Number(row.entry_price);
+  const bankedGrowthFactor = Number(row.banked_growth_factor);
+  const activeFactor =
+    currentPrice === null ? 1 : activeGrowthFactor(entryPrice, currentPrice);
+  const totalFactor = totalGrowthFactor(bankedGrowthFactor, activeFactor);
+  const assetId = row.ticker.toUpperCase();
+  const slot = row.call_slot;
+  return {
+    callSlot: slot,
+    assetId,
+    pricingSymbol: pricingSymbolForStored(slot, assetId),
+    label: displayAssetLabel(slot, assetId),
+    entryPrice,
+    currentPrice,
+    activeReturnPct: currentPrice === null ? null : activeReturnPct(activeFactor),
+    lifetimeReturnPct: currentPrice === null ? null : lifetimeReturnPct(totalFactor),
+    bankedGrowthFactor,
+    pickedAt: row.picked_at.toISOString(),
+  };
+}
+
+function mapHistoryRow(row: HistoryRow): CommunityPickHistoryEntry {
+  const startSpot = Number(row.start_spot);
+  const exitSpot = Number(row.exit_spot);
+  const assetId = row.ticker.toUpperCase();
+  const slot = row.call_slot;
+  return {
+    callSlot: slot,
+    assetId,
+    pricingSymbol: pricingSymbolForStored(slot, assetId),
+    startSpot,
+    exitSpot,
+    pickReturnPct: pickReturnPct(startSpot, exitSpot),
+    startedAt: row.started_at.toISOString(),
+    closedAt: row.closed_at.toISOString(),
+  };
+}
+
+function summarizePicks(picks: Partial<Record<CallSlot, CommunityPick>>) {
+  const filled = CALL_SLOTS.filter((slot) => picks[slot]);
+  const lifetimes = filled
+    .map((slot) => picks[slot]?.lifetimeReturnPct)
+    .filter((value): value is number => typeof value === "number");
+  const filledCount = filled.length;
+  const boardComplete = filledCount >= CALLS_REQUIRED;
+  return {
+    filledCount,
+    boardComplete,
+    iqbullsReturnPct: averageLifetimeReturnPct(lifetimes),
+    leaderboardEligible: boardComplete,
+    viewerPick: picks.STOCK_1 ?? picks[filled[0]!] ?? null,
+  };
 }
 
 /** Guest / no-DB standings: prefer live Yahoo period returns for seed tickers. */
@@ -113,7 +200,6 @@ async function scoreOfflineStandings(range: H2HPerfRange): Promise<CommunityStan
       const ncaaId = institution?.ncaaId ?? null;
       const members = byGroup.get(group.id) ?? [];
       const returns = returnsByGroup.get(group.id) ?? [];
-      // If a school had no quote hits, fall back to scaled demo for that campus only.
       const avg =
         returns.length > 0
           ? averageLifetimeReturnPct(returns)
@@ -149,40 +235,6 @@ async function scoreOfflineStandings(range: H2HPerfRange): Promise<CommunityStan
     });
 }
 
-function mapHistoryRow(row: HistoryRow): CommunityPickHistoryEntry {
-  const startSpot = Number(row.start_spot);
-  const exitSpot = Number(row.exit_spot);
-  return {
-    ticker: row.ticker.toUpperCase(),
-    startSpot,
-    exitSpot,
-    pickReturnPct: pickReturnPct(startSpot, exitSpot),
-    startedAt: row.started_at.toISOString(),
-    closedAt: row.closed_at.toISOString(),
-  };
-}
-
-function buildPickView(
-  row: PickRow,
-  currentPrice: number | null,
-): CommunityPick {
-  const entryPrice = Number(row.entry_price);
-  const bankedGrowthFactor = Number(row.banked_growth_factor);
-  const activeFactor =
-    currentPrice === null ? 1 : activeGrowthFactor(entryPrice, currentPrice);
-  const totalFactor = totalGrowthFactor(bankedGrowthFactor, activeFactor);
-
-  return {
-    ticker: row.ticker.toUpperCase(),
-    entryPrice,
-    currentPrice,
-    activeReturnPct: currentPrice === null ? null : activeReturnPct(activeFactor),
-    lifetimeReturnPct: currentPrice === null ? null : lifetimeReturnPct(totalFactor),
-    bankedGrowthFactor,
-    pickedAt: row.picked_at.toISOString(),
-  };
-}
-
 export async function verifyGroupMembership(userId: string, groupId: string): Promise<boolean> {
   if (!isDatabaseConfigured()) return false;
   const result = await query<{ ok: boolean }>(
@@ -198,21 +250,50 @@ async function loadPickRow(
   queryFn: DbQuery,
   userId: string,
   groupId: string,
+  callSlot: CallSlot,
   forUpdate = false,
 ): Promise<PickRow | null> {
   const lock = forUpdate ? " for update" : "";
   const result = await queryFn<PickRow>(
-    `select user_id, group_id, ticker, entry_price, banked_growth_factor, picked_at
+    `select user_id, group_id, call_slot, ticker, entry_price, banked_growth_factor, picked_at
      from community_picks
-     where user_id = $1 and group_id = $2${lock}`,
-    [userId, groupId],
+     where user_id = $1 and group_id = $2 and call_slot = $3${lock}`,
+    [userId, groupId, callSlot],
   );
   return result.rows[0] ?? null;
 }
 
-async function loadPickHistory(userId: string, groupId: string): Promise<CommunityPickHistoryEntry[]> {
+async function loadMemberPickRows(
+  queryFn: DbQuery,
+  userId: string,
+  groupId: string,
+): Promise<PickRow[]> {
+  const result = await queryFn<PickRow>(
+    `select user_id, group_id, call_slot, ticker, entry_price, banked_growth_factor, picked_at
+     from community_picks
+     where user_id = $1 and group_id = $2`,
+    [userId, groupId],
+  );
+  return result.rows;
+}
+
+async function loadPickHistory(
+  userId: string,
+  groupId: string,
+  callSlot?: CallSlot,
+): Promise<CommunityPickHistoryEntry[]> {
+  if (callSlot) {
+    const result = await query<HistoryRow>(
+      `select call_slot, ticker, start_spot, exit_spot, started_at, closed_at
+       from community_pick_history
+       where user_id = $1 and group_id = $2 and call_slot = $3
+       order by closed_at desc`,
+      [userId, groupId, callSlot],
+    );
+    return result.rows.map(mapHistoryRow);
+  }
   const result = await query<HistoryRow>(
-    `select ticker, start_spot, exit_spot, started_at, closed_at
+    `select call_slot, ticker, start_spot, exit_spot, started_at, closed_at
      from community_pick_history
      where user_id = $1 and group_id = $2
      order by closed_at desc`,
@@ -221,79 +302,148 @@ async function loadPickHistory(userId: string, groupId: string): Promise<Communi
   return result.rows.map(mapHistoryRow);
 }
 
+async function assertNoDuplicateStock(
+  queryFn: DbQuery,
+  userId: string,
+  groupId: string,
+  ticker: string,
+  exceptSlot?: CallSlot,
+): Promise<void> {
+  const rows = await loadMemberPickRows(queryFn, userId, groupId);
+  for (const row of rows) {
+    if (!isStockSlot(row.call_slot)) continue;
+    if (exceptSlot && row.call_slot === exceptSlot) continue;
+    if (row.ticker.toUpperCase() === ticker) {
+      throw new Error(`${ticker} is already one of your stock picks.`);
+    }
+  }
+}
+
+async function viewerPicksFromRows(
+  rows: PickRow[],
+  priceBySymbol: Map<string, number | null>,
+): Promise<Partial<Record<CallSlot, CommunityPick>>> {
+  const picks: Partial<Record<CallSlot, CommunityPick>> = {};
+  for (const row of rows) {
+    const symbol = pricingSymbolForStored(row.call_slot, row.ticker);
+    picks[row.call_slot] = buildPickView(row, priceBySymbol.get(symbol) ?? null);
+  }
+  return picks;
+}
+
 export async function createInitialCommunityPick(input: {
   userId: string;
   groupId: string;
-  ticker: string;
+  callSlot: CallSlot;
+  asset: string;
 }): Promise<SwapPickResult> {
   if (!isDatabaseConfigured()) throw new Error("Database required to save community picks.");
 
   const isMember = await verifyGroupMembership(input.userId, input.groupId);
   if (!isMember) throw new Error("Join this community before setting a pick.");
 
-  const ticker = input.ticker.trim().toUpperCase();
-  const spotResult = await fetchAuthoritativeSpot(ticker);
+  const assetId = normalizeStoredAsset(input.callSlot, input.asset);
+  const pricingSymbol = pricingSymbolForStored(input.callSlot, assetId);
+  const spotResult = await fetchAuthoritativeSpot(pricingSymbol);
   if (!spotResult.ok) throw new Error(spotResult.error);
 
   const pickRow = await withTransaction(async (queryTx) => {
-    const existing = await loadPickRow(queryTx, input.userId, input.groupId, true);
+    const existing = await loadPickRow(queryTx, input.userId, input.groupId, input.callSlot, true);
     if (existing) {
-      throw new Error("You already have an active pick. Use swap to change tickers.");
+      throw new Error("This pick is already set. Use Confirm Swap to change it.");
+    }
+    if (isStockSlot(input.callSlot)) {
+      await assertNoDuplicateStock(queryTx, input.userId, input.groupId, assetId);
     }
 
     await queryTx(
       `insert into community_picks (
-         user_id, group_id, ticker, entry_price, banked_growth_factor, picked_at, updated_at
-       ) values ($1, $2, $3, $4, 1.0, now(), now())`,
-      [input.userId, input.groupId, ticker, spotResult.spot],
+         user_id, group_id, call_slot, ticker, entry_price, banked_growth_factor, picked_at, updated_at
+       ) values ($1, $2, $3, $4, $5, 1.0, now(), now())`,
+      [input.userId, input.groupId, input.callSlot, assetId, spotResult.spot],
     );
 
-    const row = await loadPickRow(queryTx, input.userId, input.groupId);
+    const row = await loadPickRow(queryTx, input.userId, input.groupId, input.callSlot);
     if (!row) throw new Error("Could not save pick.");
     return row;
   });
 
-  const pick = buildPickView(pickRow, spotResult.spot);
-  return { pick, pickHistory: [] };
+  const memberRows = await loadMemberPickRows(query, input.userId, input.groupId);
+  const priceBySymbol = new Map<string, number | null>();
+  for (const row of memberRows) {
+    const symbol = pricingSymbolForStored(row.call_slot, row.ticker);
+    priceBySymbol.set(
+      symbol,
+      row.call_slot === input.callSlot ? spotResult.spot : priceBySymbol.get(symbol) ?? null,
+    );
+  }
+  priceBySymbol.set(pricingSymbol, spotResult.spot);
+  const viewerPicks = await viewerPicksFromRows(memberRows, priceBySymbol);
+  const summary = summarizePicks(viewerPicks);
+
+  return {
+    pick: buildPickView(pickRow, spotResult.spot),
+    viewerPicks,
+    ...summary,
+    pickHistory: await loadPickHistory(input.userId, input.groupId),
+  };
 }
 
 export async function swapCommunityPick(input: {
   userId: string;
   groupId: string;
-  newTicker: string;
+  callSlot: CallSlot;
+  asset: string;
 }): Promise<SwapPickResult> {
   if (!isDatabaseConfigured()) throw new Error("Database required to save community picks.");
 
   const isMember = await verifyGroupMembership(input.userId, input.groupId);
   if (!isMember) throw new Error("Join this community before swapping a pick.");
 
-  const newTicker = input.newTicker.trim().toUpperCase();
-  const newSpotResult = await fetchAuthoritativeSpot(newTicker);
+  const assetId = normalizeStoredAsset(input.callSlot, input.asset);
+  const pricingSymbol = pricingSymbolForStored(input.callSlot, assetId);
+  const newSpotResult = await fetchAuthoritativeSpot(pricingSymbol);
   if (!newSpotResult.ok) throw new Error(newSpotResult.error);
 
-  const existing = await loadPickRow(query, input.userId, input.groupId);
+  const existing = await loadPickRow(query, input.userId, input.groupId, input.callSlot);
   if (!existing) {
-    throw new Error("Set an initial pick before swapping.");
+    throw new Error("Set this pick before swapping.");
   }
 
-  const oldTicker = existing.ticker.toUpperCase();
-  if (oldTicker === newTicker) {
-    const currentSpot = await fetchAuthoritativeSpot(oldTicker);
+  const oldAssetId = existing.ticker.toUpperCase();
+  if (oldAssetId === assetId) {
+    const currentSpot = await fetchAuthoritativeSpot(
+      pricingSymbolForStored(input.callSlot, oldAssetId),
+    );
     const price = currentSpot.ok ? currentSpot.spot : null;
+    const memberRows = await loadMemberPickRows(query, input.userId, input.groupId);
+    const priceBySymbol = new Map<string, number | null>();
+    for (const row of memberRows) {
+      const symbol = pricingSymbolForStored(row.call_slot, row.ticker);
+      priceBySymbol.set(symbol, row.call_slot === input.callSlot ? price : null);
+    }
+    const viewerPicks = await viewerPicksFromRows(memberRows, priceBySymbol);
+    const summary = summarizePicks(viewerPicks);
     return {
       pick: buildPickView(existing, price),
+      viewerPicks,
+      ...summary,
       pickHistory: await loadPickHistory(input.userId, input.groupId),
     };
   }
 
-  const oldSpotResult = await fetchAuthoritativeSpot(oldTicker);
+  const oldPricing = pricingSymbolForStored(input.callSlot, oldAssetId);
+  const oldSpotResult = await fetchAuthoritativeSpot(oldPricing);
   if (!oldSpotResult.ok) throw new Error(oldSpotResult.error);
 
   const pickRow = await withTransaction(async (queryTx) => {
-    const locked = await loadPickRow(queryTx, input.userId, input.groupId, true);
-    if (!locked) throw new Error("Set an initial pick before swapping.");
-    if (locked.ticker.toUpperCase() !== oldTicker) {
+    const locked = await loadPickRow(queryTx, input.userId, input.groupId, input.callSlot, true);
+    if (!locked) throw new Error("Set this pick before swapping.");
+    if (locked.ticker.toUpperCase() !== oldAssetId) {
       throw new Error("Pick changed while swapping. Try again.");
+    }
+    if (isStockSlot(input.callSlot)) {
+      await assertNoDuplicateStock(queryTx, input.userId, input.groupId, assetId, input.callSlot);
     }
 
     const startSpot = Number(locked.entry_price);
@@ -303,13 +453,14 @@ export async function swapCommunityPick(input: {
 
     await queryTx(
       `insert into community_pick_history (
-         id, user_id, group_id, ticker, start_spot, exit_spot, pick_growth_factor, started_at, closed_at
-       ) values ($1, $2, $3, $4, $5, $6, $7, $8, now())`,
+         id, user_id, group_id, call_slot, ticker, start_spot, exit_spot, pick_growth_factor, started_at, closed_at
+       ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())`,
       [
         randomUUID(),
         input.userId,
         input.groupId,
-        oldTicker,
+        input.callSlot,
+        oldAssetId,
         startSpot,
         exitSpot,
         oldLegFactor,
@@ -319,22 +470,29 @@ export async function swapCommunityPick(input: {
 
     await queryTx(
       `update community_picks
-       set ticker = $3,
-           entry_price = $4,
-           banked_growth_factor = $5,
+       set ticker = $4,
+           entry_price = $5,
+           banked_growth_factor = $6,
            picked_at = now(),
            updated_at = now()
-       where user_id = $1 and group_id = $2`,
-      [input.userId, input.groupId, newTicker, newSpotResult.spot, newBanked],
+       where user_id = $1 and group_id = $2 and call_slot = $3`,
+      [input.userId, input.groupId, input.callSlot, assetId, newSpotResult.spot, newBanked],
     );
 
-    const row = await loadPickRow(queryTx, input.userId, input.groupId);
+    const row = await loadPickRow(queryTx, input.userId, input.groupId, input.callSlot);
     if (!row) throw new Error("Could not save pick.");
     return row;
   });
 
+  const memberRows = await loadMemberPickRows(query, input.userId, input.groupId);
+  const priceBySymbol = new Map<string, number | null>([[pricingSymbol, newSpotResult.spot]]);
+  const viewerPicks = await viewerPicksFromRows(memberRows, priceBySymbol);
+  const summary = summarizePicks(viewerPicks);
+
   return {
     pick: buildPickView(pickRow, newSpotResult.spot),
+    viewerPicks,
+    ...summary,
     pickHistory: await loadPickHistory(input.userId, input.groupId),
   };
 }
@@ -349,6 +507,11 @@ export async function loadCommunityPicks(
       authenticated: Boolean(userId),
       viewerGroup: null,
       viewerPick: null,
+      viewerPicks: {},
+      filledCount: 0,
+      boardComplete: false,
+      iqbullsReturnPct: null,
+      leaderboardEligible: false,
       pickHistory: [],
       standings,
       range,
@@ -359,7 +522,7 @@ export async function loadCommunityPicks(
 
   const [pickResult, groupResult, primaryGroup] = await Promise.all([
     query<PickRow>(
-      `select user_id, group_id, ticker, entry_price, banked_growth_factor, picked_at
+      `select user_id, group_id, call_slot, ticker, entry_price, banked_growth_factor, picked_at
        from community_picks
        order by picked_at asc`,
     ),
@@ -381,43 +544,67 @@ export async function loadCommunityPicks(
     userId ? getPrimaryGroupForUser(userId) : Promise.resolve(null),
   ]);
 
-  const tickers = [...new Set(pickResult.rows.map((row) => row.ticker.toUpperCase()))];
-  const baselines = await fetchPeriodBaselines(tickers, range);
-  const periodReturnsByGroup = new Map<string, number[]>();
+  const pricingSymbols = [
+    ...new Set(
+      pickResult.rows.map((row) => pricingSymbolForStored(row.call_slot, row.ticker)),
+    ),
+  ];
+  const baselines = await fetchPeriodBaselines(pricingSymbols, range);
 
-  let viewerPick: CommunityPick | null = null;
-  let pickHistory: CommunityPickHistoryEntry[] = [];
+  /** memberKey = userId::groupId → slot returns (only when board complete). */
+  const memberSlotReturns = new Map<string, Map<CallSlot, number>>();
+  const memberSlotCounts = new Map<string, number>();
+  const viewerPicks: Partial<Record<CallSlot, CommunityPick>> = {};
 
   for (const row of pickResult.rows) {
-    const ticker = row.ticker.toUpperCase();
-    const baseline = baselines.get(ticker);
+    const memberKey = `${row.user_id}::${row.group_id}`;
+    memberSlotCounts.set(memberKey, (memberSlotCounts.get(memberKey) ?? 0) + 1);
+
+    const symbol = pricingSymbolForStored(row.call_slot, row.ticker);
+    const baseline = baselines.get(symbol);
     const currentPrice = baseline?.currentPrice ?? null;
     const pickView = buildPickView(row, currentPrice);
-    if (currentPrice !== null || range === "1d") {
-      const ret = pickPeriodReturnPct({
-        range,
-        entryPrice: Number(row.entry_price),
-        pickedAt: row.picked_at?.toISOString?.() ?? null,
-        baseline,
-      });
-      if (ret !== null) {
-        const returns = periodReturnsByGroup.get(row.group_id) ?? [];
-        returns.push(ret);
-        periodReturnsByGroup.set(row.group_id, returns);
-      }
+
+    if (userId && primaryGroup && row.user_id === userId && row.group_id === primaryGroup.id) {
+      viewerPicks[row.call_slot] = pickView;
     }
-    if (userId && row.user_id === userId && primaryGroup && row.group_id === primaryGroup.id) {
-      viewerPick = pickView;
-    }
+
+    const ret = pickPeriodReturnPct({
+      range,
+      entryPrice: Number(row.entry_price),
+      pickedAt: row.picked_at?.toISOString?.() ?? null,
+      baseline,
+    });
+    if (ret === null) continue;
+    const slotMap = memberSlotReturns.get(memberKey) ?? new Map();
+    slotMap.set(row.call_slot, ret);
+    memberSlotReturns.set(memberKey, slotMap);
   }
 
+  // Campus score: only completed boards (5/5) contribute one IQBulls period return.
+  const periodReturnsByGroup = new Map<string, number[]>();
+  const eligibleCountByGroup = new Map<string, number>();
+
+  for (const [memberKey, count] of memberSlotCounts) {
+    const groupId = memberKey.split("::")[1]!;
+    if (count < CALLS_REQUIRED) continue;
+    const slotMap = memberSlotReturns.get(memberKey);
+    if (!slotMap || slotMap.size < CALLS_REQUIRED) continue;
+    const values = CALL_SLOTS.map((slot) => slotMap.get(slot)).filter(
+      (value): value is number => typeof value === "number",
+    );
+    if (values.length < CALLS_REQUIRED) continue;
+    const memberAvg = averageLifetimeReturnPct(values);
+    if (memberAvg === null) continue;
+    eligibleCountByGroup.set(groupId, (eligibleCountByGroup.get(groupId) ?? 0) + 1);
+    const returns = periodReturnsByGroup.get(groupId) ?? [];
+    returns.push(memberAvg);
+    periodReturnsByGroup.set(groupId, returns);
+  }
+
+  let pickHistory: CommunityPickHistoryEntry[] = [];
   if (userId && primaryGroup) {
     pickHistory = await loadPickHistory(userId, primaryGroup.id);
-  }
-
-  const pickCounts = new Map<string, number>();
-  for (const row of pickResult.rows) {
-    pickCounts.set(row.group_id, (pickCounts.get(row.group_id) ?? 0) + 1);
   }
 
   const groups = groupResult.rows.slice();
@@ -437,7 +624,7 @@ export async function loadCommunityPicks(
   const standings: CommunityStanding[] = groups
     .map((group) => {
       const returns = periodReturnsByGroup.get(group.id) ?? [];
-      const pickCount = pickCounts.get(group.id) ?? 0;
+      const pickCount = eligibleCountByGroup.get(group.id) ?? 0;
       const avgReturnPct = averageLifetimeReturnPct(returns);
       const ranked = pickCount >= MIN_RANKED_MEMBERS && avgReturnPct !== null;
       return {
@@ -461,6 +648,7 @@ export async function loadCommunityPicks(
   const viewerStanding = primaryGroup
     ? standings.find((row) => row.groupId === primaryGroup.id) ?? null
     : null;
+  const summary = summarizePicks(viewerPicks);
 
   return {
     authenticated: Boolean(userId),
@@ -474,9 +662,16 @@ export async function loadCommunityPicks(
           accentColor: viewerStanding.accentColor,
         }
       : null,
-    viewerPick,
+    viewerPick: summary.viewerPick,
+    viewerPicks,
+    filledCount: summary.filledCount,
+    boardComplete: summary.boardComplete,
+    iqbullsReturnPct: summary.iqbullsReturnPct,
+    leaderboardEligible: summary.leaderboardEligible,
     pickHistory,
     standings,
     range,
   };
 }
+
+export { STOCK_SLOTS, CALL_SLOTS, CALLS_REQUIRED };

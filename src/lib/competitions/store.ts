@@ -25,6 +25,8 @@ import {
 import {
   averageLifetimeReturnPct,
 } from "@/lib/community-picks/growth";
+import { pricingSymbolForStored } from "@/lib/community-picks/asset-maps";
+import { CALL_SLOTS, CALLS_REQUIRED, type CallSlot } from "@/lib/community-picks/call-slots";
 import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seeds";
 import { listCampusSeedStudents } from "@/lib/community-picks/seed-students";
 import {
@@ -375,7 +377,8 @@ export async function listPicksForCompetition(competitionId: string): Promise<Co
   return result.rows.map((row) => mapPick(row));
 }
 
-/** Campus My Pick averages over a performance window (default YTD). */
+/** Campus IQBulls averages over a performance window (default YTD).
+ * Only members with all five calls filled contribute. */
 export async function scoreCampusSide(
   groupId: string,
   range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
@@ -404,7 +407,6 @@ export async function scoreCampusSide(
         pickCount: students.length,
       };
     }
-    // Quotes unavailable — fall back to scaled demo so ranges still differ.
     const scale = seedRangeScale(range);
     const returns = students.map(
       (row) => Math.round((row.bankedGrowthFactor - 1) * 100 * scale * 100) / 100,
@@ -418,35 +420,61 @@ export async function scoreCampusSide(
   await ensureCampusPickSeedsIfNeeded().catch(() => undefined);
 
   const result = await query<{
+    user_id: string;
+    call_slot: string;
     ticker: string;
     entry_price: string;
     picked_at: Date;
   }>(
-    `select ticker, entry_price, picked_at
+    `select user_id, call_slot, ticker, entry_price, picked_at
      from community_picks
      where group_id = $1`,
     [groupId],
   );
   if (result.rows.length === 0) return { avgReturnPct: null, pickCount: 0 };
 
-  const tickers = [...new Set(result.rows.map((row) => row.ticker.toUpperCase()))];
-  const byTicker = baselines ?? (await fetchPeriodBaselines(tickers, range));
-  const returns: number[] = [];
+  const pricingSymbols = [
+    ...new Set(
+      result.rows.map((row) =>
+        pricingSymbolForStored(row.call_slot as CallSlot, row.ticker),
+      ),
+    ),
+  ];
+  const byTicker = baselines ?? (await fetchPeriodBaselines(pricingSymbols, range));
 
+  const byUser = new Map<string, typeof result.rows>();
   for (const row of result.rows) {
-    const ticker = row.ticker.toUpperCase();
-    const ret = pickPeriodReturnPct({
-      range,
-      entryPrice: Number(row.entry_price),
-      pickedAt: row.picked_at?.toISOString?.() ?? null,
-      baseline: byTicker.get(ticker),
-    });
-    if (ret !== null) returns.push(ret);
+    const rows = byUser.get(row.user_id) ?? [];
+    rows.push(row);
+    byUser.set(row.user_id, rows);
+  }
+
+  const memberReturns: number[] = [];
+  for (const rows of byUser.values()) {
+    if (rows.length < CALLS_REQUIRED) continue;
+    const slotReturns = new Map<string, number>();
+    for (const row of rows) {
+      const symbol = pricingSymbolForStored(row.call_slot as CallSlot, row.ticker);
+      const ret = pickPeriodReturnPct({
+        range,
+        entryPrice: Number(row.entry_price),
+        pickedAt: row.picked_at?.toISOString?.() ?? null,
+        baseline: byTicker.get(symbol),
+      });
+      if (ret !== null) slotReturns.set(row.call_slot, ret);
+    }
+    if (slotReturns.size < CALLS_REQUIRED) continue;
+    const values = CALL_SLOTS.map((slot) => slotReturns.get(slot)).filter(
+      (value): value is number => typeof value === "number",
+    );
+    if (values.length < CALLS_REQUIRED) continue;
+    const avg = averageLifetimeReturnPct(values);
+    if (avg !== null) memberReturns.push(avg);
   }
 
   return {
-    avgReturnPct: averageLifetimeReturnPct(returns),
-    pickCount: result.rows.length,
+    avgReturnPct: averageLifetimeReturnPct(memberReturns),
+    pickCount: memberReturns.length,
   };
 }
 
@@ -635,11 +663,17 @@ async function loadSharedBaselinesForGroups(
 
   await ensureCampusPickSeedsIfNeeded().catch(() => undefined);
 
-  const result = await query<{ ticker: string }>(
-    `select distinct ticker from community_picks where group_id = any($1::text[])`,
+  const result = await query<{ call_slot: string; ticker: string }>(
+    `select distinct call_slot, ticker from community_picks where group_id = any($1::text[])`,
     [ids],
   );
-  const tickers = result.rows.map((row) => row.ticker);
+  const tickers = [
+    ...new Set(
+      result.rows.map((row) =>
+        pricingSymbolForStored(row.call_slot as CallSlot, row.ticker),
+      ),
+    ),
+  ];
   if (tickers.length === 0) return new Map();
   return fetchPeriodBaselines(tickers, range);
 }

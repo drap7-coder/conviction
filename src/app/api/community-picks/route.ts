@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOptionalSession } from "@/lib/auth-session";
+import { parseCallSlot } from "@/lib/community-picks/call-slots";
 import {
   createInitialCommunityPick,
   loadCommunityPicks,
+  normalizeStoredAsset,
 } from "@/lib/community-picks/store";
 import { parseH2HPerfRange } from "@/lib/competitions/perf-range";
 import { ensureCommunitySchema, formatCommunityDbError } from "@/lib/db/ensure-community-schema";
 import { getPrimaryGroupForUser } from "@/lib/groups/store";
 import { validateTicker } from "@/lib/watchlist/validate";
+import { pricingSymbolForStored } from "@/lib/community-picks/asset-maps";
 
 export const dynamic = "force-dynamic";
 
@@ -30,9 +33,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sign in to set a community pick." }, { status: 401 });
   }
 
-  const body = (await request.json().catch(() => null)) as { ticker?: string } | null;
-  if (!body?.ticker?.trim()) {
-    return NextResponse.json({ error: "Enter a ticker." }, { status: 400 });
+  const body = (await request.json().catch(() => null)) as {
+    ticker?: string;
+    asset?: string;
+    slot?: string;
+    callSlot?: string;
+  } | null;
+
+  const callSlot = parseCallSlot(body?.callSlot ?? body?.slot) ?? "STOCK_1";
+  const rawAsset = (body?.asset ?? body?.ticker)?.trim();
+  if (!rawAsset) {
+    return NextResponse.json({ error: "Choose a pick." }, { status: 400 });
   }
 
   try {
@@ -42,23 +53,36 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Join a community before setting a pick." }, { status: 400 });
     }
 
-    const validation = await validateTicker(body.ticker);
-    if (!validation.valid) {
-      return NextResponse.json({ error: validation.error ?? "Enter a valid ticker." }, { status: 400 });
-    }
-    if (validation.instrumentKind === "crypto") {
-      return NextResponse.json({ error: "Choose a stock or ETF ticker." }, { status: 400 });
+    let asset = rawAsset;
+    if (callSlot === "STOCK_1" || callSlot === "STOCK_2" || callSlot === "STOCK_3") {
+      const validation = await validateTicker(rawAsset);
+      if (!validation.valid) {
+        return NextResponse.json({ error: validation.error ?? "Enter a valid ticker." }, { status: 400 });
+      }
+      if (validation.instrumentKind === "crypto") {
+        return NextResponse.json({ error: "Choose a stock or ETF ticker." }, { status: 400 });
+      }
+      asset = validation.ticker;
+    } else {
+      // Normalize / validate macro identities before pricing.
+      asset = normalizeStoredAsset(callSlot, rawAsset);
+      // Ensure pricing symbol resolves via Yahoo for stocks/ETFs; BTC-USD allowed.
+      void pricingSymbolForStored(callSlot, asset);
     }
 
     await createInitialCommunityPick({
       userId,
       groupId: group.id,
-      ticker: validation.ticker,
+      callSlot,
+      asset,
     });
     return NextResponse.json(await loadCommunityPicks(userId));
   } catch (error) {
     const message = formatCommunityDbError(error);
-    const status = message.includes("already have an active pick") ? 409 : 400;
+    const status =
+      message.includes("already set") || message.includes("already have")
+        ? 409
+        : 400;
     return NextResponse.json({ error: message }, { status });
   }
 }

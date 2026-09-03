@@ -94,7 +94,7 @@ export function CommunityPickCard({
   const normalizedTicker = normalizeTickerInput(ticker);
   const hasExistingPick = Boolean(data?.viewerPick);
   const isSameTicker =
-    hasExistingPick && normalizedTicker === data?.viewerPick?.ticker.toUpperCase();
+    hasExistingPick && normalizedTicker === data?.viewerPick?.assetId.toUpperCase();
   const canSubmit = isValidTickerInput(ticker) && !isSameTicker;
 
   const actionLabel = useMemo(() => {
@@ -115,9 +115,9 @@ export function CommunityPickCard({
       return "Enter a different ticker to swap.";
     }
     return hasExistingPick
-      ? `Swap from ${data?.viewerPick?.ticker} to ${normalizedTicker}. Your current pick will bank into lifetime score.`
+      ? `Swap from ${data?.viewerPick?.assetId} to ${normalizedTicker}. Your current pick will bank into lifetime score.`
       : `Save ${normalizedTicker} as your community pick.`;
-  }, [data?.viewerPick?.ticker, hasExistingPick, isSameTicker, normalizedTicker, ticker]);
+  }, [data?.viewerPick?.assetId, hasExistingPick, isSameTicker, normalizedTicker, ticker]);
 
   async function submitTicker() {
     if (!canSubmit || !data) return;
@@ -141,7 +141,7 @@ export function CommunityPickCard({
       const refreshed = await loadCommunityPicksPayload(standingsRange);
       setData(refreshed);
       setTicker("");
-      const savedTicker = refreshed.viewerPick?.ticker ?? normalizedTicker;
+      const savedTicker = refreshed.viewerPick?.assetId ?? normalizedTicker;
       setSuccess(
         hasExistingPick
           ? `Swap confirmed. ${savedTicker} is now your active pick.`
@@ -192,9 +192,9 @@ export function CommunityPickCard({
             {data.viewerPick ? (
               <div className="community-pick-current">
                 <span className="crowd-logo community-pick-ticker-logo" aria-hidden="true">
-                  <LogoDisplay ticker={data.viewerPick.ticker} size="detail" />
+                  <LogoDisplay ticker={data.viewerPick.assetId} size="detail" />
                 </span>
-                <strong>{data.viewerPick.ticker}</strong>
+                <strong>{data.viewerPick.assetId}</strong>
                 <span className={`is-${returnTone(data.viewerPick.lifetimeReturnPct)}`}>
                   {formatReturn(data.viewerPick.lifetimeReturnPct)}
                 </span>
@@ -212,9 +212,9 @@ export function CommunityPickCard({
                 <span className="community-pick-metric-label">Active ticker</span>
                 <strong className="community-pick-ticker-row">
                   <span className="crowd-logo community-pick-ticker-logo" aria-hidden="true">
-                    <LogoDisplay ticker={data.viewerPick.ticker} size="detail" />
+                    <LogoDisplay ticker={data.viewerPick.assetId} size="detail" />
                   </span>
-                  {data.viewerPick.ticker}
+                  {data.viewerPick.assetId}
                 </strong>
                 <small>from ${data.viewerPick.entryPrice.toFixed(2)}</small>
               </div>
@@ -246,9 +246,9 @@ export function CommunityPickCard({
                     Active:{" "}
                     <span className="community-pick-ticker-row">
                       <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
-                        <LogoDisplay ticker={data.viewerPick!.ticker} size="badge" />
+                        <LogoDisplay ticker={data.viewerPick!.assetId} size="badge" />
                       </span>
-                      <strong>{data.viewerPick?.ticker}</strong>
+                      <strong>{data.viewerPick?.assetId}</strong>
                     </span>
                   </span>
                 ) : null}
@@ -304,12 +304,12 @@ export function CommunityPickCard({
               <h3>Closed picks</h3>
               <ol>
                 {data.pickHistory.map((entry) => (
-                  <li key={`${entry.ticker}-${entry.closedAt}`}>
+                  <li key={`${entry.assetId}-${entry.closedAt}`}>
                     <span className="community-pick-ticker-row">
                       <span className="crowd-logo community-pick-ticker-logo is-compact" aria-hidden="true">
-                        <LogoDisplay ticker={entry.ticker} size="badge" />
+                        <LogoDisplay ticker={entry.assetId} size="badge" />
                       </span>
-                      <strong>{entry.ticker}</strong>
+                      <strong>{entry.assetId}</strong>
                     </span>
                     <span className={`is-${returnTone(entry.pickReturnPct)}`}>
                       {formatReturn(entry.pickReturnPct)}

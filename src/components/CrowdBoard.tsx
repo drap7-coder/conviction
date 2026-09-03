@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CrowdCommunityPanel } from "@/components/CrowdCommunityPanel";
 import { CommunityPickCard } from "@/components/CommunityPickCard";
+import { YourPicksCard } from "@/components/YourPicksCard";
 import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
 import { PerfRangeSelect } from "@/components/crowd/PerfRangeSelect";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
@@ -156,9 +157,10 @@ export function CrowdBoard() {
 
       {tab === "pick" ? (
         <div className="crowd-pick-panel" role="tabpanel" aria-label="My pick">
-          <CommunityPickCard variant="pick" />
+          <YourPicksCard />
           <p className="crowd-hedge">
-            One current ticker per member. Swapping banks the old pick into your lifetime score.
+            Pick 3 stocks. Choose Bitcoin or Gold. Pick one international market. Incomplete boards
+            can play immediately; finish all five calls to join the leaderboard.
           </p>
         </div>
       ) : null}
