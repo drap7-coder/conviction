@@ -6,6 +6,9 @@ import {
   listCampusSeedStudents,
 } from "@/lib/community-picks/seed-students";
 import { ensureSeedGroups } from "@/lib/groups/store";
+import { pricingSymbolForStored } from "@/lib/community-picks/asset-maps";
+import { CALLS_REQUIRED, type CallSlot } from "@/lib/community-picks/call-slots";
+import { PLAYER_BANKROLL_USD } from "@/lib/community-picks/notional";
 
 const PICK_UNIVERSE_SECOND = [
   { ticker: "JPM", entryPrice: 195 },
@@ -113,6 +116,53 @@ export async function ensureCampusPickSeeds(): Promise<{
           [student.id, student.groupId, extra.slot, extra.ticker, extra.entry],
         );
       }
+
+      /**
+       * Seed an "active portfolio" for each seeded campus member so Portfolio pages
+       * show a credible changing book for demo/testing.
+       *
+       * Portfolio holdings are derived from the same five-call assets stored in
+       * `community_picks` (mapped through `pricingSymbolForStored`).
+       */
+      await client.query(`delete from portfolio_positions where user_id = $1`, [student.id]);
+
+      const legs = await client.query<{
+        call_slot: CallSlot;
+        ticker: string;
+        entry_price: number;
+      }>(
+        `select call_slot, ticker, entry_price
+         from community_picks
+         where user_id = $1 and group_id = $2`,
+        [student.id, student.groupId],
+      );
+
+      const perLegNotional = PLAYER_BANKROLL_USD / CALLS_REQUIRED;
+      const byTicker = new Map<string, { shares: number; cost: number }>();
+
+      for (const leg of legs.rows) {
+        const ticker = pricingSymbolForStored(leg.call_slot, leg.ticker);
+        const entry = Number(leg.entry_price);
+        if (!Number.isFinite(entry) || entry <= 0) continue;
+        const shares = perLegNotional / entry;
+
+        const current = byTicker.get(ticker) ?? { shares: 0, cost: 0 };
+        byTicker.set(ticker, { shares: current.shares + shares, cost: current.cost + perLegNotional });
+      }
+
+      for (const [ticker, pos] of byTicker.entries()) {
+        const average_cost = pos.cost / pos.shares;
+        await client.query(
+          `insert into portfolio_positions (user_id, ticker, shares, average_cost, note)
+           values ($1, $2, $3, $4, '')
+           on conflict (user_id, ticker) do update set
+             shares = excluded.shares,
+             average_cost = excluded.average_cost,
+             note = excluded.note,
+             updated_at = now()`,
+          [student.id, ticker, pos.shares, average_cost],
+        );
+      }
     }
 
     await client.query("commit");
@@ -170,6 +220,19 @@ export async function ensureCampusPickSeedsIfNeeded(): Promise<{
   );
   const pickCount = Number(picks.rows[0]?.count ?? 0);
   if (pickCount < seedIds.length) {
+    const result = await ensureCampusPickSeeds();
+    return { ...result, skipped: false };
+  }
+
+  // Also ensure seeded users have portfolio_positions so Portfolio shows changes.
+  const portfolios = await query<{ count: string }>(
+    `select count(distinct user_id)::text as count
+     from portfolio_positions
+     where user_id = any($1::text[])`,
+    [seedIds],
+  );
+  const portfolioUserCount = Number(portfolios.rows[0]?.count ?? 0);
+  if (portfolioUserCount < seedIds.length) {
     const result = await ensureCampusPickSeeds();
     return { ...result, skipped: false };
   }
