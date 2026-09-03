@@ -18,7 +18,20 @@ export function PerfRangeSelect({
 }) {
   return (
     <label className={`h2h-range-select${className ? ` ${className}` : ""}`}>
-      <span className="h2h-range-select-label">Performance</span>
+      <span className="h2h-range-select-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+          <rect
+            x="2.5"
+            y="3.5"
+            width="11"
+            height="10"
+            rx="1.5"
+            stroke="currentColor"
+            strokeWidth="1.25"
+          />
+          <path d="M5 2.25v2.5M11 2.25v2.5M2.5 6.5h11" stroke="currentColor" strokeWidth="1.25" />
+        </svg>
+      </span>
       <select
         value={value}
         aria-label="Performance range"

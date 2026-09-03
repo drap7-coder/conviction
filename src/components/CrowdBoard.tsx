@@ -122,19 +122,22 @@ export function CrowdBoard() {
 
   return (
     <div className="crowd-page-body">
-      <SurfaceSlicer
-        label="Crowd view"
-        options={TABS}
-        activeId={tab}
-        onChange={(id) => selectTab(parseCrowdView(id))}
-        role="tablist"
-      />
+      <div className="crowd-chrome-bar">
+        <SurfaceSlicer
+          label="Crowd view"
+          options={TABS}
+          activeId={tab}
+          onChange={(id) => selectTab(parseCrowdView(id))}
+          role="tablist"
+          className="crowd-view-slicer"
+        />
+        {tab === "standings" ? (
+          <PerfRangeSelect value={range} onChange={selectRange} />
+        ) : null}
+      </div>
 
       {tab === "standings" ? (
         <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">
-          <div className="crowd-standings-toolbar">
-            <PerfRangeSelect value={range} onChange={selectRange} />
-          </div>
           {standingsError ? (
             <p className="crowd-empty" role="alert">
               {standingsError}
