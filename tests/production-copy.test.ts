@@ -243,6 +243,7 @@ describe("production copy and fixture isolation", () => {
     expect(feed).toContain("pulse-news-theme-menu");
     expect(feed).toContain("headline.imageUrl");
     expect(feed).toContain("next/image");
+    expect(feed).toContain("isNextImageRemoteAllowed");
     expect(feed).toContain("width={960}");
     expect(feed).toContain("height={540}");
     expect(feed).toContain("pulse-news-hero-img");

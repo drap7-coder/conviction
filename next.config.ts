@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { nextImageRemotePatterns } from "./src/lib/media/next-image-hosts";
 
 /**
  * Apex is canonical. The live TLS cert is issued for `iqbulls.com` only
@@ -9,21 +10,8 @@ const CANONICAL_ORIGIN = "https://iqbulls.com";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "**.yimg.com" },
-      { protocol: "https", hostname: "**.yahoo.com" },
-      { protocol: "https", hostname: "**.googleusercontent.com" },
-      { protocol: "https", hostname: "**.wsj.net" },
-      { protocol: "https", hostname: "**.reuters.com" },
-      { protocol: "https", hostname: "**.reutersmedia.net" },
-      { protocol: "https", hostname: "**.cnbcfm.com" },
-      { protocol: "https", hostname: "**.nbcnews.com" },
-      { protocol: "https", hostname: "**.bloomberg.com" },
-      { protocol: "https", hostname: "**.ft.com" },
-      { protocol: "https", hostname: "**.cloudfront.net" },
-      { protocol: "https", hostname: "**.wp.com" },
-      { protocol: "https", hostname: "**" },
-    ],
+    // Restricted publisher CDNs only — no unrestricted HTTPS catch-all.
+    remotePatterns: nextImageRemotePatterns(),
   },
   async redirects() {
     return [
