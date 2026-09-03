@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
     const userId = session?.user?.id;
     const groupAId = request.nextUrl.searchParams.get("a");
     const groupBId = request.nextUrl.searchParams.get("b");
-    const range = parseH2HPerfRange(request.nextUrl.searchParams.get("range"));
+    // Game-theory default: avoid "winner snowball" from YTD-only scoring.
+    const rawRange = request.nextUrl.searchParams.get("range");
+    const range = parseH2HPerfRange(rawRange ?? "1w");
 
     const [headToHead, community] = await Promise.all([
       buildHeadToHeadPayload({
