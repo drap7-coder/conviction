@@ -10,6 +10,12 @@ import {
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
+import {
+  averageStudentBalanceUsd,
+  formatUsd,
+  formatUsdDelta,
+  notionalDeltaUsd,
+} from "@/lib/community-picks/notional";
 
 const TICKER_INPUT_PATTERN = /^[A-Z][A-Z0-9.-]{0,9}$/;
 
@@ -328,8 +334,8 @@ export function CommunityPickCard({
             <h3>Community standings</h3>
             <span>
               {standingsRange === "1d" || data.range === "1d"
-                ? "Today's average return"
-                : `Average ${h2hPerfRangeLabel(data.range ?? standingsRange)} return`}
+                ? "Avg student balance · Today"
+                : `Avg student balance · ${h2hPerfRangeLabel(data.range ?? standingsRange)}`}
             </span>
           </div>
           {data.standings.length === 0 ? (
@@ -340,6 +346,8 @@ export function CommunityPickCard({
                 let rank = 0;
                 return data.standings.map((standing) => {
                   if (standing.ranked) rank += 1;
+                  const avgBalance = averageStudentBalanceUsd(standing.avgReturnPct);
+                  const avgDelta = notionalDeltaUsd(standing.avgReturnPct);
                   return (
                     <li key={standing.groupId} className={standing.ranked ? undefined : "is-unranked"}>
                       <span className="community-standing-rank">
@@ -361,9 +369,15 @@ export function CommunityPickCard({
                           </small>
                         </span>
                       </span>
-                      <strong className={`community-standing-return is-${returnTone(standing.avgReturnPct)}`}>
-                        {formatReturn(standing.avgReturnPct)}
-                      </strong>
+                      <span className={`community-standing-perf is-${returnTone(standing.avgReturnPct)}`}>
+                        <strong className="community-standing-return">
+                          {avgBalance === null ? "—" : formatUsd(avgBalance)}
+                        </strong>
+                        <small>
+                          {formatUsdDelta(avgDelta)}
+                          <em>({formatReturn(standing.avgReturnPct)})</em>
+                        </small>
+                      </span>
                     </li>
                   );
                 });

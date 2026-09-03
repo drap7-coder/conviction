@@ -73,7 +73,7 @@ describe("five-call IQBulls picks", () => {
     const store = read("src/lib/community-picks/store.ts");
 
     expect(board).toContain("YourPicksCard");
-    expect(board).toContain("finish all five calls to join the leaderboard");
+    expect(board).toContain("finish all five to join the leaderboard");
     expect(card).toContain("Your Picks");
     expect(card).toContain("Bitcoin or Gold");
     expect(card).toContain("International");
