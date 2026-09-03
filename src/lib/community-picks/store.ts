@@ -28,8 +28,10 @@ import { fetchAuthoritativeSpot } from "@/lib/community-picks/pricing";
 import { seedCampusStandings, listCampusSeedStudents } from "@/lib/community-picks/seed-students";
 import {
   DEFAULT_H2H_PERF_RANGE,
+  pickPeriodReturnPct,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
+import { fetchPeriodBaselines } from "@/lib/competitions/period-baselines";
 import { fetchFreshStockQuotes } from "@/lib/market/quotes";
 import { listSeedCanonicalCommunities } from "@/lib/groups/seed-groups";
 import { SEED_INSTITUTIONS } from "@/lib/groups/seed-institutions";
@@ -197,28 +199,31 @@ function summarizePicks(picks: Partial<Record<CallSlot, CommunityPick>>) {
 }
 
 /** Guest / no-DB standings: lifetime $100k book returns from live spots. */
-async function scoreOfflineStandings(_range?: H2HPerfRange): Promise<CommunityStanding[]> {
+async function scoreOfflineStandings(range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE): Promise<CommunityStanding[]> {
   const students = listCampusSeedStudents();
   const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
-  const prices = await currentPricesForSymbols(tickers);
+  const periodBaselines = await fetchPeriodBaselines(tickers, range);
   const returnsByGroup = new Map<string, number[]>();
   let liveHits = 0;
 
   for (const student of students) {
-    const current = prices.get(student.ticker.toUpperCase());
-    if (current === undefined) continue;
-    const total = totalGrowthFactor(
-      student.bankedGrowthFactor,
-      activeGrowthFactor(student.entryPrice, current),
-    );
-    const ret = lifetimeReturnPct(total);
+    const symbol = student.ticker.toUpperCase();
+    const baseline = periodBaselines.get(symbol);
+    const ret = pickPeriodReturnPct({
+      range,
+      entryPrice: student.entryPrice,
+      pickedAt: null,
+      baseline: baseline ?? null,
+    });
+
+    if (ret === null || !Number.isFinite(ret)) continue;
     liveHits += 1;
     const rows = returnsByGroup.get(student.groupId) ?? [];
     rows.push(ret);
     returnsByGroup.set(student.groupId, rows);
   }
 
-  if (liveHits === 0) return seedStandings();
+  if (liveHits === 0) return seedStandings(range);
 
   const byGroup = new Map<string, typeof students>();
   for (const student of students) {
@@ -576,6 +581,7 @@ export async function loadCommunityPicks(
     ),
   ];
   const prices = await currentPricesForSymbols(pricingSymbols);
+  const periodBaselines = await fetchPeriodBaselines(pricingSymbols, range);
 
   /** memberKey = userId::groupId → slot lifetime returns (only when board complete). */
   const memberSlotReturns = new Map<string, Map<CallSlot, number>>();
@@ -594,9 +600,20 @@ export async function loadCommunityPicks(
       viewerPicks[row.call_slot] = pickView;
     }
 
-    if (pickView.lifetimeReturnPct === null) continue;
+    const periodBaseline = periodBaselines.get(symbol) ?? null;
+    const periodReturnPct = pickPeriodReturnPct({
+      range,
+      entryPrice: Number(row.entry_price),
+      pickedAt: row.picked_at.toISOString(),
+      baseline: periodBaseline,
+    });
+
+    // If Yahoo period baselines fail, fall back to the lifetime/$100k edge
+    // so the board doesn't go empty.
+    const returnPctToUse = periodReturnPct ?? pickView.lifetimeReturnPct;
+    if (returnPctToUse === null) continue;
     const slotMap = memberSlotReturns.get(memberKey) ?? new Map();
-    slotMap.set(row.call_slot, pickView.lifetimeReturnPct);
+    slotMap.set(row.call_slot, returnPctToUse);
     memberSlotReturns.set(memberKey, slotMap);
   }
 

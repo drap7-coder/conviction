@@ -1,5 +1,9 @@
 import { getPool, isDatabaseConfigured, query } from "@/lib/db";
 import type { PersistedPosition } from "@/lib/portfolio/persist";
+import { campusSeedLegsForUser } from "@/lib/community-picks/seed-students";
+import { CALLS_REQUIRED } from "@/lib/community-picks/call-slots";
+import { PLAYER_BANKROLL_USD } from "@/lib/community-picks/notional";
+import { pricingSymbolForStored } from "@/lib/community-picks/asset-maps";
 
 const MAX_POSITIONS = 50;
 
@@ -52,7 +56,33 @@ export function normalizePortfolioPositions(input: unknown): PersistedPosition[]
 }
 
 export async function getUserPortfolio(userId: string): Promise<PersistedPosition[]> {
-  if (!isDatabaseConfigured()) return [];
+  if (!isDatabaseConfigured()) {
+    const legs = campusSeedLegsForUser(userId);
+    if (!legs) return [];
+
+    // Guest/no-DB mode: synthesize an "active portfolio" for seeded campus members.
+    const perLegNotional = PLAYER_BANKROLL_USD / CALLS_REQUIRED;
+    const byTicker = new Map<string, { shares: number; cost: number }>();
+
+    for (const leg of legs) {
+      const portfolioTicker = pricingSymbolForStored(leg.callSlot, leg.ticker).toUpperCase();
+      const entry = Number(leg.entryPrice);
+      if (!Number.isFinite(entry) || entry <= 0) continue;
+
+      const shares = perLegNotional / entry;
+      const current = byTicker.get(portfolioTicker) ?? { shares: 0, cost: 0 };
+      byTicker.set(portfolioTicker, {
+        shares: current.shares + shares,
+        cost: current.cost + perLegNotional,
+      });
+    }
+
+    return [...byTicker.entries()].map(([ticker, pos]) => ({
+      ticker,
+      shares: pos.shares,
+      averageCost: pos.cost / pos.shares,
+    }));
+  }
   const result = await query<UserPortfolioRow>(
     `select ticker, shares, average_cost, note
      from portfolio_positions
