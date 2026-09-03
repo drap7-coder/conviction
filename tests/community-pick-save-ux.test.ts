@@ -6,19 +6,19 @@ function read(path: string) {
 }
 
 describe("community pick save UX", () => {
-  it("shows explicit Save Pick and Confirm Swap actions with validation", () => {
-    const source = read("src/components/CommunityPickCard.tsx");
+  it("shows explicit Save Pick and Confirm Swap on Your Picks", () => {
+    const source = read("src/components/YourPicksCard.tsx");
     expect(source).toContain('"Save Pick"');
     expect(source).toContain('"Confirm Swap"');
-    expect(source).toContain("disabled={busy || !canSubmit}");
-    expect(source).toContain("community-pick-success");
-    expect(source).toContain("loadCommunityPicksPayload");
+    expect(source).toContain("your-picks-save");
+    expect(source).toContain("your-picks-success");
+    expect(source).toContain("your-picks-error");
   });
 
-  it("styles the pick editor action as a full-width primary button", () => {
+  it("styles the Your Picks scoreboard in Crowd chrome", () => {
     const css = read("src/app/globals.css");
-    expect(css).toContain(".community-pick-editor");
-    expect(css).toContain(".community-pick-action");
-    expect(css).toContain("width: 100%");
+    expect(css).toContain(".your-picks-card");
+    expect(css).toContain(".your-picks-binary");
+    expect(css).toContain(".your-picks-iqbulls");
   });
 });
