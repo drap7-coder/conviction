@@ -72,6 +72,11 @@ describe("scoreboard logos", () => {
     const css = read("src/app/globals.css");
     expect(css).toContain(".pulse-index-logo");
     expect(css).toContain(".pulse-index-board--logos .pulse-index-row");
+    expect(css).toContain("max-width: min(11.25rem, 46vw)");
+    expect(css).toMatch(/@media \(max-width: 767px\)[\s\S]*\.pulse-index-spark/);
+    expect(css).toMatch(
+      /@media \(max-width: 767px\)[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*max-content\)/,
+    );
 
     const crypto = read("src/components/market/CryptoBoard.tsx");
     expect(crypto).toContain("MarketScoreboard");

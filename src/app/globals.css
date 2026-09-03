@@ -17280,16 +17280,20 @@ a.pulse-news-narrative-title:focus-visible {
   font-size: 0.56rem;
 }
 
-@media (max-width: 430px) {
+@media (max-width: 767px) {
+  /* Phone scoreboards: drop spark, protect the name, cap the quote stack. */
   .pulse-index-row,
   .pulse-index-board--sessions .pulse-index-row {
-    grid-template-columns: minmax(0, 1fr) minmax(7.2rem, auto);
-    gap: 8px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+    gap: 10px;
+    align-items: center;
+    min-height: 46px;
+    padding: 8px 12px;
   }
 
   .pulse-index-board--logos .pulse-index-row,
   .pulse-index-board--logos.pulse-index-board--sessions .pulse-index-row {
-    grid-template-columns: 2rem minmax(0, 1fr) minmax(7.2rem, auto);
+    grid-template-columns: 2rem minmax(0, 1fr) minmax(0, max-content);
   }
 
   .pulse-index-spark,
@@ -17297,12 +17301,58 @@ a.pulse-news-narrative-title:focus-visible {
     display: none;
   }
 
-  .session-quote-last {
-    font-size: 0.95rem;
+  .pulse-index-row .session-quote {
+    width: max-content;
+    max-width: min(11.25rem, 46vw);
+    justify-self: end;
   }
 
-  .session-quote-change {
-    font-size: 0.66rem;
+  .pulse-index-row .session-quote-last {
+    font-size: 0.92rem;
+  }
+
+  .pulse-index-row .session-quote-change {
+    flex-wrap: nowrap;
+    gap: 5px;
+    font-size: 0.64rem;
+  }
+
+  .pulse-index-row .session-quote-extended {
+    flex-wrap: nowrap;
+    gap: 4px;
+    font-size: 0.54rem;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .pulse-index-name strong {
+    font-size: 0.88rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .pulse-index-row,
+  .pulse-index-board--sessions .pulse-index-row {
+    gap: 8px;
+    min-height: 44px;
+    padding: 6px 10px;
+  }
+
+  .pulse-index-row .session-quote {
+    max-width: min(10.5rem, 48vw);
+  }
+
+  .pulse-index-row .session-quote-last {
+    font-size: 0.88rem;
+  }
+
+  .pulse-index-row .session-quote-change {
+    font-size: 0.6rem;
+    gap: 4px;
+  }
+
+  .pulse-index-row .session-quote-extended {
+    font-size: 0.5rem;
   }
 }
 
@@ -17427,21 +17477,6 @@ a.pulse-news-narrative-title:focus-visible {
 
   .pulse-gauge-readout strong {
     font-size: 1.18rem;
-  }
-
-  .pulse-index-row {
-    grid-template-columns: minmax(0, 1fr) minmax(7.2rem, auto);
-    gap: 8px;
-    min-height: 44px;
-    padding: 5px 10px;
-  }
-
-  .pulse-index-board--logos .pulse-index-row {
-    grid-template-columns: 2rem minmax(0, 1fr) minmax(7.2rem, auto);
-  }
-
-  .pulse-index-spark {
-    display: none;
   }
 }
 
