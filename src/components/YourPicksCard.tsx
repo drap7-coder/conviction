@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
+import { CompanyTypeahead } from "@/components/CompanyTypeahead";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import {
   BTC_GOLD_ASSETS,
@@ -29,6 +31,14 @@ function returnTone(value: number | null): "up" | "down" | "quiet" {
 
 function normalizeTickerInput(value: string): string {
   return value.trim().toUpperCase();
+}
+
+function successCopy(input: { label: string; isSwap: boolean; filledCount: number }): string {
+  if (input.isSwap) return `Swapped to ${input.label}.`;
+  if (input.filledCount >= CALLS_REQUIRED) {
+    return `${input.label} locked in · board complete.`;
+  }
+  return `${input.label} added · ${input.filledCount}/${CALLS_REQUIRED} picks.`;
 }
 
 async function loadPicks(): Promise<CommunityPicksPayload> {
@@ -76,7 +86,9 @@ export function YourPicksCard() {
   const [busySlot, setBusySlot] = useState<CallSlot | "STOCK_ADD" | null>(null);
   const [stockDraft, setStockDraft] = useState("");
   const [editingStock, setEditingStock] = useState<StockSlot | null>(null);
+  const [addingStock, setAddingStock] = useState(false);
   const [intlOpen, setIntlOpen] = useState(false);
+  const [justSavedSlot, setJustSavedSlot] = useState<CallSlot | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +106,15 @@ export function YourPicksCard() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!justSavedSlot && !success) return;
+    const timer = window.setTimeout(() => {
+      setJustSavedSlot(null);
+      setSuccess(null);
+    }, 3200);
+    return () => window.clearTimeout(timer);
+  }, [justSavedSlot, success]);
+
   const picks = data?.viewerPicks ?? {};
   const filledCount = data?.filledCount ?? 0;
   const complete = data?.boardComplete ?? false;
@@ -104,22 +125,38 @@ export function YourPicksCard() {
     return "Save Pick";
   }, [editingStock, picks]);
 
-  async function commit(callSlot: CallSlot, asset: string, isSwap: boolean) {
+  async function commit(callSlot: CallSlot, asset: string, isSwap: boolean, labelHint?: string) {
     setBusySlot(callSlot);
     setError(null);
     setSuccess(null);
     try {
       const payload = await saveOrSwap({ callSlot, asset, isSwap });
+      const saved = payload.viewerPicks[callSlot];
+      const label = saved?.label ?? labelHint ?? asset;
       setData(payload);
-      setSuccess(isSwap ? "Swap saved." : "Pick saved.");
+      setSuccess(
+        successCopy({
+          label,
+          isSwap,
+          filledCount: payload.filledCount,
+        }),
+      );
+      setJustSavedSlot(callSlot);
       setStockDraft("");
       setEditingStock(null);
+      setAddingStock(false);
       setIntlOpen(false);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Could not save pick.");
     } finally {
       setBusySlot(null);
     }
+  }
+
+  function openAddStock() {
+    setEditingStock(null);
+    setStockDraft("");
+    setAddingStock(true);
   }
 
   if (!data) {
@@ -197,6 +234,15 @@ export function YourPicksCard() {
         </p>
       ) : null}
 
+      {success ? (
+        <p className="your-picks-success is-banner" role="status" aria-live="polite">
+          <span className="your-picks-check" aria-hidden="true">
+            ✓
+          </span>
+          {success}
+        </p>
+      ) : null}
+
       <div className="your-picks-section">
         <h3 className="your-picks-section-label">Stocks</h3>
         <ul className="your-picks-stock-list">
@@ -204,30 +250,62 @@ export function YourPicksCard() {
             const pick = picks[slot];
             if (!pick) return null;
             const editing = editingStock === slot;
+            const justSaved = justSavedSlot === slot;
             return (
-              <li key={slot} className="your-picks-stock-row">
+              <li
+                key={slot}
+                className={`your-picks-stock-row${justSaved ? " is-just-saved" : ""}`}
+              >
                 <button
                   type="button"
                   className="your-picks-stock-main"
+                  aria-pressed={editing}
                   onClick={() => {
+                    setAddingStock(false);
                     setEditingStock(editing ? null : slot);
                     setStockDraft(pick.assetId);
                   }}
                 >
-                  <strong>{pick.label}</strong>
+                  <span className="your-picks-asset">
+                    <span className="your-picks-logo" aria-hidden="true">
+                      <LogoDisplay ticker={pick.pricingSymbol} size="badge" />
+                    </span>
+                    <strong>{pick.label}</strong>
+                    {justSaved ? (
+                      <span className="your-picks-added-chip">Added</span>
+                    ) : null}
+                  </span>
                   <span className={`your-picks-return is-${returnTone(pick.lifetimeReturnPct)}`}>
                     {formatReturn(pick.lifetimeReturnPct)}
                   </span>
                 </button>
                 {editing ? (
                   <div className="your-picks-editor">
-                    <input
+                    <CompanyTypeahead
                       value={stockDraft}
-                      onChange={(event) => setStockDraft(normalizeTickerInput(event.target.value))}
-                      aria-label="Stock ticker"
-                      placeholder="Ticker"
-                      maxLength={10}
+                      onChange={(value) => setStockDraft(normalizeTickerInput(value))}
+                      onSelect={(suggestion) => {
+                        const ticker = suggestion.ticker.toUpperCase();
+                        setStockDraft(ticker);
+                        if (ticker !== pick.assetId) {
+                          void commit(slot, ticker, true, ticker);
+                        }
+                      }}
+                      onEnter={() => {
+                        if (
+                          TICKER_INPUT_PATTERN.test(stockDraft)
+                          && stockDraft !== pick.assetId
+                          && busySlot === null
+                        ) {
+                          void commit(slot, stockDraft, true, stockDraft);
+                        }
+                      }}
+                      placeholder="Ticker or company"
+                      inputAriaLabel="Swap stock ticker"
+                      disabled={busySlot !== null}
                       autoCapitalize="characters"
+                      className="your-picks-typeahead-input"
+                      wrapperClassName="your-picks-typeahead"
                     />
                     <button
                       type="button"
@@ -237,7 +315,7 @@ export function YourPicksCard() {
                         || !TICKER_INPUT_PATTERN.test(stockDraft)
                         || stockDraft === pick.assetId
                       }
-                      onClick={() => void commit(slot, stockDraft, true)}
+                      onClick={() => void commit(slot, stockDraft, true, stockDraft)}
                     >
                       {busySlot === slot ? "Saving…" : stockActionLabel}
                     </button>
@@ -250,41 +328,49 @@ export function YourPicksCard() {
 
         {addSlot ? (
           <div className="your-picks-add">
-            <button
-              type="button"
-              className="your-picks-add-trigger"
-              onClick={() => {
-                setEditingStock(null);
-                setStockDraft("");
-              }}
-            >
-              + Add stock
-            </button>
-            <div className="your-picks-editor">
-              <input
-                value={editingStock ? "" : stockDraft}
-                onChange={(event) => {
-                  setEditingStock(null);
-                  setStockDraft(normalizeTickerInput(event.target.value));
-                }}
-                aria-label="Add stock ticker"
-                placeholder="Ticker"
-                maxLength={10}
-                autoCapitalize="characters"
-              />
+            {!addingStock ? (
               <button
                 type="button"
-                className="your-picks-save"
-                disabled={
-                  busySlot !== null
-                  || !TICKER_INPUT_PATTERN.test(stockDraft)
-                  || Boolean(editingStock)
-                }
-                onClick={() => void commit(addSlot, stockDraft, false)}
+                className="your-picks-add-trigger"
+                onClick={openAddStock}
               >
-                {busySlot === addSlot ? "Saving…" : "Save Pick"}
+                + Add stock
               </button>
-            </div>
+            ) : (
+              <div className="your-picks-editor">
+                <CompanyTypeahead
+                  value={stockDraft}
+                  onChange={(value) => {
+                    setEditingStock(null);
+                    setStockDraft(normalizeTickerInput(value));
+                  }}
+                  onSelect={(suggestion) => {
+                    const ticker = suggestion.ticker.toUpperCase();
+                    setStockDraft(ticker);
+                    void commit(addSlot, ticker, false, ticker);
+                  }}
+                  onEnter={() => {
+                    if (TICKER_INPUT_PATTERN.test(stockDraft) && busySlot === null) {
+                      void commit(addSlot, stockDraft, false, stockDraft);
+                    }
+                  }}
+                  placeholder="Ticker or company"
+                  inputAriaLabel="Add stock ticker"
+                  disabled={busySlot !== null}
+                  autoCapitalize="characters"
+                  className="your-picks-typeahead-input"
+                  wrapperClassName="your-picks-typeahead"
+                />
+                <button
+                  type="button"
+                  className="your-picks-save"
+                  disabled={busySlot !== null || !TICKER_INPUT_PATTERN.test(stockDraft)}
+                  onClick={() => void commit(addSlot, stockDraft, false, stockDraft)}
+                >
+                  {busySlot === addSlot ? "Saving…" : "Save Pick"}
+                </button>
+              </div>
+            )}
           </div>
         ) : null}
       </div>
@@ -295,18 +381,26 @@ export function YourPicksCard() {
           {BTC_GOLD_ASSETS.map((asset) => {
             const active = picks.BTC_GOLD?.assetId === asset.id;
             const isSwap = Boolean(picks.BTC_GOLD);
+            const justSaved = justSavedSlot === "BTC_GOLD" && active;
             return (
               <button
                 key={asset.id}
                 type="button"
-                className={`your-picks-binary-btn${active ? " is-active" : ""}`}
+                className={`your-picks-binary-btn${active ? " is-active" : ""}${justSaved ? " is-just-saved" : ""}`}
                 disabled={busySlot !== null}
+                aria-pressed={active}
                 onClick={() => {
                   if (active) return;
-                  void commit("BTC_GOLD", asset.id, isSwap);
+                  void commit("BTC_GOLD", asset.id, isSwap, asset.label);
                 }}
               >
-                <span>{asset.label}</span>
+                <span className="your-picks-asset your-picks-asset--stack">
+                  <span className="your-picks-logo" aria-hidden="true">
+                    <LogoDisplay ticker={asset.pricingSymbol} size="badge" />
+                  </span>
+                  <span>{asset.label}</span>
+                  {justSaved ? <span className="your-picks-added-chip">Added</span> : null}
+                </span>
                 {active ? (
                   <em className={`your-picks-return is-${returnTone(picks.BTC_GOLD?.lifetimeReturnPct ?? null)}`}>
                     {formatReturn(picks.BTC_GOLD?.lifetimeReturnPct ?? null)}
@@ -323,10 +417,18 @@ export function YourPicksCard() {
         {picks.INTERNATIONAL ? (
           <button
             type="button"
-            className="your-picks-intl-current"
+            className={`your-picks-intl-current${justSavedSlot === "INTERNATIONAL" ? " is-just-saved" : ""}`}
             onClick={() => setIntlOpen((open) => !open)}
           >
-            <strong>{picks.INTERNATIONAL.label}</strong>
+            <span className="your-picks-asset">
+              <span className="your-picks-logo" aria-hidden="true">
+                <LogoDisplay ticker={picks.INTERNATIONAL.pricingSymbol} size="badge" />
+              </span>
+              <strong>{picks.INTERNATIONAL.label}</strong>
+              {justSavedSlot === "INTERNATIONAL" ? (
+                <span className="your-picks-added-chip">Added</span>
+              ) : null}
+            </span>
             <span className={`your-picks-return is-${returnTone(picks.INTERNATIONAL.lifetimeReturnPct)}`}>
               {formatReturn(picks.INTERNATIONAL.lifetimeReturnPct)}
             </span>
@@ -353,10 +455,20 @@ export function YourPicksCard() {
                   className={`your-picks-intl-option${active ? " is-active" : ""}`}
                   disabled={busySlot !== null || active}
                   onClick={() =>
-                    void commit("INTERNATIONAL", asset.id, Boolean(picks.INTERNATIONAL))
+                    void commit(
+                      "INTERNATIONAL",
+                      asset.id,
+                      Boolean(picks.INTERNATIONAL),
+                      asset.label,
+                    )
                   }
                 >
-                  {asset.label}
+                  <span className="your-picks-asset">
+                    <span className="your-picks-logo" aria-hidden="true">
+                      <LogoDisplay ticker={asset.pricingSymbol} size="badge" />
+                    </span>
+                    <span>{asset.label}</span>
+                  </span>
                 </button>
               );
             })}
@@ -374,7 +486,6 @@ export function YourPicksCard() {
       ) : null}
 
       {error ? <p className="your-picks-error" role="alert">{error}</p> : null}
-      {success ? <p className="your-picks-success" role="status">{success}</p> : null}
 
       <p className="your-picks-hedge">
         Pick 3 stocks. Choose Bitcoin or Gold. Pick one international market. Build your track

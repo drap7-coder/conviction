@@ -9,6 +9,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
 
 function highlightMatch(text: string, query: string) {
@@ -204,6 +205,9 @@ export function CompanyTypeahead({
               }}
               onPointerEnter={() => setActiveIndex(index)}
             >
+              <span className="ticker-suggestion-logo" aria-hidden="true">
+                <LogoDisplay ticker={suggestion.ticker} size="badge" />
+              </span>
               <span className="ticker-suggestion-ticker">
                 {highlightMatch(suggestion.ticker, value)}
               </span>

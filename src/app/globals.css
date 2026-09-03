@@ -3756,13 +3756,29 @@ button.bottom-tab-item {
 
 .ticker-suggestion {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 10px;
   padding: 8px 10px;
   border-radius: 8px;
   cursor: pointer;
   touch-action: manipulation;
   min-width: 0;
+}
+
+.ticker-suggestion-logo {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+}
+
+.ticker-suggestion-logo .card-logo,
+.ticker-suggestion-logo .logo-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
 }
 
 .ticker-suggestion.active,
@@ -19301,6 +19317,63 @@ a.pulse-news-narrative-title:focus-visible {
   color: inherit;
   text-align: left;
   cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.your-picks-stock-row.is-just-saved .your-picks-stock-main,
+.your-picks-intl-current.is-just-saved,
+.your-picks-binary-btn.is-just-saved {
+  border-color: color-mix(in srgb, var(--green) 48%, var(--border));
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--green) 24%, transparent);
+}
+
+.your-picks-asset {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.your-picks-asset--stack {
+  flex-direction: column;
+  gap: 6px;
+}
+
+.your-picks-logo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 70%, #fff 8%);
+  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  overflow: hidden;
+}
+
+.your-picks-logo .card-logo,
+.your-picks-logo .logo-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.your-picks-added-chip {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--green) 18%, transparent);
+  color: var(--green);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .your-picks-stock-main strong,
@@ -19309,6 +19382,24 @@ a.pulse-news-narrative-title:focus-visible {
   font-size: 0.92rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.your-picks-typeahead {
+  position: relative;
+  min-width: 0;
+}
+
+.your-picks-typeahead-input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
 }
 
 .your-picks-return {
@@ -19328,7 +19419,8 @@ a.pulse-news-narrative-title:focus-visible {
   gap: 8px;
 }
 
-.your-picks-editor input {
+.your-picks-editor input,
+.your-picks-typeahead-input {
   min-width: 0;
   padding: 11px 12px;
   border: 1px solid var(--border);
@@ -19382,13 +19474,17 @@ a.pulse-news-narrative-title:focus-visible {
 
 .your-picks-binary-btn {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   justify-items: center;
-  min-height: 64px;
+  min-height: 72px;
   padding: 14px 12px;
   font-weight: 750;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 .your-picks-binary-btn.is-active {
@@ -19407,6 +19503,8 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .your-picks-intl-option {
+  display: flex;
+  align-items: center;
   padding: 12px 14px;
   text-align: left;
   font-weight: 650;
@@ -19448,6 +19546,30 @@ a.pulse-news-narrative-title:focus-visible {
   margin: 0;
   color: var(--green);
   font-size: 0.78rem;
+}
+
+.your-picks-success.is-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--green) 36%, var(--border));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  font-weight: 650;
+}
+
+.your-picks-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--green) 22%, transparent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .crowd-hedge {
