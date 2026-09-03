@@ -177,13 +177,14 @@ describe("h2h performance ranges", () => {
     ).toBe(20);
   });
 
-  it("scores Crowd standings on lifetime $100k books (no Performance range chrome)", () => {
+  it("scores Crowd H2H and standings on the same $100k window (no Performance chrome)", () => {
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("PerfRangeSelect");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-chrome-bar");
     expect(read("src/components/CrowdBoard.tsx")).toContain("$100,000");
-    expect(read("src/lib/community-picks/store.ts")).toContain("currentPricesForSymbols");
-    expect(read("src/lib/community-picks/store.ts")).toContain("lifetimeReturnPct");
-    expect(read("src/lib/community-picks/store.ts")).toContain("ensureSeedCampusGroups");
+    expect(read("src/lib/community-picks/store.ts")).toContain("pickPeriodReturnPct");
+    expect(read("src/lib/community-picks/store.ts")).toContain("fetchPeriodBaselines");
+    expect(read("src/lib/competitions/store.ts")).toContain("pickPeriodReturnPct");
+    expect(read("src/lib/competitions/store.ts")).toContain("fetchPeriodBaselines");
     expect(read("src/lib/community-picks/notional.ts")).toContain("PLAYER_BANKROLL_USD");
   });
 });

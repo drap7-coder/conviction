@@ -34,6 +34,7 @@ import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seed
 import { listCampusSeedStudents } from "@/lib/community-picks/seed-students";
 import {
   DEFAULT_H2H_PERF_RANGE,
+  pickPeriodReturnPct,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 import { fetchFreshStockQuotes } from "@/lib/market/quotes";
@@ -393,12 +394,15 @@ export async function listPicksForCompetition(competitionId: string): Promise<Co
   return result.rows.map((row) => mapPick(row));
 }
 
-/** Campus IQBulls averages on the lifetime $100k book.
- * Only members with all five calls filled contribute. */
+/**
+ * Campus IQBulls average on the $100k book for the selected performance window.
+ * Same math as Crowd standings — H2H must not show lifetime while standings show 1w.
+ * Only members with all five calls filled contribute.
+ */
 export async function scoreCampusSide(
   groupId: string,
-  _range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
-  _baselines?: Map<string, PeriodBaseline>,
+  range: H2HPerfRange = DEFAULT_H2H_PERF_RANGE,
+  baselines?: Map<string, PeriodBaseline>,
 ): Promise<{ avgReturnPct: number | null; pickCount: number }> {
   if (!groupId) return { avgReturnPct: null, pickCount: 0 };
 
@@ -406,10 +410,23 @@ export async function scoreCampusSide(
     const students = listCampusSeedStudents().filter((row) => row.groupId === groupId);
     if (students.length === 0) return { avgReturnPct: 0, pickCount: 0 };
     const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
+    const periodBaselines = baselines ?? (await fetchPeriodBaselines(tickers, range));
     const prices = await currentPricesForSymbols(tickers);
     const liveReturns: number[] = [];
     for (const student of students) {
-      const current = prices.get(student.ticker.toUpperCase());
+      const symbol = student.ticker.toUpperCase();
+      const periodRet = pickPeriodReturnPct({
+        range,
+        entryPrice: student.entryPrice,
+        pickedAt: null,
+        baseline: periodBaselines.get(symbol) ?? null,
+      });
+      if (periodRet !== null && Number.isFinite(periodRet)) {
+        liveReturns.push(periodRet);
+        continue;
+      }
+      // Fall back to lifetime edge when Yahoo period history is missing.
+      const current = prices.get(symbol);
       const active =
         current === undefined ? 1 : activeGrowthFactor(student.entryPrice, current);
       liveReturns.push(
@@ -447,6 +464,7 @@ export async function scoreCampusSide(
     ),
   ];
   const prices = await currentPricesForSymbols(pricingSymbols);
+  const periodBaselines = baselines ?? (await fetchPeriodBaselines(pricingSymbols, range));
 
   const byUser = new Map<string, typeof result.rows>();
   for (const row of result.rows) {
@@ -464,6 +482,17 @@ export async function scoreCampusSide(
       const entry = Number(row.entry_price);
       const banked = Number(row.banked_growth_factor);
       const current = prices.get(symbol);
+      const periodRet = pickPeriodReturnPct({
+        range,
+        entryPrice: entry,
+        pickedAt: row.picked_at.toISOString(),
+        baseline: periodBaselines.get(symbol) ?? null,
+      });
+      if (periodRet !== null && Number.isFinite(periodRet)) {
+        slotReturns.set(row.call_slot, periodRet);
+        continue;
+      }
+      // Fall back to lifetime when period baselines fail.
       const active = current === undefined ? 1 : activeGrowthFactor(entry, current);
       slotReturns.set(
         row.call_slot,
