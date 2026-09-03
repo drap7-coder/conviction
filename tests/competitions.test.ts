@@ -179,8 +179,11 @@ describe("h2h performance ranges", () => {
 
   it("wires a shared Performance dropdown for H2H and standings (YTD default)", () => {
     expect(read("src/components/CrowdBoard.tsx")).toContain("PerfRangeSelect");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("crowd-chrome-bar");
     expect(read("src/components/CrowdBoard.tsx")).toContain("range={range}");
+    expect(read("src/components/CrowdBoard.tsx")).not.toContain("crowd-standings-toolbar");
     expect(read("src/components/crowd/PerfRangeSelect.tsx")).toContain("H2H_PERF_RANGE_OPTIONS");
+    expect(read("src/components/crowd/PerfRangeSelect.tsx")).not.toContain("Performance</span>");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain('params.set("range", perfRange)');
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("H2H_PERF_RANGE_OPTIONS");
     expect(read("src/app/api/competitions/active/route.ts")).toContain("parseH2HPerfRange");
@@ -192,7 +195,8 @@ describe("h2h performance ranges", () => {
     expect(read("src/lib/competitions/period-baselines.ts")).toContain("sessionReturnPct");
     expect(read("src/lib/market/quotes.ts")).toContain('"ytd"');
     expect(read("src/app/globals.css")).toContain("h2h-range-select");
-    expect(read("src/app/globals.css")).toContain("crowd-standings-toolbar");
+    expect(read("src/app/globals.css")).toContain("crowd-chrome-bar");
+    expect(read("src/app/globals.css")).not.toContain("crowd-standings-toolbar");
   });
 });
 

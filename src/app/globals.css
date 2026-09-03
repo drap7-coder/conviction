@@ -18353,21 +18353,28 @@ a.pulse-news-narrative-title:focus-visible {
   margin: 12px 0 0;
 }
 
+.crowd-chrome-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.crowd-chrome-bar .crowd-view-slicer {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.crowd-chrome-bar .h2h-range-select {
+  flex: 0 0 auto;
+}
+
 .crowd-standings-panel,
 .crowd-pick-panel,
 .crowd-community-tab {
   display: grid;
   gap: 14px;
-}
-
-.crowd-standings-toolbar {
-  display: flex;
-  justify-content: flex-end;
-  align-items: flex-end;
-}
-
-.crowd-standings-toolbar .h2h-range-select {
-  justify-items: end;
 }
 
 .crowd-aggregate-panel {
@@ -18440,35 +18447,50 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .h2h-range-select {
-  display: grid;
-  gap: 4px;
-  justify-items: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 4px 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card-soft) 82%, transparent);
+  color: var(--muted);
 }
 
-.h2h-range-select-label {
+.h2h-range-select-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
   color: var(--muted);
-  font-size: 0.66rem;
-  font-weight: 650;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .h2h-range-select select {
   appearance: none;
-  border: 1px solid var(--line);
-  background: var(--card-soft);
+  margin: 0;
+  min-height: 34px;
+  border: 0;
+  background: transparent;
   color: var(--ink);
   border-radius: 8px;
-  padding: 6px 28px 6px 10px;
+  padding: 6px 26px 6px 2px;
   font: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
   background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
     linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position: calc(100% - 14px) 50%, calc(100% - 9px) 50%;
+  background-position: calc(100% - 10px) 50%, calc(100% - 5px) 50%;
   background-size: 5px 5px, 5px 5px;
   background-repeat: no-repeat;
   cursor: pointer;
+}
+
+.h2h-range-select select:focus-visible {
+  outline: none;
+  color: var(--accent);
 }
 
 .h2h-rivalry {
