@@ -9,6 +9,7 @@ import {
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
+import { communityRankingRequirementLabel } from "@/lib/community-picks/constants";
 import {
   averageStudentBalanceUsd,
   formatUsd,
@@ -360,7 +361,9 @@ export function CommunityPickCard({
                           <strong>{standing.name}</strong>
                           <small>
                             {standing.pickCount} {standing.pickCount === 1 ? "member" : "members"}
-                            {!standing.ranked && standing.pickCount > 0 ? " · unranked" : ""}
+                            {!standing.ranked && standing.pickCount > 0
+                              ? ` · unranked · ${communityRankingRequirementLabel()}`
+                              : ""}
                           </small>
                         </span>
                       </span>

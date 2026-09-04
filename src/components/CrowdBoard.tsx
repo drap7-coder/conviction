@@ -9,6 +9,7 @@ import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import type { HeadToHeadPayload } from "@/lib/competitions/types";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
+import { communityRankingRequirementLabel } from "@/lib/community-picks/constants";
 import {
   DEFAULT_H2H_PERF_RANGE,
   type H2HPerfRange,
@@ -137,7 +138,7 @@ export function CrowdBoard() {
           />
           <p className="crowd-hedge">
             Head-to-head and community standings use the same weekly average on each player&apos;s
-            $100,000 book. Schools below the member threshold stay unranked.
+            $100,000 book. Unranked schools {communityRankingRequirementLabel()}.
           </p>
         </div>
       ) : null}
