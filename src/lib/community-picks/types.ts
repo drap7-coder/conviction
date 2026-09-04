@@ -61,7 +61,7 @@ export type CommunityPicksPayload = {
   filledCount: number;
   /** True when all five calls are established. */
   boardComplete: boolean;
-  /** Average lifetime return across filled calls (null if none). */
+  /** Average return across filled calls for the standings window (default 1w). */
   iqbullsReturnPct: number | null;
   /** Official individual leaderboard eligibility (requires complete board). */
   leaderboardEligible: boolean;

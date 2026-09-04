@@ -43,6 +43,8 @@ describe("community pick save UX", () => {
     const board = read("src/components/CrowdBoard.tsx");
     expect(source).toContain("your-picks-bankroll");
     expect(source).toContain("PLAYER_BANKROLL_USD");
+    expect(source).toContain("This week");
+    expect(source).toContain("/api/community-picks?range=1w");
     expect(source).not.toContain("your-picks-iqbulls");
     expect(board).toContain("crowd-bankroll-lead");
     expect(board).toContain("average student");
@@ -52,6 +54,13 @@ describe("community pick save UX", () => {
     expect(css).toContain(".your-picks-logo");
     expect(css).toContain(".your-picks-success.is-banner");
     expect(css).toContain(".ticker-suggestion-logo");
+    // My Pick headline uses the standings window — not lifetime-only summarizePicks.
+    expect(read("src/lib/community-picks/store.ts")).toContain(
+      "My Pick headline must use the same window as standings",
+    );
+    expect(read("src/app/api/picks/swap/route.ts")).not.toContain(
+      "iqbullsReturnPct: result.iqbullsReturnPct",
+    );
   });
 });
 
