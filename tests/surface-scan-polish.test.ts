@@ -17,6 +17,19 @@ describe("surface scan polish", () => {
     expect(css).toContain("var(--accent)");
   });
 
+  it("keeps space between section marks and board titles", () => {
+    const css = read("src/app/globals.css");
+    const movers = read("src/components/market/MarketMoversBoard.tsx");
+
+    expect(movers).toContain("pulse-day-status");
+    expect(css).toMatch(
+      /\.pulse-index-board-head h2\s*\{[^}]*display:\s*inline-flex;[^}]*gap:\s*8px;/s,
+    );
+    expect(css).toMatch(
+      /\.market-heatmap-shell \.market-panel-header h2\s*\{[^}]*display:\s*inline-flex;[^}]*gap:\s*8px;/s,
+    );
+  });
+
   it("scales Portfolio hero glow by day-move magnitude", () => {
     const portfolio = read("src/components/Portfolio.tsx");
     const stage = read("src/components/ProductStage.tsx");
