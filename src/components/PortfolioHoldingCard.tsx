@@ -137,8 +137,8 @@ export function PortfolioHoldingCard({
           <strong className="pf-holding-value tnum">{fmtCompactCurrency(metrics.marketValue)}</strong>
           <span className={`pf-holding-day tnum ${dayChangeClass}`}>
             {formatTodayDollars(metrics.dailyChange)}
-            {isFiniteNumber(changePercent) ? (
-              <span className="pf-holding-day-pct"> {fmtPercent(changePercent, 2)}</span>
+            {isFiniteNumber(metrics.dailyChangePercent) ? (
+              <span className="pf-holding-day-pct"> {fmtPercent(metrics.dailyChangePercent, 2)}</span>
             ) : null}
             <span className="pf-holding-day-suffix"> today</span>
           </span>

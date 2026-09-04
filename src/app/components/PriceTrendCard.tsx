@@ -79,7 +79,11 @@ function formatChartDate(value: string, range: TrendRange): string {
   if (range === "1d") {
     return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: range === "1y" ? "numeric" : undefined,
+  });
 }
 
 function buildSeriesPath(

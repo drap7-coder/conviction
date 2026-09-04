@@ -46,6 +46,12 @@ export function PortfolioAllocationLadder({
         <p>{hint}</p>
       </div>
       <div className="pf-allocation-list surface-well">
+        <div className="pf-allocation-scale" aria-hidden="true">
+          <div className="pf-allocation-scale-track">
+            <span className="is-watch">12% watch</span>
+            <span className="is-high">20% concentrated</span>
+          </div>
+        </div>
         {visible.map((item, index) => {
           const fill = Math.min(100, (item.weight / 25) * 100);
           const color = getSectorColor(item.sector);
