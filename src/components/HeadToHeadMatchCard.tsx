@@ -8,6 +8,10 @@ import type {
   HeadToHeadSchoolOption,
 } from "@/lib/competitions/types";
 import {
+  DEFAULT_H2H_PERF_RANGE,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
+import {
   averageStudentBalanceUsd,
   formatUsd,
   formatUsdDelta,
@@ -84,30 +88,42 @@ function SchoolSideSelect({
   );
 }
 
-/** Continuous campus vs campus scoreboard — lifetime $100k My Pick averages. */
+/** Campus vs campus scoreboard — same $100k window as community standings. */
 export function HeadToHeadMatchCard({
   initialPayload = null,
+  range = DEFAULT_H2H_PERF_RANGE,
+  waitForParent = false,
 }: {
   /** From parent `/api/crowd/standings` — skips the first self-fetch when present. */
   initialPayload?: HeadToHeadPayload | null;
+  /** Must match standings (default weekly). */
+  range?: H2HPerfRange;
+  /**
+   * When true (Crowd Standings tab), do not self-fetch while the parent payload
+   * is still loading — avoids a race where a YTD/default fetch overwrites 1w.
+   */
+  waitForParent?: boolean;
 }) {
   const [data, setData] = useState<HeadToHeadPayload | null>(initialPayload);
   const [sideA, setSideA] = useState<string>(initialPayload?.groupA?.groupId ?? "");
   const [sideB, setSideB] = useState<string>(initialPayload?.groupB?.groupId ?? "");
 
-  async function reload(nextA?: string, nextB?: string) {
+  async function reload(nextA?: string, nextB?: string, signal?: AbortSignal) {
     const a = nextA ?? sideA;
     const b = nextB ?? sideB;
     const params = new URLSearchParams();
     if (a) params.set("a", a);
     if (b) params.set("b", b);
+    params.set("range", range);
     const qs = params.toString();
     const res = await fetch(`/api/competitions/active?${qs}`, {
       cache: "no-store",
       credentials: "include",
+      signal,
     });
     if (!res.ok) return;
     const payload = (await res.json()) as HeadToHeadPayload;
+    if (signal?.aborted) return;
     setData(payload);
     if (payload.groupA?.groupId) setSideA(payload.groupA.groupId);
     if (payload.groupB?.groupId) setSideB(payload.groupB.groupId);
@@ -120,9 +136,14 @@ export function HeadToHeadMatchCard({
       if (initialPayload.groupB?.groupId) setSideB(initialPayload.groupB.groupId);
       return;
     }
-    void reload();
+    // Parent owns the first load — stay on the loading shell until it arrives.
+    if (waitForParent) return;
+
+    const controller = new AbortController();
+    void reload(undefined, undefined, controller.signal).catch(() => undefined);
+    return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPayload]);
+  }, [initialPayload, waitForParent, range]);
 
   const schools = data?.schools ?? [];
 

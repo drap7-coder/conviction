@@ -67,6 +67,6 @@ export type HeadToHeadPayload = {
   schools: HeadToHeadSchoolOption[];
   /** Viewer's primary community group id when signed in + joined. */
   viewerPrimaryGroupId: string | null;
-  /** Performance window used for avgReturnPct (default ytd). */
+  /** Performance window used for avgReturnPct (default 1w). */
   range: H2HPerfRange;
 };

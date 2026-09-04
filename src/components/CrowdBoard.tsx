@@ -9,12 +9,17 @@ import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import type { HeadToHeadPayload } from "@/lib/competitions/types";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
+import {
+  DEFAULT_H2H_PERF_RANGE,
+  type H2HPerfRange,
+} from "@/lib/competitions/perf-range";
 
 export type CrowdTab = "pick" | "standings" | "community";
 
 export type CrowdStandingsPayload = {
   headToHead: HeadToHeadPayload;
   community: CommunityPicksPayload;
+  range?: H2HPerfRange;
 };
 
 const TABS: Array<{ id: CrowdTab; label: string }> = [
@@ -61,7 +66,7 @@ export function CrowdBoard() {
     }
   }, [router, searchParams]);
 
-  // Standings tab: one combined fetch for H2H + community board (lifetime $100k books).
+  // Standings tab: one combined fetch for H2H + community board (shared $100k window).
   useEffect(() => {
     if (tab !== "standings") return;
     let cancelled = false;
@@ -82,6 +87,8 @@ export function CrowdBoard() {
       cancelled = true;
     };
   }, [tab]);
+
+  const standingsRange = standings?.range ?? DEFAULT_H2H_PERF_RANGE;
 
   function selectTab(next: CrowdTab) {
     setTab(next);
@@ -118,14 +125,19 @@ export function CrowdBoard() {
               {standingsError}
             </p>
           ) : null}
-          <HeadToHeadMatchCard initialPayload={standings?.headToHead ?? null} />
+          <HeadToHeadMatchCard
+            initialPayload={standings?.headToHead ?? null}
+            range={standingsRange}
+            waitForParent={!standingsError}
+          />
           <CommunityPickCard
             variant="standings"
+            range={standingsRange}
             initialPayload={standings?.community ?? null}
           />
           <p className="crowd-hedge">
-            Head-to-head and community standings use each player&apos;s lifetime My Pick return on a
-            $100,000 book, averaged across campus. Schools below the member threshold stay unranked.
+            Head-to-head and community standings use the same weekly average on each player&apos;s
+            $100,000 book. Schools below the member threshold stay unranked.
           </p>
         </div>
       ) : null}

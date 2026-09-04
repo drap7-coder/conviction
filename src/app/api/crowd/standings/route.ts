@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
  * GET /api/crowd/standings
  * One payload for Standings tab: head-to-head + community board.
  * Shares one serverless invocation (Yahoo baselines still cache across both).
- * Optional `range` is 1d | 1w | 1m | ytd (default ytd).
+ * Optional `range` is 1d | 1w | 1m | ytd (default 1w).
  * Optional `a` / `b` select H2H school group ids.
  */
 export async function GET(request: NextRequest) {
