@@ -63,13 +63,14 @@ export async function POST(request: Request) {
     });
 
     const payload = await loadCommunityPicks(userId);
+    // Keep payload.iqbullsReturnPct (standings window) — do not overwrite with
+    // swapCommunityPick's lifetime summary.
     return NextResponse.json({
       ...payload,
       viewerPick: result.pick,
       viewerPicks: result.viewerPicks,
       filledCount: result.filledCount,
       boardComplete: result.boardComplete,
-      iqbullsReturnPct: result.iqbullsReturnPct,
       leaderboardEligible: result.leaderboardEligible,
       pickHistory: result.pickHistory,
     });

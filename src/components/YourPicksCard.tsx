@@ -49,7 +49,8 @@ function successCopy(input: { label: string; isSwap: boolean; filledCount: numbe
 }
 
 async function loadPicks(): Promise<CommunityPicksPayload> {
-  const response = await fetch("/api/community-picks", {
+  // Same default window as Crowd standings / H2H so My Pick $ matches school row.
+  const response = await fetch("/api/community-picks?range=1w", {
     cache: "no-store",
     credentials: "include",
   });
@@ -256,7 +257,7 @@ export function YourPicksCard() {
           <strong className="your-picks-bankroll-start">{formatUsd(PLAYER_BANKROLL_USD)}</strong>
         </div>
         <div className="your-picks-bankroll-perf">
-          <p className="your-picks-bankroll-label">Performance</p>
+          <p className="your-picks-bankroll-label">This week</p>
           {data.iqbullsReturnPct !== null ? (
             <>
               <strong className={`your-picks-bankroll-value is-${returnTone(data.iqbullsReturnPct)}`}>

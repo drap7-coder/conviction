@@ -687,6 +687,25 @@ export async function loadCommunityPicks(
     : null;
   const summary = summarizePicks(viewerPicks);
 
+  /**
+   * My Pick headline must use the same window as standings (default 1w).
+   * Lifetime compound still lives on each pick; the $100k Performance strip
+   * is what users compare to their school's row.
+   */
+  let iqbullsReturnPct = summary.iqbullsReturnPct;
+  if (userId && primaryGroup) {
+    const memberKey = `${userId}::${primaryGroup.id}`;
+    const slotMap = memberSlotReturns.get(memberKey);
+    if (slotMap && slotMap.size > 0) {
+      const periodValues = CALL_SLOTS.map((slot) => slotMap.get(slot)).filter(
+        (value): value is number => typeof value === "number",
+      );
+      if (periodValues.length > 0) {
+        iqbullsReturnPct = averageLifetimeReturnPct(periodValues);
+      }
+    }
+  }
+
   return {
     authenticated: Boolean(userId),
     viewerGroup: viewerStanding
@@ -703,7 +722,7 @@ export async function loadCommunityPicks(
     viewerPicks,
     filledCount: summary.filledCount,
     boardComplete: summary.boardComplete,
-    iqbullsReturnPct: summary.iqbullsReturnPct,
+    iqbullsReturnPct,
     leaderboardEligible: summary.leaderboardEligible,
     pickHistory,
     standings,
