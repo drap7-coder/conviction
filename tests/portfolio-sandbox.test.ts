@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { analyzeSandbox, equalizeSandboxHoldings, normalizeSandboxHoldings } from "@/lib/portfolio/sandbox";
+import { readFileSync } from "node:fs";
 
 describe("portfolio sandbox", () => {
   it("equalizes a draft to exactly 100 percent", () => {
@@ -34,5 +35,12 @@ describe("portfolio sandbox", () => {
     const analysis = analyzeSandbox([{ ticker: "MSFT", weight: 55 }]);
     expect(analysis.cashPct).toBe(45);
     expect(analysis.investedPct).toBe(55);
+  });
+
+  it("uses company-name typeahead for adding positions", () => {
+    const component = readFileSync(new URL("../src/components/SandboxPortfolio.tsx", import.meta.url), "utf8");
+    expect(component).toContain("CompanyTypeahead");
+    expect(component).toContain('placeholder="Ticker or company name"');
+    expect(component).toContain("addTicker(suggestion.ticker)");
   });
 });

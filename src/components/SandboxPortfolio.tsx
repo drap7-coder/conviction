@@ -7,6 +7,7 @@ import { getLivePrice } from "@/lib/market/live-quote";
 import { sanitizeWatchlistSymbol } from "@/lib/watchlist/sanitize-ticker";
 import { SAMPLE_PORTFOLIO_BOOKS, sampleBookSleeves } from "@/lib/portfolio/sample-books";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
+import { CompanyTypeahead } from "@/components/CompanyTypeahead";
 import {
   analyzeSandbox,
   equalizeSandboxHoldings,
@@ -114,7 +115,19 @@ export default function SandboxPortfolio() {
 
     <section className="pf-sandbox-builder surface-shell">
       <header><div><span className="pf-section-eyebrow">Build the mix</span><h2>{holdings.length}/10 assets</h2></div><div className="pf-sandbox-actions"><button type="button" onClick={() => setHoldings(equalizeSandboxHoldings(holdings))} disabled={!holdings.length}>Equalize</button><button type="button" onClick={() => setHoldings(normalizeSandboxHoldings(holdings))} disabled={!holdings.length}>Normalize</button><button type="button" onClick={() => setHoldings([])} disabled={!holdings.length}>Reset</button></div></header>
-      <form className="pf-sandbox-add" onSubmit={(event: FormEvent) => { event.preventDefault(); addTicker(tickerInput); }}><input value={tickerInput} onChange={(event) => setTickerInput(event.target.value.toUpperCase())} placeholder="Add a ticker" aria-label="Ticker" /><button type="submit">Add asset</button></form>
+      <form className="pf-sandbox-add" onSubmit={(event: FormEvent) => { event.preventDefault(); addTicker(tickerInput); }}>
+        <CompanyTypeahead
+          value={tickerInput}
+          onChange={setTickerInput}
+          onSelect={(suggestion) => addTicker(suggestion.ticker)}
+          onEnter={() => addTicker(tickerInput)}
+          placeholder="Ticker or company name"
+          inputAriaLabel="Ticker or company name"
+          wrapperClassName="pf-sandbox-typeahead"
+          autoCapitalize="characters"
+        />
+        <button type="submit">Add asset</button>
+      </form>
       {error ? <p className="pf-sandbox-error" role="alert">{error}</p> : null}
       <div className="pf-sandbox-quick" aria-label="Quick add assets">{QUICK_ASSETS.map((ticker) => <button type="button" key={ticker} disabled={holdings.some((holding) => holding.ticker === ticker)} onClick={() => addTicker(ticker)}>+ {ticker}</button>)}</div>
       <div className="pf-sandbox-templates"><span>Or borrow a proven shape</span><div>{SAMPLE_PORTFOLIO_BOOKS.slice(0, 4).map((book) => <button type="button" key={book.id} onClick={() => setHoldings(sampleBookSleeves(book).map((sleeve) => ({ ...sleeve })))}>{book.emoji} {book.label}</button>)}</div></div>
