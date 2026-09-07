@@ -24,7 +24,9 @@ export async function POST(request: Request) {
     const holdings = body.holdings.map(({ ticker, weight }) => ({ ticker, weight }));
     const analysis = analyzeSandbox(holdings);
     const { text } = await generateText({
-      model: process.env.IQ_COPILOT_MODEL ?? "openai/gpt-5.6-sol",
+      // Finance-tuned and available on AI Gateway's free tier. Paid projects can
+      // override this without a deploy through IQ_COPILOT_MODEL.
+      model: process.env.IQ_COPILOT_MODEL ?? "inclusionai/ling-3.0-flash-fin-free",
       maxOutputTokens: 450,
       system: `You are IQ, a calm portfolio construction copilot for a novice investor.
 Use only the supplied allocation and calculated diagnostics. Never invent prices, returns, correlations, forecasts, or personal facts.

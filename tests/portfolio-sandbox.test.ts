@@ -46,4 +46,10 @@ describe("portfolio sandbox", () => {
     expect(component).toContain("pf-sandbox-meter");
     expect(component).toContain("pf-sandbox-map");
   });
+
+  it("defaults the copilot to a free-tier finance model", () => {
+    const route = readFileSync(new URL("../src/app/api/sandbox/copilot/route.ts", import.meta.url), "utf8");
+    expect(route).toContain("inclusionai/ling-3.0-flash-fin-free");
+    expect(route).toContain("IQ_COPILOT_MODEL");
+  });
 });
