@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { DesktopNav } from "@/components/BottomTabBar";
 import AnimatedTitle from "@/components/AnimatedTitle";
 import { GlobalSearchPill } from "@/components/GlobalSearchPill";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 /**
  * Client header shell. DesktopNav is mounted only at ≥768px so mobile never
@@ -32,6 +33,7 @@ export function AppHeader() {
         <div className="header-search">
           <GlobalSearchPill />
         </div>
+        <ThemeToggle />
       </div>
     </header>
   );
