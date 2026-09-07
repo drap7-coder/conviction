@@ -6,8 +6,8 @@ function read(path: string) {
 
 describe("Pulse heatmap universe", () => {
   it("keeps even more-markets groups and no page hero", () => {
-    const route = read("src/app/api/market/pulse/route.ts");
-    const page = read("src/app/pulse/page.tsx");
+    const route = read("src/lib/market/pulse-data.ts");
+    const page = read("src/components/market/PulseBoard.tsx");
 
     expect(route).toContain('ticker: "UNG"');
     expect(route).toContain('category: "Commodity"');
@@ -49,7 +49,7 @@ describe("Pulse heatmap universe", () => {
   });
 
   it("renders Markets as gauges + indexes + commodities + sectors; slicer is Markets · Movers · Crypto · Intl", () => {
-    const page = read("src/app/pulse/page.tsx");
+    const page = read("src/components/market/PulseBoard.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
@@ -137,7 +137,7 @@ describe("Pulse heatmap universe", () => {
   });
 
   it("expands Crypto beyond BTC/ETH without bringing Solana back to Pulse", () => {
-    const route = read("src/app/api/market/pulse/route.ts");
+    const route = read("src/lib/market/pulse-data.ts");
     const board = read("src/components/market/CryptoBoard.tsx");
     expect(route).toContain("XRP-USD");
     expect(route).toContain("DOGE-USD");
@@ -153,7 +153,7 @@ describe("Pulse heatmap universe", () => {
 describe("Pulse slicer hosts Markets, Movers, Crypto, Intl", () => {
   it("hosts scoreboards on Pulse slicer views and redirects legacy Menu routes", () => {
     const nav = read("src/lib/nav-config.ts");
-    const page = read("src/app/pulse/page.tsx");
+    const page = read("src/components/market/PulseBoard.tsx");
     const sectors = read("src/app/sectors/page.tsx");
     const international = read("src/app/international/page.tsx");
     const sectorsLayout = read("src/app/sectors/layout.tsx");

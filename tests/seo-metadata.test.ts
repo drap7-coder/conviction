@@ -173,9 +173,9 @@ describe("SEO metadata", () => {
     expect(read("src/app/layout.tsx")).toContain("siteJsonLd");
     expect(read("src/app/watchlist/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/portfolio/page.tsx")).toContain('sr-only');
-    expect(read("src/app/news/page.tsx")).toContain('sr-only');
+    expect(read("src/components/market/NewsBoard.tsx")).toContain('sr-only');
     expect(read("src/app/not-found.tsx")).toContain("index: false");
-    expect(read("src/app/pulse/page.tsx")).toContain('sr-only');
+    expect(read("src/components/market/PulseBoard.tsx")).toContain('sr-only');
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");

@@ -28,7 +28,7 @@ describe("watchlist + news surface slicers", () => {
     const watchlist = read("src/components/Watchlist.tsx");
     const movers = read("src/components/market/MarketMoversBoard.tsx");
     const newsFeed = read("src/components/market/PulseNewsFeed.tsx");
-    const newsPage = read("src/app/news/page.tsx");
+    const newsPage = read("src/components/market/NewsBoard.tsx");
 
     expect(watchlist).toContain("SurfaceSlicer");
     expect(watchlist).toContain("All Assets");

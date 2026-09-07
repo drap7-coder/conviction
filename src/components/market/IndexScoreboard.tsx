@@ -88,6 +88,7 @@ export function MarketScoreboard({
   if (rows.length === 0 && !footer) return null;
 
   const boardClass = [
+    "surface-shell",
     "market-heatmap-shell",
     "pulse-index-board",
     showSessionMoves ? "pulse-index-board--sessions" : "",
