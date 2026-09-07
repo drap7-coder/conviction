@@ -115,6 +115,51 @@
   --chart-sma200: #dc2626;
 }
 
+html[data-theme="cream"] {
+  color-scheme: light;
+  --bg: #f4eddf;
+  --surface: #eee3d0;
+  --surface-elevated: #fffaf0;
+  --card: #fffaf0;
+  --card-soft: #eee3d0;
+  --card-inset: #f6eddd;
+  --divider: #dfd1bc;
+  --border: #d2c1a7;
+  --border-active: #b8a487;
+  --ink: #17231f;
+  --muted: #5f6b65;
+  --quiet: #7d776c;
+  --accent: #087f72;
+  --accent-dim: rgba(8, 127, 114, 0.11);
+  --on-accent: #fafff8;
+  --green: #147d55;
+  --green-dim: rgba(20, 125, 85, 0.1);
+  --green-soft: rgba(20, 125, 85, 0.13);
+  --amber: #a96708;
+  --amber-dim: rgba(169, 103, 8, 0.11);
+  --amber-400: #a96708;
+  --red: #b74840;
+  --red-dim: rgba(183, 72, 64, 0.1);
+  --red-soft: rgba(183, 72, 64, 0.13);
+  --red-mild: #b74840;
+  --color-surface-neutral: #eadfcd;
+  --color-surface-neutral-hover: #e2d4bd;
+  --color-border-neutral: #cbbb9f;
+  --color-topic: #596b66;
+  --color-topic-bg: rgba(89, 107, 102, 0.1);
+  --sample: #7550a1;
+  --sample-dim: rgba(117, 80, 161, 0.11);
+  --brand-iq: #087f72;
+  --brand-horn: #5f4931;
+  --shadow-sm: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 8px 20px rgba(82, 63, 37, 0.08);
+  --shadow-md: inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 14px 32px rgba(82, 63, 37, 0.11);
+  --shadow-lg: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 22px 48px rgba(82, 63, 37, 0.14);
+  --border-raised: #d8c8af;
+  --chart-surface: #fffaf0;
+  --chart-grid: #dfd1bc;
+  --chart-border: #d2c1a7;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -811,6 +856,33 @@ a.market-tape-item:focus-visible {
   min-width: 132px;
   max-width: 220px;
   margin-left: auto;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-elevated);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  line-height: 1;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: var(--accent-dim);
+  color: var(--accent);
+  outline: none;
 }
 
 .global-search-dock {
@@ -10897,6 +10969,21 @@ button.brief-link:focus-visible {
     gap: 8px;
     width: 100%;
     min-width: 0;
+  }
+
+  .theme-toggle {
+    width: 34px;
+    min-height: 34px;
+    padding: 0;
+  }
+
+  .theme-toggle span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
 
   .app-brand {

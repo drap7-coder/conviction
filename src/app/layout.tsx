@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import MobileTabBar from "@/components/BottomTabBar";
@@ -86,8 +87,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`} suppressHydrationWarning>
       <body>
+        <Script id="iqbulls-theme" strategy="beforeInteractive">
+          {`try{var t=localStorage.getItem('iqbulls-theme');if(t==='cream'){document.documentElement.dataset.theme='cream';document.documentElement.style.colorScheme='light'}}catch(e){}`}
+        </Script>
         <script
           type="application/ld+json"
           suppressHydrationWarning
