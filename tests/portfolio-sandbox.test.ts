@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { analyzeSandbox, equalizeSandboxHoldings, normalizeSandboxHoldings, setSandboxHoldingWeight } from "@/lib/portfolio/sandbox";
 import { readFileSync } from "node:fs";
+import { cleanCopilotAnswer } from "@/lib/portfolio/copilot-answer";
 
 describe("portfolio sandbox", () => {
   it("equalizes a draft to exactly 100 percent", () => {
@@ -29,6 +30,25 @@ describe("portfolio sandbox", () => {
     const concentrated = analyzeSandbox([{ ticker: "BTC-USD", weight: 100 }]);
     expect(concentrated.riskScore).toBeGreaterThan(diversified.riskScore);
     expect(concentrated.diversificationScore).toBeLessThan(diversified.diversificationScore);
+  });
+
+  it("does not label an equal mix of individual tech stocks and bitcoin as low risk", () => {
+    const analysis = analyzeSandbox([
+      { ticker: "NVDA", weight: 25 }, { ticker: "MSFT", weight: 25 },
+      { ticker: "GLD", weight: 25 }, { ticker: "BTC-USD", weight: 25 },
+    ]);
+    expect(analysis.singleStockPct).toBe(50);
+    expect(analysis.speculativePct).toBe(25);
+    expect(analysis.riskLabel).toBe("Moderate");
+  });
+
+  it("extracts a tagged final answer without exposing preceding model reasoning", () => {
+    const raw = "The user is asking whether... Let me analyze.\n<answer>I can't verify SPCX from the supplied data. Test a small allocation first.</answer>";
+    expect(cleanCopilotAnswer(raw)).toBe("I can't verify SPCX from the supplied data. Test a small allocation first.");
+  });
+
+  it("rejects unfinished model scratchpads", () => {
+    expect(cleanCopilotAnswer("The user is asking whether... Let me craft")).toBeNull();
   });
 
   it("treats unallocated capital as cash", () => {
