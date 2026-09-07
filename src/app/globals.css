@@ -16903,40 +16903,6 @@ a.pulse-news-narrative-title:focus-visible {
 
 /* Title bar sits flush on the card so header + tiles read as one unit. */
 
-/* Little section mark in Pulse board headers — neutral only (not day direction). */
-.pulse-day-status {
-  display: inline-block;
-  flex: 0 0 auto;
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: var(--border-active);
-  box-shadow: none;
-}
-
-.pulse-day-status--mark {
-  background: color-mix(in srgb, var(--accent) 72%, var(--border-active));
-}
-
-.pulse-day-status--up {
-  background: var(--on-ink-green);
-  box-shadow: none;
-}
-
-.pulse-day-status--down {
-  background: var(--on-ink-red);
-  box-shadow: none;
-}
-
-.pulse-day-status--amber {
-  background: var(--on-ink-amber);
-  box-shadow: none;
-}
-
-.pulse-day-status--quiet {
-  background: var(--border-active);
-}
-
 .pulse-gauge-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

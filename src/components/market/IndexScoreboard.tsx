@@ -101,7 +101,6 @@ export function MarketScoreboard({
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
           <h2>
-            <i className="pulse-day-status pulse-day-status--mark" aria-hidden="true" />
             {title}
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>
