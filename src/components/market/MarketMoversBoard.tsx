@@ -8,19 +8,9 @@ import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { type MarketMoverRow } from "@/lib/market/market-movers";
 import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
 
-type MoverTone = "up" | "down" | "amber" | "quiet";
-
-function toneLabel(tone: MoverTone): string {
-  if (tone === "up") return "Up on the day";
-  if (tone === "down") return "Down on the day";
-  if (tone === "amber") return "Highest volume";
-  return "Flat on the day";
-}
-
 function MoverCard({
   title,
   rows,
-  tone,
   emptyLabel,
   sessionLabel = null,
   headerAction = null,
@@ -28,7 +18,6 @@ function MoverCard({
 }: {
   title: string;
   rows: MarketMoverRow[];
-  tone: MoverTone;
   emptyLabel: string;
   sessionLabel?: string | null;
   headerAction?: ReactNode;
@@ -44,11 +33,6 @@ function MoverCard({
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
           <h2>
-            <i
-              className={`pulse-day-status pulse-day-status--${tone}`}
-              aria-label={toneLabel(tone)}
-              title={toneLabel(tone)}
-            />
             {title}
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>
@@ -191,7 +175,6 @@ export function MarketMoversBoard({
         <MoverCard
           title={columns === "top" ? "Leaders" : "Gainers"}
           rows={visibleTop}
-          tone="up"
           emptyLabel={topEmptyLabel}
           sessionLabel={takeSession()}
           headerAction={takeAction()}
@@ -202,7 +185,6 @@ export function MarketMoversBoard({
         <MoverCard
           title={columns === "bottom" ? "Laggards" : "Losers"}
           rows={visibleBottom}
-          tone="down"
           emptyLabel={bottomEmptyLabel}
           sessionLabel={takeSession()}
           headerAction={takeAction()}
@@ -213,7 +195,6 @@ export function MarketMoversBoard({
         <MoverCard
           title="Highest volume"
           rows={visibleVolume}
-          tone="amber"
           emptyLabel={volumeEmptyLabel}
           sessionLabel={takeSession()}
           headerAction={takeAction()}

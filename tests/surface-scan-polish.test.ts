@@ -6,15 +6,16 @@ function read(path: string) {
 }
 
 describe("surface scan polish", () => {
-  it("keeps section header marks neutral, not day direction", () => {
+  it("renders Pulse board headings as clean text without decorative marks", () => {
     const board = read("src/components/market/IndexScoreboard.tsx");
+    const movers = read("src/components/market/MarketMoversBoard.tsx");
     const css = read("src/app/globals.css");
 
-    expect(board).toContain("pulse-day-status--mark");
-    expect(board).not.toContain("groupDayTone");
-    expect(board).not.toContain("pulse-day-status--down");
-    expect(css).toContain(".pulse-day-status--mark");
-    expect(css).toContain("var(--accent)");
+    expect(board).not.toContain("pulse-day-status");
+    expect(movers).not.toContain("pulse-day-status");
+    expect(css).not.toContain(".pulse-day-status");
+    expect(board).toContain("pulse-index-session");
+    expect(movers).toContain("pulse-index-session");
   });
 
   it("scales Portfolio hero glow by day-move magnitude", () => {
