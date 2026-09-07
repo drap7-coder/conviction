@@ -22,6 +22,7 @@ import {
 
 const QUICK_ASSETS = ["AAPL", "MSFT", "NVDA", "GLD", "BTC-USD", "USO"];
 const ASSET_COLORS = ["#2dd4bf", "#60a5fa", "#a78bfa", "#f59e0b", "#fb7185", "#34d399", "#38bdf8", "#f97316", "#c084fc", "#84cc16"];
+const SANDBOX_MIGRATION_KEY = "iq-bulls-sandbox-account-migrated-v1";
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 
 function assetColorStyle(index: number, weight: number): CSSProperties {
@@ -37,6 +38,9 @@ export default function SandboxPortfolio() {
   const [answer, setAnswer] = useState<string | null>(null);
   const [asking, setAsking] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [syncReady, setSyncReady] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<"browser" | "syncing" | "synced" | "error">("browser");
 
   useEffect(() => {
     try {
@@ -52,6 +56,58 @@ export default function SandboxPortfolio() {
   useEffect(() => {
     if (hydrated) window.localStorage.setItem(SANDBOX_STORAGE_KEY, JSON.stringify({ holdings }));
   }, [holdings, hydrated]);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    const controller = new AbortController();
+    async function loadSyncedSandbox() {
+      try {
+        const response = await fetch("/api/sandbox", { cache: "no-store", signal: controller.signal });
+        if (!response.ok) throw new Error("Sandbox sync unavailable");
+        const data = await response.json() as { authenticated?: boolean; sandbox?: { holdings?: SandboxHolding[] } | null };
+        if (!data.authenticated) { setSyncReady(true); return; }
+        setAuthenticated(true);
+        const serverHoldings = data.sandbox?.holdings ?? [];
+        const localRaw = window.localStorage.getItem(SANDBOX_STORAGE_KEY);
+        const localHoldings = localRaw ? (JSON.parse(localRaw) as { holdings?: SandboxHolding[] }).holdings ?? [] : [];
+        const migrated = window.localStorage.getItem(SANDBOX_MIGRATION_KEY) === "1";
+        if (data.sandbox) {
+          setHoldings(serverHoldings);
+          window.localStorage.setItem(SANDBOX_MIGRATION_KEY, "1");
+        } else if (localHoldings.length > 0 && !migrated) {
+          const migration = await fetch("/api/sandbox", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ holdings: localHoldings }), signal: controller.signal });
+          if (!migration.ok) throw new Error("Sandbox migration failed");
+          window.localStorage.setItem(SANDBOX_MIGRATION_KEY, "1");
+          setHoldings(localHoldings);
+        } else {
+          setHoldings([]);
+        }
+        setSyncStatus("synced");
+      } catch (caught) {
+        if (!controller.signal.aborted) setSyncStatus("error");
+      } finally {
+        if (!controller.signal.aborted) setSyncReady(true);
+      }
+    }
+    void loadSyncedSandbox();
+    return () => controller.abort();
+  }, [hydrated]);
+
+  useEffect(() => {
+    if (!syncReady || !authenticated) return;
+    setSyncStatus("syncing");
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch("/api/sandbox", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ holdings }), signal: controller.signal });
+        if (!response.ok) throw new Error("Sandbox sync failed");
+        setSyncStatus("synced");
+      } catch {
+        if (!controller.signal.aborted) setSyncStatus("error");
+      }
+    }, 450);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [authenticated, holdings, syncReady]);
 
   useEffect(() => {
     if (!holdings.length) { setQuotes([]); return; }
@@ -115,7 +171,7 @@ export default function SandboxPortfolio() {
 
   return <div className="pf-sandbox">
     <section className="pf-sandbox-hero surface-shell">
-      <div><span className="pf-section-eyebrow">Personal sandbox</span><h1>{money.format(currentValue)}</h1><p>Start with a fictional $100K. Try ideas without touching your real portfolio.</p></div>
+      <div><span className="pf-section-eyebrow">Personal sandbox</span><h1>{money.format(currentValue)}</h1><p>Start with a fictional $100K. Try ideas without touching your real portfolio.</p><span className={`pf-sandbox-sync is-${syncStatus}`}>{syncStatus === "syncing" ? "Syncing…" : syncStatus === "synced" ? "Saved to your IQ Bulls account" : syncStatus === "error" ? "Saved here · account sync retrying" : "Saved on this device"}</span></div>
       <div className="pf-sandbox-hero-stats"><div><span>Today</span><strong className={dayPct < -0.005 ? "is-negative" : dayPct > 0.005 ? "is-positive" : ""}>{Math.abs(dayPct) < 0.005 ? "0.00" : `${dayPct >= 0 ? "+" : ""}${dayPct.toFixed(2)}`}%</strong></div><div><span>Cash</span><strong>{analysis.cashPct}%</strong></div></div>
     </section>
 
