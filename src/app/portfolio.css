@@ -100,8 +100,10 @@
 .portfolio-page .pf-sandbox button:hover:not(:disabled) { border-color: var(--accent); }
 .portfolio-page .pf-sandbox button:disabled { opacity: .38; cursor: default; }
 .portfolio-page .pf-sandbox-add { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 17px; }
+.portfolio-page .pf-sandbox-typeahead { position: relative; min-width: 0; }
 .portfolio-page .pf-sandbox-add input, .portfolio-page .pf-sandbox-copilot textarea, .portfolio-page .pf-sandbox-row label { border: 1px solid var(--border); border-radius: 10px; color: var(--ink); background: var(--card-inset); }
-.portfolio-page .pf-sandbox-add input { min-width: 0; padding: 11px 13px; font: 600 .9rem var(--font-sans); }
+.portfolio-page .pf-sandbox-add input { width: 100%; min-width: 0; padding: 11px 13px; font: 600 .9rem var(--font-sans); }
+.portfolio-page .pf-sandbox-add input:focus { border-color: var(--accent); outline: 0; box-shadow: 0 0 0 3px var(--accent-dim); }
 .portfolio-page .pf-sandbox-add button, .portfolio-page .pf-sandbox-copilot form > button { color: #062620; background: var(--accent); border-color: var(--accent); }
 .portfolio-page .pf-sandbox-error { margin: 8px 0 0; color: var(--red); font-size: .82rem; }
 .portfolio-page .pf-sandbox-quick { margin-top: 9px; }
