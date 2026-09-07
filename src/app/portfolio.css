@@ -83,7 +83,8 @@
 
 /* ── Personal Sandbox ── */
 .portfolio-page .pf-sandbox { display: grid; gap: 14px; min-width: 0; }
-.portfolio-page .pf-sandbox-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 22px; }
+.portfolio-page .pf-sandbox-hero { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; padding: 24px; overflow: hidden; background: radial-gradient(circle at 88% 15%, rgba(96,165,250,.17), transparent 34%), radial-gradient(circle at 68% 100%, rgba(167,139,250,.12), transparent 36%), linear-gradient(135deg, rgba(45,212,191,.10), transparent 48%), var(--card); }
+.portfolio-page .pf-sandbox-hero::after { position: absolute; right: -32px; bottom: -64px; width: 190px; height: 190px; border: 1px solid rgba(96,165,250,.20); border-radius: 50%; content: ""; pointer-events: none; }
 .portfolio-page .pf-sandbox-hero h1 { margin: 5px 0 2px; font: 760 clamp(2rem, 5vw, 3.5rem)/1 var(--font-sans); letter-spacing: -.055em; }
 .portfolio-page .pf-sandbox-hero p, .portfolio-page .pf-sandbox-copilot > p { margin: 6px 0 0; color: var(--muted); }
 .portfolio-page .pf-sandbox-hero-stats { display: flex; gap: 24px; }
@@ -92,6 +93,17 @@
 .portfolio-page .pf-sandbox-hero-stats strong { font-size: 1.15rem; }
 .portfolio-page .pf-sandbox .is-positive { color: var(--green); }
 .portfolio-page .pf-sandbox .is-negative { color: var(--red); }
+.portfolio-page .pf-sandbox-map { display: grid; gap: 11px; padding: 15px 18px; }
+.portfolio-page .pf-sandbox-map > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.portfolio-page .pf-sandbox-map > header strong { color: var(--muted); font-size: .75rem; }
+.portfolio-page .pf-sandbox-map-bar { display: flex; width: 100%; height: 10px; overflow: hidden; border-radius: 999px; background: var(--card-inset); box-shadow: inset 0 1px 2px rgba(0,0,0,.4); }
+.portfolio-page .pf-sandbox-map-bar > span { min-width: 2px; transition: width 160ms ease; }
+.portfolio-page .pf-sandbox-map-bar > span + span { border-left: 2px solid var(--card); }
+.portfolio-page .pf-sandbox-map-bar .is-cash, .portfolio-page .pf-sandbox-map-legend i.is-cash { background: #536071; }
+.portfolio-page .pf-sandbox-map-legend { display: flex; flex-wrap: wrap; gap: 7px 15px; }
+.portfolio-page .pf-sandbox-map-legend > span { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font: 650 .68rem/1 var(--font-mono); }
+.portfolio-page .pf-sandbox-map-legend i { width: 7px; height: 7px; border-radius: 2px; }
+.portfolio-page .pf-sandbox-map-legend strong { color: var(--ink); font-size: .68rem; }
 .portfolio-page .pf-sandbox-builder { padding: 18px; }
 .portfolio-page .pf-sandbox-builder > header, .portfolio-page .pf-sandbox-copilot > header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .portfolio-page .pf-sandbox-builder h2, .portfolio-page .pf-sandbox-copilot h2 { margin: 3px 0 0; font-size: 1.25rem; white-space: nowrap; }
@@ -112,20 +124,31 @@
 .portfolio-page .pf-sandbox-templates > span { color: var(--muted); font-size: .78rem; }
 .portfolio-page .pf-sandbox-templates > div { display: flex; flex-wrap: wrap; gap: 7px; }
 .portfolio-page .pf-sandbox-holdings { display: grid; gap: 8px; margin-top: 16px; }
-.portfolio-page .pf-sandbox-row { display: grid; grid-template-columns: minmax(110px, 1.1fr) minmax(110px, 2fr) 76px minmax(140px, 1fr) 32px; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-inset); }
-.portfolio-page .pf-sandbox-row-name { display: grid; gap: 2px; min-width: 0; }
-.portfolio-page .pf-sandbox-row-name span { overflow: hidden; color: var(--muted); font-size: .73rem; text-overflow: ellipsis; white-space: nowrap; }
-.portfolio-page .pf-sandbox-row input[type="range"] { accent-color: var(--accent); }
+.portfolio-page .pf-sandbox-row { position: relative; display: grid; grid-template-columns: minmax(160px, 1.2fr) minmax(110px, 1.8fr) 76px minmax(125px, .8fr) 32px; align-items: center; gap: 12px; padding: 13px 12px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--sandbox-asset) 25%, var(--border)); border-radius: 13px; background: linear-gradient(90deg, color-mix(in srgb, var(--sandbox-asset) 9%, transparent), transparent 38%), var(--card-inset); }
+.portfolio-page .pf-sandbox-row::after { position: absolute; inset: auto 0 0; width: var(--sandbox-weight); height: 2px; background: var(--sandbox-asset); content: ""; opacity: .75; }
+.portfolio-page .pf-sandbox-row-name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.portfolio-page .pf-sandbox-row-logo { display: grid; flex: 0 0 38px; place-items: center; width: 38px; height: 38px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--sandbox-asset) 34%, var(--border)); border-radius: 10px; background: color-mix(in srgb, var(--sandbox-asset) 10%, var(--card)); }
+.portfolio-page .pf-sandbox-row-logo .card-logo, .portfolio-page .pf-sandbox-row-logo .logo-badge { width: 30px; height: 30px; border-radius: 7px; }
+.portfolio-page .pf-sandbox-row-copy, .portfolio-page .pf-sandbox-row-value { display: grid; gap: 2px; min-width: 0; }
+.portfolio-page .pf-sandbox-row-copy > span { overflow: hidden; color: var(--muted); font-size: .71rem; text-overflow: ellipsis; white-space: nowrap; }
+.portfolio-page .pf-sandbox-row input[type="range"] { accent-color: var(--sandbox-asset); }
 .portfolio-page .pf-sandbox-row label { display: flex; align-items: center; padding: 4px 7px; }
 .portfolio-page .pf-sandbox-row label input { width: 45px; border: 0; color: var(--ink); background: transparent; font: 700 .86rem var(--font-sans); }
-.portfolio-page .pf-sandbox-row label span, .portfolio-page .pf-sandbox-row-value { color: var(--muted); font-size: .76rem; }
+.portfolio-page .pf-sandbox-row label span { color: var(--muted); font-size: .76rem; }
+.portfolio-page .pf-sandbox-row-value { color: var(--ink); font-size: .76rem; text-align: right; }
+.portfolio-page .pf-sandbox-row-value small { color: var(--muted); font-size: .67rem; }
 .portfolio-page .pf-sandbox .pf-sandbox-remove { padding: 6px; color: var(--muted); background: transparent; }
 .portfolio-page .pf-sandbox-empty { margin-top: 16px; padding: 25px; border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); text-align: center; }
 .portfolio-page .pf-sandbox-diagnostics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.portfolio-page .pf-sandbox-diagnostics > div { display: grid; gap: 5px; padding: 17px; }
+.portfolio-page .pf-sandbox-diagnostics > div { --meter-color: var(--accent); display: grid; gap: 6px; padding: 18px; overflow: hidden; background: linear-gradient(145deg, color-mix(in srgb, var(--meter-color) 10%, transparent), transparent 56%), var(--card); }
+.portfolio-page .pf-sandbox-diagnostics > .is-risk { --meter-color: var(--amber); }
+.portfolio-page .pf-sandbox-diagnostics > .is-diversification { --meter-color: #60a5fa; }
+.portfolio-page .pf-sandbox-diagnostics > .is-concentration { --meter-color: #a78bfa; }
 .portfolio-page .pf-sandbox-diagnostics strong { font-size: 1.8rem; letter-spacing: -.04em; }
 .portfolio-page .pf-sandbox-diagnostics strong small { color: var(--muted); font-size: .8rem; }
 .portfolio-page .pf-sandbox-diagnostics em { color: var(--muted); font-size: .76rem; font-style: normal; }
+.portfolio-page .pf-sandbox-meter { height: 5px; margin: 2px 0; overflow: hidden; border-radius: 999px; background: var(--card-inset); }
+.portfolio-page .pf-sandbox-meter::before { display: block; width: var(--meter-value); height: 100%; border-radius: inherit; background: var(--meter-color); content: ""; }
 .portfolio-page .pf-sandbox-readout { padding: 17px; }
 .portfolio-page .pf-sandbox-readout ul { display: grid; gap: 8px; margin: 12px 0 0; padding-left: 20px; color: var(--muted); }
 .portfolio-page .pf-sandbox-copilot { padding: 19px; border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }

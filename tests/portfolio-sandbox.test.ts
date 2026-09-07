@@ -42,5 +42,8 @@ describe("portfolio sandbox", () => {
     expect(component).toContain("CompanyTypeahead");
     expect(component).toContain('placeholder="Ticker or company name"');
     expect(component).toContain("addTicker(suggestion.ticker)");
+    expect(component).toContain("LogoDisplay");
+    expect(component).toContain("pf-sandbox-meter");
+    expect(component).toContain("pf-sandbox-map");
   });
 });
