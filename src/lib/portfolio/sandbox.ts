@@ -16,10 +16,16 @@ export type SandboxAnalysis = {
   effectiveHoldings: number;
   riskScore: number;
   riskLabel: "Low" | "Moderate" | "High" | "Very high";
+  singleStockPct: number;
+  speculativePct: number;
   observations: string[];
 };
 
 const round = (value: number, digits = 1) => Number(value.toFixed(digits));
+
+const DIVERSIFIED_OR_DEFENSIVE_ASSETS = new Set([
+  "BND", "DBC", "GLD", "IEF", "QQQ", "SGOV", "SPY", "TLT", "UNG", "USO", "VTI", "VXUS",
+]);
 
 export function equalizeSandboxHoldings(holdings: SandboxHolding[]): SandboxHolding[] {
   if (!holdings.length) return [];
@@ -73,7 +79,7 @@ export function setSandboxHoldingWeight(
 
 export function analyzeSandbox(holdings: SandboxHolding[]): SandboxAnalysis {
   if (!holdings.length) {
-    return { investedPct: 0, cashPct: 100, largestPct: 0, diversificationScore: 0, effectiveHoldings: 0, riskScore: 0, riskLabel: "Low", observations: ["Add an asset to see how the pieces work together."] };
+    return { investedPct: 0, cashPct: 100, largestPct: 0, diversificationScore: 0, effectiveHoldings: 0, riskScore: 0, riskLabel: "Low", singleStockPct: 0, speculativePct: 0, observations: ["Add an asset to see how the pieces work together."] };
   }
   const weights = holdings.map((holding) => Math.max(0, holding.weight));
   const investedPct = Math.min(100, weights.reduce((sum, weight) => sum + weight, 0));
@@ -85,10 +91,16 @@ export function analyzeSandbox(holdings: SandboxHolding[]): SandboxAnalysis {
     const ticker = holding.ticker.toUpperCase();
     return sum + (ticker.endsWith("-USD") || ["USO", "UNG", "DBC"].includes(ticker) ? holding.weight : 0);
   }, 0);
+  const singleStockPct = holdings.reduce((sum, holding) => {
+    const ticker = holding.ticker.toUpperCase();
+    const isCrypto = ticker.endsWith("-USD");
+    return sum + (!isCrypto && !DIVERSIFIED_OR_DEFENSIVE_ASSETS.has(ticker) ? holding.weight : 0);
+  }, 0);
   const concentrationPenalty = Math.max(0, largestPct - 25) * 0.8;
   const breadthPenalty = Math.max(0, 4 - effectiveHoldings) * 5;
-  const speculativePenalty = speculativePct * 0.25;
-  const riskScore = Math.round(Math.min(100, 15 + concentrationPenalty + breadthPenalty + speculativePenalty));
+  const speculativePenalty = speculativePct * 0.4;
+  const companySpecificPenalty = singleStockPct * 0.22;
+  const riskScore = Math.round(Math.min(100, 15 + concentrationPenalty + breadthPenalty + speculativePenalty + companySpecificPenalty));
   const riskLabel = riskScore < 35 ? "Low" : riskScore < 55 ? "Moderate" : riskScore < 75 ? "High" : "Very high";
   const diversificationScore = Math.round(Math.max(0, Math.min(100, effectiveHoldings * 18 - largestPct * 0.35 + 25)));
   const observations: string[] = [];
@@ -96,7 +108,8 @@ export function analyzeSandbox(holdings: SandboxHolding[]): SandboxAnalysis {
   else observations.push(`Your largest position is ${round(largestPct)}% of the sandbox.`);
   if (cashPct >= 20) observations.push(`${round(cashPct)}% cash lowers swings but also reduces market participation.`);
   if (speculativePct >= 15) observations.push(`${round(speculativePct)}% sits in assets that can move sharply.`);
+  if (singleStockPct >= 25) observations.push(`${round(singleStockPct)}% is tied to individual companies, so company-specific news matters.`);
   if (holdings.length >= 5 && largestPct < 25) observations.push("Position sizing is reasonably spread out.");
 
-  return { investedPct: round(investedPct), cashPct: round(cashPct), largestPct: round(largestPct), diversificationScore, effectiveHoldings: round(effectiveHoldings), riskScore, riskLabel, observations };
+  return { investedPct: round(investedPct), cashPct: round(cashPct), largestPct: round(largestPct), diversificationScore, effectiveHoldings: round(effectiveHoldings), riskScore, riskLabel, singleStockPct: round(singleStockPct), speculativePct: round(speculativePct), observations };
 }
