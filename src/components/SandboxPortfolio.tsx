@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import type { StockQuote } from "@/lib/market/quotes";
 import { getLivePrice } from "@/lib/market/live-quote";
@@ -8,6 +8,7 @@ import { sanitizeWatchlistSymbol } from "@/lib/watchlist/sanitize-ticker";
 import { SAMPLE_PORTFOLIO_BOOKS, sampleBookSleeves } from "@/lib/portfolio/sample-books";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
+import { LogoDisplay } from "@/app/components/LogoDisplay";
 import {
   analyzeSandbox,
   equalizeSandboxHoldings,
@@ -19,7 +20,12 @@ import {
 } from "@/lib/portfolio/sandbox";
 
 const QUICK_ASSETS = ["AAPL", "MSFT", "NVDA", "GLD", "BTC-USD", "USO"];
+const ASSET_COLORS = ["#2dd4bf", "#60a5fa", "#a78bfa", "#f59e0b", "#fb7185", "#34d399", "#38bdf8", "#f97316", "#c084fc", "#84cc16"];
 const money = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+function assetColorStyle(index: number, weight: number): CSSProperties {
+  return { "--sandbox-asset": ASSET_COLORS[index % ASSET_COLORS.length], "--sandbox-weight": `${weight}%` } as CSSProperties;
+}
 
 export default function SandboxPortfolio() {
   const [holdings, setHoldings] = useState<SandboxHolding[]>([]);
@@ -113,6 +119,18 @@ export default function SandboxPortfolio() {
       <div className="pf-sandbox-hero-stats"><div><span>Today</span><strong className={dayPct < -0.005 ? "is-negative" : dayPct > 0.005 ? "is-positive" : ""}>{Math.abs(dayPct) < 0.005 ? "0.00" : `${dayPct >= 0 ? "+" : ""}${dayPct.toFixed(2)}`}%</strong></div><div><span>Cash</span><strong>{analysis.cashPct}%</strong></div></div>
     </section>
 
+    {holdings.length ? <section className="pf-sandbox-map surface-shell" aria-label="Allocation map">
+      <header><span className="pf-section-eyebrow">Allocation map</span><strong>{analysis.investedPct}% invested</strong></header>
+      <div className="pf-sandbox-map-bar" aria-hidden="true">
+        {holdings.map((holding, index) => <span key={holding.ticker} style={{ width: `${holding.weight}%`, background: ASSET_COLORS[index % ASSET_COLORS.length] }} />)}
+        {analysis.cashPct > 0 ? <span className="is-cash" style={{ width: `${analysis.cashPct}%` }} /> : null}
+      </div>
+      <div className="pf-sandbox-map-legend">
+        {holdings.map((holding, index) => <span key={holding.ticker}><i style={{ background: ASSET_COLORS[index % ASSET_COLORS.length] }} />{holding.ticker} <strong>{holding.weight}%</strong></span>)}
+        {analysis.cashPct > 0 ? <span><i className="is-cash" />Cash <strong>{analysis.cashPct}%</strong></span> : null}
+      </div>
+    </section> : null}
+
     <section className="pf-sandbox-builder surface-shell">
       <header><div><span className="pf-section-eyebrow">Build the mix</span><h2>{holdings.length}/10 assets</h2></div><div className="pf-sandbox-actions"><button type="button" onClick={() => setHoldings(equalizeSandboxHoldings(holdings))} disabled={!holdings.length}>Equalize</button><button type="button" onClick={() => setHoldings(normalizeSandboxHoldings(holdings))} disabled={!holdings.length}>Normalize</button><button type="button" onClick={() => setHoldings([])} disabled={!holdings.length}>Reset</button></div></header>
       <form className="pf-sandbox-add" onSubmit={(event: FormEvent) => { event.preventDefault(); addTicker(tickerInput); }}>
@@ -131,16 +149,16 @@ export default function SandboxPortfolio() {
       {error ? <p className="pf-sandbox-error" role="alert">{error}</p> : null}
       <div className="pf-sandbox-quick" aria-label="Quick add assets">{QUICK_ASSETS.map((ticker) => <button type="button" key={ticker} disabled={holdings.some((holding) => holding.ticker === ticker)} onClick={() => addTicker(ticker)}>+ {ticker}</button>)}</div>
       <div className="pf-sandbox-templates"><span>Or borrow a proven shape</span><div>{SAMPLE_PORTFOLIO_BOOKS.slice(0, 4).map((book) => <button type="button" key={book.id} onClick={() => setHoldings(sampleBookSleeves(book).map((sleeve) => ({ ...sleeve })))}>{book.emoji} {book.label}</button>)}</div></div>
-      {holdings.length ? <div className="pf-sandbox-holdings">{holdings.map((holding) => {
+      {holdings.length ? <div className="pf-sandbox-holdings">{holdings.map((holding, index) => {
         const quote = quoteByTicker.get(holding.ticker); const current = quote ? getLivePrice(quote)?.price ?? quote.price : null;
-        return <div className="pf-sandbox-row" key={holding.ticker}><div className="pf-sandbox-row-name"><strong>{holding.ticker}</strong><span>{quote?.name ?? "Waiting for quote"}</span></div><input type="range" min="0" max="100" step="1" value={holding.weight} aria-label={`${holding.ticker} allocation`} onChange={(event) => updateWeight(holding.ticker, Number(event.target.value))}/><label><input type="number" min="0" max="100" step="1" value={holding.weight} onChange={(event) => updateWeight(holding.ticker, Number(event.target.value))}/><span>%</span></label><span className="pf-sandbox-row-value">{money.format(SANDBOX_STARTING_VALUE * holding.weight / 100)}{current ? ` · $${current.toFixed(2)}` : ""}</span><button type="button" className="pf-sandbox-remove" aria-label={`Remove ${holding.ticker}`} onClick={() => setHoldings((currentHoldings) => currentHoldings.filter((item) => item.ticker !== holding.ticker))}>×</button></div>;
+        return <div className="pf-sandbox-row" style={assetColorStyle(index, holding.weight)} key={holding.ticker}><div className="pf-sandbox-row-name"><span className="pf-sandbox-row-logo"><LogoDisplay ticker={holding.ticker} size="badge" /></span><span className="pf-sandbox-row-copy"><strong>{holding.ticker}</strong><span>{quote?.name ?? "Waiting for quote"}</span></span></div><input type="range" min="0" max="100" step="1" value={holding.weight} aria-label={`${holding.ticker} allocation`} onChange={(event) => updateWeight(holding.ticker, Number(event.target.value))}/><label><input type="number" min="0" max="100" step="1" value={holding.weight} onChange={(event) => updateWeight(holding.ticker, Number(event.target.value))}/><span>%</span></label><span className="pf-sandbox-row-value"><strong>{money.format(SANDBOX_STARTING_VALUE * holding.weight / 100)}</strong>{current ? <small>${current.toFixed(2)} / share</small> : null}</span><button type="button" className="pf-sandbox-remove" aria-label={`Remove ${holding.ticker}`} onClick={() => setHoldings((currentHoldings) => currentHoldings.filter((item) => item.ticker !== holding.ticker))}>×</button></div>;
       })}</div> : <div className="pf-sandbox-empty">Add a first stock—or load a template and change one piece at a time.</div>}
     </section>
 
     <section className="pf-sandbox-diagnostics" aria-label="Portfolio diagnostics">
-      <div className="surface-shell"><span>Construction risk</span><strong>{analysis.riskScore}<small>/100</small></strong><em>{analysis.riskLabel}</em></div>
-      <div className="surface-shell"><span>Diversification</span><strong>{analysis.diversificationScore}<small>/100</small></strong><em>{analysis.effectiveHoldings} effective holdings</em></div>
-      <div className="surface-shell"><span>Largest position</span><strong>{analysis.largestPct}<small>%</small></strong><em>{holdings.length ? "Watch above 25%" : "No positions yet"}</em></div>
+      <div className="surface-shell is-risk" style={{ "--meter-value": `${analysis.riskScore}%` } as CSSProperties}><span>Construction risk</span><strong>{analysis.riskScore}<small>/100</small></strong><div className="pf-sandbox-meter" /><em>{analysis.riskLabel}</em></div>
+      <div className="surface-shell is-diversification" style={{ "--meter-value": `${analysis.diversificationScore}%` } as CSSProperties}><span>Diversification</span><strong>{analysis.diversificationScore}<small>/100</small></strong><div className="pf-sandbox-meter" /><em>{analysis.effectiveHoldings} effective holdings</em></div>
+      <div className="surface-shell is-concentration" style={{ "--meter-value": `${analysis.largestPct}%` } as CSSProperties}><span>Largest position</span><strong>{analysis.largestPct}<small>%</small></strong><div className="pf-sandbox-meter" /><em>{holdings.length ? "Watch above 25%" : "No positions yet"}</em></div>
     </section>
     {holdings.length ? <section className="pf-sandbox-readout surface-shell"><span className="pf-section-eyebrow">What the gauges say</span><ul>{analysis.observations.map((observation) => <li key={observation}>{observation}</li>)}</ul></section> : null}
     {chartPositions.length ? <PortfolioBenchmarkChart positions={chartPositions} benchmarkTicker="SPY" benchmarkLabel="S&P 500" /> : null}
