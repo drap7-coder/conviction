@@ -51,6 +51,10 @@ describe("portfolio sandbox", () => {
     expect(cleanCopilotAnswer("The user is asking whether... Let me craft")).toBeNull();
   });
 
+  it("drops a model's duplicate second draft after three complete paragraphs", () => {
+    expect(cleanCopilotAnswer("One.\n\nTwo.\n\nThree.\n\nOne again, but unfinished")).toBe("One.\n\nTwo.\n\nThree.");
+  });
+
   it("treats unallocated capital as cash", () => {
     const analysis = analyzeSandbox([{ ticker: "MSFT", weight: 55 }]);
     expect(analysis.cashPct).toBe(45);
