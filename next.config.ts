@@ -25,6 +25,16 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "**" },
     ],
   },
+  async headers() {
+    return [
+      {
+        // Public APIs may be fetched by Googlebot for rendering client pages,
+        // but must never appear as indexed documents.
+        source: "/api/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+    ];
+  },
   async redirects() {
     return [
       // www → apex (www cert is missing; avoid Not Secure)
