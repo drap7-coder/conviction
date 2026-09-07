@@ -101,7 +101,7 @@
   font-weight: 600;
 }
 
-/* ── Sector Mix (3D donut) ── */
+/* ── Sector Mix (flat donut) ── */
 .portfolio-page .pf-sector-mix {
   margin: 0 0 14px;
   padding: 14px 16px 18px;
@@ -137,24 +137,12 @@
 
 .portfolio-page .pf-sector-mix-donut .pf-donut-stage {
   width: min(100%, calc(var(--pf-donut-size) + 56px));
-  height: calc(var(--pf-donut-size) * 0.82 + 64px);
+  height: var(--pf-donut-size);
 }
 
-.portfolio-page .pf-sector-mix-donut .pf-donut-3d {
-  transform: rotateX(56deg) rotateZ(-10deg);
-  filter: drop-shadow(0 18px 22px color-mix(in srgb, #000 48%, transparent));
-}
-
-.portfolio-page .pf-sector-mix-donut .pf-donut-floor {
-  bottom: 8px;
-  width: calc(var(--pf-donut-size) * 0.98);
-  height: 34px;
-  background: radial-gradient(
-    ellipse at center,
-    color-mix(in srgb, #000 62%, transparent) 0%,
-    color-mix(in srgb, #000 22%, transparent) 52%,
-    transparent 78%
-  );
+.portfolio-page .pf-sector-mix-donut .pf-donut-chart {
+  transform: none;
+  filter: none;
 }
 
 .portfolio-page .pf-sector-mix-donut .pf-donut-legend {

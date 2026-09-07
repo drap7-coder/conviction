@@ -166,10 +166,6 @@ export function HeadToHeadMatchCard({
   }
 
   const { groupA, groupB, statusLabel, viewer } = data;
-  const selectedA = schoolById(schools, sideA);
-  const selectedB = schoolById(schools, sideB);
-  const accentA = groupA?.accentColor ?? groupA?.primaryColor ?? selectedA?.accentColor ?? "#115740";
-  const accentB = groupB?.accentColor ?? groupB?.primaryColor ?? selectedB?.accentColor ?? "#D6001C";
 
   async function changeSide(which: "a" | "b", groupId: string) {
     const nextA = which === "a" ? groupId : sideA;
@@ -208,13 +204,11 @@ export function HeadToHeadMatchCard({
       {data.available && groupA && groupB ? (
         <div className="h2h-scoreboard">
           {([groupA, groupB] as const).map((group, index) => {
-            const accent = index === 0 ? accentA : accentB;
             const balance = averageStudentBalanceUsd(group.avgReturnPct);
             return (
               <div
                 key={group.groupId}
                 className="h2h-side"
-                style={{ ["--h2h-accent" as string]: accent }}
               >
                 <strong className={`h2h-return is-${returnTone(group.avgReturnPct)}`}>
                   {formatUsd(balance)}

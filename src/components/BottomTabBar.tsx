@@ -58,6 +58,7 @@ function SiteMenu({
   placement: "sheet" | "header";
 }) {
   const pathname = usePathname();
+  const [authenticated, setAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -67,6 +68,22 @@ function SiteMenu({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open || authenticated !== null) return;
+    const controller = new AbortController();
+    fetch("/api/groups", {
+      cache: "no-store",
+      credentials: "include",
+      signal: controller.signal,
+    })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload: { authenticated?: boolean } | null) => {
+        if (payload) setAuthenticated(Boolean(payload.authenticated));
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [open, authenticated]);
 
   if (!open) return null;
 
@@ -95,24 +112,40 @@ function SiteMenu({
           <section key={group.id} className="site-menu-group" aria-label={group.label}>
             <h3>{group.label}</h3>
             <ul>
-              {group.pages.map(({ href, label, icon: Icon, blurb, tone }) => {
+              {(group.id === "account" && authenticated === false
+                ? [...group.pages].sort((page) => page.href === "/signin" ? -1 : 1)
+                : group.pages
+              ).map(({ href, label, icon: Icon, blurb, tone }) => {
                 const active = isNavPathActive(pathname, href);
+                const disabled = authenticated === false && href === "/manage";
                 return (
                   <li key={href}>
-                    <Link
-                      href={href}
-                      className={`site-menu-link tone-${tone}${active ? " is-active" : ""}`}
-                      aria-current={active ? "page" : undefined}
-                      onClick={onClose}
-                    >
+                    {disabled ? (
+                      <div className={`site-menu-link tone-${tone} is-disabled`} aria-disabled="true">
                       <span className="site-menu-link-icon" aria-hidden="true">
-                        <Icon size={18} strokeWidth={active ? 2.4 : 2} />
+                        <Icon size={18} strokeWidth={2} />
                       </span>
                       <span>
                         <strong>{label}</strong>
-                        <small>{blurb}</small>
+                        <small>Sign in to edit synced data.</small>
                       </span>
-                    </Link>
+                      </div>
+                    ) : (
+                      <Link
+                        href={href}
+                        className={`site-menu-link tone-${tone}${active ? " is-active" : ""}`}
+                        aria-current={active ? "page" : undefined}
+                        onClick={onClose}
+                      >
+                        <span className="site-menu-link-icon" aria-hidden="true">
+                          <Icon size={18} strokeWidth={active ? 2.4 : 2} />
+                        </span>
+                        <span>
+                          <strong>{label}</strong>
+                          <small>{blurb}</small>
+                        </span>
+                      </Link>
+                    )}
                   </li>
                 );
               })}
