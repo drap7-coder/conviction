@@ -60,7 +60,8 @@ describe("SEO metadata", () => {
   it("includes the main tabs, sectors, seed names, and Pulse instruments in the sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
 
-    expect(urls).toContain(`${SITE_URL}/`);
+    // Apex `/` 308s to /pulse — do not list the redirecting URL.
+    expect(urls).not.toContain(`${SITE_URL}/`);
     expect(urls).toContain(`${SITE_URL}/pulse`);
     expect(urls).toContain(`${SITE_URL}/portfolio`);
     expect(urls).toContain(`${SITE_URL}/portfolio?view=watchlist`);
@@ -101,6 +102,12 @@ describe("SEO metadata", () => {
     expect(read("src/app/robots.ts")).toContain('userAgent: "*"');
     expect(read("src/app/robots.ts")).toContain("sitemap.xml");
     expect(read("src/app/robots.ts")).toContain("SITE_URL");
+    // Googlebot must be able to fetch public market JSON while rendering Pulse/News.
+    expect(read("src/app/robots.ts")).toContain('"/api/market/"');
+    expect(read("src/app/robots.ts")).toContain('"/api/crowd/standings"');
+    expect(read("src/app/robots.ts")).toContain('disallow: ["/api/"]');
+    expect(read("next.config.ts")).toContain("X-Robots-Tag");
+    expect(read("next.config.ts")).toContain("noindex, nofollow");
   });
 
   it("keeps public account and legal pages on IQBulls, not Conviction", () => {

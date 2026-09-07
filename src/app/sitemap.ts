@@ -9,13 +9,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const staticRoutes: MetadataRoute.Sitemap = [
     {
-      // Apex redirects to /pulse; still list both so Search Console can pick either.
-      url: `${SITE_URL}/`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 1,
-    },
-    {
+      // Canonical home. Do not list `${SITE_URL}/` — it 308s to /pulse and
+      // Google prefers sitemap URLs that do not redirect.
       url: `${SITE_URL}/pulse`,
       lastModified: now,
       changeFrequency: "hourly",
