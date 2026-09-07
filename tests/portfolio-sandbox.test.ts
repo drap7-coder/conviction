@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { analyzeSandbox, equalizeSandboxHoldings, normalizeSandboxHoldings } from "@/lib/portfolio/sandbox";
+import { analyzeSandbox, equalizeSandboxHoldings, normalizeSandboxHoldings, setSandboxHoldingWeight } from "@/lib/portfolio/sandbox";
 import { readFileSync } from "node:fs";
 
 describe("portfolio sandbox", () => {
@@ -35,6 +35,23 @@ describe("portfolio sandbox", () => {
     const analysis = analyzeSandbox([{ ticker: "MSFT", weight: 55 }]);
     expect(analysis.cashPct).toBe(45);
     expect(analysis.investedPct).toBe(55);
+  });
+
+  it("lets a fully invested slider grow by proportionally trimming the others", () => {
+    const rows = setSandboxHoldingWeight([
+      { ticker: "VTI", weight: 60 },
+      { ticker: "BND", weight: 40 },
+    ], "VTI", 80);
+    expect(rows).toEqual([{ ticker: "VTI", weight: 80 }, { ticker: "BND", weight: 20 }]);
+  });
+
+  it("turns a slider decrease into cash without changing other holdings", () => {
+    const rows = setSandboxHoldingWeight([
+      { ticker: "VTI", weight: 60 },
+      { ticker: "BND", weight: 40 },
+    ], "VTI", 30);
+    expect(rows).toEqual([{ ticker: "VTI", weight: 30 }, { ticker: "BND", weight: 40 }]);
+    expect(analyzeSandbox(rows).cashPct).toBe(30);
   });
 
   it("uses company-name typeahead for adding positions", () => {

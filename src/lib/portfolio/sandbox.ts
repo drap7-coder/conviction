@@ -43,6 +43,34 @@ export function normalizeSandboxHoldings(holdings: SandboxHolding[]): SandboxHol
   });
 }
 
+/**
+ * Move one allocation freely. Cash absorbs decreases first; when an increase
+ * would push the book over 100%, every other holding makes room proportionally.
+ */
+export function setSandboxHoldingWeight(
+  holdings: SandboxHolding[],
+  ticker: string,
+  requested: number,
+): SandboxHolding[] {
+  const target = round(Math.max(0, Math.min(100, Number.isFinite(requested) ? requested : 0)));
+  const others = holdings.filter((holding) => holding.ticker !== ticker);
+  const otherTotal = others.reduce((sum, holding) => sum + Math.max(0, holding.weight), 0);
+  const roomForOthers = 100 - target;
+  const scale = otherTotal > roomForOthers && otherTotal > 0 ? roomForOthers / otherTotal : 1;
+  let used = target;
+  let remainingOthers = others.length;
+
+  return holdings.map((holding) => {
+    if (holding.ticker === ticker) return { ...holding, weight: target };
+    remainingOthers -= 1;
+    const scaled = remainingOthers === 0 && scale < 1
+      ? round(Math.max(0, 100 - used))
+      : round(Math.max(0, holding.weight) * scale);
+    used += scaled;
+    return { ...holding, weight: scaled };
+  });
+}
+
 export function analyzeSandbox(holdings: SandboxHolding[]): SandboxAnalysis {
   if (!holdings.length) {
     return { investedPct: 0, cashPct: 100, largestPct: 0, diversificationScore: 0, effectiveHoldings: 0, riskScore: 0, riskLabel: "Low", observations: ["Add an asset to see how the pieces work together."] };
