@@ -27,7 +27,7 @@ describe("production copy and fixture isolation", () => {
     expect(portfolio).toContain("parsePortfolioView");
     expect(portfolio).toContain('id: "live"');
     expect(portfolio).toContain('id: "watchlist"');
-    expect(portfolio).toContain('id: "study"');
+    expect(portfolio).toContain('id: "sandbox"');
     expect(portfolio).toContain("SurfaceSlicer");
     expect(portfolio).toContain("<Watchlist");
     expect(portfolio).not.toContain("PortfolioCheckPanel");
@@ -112,9 +112,9 @@ describe("production copy and fixture isolation", () => {
     expect(read("src/app/globals.css")).toContain("product-stage--metrics-above");
     expect(read("src/app/globals.css")).toContain("--pf-hero-pad");
     expect(read("src/app/globals.css")).toContain("pf-day-strip");
-    expect(read("src/app/globals.css")).toContain("pf-donut-wrap--3d");
+    expect(read("src/app/globals.css")).toContain("pf-donut-wrap--flat");
     expect(read("src/app/globals.css")).toContain(".product-stage-metrics > .is-lead");
-    expect(read("src/components/DonutChart.tsx")).toContain("pf-donut-3d");
+    expect(read("src/components/DonutChart.tsx")).toContain("pf-donut-wrap--flat");
     expect(read("src/app/portfolio.css")).toContain("pf-day-strip");
     expect(read("src/app/portfolio.css")).toContain("pf-day-strip-pct");
     expect(read("src/app/portfolio.css")).toContain("pf-live-meta");

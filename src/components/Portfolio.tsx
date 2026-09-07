@@ -36,6 +36,7 @@ import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import Watchlist from "@/components/Watchlist";
+import SandboxPortfolio from "@/components/SandboxPortfolio";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import { PROFILE_BENCHMARK } from "@/lib/portfolio/fit";
@@ -241,18 +242,19 @@ function enrichWithPrices(
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
-type PortfolioView = "live" | "watchlist" | "study";
+type PortfolioView = "live" | "watchlist" | "sandbox" | "study";
 
 const PORTFOLIO_VIEWS: SurfaceSlicerOption[] = [
   { id: "live", label: "Live" },
   { id: "watchlist", label: "Watchlist" },
-  { id: "study", label: "Study" },
+  { id: "sandbox", label: "Sandbox" },
 ];
 
 function parsePortfolioView(searchParams: URLSearchParams): PortfolioView {
   if (searchParams.get("mode") === "study") return "study";
   const view = searchParams.get("view");
   if (view === "watchlist") return "watchlist";
+  if (view === "sandbox") return "sandbox";
   // Legacy Most held / Most watched boards are gone — land on Live.
   return "live";
 }
@@ -597,10 +599,18 @@ export default function Portfolio() {
     params.set("template", template ?? templateId);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
+  function goSandbox() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("mode");
+    params.delete("template");
+    params.set("view", "sandbox");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   function selectView(next: PortfolioView) {
     if (next === "live") goLive();
     else if (next === "watchlist") goWatchlist();
+    else if (next === "sandbox") goSandbox();
     else goStudy();
   }
 
@@ -745,6 +755,8 @@ export default function Portfolio() {
         <div className="pf-watchlist">
           <Watchlist />
         </div>
+      ) : view === "sandbox" ? (
+        <SandboxPortfolio />
       ) : view === "study" ? (
         studyRegion
       ) : (
