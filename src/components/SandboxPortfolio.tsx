@@ -13,6 +13,7 @@ import {
   analyzeSandbox,
   equalizeSandboxHoldings,
   normalizeSandboxHoldings,
+  setSandboxHoldingWeight,
   SANDBOX_MAX_HOLDINGS,
   SANDBOX_STARTING_VALUE,
   SANDBOX_STORAGE_KEY,
@@ -83,6 +84,9 @@ export default function SandboxPortfolio() {
     const price = quote ? getLivePrice(quote)?.price ?? quote.price : null;
     return price && price > 0 ? [{ ticker: holding.ticker, shares: SANDBOX_STARTING_VALUE * holding.weight / 100 / price }] : [];
   });
+  const isNormalized = Math.abs(analysis.investedPct - 100) < 0.05;
+  const equalTarget = holdings.length ? 100 / holdings.length : 0;
+  const isEqualized = holdings.length > 1 && holdings.every((holding) => Math.abs(holding.weight - equalTarget) < 0.11);
 
   function addTicker(raw: string) {
     const ticker = sanitizeWatchlistSymbol(raw);
@@ -94,11 +98,7 @@ export default function SandboxPortfolio() {
   }
 
   function updateWeight(ticker: string, requested: number) {
-    setHoldings((current) => {
-      const otherTotal = current.reduce((sum, holding) => sum + (holding.ticker === ticker ? 0 : holding.weight), 0);
-      const weight = Math.max(0, Math.min(100 - otherTotal, Number.isFinite(requested) ? requested : 0));
-      return current.map((holding) => holding.ticker === ticker ? { ...holding, weight: Number(weight.toFixed(1)) } : holding);
-    });
+    setHoldings((current) => setSandboxHoldingWeight(current, ticker, requested));
   }
 
   async function askIq(prompt = question) {
@@ -132,7 +132,7 @@ export default function SandboxPortfolio() {
     </section> : null}
 
     <section className="pf-sandbox-builder surface-shell">
-      <header><div><span className="pf-section-eyebrow">Build the mix</span><h2>{holdings.length}/10 assets</h2></div><div className="pf-sandbox-actions"><button type="button" onClick={() => setHoldings(equalizeSandboxHoldings(holdings))} disabled={!holdings.length}>Equalize</button><button type="button" onClick={() => setHoldings(normalizeSandboxHoldings(holdings))} disabled={!holdings.length}>Normalize</button><button type="button" onClick={() => setHoldings([])} disabled={!holdings.length}>Reset</button></div></header>
+      <header><div><span className="pf-section-eyebrow">Build the mix</span><h2>{holdings.length}/10 assets</h2><p className="pf-sandbox-builder-hint">Move any bar. Other positions make room automatically.</p></div><div className="pf-sandbox-actions"><button type="button" title={isEqualized ? "Already equal-weighted" : "Give every asset the same weight"} onClick={() => setHoldings(equalizeSandboxHoldings(holdings))} disabled={holdings.length < 2 || isEqualized}>Equalize</button><button type="button" title={isNormalized ? "Already 100% invested" : "Scale allocations to 100%"} onClick={() => setHoldings(normalizeSandboxHoldings(holdings))} disabled={!holdings.length || isNormalized}>Normalize</button><button type="button" onClick={() => setHoldings([])} disabled={!holdings.length}>Reset</button></div></header>
       <form className="pf-sandbox-add" onSubmit={(event: FormEvent) => { event.preventDefault(); addTicker(tickerInput); }}>
         <CompanyTypeahead
           value={tickerInput}
@@ -151,7 +151,7 @@ export default function SandboxPortfolio() {
       <div className="pf-sandbox-templates"><span>Or borrow a proven shape</span><div>{SAMPLE_PORTFOLIO_BOOKS.slice(0, 4).map((book) => <button type="button" key={book.id} onClick={() => setHoldings(sampleBookSleeves(book).map((sleeve) => ({ ...sleeve })))}>{book.emoji} {book.label}</button>)}</div></div>
       {holdings.length ? <div className="pf-sandbox-holdings">{holdings.map((holding, index) => {
         const quote = quoteByTicker.get(holding.ticker); const current = quote ? getLivePrice(quote)?.price ?? quote.price : null;
-        return <div className="pf-sandbox-row" style={assetColorStyle(index, holding.weight)} key={holding.ticker}><div className="pf-sandbox-row-name"><span className="pf-sandbox-row-logo"><LogoDisplay ticker={holding.ticker} size="badge" /></span><span className="pf-sandbox-row-copy"><strong>{holding.ticker}</strong><span>{quote?.name ?? "Waiting for quote"}</span></span></div><input type="range" min="0" max="100" step="1" value={holding.weight} aria-label={`${holding.ticker} allocation`} onChange={(event) => updateWeight(holding.ticker, Number(event.target.value))}/><label><input type="number" min="0" max="100" step="1" value={holding.weight} onChange={(event) => updateWeight(holding.ticker, Number(event.target.value))}/><span>%</span></label><span className="pf-sandbox-row-value"><strong>{money.format(SANDBOX_STARTING_VALUE * holding.weight / 100)}</strong>{current ? <small>${current.toFixed(2)} / share</small> : null}</span><button type="button" className="pf-sandbox-remove" aria-label={`Remove ${holding.ticker}`} onClick={() => setHoldings((currentHoldings) => currentHoldings.filter((item) => item.ticker !== holding.ticker))}>×</button></div>;
+        return <div className="pf-sandbox-row" style={assetColorStyle(index, holding.weight)} key={holding.ticker}><div className="pf-sandbox-row-name"><span className="pf-sandbox-row-logo"><LogoDisplay ticker={holding.ticker} size="badge" /></span><span className="pf-sandbox-row-copy"><strong>{holding.ticker}</strong><span>{quote?.name ?? "Waiting for quote"}</span></span></div><input type="range" min="0" max="100" step="1" value={holding.weight} aria-label={`${holding.ticker} allocation`} onInput={(event) => updateWeight(holding.ticker, Number(event.currentTarget.value))}/><label><input type="number" min="0" max="100" step="1" value={holding.weight} onChange={(event) => updateWeight(holding.ticker, Number(event.target.value))}/><span>%</span></label><span className="pf-sandbox-row-value"><strong>{money.format(SANDBOX_STARTING_VALUE * holding.weight / 100)}</strong>{current ? <small>${current.toFixed(2)} / share</small> : null}</span><button type="button" className="pf-sandbox-remove" aria-label={`Remove ${holding.ticker}`} onClick={() => setHoldings((currentHoldings) => currentHoldings.filter((item) => item.ticker !== holding.ticker))}>×</button></div>;
       })}</div> : <div className="pf-sandbox-empty">Add a first stock—or load a template and change one piece at a time.</div>}
     </section>
 
