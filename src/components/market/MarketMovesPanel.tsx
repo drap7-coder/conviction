@@ -16,7 +16,7 @@ import {
   resolveMoversActiveSession,
   splitMarketMovers,
 } from "@/lib/market/market-movers";
-import { fetchMarketTrending } from "@/lib/market/client-market-data";
+import { fetchMarketTrending, subscribeMarketData } from "@/lib/market/client-market-data";
 
 interface TrendingCompany {
   ticker: string;
@@ -28,39 +28,53 @@ interface TrendingCompany {
   activityLabel: string;
 }
 
+function asTrendingCompanies(
+  companies: Array<{ ticker: string; quote?: StockQuote; companyName?: string }> | undefined,
+): TrendingCompany[] {
+  return (companies ?? []) as TrendingCompany[];
+}
+
 export function MarketMovesPanel() {
   const [trending, setTrending] = useState<TrendingCompany[]>([]);
   const [trendingStatus, setTrendingStatus] = useState<EvidenceStatus>("idle");
-  const [requestKey, setRequestKey] = useState(0);
+  const [refreshNonce, setRefreshNonce] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
+    setTrendingStatus((prev) => (prev === "success" ? prev : "loading"));
 
-    async function loadTrending() {
-      setTrendingStatus("loading");
-      try {
-        const data = await fetchMarketTrending(24, {
-          reason: requestKey === 0 ? "initial" : "manual",
-          signal: controller.signal,
-        });
-        if (!cancelled) {
-          const companies = (data.companies ?? []) as TrendingCompany[];
-          setTrending(companies);
-          setTrendingStatus(companies.length > 0 ? "success" : "empty");
-        }
-      } catch (err) {
-        console.warn("[market-moves] Failed to load trending companies:", err);
-        if (!cancelled) setTrendingStatus(classifyClientError(err));
-      }
-    }
+    const apply = (companies: TrendingCompany[]) => {
+      if (cancelled) return;
+      setTrending(companies);
+      setTrendingStatus(companies.length > 0 ? "success" : "empty");
+    };
 
-    void loadTrending();
+    const subscription = subscribeMarketData({
+      trendingLimit: 24,
+      onTrending: (payload) => apply(asTrendingCompanies(payload.companies)),
+    });
+
+    // subscribeMarketData swallows errors to keep last-good UI; surface the
+    // first-paint failure (deduped with the subscriber refresh via cachedFetch).
+    void fetchMarketTrending(24, {
+      reason: refreshNonce === 0 ? "initial" : "manual",
+      force: refreshNonce > 0,
+      signal: controller.signal,
+    })
+      .then((data) => apply(asTrendingCompanies(data.companies)))
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        setTrendingStatus((prev) => (prev === "success" ? prev : classifyClientError(err)));
+      });
+
     return () => {
       cancelled = true;
       controller.abort();
+      subscription.unsubscribe();
     };
-  }, [requestKey]);
+  }, [refreshNonce]);
 
   if (trendingStatus === "loading" || trendingStatus === "idle") {
     return (
@@ -81,7 +95,14 @@ export function MarketMovesPanel() {
         <div className="empty-state">
           <p>No market moves loaded right now.</p>
           <small>Market activity is temporarily unavailable.</small>
-          <button className="retry-button mt-8" type="button" onClick={() => setRequestKey((key) => key + 1)}>
+          <button
+            className="retry-button mt-8"
+            type="button"
+            onClick={() => {
+              setTrendingStatus("loading");
+              setRefreshNonce((key) => key + 1);
+            }}
+          >
             Retry
           </button>
         </div>

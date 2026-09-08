@@ -17,9 +17,9 @@ export type MarketFetchReason =
   | "manual"
   | "subscriber";
 
-/** Quotes: ~5 min while visible. Trending: ~12 min while visible. */
+/** Quotes + trending: ~5 min while visible (parity with company dashboard). */
 export const QUOTE_TTL_MS = 5 * 60_000;
-export const TRENDING_TTL_MS = 12 * 60_000;
+export const TRENDING_TTL_MS = 5 * 60_000;
 
 type TrendingPayload = {
   companies: Array<{ ticker: string; quote?: StockQuote; companyName?: string }>;

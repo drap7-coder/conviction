@@ -16,8 +16,8 @@ const inflight = new Map<string, Promise<unknown>>();
 const DEFAULT_TTL: Record<string, number> = {
   // Market quotes — slow browser refresh; server also caches
   "/api/market/quotes": 5 * 60 * 1000, // 5 minutes
-  // Trending universe is expensive — refresh rarely
-  "/api/market/trending": 12 * 60 * 1000, // 12 minutes
+  // Trending movers — same freshness as quotes so Pulse matches dashboards
+  "/api/market/trending": 5 * 60 * 1000, // 5 minutes
   // Catalyst news for company pages
   "/api/evidence/news": 15 * 60 * 1000, // 15 minutes
 };

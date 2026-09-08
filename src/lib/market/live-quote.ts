@@ -109,15 +109,21 @@ export function getLivePrice(quote: LiveQuoteInput, now = new Date()): LivePrice
     };
   };
 
-  // Pre-market
-  if (state === "PRE" && clockSession === "pre_market" && quote.preMarketPrice != null) {
+  // Pre-market. Yahoo can lag flipping marketState to PRE after 4am ET while
+  // still publishing preMarketPrice — prefer the clock + print so dashboards
+  // match Movers (getExtendedSessionQuote), which is ET-clock based.
+  if (
+    clockSession === "pre_market" &&
+    quote.preMarketPrice != null &&
+    (state === "PRE" || state === "CLOSED" || state === "REGULAR" || state === "")
+  ) {
     const move = getExtendedMove(quote.preMarketPrice);
     return {
       price: quote.preMarketPrice,
       change: move.change ?? quote.preMarketChange,
       changePercent: move.changePercent ?? quote.preMarketChangePercent,
       label: "Pre-Market",
-      session,
+      session: "pre_market",
     };
   }
 
