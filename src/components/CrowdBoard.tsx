@@ -7,6 +7,7 @@ import { CommunityPickCard } from "@/components/CommunityPickCard";
 import { YourPicksCard } from "@/components/YourPicksCard";
 import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
+import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import type { HeadToHeadPayload } from "@/lib/competitions/types";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
 import { communityRankingRequirementLabel } from "@/lib/community-picks/constants";
@@ -90,6 +91,11 @@ export function CrowdBoard() {
   }, [tab]);
 
   const standingsRange = standings?.range ?? DEFAULT_H2H_PERF_RANGE;
+  const viewContext = tab === "standings"
+    ? { kicker: "Campus race", title: "See who is leading", detail: "Every player starts with the same fictional $100,000, so performance—not school size—drives the board.", tone: "crowd" }
+    : tab === "pick"
+      ? { kicker: "Your five", title: "Build your conviction board", detail: "Make up to five equal-weight calls and learn how each one changes your result.", tone: "pick" }
+      : { kicker: "Your crew", title: "Compete with your community", detail: "Your school identity, members, and invitation tools live here.", tone: "community" };
 
   function selectTab(next: CrowdTab) {
     setTab(next);
@@ -114,6 +120,8 @@ export function CrowdBoard() {
         onChange={(id) => selectTab(parseCrowdView(id))}
         role="tablist"
       />
+
+      <WorkspaceViewContext {...viewContext} />
 
       {tab === "standings" ? (
         <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">

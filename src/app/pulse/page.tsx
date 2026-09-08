@@ -14,6 +14,7 @@ import {
 } from "@/components/market/IndexScoreboard";
 import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
+import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 
 type PulseView = "markets" | "movers" | "crypto" | "international";
 
@@ -76,17 +77,7 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
       context = { kicker: "Global lens", title: "Markets around the world", detail: "Country funds offer one comparable view across different local sessions.", tone: "international" };
   }
 
-  return (
-    <section className={`pulse-view-context tone-${context.tone}`} aria-label={`${context.title} context`}>
-      <span className="pulse-view-context-mark" aria-hidden="true" />
-      <div>
-        <span className="pulse-view-context-kicker">{context.kicker}</span>
-        <strong>{context.title}</strong>
-        <p>{context.detail}</p>
-      </div>
-      {updated && context.tone === "markets" ? <time dateTime={data?.fetchedAt}>Updated {updated}</time> : null}
-    </section>
-  );
+  return <WorkspaceViewContext {...context} meta={updated && context.tone === "markets" ? <time dateTime={data?.fetchedAt}>Updated {updated}</time> : undefined} />;
 }
 
 function pulseHeading(view: PulseView): string {
