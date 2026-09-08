@@ -70,6 +70,22 @@ describe("getLivePrice", () => {
     expect(live.changePercent).toBeCloseTo(-2);
   });
 
+  it("uses a pre print during the ET pre window even when Yahoo has not flipped to PRE", () => {
+    const live = getLivePrice(quote({
+      marketState: "CLOSED",
+      price: 100,
+      change: -1,
+      changePercent: -1,
+      preMarketPrice: 101.25,
+    }), new Date("2026-07-23T12:00:00Z"));
+
+    expect(live.label).toBe("Pre-Market");
+    expect(live.session).toBe("pre_market");
+    expect(live.price).toBe(101.25);
+    expect(live.change).toBeCloseTo(1.25);
+    expect(live.changePercent).toBeCloseTo(1.25);
+  });
+
   it("ignores a stale PRE state during the regular session", () => {
     const live = getLivePrice(quote({
       marketState: "PRE",

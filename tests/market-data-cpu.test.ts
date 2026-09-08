@@ -37,11 +37,11 @@ describe("market-data CPU architecture", () => {
     expect(read("src/app/components/CompanyQuoteCard.tsx")).not.toContain('/api/market/quotes?tickers=');
   });
 
-  it("keeps quote refresh at ~5 min and trending at ~12 min", () => {
+  it("keeps quote and trending browser refresh at ~5 min", () => {
     expect(QUOTE_TTL_MS).toBe(5 * 60_000);
-    expect(TRENDING_TTL_MS).toBe(12 * 60_000);
+    expect(TRENDING_TTL_MS).toBe(5 * 60_000);
     expect(read("src/lib/request-cache.ts")).toContain('"/api/market/quotes": 5 * 60 * 1000');
-    expect(read("src/lib/request-cache.ts")).toContain('"/api/market/trending": 12 * 60 * 1000');
+    expect(read("src/lib/request-cache.ts")).toContain('"/api/market/trending": 5 * 60 * 1000');
   });
 
   it("drops force-dynamic on quotes and trending routes and sets CDN cache", () => {
@@ -51,8 +51,15 @@ describe("market-data CPU architecture", () => {
     expect(trending).not.toContain('dynamic = "force-dynamic"');
     expect(quotes).toContain("unstable_cache");
     expect(trending).toContain("unstable_cache");
+    expect(trending).toContain("easternSessionCacheKey");
     expect(quotes).toContain("s-maxage=300");
-    expect(trending).toContain("s-maxage=720");
+    expect(trending).toContain("s-maxage=300");
+  });
+
+  it("refreshes Pulse Movers through the shared market-data subscriber", () => {
+    const panel = read("src/components/market/MarketMovesPanel.tsx");
+    expect(panel).toContain("subscribeMarketData");
+    expect(panel).toContain("fetchMarketTrending");
   });
 
   it("dedupes in-flight quote requests through cachedFetch", async () => {
