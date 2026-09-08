@@ -61,6 +61,7 @@ function TapeSequence({
         const quote = quoteMap.get(item.ticker);
         const live = quote ? getLivePrice(quote) : null;
         const changePercent = live?.changePercent ?? quote?.changePercent ?? null;
+        const sessionCode = live?.label === "Pre-Market" ? "PRE" : live?.label === "After Hours" ? "AH" : null;
         const tone = changePercent === null ? "quiet" : changePercent > 0 ? "up" : changePercent < 0 ? "down" : "quiet";
         const flash = flashes[item.ticker];
         const href = companyDetailHref(item.ticker) ?? `/companies/${encodeURIComponent(item.ticker)}`;
@@ -76,6 +77,7 @@ function TapeSequence({
             <span className={`market-tape-change is-${tone}`}>
               {loading ? "—" : formatChange(changePercent)}
             </span>
+            {!loading && sessionCode ? <span className="market-tape-session">{sessionCode}</span> : null}
           </Link>
         );
       })}

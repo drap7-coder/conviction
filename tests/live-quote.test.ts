@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getExtendedSessionQuote,
   getLivePrice,
+  easternSessionCacheKey,
   type LiveQuoteInput,
 } from "@/lib/market/live-quote";
 
@@ -22,6 +23,10 @@ function quote(overrides: Partial<LiveQuoteInput>): LiveQuoteInput {
 }
 
 describe("getLivePrice", () => {
+  it("partitions cached payloads when the ET session changes", () => {
+    expect(easternSessionCacheKey(new Date("2026-09-08T07:59:00Z"))).toContain("after_hours");
+    expect(easternSessionCacheKey(new Date("2026-09-08T08:01:00Z"))).toContain("pre_market");
+  });
   it("calculates the after-hours move from the regular close", () => {
     const live = getLivePrice(quote({
       marketState: "POST",

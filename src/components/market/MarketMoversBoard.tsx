@@ -24,10 +24,13 @@ function MoverCard({
   showWhenEmpty?: boolean;
 }) {
   if (rows.length === 0 && !showWhenEmpty) return null;
+  const tone = title === "Gainers" || title === "Leaders" ? "gainers"
+    : title === "Losers" || title === "Laggards" ? "losers"
+      : "volume";
 
   return (
     <section
-      className="market-heatmap-shell pulse-index-board pulse-movers-card"
+      className={`market-heatmap-shell pulse-index-board pulse-movers-card pulse-board-tone-${tone}`}
       aria-label={title}
     >
       <div className="market-heatmap-copy">
