@@ -35,6 +35,7 @@ import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
+import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import Watchlist from "@/components/Watchlist";
 import SandboxPortfolio from "@/components/SandboxPortfolio";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
@@ -750,6 +751,14 @@ export default function Portfolio() {
         onChange={(id) => selectView(id as PortfolioView)}
         className="pf-view-slicer"
       />
+
+      {view === "watchlist" ? (
+        <WorkspaceViewContext kicker="Your radar" title="Names worth watching" detail="Scan today’s leaders and laggards, then open a company when a move deserves context." tone="watchlist" />
+      ) : view === "sandbox" ? (
+        <WorkspaceViewContext kicker="Personal lab" title="Test the idea before the money" detail="Move allocations, compare risk, and ask IQ what changed in your fictional $100,000 portfolio." tone="sandbox" />
+      ) : view === "study" ? (
+        <WorkspaceViewContext kicker="Study mode" title="Learn the shape of a portfolio" detail="Explore proven allocation templates, what each sleeve does, and what can break the approach." tone="study" />
+      ) : null}
 
       {view === "watchlist" ? (
         <div className="pf-watchlist">

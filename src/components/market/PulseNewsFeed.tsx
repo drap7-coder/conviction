@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
+import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import { loadPositions } from "@/lib/portfolio/persist";
 import { loadPortfolioForViewer } from "@/lib/portfolio/client";
 import type {
@@ -400,6 +401,13 @@ export function PulseNewsFeed({
           </select>
         </label>
       </div>
+
+      <WorkspaceViewContext
+        kicker={activeTheme === "yours" ? "Connected to you" : "Market brief"}
+        title={activeTheme === "yours" ? "News around your names" : "Know what is moving the story"}
+        detail={activeTheme === "yours" ? "Stories tied to your portfolio and watchlist, gathered in one focused feed." : "Lead themes first, supporting headlines second—so importance is visible before volume."}
+        tone="news"
+      />
 
       {yoursEmpty ? (
         <div className="pulse-news-empty">
