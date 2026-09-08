@@ -783,6 +783,17 @@ a.market-tape-item:focus-visible {
 .market-tape-change.is-up { color: var(--green); }
 .market-tape-change.is-down { color: var(--red); }
 
+.market-tape-session {
+  padding: 1px 4px;
+  border-radius: 999px;
+  background: var(--amber-dim);
+  color: var(--amber);
+  font-size: 0.43rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
 .market-tape-item.is-flashing.is-up {
   animation: market-tape-flash-up 900ms ease-out;
 }
@@ -17109,7 +17120,29 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-index-board {
+  --pulse-board-accent: var(--accent);
+  --pulse-board-tint: var(--accent-dim);
   overflow: hidden;
+}
+
+.pulse-board-tone-indexes { --pulse-board-accent: #39c6df; --pulse-board-tint: color-mix(in srgb, #39c6df 11%, transparent); }
+.pulse-board-tone-commodities { --pulse-board-accent: var(--amber); --pulse-board-tint: var(--amber-dim); }
+.pulse-board-tone-sectors { --pulse-board-accent: var(--sample); --pulse-board-tint: var(--sample-dim); }
+.pulse-board-tone-crypto { --pulse-board-accent: #9a78ff; --pulse-board-tint: color-mix(in srgb, #9a78ff 12%, transparent); }
+.pulse-board-tone-international { --pulse-board-accent: #e86ca8; --pulse-board-tint: color-mix(in srgb, #e86ca8 11%, transparent); }
+.pulse-board-tone-gainers { --pulse-board-accent: var(--green); --pulse-board-tint: var(--green-dim); }
+.pulse-board-tone-losers { --pulse-board-accent: var(--red); --pulse-board-tint: var(--red-dim); }
+.pulse-board-tone-volume { --pulse-board-accent: #5798ff; --pulse-board-tint: color-mix(in srgb, #5798ff 11%, transparent); }
+
+.pulse-index-board > .market-heatmap-copy {
+  position: relative;
+  overflow: hidden;
+  border-left: 3px solid var(--pulse-board-accent);
+  background: linear-gradient(90deg, var(--pulse-board-tint), transparent 64%);
+}
+
+.pulse-index-board .market-panel-header h2 {
+  color: color-mix(in srgb, var(--pulse-board-accent) 76%, var(--ink));
 }
 
 .pulse-index-board-head {
@@ -17304,6 +17337,18 @@ a.pulse-news-narrative-title:focus-visible {
   white-space: nowrap;
 }
 
+.session-quote-tag {
+  align-self: center;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: currentColor;
+  color: var(--on-accent);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+}
+
 .session-quote-change.is-up,
 .session-quote-extended.is-up {
   color: var(--accent);
@@ -17319,7 +17364,8 @@ a.pulse-news-narrative-title:focus-visible {
   color: var(--muted);
 }
 
-.session-quote-extended {
+.session-quote-extended,
+.session-quote-reference {
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
@@ -17332,6 +17378,14 @@ a.pulse-news-narrative-title:focus-visible {
   letter-spacing: -0.01em;
   line-height: 1.15;
   opacity: 0.92;
+}
+
+.session-quote-reference {
+  color: var(--quiet);
+}
+
+.session-quote-reference em {
+  font-style: normal;
 }
 
 .session-quote-extended em {
@@ -17548,6 +17602,90 @@ a.pulse-news-narrative-title:focus-visible {
   display: grid;
   gap: 12px;
   min-width: 0;
+}
+
+/* Fast orientation card shared by every Pulse tab. */
+.pulse-view-context {
+  --pulse-context-accent: var(--accent);
+  --pulse-context-tint: var(--accent-dim);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--pulse-context-accent) 24%, var(--border));
+  border-radius: 14px;
+  background:
+    radial-gradient(circle at 100% 0%, var(--pulse-context-tint), transparent 44%),
+    var(--card);
+  box-shadow: var(--shadow-sm);
+}
+
+.pulse-view-context.tone-markets { --pulse-context-accent: #39c6df; --pulse-context-tint: color-mix(in srgb, #39c6df 11%, transparent); }
+.pulse-view-context.tone-movers { --pulse-context-accent: var(--green); --pulse-context-tint: var(--green-dim); }
+.pulse-view-context.tone-crypto { --pulse-context-accent: #9a78ff; --pulse-context-tint: color-mix(in srgb, #9a78ff 12%, transparent); }
+.pulse-view-context.tone-international { --pulse-context-accent: #e86ca8; --pulse-context-tint: color-mix(in srgb, #e86ca8 11%, transparent); }
+
+.pulse-view-context-mark {
+  width: 10px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--pulse-context-accent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--pulse-context-accent) 42%, transparent);
+}
+
+.pulse-view-context > div {
+  display: grid;
+  min-width: 0;
+}
+
+.pulse-view-context-kicker {
+  color: var(--pulse-context-accent);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.pulse-view-context strong {
+  color: var(--ink);
+  font-size: 1rem;
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.pulse-view-context p {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.pulse-view-context time {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.pulse-view-slicer .surface-slicer-pill:nth-child(1)[aria-checked="true"] { color: #39c6df; }
+.pulse-view-slicer .surface-slicer-pill:nth-child(2)[aria-checked="true"] { color: var(--green); }
+.pulse-view-slicer .surface-slicer-pill:nth-child(3)[aria-checked="true"] { color: #9a78ff; }
+.pulse-view-slicer .surface-slicer-pill:nth-child(4)[aria-checked="true"] { color: #e86ca8; }
+
+@media (max-width: 560px) {
+  .pulse-view-context {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 10px 12px;
+  }
+
+  .pulse-view-context time {
+    grid-column: 2;
+  }
 }
 
 @media (max-width: 430px) {

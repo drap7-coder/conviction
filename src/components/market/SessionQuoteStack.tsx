@@ -53,6 +53,7 @@ export function SessionQuoteStack({
   extendedNoTrades = false,
   /** Secondary line shows prior RTH close (Gainers/Losers/Volume in pre/AH). */
   priorCloseSecondary = false,
+  activeSessionPrimary = false,
   compact = false,
   onHeat = false,
 }: {
@@ -65,6 +66,8 @@ export function SessionQuoteStack({
   extendedChangePercent?: number | null;
   extendedNoTrades?: boolean;
   priorCloseSecondary?: boolean;
+  /** Promote the active Pre/AH print and demote regular close to context. */
+  activeSessionPrimary?: boolean;
   /** Tighter type for Market Movers columns. */
   compact?: boolean;
   /** Dark heatmap tile foot — left-aligned, light-on-fill colors. */
@@ -73,6 +76,11 @@ export function SessionQuoteStack({
   const tone = sessionQuoteTone(change);
   const extendedTone = sessionQuoteTone(extendedChange);
   const showExtended = Boolean(extendedLabel);
+  const promoteExtended = activeSessionPrimary && showExtended && !extendedNoTrades && isFiniteNumber(extendedPrice);
+  const primaryPrice = promoteExtended ? extendedPrice : lastPrice;
+  const primaryChange = promoteExtended ? extendedChange : change;
+  const primaryChangePercent = promoteExtended ? extendedChangePercent : changePercent;
+  const primaryTone = sessionQuoteTone(primaryChange);
   const secondaryName = priorCloseSecondary ? "Prior close" : extendedLabel;
   const classes = [
     "session-quote",
@@ -82,12 +90,19 @@ export function SessionQuoteStack({
 
   return (
     <span className={classes}>
-      <strong className="session-quote-last tnum">{fmtDollarPrice(lastPrice)}</strong>
-      <span className={`session-quote-change tnum is-${tone}`}>
-        <span>{fmtSignedDollar(change)}</span>
-        <span>{fmtPercent(changePercent, 2)}</span>
+      <strong className="session-quote-last tnum">{fmtDollarPrice(primaryPrice)}</strong>
+      <span className={`session-quote-change tnum is-${promoteExtended ? primaryTone : tone}`}>
+        <span>{fmtSignedDollar(primaryChange)}</span>
+        <span>{fmtPercent(primaryChangePercent, 2)}</span>
+        {promoteExtended ? <b className="session-quote-tag">{extendedLabel === "Pre-Market" ? "PRE" : "AH"}</b> : null}
       </span>
-      {showExtended && extendedLabel ? (
+      {promoteExtended ? (
+        <span className="session-quote-reference tnum">
+          <SessionIcon kind={extendedLabel!} />
+          <em>Previous close</em>
+          <span>{fmtDollarPrice(lastPrice)}</span>
+        </span>
+      ) : showExtended && extendedLabel ? (
         <span
           className={`session-quote-extended tnum is-${extendedNoTrades ? "flat" : extendedTone}`}
           aria-label={

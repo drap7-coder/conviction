@@ -61,7 +61,7 @@ function rowAriaLabel(market: PulseGlobalMarket, showExtended: boolean): string 
     const extended = market.extendedNoTrades
       ? "No trades"
       : `${fmtDollarPrice(market.extendedPrice ?? null)} ${fmtSignedDollar(market.extendedChange ?? null)} ${fmtPercent(market.extendedChangePercent ?? null, 2)}`;
-    return `${market.name}, ${last}, ${change}, ${market.sessionLabel} ${extended}`;
+    return `${market.name}, ${market.sessionLabel} ${extended}, previous close ${last}`;
   }
   return `${market.name}, ${last}, ${change}`;
 }
@@ -86,12 +86,19 @@ export function MarketScoreboard({
   footer?: ReactNode;
 }) {
   if (rows.length === 0 && !footer) return null;
+  const boardTone = title === "Major Indexes" ? "indexes"
+    : title === "Commodities" ? "commodities"
+      : title === "Sectors" ? "sectors"
+        : title === "Crypto" ? "crypto"
+          : title === "International" ? "international"
+            : "neutral";
 
   const boardClass = [
     "market-heatmap-shell",
     "pulse-index-board",
     showSessionMoves ? "pulse-index-board--sessions" : "",
     showLogos ? "pulse-index-board--logos" : "",
+    `pulse-board-tone-${boardTone}`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -146,6 +153,7 @@ export function MarketScoreboard({
                     extendedChange={market.extendedChange ?? null}
                     extendedChangePercent={market.extendedChangePercent ?? null}
                     extendedNoTrades={Boolean(market.extendedNoTrades)}
+                    activeSessionPrimary={Boolean(extendedLabel)}
                   />
                 </>
               );
@@ -214,6 +222,7 @@ export function SectorScoreboard({
       title="Sectors"
       rows={markets}
       sessionLabel={sessionLabel}
+      showSessionMoves
     />
   );
 }

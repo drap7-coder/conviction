@@ -39,10 +39,54 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
     weight: sector.weight,
     category: "Sector",
     history: sector.history ?? [],
-    regularPrice: sector.price,
-    regularChange: sector.change ?? null,
-    regularChangePercent: sector.changePercent,
+    regularPrice: sector.regularPrice ?? sector.price,
+    regularChange: sector.regularChange ?? null,
+    regularChangePercent: sector.regularChangePercent ?? null,
+    extendedPrice: sector.extendedPrice ?? null,
+    extendedChange: sector.extendedChange ?? null,
+    extendedChangePercent: sector.extendedChangePercent ?? null,
+    extendedNoTrades: sector.extendedNoTrades ?? false,
+    sessionLabel: sector.sessionLabel ?? null,
   }));
+}
+
+const PULSE_REFRESH_MS = 60_000;
+
+function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | null }) {
+  const updated = data?.fetchedAt
+    ? new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+    : null;
+  let context: { kicker: string; title: string; detail: string; tone: PulseView };
+  switch (view) {
+    case "markets":
+      context = {
+        kicker: data?.sessionLabel ?? "Regular Market",
+        title: data?.sessionLabel === "Pre-Market" ? "Before the bell" : data?.sessionLabel === "After Hours" ? "After the bell" : "The market now",
+        detail: data?.sessionLabel ? "Big numbers show the active session. Previous close sits underneath for context." : "Live prices and today’s move are shown together.",
+        tone: "markets",
+      };
+      break;
+    case "movers":
+      context = { kicker: "Action", title: "Leaders, laggards & volume", detail: "See where attention and price are moving fastest.", tone: "movers" };
+      break;
+    case "crypto":
+      context = { kicker: "24 / 7", title: "Always-on markets", detail: "A quick read on the largest digital assets in the mix.", tone: "crypto" };
+      break;
+    default:
+      context = { kicker: "Global lens", title: "Markets around the world", detail: "Country funds offer one comparable view across different local sessions.", tone: "international" };
+  }
+
+  return (
+    <section className={`pulse-view-context tone-${context.tone}`} aria-label={`${context.title} context`}>
+      <span className="pulse-view-context-mark" aria-hidden="true" />
+      <div>
+        <span className="pulse-view-context-kicker">{context.kicker}</span>
+        <strong>{context.title}</strong>
+        <p>{context.detail}</p>
+      </div>
+      {updated && context.tone === "markets" ? <time dateTime={data?.fetchedAt}>Updated {updated}</time> : null}
+    </section>
+  );
 }
 
 function pulseHeading(view: PulseView): string {
@@ -66,22 +110,35 @@ function PulsePageInner() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/market/pulse")
-      .then((response) => {
+    let controller: AbortController | null = null;
+    async function load() {
+      controller?.abort();
+      controller = new AbortController();
+      try {
+        const response = await fetch("/api/market/pulse", { cache: "no-store", signal: controller.signal });
         if (!response.ok) throw new Error("Market data unavailable");
-        return response.json() as Promise<PulseData>;
-      })
-      .then((payload) => {
+        const payload = await response.json() as PulseData;
         if (!cancelled) {
           setData(payload);
           setStatus("success");
         }
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("error");
-      });
+      } catch (error) {
+        if (!cancelled && !(error instanceof DOMException && error.name === "AbortError")) setStatus("error");
+      }
+    }
+    void load();
+    const interval = window.setInterval(() => void load(), PULSE_REFRESH_MS);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
     return () => {
       cancelled = true;
+      controller?.abort();
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
     };
   }, []);
 
@@ -126,6 +183,8 @@ function PulsePageInner() {
       {status === "error" || (status === "success" && !data) ? (
         <div className="market-empty">Market data is temporarily unavailable.</div>
       ) : null}
+
+      {status !== "loading" ? <PulseViewContext view={view} data={data} /> : null}
 
       {data && view === "markets" ? (
         <>

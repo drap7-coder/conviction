@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { fetchStockQuotes } from "@/lib/market/quotes";
-import { getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
+import { easternSessionCacheKey, getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { SECTORS } from "@/lib/market/industries";
 
 /**
@@ -70,6 +70,14 @@ export interface PulseSector {
   price: number | null;
   weight: number;
   history: Array<{ date: string; close: number }>;
+  regularPrice?: number | null;
+  regularChange?: number | null;
+  regularChangePercent?: number | null;
+  extendedPrice?: number | null;
+  extendedChange?: number | null;
+  extendedChangePercent?: number | null;
+  extendedNoTrades?: boolean;
+  sessionLabel?: string | null;
 }
 
 export interface PulseGlobalMarket {
@@ -174,14 +182,24 @@ async function buildPulsePayload(): Promise<Omit<PulseData, "fetchedAt">> {
   const sectors: PulseSector[] = SECTORS.map((sector) => {
     const live = liveFor(sector.ticker);
     const q = quoteMap.get(sector.ticker);
+    const extended = q ? getExtendedSessionQuote(q) : null;
+    const inExtended = Boolean(extended?.sessionLabel);
     return {
       ticker: sector.ticker,
       name: sector.name,
-      changePercent: live?.changePercent ?? q?.changePercent ?? null,
-      change: q?.change ?? live?.change ?? null,
-      price: live?.price ?? q?.price ?? null,
+      changePercent: inExtended ? (extended?.changePercent ?? null) : (q?.changePercent ?? null),
+      change: inExtended ? (extended?.change ?? null) : (q?.change ?? null),
+      price: inExtended ? (extended?.price ?? q?.price ?? null) : (q?.price ?? null),
       weight: SECTOR_WEIGHTS[sector.ticker] ?? 0,
       history: q?.sparkline.slice(-15) ?? [],
+      regularPrice: q?.price ?? null,
+      regularChange: q?.change ?? null,
+      regularChangePercent: q?.changePercent ?? null,
+      extendedPrice: extended?.price ?? null,
+      extendedChange: extended?.change ?? null,
+      extendedChangePercent: extended?.changePercent ?? null,
+      extendedNoTrades: extended?.noTrades ?? false,
+      sessionLabel: extended?.sessionLabel ?? null,
     };
   });
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
@@ -220,13 +238,13 @@ async function buildPulsePayload(): Promise<Omit<PulseData, "fetchedAt">> {
 }
 
 const loadPulse = unstable_cache(
-  async () => buildPulsePayload(),
-  ["market-pulse-v2"],
+  async (_sessionKey: string) => buildPulsePayload(),
+  ["market-pulse-v3"],
   { revalidate: 300 },
 );
 
 export async function GET() {
-  const payload = await loadPulse();
+  const payload = await loadPulse(easternSessionCacheKey());
 
   return NextResponse.json(
     {
@@ -235,7 +253,7 @@ export async function GET() {
     },
     {
       headers: {
-        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
       },
     },
   );

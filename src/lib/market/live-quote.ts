@@ -36,7 +36,7 @@ export interface ExtendedSessionQuote {
   noTrades: boolean;
 }
 
-function easternClockSession(now: Date): MarketSession {
+export function easternClockSession(now: Date): MarketSession {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/New_York",
     weekday: "short",
@@ -59,6 +59,17 @@ function easternClockSession(now: Date): MarketSession {
   // through the weekend into Monday morning.
   if (minutes >= 16 * 60 || minutes < 4 * 60) return "after_hours";
   return "closed";
+}
+
+/** Stable cache partition so an overnight payload cannot bleed into pre-market. */
+export function easternSessionCacheKey(now = new Date()): string {
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+  return `${date}:${easternClockSession(now)}`;
 }
 
 /**
