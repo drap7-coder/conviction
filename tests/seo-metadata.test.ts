@@ -89,15 +89,27 @@ describe("SEO metadata", () => {
   });
 
   it("ships App Router file-convention icons and robots/sitemap generators", () => {
+    expect(read("src/app/layout.tsx")).toContain('url: "/favicon.png"');
     expect(read("src/app/layout.tsx")).toContain('url: "/favicon-48.png"');
     expect(read("src/app/layout.tsx")).toContain('sizes: "48x48"');
     expect(read("src/app/layout.tsx")).not.toContain("iqbulls-favicon.png");
+    // PNG comes before ICO so Google SERP prefers the 48px+ mark.
+    const iconsBlock = read("src/app/layout.tsx").slice(
+      read("src/app/layout.tsx").indexOf("icons:"),
+      read("src/app/layout.tsx").indexOf("robots:"),
+    );
+    expect(iconsBlock.indexOf('"/favicon.png"')).toBeLessThan(iconsBlock.indexOf('"/favicon.ico"'));
+    expect(read("src/app/manifest.ts")).toContain('src: "/favicon.png"');
     expect(read("src/app/manifest.ts")).toContain('src: "/icon.png"');
     expect(read("src/app/manifest.ts")).toContain('src: "/apple-icon.png"');
     expect(read("src/app/manifest.ts")).toContain('src: "/favicon-48.png"');
     expect(read("src/app/manifest.ts")).toContain('src: "/favicon-192.png"');
     expect(existsSync(new URL("../src/app/icon.png", import.meta.url))).toBe(true);
-    expect(existsSync(new URL("../src/app/favicon.ico", import.meta.url))).toBe(true);
+    expect(existsSync(new URL("../src/app/apple-icon.png", import.meta.url))).toBe(true);
+    // ICO lives in public/ so App Router does not inject it ahead of PNG metadata.
+    expect(existsSync(new URL("../src/app/favicon.ico", import.meta.url))).toBe(false);
+    expect(existsSync(new URL("../public/favicon.ico", import.meta.url))).toBe(true);
+    expect(existsSync(new URL("../public/favicon.png", import.meta.url))).toBe(true);
     expect(existsSync(new URL("../public/favicon-48.png", import.meta.url))).toBe(true);
     expect(read("src/app/robots.ts")).toContain('userAgent: "*"');
     expect(read("src/app/robots.ts")).toContain("sitemap.xml");

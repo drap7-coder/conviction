@@ -2,9 +2,8 @@ import type { MetadataRoute } from "next";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site";
 
 /**
- * PWA manifest icons use the App Router file-convention routes
- * (`app/icon.png`, `app/apple-icon.png`) so the mark stays in sync
- * with the document <head> tags Next injects automatically.
+ * PWA manifest icons track the public favicon PNGs + App Router
+ * `icon.png` / `apple-icon.png` file conventions (voxel bull mark).
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -16,6 +15,7 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#0A0E14",
     theme_color: "#0A0E14",
     icons: [
+      { src: "/favicon.png", sizes: "48x48", type: "image/png" },
       { src: "/favicon-48.png", sizes: "48x48", type: "image/png" },
       { src: "/favicon-96.png", sizes: "96x96", type: "image/png" },
       { src: "/favicon-192.png", sizes: "192x192", type: "image/png" },
