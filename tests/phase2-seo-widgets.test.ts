@@ -34,6 +34,13 @@ describe("embed widgets", () => {
       "Powered by IQBulls",
     );
   });
+  it("keeps gauge tools in normal flow above the market index board", () => {
+    const styles = read("src/app/globals.css");
+    expect(styles).not.toMatch(
+      /\.pulse-gauge-tools[^}]*margin-bottom:\s*-\d/,
+    );
+    expect(styles).toMatch(/\.pulse-gauges\s*{[^}]*display:\s*grid/);
+  });
 });
 
 describe("daily sentiment contract", () => {
