@@ -93,7 +93,7 @@ export default function RootLayout({
     <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`} suppressHydrationWarning>
       <body>
         <Script id="iqbulls-theme" strategy="beforeInteractive">
-          {`try{var t=localStorage.getItem('iqbulls-theme');if(t==='cream'){document.documentElement.dataset.theme='cream';document.documentElement.style.colorScheme='light'}}catch(e){}`}
+          {`try{var t=localStorage.getItem('iqbulls-theme');if(t==='cream'){document.documentElement.dataset.theme='cream';document.documentElement.style.colorScheme='light'}var a=localStorage.getItem('iqbulls-accent');if(a==='green'||a==='blue'||a==='violet'||a==='pink'||a==='mono'){document.documentElement.dataset.accent=a}else{document.documentElement.dataset.accent='green'}}catch(e){}`}
         </Script>
         <script
           type="application/ld+json"

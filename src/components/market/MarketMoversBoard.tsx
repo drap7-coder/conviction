@@ -35,15 +35,15 @@ function MoverCard({
     >
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
-          <h2>
-            {title}
+          <div className="pulse-index-board-title-row">
+            <h2>{title}</h2>
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>
                 <i className="pulse-index-session-dot" aria-hidden="true" />
                 {sessionLabel}
               </span>
             ) : null}
-          </h2>
+          </div>
           {headerAction ? <div className="pulse-index-board-action">{headerAction}</div> : null}
         </div>
       </div>

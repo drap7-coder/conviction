@@ -83,8 +83,8 @@ describe("scoreboard logos", () => {
     expect(crypto).toContain("showLogos");
 
     // Indexes / commodities / sectors / intl stay on the default (no showLogos).
-    expect(board).toMatch(/title="Major Indexes"[\s\S]*?showSessionMoves/);
-    expect(board).not.toMatch(/title="Major Indexes"[\s\S]*?showLogos/);
+    expect(board).toMatch(/title="Major Stock Market Indexes"[\s\S]*?showSessionMoves/);
+    expect(board).not.toMatch(/title="Major Stock Market Indexes"[\s\S]*?showLogos/);
     expect(board).not.toMatch(/title="Commodities"[\s\S]*?showLogos/);
     expect(board).not.toMatch(/title="Sectors"[\s\S]*?showLogos/);
     expect(board).not.toMatch(/title="International"[\s\S]*?showLogos/);

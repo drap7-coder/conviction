@@ -86,11 +86,11 @@ export function MarketScoreboard({
   footer?: ReactNode;
 }) {
   if (rows.length === 0 && !footer) return null;
-  const boardTone = title === "Major Indexes" ? "indexes"
-    : title === "Commodities" ? "commodities"
-      : title === "Sectors" ? "sectors"
-        : title === "Crypto" ? "crypto"
-          : title === "International" ? "international"
+  const boardTone = title === "Major Stock Market Indexes" ? "indexes"
+    : title === "Commodity Prices Today" ? "commodities"
+      : title === "Stock Market Sector Performance" ? "sectors"
+        : title === "Cryptocurrency Market Overview" ? "crypto"
+          : title === "International Markets" ? "international"
             : "neutral";
 
   const boardClass = [
@@ -107,15 +107,15 @@ export function MarketScoreboard({
     <section className={boardClass} aria-label={`${title} scoreboard`}>
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
-          <h2>
-            {title}
+          <div className="pulse-index-board-title-row">
+            <h2>{title}</h2>
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>
                 <i className="pulse-index-session-dot" aria-hidden="true" />
                 {sessionLabel}
               </span>
             ) : null}
-          </h2>
+          </div>
           {headerAction ? <div className="pulse-index-board-action">{headerAction}</div> : null}
         </div>
       </div>
@@ -188,7 +188,7 @@ export function IndexScoreboard({
 }) {
   return (
     <MarketScoreboard
-      title="Major Indexes"
+      title="Major Stock Market Indexes"
       rows={scoreboardIndexes(markets)}
       sessionLabel={sessionLabel}
       showSessionMoves
@@ -203,7 +203,7 @@ export function CommodityScoreboard({
 }) {
   return (
     <MarketScoreboard
-      title="Commodities"
+      title="Commodity Prices Today"
       rows={scoreboardCommodities(markets)}
       showSessionMoves
     />
@@ -219,7 +219,7 @@ export function SectorScoreboard({
 }) {
   return (
     <MarketScoreboard
-      title="Sectors"
+      title="Stock Market Sector Performance"
       rows={markets}
       sessionLabel={sessionLabel}
       showSessionMoves
@@ -232,5 +232,5 @@ export function InternationalScoreboard({
 }: {
   markets: PulseGlobalMarket[];
 }) {
-  return <MarketScoreboard title="International" rows={markets} />;
+  return <MarketScoreboard title="International Markets" rows={markets} />;
 }

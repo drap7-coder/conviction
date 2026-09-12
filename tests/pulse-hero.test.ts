@@ -7,7 +7,7 @@ function read(path: string) {
 describe("Pulse heatmap universe", () => {
   it("keeps even more-markets groups and no page hero", () => {
     const route = read("src/app/api/market/pulse/route.ts");
-    const page = read("src/app/pulse/page.tsx");
+    const page = read("src/components/market/PulseDashboard.tsx");
 
     expect(route).toContain('ticker: "UNG"');
     expect(route).toContain('category: "Commodity"');
@@ -22,7 +22,7 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("hero.summary");
     expect(page).not.toContain("regimeSummary");
     expect(page).toContain("CommodityScoreboard");
-    expect(page).not.toContain('title="Commodities"');
+    expect(page).not.toContain('title="Commodity Prices Today"');
     expect(page).toContain("CryptoBoard");
     expect(page).toContain("SurfaceSlicer");
     expect(page).toContain("SectorScoreboard");
@@ -49,7 +49,7 @@ describe("Pulse heatmap universe", () => {
   });
 
   it("renders Markets as gauges + indexes + commodities + sectors; slicer is Markets · Movers · Crypto · Intl", () => {
-    const page = read("src/app/pulse/page.tsx");
+    const page = read("src/components/market/PulseDashboard.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
@@ -114,7 +114,7 @@ describe("Pulse heatmap universe", () => {
     expect(board).not.toContain("moverBarHeight");
     expect(board).not.toContain("pulse-index-sessions");
     expect(board).not.toContain("IndexSessionMoves");
-    expect(board).toContain('title="Commodities"');
+    expect(board).toContain('title="Commodity Prices Today"');
     expect(board).toMatch(/CommodityScoreboard[\s\S]*showSessionMoves/);
     expect(board).toContain("SectorScoreboard");
     expect(board).toContain("InternationalScoreboard");
@@ -154,7 +154,7 @@ describe("Pulse heatmap universe", () => {
 describe("Pulse slicer hosts Markets, Movers, Crypto, Intl", () => {
   it("hosts scoreboards on Pulse slicer views and redirects legacy Menu routes", () => {
     const nav = read("src/lib/nav-config.ts");
-    const page = read("src/app/pulse/page.tsx");
+    const page = read("src/components/market/PulseDashboard.tsx");
     const sectors = read("src/app/sectors/page.tsx");
     const international = read("src/app/international/page.tsx");
     const sectorsLayout = read("src/app/sectors/layout.tsx");
