@@ -103,8 +103,8 @@ describe("surface scan polish", () => {
     expect(header).toContain('src="/iqbulls-bull.png"');
     expect(header).toContain("<AnimatedTitle");
     expect(layout).not.toContain("iqbulls-favicon.png");
-    expect(layout).toContain('url: "/favicon.png"');
-    expect(layout).toContain('url: "/favicon-48.png"');
+    expect(layout).toContain('absoluteUrl("/favicon.png")');
+    expect(layout).toContain('absoluteUrl("/favicon-48.png")');
     expect(header).toContain('aria-label="IQBulls home"');
   });
 });

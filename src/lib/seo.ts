@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import {
+  SITE_ALTERNATE_NAMES,
   SITE_DESCRIPTION,
   SITE_NAME,
   SITE_OG_IMAGE,
@@ -60,6 +61,7 @@ export function siteJsonLd() {
       {
         "@type": "Organization",
         name: SITE_NAME,
+        alternateName: [...SITE_ALTERNATE_NAMES],
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         logo: {
@@ -68,10 +70,12 @@ export function siteJsonLd() {
           width: 512,
           height: 512,
         },
+        image: absoluteUrl("/favicon-192.png"),
       },
       {
         "@type": "WebSite",
         name: SITE_NAME,
+        alternateName: [...SITE_ALTERNATE_NAMES],
         url: SITE_URL,
         description: SITE_DESCRIPTION,
         publisher: { "@type": "Organization", name: SITE_NAME },
@@ -79,10 +83,12 @@ export function siteJsonLd() {
       {
         "@type": "SoftwareApplication",
         name: SITE_NAME,
+        alternateName: [...SITE_ALTERNATE_NAMES],
         applicationCategory: "FinanceApplication",
         operatingSystem: "Web",
         url: SITE_URL,
         description: SITE_DESCRIPTION,
+        image: absoluteUrl("/icon.png"),
         offers: {
           "@type": "Offer",
           price: "0",

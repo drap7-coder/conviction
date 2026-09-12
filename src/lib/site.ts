@@ -15,16 +15,19 @@ export const SITE_URL = normalizeOrigin(
 
 /** Public search / share copy. Lead with the full product as it ships today. */
 export const SITE_NAME = "IQBulls";
+/** How people type the brand in search (“IQ bulls”). */
+export const SITE_ALTERNATE_NAMES = ["IQ Bulls", "iqbulls.com"] as const;
 /** Brand play + benefit. Short. No jargon. */
 export const SITE_TAGLINE = "Raising your market IQ.";
 export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 
 /**
  * Meta description for Google / SMS / OG cards.
- * One job: say what it is. Then name the surfaces.
+ * Job: say what you can *do* here — not a feature inventory.
+ * Keep ~150–160 chars so SERP snippets stay intact.
  */
 export const SITE_DESCRIPTION =
-  "IQBulls raises your market IQ — Pulse, Crowd, your portfolio and watchlist, and news, organized around you.";
+  "See what’s moving on Pulse, make your campus Crowd pick, and manage your portfolio and watchlist — free market context for the names you care about.";
 
 export const SITE_OG_IMAGE = {
   // Canonical share card. Do not reintroduce /iqbulls-og.png — scrapers cache that stale path.

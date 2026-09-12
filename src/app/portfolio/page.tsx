@@ -19,8 +19,8 @@ export async function generateMetadata({
   return pageMetadata({
     title: isWatchlist ? "Watchlist" : "Portfolio",
     description: isWatchlist
-      ? "Follow the names you care about — today’s dollar and percent moves in one quote board."
-      : "Live portfolio value and today’s move, sector mix, concentration, and compare-against guidance — plus Watchlist and Study Mode templates.",
+      ? "Follow the tickers that matter with today’s dollar and percent moves — open any name for quote, chart, and context."
+      : "See today’s P&L, sector mix, and concentration on your live book — then switch to Watchlist or Study templates without leaving Portfolio.",
     path: isWatchlist ? "/portfolio?view=watchlist" : "/portfolio",
     index: mode !== "study",
   });

@@ -18,14 +18,18 @@ describe("SEO metadata", () => {
     expect(SITE_TITLE).toBe("IQBulls — Raising your market IQ.");
     expect(SITE_TITLE).not.toContain("Evidence Detection");
     expect(SITE_TITLE).not.toContain("Ownership Signals");
-    expect(SITE_DESCRIPTION).toContain("raises your market IQ");
+    // Benefit-led SERP blurb — outcomes, not a feature inventory.
+    expect(SITE_DESCRIPTION.toLowerCase()).toContain("free");
     expect(SITE_DESCRIPTION).toContain("Pulse");
     expect(SITE_DESCRIPTION).toContain("watchlist");
     expect(SITE_DESCRIPTION).toContain("portfolio");
     expect(SITE_DESCRIPTION).not.toContain("smart-money");
     expect(SITE_DESCRIPTION).toContain("Crowd");
+    expect(SITE_DESCRIPTION).not.toMatch(/organized around you/i);
     expect(SITE_DESCRIPTION).not.toContain("Evidence Detection");
     expect(SITE_DESCRIPTION).not.toContain("Ownership Signals");
+    expect(SITE_DESCRIPTION.length).toBeGreaterThan(120);
+    expect(SITE_DESCRIPTION.length).toBeLessThan(170);
     expect(SITE_URL).toMatch(/^https:\/\//);
     expect(SITE_URL.endsWith("/")).toBe(false);
   });
@@ -89,11 +93,11 @@ describe("SEO metadata", () => {
   });
 
   it("ships App Router file-convention icons and robots/sitemap generators", () => {
-    expect(read("src/app/layout.tsx")).toContain('url: "/favicon.png"');
-    expect(read("src/app/layout.tsx")).toContain('url: "/favicon-48.png"');
+    expect(read("src/app/layout.tsx")).toContain('absoluteUrl("/favicon.png")');
+    expect(read("src/app/layout.tsx")).toContain('absoluteUrl("/favicon-48.png")');
     expect(read("src/app/layout.tsx")).toContain('sizes: "48x48"');
     expect(read("src/app/layout.tsx")).not.toContain("iqbulls-favicon.png");
-    // PNG comes before ICO so Google SERP prefers the 48px+ mark.
+    // Absolute PNG comes before ICO so Google SERP prefers the 48px+ mark.
     const iconsBlock = read("src/app/layout.tsx").slice(
       read("src/app/layout.tsx").indexOf("icons:"),
       read("src/app/layout.tsx").indexOf("robots:"),
