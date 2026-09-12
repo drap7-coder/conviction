@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SECTORS } from "@/lib/market/industries";
-import { listMarketInstruments } from "@/lib/market/market-instruments";
-import { SEED_WATCHLIST } from "@/lib/watchlist/types";
+import { listSeoTickers } from "@/lib/seo-tickers";
 import { SITE_URL } from "@/lib/site";
 
 /**
@@ -25,16 +24,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${SITE_URL}/industries/${sector.ticker}`,
   }));
 
-  const companyTickers = new Set([
-    ...SEED_WATCHLIST.map((entry) => entry.ticker.toUpperCase()),
-    ...listMarketInstruments().map((entry) => entry.ticker.toUpperCase()),
-  ]);
-
-  const companyRoutes: MetadataRoute.Sitemap = [...companyTickers]
-    .sort()
-    .map((ticker) => ({
+  const companyRoutes: MetadataRoute.Sitemap = listSeoTickers().map(
+    (ticker) => ({
       url: `${SITE_URL}/companies/${encodeURIComponent(ticker)}`,
-    }));
+    }),
+  );
 
   return [...staticRoutes, ...sectorRoutes, ...companyRoutes];
 }

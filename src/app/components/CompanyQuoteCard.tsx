@@ -11,6 +11,7 @@ import { WatchlistTrackControl } from "@/app/components/WatchlistTrackControl";
 import { useWatchlistTracking } from "@/app/components/use-watchlist-tracking";
 import { rangePosition } from "@/lib/market/quote-gauges";
 import { fmtCompactCurrency, fmtMarketCap } from "@/lib/display/format";
+import { EmbedCode } from "@/components/EmbedCode";
 
 interface CompanyQuoteCardProps {
   ticker: string;
@@ -54,7 +55,8 @@ export function CompanyQuoteCard({
   const [quote, setQuote] = useState<StockQuote | null>(null);
   const [profile, setProfile] = useState<SectorProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const { trackedTickers, addingTicker, addToWatchlist } = useWatchlistTracking();
+  const { trackedTickers, addingTicker, addToWatchlist } =
+    useWatchlistTracking();
 
   useEffect(() => {
     let cancelled = false;
@@ -62,13 +64,17 @@ export function CompanyQuoteCard({
       try {
         const [quotes, profileRes] = await Promise.all([
           fetchMarketQuotes([ticker], { reason: "initial" }),
-          fetch(`/api/market/sector-profile?tickers=${encodeURIComponent(ticker)}`),
+          fetch(
+            `/api/market/sector-profile?tickers=${encodeURIComponent(ticker)}`,
+          ),
         ]);
 
         if (!cancelled) setQuote(quotes[0] ?? null);
 
         if (profileRes.ok) {
-          const data = (await profileRes.json()) as { profiles?: SectorProfile[] };
+          const data = (await profileRes.json()) as {
+            profiles?: SectorProfile[];
+          };
           if (!cancelled) setProfile((data.profiles ?? [])[0] ?? null);
         }
       } catch {
@@ -84,7 +90,8 @@ export function CompanyQuoteCard({
   }, [ticker]);
 
   const live = useMemo(() => (quote ? getLivePrice(quote) : null), [quote]);
-  const isExtendedSession = live?.session === "pre_market" || live?.session === "after_hours";
+  const isExtendedSession =
+    live?.session === "pre_market" || live?.session === "after_hours";
   // Chart meta often omits marketCap — quoteSummary price module fills the gap.
   const marketCap = quote?.marketCap ?? profile?.marketCap ?? null;
   const dividendYield = profile?.dividendYield ?? null;
@@ -92,37 +99,59 @@ export function CompanyQuoteCard({
   let changeText: ReturnType<typeof formatChange> = null;
   let arrow: string | null = null;
   if (live) {
-    changeText = live.change !== null && live.changePercent !== null
-      ? formatChange(live.change, live.changePercent)
-      : null;
-    arrow = live.change !== null
-      ? (live.change > 0 ? "▲" : live.change < 0 ? "▼" : null)
-      : null;
+    changeText =
+      live.change !== null && live.changePercent !== null
+        ? formatChange(live.change, live.changePercent)
+        : null;
+    arrow =
+      live.change !== null
+        ? live.change > 0
+          ? "▲"
+          : live.change < 0
+            ? "▼"
+            : null
+        : null;
   }
 
   let regularChangeText: ReturnType<typeof formatChange> = null;
   if (quote) {
-    regularChangeText = quote.change !== null && quote.changePercent !== null
-      ? formatChange(quote.change, quote.changePercent)
-      : null;
+    regularChangeText =
+      quote.change !== null && quote.changePercent !== null
+        ? formatChange(quote.change, quote.changePercent)
+        : null;
   }
 
-  const direction = live?.change != null
-    ? live.change > 0 ? "up" : live.change < 0 ? "down" : ""
-    : "";
-  const regularDirection = quote?.change != null
-    ? quote.change > 0 ? "up" : quote.change < 0 ? "down" : ""
-    : "";
+  const direction =
+    live?.change != null
+      ? live.change > 0
+        ? "up"
+        : live.change < 0
+          ? "down"
+          : ""
+      : "";
+  const regularDirection =
+    quote?.change != null
+      ? quote.change > 0
+        ? "up"
+        : quote.change < 0
+          ? "down"
+          : ""
+      : "";
   const rangePercent = quote
-    ? rangePosition(live?.price ?? quote.price, quote.fiftyTwoWeekLow, quote.fiftyTwoWeekHigh)
+    ? rangePosition(
+        live?.price ?? quote.price,
+        quote.fiftyTwoWeekLow,
+        quote.fiftyTwoWeekHigh,
+      )
     : null;
-  const sessionLabel = quote?.marketState === "REGULAR"
-    ? "Market open"
-    : quote?.marketState === "PRE"
-      ? "Pre-market"
-      : quote?.marketState === "POST"
-        ? "After hours"
-        : "Latest close";
+  const sessionLabel =
+    quote?.marketState === "REGULAR"
+      ? "Market open"
+      : quote?.marketState === "PRE"
+        ? "Pre-market"
+        : quote?.marketState === "POST"
+          ? "After hours"
+          : "Latest close";
 
   const extendedSessionTone = (() => {
     if (!isExtendedSession) return "quiet";
@@ -132,7 +161,10 @@ export function CompanyQuoteCard({
   })();
 
   return (
-    <section className="company-quote-card ink-panel" aria-label={`${ticker} quote and chart`}>
+    <section
+      className="company-quote-card ink-panel"
+      aria-label={`${ticker} quote and chart`}
+    >
       <header className="company-quote-top">
         <div className="company-quote-identity">
           <span className="company-quote-logo" aria-hidden="true">
@@ -158,7 +190,9 @@ export function CompanyQuoteCard({
               {companyName}
               {sectorName ? (
                 <>
-                  <span className="company-quote-sep" aria-hidden="true">·</span>
+                  <span className="company-quote-sep" aria-hidden="true">
+                    ·
+                  </span>
                   <span className="company-quote-sector">{sectorName}</span>
                 </>
               ) : null}
@@ -167,7 +201,9 @@ export function CompanyQuoteCard({
         </div>
 
         <div className="company-quote-price" aria-label={`${ticker} price`}>
-          <span className={`evidence-live-pill company-live-pill${loading ? " is-updating" : ""}`}>
+          <span
+            className={`evidence-live-pill company-live-pill${loading ? " is-updating" : ""}`}
+          >
             <span className="company-live-dot" aria-hidden="true">
               <i className="company-live-ping" />
               <i className="company-live-core" />
@@ -179,8 +215,12 @@ export function CompanyQuoteCard({
           ) : live?.price != null ? (
             <>
               <div className="company-quote-price-row">
-                <span className={`company-quote-arrow ${direction}`}>{arrow}</span>
-                <span className="company-quote-price-big tnum">${formatPrice(live.price)}</span>
+                <span className={`company-quote-arrow ${direction}`}>
+                  {arrow}
+                </span>
+                <span className="company-quote-price-big tnum">
+                  ${formatPrice(live.price)}
+                </span>
               </div>
               {changeText ? (
                 <span className={`company-quote-change ${direction}`}>
@@ -189,14 +229,19 @@ export function CompanyQuoteCard({
                     aria-label={`${changeText.dollars} (${changeText.percent})`}
                   >
                     {changeText.dollars}
-                    <span className="company-quote-change-pct">({changeText.percent})</span>
+                    <span className="company-quote-change-pct">
+                      ({changeText.percent})
+                    </span>
                   </span>
                   {live.label ? (
                     <span
                       className={`company-quote-session-pill ${extendedSessionTone === "up" ? "is-up" : extendedSessionTone === "down" ? "is-down" : "is-quiet"}${isExtendedSession ? " is-extended" : ""}`}
                       aria-label={`${live.label} session`}
                     >
-                      <span className="company-quote-session-dot" aria-hidden="true" />
+                      <span
+                        className="company-quote-session-dot"
+                        aria-hidden="true"
+                      />
                       {live.label}
                     </span>
                   ) : null}
@@ -206,7 +251,10 @@ export function CompanyQuoteCard({
                   className={`company-quote-session-pill ${extendedSessionTone === "up" ? "is-up" : extendedSessionTone === "down" ? "is-down" : "is-quiet"}${isExtendedSession ? " is-extended" : ""}`}
                   aria-label={`${live.label} session`}
                 >
-                  <span className="company-quote-session-dot" aria-hidden="true" />
+                  <span
+                    className="company-quote-session-dot"
+                    aria-hidden="true"
+                  />
                   {live.label}
                 </span>
               ) : null}
@@ -225,7 +273,9 @@ export function CompanyQuoteCard({
                   {regularChangeText ? (
                     <strong className="company-quote-close-change">
                       {regularChangeText.dollars}
-                      <span className="company-quote-close-pct">({regularChangeText.percent})</span>
+                      <span className="company-quote-close-pct">
+                        ({regularChangeText.percent})
+                      </span>
                     </strong>
                   ) : null}
                 </span>
@@ -241,32 +291,55 @@ export function CompanyQuoteCard({
         <PriceTrendCard ticker={ticker} showQuote={false} embedded />
       </div>
 
+      <div className="company-quote-embed">
+        <EmbedCode
+          path={`/embed/quote/${encodeURIComponent(ticker)}`}
+          title={`IQBulls ${ticker} Quote`}
+        />
+      </div>
+
       <div className="company-quote-context" aria-label="Trading context">
         <article>
           <span>Market value</span>
-          <strong className="tnum">{loading ? "—" : fmtMarketCap(marketCap)}</strong>
+          <strong className="tnum">
+            {loading ? "—" : fmtMarketCap(marketCap)}
+          </strong>
           <small>{quote?.exchange ?? "Exchange unavailable"}</small>
         </article>
         <article>
           <span>Dividend yield</span>
-          <strong className="tnum">{loading ? "—" : formatDividendYield(dividendYield)}</strong>
-          <small>{dividendYield === null && !loading ? "No trailing yield" : "Trailing twelve months"}</small>
+          <strong className="tnum">
+            {loading ? "—" : formatDividendYield(dividendYield)}
+          </strong>
+          <small>
+            {dividendYield === null && !loading
+              ? "No trailing yield"
+              : "Trailing twelve months"}
+          </small>
         </article>
         <article>
           <span>Dollar volume</span>
-          <strong className="tnum">{loading ? "—" : fmtCompactCurrency(quote?.dollarVolume ?? null)}</strong>
+          <strong className="tnum">
+            {loading ? "—" : fmtCompactCurrency(quote?.dollarVolume ?? null)}
+          </strong>
           <small>{sessionLabel}</small>
         </article>
         <article className="company-range-stat">
           <span>52-week position</span>
-          <strong className="tnum">{rangePercent === null ? "—" : `${Math.round(rangePercent)}%`}</strong>
+          <strong className="tnum">
+            {rangePercent === null ? "—" : `${Math.round(rangePercent)}%`}
+          </strong>
           <small>
             {quote?.fiftyTwoWeekLow == null || quote?.fiftyTwoWeekHigh == null
               ? "Range unavailable"
               : `$${formatPrice(quote.fiftyTwoWeekLow)} low · $${formatPrice(quote.fiftyTwoWeekHigh)} high`}
           </small>
           <div className="company-range-track" aria-hidden="true">
-            <i style={{ width: rangePercent === null ? "0%" : `${rangePercent}%` }} />
+            <i
+              style={{
+                width: rangePercent === null ? "0%" : `${rangePercent}%`,
+              }}
+            />
           </div>
         </article>
       </div>

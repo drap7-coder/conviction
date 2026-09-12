@@ -41,12 +41,18 @@ function isPrimaryNewsFilter(filter: ThemeFilter): filter is "all" | "yours" {
 }
 
 const WHY_IT_MATTERS: Record<string, string> = {
-  "ai-compute": "Semiconductors and megacaps can determine whether index strength is broad or fragile.",
-  "rates-fed": "Rates reset valuations across growth, real estate, dividends, and other long-duration assets.",
-  "energy-oil": "Energy prices flow into inflation, transport costs, industrial margins, and consumer spending.",
-  "crypto-liquidity": "Crypto often reveals changes in liquidity and speculative risk appetite before broader markets.",
-  "trade-supply": "Trade policy can reprice supply chains, exporters, and internationally exposed companies quickly.",
-  "consumer-demand": "Consumer and sector leadership show where demand is holding—and where margins may be under pressure.",
+  "ai-compute":
+    "Semiconductors and megacaps can determine whether index strength is broad or fragile.",
+  "rates-fed":
+    "Rates reset valuations across growth, real estate, dividends, and other long-duration assets.",
+  "energy-oil":
+    "Energy prices flow into inflation, transport costs, industrial margins, and consumer spending.",
+  "crypto-liquidity":
+    "Crypto often reveals changes in liquidity and speculative risk appetite before broader markets.",
+  "trade-supply":
+    "Trade policy can reprice supply chains, exporters, and internationally exposed companies quickly.",
+  "consumer-demand":
+    "Consumer and sector leadership show where demand is holding—and where margins may be under pressure.",
 };
 
 function formatTime(iso: string): string {
@@ -71,24 +77,42 @@ function publisherLabel(headline: MarketNarrativeHeadline): string {
   return headline.publisher?.trim() || "Market source";
 }
 
+function editorialFocalPoint(themeId: string): string {
+  const focalPoints: Record<string, string> = {
+    "ai-compute": "50% 42%",
+    "rates-fed": "50% 36%",
+    "energy-oil": "50% 48%",
+    "crypto-liquidity": "50% 44%",
+    "trade-supply": "50% 46%",
+    "consumer-demand": "50% 40%",
+  };
+  return focalPoints[themeId] ?? "50% 42%";
+}
+
 function buildMoreFeed(
   themes: MarketNarrativeTheme[],
   filter: ThemeFilter,
   personalThemeIds?: ReadonlySet<string>,
 ): FeedItem[] {
-  const eligible = filter === "all"
-    ? themes
-    : filter === "yours"
-      ? themes.filter((theme) => personalThemeIds?.has(theme.id))
-      : themes.filter((theme) => theme.id === filter);
+  const eligible =
+    filter === "all"
+      ? themes
+      : filter === "yours"
+        ? themes.filter((theme) => personalThemeIds?.has(theme.id))
+        : themes.filter((theme) => theme.id === filter);
   const items: FeedItem[] = [];
   const maxRounds = filter === "all" || filter === "yours" ? 3 : 9;
 
   for (let round = 1; round <= maxRounds; round += 1) {
     const roundItems = eligible
       .map((theme) => ({ theme, headline: theme.headlines[round] }))
-      .filter((item): item is { theme: MarketNarrativeTheme; headline: MarketNarrativeHeadline } =>
-        Boolean(item.headline),
+      .filter(
+        (
+          item,
+        ): item is {
+          theme: MarketNarrativeTheme;
+          headline: MarketNarrativeHeadline;
+        } => Boolean(item.headline),
       )
       .sort((a, b) => b.theme.score - a.theme.score);
 
@@ -116,7 +140,9 @@ function readBrowserWatchlistTickers(): string[] {
     const parsed = raw ? JSON.parse(raw) : [];
     if (!Array.isArray(parsed)) return [];
     return parsed
-      .map((entry) => typeof entry?.ticker === "string" ? entry.ticker.toUpperCase() : "")
+      .map((entry) =>
+        typeof entry?.ticker === "string" ? entry.ticker.toUpperCase() : "",
+      )
       .filter(Boolean);
   } catch {
     return [];
@@ -143,14 +169,16 @@ function NarrativeCard({
   if (!headline) return null;
 
   const imageUrl = usableHeadlineImage(headline.imageUrl);
-  const showImage = Boolean(imageUrl) && !imageFailed;
+  const showMedia = Boolean(imageUrl);
   const copy = (
     <>
       <div className="pulse-news-narrative-top">
         <span className="pulse-news-narrative-label">{theme.label}</span>
         <div className="pulse-news-narrative-tags">
           {featured ? <span className="pulse-news-lead-chip">Lead</span> : null}
-          {personal ? <span className="pulse-news-personal-chip">For you</span> : null}
+          {personal ? (
+            <span className="pulse-news-personal-chip">For you</span>
+          ) : null}
         </div>
       </div>
 
@@ -170,10 +198,16 @@ function NarrativeCard({
       <p className="pulse-news-narrative-summary">{theme.summary}</p>
       <p className="pulse-news-why">
         <strong>Why it matters</strong>
-        <span>{WHY_IT_MATTERS[theme.id] ?? "Coverage and price action are reinforcing the same market narrative."}</span>
+        <span>
+          {WHY_IT_MATTERS[theme.id] ??
+            "Coverage and price action are reinforcing the same market narrative."}
+        </span>
       </p>
 
-      <div className="pulse-news-assets" aria-label={`${theme.label} market moves`}>
+      <div
+        className="pulse-news-assets"
+        aria-label={`${theme.label} market moves`}
+      >
         {theme.assets.slice(0, 3).map((asset) => (
           <span
             key={asset.ticker}
@@ -206,26 +240,37 @@ function NarrativeCard({
         "pulse-news-narrative",
         alt ? "is-alt" : "",
         featured ? "is-featured" : "",
-        showImage ? "is-media-hero has-media" : "",
+        showMedia ? "is-media-hero has-media" : "",
+        imageFailed ? "has-media-fallback" : "",
         `tone-${theme.marketTone}`,
-      ].filter(Boolean).join(" ")}
+      ]
+        .filter(Boolean)
+        .join(" ")}
     >
-      {showImage ? (
+      {showMedia ? (
         <div className="pulse-news-hero-media">
-          <Image
-            src={imageUrl!}
-            alt=""
-            width={960}
-            height={540}
-            sizes="(max-width: 767px) 100vw, (max-width: 1100px) 92vw, 860px"
-            className="pulse-news-hero-img"
-            priority={featured}
-            onError={() => setImageFailed(true)}
-            referrerPolicy="no-referrer"
-          />
+          {imageFailed ? (
+            <div className="pulse-news-media-fallback" aria-hidden="true">
+              <span>{theme.label}</span>
+              <i />
+            </div>
+          ) : (
+            <Image
+              src={imageUrl!}
+              alt=""
+              width={960}
+              height={540}
+              sizes="(max-width: 767px) 100vw, (max-width: 1100px) 52vw, 510px"
+              className="pulse-news-hero-img"
+              style={{ objectPosition: editorialFocalPoint(theme.id) }}
+              priority={featured}
+              onError={() => setImageFailed(true)}
+              referrerPolicy="no-referrer"
+            />
+          )}
         </div>
       ) : null}
-      {showImage ? <div className="pulse-news-hero-copy">{copy}</div> : copy}
+      {showMedia ? <div className="pulse-news-hero-copy">{copy}</div> : copy}
     </article>
   );
 }
@@ -238,7 +283,9 @@ function HeadlineCard({
   alt?: boolean;
 }) {
   return (
-    <article className={`pulse-news-narrative${alt ? " is-alt" : ""} tone-${item.marketTone}`}>
+    <article
+      className={`pulse-news-narrative${alt ? " is-alt" : ""} tone-${item.marketTone}`}
+    >
       <div className="pulse-news-narrative-top">
         <span className="pulse-news-narrative-label">{item.themeLabel}</span>
       </div>
@@ -277,18 +324,26 @@ export function PulseNewsFeed({
 }) {
   const [activeTheme, setActiveTheme] = useState<ThemeFilter>("all");
   const [expanded, setExpanded] = useState(false);
-  const [personalTickers, setPersonalTickers] = useState<Set<string>>(new Set());
+  const [personalTickers, setPersonalTickers] = useState<Set<string>>(
+    new Set(),
+  );
 
   const rankedThemes = useMemo(
-    () => [...themes]
-      .filter((theme) => Boolean(primaryHeadline(theme)))
-      .sort((a, b) => editorialThemeScore(b) - editorialThemeScore(a)),
+    () =>
+      [...themes]
+        .filter((theme) => Boolean(primaryHeadline(theme)))
+        .sort((a, b) => editorialThemeScore(b) - editorialThemeScore(a)),
     [themes],
   );
 
   const themeIsPersonal = (theme: MarketNarrativeTheme) => {
-    const relatedTickers = [theme.newsTicker, ...theme.assets.map((asset) => asset.ticker)];
-    return relatedTickers.some((ticker) => personalTickers.has(ticker.toUpperCase()));
+    const relatedTickers = [
+      theme.newsTicker,
+      ...theme.assets.map((asset) => asset.ticker),
+    ];
+    return relatedTickers.some((ticker) =>
+      personalTickers.has(ticker.toUpperCase()),
+    );
   };
 
   const personalThemeIds = useMemo(() => {
@@ -325,33 +380,49 @@ export function PulseNewsFeed({
     setPersonalTickers(localTickers);
 
     Promise.all([
-      fetch("/api/watchlist").then((response) => response.ok ? response.json() : null),
+      fetch("/api/watchlist").then((response) =>
+        response.ok ? response.json() : null,
+      ),
       loadPortfolioForViewer(),
     ])
-      .then(([data, portfolio]: [
-        { authenticated?: boolean; entries?: Array<{ ticker: string }> } | null,
-        Awaited<ReturnType<typeof loadPortfolioForViewer>>,
-      ]) => {
-        if (cancelled) return;
-        const entries = data?.authenticated ? data.entries ?? [] : [];
-        setPersonalTickers(new Set([
-          ...localTickers,
-          ...entries.map((entry) => entry.ticker.toUpperCase()),
-          ...portfolio.positions.map((position) => position.ticker.toUpperCase()),
-        ]));
-      })
+      .then(
+        ([data, portfolio]: [
+          {
+            authenticated?: boolean;
+            entries?: Array<{ ticker: string }>;
+          } | null,
+          Awaited<ReturnType<typeof loadPortfolioForViewer>>,
+        ]) => {
+          if (cancelled) return;
+          const entries = data?.authenticated ? (data.entries ?? []) : [];
+          setPersonalTickers(
+            new Set([
+              ...localTickers,
+              ...entries.map((entry) => entry.ticker.toUpperCase()),
+              ...portfolio.positions.map((position) =>
+                position.ticker.toUpperCase(),
+              ),
+            ]),
+          );
+        },
+      )
       .catch(() => undefined);
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     setExpanded(false);
   }, [activeTheme]);
 
-  const connectedTheme = rankedThemes.find(
-    (theme) => themeIsPersonal(theme) && !visibleThemes.some((lead) => lead.id === theme.id),
-  ) ?? null;
+  const connectedTheme =
+    rankedThemes.find(
+      (theme) =>
+        themeIsPersonal(theme) &&
+        !visibleThemes.some((lead) => lead.id === theme.id),
+    ) ?? null;
 
   const primaryFilterId = isPrimaryNewsFilter(activeTheme) ? activeTheme : "";
   const themeMenuValue = isPrimaryNewsFilter(activeTheme) ? "" : activeTheme;
@@ -369,7 +440,10 @@ export function PulseNewsFeed({
   const visibleItems = moreItems.slice(0, expanded ? 18 : 8);
   const showBrief = section === "all" || section === "brief";
   const showHeadlines = section === "all" || section === "headlines";
-  const yoursEmpty = activeTheme === "yours" && visibleThemes.length === 0 && moreItems.length === 0;
+  const yoursEmpty =
+    activeTheme === "yours" &&
+    visibleThemes.length === 0 &&
+    moreItems.length === 0;
 
   return (
     <section className="pulse-news-feed" aria-label="Market news">
@@ -404,50 +478,66 @@ export function PulseNewsFeed({
 
       <WorkspaceViewContext
         kicker={activeTheme === "yours" ? "Connected to you" : "Market brief"}
-        title={activeTheme === "yours" ? "News around your names" : "Know what is moving the story"}
-        detail={activeTheme === "yours" ? "Stories tied to your portfolio and watchlist, gathered in one focused feed." : "Lead themes first, supporting headlines second—so importance is visible before volume."}
+        title={
+          activeTheme === "yours"
+            ? "News around your names"
+            : "Know what is moving the story"
+        }
+        detail={
+          activeTheme === "yours"
+            ? "Stories tied to your portfolio and watchlist, gathered in one focused feed."
+            : "Lead themes first, supporting headlines second—so importance is visible before volume."
+        }
         tone="news"
       />
 
       {yoursEmpty ? (
         <div className="pulse-news-empty">
-          No stories tied to your book or watchlist yet. Add names in Manage, or browse All.
+          No stories tied to your book or watchlist yet. Add names in Manage, or
+          browse All.
         </div>
       ) : (
         <div className="pulse-news-brief-grid" role="feed" aria-busy="false">
           {showBrief
             ? visibleThemes.map((theme, index) => (
-              <NarrativeCard
-                key={theme.id}
-                theme={theme}
-                alt={index % 2 === 1}
-                personal={themeIsPersonal(theme)}
-                featured={index === 0}
-              />
-            ))
+                <NarrativeCard
+                  key={theme.id}
+                  theme={theme}
+                  alt={index % 2 === 1}
+                  personal={themeIsPersonal(theme)}
+                  featured={index === 0}
+                />
+              ))
             : null}
 
           {showHeadlines
             ? visibleItems.map((item, index) => (
-              <HeadlineCard
-                key={item.id}
-                item={item}
-                alt={(visibleThemes.length + index) % 2 === 1}
-              />
-            ))
+                <HeadlineCard
+                  key={item.id}
+                  item={item}
+                  alt={(visibleThemes.length + index) % 2 === 1}
+                />
+              ))
             : null}
         </div>
       )}
 
       {showBrief && connectedTheme && activeTheme === "all" ? (
-        <aside className="pulse-news-connected" aria-label="News connected to your portfolio or watchlist">
+        <aside
+          className="pulse-news-connected"
+          aria-label="News connected to your portfolio or watchlist"
+        >
           <span>Connected to you</span>
           <div>
             <strong>{connectedTheme.label}</strong>
             <p>{connectedTheme.summary}</p>
           </div>
           {primaryHeadline(connectedTheme)?.url ? (
-            <a href={primaryHeadline(connectedTheme)!.url!} target="_blank" rel="noopener noreferrer">
+            <a
+              href={primaryHeadline(connectedTheme)!.url!}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Read the lead story ↗
             </a>
           ) : null}
@@ -461,7 +551,9 @@ export function PulseNewsFeed({
           onClick={() => setExpanded((value) => !value)}
           aria-expanded={expanded}
         >
-          {expanded ? "Show fewer stories" : `Show ${Math.min(18, moreItems.length) - 8} more stories`}
+          {expanded
+            ? "Show fewer stories"
+            : `Show ${Math.min(18, moreItems.length) - 8} more stories`}
         </button>
       ) : null}
     </section>

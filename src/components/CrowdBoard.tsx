@@ -8,6 +8,7 @@ import { YourPicksCard } from "@/components/YourPicksCard";
 import { HeadToHeadMatchCard } from "@/components/HeadToHeadMatchCard";
 import { SurfaceSlicer } from "@/components/SurfaceSlicer";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
+import { SentimentPoll } from "@/components/SentimentPoll";
 import type { HeadToHeadPayload } from "@/lib/competitions/types";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
 import { communityRankingRequirementLabel } from "@/lib/community-picks/constants";
@@ -32,9 +33,11 @@ const TABS: Array<{ id: CrowdTab; label: string }> = [
 
 /** Parse Crowd tab from `?tab=` with legacy `?view=` fallbacks. Default: Standings. */
 export function parseCrowdView(value: string | null | undefined): CrowdTab {
-  if (value === "standings" || value === "community" || value === "pick") return value;
+  if (value === "standings" || value === "community" || value === "pick")
+    return value;
   // Legacy Crowd aggregations moved to Portfolio.
-  if (value === "held" || value === "watched" || value === "rivalry") return "standings";
+  if (value === "held" || value === "watched" || value === "rivalry")
+    return "standings";
   return "standings";
 }
 
@@ -53,7 +56,9 @@ export function CrowdBoard() {
   const pathname = usePathname();
   const tabParam = searchParams.get("tab") ?? searchParams.get("view");
   const [tab, setTab] = useState<CrowdTab>(() => parseCrowdView(tabParam));
-  const [standings, setStandings] = useState<CrowdStandingsPayload | null>(null);
+  const [standings, setStandings] = useState<CrowdStandingsPayload | null>(
+    null,
+  );
   const [standingsError, setStandingsError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,7 +86,9 @@ export function CrowdBoard() {
         if (!cancelled) {
           setStandings(null);
           setStandingsError(
-            reason instanceof Error ? reason.message : "Could not load standings.",
+            reason instanceof Error
+              ? reason.message
+              : "Could not load standings.",
           );
         }
       });
@@ -91,11 +98,30 @@ export function CrowdBoard() {
   }, [tab]);
 
   const standingsRange = standings?.range ?? DEFAULT_H2H_PERF_RANGE;
-  const viewContext = tab === "standings"
-    ? { kicker: "Campus race", title: "See who is leading", detail: "Every player starts with the same fictional $100,000, so performance—not school size—drives the board.", tone: "crowd" }
-    : tab === "pick"
-      ? { kicker: "Your five", title: "Build your conviction board", detail: "Make up to five equal-weight calls and learn how each one changes your result.", tone: "pick" }
-      : { kicker: "Your crew", title: "Compete with your community", detail: "Your school identity, members, and invitation tools live here.", tone: "community" };
+  const viewContext =
+    tab === "standings"
+      ? {
+          kicker: "Campus race",
+          title: "See who is leading",
+          detail:
+            "Every player starts with the same fictional $100,000, so performance—not school size—drives the board.",
+          tone: "crowd",
+        }
+      : tab === "pick"
+        ? {
+            kicker: "Your five",
+            title: "Build your conviction board",
+            detail:
+              "Make up to five equal-weight calls and learn how each one changes your result.",
+            tone: "pick",
+          }
+        : {
+            kicker: "Your crew",
+            title: "Compete with your community",
+            detail:
+              "Your school identity, members, and invitation tools live here.",
+            tone: "community",
+          };
 
   function selectTab(next: CrowdTab) {
     setTab(next);
@@ -108,7 +134,9 @@ export function CrowdBoard() {
       params.set("tab", next);
     }
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
   }
 
   return (
@@ -122,12 +150,18 @@ export function CrowdBoard() {
       />
 
       <WorkspaceViewContext {...viewContext} />
+      <SentimentPoll ticker="SPY" />
 
       {tab === "standings" ? (
-        <div className="crowd-standings-panel" role="tabpanel" aria-label="Standings">
+        <div
+          className="crowd-standings-panel"
+          role="tabpanel"
+          aria-label="Standings"
+        >
           <p className="crowd-bankroll-lead">
-            Each player starts with <strong>$100,000</strong>. School score is the average student
-            balance on that book — more members don&apos;t inflate the dollars.
+            Each player starts with <strong>$100,000</strong>. School score is
+            the average student balance on that book — more members don&apos;t
+            inflate the dollars.
           </p>
           {standingsError ? (
             <p className="crowd-empty" role="alert">
@@ -145,8 +179,9 @@ export function CrowdBoard() {
             initialPayload={standings?.community ?? null}
           />
           <p className="crowd-hedge">
-            Head-to-head and community standings use the same weekly average on each player&apos;s
-            $100,000 book. Unranked schools {communityRankingRequirementLabel()}.
+            Head-to-head and community standings use the same weekly average on
+            each player&apos;s $100,000 book. Unranked schools{" "}
+            {communityRankingRequirementLabel()}.
           </p>
         </div>
       ) : null}
@@ -155,14 +190,19 @@ export function CrowdBoard() {
         <div className="crowd-pick-panel" role="tabpanel" aria-label="My pick">
           <YourPicksCard />
           <p className="crowd-hedge">
-            Each player starts with $100,000 — equal-weight across your five calls. Incomplete boards
-            can play immediately; finish all five to join the leaderboard.
+            Each player starts with $100,000 — equal-weight across your five
+            calls. Incomplete boards can play immediately; finish all five to
+            join the leaderboard.
           </p>
         </div>
       ) : null}
 
       {tab === "community" ? (
-        <div className="crowd-community-tab" role="tabpanel" aria-label="My community">
+        <div
+          className="crowd-community-tab"
+          role="tabpanel"
+          aria-label="My community"
+        >
           <CrowdCommunityPanel expanded />
         </div>
       ) : null}
