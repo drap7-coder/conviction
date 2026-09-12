@@ -270,13 +270,13 @@ describe("production copy and fixture isolation", () => {
     const narratives = read("src/lib/market/market-narratives.ts");
     expect(narratives).toContain("imageUrl?: string | null");
     expect(narratives).toContain("imageUrl: item.metadata?.imageUrl ?? null");
-    const pulse = read("src/app/pulse/page.tsx");
+    const pulse = read("src/components/market/PulseDashboard.tsx");
     expect(pulse).not.toContain("ProductStage");
   });
 
   it("keeps Pulse Trending as Market Movers, not a watchlist chip editor", () => {
     const panel = read("src/components/market/MarketMovesPanel.tsx");
-    const pulse = read("src/app/pulse/page.tsx");
+    const pulse = read("src/components/market/PulseDashboard.tsx");
 
     expect(pulse).toContain("MarketMovesPanel");
     expect(panel).toContain("MarketMoversBoard");

@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
+import { RunningBull } from "@/components/RunningBull";
 
 export type SurfaceTheme = "dark" | "cream";
 export type AccentTheme = "green" | "blue" | "violet" | "pink" | "mono";
@@ -37,7 +38,7 @@ export function applyAccentTheme(accent: AccentTheme) {
   document.documentElement.dataset.accent = accent;
 }
 
-type ThemePickerProps = {
+type AccentPickerProps = {
   onAccentChange?: (accent: AccentTheme) => void;
 };
 
@@ -45,27 +46,18 @@ type ThemePickerProps = {
  * Compact surface + accent control. Decorative accent never overrides
  * semantic green/red used for market direction.
  */
-export function ThemePicker({ onAccentChange }: ThemePickerProps) {
-  const [surface, setSurface] = useState<SurfaceTheme>("dark");
+export function AccentPicker({ onAccentChange }: AccentPickerProps) {
   const [accent, setAccent] = useState<AccentTheme>("green");
+  const [bullToken, setBullToken] = useState(0);
 
   useEffect(() => {
-    const initialSurface =
-      document.documentElement.dataset.theme === "cream" ? "cream" : "dark";
     const initialAccent = isAccent(document.documentElement.dataset.accent)
       ? document.documentElement.dataset.accent
       : "green";
-    setSurface(initialSurface);
     setAccent(initialAccent);
-    applySurfaceTheme(initialSurface);
     applyAccentTheme(initialAccent);
 
     const sync = (event: StorageEvent) => {
-      if (event.key === SURFACE_KEY) {
-        const next = event.newValue === "cream" ? "cream" : "dark";
-        setSurface(next);
-        applySurfaceTheme(next);
-      }
       if (event.key === ACCENT_KEY && isAccent(event.newValue)) {
         setAccent(event.newValue);
         applyAccentTheme(event.newValue);
@@ -75,45 +67,16 @@ export function ThemePicker({ onAccentChange }: ThemePickerProps) {
     return () => window.removeEventListener("storage", sync);
   }, []);
 
-  function chooseSurface(next: SurfaceTheme) {
-    setSurface(next);
-    applySurfaceTheme(next);
-    localStorage.setItem(SURFACE_KEY, next);
-  }
-
   function chooseAccent(next: AccentTheme) {
     setAccent(next);
     applyAccentTheme(next);
     localStorage.setItem(ACCENT_KEY, next);
+    setBullToken((token) => token + 1);
     onAccentChange?.(next);
   }
 
   return (
-    <div className="theme-picker" role="group" aria-label="Appearance">
-      <div className="theme-picker-surfaces" role="group" aria-label="Surface">
-        <button
-          type="button"
-          className="theme-picker-surface"
-          aria-pressed={surface === "dark"}
-          aria-label="Dark surface"
-          title="Dark"
-          onClick={() => chooseSurface("dark")}
-        >
-          <Moon size={14} aria-hidden="true" />
-          <span>Dark</span>
-        </button>
-        <button
-          type="button"
-          className="theme-picker-surface"
-          aria-pressed={surface === "cream"}
-          aria-label="Cream surface"
-          title="Cream"
-          onClick={() => chooseSurface("cream")}
-        >
-          <Sun size={14} aria-hidden="true" />
-          <span>Cream</span>
-        </button>
-      </div>
+    <>
       <div className="theme-picker-accents" role="radiogroup" aria-label="Accent color">
         {ACCENT_OPTIONS.map((option) => (
           <button
@@ -130,11 +93,47 @@ export function ThemePicker({ onAccentChange }: ThemePickerProps) {
           />
         ))}
       </div>
-    </div>
+      <RunningBull playToken={bullToken} />
+    </>
   );
 }
 
-/** @deprecated Prefer ThemePicker — kept as a thin alias for older imports. */
 export function ThemeToggle() {
-  return <ThemePicker />;
+  const [surface, setSurface] = useState<SurfaceTheme>("dark");
+
+  useEffect(() => {
+    const initial = document.documentElement.dataset.theme === "cream" ? "cream" : "dark";
+    setSurface(initial);
+    applySurfaceTheme(initial);
+
+    const sync = (event: StorageEvent) => {
+      if (event.key !== SURFACE_KEY) return;
+      const next = event.newValue === "cream" ? "cream" : "dark";
+      setSurface(next);
+      applySurfaceTheme(next);
+    };
+    window.addEventListener("storage", sync);
+    return () => window.removeEventListener("storage", sync);
+  }, []);
+
+  function toggleSurface() {
+    const next = surface === "cream" ? "dark" : "cream";
+    setSurface(next);
+    applySurfaceTheme(next);
+    localStorage.setItem(SURFACE_KEY, next);
+  }
+
+  const nextLabel = surface === "cream" ? "Use dark theme" : "Use light theme";
+  return (
+    <button
+      type="button"
+      className="theme-toggle"
+      aria-label={nextLabel}
+      title={nextLabel}
+      onClick={toggleSurface}
+    >
+      {surface === "cream" ? <Moon size={15} aria-hidden="true" /> : <Sun size={15} aria-hidden="true" />}
+      <span>{surface === "cream" ? "Dark" : "Light"}</span>
+    </button>
+  );
 }

@@ -1,3 +1,3 @@
 "use client";
 
-export { ThemePicker as ThemeToggle, ThemePicker } from "@/components/ThemePicker";
+export { ThemeToggle } from "@/components/ThemePicker";

@@ -10,8 +10,8 @@ describe("Pulse API stays lean and cached", () => {
     const route = read("src/app/api/market/pulse/route.ts");
 
     expect(route).toContain("unstable_cache");
-    expect(route).toContain("market-pulse-v2");
-    expect(route).toContain("s-maxage=300");
+    expect(route).toContain("market-pulse-v3");
+    expect(route).toContain("s-maxage=60");
     expect(route).toContain("export const revalidate = 300");
     expect(route).not.toContain("force-dynamic");
 
@@ -38,7 +38,7 @@ describe("Pulse API stays lean and cached", () => {
   });
 
   it("Pulse page only consumes scoreboard fields from the lean payload", () => {
-    const page = read("src/app/pulse/page.tsx");
+    const page = read("src/components/market/PulseDashboard.tsx");
     expect(page).toContain("data.indicators");
     expect(page).toContain("data?.globalMarkets");
     expect(page).toContain("data?.sectors");
