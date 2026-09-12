@@ -41,7 +41,7 @@ describe("embed widgets", () => {
     );
     expect(styles).toMatch(/\.pulse-gauges\s*{[^}]*display:\s*grid/);
     expect(styles).toMatch(
-      /\.pulse-dashboard\s*{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*gap:\s*1\.5rem/s,
+      /\.pulse-dashboard\s*{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;[^}]*gap:\s*2rem/s,
     );
     expect(styles).toMatch(
       /\.pulse-gauge-arc,\s*\.pulse-gauge-readout\s*{[^}]*grid-area:\s*1\s*\/\s*1/s,
