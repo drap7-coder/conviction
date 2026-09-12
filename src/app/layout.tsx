@@ -13,6 +13,7 @@ import {
   SITE_OG_IMAGE,
   SITE_TITLE,
   SITE_URL,
+  absoluteUrl,
 } from "@/lib/site";
 import { siteJsonLd } from "@/lib/seo";
 
@@ -39,19 +40,18 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   category: "finance",
-  // Stable /favicon.png first for Google SERP (48px+). App Router still emits
-  // icon.png / apple-icon.png from file conventions; favicon.ico lives in
-  // public/ for browser auto-discovery without preempting the PNG links.
+  // Absolute 48px+ PNGs first so Googlebot resolves the mark without relying
+  // on relative discovery. favicon.ico stays in public/ for browser defaults.
   icons: {
     icon: [
-      { url: "/favicon.png", sizes: "48x48", type: "image/png" },
-      { url: "/favicon-48.png", sizes: "48x48", type: "image/png" },
-      { url: "/favicon-96.png", sizes: "96x96", type: "image/png" },
-      { url: "/favicon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },
-      { url: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+      { url: absoluteUrl("/favicon.png"), sizes: "48x48", type: "image/png" },
+      { url: absoluteUrl("/favicon-48.png"), sizes: "48x48", type: "image/png" },
+      { url: absoluteUrl("/favicon-96.png"), sizes: "96x96", type: "image/png" },
+      { url: absoluteUrl("/favicon-192.png"), sizes: "192x192", type: "image/png" },
+      { url: absoluteUrl("/icon.png"), sizes: "512x512", type: "image/png" },
+      { url: absoluteUrl("/favicon.ico"), sizes: "48x48", type: "image/x-icon" },
     ],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    apple: [{ url: absoluteUrl("/apple-icon.png"), sizes: "180x180", type: "image/png" }],
   },
   robots: {
     index: true,

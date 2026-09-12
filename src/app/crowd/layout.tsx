@@ -5,7 +5,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Crowd",
   description:
-    "See which names members hold and watch most often — a simple aggregate across IQBulls books.",
+    "Campus standings and head-to-head. Lock your pick, track your school’s score, and see who’s winning this week — competitive fun, not advice.",
   path: "/crowd",
 });
 

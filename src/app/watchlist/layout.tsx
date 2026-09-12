@@ -6,7 +6,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Watchlist",
   description:
-    "Follow the names you care about on Portfolio — today’s dollar and percent moves in one quote board.",
+    "Follow the tickers that matter with today’s dollar and percent moves — open any name for quote, chart, and context.",
   path: "/portfolio?view=watchlist",
   index: false,
 });

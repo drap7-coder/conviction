@@ -4,36 +4,36 @@
  */
 
 export const PRODUCT_ONE_LINER =
-  "Raising your market IQ — Pulse, Crowd, Portfolio, and News.";
+  "See the tape, campus conviction, and your book in one free workspace.";
 
 export const PRODUCT_ABOUT_LEDE =
-  "IQBulls raises your market IQ: the tape, the crowd, your book, and the stories that matter.";
+  "IQBulls is built to raise your market IQ in practice: check what’s moving, see what your campus is picking, and keep your portfolio and watchlist honest — with news that ties back to the names you care about.";
 
 export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string }> = [
   {
     name: "Pulse",
     href: "/pulse",
-    blurb: "Markets, movers, crypto, and intl — slicer at the top of the home screen.",
+    blurb: "Read the tape fast — indexes, movers, crypto, and intl on one home screen.",
   },
   {
     name: "Crowd",
     href: "/crowd",
-    blurb: "Campus head-to-head, standings, and My Pick — slicer at the top of Crowd.",
+    blurb: "Make your campus pick, track standings, and see who’s winning head-to-head.",
   },
   {
     name: "Portfolio",
     href: "/portfolio",
-    blurb: "Live book, Watchlist, and Study — slicer on Portfolio.",
+    blurb: "Know today’s move, sector mix, and concentration on the book you actually hold.",
   },
   {
     name: "Watchlist",
     href: "/portfolio?view=watchlist",
-    blurb: "The names you follow — on Portfolio behind the Live / Watchlist / Study slicer.",
+    blurb: "Follow the tickers that matter and jump straight into quote and context.",
   },
   {
     name: "News",
     href: "/news",
-    blurb: "A featured brief and the themes that matter, not a wire dump.",
+    blurb: "A featured brief plus themes — skim what matters, not an endless wire.",
   },
 ];
 
@@ -47,7 +47,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is IQBulls?",
     answer:
-      "IQBulls raises your market IQ. Pulse, Crowd, your portfolio and watchlist, and news — organized around you, not a single research feature.",
+      "IQBulls is a free market workspace. Use Pulse for the live tape, Crowd for campus picks and standings, Portfolio for your book and watchlist, and News for briefs that connect to the names you follow — not a single research gimmick.",
   },
   {
     question: "What is Pulse?",
