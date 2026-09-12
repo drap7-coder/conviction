@@ -10,6 +10,7 @@ import { PortfolioDataProvider } from "@/components/PortfolioData";
 import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import { GroupSettingsPanel } from "@/components/GroupPanels";
+import { AccentPicker } from "@/components/ThemePicker";
 
 export type ManageView = "watchlist" | "portfolio" | "groups";
 
@@ -146,6 +147,25 @@ function ManageWorkspaceInner({
           />
         </header>
       </div>
+
+      <section className="manage-personalize surface-shell" aria-labelledby="manage-personalize-title">
+        <div className="manage-personalize-copy">
+          <p className="data-manager-eyebrow">Personalize</p>
+          <h2 id="manage-personalize-title">Make IQBulls yours.</h2>
+          <p>
+            Choose an accent for navigation and highlights. Market gains, losses,
+            and session signals keep their financial meaning.
+          </p>
+        </div>
+        <div className="manage-personalize-control">
+          <AccentPicker />
+          <div className="manage-accent-preview" aria-hidden="true">
+            <span />
+            <strong>IQBulls</strong>
+            <small>Personalized across every page</small>
+          </div>
+        </div>
+      </section>
 
       <div
         id="manage-panel-watchlist"

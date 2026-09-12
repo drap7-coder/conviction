@@ -6,7 +6,7 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 describe("daily workspace orientation", () => {
   it("uses one shared at-a-glance pattern across daily surfaces", () => {
     for (const file of [
-      "src/app/pulse/page.tsx",
+      "src/components/market/PulseDashboard.tsx",
       "src/components/CrowdBoard.tsx",
       "src/components/Portfolio.tsx",
       "src/components/market/PulseNewsFeed.tsx",

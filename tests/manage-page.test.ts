@@ -22,6 +22,8 @@ describe("data management workspace", () => {
     expect(workspace).toContain('<Watchlist mode="manage" />');
     expect(workspace).toContain("<PortfolioManager />");
     expect(workspace).toContain("SurfaceSlicer");
+    expect(workspace).toContain("AccentPicker");
+    expect(workspace).toContain("Make IQBulls yours.");
     expect(workspace).toContain('id: "watchlist"');
     expect(workspace).toContain('id: "portfolio"');
     expect(workspace).toContain('params.set("view", next)');
