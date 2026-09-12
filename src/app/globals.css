@@ -1492,9 +1492,21 @@ button.bottom-tab-item {
 }
 
 .app-logo {
-  outline: 1.5px solid color-mix(in srgb, var(--group-accent) 42%, transparent);
-  outline-offset: 2px;
-  border-radius: 10px;
+  outline: none;
+  border-radius: 0;
+  transition: filter 160ms ease, opacity 160ms ease;
+}
+
+.app-brand:hover .app-logo,
+.app-brand:focus-visible .app-logo {
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14))
+    drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 28%, transparent));
+}
+
+.app-brand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 8px;
 }
 
 .app-title {
@@ -17339,19 +17351,23 @@ a.pulse-news-narrative-title:focus-visible {
 
 .session-quote-tag {
   align-self: center;
-  padding: 2px 5px;
+  padding: 2px 6px;
   border-radius: 999px;
-  background: currentColor;
-  color: var(--on-accent);
-  font-size: 0.48rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
-  line-height: 1.1;
+  /* Explicit fill/ink — do NOT use currentColor here. currentColor resolves to
+     this element's own color (--on-accent), which made AH/PRE invisible. */
+  background: color-mix(in srgb, var(--ink) 82%, transparent);
+  color: var(--bg);
+  border: 1px solid color-mix(in srgb, var(--ink) 18%, var(--border));
+  font-size: 0.625rem; /* 10px */
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  line-height: 1.15;
+  text-transform: uppercase;
 }
 
 .session-quote-change.is-up,
 .session-quote-extended.is-up {
-  color: var(--accent);
+  color: var(--green);
 }
 
 .session-quote-change.is-down,
@@ -20548,4 +20564,263 @@ input.has-mic {
   color: #fecaca;
   background: color-mix(in srgb, var(--red) 24%, transparent);
   border-color: color-mix(in srgb, var(--red) 50%, transparent);
+}
+
+/* ── Pulse SEO intro / about (server-rendered, compact) ── */
+.pulse-seo-intro {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+  max-width: 46rem;
+}
+
+.pulse-product-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pulse-seo-intro h1 {
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.pulse-seo-lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.pulse-index-board-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  min-width: 0;
+}
+
+.pulse-index-board-title-row h2 {
+  margin: 0;
+}
+
+.pulse-about {
+  margin: 28px 0 8px;
+  padding: 16px 0 4px;
+  border-top: 1px solid var(--border);
+  max-width: 46rem;
+}
+
+.pulse-about h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.pulse-about-copy {
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.pulse-about-copy a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.pulse-about-copy a:hover {
+  color: color-mix(in srgb, var(--accent) 80%, var(--ink));
+}
+
+/* ── Decorative accent themes (do not retint --green/--red) ── */
+html[data-accent="green"] {
+  --accent: #2dd4bf;
+  --accent-dim: rgba(45, 212, 191, 0.14);
+  --on-accent: #04121a;
+}
+
+html[data-accent="blue"] {
+  --accent: #3b82f6;
+  --accent-dim: rgba(59, 130, 246, 0.16);
+  --on-accent: #04121a;
+}
+
+html[data-accent="violet"] {
+  --accent: #8b5cf6;
+  --accent-dim: rgba(139, 92, 246, 0.16);
+  --on-accent: #0a0614;
+}
+
+html[data-accent="pink"] {
+  --accent: #ec4899;
+  --accent-dim: rgba(236, 72, 153, 0.16);
+  --on-accent: #14040c;
+}
+
+html[data-accent="mono"] {
+  --accent: #94a3b8;
+  --accent-dim: rgba(148, 163, 184, 0.16);
+  --on-accent: #0a0e14;
+}
+
+html[data-theme="cream"][data-accent="green"] {
+  --accent: #087f72;
+  --accent-dim: rgba(8, 127, 114, 0.11);
+  --on-accent: #fafff8;
+}
+
+html[data-theme="cream"][data-accent="blue"] {
+  --accent: #1d4ed8;
+  --accent-dim: rgba(29, 78, 216, 0.12);
+  --on-accent: #f8fbff;
+}
+
+html[data-theme="cream"][data-accent="violet"] {
+  --accent: #6d28d9;
+  --accent-dim: rgba(109, 40, 217, 0.12);
+  --on-accent: #faf8ff;
+}
+
+html[data-theme="cream"][data-accent="pink"] {
+  --accent: #be185d;
+  --accent-dim: rgba(190, 24, 93, 0.12);
+  --on-accent: #fff7fb;
+}
+
+html[data-theme="cream"][data-accent="mono"] {
+  --accent: #475569;
+  --accent-dim: rgba(71, 85, 105, 0.12);
+  --on-accent: #f8fafc;
+}
+
+.theme-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.theme-picker-surfaces {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.theme-picker-surface {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.theme-picker-surface[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--accent-dim);
+  color: var(--ink);
+}
+
+.theme-picker-accents {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.theme-picker-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  background: var(--swatch, var(--accent));
+  cursor: pointer;
+  padding: 0;
+}
+
+.theme-picker-swatch[aria-pressed="true"] {
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--accent);
+}
+
+.theme-picker-swatch:focus-visible,
+.theme-picker-surface:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .theme-picker {
+    gap: 6px;
+  }
+
+  .theme-picker-surface span {
+    display: none;
+  }
+}
+
+/* ── Running bull (accent-change delight) ── */
+.running-bull-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.running-bull {
+  position: absolute;
+  bottom: clamp(72px, 18vh, 160px);
+  left: -20vw;
+  width: clamp(88px, 14vw, 140px);
+  height: auto;
+  opacity: 0;
+  transform: translate3d(0, 0, 0);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.28));
+}
+
+.running-bull.is-running {
+  animation: running-bull-dash 1.25s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+@keyframes running-bull-dash {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0) scale(0.92);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(120vw, -6px, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .running-bull.is-running {
+    animation: none;
+    opacity: 0;
+  }
+
+  .app-brand:hover .app-logo,
+  .app-brand:focus-visible .app-logo {
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.14));
+  }
 }

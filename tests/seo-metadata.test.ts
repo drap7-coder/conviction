@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { breadcrumbJsonLd, pageMetadata, siteJsonLd } from "@/lib/seo";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_TAGLINE, SITE_TITLE, SITE_URL } from "@/lib/site";
+import { PULSE_DESCRIPTION, PULSE_OG_TITLE, PULSE_TITLE, SITE_DESCRIPTION, SITE_NAME, SITE_OG_IMAGE, SITE_TAGLINE, SITE_TITLE, SITE_URL } from "@/lib/site";
 import sitemap from "@/app/sitemap";
 import { listMarketInstruments } from "@/lib/market/market-instruments";
 import { SECTORS } from "@/lib/market/industries";
@@ -68,14 +68,15 @@ describe("SEO metadata", () => {
     expect(urls).not.toContain(`${SITE_URL}/`);
     expect(urls).toContain(`${SITE_URL}/pulse`);
     expect(urls).toContain(`${SITE_URL}/portfolio`);
-    expect(urls).toContain(`${SITE_URL}/portfolio?view=watchlist`);
+    expect(urls).not.toContain(`${SITE_URL}/portfolio?view=watchlist`);
     expect(urls).not.toContain(`${SITE_URL}/watchlist`);
     expect(urls).toContain(`${SITE_URL}/news`);
     expect(urls).toContain(`${SITE_URL}/crowd`);
     expect(urls).not.toContain(`${SITE_URL}/smart-money`);
-    expect(urls).toContain(`${SITE_URL}/pulse?view=international`);
-    expect(urls).toContain(`${SITE_URL}/pulse?view=crypto`);
-    expect(urls).toContain(`${SITE_URL}/pulse?view=movers`);
+    // Pulse tabs canonicalize to /pulse — keep query URLs out of the sitemap.
+    expect(urls).not.toContain(`${SITE_URL}/pulse?view=international`);
+    expect(urls).not.toContain(`${SITE_URL}/pulse?view=crypto`);
+    expect(urls).not.toContain(`${SITE_URL}/pulse?view=movers`);
     expect(urls).not.toContain(`${SITE_URL}/pulse?view=commodities`);
     expect(urls).not.toContain(`${SITE_URL}/pulse?view=sectors`);
     expect(urls).toContain(`${SITE_URL}/about`);
@@ -137,6 +138,8 @@ describe("SEO metadata", () => {
   it("publishes Organization, WebSite, and SoftwareApplication JSON-LD plus breadcrumbs", () => {
     const site = siteJsonLd();
     expect(JSON.stringify(site)).toContain("Organization");
+    expect(JSON.stringify(site)).toContain("#organization");
+    expect(JSON.stringify(site)).toContain("#website");
     expect(JSON.stringify(site)).toContain("WebSite");
     expect(JSON.stringify(site)).toContain("SoftwareApplication");
     expect(JSON.stringify(site)).not.toContain("SearchAction");
@@ -198,7 +201,8 @@ describe("SEO metadata", () => {
     expect(read("src/app/portfolio/page.tsx")).toContain('sr-only');
     expect(read("src/app/news/page.tsx")).toContain('sr-only');
     expect(read("src/app/not-found.tsx")).toContain("index: false");
-    expect(read("src/app/pulse/page.tsx")).toContain('sr-only');
+    expect(read("src/app/pulse/page.tsx")).toContain("<h1>");
+    expect(read("src/app/pulse/page.tsx")).toContain("Real-Time Market Dashboard");
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
@@ -228,19 +232,25 @@ describe("SEO metadata", () => {
     expect(existsSync(new URL("../public/iqbulls-share.png", import.meta.url))).toBe(true);
   });
 
-  it("uses the brand title on Pulse so Google and SMS cards are not Pulse · IQBulls", () => {
+  it("uses Pulse-specific SERP title/description and a server-rendered About block", () => {
     const meta = pageMetadata({
-      title: SITE_TITLE,
-      description: SITE_DESCRIPTION,
+      title: PULSE_TITLE,
+      description: PULSE_DESCRIPTION,
       path: "/pulse",
       absoluteTitle: true,
+      openGraphTitle: PULSE_OG_TITLE,
     });
 
-    expect(meta.title).toEqual({ absolute: SITE_TITLE });
-    expect(meta.openGraph?.title).toBe(SITE_TITLE);
-    expect(meta.twitter?.title).toBe(SITE_TITLE);
-    expect(meta.openGraph?.description).toBe(SITE_DESCRIPTION);
+    expect(meta.title).toEqual({ absolute: PULSE_TITLE });
+    expect(meta.openGraph?.title).toBe(PULSE_OG_TITLE);
+    expect(meta.twitter?.title).toBe(PULSE_OG_TITLE);
+    expect(meta.openGraph?.description).toBe(PULSE_DESCRIPTION);
     expect(read("src/app/pulse/layout.tsx")).toContain("absoluteTitle: true");
-    expect(read("src/app/pulse/layout.tsx")).toContain("SITE_TITLE");
+    expect(read("src/app/pulse/layout.tsx")).toContain("PULSE_TITLE");
+    expect(read("src/app/pulse/layout.tsx")).toContain("PULSE_DESCRIPTION");
+    expect(read("src/app/pulse/layout.tsx")).toContain("pulsePageJsonLd");
+    expect(read("src/app/pulse/page.tsx")).toContain("Real-Time Market Dashboard");
+    expect(read("src/app/pulse/page.tsx")).toContain("PulseAbout");
+    expect(read("src/components/market/PulseAbout.tsx")).toContain("About IQBulls Pulse");
   });
 });

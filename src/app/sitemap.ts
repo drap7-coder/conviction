@@ -4,91 +4,25 @@ import { listMarketInstruments } from "@/lib/market/market-instruments";
 import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { SITE_URL } from "@/lib/site";
 
+/**
+ * Sitemap lists canonical URLs only.
+ * Pulse `?view=` tabs and Portfolio watchlist view canonicalize to their
+ * parent routes, so they are omitted to avoid duplicate URL discovery.
+ */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
   const staticRoutes: MetadataRoute.Sitemap = [
-    {
-      // Canonical home. Do not list `${SITE_URL}/` — it 308s to /pulse and
-      // Google prefers sitemap URLs that do not redirect.
-      url: `${SITE_URL}/pulse`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 1,
-    },
-    {
-      url: `${SITE_URL}/crowd`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/portfolio?view=watchlist`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.85,
-    },
-    {
-      url: `${SITE_URL}/news`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.9,
-    },
-    {
-      url: `${SITE_URL}/pulse?view=movers`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/pulse?view=crypto`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/pulse?view=international`,
-      lastModified: now,
-      changeFrequency: "hourly",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/portfolio`,
-      lastModified: now,
-      changeFrequency: "daily",
-      priority: 0.8,
-    },
-    {
-      url: `${SITE_URL}/about`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/faq`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.5,
-    },
-    {
-      url: `${SITE_URL}/privacy`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${SITE_URL}/terms`,
-      lastModified: now,
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
+    { url: `${SITE_URL}/pulse` },
+    { url: `${SITE_URL}/crowd` },
+    { url: `${SITE_URL}/news` },
+    { url: `${SITE_URL}/portfolio` },
+    { url: `${SITE_URL}/about` },
+    { url: `${SITE_URL}/faq` },
+    { url: `${SITE_URL}/privacy` },
+    { url: `${SITE_URL}/terms` },
   ];
 
   const sectorRoutes: MetadataRoute.Sitemap = SECTORS.map((sector) => ({
     url: `${SITE_URL}/industries/${sector.ticker}`,
-    lastModified: now,
-    changeFrequency: "daily",
-    priority: 0.7,
   }));
 
   const companyTickers = new Set([
@@ -100,9 +34,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     .sort()
     .map((ticker) => ({
       url: `${SITE_URL}/companies/${encodeURIComponent(ticker)}`,
-      lastModified: now,
-      changeFrequency: "daily" as const,
-      priority: 0.6,
     }));
 
   return [...staticRoutes, ...sectorRoutes, ...companyRoutes];

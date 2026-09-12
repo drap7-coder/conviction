@@ -29,6 +29,15 @@ export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
 export const SITE_DESCRIPTION =
   "See what’s moving on Pulse, make your campus Crowd pick, and manage your portfolio and watchlist — free market context for the names you care about.";
 
+/** Pulse-only SERP / share copy (homepage canonical). */
+export const PULSE_TITLE =
+  "Real-Time Market Dashboard: Stocks, Sectors & Crypto | IQBulls";
+export const PULSE_OG_TITLE = "Real-Time Market Dashboard | IQBulls";
+export const PULSE_DESCRIPTION =
+  "Track the stock market today with live indexes, market movers, sectors, commodities, crypto, volatility and Treasury yields—all in one free dashboard.";
+/** Stable JSON-LD name for the Pulse WebPage entity. */
+export const PULSE_WEBPAGE_NAME = "Real-Time Market Dashboard";
+
 export const SITE_OG_IMAGE = {
   // Canonical share card. Do not reintroduce /iqbulls-og.png — scrapers cache that stale path.
   url: "/iqbulls-share.png",

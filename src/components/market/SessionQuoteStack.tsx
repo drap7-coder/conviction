@@ -94,7 +94,7 @@ export function SessionQuoteStack({
       <span className={`session-quote-change tnum is-${promoteExtended ? primaryTone : tone}`}>
         <span>{fmtSignedDollar(primaryChange)}</span>
         <span>{fmtPercent(primaryChangePercent, 2)}</span>
-        {promoteExtended ? <b className="session-quote-tag">{extendedLabel === "Pre-Market" ? "PRE" : "AH"}</b> : null}
+        {promoteExtended ? <span className="session-quote-tag" aria-label={extendedLabel === "Pre-Market" ? "Pre-Market" : "After Hours"}>{extendedLabel === "Pre-Market" ? "PRE" : "AH"}</span> : null}
       </span>
       {promoteExtended ? (
         <span className="session-quote-reference tnum">
