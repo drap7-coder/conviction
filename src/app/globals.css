@@ -860,6 +860,19 @@ a.market-tape-item:focus-visible {
   }
 }
 
+.embed-code { position:relative;color:var(--muted);font:700 .62rem var(--font-mono); }
+.embed-code summary { cursor:pointer;list-style:none;padding:5px 9px;border:1px solid var(--border);border-radius:999px; }
+.embed-code-panel { position:absolute;right:0;z-index:20;display:grid;gap:8px;width:min(360px,80vw);padding:10px;border:1px solid var(--border);border-radius:10px;background:var(--card);box-shadow:var(--shadow-md); }
+.embed-code-panel code { overflow-wrap:anywhere;color:var(--muted);font-size:.58rem; }
+.embed-code-options { display:grid;grid-template-columns:1fr 1fr;gap:8px; }.embed-code-options label { display:grid;gap:3px; }.embed-code-options select { min-width:0;padding:5px;border:1px solid var(--border);border-radius:6px;background:var(--card-inset);color:var(--ink); }.embed-code-panel iframe { display:block;border:0;border-radius:8px;background:var(--bg); }
+.embed-code-panel button { justify-self:end;padding:6px 9px;border:1px solid var(--border);border-radius:8px;background:var(--accent);color:var(--on-accent);font:700 .62rem var(--font-mono);cursor:pointer; }
+.pulse-gauges { position:relative; }.pulse-gauge-tools { display:flex;justify-content:flex-end;gap:6px;margin-bottom:-24px;position:relative;z-index:2; }
+.company-quote-embed { display:flex;justify-content:flex-end; }
+.company-seo-snapshot,.sentiment-poll { display:grid;gap:8px;padding:18px;border:1px solid var(--border);border-radius:16px;background:var(--card); }
+.company-seo-snapshot h2,.sentiment-poll h2 { margin:0;color:var(--ink);font-size:1rem; }.company-seo-snapshot p,.sentiment-poll p { margin:0;color:var(--muted);font-size:.82rem;line-height:1.55; }
+.sentiment-actions { display:flex;flex-wrap:wrap;gap:8px; }.sentiment-actions button { min-height:34px;padding:7px 13px;border:1px solid var(--border);border-radius:999px;background:var(--card-inset);color:var(--ink);font:700 .7rem var(--font-mono);cursor:pointer; }.sentiment-actions button.is-selected { border-color:var(--accent);background:var(--accent-dim);color:var(--accent); }.sentiment-actions button:disabled { opacity:.6;cursor:wait; }
+.sentiment-result { display:grid;gap:5px; }.sentiment-result>div { height:7px;overflow:hidden;border-radius:999px;background:var(--red-dim); }.sentiment-result i { display:block;height:100%;border-radius:inherit;background:var(--green); }.sentiment-sync a { color:var(--accent);font-weight:700; }
+
 /* ── Bottom Tab Bar (mobile) ── */
 
 .header-search {

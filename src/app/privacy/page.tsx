@@ -19,7 +19,7 @@ export default function PrivacyPage() {
           IQBulls collects only what it needs to sign you in, sync the lists you choose,
           and run the product.
         </p>
-        <span className={styles.updated}>Effective August 24, 2026</span>
+        <span className={styles.updated}>Effective September 12, 2026</span>
       </header>
 
       <section className={styles.section}>
@@ -37,6 +37,11 @@ export default function PrivacyPage() {
             <strong>Essential technical data:</strong> session cookies and limited service
             logs used to keep the app secure and reliable.
           </li>
+          <li>
+            <strong>Daily sentiment:</strong> bullish or bearish votes, plus a one-way,
+            day-specific identifier used to limit duplicate voting. IQBulls does not store
+            the raw network address with the vote.
+          </li>
         </ul>
       </section>
 
@@ -44,8 +49,9 @@ export default function PrivacyPage() {
         <h2>How we use it</h2>
         <p>
           We use this information to authenticate you, sync your watchlist and portfolio
-          across devices, protect the service, diagnose errors, and improve IQBulls. We do
-          not sell your personal information or use your Google data for advertising.
+          across devices, aggregate daily market sentiment, protect the service, diagnose
+          errors, and improve IQBulls. We do not sell your personal information or use your
+          Google data for advertising.
         </p>
       </section>
 

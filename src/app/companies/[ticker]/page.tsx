@@ -1,23 +1,27 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CompanyQuoteCard } from "@/app/components/CompanyQuoteCard";
 import { CompanyEvidenceCard } from "@/app/components/CompanyEvidenceCard";
 import { RelatedCompanies } from "@/app/components/RelatedCompanies";
 import { CompanyDashboard } from "@/app/components/company-dashboard";
-import { SEED_WATCHLIST } from "@/lib/watchlist/types";
 import { validateTicker } from "@/lib/watchlist/validate";
-import { getMarketInstrument, listMarketInstruments } from "@/lib/market/market-instruments";
-import { getSectorByTicker, getSectorForCompany } from "@/lib/market/industries";
+import { getMarketInstrument } from "@/lib/market/market-instruments";
+import { listSeoTickers } from "@/lib/seo-tickers";
+import {
+  getSectorByTicker,
+  getSectorForCompany,
+} from "@/lib/market/industries";
 import { getLogoUrl } from "@/lib/market/logos";
 import type { Metadata } from "next";
 import { SITE_NAME, SITE_URL } from "@/lib/site";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
+import { fetchStockQuotes } from "@/lib/market/quotes";
+import { CompanySeoSnapshot } from "@/components/CompanySeoSnapshot";
+import { SentimentPoll } from "@/components/SentimentPoll";
 import "@/app/dashboard.css";
 
 export async function generateStaticParams() {
-  const seed = SEED_WATCHLIST.map((entry) => ({ ticker: entry.ticker }));
-  const markets = listMarketInstruments().map((entry) => ({ ticker: entry.ticker }));
-  return [...seed, ...markets];
+  return listSeoTickers().map((ticker) => ({ ticker }));
 }
 
 export async function generateMetadata({
@@ -28,18 +32,24 @@ export async function generateMetadata({
   const { ticker } = await params;
   const upperTicker = ticker.toUpperCase();
   const resolvedCompany = await validateTicker(upperTicker);
+  if (!resolvedCompany.valid)
+    return pageMetadata({
+      title: `${upperTicker} Market Overview`,
+      description: "This market page is unavailable.",
+      path: `/companies/${encodeURIComponent(upperTicker)}`,
+      index: false,
+    });
   const companyName = resolvedCompany.companyName ?? upperTicker;
   const isMarketInstrument = resolvedCompany.source === "market_instrument";
 
-  const title = `${companyName} (${upperTicker})`;
-  const description = isMarketInstrument
-    ? `Price, chart, and news for ${companyName} (${upperTicker}) on IQBulls.`
-    : `Live quote, news, and company detail for ${companyName} (${upperTicker}) on IQBulls.`;
+  const title = `${companyName} Stock Price, Chart & Market Overview (${upperTicker}) | IQBulls`;
+  const description = `View the latest ${companyName} (${upperTicker}) price, market-session movement, chart, volatility context, key metrics and recent news on IQBulls.`;
 
   return pageMetadata({
     title,
     description,
     path: `/companies/${encodeURIComponent(upperTicker)}`,
+    absoluteTitle: true,
   });
 }
 
@@ -50,6 +60,8 @@ export default async function CompanyPage({
 }) {
   const { ticker } = await params;
   const upperTicker = ticker.toUpperCase();
+  if (ticker !== upperTicker)
+    redirect(`/companies/${encodeURIComponent(upperTicker)}`);
   const resolvedCompany = await validateTicker(upperTicker);
   if (!resolvedCompany.valid) notFound();
   const companyName = resolvedCompany.companyName ?? upperTicker;
@@ -61,21 +73,23 @@ export default async function CompanyPage({
   const sectorName = isMarketInstrument
     ? (marketInstrument?.tag ?? "Market")
     : (sector?.name ?? null);
+  const quote = (await fetchStockQuotes([upperTicker]))[0] ?? null;
 
   const path = `/companies/${encodeURIComponent(upperTicker)}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
+    "@id": `${SITE_URL}${path}#webpage`,
     name: `${companyName} (${upperTicker}) · ${SITE_NAME}`,
     url: `${SITE_URL}${path}`,
     description: isMarketInstrument
       ? `Price, chart, and news for ${companyName} (${upperTicker}).`
       : `Today’s move and catalyst news for ${companyName} (${upperTicker}).`,
-    mainEntity: {
-      "@type": isMarketInstrument ? "InvestmentFund" : "Corporation",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    about: {
+      "@type": "Thing",
       name: companyName,
       identifier: upperTicker,
-      url: `${SITE_URL}${path}`,
     },
   };
   const breadcrumbs = breadcrumbJsonLd([
@@ -119,8 +133,8 @@ export default async function CompanyPage({
               <section className="company-market-scope">
                 <span>Price + news view</span>
                 <p>
-                  Filing-based signal reads do not apply to this market instrument. Use the
-                  live tape and catalyst feed below.
+                  Filing-based signal reads do not apply to this market
+                  instrument. Use the live tape and catalyst feed below.
                 </p>
               </section>
             ) : null}
@@ -133,6 +147,13 @@ export default async function CompanyPage({
               />
             </div>
             <RelatedCompanies ticker={upperTicker} sectorName={sectorName} />
+            <CompanySeoSnapshot
+              ticker={upperTicker}
+              name={companyName}
+              sector={sectorName}
+              quote={quote}
+            />
+            <SentimentPoll ticker={upperTicker} />
           </>
         }
       />

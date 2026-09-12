@@ -28,6 +28,14 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/embed/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, follow" },
+          { key: "Content-Security-Policy", value: "frame-ancestors *" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+      {
         // Public APIs may be fetched by Googlebot for rendering client pages,
         // but must never appear as indexed documents.
         source: "/api/:path*",
@@ -36,15 +44,30 @@ const nextConfig: NextConfig = {
       {
         // Stable favicon caching helps Google keep the SERP mark after crawl.
         source: "/favicon.ico",
-        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
       },
       {
         source: "/favicon.png",
-        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
       },
       {
         source: "/favicon-:size.png",
-        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=86400, stale-while-revalidate=604800",
+          },
+        ],
       },
     ];
   },

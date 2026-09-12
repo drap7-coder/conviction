@@ -13,10 +13,14 @@ function read(path: string) {
 
 describe("NCAA school directory", () => {
   it("finds W&M and RPI with stable legacy institution ids", () => {
-    expect(searchNcaaSchools("william")[0]?.institutionId).toBe("institution-wm");
+    expect(searchNcaaSchools("william")[0]?.institutionId).toBe(
+      "institution-wm",
+    );
     expect(searchNcaaSchools("W&M")[0]?.institutionId).toBe("institution-wm");
     expect(searchNcaaSchools("rpi")[0]?.institutionId).toBe("institution-rpi");
-    expect(searchNcaaSchools("Rensselaer")[0]?.institutionId).toBe("institution-rpi");
+    expect(searchNcaaSchools("Rensselaer")[0]?.institutionId).toBe(
+      "institution-rpi",
+    );
   });
 
   it("finds major schools by common names", () => {
@@ -28,7 +32,9 @@ describe("NCAA school directory", () => {
   });
 
   it("returns joinable institution ids for any catalog school", () => {
-    const uva = searchNcaaSchools("virginia").find((row) => row.ncaaId === "virginia");
+    const uva = searchNcaaSchools("virginia").find(
+      (row) => row.ncaaId === "virginia",
+    );
     expect(uva?.institutionId).toBe("institution-virginia");
     expect(catalogInstitutionId("duke")).toBe("institution-duke");
     expect(catalogGroupId("duke")).toBe("group-duke");
@@ -42,38 +48,68 @@ describe("NCAA school directory", () => {
 
 describe("community onboarding wiring", () => {
   it("supports backdrop dismiss, NCAA search, Crowd panel, and Manage Community", () => {
-    expect(read("src/components/GroupPanels.tsx")).toContain("onClick={() => setOpen(false)}");
+    expect(read("src/components/GroupPanels.tsx")).toContain(
+      "onClick={() => setOpen(false)}",
+    );
     expect(read("src/components/GroupPanels.tsx")).toContain("stopPropagation");
     expect(read("src/components/GroupPanels.tsx")).toContain("SchoolTypeahead");
     expect(read("src/components/GroupPanels.tsx")).toContain("onboarding");
     expect(read("src/components/GroupPanels.tsx")).toContain("Theme color");
-    expect(read("src/app/api/institutions/search/route.ts")).toContain("searchInstitutionDirectory");
-    expect(existsSync(new URL("../src/app/api/schools/search/route.ts", import.meta.url))).toBe(false);
-    expect(read("src/components/CrowdCommunityPanel.tsx")).toContain("CommunitySettingsPanel");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("CrowdCommunityPanel");
-    expect(read("src/components/ManageWorkspace.tsx")).toContain('label: "Community"');
-    expect(read("src/app/layout.tsx")).toContain("GroupOnboardingPrompt");
+    expect(read("src/app/api/institutions/search/route.ts")).toContain(
+      "searchInstitutionDirectory",
+    );
+    expect(
+      existsSync(
+        new URL("../src/app/api/schools/search/route.ts", import.meta.url),
+      ),
+    ).toBe(false);
+    expect(read("src/components/CrowdCommunityPanel.tsx")).toContain(
+      "CommunitySettingsPanel",
+    );
+    expect(read("src/components/CrowdBoard.tsx")).toContain(
+      "CrowdCommunityPanel",
+    );
+    expect(read("src/components/ManageWorkspace.tsx")).toContain(
+      'label: "Community"',
+    );
+    expect(read("src/components/AppFrame.tsx")).toContain(
+      "GroupOnboardingPrompt",
+    );
   });
 
   it("auto-applies community schema before groups API writes", () => {
-    expect(read("src/app/api/groups/route.ts")).toContain("ensureCommunitySchema");
-    expect(read("src/lib/db/ensure-community-schema.ts")).toContain("applyMigrations");
+    expect(read("src/app/api/groups/route.ts")).toContain(
+      "ensureCommunitySchema",
+    );
+    expect(read("src/lib/db/ensure-community-schema.ts")).toContain(
+      "applyMigrations",
+    );
   });
 
   it("join action accepts ncaaId and theme color in one step", () => {
     expect(read("src/app/api/groups/route.ts")).toContain("ncaaId");
-    expect(read("src/app/api/groups/route.ts")).toContain("provisionInstitutionFromCatalog");
-    expect(read("src/app/api/groups/route.ts")).toContain("primaryColor: body.primaryColor");
+    expect(read("src/app/api/groups/route.ts")).toContain(
+      "provisionInstitutionFromCatalog",
+    );
+    expect(read("src/app/api/groups/route.ts")).toContain(
+      "primaryColor: body.primaryColor",
+    );
   });
 
   it("join flow provisions canonical community from NCAA id", () => {
-    expect(read("src/components/GroupPanels.tsx")).toContain("ncaaId: pickedSchool.ncaaId");
-    expect(read("src/lib/groups/store.ts")).toContain("provisionInstitutionFromCatalog");
+    expect(read("src/components/GroupPanels.tsx")).toContain(
+      "ncaaId: pickedSchool.ncaaId",
+    );
+    expect(read("src/lib/groups/store.ts")).toContain(
+      "provisionInstitutionFromCatalog",
+    );
   });
 
   it("provisions institutions with id-based upsert for concurrent joins", () => {
     const store = read("src/lib/groups/store.ts");
     expect(store).toContain("on conflict (id) do update set");
-    expect(store).not.toMatch(/provisionInstitutionFromCatalog[\s\S]*on conflict \(slug\)/);
+    expect(store).not.toMatch(
+      /provisionInstitutionFromCatalog[\s\S]*on conflict \(slug\)/,
+    );
   });
 });

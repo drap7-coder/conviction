@@ -5,6 +5,7 @@ import {
   pulseMacroGauges,
   type PulseGaugeCard,
 } from "@/lib/market/pulse-gauges";
+import { EmbedCode } from "@/components/EmbedCode";
 
 const RADIUS = 62;
 const STROKE = 10;
@@ -68,10 +69,20 @@ export function PulseMacroGauges({
   if (cards.length === 0) return null;
 
   return (
-    <section className="pulse-gauge-grid" aria-label="VIX and 10-year yield">
-      {cards.map((card) => (
-        <GaugeCard key={card.id} card={card} />
-      ))}
+    <section className="pulse-gauges" aria-label="VIX and 10-year yield">
+      <div className="pulse-gauge-tools">
+        <EmbedCode path="/embed/vix-gauge" title="IQBulls VIX Gauge" />
+        <EmbedCode
+          path="/embed/macro-snapshot"
+          title="IQBulls Market Snapshot"
+          height={180}
+        />
+      </div>
+      <div className="pulse-gauge-grid">
+        {cards.map((card) => (
+          <GaugeCard key={card.id} card={card} />
+        ))}
+      </div>
     </section>
   );
 }
