@@ -8,6 +8,7 @@ function read(path: string) {
 describe("portfolio Book vs Benchmark ranges", () => {
   it("exposes Today through 1Y chips and refetches by range", () => {
     const chart = read("src/components/PortfolioBenchmarkChart.tsx");
+    const client = read("src/lib/market/client-market-data.ts");
     const css = read("src/app/portfolio.css");
 
     expect(chart).toContain('label: "Today"');
@@ -16,7 +17,8 @@ describe("portfolio Book vs Benchmark ranges", () => {
     expect(chart).toContain('label: "1Y"');
     expect(chart).toContain("pf-benchmark-ranges");
     expect(chart).toContain("setRange");
-    expect(chart).toContain("&range=${encodeURIComponent(range)}");
+    expect(chart).toContain("fetchMarketHistory");
+    expect(client).toContain("&range=${encodeURIComponent(range)}");
     expect(chart).not.toContain(".slice(-15)");
     expect(css).toContain(".pf-benchmark-head");
     expect(css).toContain(".pf-benchmark-ranges");
@@ -33,7 +35,9 @@ describe("portfolio Book vs Benchmark ranges", () => {
     expect(fit).toContain('ticker: "QQQ"');
     expect(fit).toContain('ticker: "SCHD"');
     expect(chart).toContain("benchmarkTicker");
-    expect(chart).toContain("fetchHistory(benchTicker");
+    expect(chart).toContain("benchTicker");
+    expect(chart).toContain("mapPool");
+    expect(chart).toContain("fetchHistory");
     expect(chart).toContain("depth");
     expect(macro).toContain("AreaChart");
     expect(macro).toContain("market-macro-chart--depth");

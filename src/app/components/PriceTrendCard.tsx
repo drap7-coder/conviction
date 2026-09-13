@@ -1,33 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { fetchJsonWithTimeout, type EvidenceStatus } from "./evidence-request";
+import { fetchMarketHistory } from "@/lib/market/client-market-data";
+import type { StockHistory, StockHistoryPoint } from "@/lib/market/quotes";
+import type { EvidenceStatus } from "./evidence-request";
 import { computeSma } from "@/lib/market/technical-state";
 import { inkBoxClass, inkChipClass } from "@/lib/display/ink-tone";
 
 export type TrendRange = "1d" | "1w" | "1m" | "6m" | "1y";
-
-interface StockHistoryPoint {
-  date: string;
-  close: number;
-}
-
-interface StockHistory {
-  ticker: string;
-  range: TrendRange;
-  points: StockHistoryPoint[];
-  startPrice: number | null;
-  endPrice: number | null;
-  change: number | null;
-  changePercent: number | null;
-  fiftyTwoWeekHigh: number | null;
-  fiftyTwoWeekLow: number | null;
-  marketCap: number | null;
-}
-
-interface HistoryResponse {
-  history: StockHistory;
-}
 
 interface PriceTrendCardProps {
   ticker: string;
@@ -155,28 +135,35 @@ export function PriceTrendCard({
   const setRange = onRangeChange ?? setInternalRange;
 
   useEffect(() => {
-    // If external history is provided, skip internal fetch
+    // If external history is provided, skip internal fetch (MarketPanel owns the request).
     if (externalHistory !== undefined) return;
+    let cancelled = false;
     const controller = new AbortController();
 
     async function load() {
       setInternalStatus("loading");
       try {
-        const data = await fetchJsonWithTimeout<HistoryResponse>(
-          `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=${range}`,
-          8_000,
-          controller.signal,
-        );
-        setInternalHistory(data.history);
-        setInternalStatus(data.history.points.length >= 2 ? "success" : "empty");
+        // Shared cache/dedupe — concurrent company cards for the same ticker+range
+        // share one in-flight /api/market/history call.
+        const historyPayload = await fetchMarketHistory(ticker, range, {
+          reason: "initial",
+          signal: controller.signal,
+        });
+        if (cancelled) return;
+        setInternalHistory(historyPayload);
+        setInternalStatus(historyPayload.points.length >= 2 ? "success" : "empty");
       } catch {
+        if (cancelled) return;
         setInternalHistory(null);
         setInternalStatus("error");
       }
     }
 
     void load();
-    return () => controller.abort();
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [ticker, range, externalHistory]);
 
   const geometry = useMemo(
