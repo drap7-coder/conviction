@@ -2,9 +2,14 @@
 
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { MacroChainChart, type MacroChainSeries } from "@/components/market/MacroChainChart";
+import { mapPool } from "@/lib/map-pool";
+import { fetchMarketHistory } from "@/lib/market/client-market-data";
 import type { StockHistoryRange } from "@/lib/market/quotes";
 
 type HistPoint = { date: string; close: number };
+
+/** Cap Yahoo fan-out when a book has many holdings. */
+const HISTORY_FETCH_CONCURRENCY = 4;
 
 const RANGES: Array<{ label: string; value: StockHistoryRange }> = [
   { label: "Today", value: "1d" },
@@ -40,13 +45,11 @@ async function fetchHistory(
   signal: AbortSignal,
 ): Promise<HistPoint[]> {
   try {
-    const res = await fetch(
-      `/api/market/history?ticker=${encodeURIComponent(ticker)}&range=${encodeURIComponent(range)}`,
-      { signal },
-    );
-    if (!res.ok) return [];
-    const data = (await res.json()) as { history?: { points?: HistPoint[] } };
-    return (data.history?.points ?? [])
+    const history = await fetchMarketHistory(ticker, range, {
+      reason: "initial",
+      signal,
+    });
+    return (history.points ?? [])
       .map((point) => ({ date: point.date, close: point.close }))
       .filter((point) => typeof point.close === "number" && Number.isFinite(point.close));
   } catch {
@@ -96,10 +99,12 @@ export function PortfolioBenchmarkChart({
 
     async function load() {
       setStatus("loading");
-      const results = await Promise.all([
-        ...tickers.map((ticker) => fetchHistory(ticker, range, controller.signal)),
-        fetchHistory(benchTicker, range, controller.signal),
-      ]);
+      const allTickers = [...tickers, benchTicker];
+      const results = await mapPool(
+        allTickers,
+        HISTORY_FETCH_CONCURRENCY,
+        (ticker) => fetchHistory(ticker, range, controller.signal),
+      );
       if (cancelled) return;
       const map: Record<string, HistPoint[]> = {};
       tickers.forEach((ticker, index) => {

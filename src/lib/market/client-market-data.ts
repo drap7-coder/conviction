@@ -8,7 +8,7 @@
  */
 
 import { cachedFetch, expireCacheEntry, invalidateCache } from "@/lib/request-cache";
-import type { StockQuote } from "@/lib/market/quotes";
+import type { StockHistory, StockHistoryRange, StockQuote } from "@/lib/market/quotes";
 
 export type MarketFetchReason =
   | "initial"
@@ -20,6 +20,23 @@ export type MarketFetchReason =
 /** Quotes + trending: ~5 min while visible (parity with company dashboard). */
 export const QUOTE_TTL_MS = 5 * 60_000;
 export const TRENDING_TTL_MS = 5 * 60_000;
+
+/** Browser TTL for history — shorter for intraday, longer for multi-month. */
+export function historyClientTtlMs(range: StockHistoryRange): number {
+  if (range === "1d") return 60_000;
+  if (range === "1w") return 5 * 60_000;
+  if (range === "1m") return 30 * 60_000;
+  return 60 * 60_000;
+}
+
+export function marketHistoryUrl(ticker: string, range: StockHistoryRange): string {
+  return `/api/market/history?ticker=${encodeURIComponent(ticker.trim().toUpperCase())}&range=${encodeURIComponent(range)}`;
+}
+
+type HistoryResponse = {
+  history: StockHistory;
+  fetchedAt?: string;
+};
 
 type TrendingPayload = {
   companies: Array<{ ticker: string; quote?: StockQuote; companyName?: string }>;
@@ -103,6 +120,45 @@ export async function fetchMarketTrending(
     signal: options.signal,
   });
   return { companies: data.companies ?? [] };
+}
+
+/**
+ * Shared history fetch — in-flight + TTL dedupe across MarketPanel,
+ * PriceTrendCard, PortfolioBenchmarkChart, etc.
+ */
+export async function fetchMarketHistory(
+  ticker: string,
+  range: StockHistoryRange,
+  options: { force?: boolean; reason?: MarketFetchReason; signal?: AbortSignal } = {},
+): Promise<StockHistory> {
+  const normalized = ticker.trim().toUpperCase();
+  if (!normalized) {
+    return {
+      ticker: "",
+      range,
+      points: [],
+      startPrice: null,
+      endPrice: null,
+      change: null,
+      changePercent: null,
+      fiftyTwoWeekHigh: null,
+      fiftyTwoWeekLow: null,
+      marketCap: null,
+      source: "yahoo-chart",
+    };
+  }
+  const url = marketHistoryUrl(normalized, range);
+  const reason = options.reason ?? "manual";
+  if (options.force) expireCacheEntry(url);
+  if (isDev()) {
+    console.info(`[market-data] history reason=${reason} ${url}`);
+  }
+  const data = await cachedFetch<HistoryResponse>(url, {
+    ttl: historyClientTtlMs(range),
+    forceFresh: options.force,
+    signal: options.signal,
+  });
+  return data.history;
 }
 
 function unionQuoteTickers(): string[] {

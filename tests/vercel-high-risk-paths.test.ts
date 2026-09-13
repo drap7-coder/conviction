@@ -80,6 +80,8 @@ describe("Vercel high-risk path fixes", () => {
     expect(news).not.toContain('dynamic = "force-dynamic"');
     expect(history).toContain("s-maxage=60");
     expect(history).toContain("s-maxage=1800");
+    expect(history).toContain("unstable_cache");
+    expect(history).toContain("stale-while-revalidate");
     expect(history).not.toContain('dynamic = "force-dynamic"');
   });
 
