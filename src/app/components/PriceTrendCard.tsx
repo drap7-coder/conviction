@@ -2,29 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { fetchMarketHistory } from "@/lib/market/client-market-data";
+import type { StockHistory, StockHistoryPoint } from "@/lib/market/quotes";
 import type { EvidenceStatus } from "./evidence-request";
 import { computeSma } from "@/lib/market/technical-state";
 import { inkBoxClass, inkChipClass } from "@/lib/display/ink-tone";
 
 export type TrendRange = "1d" | "1w" | "1m" | "6m" | "1y";
-
-interface StockHistoryPoint {
-  date: string;
-  close: number;
-}
-
-interface StockHistory {
-  ticker: string;
-  range: TrendRange;
-  points: StockHistoryPoint[];
-  startPrice: number | null;
-  endPrice: number | null;
-  change: number | null;
-  changePercent: number | null;
-  fiftyTwoWeekHigh: number | null;
-  fiftyTwoWeekLow: number | null;
-  marketCap: number | null;
-}
 
 interface PriceTrendCardProps {
   ticker: string;
