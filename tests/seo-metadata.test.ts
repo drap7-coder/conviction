@@ -116,6 +116,11 @@ describe("SEO metadata", () => {
     expect(existsSync(new URL("../public/favicon.ico", import.meta.url))).toBe(true);
     expect(existsSync(new URL("../public/favicon.png", import.meta.url))).toBe(true);
     expect(existsSync(new URL("../public/favicon-48.png", import.meta.url))).toBe(true);
+    expect(
+      readFileSync(new URL("../public/favicon.png", import.meta.url)).equals(
+        readFileSync(new URL("../public/favicon-48.png", import.meta.url)),
+      ),
+    ).toBe(true);
     expect(read("src/app/robots.ts")).toContain('userAgent: "*"');
     expect(read("src/app/robots.ts")).toContain("sitemap.xml");
     expect(read("src/app/robots.ts")).toContain("SITE_URL");
