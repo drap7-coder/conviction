@@ -3,7 +3,7 @@ import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE } from "@/lib/site";
 
 /**
  * PWA manifest icons track the public favicon PNGs + App Router
- * `icon.png` / `apple-icon.png` file conventions (voxel bull mark).
+ * `icon.png` / `apple-icon.png` file conventions (simple bull mark).
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {

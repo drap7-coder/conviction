@@ -37,8 +37,9 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   category: "finance",
-  // Absolute 48px+ PNGs first so Googlebot resolves the mark without relying
-  // on relative discovery. favicon.ico stays in public/ for browser defaults.
+  // Keep the absolute /favicon.png URL first: Google has already discovered it.
+  // Every listed asset uses the same simple mark so crawlers never select the
+  // older detailed illustration that became illegible at search-result size.
   icons: {
     icon: [
       { url: absoluteUrl("/favicon.png"), sizes: "48x48", type: "image/png" },

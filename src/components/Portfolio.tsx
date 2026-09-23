@@ -836,15 +836,34 @@ export default function Portfolio() {
         />
         </>
       ) : (
-        <div className="pf-empty-prompt">
-          <p>No positions yet — build your portfolio or explore a template.</p>
-          <Link href="/manage?view=portfolio" className="brief-link">
-            Add portfolio holdings <span aria-hidden="true">→</span>
-          </Link>
-          <button type="button" className="brief-link" onClick={() => goStudy()}>
-            Explore a template <span aria-hidden="true">→</span>
-          </button>
-        </div>
+        <section className="pf-empty-prompt" aria-labelledby="portfolio-empty-title">
+          <span className="pf-empty-mark" aria-hidden="true">
+            <img src="/icon.png" alt="" />
+          </span>
+          <div className="pf-empty-copy">
+            <span className="pf-section-eyebrow">Your market home base</span>
+            <h2 id="portfolio-empty-title">Make the portfolio yours.</h2>
+            <p>Add the holdings you own, or start with a sample book and learn by changing one decision at a time.</p>
+          </div>
+          <div className="pf-empty-actions">
+            <Link href="/manage?view=portfolio" className="pf-empty-action is-primary">
+              <span className="pf-empty-action-icon" aria-hidden="true">+</span>
+              <span>
+                <strong>Add your holdings</strong>
+                <small>Track value, today’s move, and concentration.</small>
+              </span>
+              <span aria-hidden="true">→</span>
+            </Link>
+            <button type="button" className="pf-empty-action" onClick={() => goStudy()}>
+              <span className="pf-empty-action-icon" aria-hidden="true">◎</span>
+              <span>
+                <strong>Explore a template</strong>
+                <small>See how proven portfolio shapes behave.</small>
+              </span>
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </section>
       )}
 
       {hasData ? (
