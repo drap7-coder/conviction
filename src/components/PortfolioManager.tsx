@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CompanyTypeahead } from "@/components/CompanyTypeahead";
 import { TickerCaptureActions } from "@/components/TickerCaptureActions";
 import { notifyPortfolioChanged, usePortfolioData } from "@/components/PortfolioData";
@@ -64,6 +65,11 @@ function enrichWithPrices(
 }
 
 export function PortfolioManager() {
+  const searchParams = useSearchParams();
+  const requestedTicker = (searchParams.get("ticker") ?? "").trim().toUpperCase();
+  const prefilledTicker = /^[A-Z0-9][A-Z0-9.\-]{0,14}$/.test(requestedTicker)
+    ? requestedTicker
+    : "";
   const {
     positions,
     quotes,
@@ -75,7 +81,7 @@ export function PortfolioManager() {
   const [saving, setSaving] = useState(false);
   const [resolving, setResolving] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [ticker, setTicker] = useState("");
+  const [ticker, setTicker] = useState(() => prefilledTicker);
   const [shares, setShares] = useState("");
   const [cost, setCost] = useState("");
   const sharesInputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +92,12 @@ export function PortfolioManager() {
   const [editError, setEditError] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+
+  useEffect(() => {
+    if (!prefilledTicker) return;
+    const frame = window.requestAnimationFrame(() => sharesInputRef.current?.focus());
+    return () => window.cancelAnimationFrame(frame);
+  }, [prefilledTicker]);
 
   const enriched = useMemo(() => enrichWithPrices(positions, quotes), [positions, quotes]);
   const portfolioMetrics = useMemo(() => computePortfolioMetrics(enriched), [enriched]);
