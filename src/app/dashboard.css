@@ -152,6 +152,39 @@ html[data-theme="cream"] .company-detail-page {
   color: var(--on-ink);
 }
 
+.company-own-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 32px;
+  padding: 6px 11px;
+  border: 1px solid color-mix(in srgb, var(--on-ink-accent) 38%, var(--on-ink-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--on-ink-accent) 10%, var(--ink-panel));
+  color: var(--on-ink-accent);
+  font-size: 0.75rem;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.company-own-link:hover,
+.company-own-link:focus-visible {
+  border-color: color-mix(in srgb, var(--on-ink-accent) 70%, var(--on-ink-border));
+  background: color-mix(in srgb, var(--on-ink-accent) 16%, var(--ink-panel));
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.company-own-link > span {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 0;
+}
+
 .company-detail-page .detail-nav {
   display: flex;
   align-items: center;
@@ -255,6 +288,10 @@ html[data-theme="cream"] .company-detail-page {
 @media (prefers-reduced-motion: reduce) {
   .company-briefing > * {
     animation: none;
+  }
+
+  .company-own-link {
+    transition: none;
   }
 }
 

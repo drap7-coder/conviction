@@ -23,6 +23,7 @@ import {
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
+import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import { subscribeMarketData } from "@/lib/market/client-market-data";
 import { sanitizeWatchlistInput, isWatchlistSymbolFormat } from "@/lib/watchlist/sanitize-ticker";
 import {
@@ -473,6 +474,11 @@ export default function Watchlist({
   const watchlistEmptyLabel = isOffHoursMoversSession(watchlistSession)
     ? moversInsufficientDataLabel(watchlistSession)
     : null;
+  const persistenceLabel = authenticated
+    ? persistence === "neon"
+      ? "Private sync on"
+      : "Sync unavailable"
+    : "Saved on this browser";
 
   if (mode === "manage") {
     return (
@@ -572,6 +578,47 @@ export default function Watchlist({
 
   return (
     <div className="watchlist-daily">
+      <WorkspaceViewContext
+        kicker="Watch desk"
+        title="Your daily research queue"
+        detail="Start with the move, open a name for the evidence, then track shares when you actually own it."
+        tone="watchlist"
+        meta={(
+          <div className="watchlist-context-meta" aria-label="Watchlist status">
+            <span>
+              <strong>{loading ? "—" : entries.length}</strong>
+              {loading ? " loading" : ` tracked name${entries.length === 1 ? "" : "s"}`}
+            </span>
+            <span className={persistence === "unconfigured" ? "is-warning" : ""}>
+              <i aria-hidden="true" />
+              {persistenceLabel}
+            </span>
+          </div>
+        )}
+      />
+
+      <section className="watchlist-research-path" aria-label="Watch, research, and ownership workflow">
+        <div className="watchlist-research-step is-move">
+          <span>01 · Watch</span>
+          <strong>See what moved</strong>
+          <small>Session-aware leaders and laggards</small>
+        </div>
+        <div className="watchlist-research-step is-research">
+          <span>02 · Research</span>
+          <strong>Open the evidence</strong>
+          <small>Why it matters and what to watch next</small>
+        </div>
+        <Link
+          href="/manage?view=portfolio"
+          className="watchlist-research-step is-own"
+          aria-label="Open Portfolio editor to add a holding"
+        >
+          <span>03 · Own</span>
+          <strong>Track your shares</strong>
+          <small>Record shares and optional cost basis <b aria-hidden="true">→</b></small>
+        </Link>
+      </section>
+
       {loading ? (
         <PageLoadingMotion
           label="Loading watchlist"

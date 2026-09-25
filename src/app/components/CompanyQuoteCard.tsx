@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import type { StockQuote } from "@/lib/market/quotes";
@@ -185,6 +186,14 @@ export function CompanyQuoteCard({
                 size="quote"
                 surface="paper"
               />
+              <Link
+                href={`/manage?view=portfolio&ticker=${encodeURIComponent(ticker)}#manage-compose`}
+                className="company-own-link"
+                aria-label={`Add ${ticker} as a portfolio holding`}
+              >
+                <span aria-hidden="true">＋</span>
+                Add holding
+              </Link>
             </div>
             <p className="company-quote-name">
               {companyName}
