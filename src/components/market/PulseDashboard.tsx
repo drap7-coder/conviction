@@ -53,6 +53,59 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
 
 const PULSE_REFRESH_MS = 60_000;
 
+function signedPercent(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+function PulseAtAGlance({
+  indexes,
+  sectors,
+  commodities,
+}: {
+  indexes: PulseGlobalMarket[];
+  sectors: PulseGlobalMarket[];
+  commodities: PulseGlobalMarket[];
+}) {
+  const movingIndexes = indexes.filter((market) => market.changePercent != null);
+  const rising = movingIndexes.filter((market) => (market.changePercent ?? 0) > 0).length;
+  const leadingSector = [...sectors].sort(
+    (a, b) => (b.changePercent ?? Number.NEGATIVE_INFINITY) - (a.changePercent ?? Number.NEGATIVE_INFINITY),
+  )[0];
+  const biggestCommodity = [...commodities].sort(
+    (a, b) => Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0),
+  )[0];
+  const breadthTone = movingIndexes.length > 0 && rising >= Math.ceil(movingIndexes.length / 2)
+    ? "positive"
+    : "negative";
+
+  return (
+    <section className="pulse-glance" aria-labelledby="pulse-glance-heading">
+      <div className="pulse-glance-heading">
+        <span>Today at a glance</span>
+        <h2 id="pulse-glance-heading">The three signals worth seeing first</h2>
+      </div>
+      <div className="pulse-glance-grid">
+        <article className={`pulse-glance-item tone-${breadthTone}`}>
+          <span>Market breadth</span>
+          <strong>{movingIndexes.length ? `${rising} of ${movingIndexes.length} indexes rising` : "Waiting for the open"}</strong>
+          <small>Quick read on broad participation</small>
+        </article>
+        <article className="pulse-glance-item tone-positive">
+          <span>Leading sector</span>
+          <strong>{leadingSector ? `${leadingSector.name} ${signedPercent(leadingSector.changePercent)}` : "Loading sector moves"}</strong>
+          <small>Where relative strength is showing</small>
+        </article>
+        <article className="pulse-glance-item tone-amber">
+          <span>Largest commodity move</span>
+          <strong>{biggestCommodity ? `${biggestCommodity.name} ${signedPercent(biggestCommodity.changePercent)}` : "Loading commodity moves"}</strong>
+          <small>The macro move with the most energy</small>
+        </article>
+      </div>
+    </section>
+  );
+}
+
 function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | null }) {
   const updated = data?.fetchedAt
     ? new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
@@ -171,6 +224,11 @@ function PulsePageInner() {
 
       {data && view === "markets" ? (
         <>
+          <PulseAtAGlance
+            indexes={majorIndexes}
+            sectors={sectorMarkets}
+            commodities={commodities}
+          />
           <PulseMacroGauges indicators={data.indicators} />
           <IndexScoreboard
             markets={majorIndexes}
