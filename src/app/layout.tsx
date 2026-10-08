@@ -38,8 +38,7 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   category: "finance",
   // Keep the absolute /favicon.png URL first: Google has already discovered it.
-  // Every listed asset uses the same simple mark so crawlers never select the
-  // older detailed illustration that became illegible at search-result size.
+  // All sizes use the same close-up of the voxel bull's face and horns.
   icons: {
     icon: [
       { url: absoluteUrl("/favicon.png"), sizes: "48x48", type: "image/png" },
