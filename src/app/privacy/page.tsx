@@ -19,12 +19,21 @@ export default function PrivacyPage() {
           IQBulls collects only what it needs to sign you in, sync the lists you choose,
           and run the product.
         </p>
-        <span className={styles.updated}>Effective September 12, 2026</span>
+        <span className={styles.updated}>Effective October 8, 2026</span>
       </header>
 
       <section className={styles.section}>
         <h2>What we collect</h2>
         <ul>
+          <li>
+            <strong>Product analytics:</strong> page visits and milestones such as opening
+            Movers, submitting a search, and adding your first holding. Milestones are stored
+            as daily aggregate counts in our database. We use Vercel Web Analytics for page
+            visits without attaching search terms, tickers, share counts, cost, or account
+            details to events. Query strings and company symbols are removed from analytics
+            URLs. A date stored in your browser helps count visits on a later day; it is not
+            a personal identifier. We honor your browser’s Do Not Track setting.
+          </li>
           <li>
             <strong>Google account basics:</strong> your name, email address, profile image,
             and Google account identifier when you choose to sign in.

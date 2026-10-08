@@ -20,6 +20,7 @@ import type { PortfolioPosition } from "@/lib/portfolio/types";
 import { fmtCompactCurrency } from "@/lib/display/format";
 import { getSectorColor } from "@/lib/display/sector-colors";
 import { getSectorForCompany } from "@/lib/market/industries";
+import { trackProductEvent } from "@/lib/product-analytics";
 
 function parsePosition(
   tickerValue: string,
@@ -64,7 +65,7 @@ function enrichWithPrices(
   });
 }
 
-export function PortfolioManager() {
+export function PortfolioManager({ onboarding = false }: { onboarding?: boolean }) {
   const searchParams = useSearchParams();
   const requestedTicker = (searchParams.get("ticker") ?? "").trim().toUpperCase();
   const prefilledTicker = /^[A-Z0-9][A-Z0-9.\-]{0,14}$/.test(requestedTicker)
@@ -92,6 +93,8 @@ export function PortfolioManager() {
   const [editError, setEditError] = useState<string | null>(null);
   const [removingTicker, setRemovingTicker] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [showCost, setShowCost] = useState(false);
+  const setupTracked = useRef(false);
 
   useEffect(() => {
     if (!prefilledTicker) return;
@@ -175,6 +178,7 @@ export function PortfolioManager() {
       if (existingIndex >= 0) next[existingIndex] = position;
       else next.push(position);
       if (!await persist(next)) return;
+      trackProductEvent(positions.length === 0 ? "portfolio_created" : "holding_added");
       setTicker("");
       setShares("");
       setCost("");
@@ -241,10 +245,10 @@ export function PortfolioManager() {
   return (
     <section
       id="portfolio"
-      className="data-manager-section surface-shell"
+      className={`data-manager-section surface-shell${onboarding ? " portfolio-onboarding" : ""}`}
       aria-labelledby="manage-portfolio-title"
     >
-      <header className="data-manager-section-head">
+      {!onboarding ? <header className="data-manager-section-head">
         <div>
           <span className="data-manager-eyebrow">Portfolio</span>
           <h2 id="manage-portfolio-title">Holdings you own</h2>
@@ -262,19 +266,25 @@ export function PortfolioManager() {
             </span>
           ) : null}
         </div>
-      </header>
+      </header> : null}
 
       <form
         id="manage-compose"
         className="data-manager-compose list-compose surface-well"
         onSubmit={handleAdd}
+        onFocus={() => {
+          if (!setupTracked.current && positions.length === 0) {
+            setupTracked.current = true;
+            trackProductEvent("portfolio_setup_started");
+          }
+        }}
         aria-label="Add a portfolio holding"
       >
         <div className="list-compose-copy">
-          <span className="list-compose-eyebrow">Compose</span>
-          <strong className="list-compose-title">Add a holding</strong>
+          <span className="list-compose-eyebrow">Two quick details</span>
+          <strong className="list-compose-title">{positions.length === 0 ? "Your first holding" : "Add a holding"}</strong>
           <span className="data-manager-compose-hint">
-            Type a ticker or company — mic sits in the field.
+            Search a company, then enter how many shares you own.
           </span>
         </div>
         <div className="data-manager-compose-fields">
@@ -319,7 +329,7 @@ export function PortfolioManager() {
               placeholder="10"
             />
           </label>
-          <label>
+          <label hidden={!showCost}>
             <span>Avg cost <em>optional</em></span>
             <input
               type="number"
@@ -333,10 +343,15 @@ export function PortfolioManager() {
             />
           </label>
           <button type="submit" className="data-manager-primary" disabled={saving || resolving}>
-            {resolving ? "Adding…" : "Add"}
+            {resolving || saving ? "Saving…" : "Add holding"}
           </button>
         </div>
+        <button type="button" className="data-manager-action portfolio-cost-toggle" aria-expanded={showCost} onClick={() => setShowCost(!showCost)}>
+          {showCost ? "Hide average cost" : "+ Add average cost (optional)"}
+        </button>
+        <p className="portfolio-save-note">{authenticated ? "Saved to your account." : "Saved in this browser. No sign-in or brokerage connection needed."}</p>
         {addError ? <p className="data-manager-error" role="alert">{addError}</p> : null}
+        {onboarding && syncError ? <p className="data-manager-error" role="alert">{syncError}</p> : null}
       </form>
 
       {!loaded ? (
@@ -389,18 +404,18 @@ export function PortfolioManager() {
             );
           })}
         </div>
-      ) : (
+      ) : !onboarding ? (
         <div className="data-manager-empty">
           <strong>No holdings yet.</strong>
           <span>Add a ticker, shares, and optional cost above.</span>
           <span className="data-manager-empty-hint">You can edit any row after it lands.</span>
         </div>
-      )}
+      ) : null}
 
       <footer className="data-manager-footer">
         <span>
           {persistence === "neon" && authenticated
-            ? "Portfolio holdings are synced privately in Neon."
+            ? "Portfolio holdings are synced privately to your account."
             : "Portfolio holdings are stored in this browser."}
         </span>
         {syncError ? <span className="data-manager-error" role="alert">{syncError}</span> : null}

@@ -12,6 +12,7 @@ import {
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import type { CompanySuggestion } from "@/lib/sec/company-tickers";
+import { trackProductEvent } from "@/lib/product-analytics";
 
 export function GlobalSearchPill() {
   const router = useRouter();
@@ -82,6 +83,7 @@ export function GlobalSearchPill() {
   function goToTicker(ticker: string) {
     const cleaned = ticker.trim().toUpperCase();
     if (!cleaned) return;
+    trackProductEvent("search_submitted");
     startTransition(() => {
       setQuery("");
       setSuggestions([]);

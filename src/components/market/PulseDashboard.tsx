@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { PulseData, PulseGlobalMarket, PulseSector } from "@/app/api/market/pulse/route";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
@@ -15,6 +15,7 @@ import {
 import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
+import { trackProductEvent } from "@/lib/product-analytics";
 
 type PulseView = "markets" | "movers" | "crypto" | "international";
 
@@ -145,6 +146,14 @@ function PulsePageInner() {
   useEffect(() => {
     setView(parsePulseView(searchParams.get("view")));
   }, [searchParams]);
+
+  const moversTracked = useRef(false);
+  useEffect(() => {
+    if (view === "movers" && !moversTracked.current) {
+      moversTracked.current = true;
+      trackProductEvent("movers_opened");
+    } else if (view !== "movers") moversTracked.current = false;
+  }, [view, moversTracked]);
 
   useEffect(() => {
     let cancelled = false;

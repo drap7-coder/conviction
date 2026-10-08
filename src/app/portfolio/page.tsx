@@ -5,6 +5,7 @@ import { PortfolioDataProvider } from "@/components/PortfolioData";
 import { pageMetadata } from "@/lib/seo";
 import "@/app/portfolio.css";
 import "@/app/watchlist.css";
+import "@/app/manage/manage.css";
 
 export async function generateMetadata({
   searchParams,

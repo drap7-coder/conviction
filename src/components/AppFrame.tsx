@@ -5,6 +5,7 @@ import MobileTabBar from "@/components/BottomTabBar";
 import { AppHeader } from "@/components/AppHeader";
 import { MarketTape } from "@/components/MarketTape";
 import { GroupOnboardingPrompt } from "@/components/GroupPanels";
+import { ProductAnalytics } from "@/components/ProductAnalytics";
 
 export function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export function AppFrame({ children }: { children: React.ReactNode }) {
       </div>
       <MobileTabBar />
       <GroupOnboardingPrompt />
+      <ProductAnalytics />
     </>
   );
 }
