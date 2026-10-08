@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
+import "./workspace-design.css";
 import { AppFrame } from "@/components/AppFrame";
 import { GroupAccentProvider } from "@/components/GroupAccentProvider";
 import {

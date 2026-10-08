@@ -46,8 +46,8 @@ describe("community pick save UX", () => {
     expect(source).toContain("This week");
     expect(source).toContain("/api/community-picks?range=1w");
     expect(source).not.toContain("your-picks-iqbulls");
-    expect(board).toContain("crowd-bankroll-lead");
-    expect(board).toContain("average student");
+    expect(board).toContain("fictional $100,000 each");
+    expect(board).toContain("average player balance");
     expect(css).toContain(".your-picks-card");
     expect(css).toContain(".your-picks-binary");
     expect(css).toContain(".your-picks-bankroll");
