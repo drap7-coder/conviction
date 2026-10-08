@@ -249,12 +249,35 @@
   line-height: 1.5;
 }
 
+.portfolio-page .portfolio-onboarding {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.portfolio-onboarding .data-manager-compose-fields {
+  grid-template-columns: minmax(0, 2fr) minmax(80px, 1fr) auto;
+}
+
+.data-manager-compose-fields label[hidden] { display: none; }
+.portfolio-cost-toggle { justify-self: start; margin-top: 10px; }
+.portfolio-save-note { color: var(--muted); font-size: 0.75rem; margin-top: 8px; }
+.portfolio-onboarding .data-manager-footer { display: none; }
+
+@media (max-width: 767px) {
+  .portfolio-onboarding .data-manager-compose-fields { grid-template-columns: minmax(0, 1fr); }
+}
+
 .portfolio-page .pf-empty-actions {
   position: relative;
   z-index: 1;
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 

@@ -20933,6 +20933,292 @@ input.has-mic {
 .pulse-about-copy a:hover {
   color: color-mix(in srgb, var(--accent) 80%, var(--ink));
 }
+/* ── Pulse conversion pass: premium entry, rapid orientation, less tool noise ── */
+.pulse-page { position: relative; }
+
+.pulse-seo-intro {
+  position: relative;
+  isolation: isolate;
+  gap: 12px;
+  max-width: none;
+  margin: 6px 0 18px;
+  padding: clamp(22px, 4.2vw, 42px);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 88% 6%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 31%),
+    radial-gradient(circle at 72% 112%, color-mix(in srgb, #5798ff 10%, transparent), transparent 36%),
+    linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 92%, #000), var(--bg));
+  box-shadow: var(--shadow-lg);
+}
+
+.pulse-seo-intro::after {
+  position: absolute;
+  z-index: -1;
+  top: 12%;
+  right: clamp(-84px, -5vw, -34px);
+  width: clamp(180px, 32vw, 320px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--accent) 17%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 42px color-mix(in srgb, var(--accent) 3%, transparent),
+    0 0 0 84px color-mix(in srgb, var(--accent) 2%, transparent);
+  content: "";
+}
+
+.pulse-product-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.pulse-product-label span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+.pulse-seo-intro h1 {
+  max-width: 680px;
+  font-size: clamp(2.15rem, 6vw, 4.55rem);
+  font-weight: 700;
+  letter-spacing: -0.065em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.pulse-seo-lede {
+  max-width: 34rem;
+  color: color-mix(in srgb, var(--muted) 92%, var(--ink));
+  font-size: clamp(0.94rem, 1.8vw, 1.08rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.pulse-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.pulse-hero-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1;
+  text-decoration: none;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+}
+
+.pulse-hero-actions a:hover { transform: translateY(-1px); }
+
+.pulse-hero-primary {
+  gap: 10px;
+  border-color: color-mix(in srgb, var(--accent) 52%, var(--border)) !important;
+  background: var(--accent);
+  color: var(--on-accent);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.pulse-hero-secondary {
+  background: color-mix(in srgb, var(--card) 86%, transparent);
+  color: var(--ink);
+}
+
+.pulse-hero-proof {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 0;
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 650;
+}
+
+.pulse-hero-proof i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--border-active);
+}
+
+.pulse-dashboard { gap: 18px; }
+
+.pulse-page .pulse-view-slicer {
+  position: sticky;
+  top: calc(var(--sticky-header-offset) + 26px);
+  z-index: calc(var(--ticker-z) + 2);
+  margin: 0;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--border-active) 72%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 84%, transparent);
+  box-shadow: 0 12px 28px color-mix(in srgb, #000 28%, transparent);
+  backdrop-filter: blur(16px) saturate(1.16);
+  -webkit-backdrop-filter: blur(16px) saturate(1.16);
+}
+
+.pulse-glance { display: grid; gap: 10px; }
+.pulse-glance-heading { display: grid; gap: 2px; }
+
+.pulse-glance-heading > span {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.pulse-glance-heading h2 {
+  color: var(--ink);
+  font-size: clamp(1.05rem, 2.2vw, 1.3rem);
+  letter-spacing: -0.035em;
+  line-height: 1.25;
+}
+
+.pulse-glance-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pulse-glance-item {
+  --glance-tone: var(--accent);
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 14px 15px 15px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--glance-tone) 21%, var(--border));
+  border-radius: 15px;
+  background: linear-gradient(140deg, color-mix(in srgb, var(--glance-tone) 9%, var(--card)), var(--card) 58%);
+  box-shadow: var(--shadow-sm);
+}
+
+.pulse-glance-item::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--glance-tone);
+  content: "";
+}
+
+.pulse-glance-item.tone-positive { --glance-tone: var(--green); }
+.pulse-glance-item.tone-negative { --glance-tone: var(--red); }
+.pulse-glance-item.tone-amber { --glance-tone: var(--amber); }
+
+.pulse-glance-item > span {
+  color: var(--quiet);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.pulse-glance-item strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 0.88rem;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulse-glance-item small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.pulse-gauge-share {
+  position: relative;
+  justify-self: end;
+  color: var(--quiet);
+  font: 700 0.6rem var(--font-mono);
+}
+
+.pulse-gauge-share > summary {
+  cursor: pointer;
+  padding: 5px 9px;
+  border-radius: 999px;
+}
+
+.pulse-gauge-share > summary:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.pulse-gauge-share[open] .pulse-gauge-tools { margin-top: 6px; }
+.pulse-index-board { padding-top: 2px; }
+
+.pulse-index-board-title-row h2 {
+  font-size: 0.76rem;
+  letter-spacing: 0.075em;
+}
+
+@media (max-width: 767px) {
+  .pulse-page .pulse-view-slicer { top: calc(var(--sticky-header-offset) + 10px); }
+
+  .pulse-seo-intro {
+    margin-top: 2px;
+    padding: 21px 18px;
+    border-radius: 20px;
+  }
+
+  .pulse-seo-intro::after { opacity: 0.72; }
+  .pulse-seo-intro h1 { font-size: clamp(2.05rem, 11vw, 3.1rem); }
+
+  .pulse-glance-grid {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .pulse-glance-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 2px 12px;
+    padding: 11px 13px 11px 15px;
+  }
+
+  .pulse-glance-item strong { grid-column: 1; }
+
+  .pulse-glance-item small {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    max-width: 120px;
+    text-align: right;
+  }
+}
+
+@media (max-width: 430px) {
+  .pulse-hero-actions { display: grid; }
+  .pulse-hero-actions a { width: 100%; }
+  .pulse-hero-proof { flex-wrap: wrap; }
+  .pulse-glance-item small { display: none; }
+}
+
 
 /* ── Decorative accent themes (do not retint --green/--red) ── */
 html[data-accent="green"] {

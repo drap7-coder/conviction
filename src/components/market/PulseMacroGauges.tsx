@@ -70,14 +70,17 @@ export function PulseMacroGauges({
 
   return (
     <section className="pulse-gauges" aria-label="VIX and 10-year yield">
-      <div className="pulse-gauge-tools">
-        <EmbedCode path="/embed/vix-gauge" title="IQBulls VIX Gauge" />
-        <EmbedCode
-          path="/embed/macro-snapshot"
-          title="IQBulls Market Snapshot"
-          height={180}
-        />
-      </div>
+      <details className="pulse-gauge-share">
+        <summary>Share market widgets</summary>
+        <div className="pulse-gauge-tools">
+          <EmbedCode path="/embed/vix-gauge" title="IQBulls VIX Gauge" />
+          <EmbedCode
+            path="/embed/macro-snapshot"
+            title="IQBulls Market Snapshot"
+            height={180}
+          />
+        </div>
+      </details>
       <div className="pulse-gauge-grid">
         {cards.map((card) => (
           <GaugeCard key={card.id} card={card} />

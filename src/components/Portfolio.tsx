@@ -31,6 +31,7 @@ import { notifyPortfolioChanged, usePortfolioData } from "@/components/Portfolio
 import { PortfolioAllocationLadder } from "@/components/PortfolioAllocationLadder";
 import { PortfolioHoldingCard } from "@/components/PortfolioHoldingCard";
 import { ConcentrationNotice } from "@/components/ConcentrationNotice";
+import { PortfolioManager } from "@/components/PortfolioManager";
 import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { ProductStage } from "@/components/ProductStage";
@@ -840,18 +841,10 @@ export default function Portfolio() {
           </span>
           <div className="pf-empty-copy">
             <span className="pf-section-eyebrow">Your market home base</span>
-            <h2 id="portfolio-empty-title">Make the portfolio yours.</h2>
-            <p>Add the holdings you own, or start with a sample book and learn by changing one decision at a time.</p>
+            <h2 id="portfolio-empty-title">Start with one holding.</h2>
+            <p>Add a company and the shares you own. See your value, today’s move, and portfolio mix as soon as it saves.</p>
           </div>
           <div className="pf-empty-actions">
-            <Link href="/manage?view=portfolio" className="pf-empty-action is-primary">
-              <span className="pf-empty-action-icon" aria-hidden="true">+</span>
-              <span>
-                <strong>Add your holdings</strong>
-                <small>Track value, today’s move, and concentration.</small>
-              </span>
-              <span aria-hidden="true">→</span>
-            </Link>
             <button type="button" className="pf-empty-action" onClick={() => goStudy()}>
               <span className="pf-empty-action-icon" aria-hidden="true">◎</span>
               <span>
@@ -861,6 +854,7 @@ export default function Portfolio() {
               <span aria-hidden="true">→</span>
             </button>
           </div>
+          <PortfolioManager onboarding />
         </section>
       )}
 
