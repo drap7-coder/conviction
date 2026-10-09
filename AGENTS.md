@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Current navigation decision (October 8, 2026)
+
+Primary navigation is Pulse, Portfolio, News, then Menu. Crowd lives under Menu → More with the description “Campus competition”; `/crowd` remains available and activates Menu. This supersedes older instructions below that put Crowd on the daily tab bar. After a first holding is saved through Portfolio onboarding, show a dismissible invitation to Crowd for that visit.
+
 This is a single Next.js 16 (App Router, Turbopack) app named `conviction`. Package manager is **npm**. Standard commands live in `package.json`: `npm run dev` (port 3000), `npm run build`, `npm run typecheck` (`tsc --noEmit` — there is no ESLint/lint script), and `npm run test` / `npm run test:watch` (Vitest).
 
 - The app runs fully in **guest mode with no external services**: no database, KV, or auth provider is required to boot and use it. Auth (`auth.ts`) falls back to JWT sessions. **Watchlist SoT:** guests = `localStorage` (`conviction-watchlist`); signed-in = Neon `watchlist_entries`; ops/cron universe lives in `src/lib/evidence/sync-universe.ts` (KV `conviction:sync-universe`, legacy `conviction:watchlist` fallback) — never returned as a guest’s personal list. Daily sync queue = `buildDailySyncQueue()` (ops LRU, then popular Neon member tickers excluding `crowd-seed-*`, capped by `MAX_COMPANIES_PER_SYNC`). `npm run dev` alone is enough to exercise the product end-to-end (root `/` redirects to `/pulse`). Manage compose puts an **inline voice mic** inside the ticker field (`TickerCaptureActions`, Web Speech API) on desktop and mobile; Watchlist compose labels the ticker combobox (`inputAriaLabel` / `<label>`).

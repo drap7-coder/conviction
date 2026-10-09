@@ -27,8 +27,8 @@ export const navPages: NavPage[] = [
     label: "Crowd",
     icon: Users,
     tone: "teal",
-    group: "daily",
-    blurb: "Campus head-to-head, standings, and My Pick.",
+    group: "more",
+    blurb: "Campus competition",
   },
   {
     href: "/portfolio",

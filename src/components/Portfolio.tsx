@@ -276,6 +276,7 @@ export default function Portfolio() {
   const [positions, setPositions] = useState<PersistedPosition[]>([]);
   const [activeBookId, setActiveBookId] = useState<string | null>(null);
   const [loadingBook, setLoadingBook] = useState(false);
+  const [showCrowdInvite, setShowCrowdInvite] = useState(false);
   const [sectorProfiles, setSectorProfiles] = useState<Record<string, PortfolioProfile>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -825,6 +826,16 @@ export default function Portfolio() {
           ) : null}
         </div>
         {concentrationNotice}
+        {showCrowdInvite ? (
+          <aside className="pf-crowd-invite" aria-label="Campus competition invitation">
+            <div>
+              <strong>Your first holding is saved.</strong>
+              <p>Explore campus competition with a fictional portfolio.</p>
+            </div>
+            <Link href="/crowd">Explore Crowd →</Link>
+            <button type="button" aria-label="Dismiss campus competition invitation" onClick={() => setShowCrowdInvite(false)}>×</button>
+          </aside>
+        ) : null}
         {sectorMixCard}
         {allocationPanel}
         <PortfolioBenchmarkChart
@@ -854,7 +865,7 @@ export default function Portfolio() {
               <span aria-hidden="true">→</span>
             </button>
           </div>
-          <PortfolioManager onboarding />
+          <PortfolioManager onboarding onFirstHoldingSaved={() => setShowCrowdInvite(true)} />
         </section>
       )}
 

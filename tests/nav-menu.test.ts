@@ -14,28 +14,28 @@ function read(path: string) {
 }
 
 describe("site menu nav", () => {
-  it("keeps daily tabs to Pulse, Crowd, Portfolio, and News", () => {
+  it("keeps daily tabs to Pulse, Portfolio, and News", () => {
     expect(primaryNavTabs.map((tab) => tab.href)).toEqual([
       "/pulse",
-      "/crowd",
       "/portfolio",
       "/news",
     ]);
     expect(navTabs).toEqual(primaryNavTabs);
     expect(primaryNavTabs.some((tab) => tab.href === "/smart-money")).toBe(false);
     expect(primaryNavTabs.some((tab) => tab.href === "/watchlist")).toBe(false);
-    expect(primaryNavTabs.some((tab) => tab.href === "/crowd")).toBe(true);
+    expect(primaryNavTabs.some((tab) => tab.href === "/crowd")).toBe(false);
   });
 
   it("puts About, Q&A, and account pages in Menu — Smart Money is retired", () => {
     expect(menuNavPages.map((page) => page.href)).toEqual([
+      "/crowd",
       "/about",
       "/faq",
       "/manage",
       "/signin",
     ]);
     expect(navPages.some((page) => page.href === "/smart-money")).toBe(false);
-    expect(navPages.some((page) => page.href === "/crowd" && page.group === "daily")).toBe(true);
+    expect(navPages.some((page) => page.href === "/crowd" && page.group === "more" && page.blurb === "Campus competition")).toBe(true);
     expect(navPages.some((page) => page.href === "/watchlist")).toBe(false);
     expect(navPages.some((page) => page.href === "/sectors")).toBe(false);
     expect(navPages.some((page) => page.href === "/international")).toBe(false);
@@ -43,12 +43,12 @@ describe("site menu nav", () => {
     expect(navPages.some((page) => page.href === "/faq" && page.group === "about")).toBe(true);
     expect(navPages.some((page) => page.href === "/manage" && page.group === "account")).toBe(true);
     expect(navPages.some((page) => page.href === "/signin" && page.group === "account")).toBe(true);
-    expect(menuGroups.map((group) => group.id)).toEqual(["account", "daily", "about"]);
+    expect(menuGroups.map((group) => group.id)).toEqual(["account", "daily", "more", "about"]);
     expect(read("src/app/globals.css")).toContain(".site-menu-root--sheet .site-menu");
     expect(read("src/app/globals.css")).toContain("inset: 0");
     expect(read("src/app/globals.css")).not.toContain("max-height: min(72vh, 560px)");
     expect(isOverflowNavPath("/smart-money")).toBe(false);
-    expect(isOverflowNavPath("/crowd")).toBe(false);
+    expect(isOverflowNavPath("/crowd")).toBe(true);
     expect(isOverflowNavPath("/watchlist")).toBe(false);
     expect(isOverflowNavPath("/sectors")).toBe(false);
     expect(isOverflowNavPath("/international")).toBe(false);

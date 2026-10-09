@@ -191,7 +191,7 @@ describe("Vercel high-risk path fixes", () => {
   });
 
   it("keeps Crowd campus-first and Portfolio without Most held", () => {
-    expect(read("src/lib/nav-config.ts")).toContain("Campus head-to-head");
+    expect(read("src/lib/nav-config.ts")).toContain("Campus competition");
     expect(read("src/lib/nav-config.ts")).toContain("Live book, Watchlist, and Study");
     expect(read("src/lib/product-copy.ts")).not.toContain("Where are Most held and Most watched?");
     expect(read("src/lib/product-copy.ts")).not.toContain("What is Smart Money?");
