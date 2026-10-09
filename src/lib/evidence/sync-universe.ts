@@ -21,6 +21,7 @@ const KV_KEY = "conviction:sync-universe";
 const KV_KEY_LEGACY = "conviction:watchlist";
 const KV_ENABLED = !!process.env.KV_URL && !!process.env.KV_REST_API_URL;
 
+// Mutable local fallback data is read at runtime, not bundled from the build checkout.
 const LOCAL_STORE_DIR = path.join(process.cwd(), ".conviction");
 const LOCAL_STORE_FILE = path.join(LOCAL_STORE_DIR, "sync-universe.json");
 const LOCAL_STORE_FILE_LEGACY = path.join(LOCAL_STORE_DIR, "watchlist.json");
@@ -34,8 +35,8 @@ function getDefaultEntries(): WatchlistEntry[] {
 function readLocalEntries(): WatchlistEntry[] {
   for (const file of [LOCAL_STORE_FILE, LOCAL_STORE_FILE_LEGACY]) {
     try {
-      if (fs.existsSync(file)) {
-        const raw = fs.readFileSync(file, "utf-8");
+      if (fs.existsSync(/* turbopackIgnore: true */ file)) {
+        const raw = fs.readFileSync(/* turbopackIgnore: true */ file, "utf-8");
         const parsed = JSON.parse(raw) as WatchlistEntry[];
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
       }
@@ -48,7 +49,7 @@ function readLocalEntries(): WatchlistEntry[] {
 
 function writeLocalEntries(entries: WatchlistEntry[]): void {
   try {
-    if (!fs.existsSync(LOCAL_STORE_DIR)) {
+    if (!fs.existsSync(/* turbopackIgnore: true */ LOCAL_STORE_DIR)) {
       fs.mkdirSync(LOCAL_STORE_DIR, { recursive: true });
     }
     fs.writeFileSync(LOCAL_STORE_FILE, JSON.stringify(entries, null, 2), "utf-8");

@@ -476,20 +476,14 @@ export function PulseNewsFeed({
         </label>
       </div>
 
-      {activeTheme === "yours" ? <WorkspaceViewContext
-        kicker={activeTheme === "yours" ? "Connected to you" : "Market brief"}
-        title={
-          activeTheme === "yours"
-            ? "News around your names"
-            : "Know what is moving the story"
-        }
-        detail={
-          activeTheme === "yours"
-            ? "Stories tied to your portfolio and watchlist, gathered in one focused feed."
-            : "Lead themes first, supporting headlines second—so importance is visible before volume."
-        }
-        tone="news"
-      /> : null}
+      {activeTheme === "yours" ? (
+        <WorkspaceViewContext
+          kicker="Connected to you"
+          title="News around your names"
+          detail="Stories tied to your portfolio and watchlist, gathered in one focused feed."
+          tone="news"
+        />
+      ) : null}
 
       {yoursEmpty ? (
         <div className="pulse-news-empty">
