@@ -39,35 +39,35 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   category: "finance",
   // Keep the absolute /favicon.png URL first: Google has already discovered it.
-  // All sizes use the same close-up of the voxel bull's face and horns.
+  // Version URLs to replace cached green tiles with the transparent bull.
   icons: {
     icon: [
-      { url: absoluteUrl("/favicon.png"), sizes: "48x48", type: "image/png" },
+      { url: absoluteUrl("/favicon.png") + "?v=bull-transparent", sizes: "48x48", type: "image/png" },
       {
-        url: absoluteUrl("/favicon-48.png"),
+        url: absoluteUrl("/favicon-48.png") + "?v=bull-transparent",
         sizes: "48x48",
         type: "image/png",
       },
       {
-        url: absoluteUrl("/favicon-96.png"),
+        url: absoluteUrl("/favicon-96.png") + "?v=bull-transparent",
         sizes: "96x96",
         type: "image/png",
       },
       {
-        url: absoluteUrl("/favicon-192.png"),
+        url: absoluteUrl("/favicon-192.png") + "?v=bull-transparent",
         sizes: "192x192",
         type: "image/png",
       },
-      { url: absoluteUrl("/icon.png"), sizes: "512x512", type: "image/png" },
+      { url: absoluteUrl("/icon.png") + "?v=bull-transparent", sizes: "512x512", type: "image/png" },
       {
-        url: absoluteUrl("/favicon.ico"),
+        url: absoluteUrl("/favicon.ico") + "?v=bull-transparent",
         sizes: "48x48",
         type: "image/x-icon",
       },
     ],
     apple: [
       {
-        url: absoluteUrl("/apple-icon.png"),
+        url: absoluteUrl("/apple-icon.png") + "?v=bull-transparent",
         sizes: "180x180",
         type: "image/png",
       },
