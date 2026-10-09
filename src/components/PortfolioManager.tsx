@@ -65,7 +65,7 @@ function enrichWithPrices(
   });
 }
 
-export function PortfolioManager({ onboarding = false }: { onboarding?: boolean }) {
+export function PortfolioManager({ onboarding = false, onFirstHoldingSaved }: { onboarding?: boolean; onFirstHoldingSaved?: () => void }) {
   const searchParams = useSearchParams();
   const requestedTicker = (searchParams.get("ticker") ?? "").trim().toUpperCase();
   const prefilledTicker = /^[A-Z0-9][A-Z0-9.\-]{0,14}$/.test(requestedTicker)
@@ -179,6 +179,7 @@ export function PortfolioManager({ onboarding = false }: { onboarding?: boolean 
       else next.push(position);
       if (!await persist(next)) return;
       trackProductEvent(positions.length === 0 ? "portfolio_created" : "holding_added");
+      if (positions.length === 0) onFirstHoldingSaved?.();
       setTicker("");
       setShares("");
       setCost("");
