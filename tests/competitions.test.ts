@@ -261,7 +261,7 @@ describe("community picks wiring", () => {
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit Pick");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit weekly");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("this week");
-    expect(read("src/components/CrowdBoard.tsx")).toContain("$100,000 book");
+    expect(read("src/components/CrowdBoard.tsx")).toContain("fictional $100,000 each");
     expect(read("src/components/CrowdBoard.tsx")).not.toContain("Weekly rivalry");
     expect(read("src/app/api/cron/daily-sync/route.ts")).not.toContain("runCompetitionLifecycleTick");
     expect(read("src/app/globals.css")).toContain("h2h-school-select");

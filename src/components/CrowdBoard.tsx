@@ -102,9 +102,9 @@ export function CrowdBoard() {
     tab === "standings"
       ? {
           kicker: "Campus race",
-          title: "See who is leading",
+          title: "Your campus. Your edge.",
           detail:
-            "Every player starts with the same fictional $100,000, so performance—not school size—drives the board.",
+            "A fictional $100,000 each. School scores use the average player balance.",
           tone: "crowd",
         }
       : tab === "pick"
@@ -150,7 +150,6 @@ export function CrowdBoard() {
       />
 
       <WorkspaceViewContext {...viewContext} />
-      <SentimentPoll ticker="SPY" />
 
       {tab === "standings" ? (
         <div
@@ -158,11 +157,6 @@ export function CrowdBoard() {
           role="tabpanel"
           aria-label="Standings"
         >
-          <p className="crowd-bankroll-lead">
-            Each player starts with <strong>$100,000</strong>. School score is
-            the average student balance on that book — more members don&apos;t
-            inflate the dollars.
-          </p>
           {standingsError ? (
             <p className="crowd-empty" role="alert">
               {standingsError}
@@ -179,8 +173,7 @@ export function CrowdBoard() {
             initialPayload={standings?.community ?? null}
           />
           <p className="crowd-hedge">
-            Head-to-head and community standings use the same weekly average on
-            each player&apos;s $100,000 book. Unranked schools{" "}
+            Rankings use weekly performance. To rank, a school{" "}
             {communityRankingRequirementLabel()}.
           </p>
         </div>
@@ -206,6 +199,7 @@ export function CrowdBoard() {
           <CrowdCommunityPanel expanded />
         </div>
       ) : null}
+      {tab === "standings" ? <SentimentPoll ticker="SPY" /> : null}
     </div>
   );
 }

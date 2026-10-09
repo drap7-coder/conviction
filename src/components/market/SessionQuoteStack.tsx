@@ -4,6 +4,7 @@ import {
   fmtSignedDollar,
   isFiniteNumber,
 } from "@/lib/display/format";
+import { hasExtendedPrint } from "@/lib/display/active-session";
 
 export type SessionQuoteTone = "up" | "down" | "flat";
 
@@ -76,7 +77,7 @@ export function SessionQuoteStack({
   const tone = sessionQuoteTone(change);
   const extendedTone = sessionQuoteTone(extendedChange);
   const showExtended = Boolean(extendedLabel);
-  const promoteExtended = activeSessionPrimary && showExtended && !extendedNoTrades && isFiniteNumber(extendedPrice);
+  const promoteExtended = activeSessionPrimary && hasExtendedPrint({ sessionLabel: extendedLabel, extendedPrice, extendedNoTrades });
   const primaryPrice = promoteExtended ? extendedPrice : lastPrice;
   const primaryChange = promoteExtended ? extendedChange : change;
   const primaryChangePercent = promoteExtended ? extendedChangePercent : changePercent;

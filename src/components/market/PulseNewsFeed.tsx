@@ -476,7 +476,7 @@ export function PulseNewsFeed({
         </label>
       </div>
 
-      <WorkspaceViewContext
+      {activeTheme === "yours" ? <WorkspaceViewContext
         kicker={activeTheme === "yours" ? "Connected to you" : "Market brief"}
         title={
           activeTheme === "yours"
@@ -489,7 +489,7 @@ export function PulseNewsFeed({
             : "Lead themes first, supporting headlines second—so importance is visible before volume."
         }
         tone="news"
-      />
+      /> : null}
 
       {yoursEmpty ? (
         <div className="pulse-news-empty">

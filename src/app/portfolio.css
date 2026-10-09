@@ -676,11 +676,11 @@
 }
 
 .portfolio-page .pf-day-strip.is-positive .pf-day-strip-figures strong {
-  color: #5eead4;
+  color: var(--green);
 }
 
 .portfolio-page .pf-day-strip.is-negative .pf-day-strip-figures strong {
-  color: #fca5a5;
+  color: var(--red);
 }
 
 .portfolio-page .pf-day-strip-copy > span {

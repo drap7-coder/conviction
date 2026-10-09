@@ -16,6 +16,8 @@ import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import { trackProductEvent } from "@/lib/product-analytics";
+import { activeSessionPercent } from "@/lib/display/active-session";
+import { scoreboardIndexes, scoreboardCommodities } from "@/lib/market/index-scoreboard";
 
 type PulseView = "markets" | "movers" | "crypto" | "international";
 
@@ -37,7 +39,7 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
     ticker: sector.ticker,
     name: sector.name,
     changePercent: sector.changePercent,
-    price: sector.price,
+    price: sector.regularPrice ?? sector.price,
     weight: sector.weight,
     category: "Sector",
     history: sector.history ?? [],
@@ -68,39 +70,40 @@ function PulseAtAGlance({
   sectors: PulseGlobalMarket[];
   commodities: PulseGlobalMarket[];
 }) {
-  const movingIndexes = indexes.filter((market) => market.changePercent != null);
+  const sessionMoves = (markets: PulseGlobalMarket[]) => markets
+    .map((market) => ({ ...market, changePercent: activeSessionPercent(market) }))
+    .filter((market) => market.changePercent != null);
+  const movingIndexes = sessionMoves(scoreboardIndexes(indexes));
   const rising = movingIndexes.filter((market) => (market.changePercent ?? 0) > 0).length;
-  const leadingSector = [...sectors].sort(
+  const falling = movingIndexes.filter((market) => (market.changePercent ?? 0) < 0).length;
+  const leadingSector = sessionMoves(sectors).sort(
     (a, b) => (b.changePercent ?? Number.NEGATIVE_INFINITY) - (a.changePercent ?? Number.NEGATIVE_INFINITY),
   )[0];
-  const biggestCommodity = [...commodities].sort(
+  const biggestCommodity = sessionMoves(scoreboardCommodities(commodities)).sort(
     (a, b) => Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0),
   )[0];
-  const breadthTone = movingIndexes.length > 0 && rising >= Math.ceil(movingIndexes.length / 2)
-    ? "positive"
-    : "negative";
+  const breadthTone = rising > falling ? "positive" : falling > rising ? "negative" : "neutral";
 
   return (
     <section className="pulse-glance" aria-labelledby="pulse-glance-heading">
       <div className="pulse-glance-heading">
-        <span>Today at a glance</span>
-        <h2 id="pulse-glance-heading">The three signals worth seeing first</h2>
+        <h2 id="pulse-glance-heading" className="sr-only">Current session at a glance</h2>
       </div>
       <div className="pulse-glance-grid">
         <article className={`pulse-glance-item tone-${breadthTone}`}>
-          <span>Market breadth</span>
-          <strong>{movingIndexes.length ? `${rising} of ${movingIndexes.length} indexes rising` : "Waiting for the open"}</strong>
-          <small>Quick read on broad participation</small>
+          <span>Index direction</span>
+          <strong>{movingIndexes.length ? `${rising} of ${movingIndexes.length} indexes rising` : "No session trades yet"}</strong>
+          <small>{movingIndexes.length < scoreboardIndexes(indexes).length ? "Available session prints" : "Current session"}</small>
         </article>
-        <article className="pulse-glance-item tone-positive">
+        <article className={`pulse-glance-item tone-${leadingSector && (leadingSector.changePercent ?? 0) > 0 ? "positive" : leadingSector && (leadingSector.changePercent ?? 0) < 0 ? "negative" : "neutral"}`}>
           <span>Leading sector</span>
-          <strong>{leadingSector ? `${leadingSector.name} ${signedPercent(leadingSector.changePercent)}` : "Loading sector moves"}</strong>
-          <small>Where relative strength is showing</small>
+          <strong>{leadingSector ? `${leadingSector.name} ${signedPercent(leadingSector.changePercent)}` : "No session trades yet"}</strong>
+          <small>Strongest available move</small>
         </article>
         <article className="pulse-glance-item tone-amber">
           <span>Largest commodity move</span>
-          <strong>{biggestCommodity ? `${biggestCommodity.name} ${signedPercent(biggestCommodity.changePercent)}` : "Loading commodity moves"}</strong>
-          <small>The macro move with the most energy</small>
+          <strong>{biggestCommodity ? `${biggestCommodity.name} ${signedPercent(biggestCommodity.changePercent)}` : "No session trades yet"}</strong>
+          <small>By absolute session change</small>
         </article>
       </div>
     </section>
@@ -117,7 +120,7 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
       context = {
         kicker: data?.sessionLabel ?? "Regular Market",
         title: data?.sessionLabel === "Pre-Market" ? "Before the bell" : data?.sessionLabel === "After Hours" ? "After the bell" : "The market now",
-        detail: data?.sessionLabel ? "Big numbers show the active session. Previous close sits underneath for context." : "Live prices and today’s move are shown together.",
+        detail: data?.sessionLabel ? "Session moves · Previous close below each quote" : "Prices and moves for the regular session",
         tone: "markets",
       };
       break;
@@ -208,7 +211,7 @@ function PulsePageInner() {
 
   return (
     <div className="pulse-dashboard">
-<SurfaceSlicer
+      <SurfaceSlicer
         label="Pulse market view"
         options={PULSE_VIEWS}
         activeId={view}
