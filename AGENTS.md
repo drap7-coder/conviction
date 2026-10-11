@@ -8,7 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ### Personal daily brief (October 10, 2026)
 
-Portfolio → Watchlist opens with `PersonalDailyBrief`, covering saved holdings and watched names. This replaces the research-workflow explainer, not the movers board. Markets stays a broad overview. The brief shows up to three sourced developments from the last 48 hours, checks at most six names (holdings first) with two concurrent requests, and explicitly lists coverage and failures. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.
+Portfolio → Watchlist opens with `PersonalDailyBrief`, covering saved holdings and watched names. This replaces the research-workflow explainer, not the movers board. Markets stays a broad overview. The brief shows up to three sourced developments from the last 48 hours. Initially check six names (holdings first), then let the user check additional groups of six; keep concurrency at two and cache public news for 15 minutes. Show successful coverage counts, failed names, and the oldest successful fetch time (not a live-news timestamp). Refresh explicitly invalidates selected coverage. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.
 
 ### Current navigation decision (October 8, 2026)
 
