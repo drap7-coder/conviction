@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Personal daily brief (October 10, 2026)
+
+Portfolio → Watchlist opens with `PersonalDailyBrief`, covering saved holdings and watched names. This replaces the research-workflow explainer, not the movers board. Markets stays a broad overview. The brief shows up to three sourced developments from the last 48 hours, checks at most six names (holdings first) with two concurrent requests, and explicitly lists coverage and failures. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.
+
 ### Current navigation decision (October 8, 2026)
 
 Primary navigation is Pulse, Portfolio, News, then Menu. Crowd lives under Menu → More with the description “Campus competition”; `/crowd` remains available and activates Menu. This supersedes older instructions below that put Crowd on the daily tab bar. After a first holding is saved through Portfolio onboarding, show a dismissible invitation to Crowd for that visit.

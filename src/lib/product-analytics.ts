@@ -1,4 +1,4 @@
-export const PRODUCT_EVENTS = ["search_submitted", "movers_opened", "portfolio_setup_started", "portfolio_created", "holding_added", "return_visit"] as const;
+export const PRODUCT_EVENTS = ["search_submitted", "movers_opened", "portfolio_setup_started", "portfolio_created", "holding_added", "return_visit", "brief_setup_started", "daily_brief_viewed", "brief_evidence_opened"] as const;
 export type ProductEvent = typeof PRODUCT_EVENTS[number];
 
 // Milestones only: never attach financial details, search terms, or identity.

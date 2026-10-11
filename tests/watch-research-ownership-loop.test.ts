@@ -9,10 +9,12 @@ describe("watch → research → ownership loop", () => {
   it("turns Watchlist into a clear research queue without replacing the movers board", () => {
     const watchlist = read("src/components/Watchlist.tsx");
 
-    expect(watchlist).toContain("Your daily research queue");
-    expect(watchlist).toContain("01 · Watch");
-    expect(watchlist).toContain("02 · Research");
-    expect(watchlist).toContain("03 · Own");
+    expect(watchlist).toContain("<PersonalDailyBrief");
+    const brief = read("src/components/PersonalDailyBrief.tsx");
+    expect(brief).toContain("Your daily brief");
+    expect(brief).toContain("Read source");
+    expect(brief).toContain("Why it matters");
+    expect(read("src/components/market/PulseDashboard.tsx")).not.toContain("PersonalDailyBrief");
     expect(watchlist).toContain("Private sync on");
     expect(watchlist).toContain("MarketMoversBoard");
     expect(watchlist).not.toContain("<WatchlistDailyBrief");
