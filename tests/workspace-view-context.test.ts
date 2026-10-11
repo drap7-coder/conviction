@@ -9,7 +9,6 @@ describe("daily workspace orientation", () => {
       "src/components/market/PulseDashboard.tsx",
       "src/components/CrowdBoard.tsx",
       "src/components/Portfolio.tsx",
-      "src/components/market/PulseNewsFeed.tsx",
     ]) {
       expect(read(file)).toContain("WorkspaceViewContext");
     }

@@ -252,6 +252,8 @@ body, html[data-theme="cream"] body { background-image: none; }
 .news-page .pulse-news-narrative-summary,
 .news-page .pulse-news-why { font-size: 0.9rem; line-height: 1.55; }
 .news-page .pulse-news-theme-menu select { min-height: 44px; background: var(--card); }
+.news-page .pulse-news-theme-menu { display: flex; align-items: center; gap: 12px; }
+.news-page .pulse-news-theme-menu > span { font-size: .8rem; color: var(--muted); white-space: nowrap; }
 
 @media (max-width: 767px) {
   .pulse-page .pulse-seo-intro { grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 4px 0 16px; padding: 4px 0; }

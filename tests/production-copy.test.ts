@@ -238,8 +238,8 @@ describe("production copy and fixture isolation", () => {
     expect(feed).toContain("orderNewsBriefThemes");
     expect(feed).toContain("pickHeroHeadline");
     expect(feed).toContain("pulse-news-lead-chip");
-    expect(feed).toContain("Your Stocks");
-    expect(feed).toContain("PRIMARY_FILTERS");
+    expect(feed).not.toContain("Your Stocks");
+    expect(feed).toContain("All topics");
     expect(feed).toContain("pulse-news-theme-menu");
     expect(feed).toContain("headline.imageUrl");
     expect(feed).toContain("next/image");
@@ -251,8 +251,8 @@ describe("production copy and fixture isolation", () => {
     expect(feed).toContain("HeadlineCard");
     expect(feed).not.toContain("pulse-news-row");
     expect(feed).not.toContain(">Headlines<");
-    expect(feed).toContain("SurfaceSlicer");
-    expect(feed).toContain("pulse-news-filters");
+    expect(feed).not.toContain("SurfaceSlicer");
+    expect(feed).toContain("pulse-news-theme-menu");
     const newsCss = read("src/app/globals.css");
     expect(newsCss).toContain(".surface-slicer");
     expect(newsCss).toContain(".surface-slicer-pill.is-active");

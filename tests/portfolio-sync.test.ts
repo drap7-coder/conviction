@@ -53,6 +53,6 @@ describe("Neon portfolio sync", () => {
     expect(client).toContain("conviction-portfolio-migrated");
     expect(provider).toContain("loadPortfolioForViewer");
     expect(provider).toContain("positions: PersistedPosition[]");
-    expect(news).toContain("loadPortfolioForViewer");
+    expect(news).not.toContain("loadPortfolioForViewer");
   });
 });
