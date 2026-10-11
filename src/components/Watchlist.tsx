@@ -143,14 +143,13 @@ export default function Watchlist({
       }
 
       setEntries(nextEntries);
+      setError(null);
       // Guests own localStorage only — never adopt the ops/seed sync universe.
       if (!isAuthenticated && browserEntries) writeBrowserWatchlistNow(nextEntries);
       setAuthenticated(isAuthenticated);
       setPersistence(data.persistence ?? (isAuthenticated ? "neon" : "browser"));
     } catch {
-      if (!browserEntries) {
-        setError("Failed to load watchlist");
-      }
+      setError("Watchlist sync is unavailable");
     } finally {
       setLoading(false);
     }
@@ -578,7 +577,7 @@ export default function Watchlist({
 
   return (
     <div className="watchlist-daily">
-      <PersonalDailyBrief tickers={entries.map((entry) => entry.ticker)} loading={loading} />
+      <PersonalDailyBrief tickers={entries.map((entry) => entry.ticker)} loading={loading} watchlistError={Boolean(error)} onRetryWatchlist={() => void loadWatchlist()} />
       <p className="personal-brief-persistence">{entries.length} watched name{entries.length === 1 ? "" : "s"} · {persistenceLabel}</p>
 
       {loading ? (

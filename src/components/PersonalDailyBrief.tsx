@@ -4,20 +4,29 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { loadPositions } from "@/lib/portfolio/persist";
-import { briefContext, briefNames, selectBriefStories, type BriefStory } from "@/lib/watchlist/daily-brief";
-import type { EvidenceEvent } from "@/lib/evidence/types";
+import { briefContext, briefNames } from "@/lib/watchlist/daily-brief";
+import { BRIEF_BATCH_SIZE, createBriefLoader, type BriefCoverage, type BriefNews } from "@/lib/watchlist/brief-coverage";
 import { trackProductEvent } from "@/lib/product-analytics";
 
-type NewsResult = { status: string; events: EvidenceEvent[] };
-const newsCache = new Map<string, { at: number; value: NewsResult }>();
-const COVERAGE_LIMIT = 6;
+const newsLoader = createBriefLoader((ticker, signal) =>
+  fetchJsonWithTimeout<BriefNews>(`/api/evidence/news?ticker=${encodeURIComponent(ticker)}`, 10000, signal));
 
-export function PersonalDailyBrief({ tickers, loading }: { tickers: string[]; loading: boolean }) {
+function coverageTime(value: number) {
+  return new Date(value).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+}
+
+export function PersonalDailyBrief({ tickers, loading, watchlistError = false, onRetryWatchlist }: {
+  tickers: string[];
+  loading: boolean;
+  watchlistError?: boolean;
+  onRetryWatchlist?: () => void;
+}) {
   const [held, setHeld] = useState<string[]>([]);
   const [portfolioReady, setPortfolioReady] = useState(false);
   const [portfolioError, setPortfolioError] = useState(false);
   const [retry, setRetry] = useState(0);
-  const [result, setResult] = useState<{ key: string; stories: BriefStory[]; failed: number } | null>(null);
+  const [coverageLimit, setCoverageLimit] = useState(BRIEF_BATCH_SIZE);
+  const [result, setResult] = useState<(BriefCoverage & { key: string }) | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,7 +46,7 @@ export function PersonalDailyBrief({ tickers, loading }: { tickers: string[]; lo
   }, [retry]);
 
   const names = briefNames(held, tickers);
-  const covered = names.slice(0, COVERAGE_LIMIT);
+  const covered = names.slice(0, coverageLimit);
   const key = JSON.stringify(covered);
   const ready = portfolioReady && !loading;
 
@@ -45,66 +54,60 @@ export function PersonalDailyBrief({ tickers, loading }: { tickers: string[]; lo
     if (!ready) return;
     const controller = new AbortController();
     const selected = JSON.parse(key) as ReturnType<typeof briefNames>;
-    let cursor = 0;
-    let failed = 0;
-    const stories: BriefStory[] = [];
-    async function worker() {
-      while (cursor < selected.length && !controller.signal.aborted) {
-        const name = selected[cursor++];
-        try {
-          const cached = newsCache.get(name.ticker);
-          const news = cached && Date.now() - cached.at < 15 * 60_000 ? cached.value :
-            await fetchJsonWithTimeout<NewsResult>(`/api/evidence/news?ticker=${encodeURIComponent(name.ticker)}`, 10000, controller.signal);
-          if (!["success", "empty"].includes(news.status) || !Array.isArray(news.events)) throw new Error("Unavailable");
-          if (!cached || cached.value !== news) newsCache.set(name.ticker, { at: Date.now(), value: news });
-          if (newsCache.size > 100) newsCache.delete(newsCache.keys().next().value!);
-          // One company cannot fill all three positions in the brief.
-          const story = selectBriefStories(news.events.map((event) => ({ ...name, event })))[0];
-          if (story) stories.push(story);
-        } catch {
-          failed++;
-        }
-      }
-    }
-    void Promise.all([worker(), worker()]).then(() => {
+    void newsLoader.load(selected, controller.signal).then((coverage) => {
       if (controller.signal.aborted) return;
-      setResult({ key, stories: selectBriefStories(stories), failed });
-      if (stories.length) trackProductEvent("daily_brief_viewed");
+      setResult({ key, ...coverage });
+      if (coverage.stories.length) trackProductEvent("daily_brief_viewed");
+    }).catch(() => {
+      if (!controller.signal.aborted) setResult({ key, stories: [], checked: [], failed: selected.map((name) => name.ticker), fetchedAt: null });
     });
     return () => controller.abort();
   }, [key, ready, retry]);
 
   const current = result?.key === key ? result : null;
   const busy = !ready || (covered.length > 0 && !current);
+  function refresh() {
+    if (watchlistError) onRetryWatchlist?.();
+    newsLoader.invalidate(covered.map((name) => name.ticker));
+    setResult(null);
+    setRetry((n) => n + 1);
+  }
   return (
     <section className="personal-brief" aria-labelledby="personal-brief-heading" aria-busy={busy}>
       <header className="personal-brief-header">
-        <div><span className="personal-brief-eyebrow">MY STOCKS · LAST 48 HOURS</span>
+        <div><span className="personal-brief-eyebrow">MY STOCKS</span>
           <h2 id="personal-brief-heading">Your daily brief</h2>
-          <p>What changed. Why it matters. The evidence behind it.</p></div>
-        <Link href="/manage?view=watchlist" className="data-edit-pill">Choose companies →</Link>
+          <p>Recent reporting on your holdings and watchlist.</p></div>
+        <Link href="/manage?view=watchlist" className="personal-brief-edit">Edit companies →</Link>
       </header>
-      {busy ? <p role="status">Checking recent company news…</p> : names.length === 0 && !portfolioError ? (
+      {busy ? <p role="status">Checking recent company news…</p> : names.length === 0 && !portfolioError && !watchlistError ? (
         <div className="personal-brief-empty"><h3>Start with three companies you care about.</h3>
           <p>Add names to your watchlist. Your brief starts with the first one—no account required.</p>
           <Link href="/manage?view=watchlist" className="brief-link" onClick={() => trackProductEvent("brief_setup_started")}>Build my brief →</Link>
         </div>
       ) : <>
+        <div className="personal-brief-trust" role="status">
+          <span>Last 48 hours · {current?.checked.length ?? 0} of {names.length} names checked</span>
+          {current?.fetchedAt != null ? <time dateTime={new Date(current.fetchedAt).toISOString()}>Coverage fetched {coverageTime(current.fetchedAt)}</time> : null}
+        </div>
         {current?.stories.length ? <div className="personal-brief-stories">
-          {current.stories.map(({ ticker, held: isHeld, event }, index) => (
+          {current.stories.map(({ ticker, held: isHeld, event }) => (
             <article key={ticker}>
-              <div className="personal-brief-meta"><span>{String(index + 1).padStart(2, "0")} · {ticker}</span><span>{isHeld ? "You own" : "You watch"}</span></div>
+              <div className="personal-brief-meta"><span>{ticker}</span><span>{isHeld ? "You own" : "You watch"}</span></div>
               <h3>{event.title}</h3>
-              <p>{event.summary || "A recent company development to review alongside your investment thesis."}</p>
-              <details><summary>Why it matters</summary><p>{briefContext(event, ticker)}</p></details>
+              <details><summary>Why it matters</summary>{event.summary ? <p>{event.summary}</p> : null}<p>{briefContext(event, ticker)}</p></details>
               <footer><span>{event.metadata?.publisher || "Source report"} · <time dateTime={event.date}>{new Date(event.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</time></span>
                 <a href={event.sourceUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackProductEvent("brief_evidence_opened")}>Read source ↗</a>
                 <Link href={`/companies/${encodeURIComponent(ticker)}`} onClick={() => trackProductEvent("brief_evidence_opened")}>Research {ticker} →</Link></footer>
             </article>
           ))}
-        </div> : <p>No recent sourced developments found in the available coverage.</p>}
-        {portfolioError || Boolean(current?.failed) ? <p role="status" className="personal-brief-warning">{portfolioError ? "Holdings could not be loaded. " : ""}{current?.failed ? `News unavailable for ${current.failed} checked name${current.failed === 1 ? "" : "s"}. ` : ""}This brief may be incomplete. <button type="button" onClick={() => { setResult(null); setRetry((n) => n + 1); }}>Try again</button></p> : null}
-        {covered.length ? <p className="personal-brief-coverage">Checking {covered.map((n) => n.ticker).join(", ")}{names.length > COVERAGE_LIMIT ? ` · ${COVERAGE_LIMIT} of ${names.length} names, holdings first` : ""}. News may be delayed; this is not a complete market scan.</p> : null}
+        </div> : <div className="personal-brief-empty"><h3>{current?.checked.length ? "No recent reports in the checked names." : "Coverage is unavailable right now."}</h3><p>{current?.checked.length ? "No sourced stories from the last 48 hours were returned. This does not mean nothing has changed." : "We could not verify recent reporting. Your saved companies are unchanged."}</p></div>}
+        {portfolioError || watchlistError || Boolean(current?.failed.length) ? <p role="status" className="personal-brief-warning">{portfolioError ? "Holdings could not be loaded. " : ""}{watchlistError ? "Watchlist sync is unavailable. " : ""}{current?.failed.length ? `News unavailable: ${current.failed.join(", ")}. ` : ""}Coverage is incomplete.</p> : null}
+        <div className="personal-brief-actions">
+          {names.length > covered.length ? <button type="button" onClick={() => setCoverageLimit((n) => n + BRIEF_BATCH_SIZE)}>Check next {Math.min(BRIEF_BATCH_SIZE, names.length - covered.length)} names →</button> : null}
+          <button type="button" onClick={refresh}>Refresh coverage</button>
+        </div>
+        {covered.length ? <details className="personal-brief-coverage"><summary>Coverage details</summary><p>Checked: {current?.checked.join(", ") || "None"}.</p><p>Holdings are checked first, then watched companies, in groups of six. Only three recent reports are shown. Coverage is cached for up to 15 minutes; the time above is the oldest successful fetch in this brief, not a live-news timestamp. News may be delayed or incomplete.</p></details> : null}
       </>}
     </section>
   );
