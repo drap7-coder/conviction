@@ -5,9 +5,10 @@ import Link from "next/link";
 import type { PulseData } from "@/app/api/market/pulse/route";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { IndexScoreboard } from "@/components/market/IndexScoreboard";
+import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 
 /**
- * Compact DIA/SPY/QQQ/IWM strip on Home — not a second Pulse.
+ * Home market context: VIX + 10Y, then DIA/SPY/QQQ/IWM — not a second Pulse.
  * Full Markets / Movers / Crypto / Intl lives at /pulse.
  */
 export function HomeMarketStrip() {
@@ -71,7 +72,7 @@ export function HomeMarketStrip() {
 
       {status === "loading" ? (
         <PageLoadingMotion
-          label="Loading indexes"
+          label="Loading market context"
           compact
           showLabel={false}
           showSubtitle={false}
@@ -80,17 +81,24 @@ export function HomeMarketStrip() {
       ) : null}
       {status === "error" ? (
         <p className="pulse-home-state">
-          Index quotes are temporarily unavailable.
+          Market context is temporarily unavailable.
         </p>
       ) : null}
-      {status === "ready" && indexes.length === 0 ? (
-        <p className="pulse-home-state">No index quotes available right now.</p>
-      ) : null}
-      {status === "ready" && indexes.length > 0 ? (
-        <IndexScoreboard
-          markets={indexes}
-          sessionLabel={data?.sessionLabel ?? null}
-        />
+      {status === "ready" ? (
+        <>
+          <PulseMacroGauges
+            indicators={data?.indicators ?? []}
+            showShareTools={false}
+          />
+          {indexes.length > 0 ? (
+            <IndexScoreboard
+              markets={indexes}
+              sessionLabel={data?.sessionLabel ?? null}
+            />
+          ) : (
+            <p className="pulse-home-state">No index quotes available right now.</p>
+          )}
+        </>
       ) : null}
     </section>
   );

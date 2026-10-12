@@ -16,7 +16,7 @@ Primary navigation is **Home**, Portfolio, News, then Menu. **Pulse** is Menu �
 
 ### Home = for you today (October 12, 2026)
 
-**Home (`/`)** is personal judgment, not a second tape: **Your daily brief** (`PersonalDailyBrief`, holdings-first) → **Market context** (DIA/SPY/QQQ/IWM strip + Open Pulse) → **Your Stocks** (≤6 names or build-watchlist invite). Do **not** put market-wide Today’s Brief / Worth Understanding / full Pulse boards on Home — those live on News and `/pulse`. Do **not** remount `PersonalDailyBrief` on Portfolio Watchlist. **Pulse** is depth on demand. Keep Crowd off the initial homepage. Honest unavailable states — never fabricate quiet markets. Apex `/` is a real page (no 308 to `/pulse`).
+**Home (`/`)** is personal judgment, not a second tape: **Your daily brief** (`PersonalDailyBrief`, holdings-first) → **Market context** (VIX + 10Y gauges, then DIA/SPY/QQQ/IWM + Open Pulse) → **Your Stocks** (≤6 names or build-watchlist invite). Do not bury VIX/10Y only on Pulse. Do **not** put market-wide Today’s Brief / Worth Understanding / full Pulse boards on Home — those live on News and `/pulse`. Do **not** remount `PersonalDailyBrief` on Portfolio Watchlist. **Pulse** is depth on demand. Keep Crowd off the initial homepage. Honest unavailable states — never fabricate quiet markets. Apex `/` is a real page (no 308 to `/pulse`).
 
 This is a single Next.js 16 (App Router, Turbopack) app named `conviction`. Package manager is **npm**. Standard commands live in `package.json`: `npm run dev` (port 3000), `npm run build`, `npm run typecheck` (`tsc --noEmit` — there is no ESLint/lint script), and `npm run test` / `npm run test:watch` (Vitest).
 
