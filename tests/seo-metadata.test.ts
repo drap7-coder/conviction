@@ -64,8 +64,8 @@ describe("SEO metadata", () => {
   it("includes the main tabs, sectors, seed names, and Pulse instruments in the sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
 
-    // Apex `/` 308s to /pulse — do not list the redirecting URL.
-    expect(urls).not.toContain(`${SITE_URL}/`);
+    // Apex `/` is Home — list it alongside Pulse markets.
+    expect(urls).toContain(`${SITE_URL}/`);
     expect(urls).toContain(`${SITE_URL}/pulse`);
     expect(urls).toContain(`${SITE_URL}/portfolio`);
     expect(urls).not.toContain(`${SITE_URL}/portfolio?view=watchlist`);
@@ -211,7 +211,9 @@ describe("SEO metadata", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
-    expect(read("src/app/page.tsx")).toContain("permanentRedirect");
+    expect(read("src/app/page.tsx")).toContain("<HomeOverview");
+    expect(read("src/app/page.tsx")).not.toContain("permanentRedirect");
+    expect(read("src/app/layout.tsx")).toContain('canonical: "/"');
     expect(read("next.config.ts")).toContain('source: "/"');
     expect(read("next.config.ts")).toContain("https://iqbulls.com");
     expect(read("next.config.ts")).toContain("www.iqbulls.com");

@@ -10,6 +10,7 @@ import { SITE_URL } from "@/lib/site";
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
+    { url: `${SITE_URL}/` },
     { url: `${SITE_URL}/pulse` },
     { url: `${SITE_URL}/crowd` },
     { url: `${SITE_URL}/news` },

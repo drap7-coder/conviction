@@ -41,28 +41,39 @@ function theme(
   };
 }
 
-describe("Pulse home overview", () => {
-  it("composes Today’s Brief → Market glance → Your Stocks → Worth Understanding", () => {
-    const page = read("src/components/market/PulseDashboard.tsx");
-    const brief = page.indexOf("<PulseTodaysBrief");
-    const glance = page.indexOf("pulse-market-glance");
-    const stocks = page.indexOf("<PulseYourStocks");
-    const worth = page.indexOf("<PulseWorthUnderstanding");
-    const slicer = page.indexOf('className="pulse-view-slicer"');
+describe("Home overview vs Pulse", () => {
+  it("puts the four-section overview on Home, not Pulse", () => {
+    const home = read("src/components/market/HomeOverview.tsx");
+    const pulse = read("src/components/market/PulseDashboard.tsx");
+    const brief = home.indexOf("<PulseTodaysBrief");
+    const glance = home.indexOf('variant="home"');
+    const stocks = home.indexOf("<PulseYourStocks");
+    const worth = home.indexOf("<PulseWorthUnderstanding");
     expect(brief).toBeGreaterThan(-1);
     expect(glance).toBeGreaterThan(brief);
     expect(stocks).toBeGreaterThan(glance);
     expect(worth).toBeGreaterThan(stocks);
-    expect(slicer).toBeGreaterThan(glance);
-    expect(slicer).toBeLessThan(stocks);
-    expect(page).not.toContain("PersonalDailyBrief");
-    expect(page).not.toContain("PulseAtAGlance");
-    expect(page).not.toContain("pf-crowd-invite");
+    expect(home).not.toContain("PersonalDailyBrief");
+    expect(home).not.toContain("pf-crowd-invite");
+    expect(pulse).toContain('variant="pulse"');
+    expect(pulse).not.toContain("PulseTodaysBrief");
+    expect(pulse).not.toContain("PulseYourStocks");
+    expect(pulse).not.toContain("PulseWorthUnderstanding");
+  });
+
+  it("keeps the Markets/Movers/Crypto/Intl slicer on Pulse only", () => {
+    const board = read("src/components/market/PulseMarketBoard.tsx");
+    expect(board).toContain('className="pulse-view-slicer"');
+    expect(board).toContain('variant === "home"');
+    expect(board).toContain("Open Pulse");
+    expect(read("src/app/page.tsx")).toContain("<HomeOverview");
+    expect(read("src/app/page.tsx")).not.toContain("permanentRedirect");
+    expect(read("src/app/pulse/page.tsx")).toContain("<PulseDashboard");
   });
 
   it("keeps personal brief ownership on Portfolio Watchlist", () => {
     expect(read("src/components/Watchlist.tsx")).toContain("<PersonalDailyBrief");
-    expect(read("src/components/market/PulseDashboard.tsx")).not.toContain(
+    expect(read("src/components/market/HomeOverview.tsx")).not.toContain(
       "PersonalDailyBrief",
     );
     expect(read("src/components/market/PulseYourStocks.tsx")).toContain(

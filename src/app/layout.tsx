@@ -78,12 +78,12 @@ export const metadata: Metadata = {
     follow: true,
   },
   alternates: {
-    canonical: "/pulse",
+    canonical: "/",
   },
   openGraph: {
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
-    url: `${SITE_URL}/pulse`,
+    url: SITE_URL,
     siteName: SITE_NAME,
     images: [SITE_OG_IMAGE],
     type: "website",

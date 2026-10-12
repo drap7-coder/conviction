@@ -81,7 +81,7 @@ export function JoinInviteClient({ code }: { code: string }) {
         <section className="join-card">
           <h1>Invite not found</h1>
           <p>{error}</p>
-          <Link href="/pulse">Back to Pulse</Link>
+          <Link href="/">Back to Home</Link>
         </section>
       </main>
     );

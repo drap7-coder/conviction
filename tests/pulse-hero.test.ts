@@ -7,7 +7,8 @@ function read(path: string) {
 describe("Pulse heatmap universe", () => {
   it("keeps even more-markets groups and no page hero", () => {
     const route = read("src/app/api/market/pulse/route.ts");
-    const page = read("src/components/market/PulseDashboard.tsx");
+    const page = read("src/components/market/PulseMarketBoard.tsx");
+    const dashboard = read("src/components/market/PulseDashboard.tsx");
 
     expect(route).toContain('ticker: "UNG"');
     expect(route).toContain('category: "Commodity"');
@@ -34,6 +35,8 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("PULSE_TABS");
     expect(page).not.toContain("pulse-tab-indexes");
     expect(page).not.toContain("pulse-panel-trending");
+    expect(dashboard).toContain('variant="pulse"');
+    expect(dashboard).not.toContain("PulseTodaysBrief");
   });
 
   it("does not treat Trending as a watchlist chip editor", () => {
@@ -49,7 +52,7 @@ describe("Pulse heatmap universe", () => {
   });
 
   it("renders Markets as indexes + gauges + commodities + sectors; slicer is Markets · Movers · Crypto · Intl", () => {
-    const page = read("src/components/market/PulseDashboard.tsx");
+    const page = read("src/components/market/PulseMarketBoard.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
@@ -158,7 +161,7 @@ describe("Pulse heatmap universe", () => {
 describe("Pulse slicer hosts Markets, Movers, Crypto, Intl", () => {
   it("hosts scoreboards on Pulse slicer views and redirects legacy Menu routes", () => {
     const nav = read("src/lib/nav-config.ts");
-    const page = read("src/components/market/PulseDashboard.tsx");
+    const page = read("src/components/market/PulseMarketBoard.tsx");
     const sectors = read("src/app/sectors/page.tsx");
     const international = read("src/app/international/page.tsx");
     const sectorsLayout = read("src/app/sectors/layout.tsx");

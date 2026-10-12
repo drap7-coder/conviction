@@ -3,23 +3,25 @@ import { PulseDashboard } from "@/components/market/PulseDashboard";
 import Link from "next/link";
 
 /**
- * Server shell for Pulse SEO: one visible H1 + short intro in the initial HTML,
- * then the interactive dashboard, then evergreen About copy.
+ * Pulse markets workspace — Indexes, Movers, Crypto, Intl.
+ * The four-section overview lives on Home (`/`).
  */
 export default function PulsePage() {
   return (
     <main className="markets-page pulse-page">
       <header className="pulse-seo-intro">
-        <p className="pulse-product-label">
-          Your daily market view
-        </p>
-        <h1><span className="sr-only">Real-Time Market Dashboard: </span>See the market. <span className="pulse-title-muted">Skip the noise.</span></h1>
+        <p className="pulse-product-label">Pulse</p>
+        <h1>
+          <span className="sr-only">Real-Time Market Dashboard: </span>
+          Markets in one place.
+        </h1>
         <p className="pulse-seo-lede">
-          What’s moving. Where you stand. What matters next.
+          Indexes, movers, crypto, and international boards — session-aware and
+          refreshable.
         </p>
-        <div className="pulse-hero-actions" aria-label="Get started">
-          <Link className="pulse-hero-primary" href="/portfolio?view=watchlist">
-            Build your watchlist <span aria-hidden="true">→</span>
+        <div className="pulse-hero-actions" aria-label="Related">
+          <Link className="pulse-hero-primary" href="/">
+            Back to Home <span aria-hidden="true">→</span>
           </Link>
           <Link className="pulse-hero-secondary" href="/news">
             Open News

@@ -103,7 +103,7 @@ export default function PrivacyPage() {
 
       <nav className={styles.links} aria-label="Legal and product links">
         <Link href="/terms">Terms</Link>
-        <Link href="/pulse">Back to IQBulls</Link>
+        <Link href="/">Back to IQBulls</Link>
       </nav>
     </main>
   );

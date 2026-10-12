@@ -77,7 +77,7 @@ const nextConfig: NextConfig = {
       {
         source: "/",
         has: [{ type: "host", value: "www.iqbulls.com" }],
-        destination: `${CANONICAL_ORIGIN}/pulse`,
+        destination: `${CANONICAL_ORIGIN}/`,
         permanent: true,
       },
       {
@@ -90,19 +90,19 @@ const nextConfig: NextConfig = {
       {
         source: "/",
         has: [{ type: "host", value: "gotconviction.com" }],
-        destination: `${CANONICAL_ORIGIN}/pulse`,
+        destination: `${CANONICAL_ORIGIN}/`,
         permanent: true,
       },
       {
         source: "/",
         has: [{ type: "host", value: "www.gotconviction.com" }],
-        destination: `${CANONICAL_ORIGIN}/pulse`,
+        destination: `${CANONICAL_ORIGIN}/`,
         permanent: true,
       },
       {
         source: "/",
         has: [{ type: "host", value: "conviction-orpin.vercel.app" }],
-        destination: `${CANONICAL_ORIGIN}/pulse`,
+        destination: `${CANONICAL_ORIGIN}/`,
         permanent: true,
       },
       {
@@ -121,11 +121,6 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         has: [{ type: "host", value: "conviction-orpin.vercel.app" }],
         destination: `${CANONICAL_ORIGIN}/:path*`,
-        permanent: true,
-      },
-      {
-        source: "/",
-        destination: "/pulse",
         permanent: true,
       },
       {
