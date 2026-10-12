@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import type { PulseData, PulseGlobalMarket, PulseSector } from "@/app/api/market/pulse/route";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
@@ -15,9 +16,13 @@ import {
 import { CryptoBoard } from "@/components/market/CryptoBoard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
+import {
+  PulseTodaysBrief,
+  usePulseHomeNews,
+} from "@/components/market/PulseTodaysBrief";
+import { PulseWorthUnderstanding } from "@/components/market/PulseWorthUnderstanding";
+import { PulseYourStocks } from "@/components/market/PulseYourStocks";
 import { trackProductEvent } from "@/lib/product-analytics";
-import { activeSessionPercent } from "@/lib/display/active-session";
-import { scoreboardIndexes, scoreboardCommodities } from "@/lib/market/index-scoreboard";
 
 type PulseView = "markets" | "movers" | "crypto" | "international";
 
@@ -56,60 +61,6 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
 
 const PULSE_REFRESH_MS = 60_000;
 
-function signedPercent(value: number | null | undefined): string {
-  if (value == null || !Number.isFinite(value)) return "—";
-  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
-}
-
-function PulseAtAGlance({
-  indexes,
-  sectors,
-  commodities,
-}: {
-  indexes: PulseGlobalMarket[];
-  sectors: PulseGlobalMarket[];
-  commodities: PulseGlobalMarket[];
-}) {
-  const sessionMoves = (markets: PulseGlobalMarket[]) => markets
-    .map((market) => ({ ...market, changePercent: activeSessionPercent(market) }))
-    .filter((market) => market.changePercent != null);
-  const movingIndexes = sessionMoves(scoreboardIndexes(indexes));
-  const rising = movingIndexes.filter((market) => (market.changePercent ?? 0) > 0).length;
-  const falling = movingIndexes.filter((market) => (market.changePercent ?? 0) < 0).length;
-  const leadingSector = sessionMoves(sectors).sort(
-    (a, b) => (b.changePercent ?? Number.NEGATIVE_INFINITY) - (a.changePercent ?? Number.NEGATIVE_INFINITY),
-  )[0];
-  const biggestCommodity = sessionMoves(scoreboardCommodities(commodities)).sort(
-    (a, b) => Math.abs(b.changePercent ?? 0) - Math.abs(a.changePercent ?? 0),
-  )[0];
-  const breadthTone = rising > falling ? "positive" : falling > rising ? "negative" : "neutral";
-
-  return (
-    <section className="pulse-glance" aria-labelledby="pulse-glance-heading">
-      <div className="pulse-glance-heading">
-        <h2 id="pulse-glance-heading" className="sr-only">Current session at a glance</h2>
-      </div>
-      <div className="pulse-glance-grid">
-        <article className={`pulse-glance-item tone-${breadthTone}`}>
-          <span>Index direction</span>
-          <strong>{movingIndexes.length ? `${rising} of ${movingIndexes.length} indexes rising` : "No session trades yet"}</strong>
-          <small>{movingIndexes.length < scoreboardIndexes(indexes).length ? "Available session prints" : "Current session"}</small>
-        </article>
-        <article className={`pulse-glance-item tone-${leadingSector && (leadingSector.changePercent ?? 0) > 0 ? "positive" : leadingSector && (leadingSector.changePercent ?? 0) < 0 ? "negative" : "neutral"}`}>
-          <span>Leading sector</span>
-          <strong>{leadingSector ? `${leadingSector.name} ${signedPercent(leadingSector.changePercent)}` : "No session trades yet"}</strong>
-          <small>Strongest available move</small>
-        </article>
-        <article className="pulse-glance-item tone-amber">
-          <span>Largest commodity move</span>
-          <strong>{biggestCommodity ? `${biggestCommodity.name} ${signedPercent(biggestCommodity.changePercent)}` : "No session trades yet"}</strong>
-          <small>By absolute session change</small>
-        </article>
-      </div>
-    </section>
-  );
-}
-
 function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | null }) {
   const updated = data?.fetchedAt
     ? new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
@@ -119,7 +70,7 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
     case "markets":
       context = {
         kicker: data?.sessionLabel ?? "Regular Market",
-        title: data?.sessionLabel === "Pre-Market" ? "Before the bell" : data?.sessionLabel === "After Hours" ? "After the bell" : "The market now",
+        title: data?.sessionLabel === "Pre-Market" ? "Before the bell" : data?.sessionLabel === "After Hours" ? "After the bell" : "Market at a glance",
         detail: data?.sessionLabel ? "Session moves · Previous close below each quote" : "Prices and moves for the regular session",
         tone: "markets",
       };
@@ -137,7 +88,6 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
   return <WorkspaceViewContext {...context} meta={updated && context.tone === "markets" ? <time dateTime={data?.fetchedAt}>Updated {updated}</time> : undefined} />;
 }
 
-
 function PulsePageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -145,6 +95,7 @@ function PulsePageInner() {
   const [view, setView] = useState<PulseView>(() => parsePulseView(searchParams.get("view")));
   const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const homeNews = usePulseHomeNews();
 
   useEffect(() => {
     setView(parsePulseView(searchParams.get("view")));
@@ -210,63 +161,92 @@ function PulsePageInner() {
   const sectorMarkets = sectorsToMarkets(data?.sectors ?? []);
 
   return (
-    <div className="pulse-dashboard">
-      <SurfaceSlicer
-        label="Pulse market view"
-        options={PULSE_VIEWS}
-        activeId={view}
-        onChange={(id) => selectView(parsePulseView(id))}
-        className="pulse-view-slicer"
+    <div className="pulse-dashboard pulse-home">
+      <PulseTodaysBrief
+        status={homeNews.status}
+        fetchedAt={homeNews.fetchedAt}
+        stories={homeNews.todaysBrief}
       />
 
-      {status === "loading" ? (
-        <PageLoadingMotion
-          label="Loading pulse"
-          compact
-          showLabel={false}
-          showSubtitle={false}
-          speed="slow"
+      <section
+        className="pulse-home-section pulse-market-glance"
+        aria-labelledby="pulse-market-glance-heading"
+      >
+        <header className="pulse-home-section-head">
+          <div>
+            <p className="pulse-home-eyebrow">Markets</p>
+            <h2 id="pulse-market-glance-heading">Market at a Glance</h2>
+          </div>
+          <Link href="/pulse" className="pulse-home-next" onClick={(event) => {
+            if (view !== "markets") {
+              event.preventDefault();
+              selectView("markets");
+            }
+          }}>
+            {view === "markets" ? "Indexes" : "Back to Markets"}{" "}
+            <span aria-hidden="true">→</span>
+          </Link>
+        </header>
+
+        <SurfaceSlicer
+          label="Pulse market view"
+          options={PULSE_VIEWS}
+          activeId={view}
+          onChange={(id) => selectView(parsePulseView(id))}
+          className="pulse-view-slicer"
         />
-      ) : null}
-      {status === "error" || (status === "success" && !data) ? (
-        <div className="market-empty">Market data is temporarily unavailable.</div>
-      ) : null}
 
-      {status !== "loading" ? <PulseViewContext view={view} data={data} /> : null}
-
-      {data && view === "markets" ? (
-        <>
-          <PulseAtAGlance
-            indexes={majorIndexes}
-            sectors={sectorMarkets}
-            commodities={commodities}
+        {status === "loading" ? (
+          <PageLoadingMotion
+            label="Loading pulse"
+            compact
+            showLabel={false}
+            showSubtitle={false}
+            speed="slow"
           />
-          <PulseMacroGauges indicators={data.indicators} />
-          <IndexScoreboard
-            markets={majorIndexes}
-            sessionLabel={data.sessionLabel}
-          />
-          <CommodityScoreboard markets={commodities} />
-          <SectorScoreboard
-            markets={sectorMarkets}
-            sessionLabel={data.sessionLabel}
-          />
-        </>
-      ) : null}
+        ) : null}
+        {status === "error" || (status === "success" && !data) ? (
+          <div className="market-empty">Market data is temporarily unavailable.</div>
+        ) : null}
 
-      {view === "movers" && status !== "loading" ? (
-        <section id="market-moves" className="pulse-market-moves" aria-label="Market movers">
-          <MarketMovesPanel />
-        </section>
-      ) : null}
+        {status !== "loading" ? <PulseViewContext view={view} data={data} /> : null}
 
-      {data && view === "crypto" ? (
-        <CryptoBoard markets={cryptoMarkets} />
-      ) : null}
+        {data && view === "markets" ? (
+          <>
+            <IndexScoreboard
+              markets={majorIndexes}
+              sessionLabel={data.sessionLabel}
+            />
+            <PulseMacroGauges indicators={data.indicators} />
+            <CommodityScoreboard markets={commodities} />
+            <SectorScoreboard
+              markets={sectorMarkets}
+              sessionLabel={data.sessionLabel}
+            />
+          </>
+        ) : null}
 
-      {data && view === "international" ? (
-        <InternationalScoreboard markets={internationalMarkets} />
-      ) : null}
+        {view === "movers" && status !== "loading" ? (
+          <section id="market-moves" className="pulse-market-moves" aria-label="Market movers">
+            <MarketMovesPanel />
+          </section>
+        ) : null}
+
+        {data && view === "crypto" ? (
+          <CryptoBoard markets={cryptoMarkets} />
+        ) : null}
+
+        {data && view === "international" ? (
+          <InternationalScoreboard markets={internationalMarkets} />
+        ) : null}
+      </section>
+
+      <PulseYourStocks />
+
+      <PulseWorthUnderstanding
+        theme={homeNews.worthUnderstanding}
+        status={homeNews.status}
+      />
     </div>
   );
 }
@@ -275,8 +255,8 @@ export function PulseDashboard() {
   return (
     <Suspense
       fallback={(
-        <div className="pulse-dashboard">
-<PageLoadingMotion
+        <div className="pulse-dashboard pulse-home">
+          <PageLoadingMotion
             label="Loading pulse"
             compact
             showLabel={false}

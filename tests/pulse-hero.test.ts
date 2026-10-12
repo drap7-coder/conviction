@@ -48,22 +48,24 @@ describe("Pulse heatmap universe", () => {
     expect(panel).not.toContain("showDecisionCard");
   });
 
-  it("renders Markets as gauges + indexes + commodities + sectors; slicer is Markets · Movers · Crypto · Intl", () => {
+  it("renders Markets as indexes + gauges + commodities + sectors; slicer is Markets · Movers · Crypto · Intl", () => {
     const page = read("src/components/market/PulseDashboard.tsx");
     const board = read("src/components/market/IndexScoreboard.tsx");
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
     const marketsBlockStart = page.indexOf('view === "markets"');
-    const gaugesStart = page.indexOf("<PulseMacroGauges", marketsBlockStart);
     const indexesStart = page.indexOf("<IndexScoreboard", marketsBlockStart);
+    const gaugesStart = page.indexOf("<PulseMacroGauges", marketsBlockStart);
     const commoditiesStart = page.indexOf("<CommodityScoreboard", marketsBlockStart);
     const sectorsStart = page.indexOf("<SectorScoreboard", marketsBlockStart);
     const marketsBlockEnd = page.indexOf('view === "movers"', marketsBlockStart + 1);
     const marketsBlock = page.slice(marketsBlockStart, marketsBlockEnd);
-    const indexesBlock = page.slice(gaugesStart, commoditiesStart);
+    const indexesBlock = page.slice(indexesStart, gaugesStart);
     const slicerStart = page.indexOf("PULSE_VIEWS");
     const slicerEnd = page.indexOf("];", slicerStart);
     const slicerBlock = page.slice(slicerStart, slicerEnd);
+    const marketGlanceStart = page.indexOf("pulse-market-glance");
+    const slicerMount = page.indexOf('className="pulse-view-slicer"');
     expect(page).toContain('className="pulse-view-slicer"');
     expect(page).toContain('label: "Markets"');
     expect(page).toContain('label: "Movers"');
@@ -74,12 +76,14 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain('label: "International"');
     expect(slicerBlock.indexOf('label: "Movers"')).toBeLessThan(slicerBlock.indexOf('label: "Crypto"'));
     expect(slicerBlock.indexOf('label: "Crypto"')).toBeLessThan(slicerBlock.indexOf('label: "Intl"'));
+    expect(marketGlanceStart).toBeGreaterThan(-1);
+    expect(slicerMount).toBeGreaterThan(marketGlanceStart);
     expect(gaugesStart).toBeGreaterThan(-1);
     expect(indexesStart).toBeGreaterThan(-1);
     expect(commoditiesStart).toBeGreaterThan(-1);
     expect(sectorsStart).toBeGreaterThan(-1);
-    expect(gaugesStart).toBeLessThan(indexesStart);
-    expect(indexesStart).toBeLessThan(commoditiesStart);
+    expect(indexesStart).toBeLessThan(gaugesStart);
+    expect(gaugesStart).toBeLessThan(commoditiesStart);
     expect(commoditiesStart).toBeLessThan(sectorsStart);
     expect(marketsBlock).toContain("SectorScoreboard");
     expect(marketsBlock).toContain("CommodityScoreboard");
