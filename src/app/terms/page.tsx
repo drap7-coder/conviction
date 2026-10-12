@@ -71,7 +71,7 @@ export default function TermsPage() {
 
       <nav className={styles.links} aria-label="Legal and product links">
         <Link href="/privacy">Privacy</Link>
-        <Link href="/pulse">Back to IQBulls</Link>
+        <Link href="/">Back to IQBulls</Link>
       </nav>
     </main>
   );

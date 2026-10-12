@@ -10,7 +10,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: SITE_TITLE,
     short_name: SITE_NAME,
     description: SITE_DESCRIPTION,
-    start_url: "/pulse",
+    start_url: "/",
     display: "standalone",
     background_color: "#0A0E14",
     theme_color: "#0A0E14",

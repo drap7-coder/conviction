@@ -27,9 +27,9 @@ export const SITE_TITLE = `${SITE_NAME} — ${SITE_TAGLINE}`;
  * Keep ~150–160 chars so SERP snippets stay intact.
  */
 export const SITE_DESCRIPTION =
-  "See what’s moving on Pulse, make your campus Crowd pick, and manage your portfolio and watchlist — free market context for the names you care about.";
+  "See what’s moving on Home, open Pulse for the full tape, make your campus Crowd pick, and manage your portfolio and watchlist — free market context.";
 
-/** Pulse-only SERP / share copy (homepage canonical). */
+/** Pulse markets workspace SERP / share copy (not the site homepage). */
 export const PULSE_TITLE =
   "Real-Time Market Dashboard: Stocks, Sectors & Crypto | IQBulls";
 export const PULSE_OG_TITLE = "Real-Time Market Dashboard | IQBulls";

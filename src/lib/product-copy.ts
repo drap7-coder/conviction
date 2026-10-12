@@ -11,9 +11,14 @@ export const PRODUCT_ABOUT_LEDE =
 
 export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string }> = [
   {
+    name: "Home",
+    href: "/",
+    blurb: "Today’s brief, market glance, your stocks, and one deeper read — then go deeper.",
+  },
+  {
     name: "Pulse",
     href: "/pulse",
-    blurb: "Read the tape fast — indexes, movers, crypto, and intl on one home screen.",
+    blurb: "Full markets workspace — indexes, movers, crypto, and intl on one slicer.",
   },
   {
     name: "Crowd",
@@ -47,12 +52,12 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is IQBulls?",
     answer:
-      "IQBulls is a free market workspace. Use Pulse for the live tape, Crowd for campus picks and standings, Portfolio for your book and watchlist, and News for briefs that connect to the names you follow — not a single research gimmick.",
+      "IQBulls is a free market workspace. Home shows what matters today; Pulse is the live tape; Crowd covers campus picks and standings; Portfolio holds your book and watchlist; News briefs the market — not a single research gimmick.",
   },
   {
     question: "What is Pulse?",
     answer:
-      "Pulse is the home screen. Use the Markets / Movers / Crypto / Intl slicer at the top. Markets opens with VIX and 10Y gauges, then Major Indexes, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
+      "Pulse is the markets workspace (Menu → Daily, or Open Pulse from Home). Use the Markets / Movers / Crypto / Intl slicer. Markets opens with Major Indexes, VIX and 10Y gauges, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
   },
   {
     question: "How is Watchlist different from Portfolio?",

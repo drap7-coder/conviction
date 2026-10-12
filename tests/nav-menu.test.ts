@@ -14,20 +14,30 @@ function read(path: string) {
 }
 
 describe("site menu nav", () => {
-  it("keeps daily tabs to Pulse, Portfolio, and News", () => {
+  it("keeps daily tabs to Home, Portfolio, and News — Pulse is Menu → Daily", () => {
     expect(primaryNavTabs.map((tab) => tab.href)).toEqual([
-      "/pulse",
+      "/",
       "/portfolio",
       "/news",
     ]);
     expect(navTabs).toEqual(primaryNavTabs);
+    expect(primaryNavTabs.some((tab) => tab.href === "/pulse")).toBe(false);
     expect(primaryNavTabs.some((tab) => tab.href === "/smart-money")).toBe(false);
     expect(primaryNavTabs.some((tab) => tab.href === "/watchlist")).toBe(false);
     expect(primaryNavTabs.some((tab) => tab.href === "/crowd")).toBe(false);
+    expect(
+      navPages.some(
+        (page) =>
+          page.href === "/pulse" &&
+          page.group === "daily" &&
+          page.tabBar === false,
+      ),
+    ).toBe(true);
   });
 
-  it("puts About, Q&A, and account pages in Menu — Smart Money is retired", () => {
+  it("puts Pulse, About, Q&A, and account pages in Menu — Smart Money is retired", () => {
     expect(menuNavPages.map((page) => page.href)).toEqual([
+      "/pulse",
       "/crowd",
       "/about",
       "/faq",
@@ -44,6 +54,12 @@ describe("site menu nav", () => {
     expect(navPages.some((page) => page.href === "/manage" && page.group === "account")).toBe(true);
     expect(navPages.some((page) => page.href === "/signin" && page.group === "account")).toBe(true);
     expect(menuGroups.map((group) => group.id)).toEqual(["account", "daily", "more", "about"]);
+    expect(menuGroups.find((group) => group.id === "daily")?.pages.map((page) => page.href)).toEqual([
+      "/",
+      "/pulse",
+      "/portfolio",
+      "/news",
+    ]);
     expect(read("src/app/globals.css")).toContain(".site-menu-root--sheet .site-menu");
     expect(read("src/app/globals.css")).toContain("inset: 0");
     expect(read("src/app/globals.css")).not.toContain("max-height: min(72vh, 560px)");
@@ -56,7 +72,8 @@ describe("site menu nav", () => {
     expect(isOverflowNavPath("/faq")).toBe(true);
     expect(isOverflowNavPath("/manage")).toBe(true);
     expect(isOverflowNavPath("/signin")).toBe(true);
-    expect(isOverflowNavPath("/pulse")).toBe(false);
+    expect(isOverflowNavPath("/pulse")).toBe(true);
+    expect(isOverflowNavPath("/")).toBe(false);
   });
 
   it("renders Menu after daily tabs without Smart Money or Watchlist tabs", () => {

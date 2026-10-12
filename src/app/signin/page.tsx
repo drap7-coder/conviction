@@ -77,7 +77,7 @@ export default async function SignInPage({
         ) : null}
 
         <nav className={styles.links} aria-label="Account options">
-          <Link href="/pulse">Keep browsing as guest</Link>
+          <Link href="/">Keep browsing as guest</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
         </nav>

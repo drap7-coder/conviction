@@ -112,7 +112,7 @@ export default async function CompanyPage({
       />
 
       <div className="detail-nav">
-        <Link href="/pulse" className="detail-back">
+        <Link href="/" className="detail-back">
           ← Pulse
         </Link>
         <span className="detail-context">Company</span>
