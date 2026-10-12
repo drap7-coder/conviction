@@ -58,11 +58,12 @@ describe("Home for-you overview", () => {
     expect(pulse).toContain("<PulseMarketBoard");
     expect(pulse).not.toContain("PersonalDailyBrief");
     expect(pulse).not.toContain("PulseTodaysBrief");
-    expect(read("src/components/market/HomeMarketStrip.tsx")).toContain(
-      "Open Pulse",
-    );
-    expect(read("src/components/market/HomeMarketStrip.tsx")).toContain(
-      "IndexScoreboard",
+    const stripSrc = read("src/components/market/HomeMarketStrip.tsx");
+    expect(stripSrc).toContain("Open Pulse");
+    expect(stripSrc).toContain("PulseMacroGauges");
+    expect(stripSrc).toContain("IndexScoreboard");
+    expect(stripSrc.indexOf("PulseMacroGauges")).toBeLessThan(
+      stripSrc.indexOf("IndexScoreboard"),
     );
   });
 

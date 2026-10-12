@@ -62,25 +62,30 @@ function GaugeCard({ card }: { card: PulseGaugeCard }) {
 
 export function PulseMacroGauges({
   indicators,
+  showShareTools = true,
 }: {
   indicators: PulseIndicator[];
+  /** Embed share chrome — keep on Pulse; hide on Home market context. */
+  showShareTools?: boolean;
 }) {
   const cards = pulseMacroGauges(indicators);
   if (cards.length === 0) return null;
 
   return (
     <section className="pulse-gauges" aria-label="VIX and 10-year yield">
-      <details className="pulse-gauge-share">
-        <summary>Share market widgets</summary>
-        <div className="pulse-gauge-tools">
-          <EmbedCode path="/embed/vix-gauge" title="IQBulls VIX Gauge" />
-          <EmbedCode
-            path="/embed/macro-snapshot"
-            title="IQBulls Market Snapshot"
-            height={180}
-          />
-        </div>
-      </details>
+      {showShareTools ? (
+        <details className="pulse-gauge-share">
+          <summary>Share market widgets</summary>
+          <div className="pulse-gauge-tools">
+            <EmbedCode path="/embed/vix-gauge" title="IQBulls VIX Gauge" />
+            <EmbedCode
+              path="/embed/macro-snapshot"
+              title="IQBulls Market Snapshot"
+              height={180}
+            />
+          </div>
+        </details>
+      ) : null}
       <div className="pulse-gauge-grid">
         {cards.map((card) => (
           <GaugeCard key={card.id} card={card} />
