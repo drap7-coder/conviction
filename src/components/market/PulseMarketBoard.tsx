@@ -231,11 +231,11 @@ function PulseMarketBoardInner() {
 
       {data && view === "markets" ? (
         <>
+          <PulseMacroGauges indicators={data.indicators} />
           <IndexScoreboard
             markets={majorIndexes}
             sessionLabel={data.sessionLabel}
           />
-          <PulseMacroGauges indicators={data.indicators} />
           <CommodityScoreboard markets={commodities} />
           <SectorScoreboard
             markets={sectorMarkets}

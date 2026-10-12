@@ -58,13 +58,13 @@ describe("Pulse heatmap universe", () => {
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
     const marketsBlockStart = page.indexOf('view === "markets"');
-    const indexesStart = page.indexOf("<IndexScoreboard", marketsBlockStart);
     const gaugesStart = page.indexOf("<PulseMacroGauges", marketsBlockStart);
+    const indexesStart = page.indexOf("<IndexScoreboard", marketsBlockStart);
     const commoditiesStart = page.indexOf("<CommodityScoreboard", marketsBlockStart);
     const sectorsStart = page.indexOf("<SectorScoreboard", marketsBlockStart);
     const marketsBlockEnd = page.indexOf('view === "movers"', marketsBlockStart + 1);
     const marketsBlock = page.slice(marketsBlockStart, marketsBlockEnd);
-    const indexesBlock = page.slice(indexesStart, gaugesStart);
+    const indexesBlock = page.slice(indexesStart, commoditiesStart);
     const slicerStart = page.indexOf("PULSE_VIEWS");
     const slicerEnd = page.indexOf("];", slicerStart);
     const slicerBlock = page.slice(slicerStart, slicerEnd);
@@ -86,8 +86,8 @@ describe("Pulse heatmap universe", () => {
     expect(indexesStart).toBeGreaterThan(-1);
     expect(commoditiesStart).toBeGreaterThan(-1);
     expect(sectorsStart).toBeGreaterThan(-1);
-    expect(indexesStart).toBeLessThan(gaugesStart);
-    expect(gaugesStart).toBeLessThan(commoditiesStart);
+    expect(gaugesStart).toBeLessThan(indexesStart);
+    expect(indexesStart).toBeLessThan(commoditiesStart);
     expect(commoditiesStart).toBeLessThan(sectorsStart);
     expect(marketsBlock).toContain("SectorScoreboard");
     expect(marketsBlock).toContain("CommodityScoreboard");

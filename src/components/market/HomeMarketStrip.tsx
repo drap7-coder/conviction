@@ -8,7 +8,7 @@ import { IndexScoreboard } from "@/components/market/IndexScoreboard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 
 /**
- * Home market context: VIX + 10Y, then DIA/SPY/QQQ/IWM — not a second Pulse.
+ * Home market context: VIX + 10Y above markets, then DIA/SPY/QQQ/IWM.
  * Full Markets / Movers / Crypto / Intl lives at /pulse.
  */
 export function HomeMarketStrip() {
@@ -53,23 +53,7 @@ export function HomeMarketStrip() {
     : null;
 
   return (
-    <section
-      className="pulse-home-section home-market-strip"
-      aria-labelledby="home-market-strip-heading"
-    >
-      <header className="pulse-home-section-head">
-        <div>
-          <p className="pulse-home-eyebrow">
-            {data?.sessionLabel ?? "Markets"}
-            {updated ? ` · Updated ${updated}` : ""}
-          </p>
-          <h2 id="home-market-strip-heading">Market context</h2>
-        </div>
-        <Link href="/pulse" className="pulse-home-next">
-          Open Pulse <span aria-hidden="true">→</span>
-        </Link>
-      </header>
-
+    <div className="home-market-strip">
       {status === "loading" ? (
         <PageLoadingMotion
           label="Loading market context"
@@ -84,22 +68,52 @@ export function HomeMarketStrip() {
           Market context is temporarily unavailable.
         </p>
       ) : null}
+
       {status === "ready" ? (
-        <>
+        <section
+          className="pulse-home-section home-macro-gauges"
+          aria-labelledby="home-macro-gauges-heading"
+        >
+          <header className="pulse-home-section-head">
+            <div>
+              <p className="pulse-home-eyebrow">Regime</p>
+              <h2 id="home-macro-gauges-heading">VIX &amp; 10Y</h2>
+            </div>
+          </header>
           <PulseMacroGauges
             indicators={data?.indicators ?? []}
             showShareTools={false}
           />
-          {indexes.length > 0 ? (
-            <IndexScoreboard
-              markets={indexes}
-              sessionLabel={data?.sessionLabel ?? null}
-            />
-          ) : (
-            <p className="pulse-home-state">No index quotes available right now.</p>
-          )}
-        </>
+        </section>
       ) : null}
-    </section>
+
+      <section
+        className="pulse-home-section home-market-indexes"
+        aria-labelledby="home-market-strip-heading"
+      >
+        <header className="pulse-home-section-head">
+          <div>
+            <p className="pulse-home-eyebrow">
+              {data?.sessionLabel ?? "Markets"}
+              {updated ? ` · Updated ${updated}` : ""}
+            </p>
+            <h2 id="home-market-strip-heading">Major indexes</h2>
+          </div>
+          <Link href="/pulse" className="pulse-home-next">
+            Open Pulse <span aria-hidden="true">→</span>
+          </Link>
+        </header>
+
+        {status === "ready" && indexes.length > 0 ? (
+          <IndexScoreboard
+            markets={indexes}
+            sessionLabel={data?.sessionLabel ?? null}
+          />
+        ) : null}
+        {status === "ready" && indexes.length === 0 ? (
+          <p className="pulse-home-state">No index quotes available right now.</p>
+        ) : null}
+      </section>
+    </div>
   );
 }
