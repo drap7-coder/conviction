@@ -314,3 +314,160 @@ body, html[data-theme="cream"] body { background-image: none; }
   .personal-brief-header { flex-direction: column; gap: 12px; }
   .personal-brief-stories { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
+
+/* Pulse home: one useful overview, depth one click away. */
+.pulse-home { gap: 28px; }
+.pulse-home-section { display: grid; gap: 14px; min-width: 0; }
+.pulse-home-section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pulse-home-eyebrow {
+  margin: 0 0 4px;
+  color: var(--quiet);
+  font: 650 0.72rem/1.2 var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pulse-home-section-head h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 650 1.2rem/1.25 var(--font-sans);
+  letter-spacing: -0.02em;
+}
+.pulse-home-next {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font: 600 0.8rem/1.2 var(--font-sans);
+  text-decoration: none;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.pulse-home-next:hover { color: var(--ink); }
+.pulse-home-state,
+.pulse-home-freshness {
+  margin: 0;
+  color: var(--quiet);
+  font: 500 0.78rem/1.45 var(--font-sans);
+}
+.pulse-home-brief-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.pulse-home-brief-card,
+.pulse-home-worth-card,
+.pulse-home-invite {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+}
+.pulse-home-brief-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--quiet);
+  font: 650 0.7rem/1.2 var(--font-sans);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.pulse-home-brief-title,
+.pulse-home-worth-title {
+  display: block;
+  margin: 0 0 10px;
+  color: var(--ink);
+  font: 650 1rem/1.35 var(--font-sans);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+a.pulse-home-brief-title:hover,
+a.pulse-home-worth-title:hover { color: var(--accent); }
+.pulse-home-brief-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  color: var(--quiet);
+  font: 600 0.72rem/1.3 var(--font-sans);
+}
+.pulse-home-worth-summary {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font: 400 0.9rem/1.55 var(--font-sans);
+}
+.pulse-home-invite {
+  display: grid;
+  gap: 12px;
+}
+.pulse-home-invite p {
+  margin: 0;
+  color: var(--muted);
+  font: 400 0.9rem/1.5 var(--font-sans);
+}
+.pulse-home-invite strong { color: var(--ink); }
+.pulse-home-invite-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  width: fit-content;
+  color: var(--ink);
+  font: 650 0.85rem/1.2 var(--font-sans);
+  text-decoration: none;
+}
+.pulse-your-stocks-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  overflow: hidden;
+}
+.pulse-your-stocks-list > li + li { border-top: 1px solid var(--divider); }
+.pulse-your-stocks-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) minmax(0, max-content);
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 12px;
+  color: inherit;
+  text-decoration: none;
+}
+.pulse-your-stocks-row:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.pulse-your-stocks-logo { display: grid; place-items: center; }
+.pulse-your-stocks-name {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.pulse-your-stocks-name strong {
+  font: 650 0.92rem/1.2 var(--font-sans);
+}
+.pulse-your-stocks-name small {
+  color: var(--quiet);
+  font: 500 0.72rem/1.2 var(--font-sans);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pulse-your-stocks-missing {
+  color: var(--quiet);
+  font: 600 0.72rem/1.2 var(--font-sans);
+}
+.pulse-market-glance .pulse-view-slicer { margin-bottom: 4px; }
+.pulse-market-glance > .workspace-view-context { margin-top: 2px; }
+
+@media (max-width: 900px) {
+  .pulse-home-brief-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .pulse-home { gap: 22px; }
+  .pulse-home-section-head h2 { font-size: 1.08rem; }
+  .pulse-home-brief-title,
+  .pulse-home-worth-title { font-size: 0.95rem; }
+  .pulse-your-stocks-row { min-height: 44px; padding: 10px 12px; }
+}

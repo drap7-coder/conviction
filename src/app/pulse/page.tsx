@@ -18,11 +18,11 @@ export default function PulsePage() {
           What’s moving. Where you stand. What matters next.
         </p>
         <div className="pulse-hero-actions" aria-label="Get started">
-          <Link className="pulse-hero-primary" href="/pulse?view=movers">
-            Today’s movers <span aria-hidden="true">→</span>
+          <Link className="pulse-hero-primary" href="/portfolio?view=watchlist">
+            Build your watchlist <span aria-hidden="true">→</span>
           </Link>
-          <Link className="pulse-hero-secondary" href="/portfolio">
-            Build your portfolio
+          <Link className="pulse-hero-secondary" href="/news">
+            Open News
           </Link>
         </div>
       </header>
