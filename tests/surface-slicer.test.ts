@@ -40,9 +40,9 @@ describe("watchlist + news surface slicers", () => {
     expect(movers).toContain("pulse-movers-stack");
     expect(movers).not.toContain("pulse-day-status");
     expect(movers).toContain("Highest volume");
-    expect(newsFeed).toContain("SurfaceSlicer");
-    expect(newsFeed).toContain('className="pulse-news-filters"');
-    expect(newsFeed).toContain("Your Stocks");
+    expect(newsFeed).not.toContain("SurfaceSlicer");
+    expect(newsFeed).toContain("All topics");
+    expect(newsFeed).not.toContain("Your Stocks");
     expect(newsFeed).toContain("pulse-news-theme-menu");
     expect(newsPage).toContain("PulseNewsFeed");
     expect(newsPage).toContain("news-page");
