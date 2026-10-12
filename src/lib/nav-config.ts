@@ -12,7 +12,7 @@ export interface NavPage {
   blurb: string;
   /**
    * Daily pages appear on the tab bar by default.
-   * Set false to keep a daily page in Menu → Daily only (e.g. Pulse).
+   * Set false to keep a daily page in Menu → Daily only.
    */
   tabBar?: boolean;
 }
@@ -31,9 +31,8 @@ export const navPages: NavPage[] = [
     href: "/pulse",
     label: "Pulse",
     icon: BarChart3,
-    tone: "amber",
+    tone: "teal",
     group: "daily",
-    tabBar: false,
     blurb: "Markets, movers, crypto, and intl — full slicer.",
   },
   {
@@ -94,7 +93,7 @@ export const navPages: NavPage[] = [
   },
 ];
 
-/** Tab-bar daily destinations (Home · Portfolio · News). Pulse stays Menu → Daily. */
+/** Tab-bar daily destinations (Home · Pulse · Portfolio · News). */
 export const primaryNavTabs = navPages.filter(
   (page) => page.group === "daily" && page.tabBar !== false,
 );
