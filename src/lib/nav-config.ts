@@ -25,7 +25,7 @@ export const navPages: NavPage[] = [
     icon: Home,
     tone: "amber",
     group: "daily",
-    blurb: "Today’s brief, market glance, and your stocks.",
+    blurb: "Your daily brief, market context, and your stocks.",
   },
   {
     href: "/pulse",
@@ -33,7 +33,8 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "teal",
     group: "daily",
-    blurb: "Markets, movers, crypto, and intl — full slicer.",
+    tabBar: false,
+    blurb: "Full tape — markets, movers, crypto, and intl.",
   },
   {
     href: "/crowd",
@@ -93,7 +94,7 @@ export const navPages: NavPage[] = [
   },
 ];
 
-/** Tab-bar daily destinations (Home · Pulse · Portfolio · News). */
+/** Tab-bar daily destinations (Home · Portfolio · News). Pulse is Menu → Daily. */
 export const primaryNavTabs = navPages.filter(
   (page) => page.group === "daily" && page.tabBar !== false,
 );

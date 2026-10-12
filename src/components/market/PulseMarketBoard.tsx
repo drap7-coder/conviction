@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import type { PulseData, PulseGlobalMarket, PulseSector } from "@/app/api/market/pulse/route";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
@@ -112,32 +111,19 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
   );
 }
 
-type PulseMarketBoardProps = {
-  /**
-   * `home` — Markets boards only + Open Pulse (no slicer; depth lives on /pulse).
-   * `pulse` — full Markets / Movers / Crypto / Intl workspace.
-   */
-  variant?: "home" | "pulse";
-};
-
-function PulseMarketBoardInner({ variant = "pulse" }: PulseMarketBoardProps) {
+function PulseMarketBoardInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const homeMode = variant === "home";
   const [view, setView] = useState<PulseView>(() =>
-    homeMode ? "markets" : parsePulseView(searchParams.get("view")),
+    parsePulseView(searchParams.get("view")),
   );
   const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
 
   useEffect(() => {
-    if (homeMode) {
-      setView("markets");
-      return;
-    }
     setView(parsePulseView(searchParams.get("view")));
-  }, [homeMode, searchParams]);
+  }, [searchParams]);
 
   const moversTracked = useRef(false);
   useEffect(() => {
@@ -192,7 +178,6 @@ function PulseMarketBoardInner({ variant = "pulse" }: PulseMarketBoardProps) {
   }, []);
 
   function selectView(next: PulseView) {
-    if (homeMode) return;
     setView(next);
     const params = new URLSearchParams(searchParams.toString());
     if (next === "markets") params.delete("view");
@@ -211,32 +196,23 @@ function PulseMarketBoardInner({ variant = "pulse" }: PulseMarketBoardProps) {
 
   return (
     <section
-      className={`pulse-home-section pulse-market-glance${homeMode ? " pulse-market-glance--home" : ""}`}
+      className="pulse-home-section pulse-market-glance"
       aria-labelledby="pulse-market-glance-heading"
     >
       <header className="pulse-home-section-head">
         <div>
           <p className="pulse-home-eyebrow">Markets</p>
-          <h2 id="pulse-market-glance-heading">
-            {homeMode ? "Market at a Glance" : "Pulse"}
-          </h2>
+          <h2 id="pulse-market-glance-heading">Pulse</h2>
         </div>
-        {homeMode ? (
-          <Link href="/pulse" className="pulse-home-next">
-            Open Pulse <span aria-hidden="true">→</span>
-          </Link>
-        ) : null}
       </header>
 
-      {!homeMode ? (
-        <SurfaceSlicer
-          label="Pulse market view"
-          options={PULSE_VIEWS}
-          activeId={view}
-          onChange={(id) => selectView(parsePulseView(id))}
-          className="pulse-view-slicer"
-        />
-      ) : null}
+      <SurfaceSlicer
+        label="Pulse market view"
+        options={PULSE_VIEWS}
+        activeId={view}
+        onChange={(id) => selectView(parsePulseView(id))}
+        className="pulse-view-slicer"
+      />
 
       {status === "loading" ? (
         <PageLoadingMotion
@@ -287,7 +263,7 @@ function PulseMarketBoardInner({ variant = "pulse" }: PulseMarketBoardProps) {
   );
 }
 
-export function PulseMarketBoard(props: PulseMarketBoardProps) {
+export function PulseMarketBoard() {
   return (
     <Suspense
       fallback={
@@ -302,7 +278,7 @@ export function PulseMarketBoard(props: PulseMarketBoardProps) {
         </div>
       }
     >
-      <PulseMarketBoardInner {...props} />
+      <PulseMarketBoardInner />
     </Suspense>
   );
 }
