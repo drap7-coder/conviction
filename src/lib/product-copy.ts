@@ -13,12 +13,12 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Home",
     href: "/",
-    blurb: "Today’s brief, market glance, your stocks, and one deeper read — then go deeper.",
+    blurb: "Your daily brief on holdings and watchlist, a quick index strip, and your names.",
   },
   {
     name: "Pulse",
     href: "/pulse",
-    blurb: "Full markets workspace — indexes, movers, crypto, and intl on one slicer.",
+    blurb: "Full tape when you need it — indexes, movers, crypto, and intl on one slicer.",
   },
   {
     name: "Crowd",
@@ -57,7 +57,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Pulse?",
     answer:
-      "Pulse is the markets tab next to Home. Use the Markets / Movers / Crypto / Intl slicer. Markets opens with Major Indexes, VIX and 10Y gauges, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
+      "Pulse is the full markets workspace (Menu → Daily, or Open Pulse from Home). Use the Markets / Movers / Crypto / Intl slicer. Markets opens with Major Indexes, VIX and 10Y gauges, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
   },
   {
     question: "How is Watchlist different from Portfolio?",

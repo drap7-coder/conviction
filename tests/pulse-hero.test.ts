@@ -35,8 +35,9 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("PULSE_TABS");
     expect(page).not.toContain("pulse-tab-indexes");
     expect(page).not.toContain("pulse-panel-trending");
-    expect(dashboard).toContain('variant="pulse"');
+    expect(dashboard).toContain("<PulseMarketBoard");
     expect(dashboard).not.toContain("PulseTodaysBrief");
+    expect(dashboard).not.toContain("PersonalDailyBrief");
   });
 
   it("does not treat Trending as a watchlist chip editor", () => {
