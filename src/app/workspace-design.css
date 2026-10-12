@@ -157,7 +157,7 @@ body, html[data-theme="cream"] body { background-image: none; }
 .workspace-view-context .workspace-view-context-kicker { color: var(--muted); font: 600 0.7rem var(--font-sans); letter-spacing: 0.07em; }
 .workspace-view-context strong { font: 600 1.35rem/1.3 var(--font-sans); letter-spacing: -0.025em; }
 .workspace-view-context p { font: 400 0.875rem/1.5 var(--font-sans); margin-top: 4px; }
-.workspace-view-context time { color: var(--muted); font-size: 0.72rem; }
+.workspace-view-context time { color: var(--quiet); font-size: 0.75rem; font-weight: 600; }
 .pulse-dashboard > .workspace-view-context { margin: 0; }
 .pulse-dashboard > .workspace-view-context strong { font-size: 1.1rem; }
 .pulse-dashboard > .workspace-view-context p { font-size: 0.78rem; }
@@ -187,11 +187,18 @@ body, html[data-theme="cream"] body { background-image: none; }
 .pulse-index-board-title-row h2 { font: 600 1rem var(--font-sans); text-transform: none; letter-spacing: -0.015em; }
 .pulse-index-board > .market-heatmap-copy { border-left: 0; background: none; }
 .pulse-index-board .market-panel-header h2 { color: var(--ink); }
-.pulse-index-row { padding-block: 15px; }
+/* Shared scoreboard density — Markets / Movers / Crypto / Intl. */
+.pulse-index-row,
+.pulse-index-board--sessions .pulse-index-row {
+  min-height: 48px;
+  padding: 12px;
+}
 .pulse-index-name strong { font-family: var(--font-sans); font-size: 0.95rem; }
-.pulse-index-name small { font-size: 0.7rem; }
+.pulse-index-name small { font-size: 0.72rem; color: var(--quiet); }
 .session-quote-last { font-family: var(--font-sans); }
-.session-quote-reference { color: var(--muted); }
+.session-quote-reference,
+.session-quote-extended { color: var(--quiet); }
+.pulse-index-session { color: var(--quiet); font-weight: 650; }
 .pulse-gauge-card { background: var(--card); box-shadow: none; }
 
 /* Portfolio value is the focal point. Supporting readings stay quiet. */
@@ -270,6 +277,11 @@ body, html[data-theme="cream"] body { background-image: none; }
   .workspace-view-context time { grid-column: 1; }
   .pulse-dashboard { gap: 16px; }
   .pulse-index-board-title-row h2 { font-size: 0.9rem; }
+  .pulse-index-row,
+  .pulse-index-board--sessions .pulse-index-row {
+    min-height: 44px;
+    padding: 10px 12px;
+  }
   .crowd-page .h2h-card { padding: 16px; }
   .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead { padding: 20px; }
 }
@@ -281,7 +293,7 @@ body, html[data-theme="cream"] body { background-image: none; }
 .personal-brief-stories { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 24px; }
 .personal-brief-persistence { color: var(--muted); font-size: .72rem; padding: 12px 0; }
 .personal-brief-stories article { min-width: 0; display: flex; flex-direction: column; border-top: 1px solid var(--divider); padding-top: 20px; }
-.personal-brief-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--muted); }
+.personal-brief-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--quiet); }
 .personal-brief-meta span:first-child { color: var(--ink); font-weight: 700; }
 .personal-brief h3 { font-size: 1.05rem; line-height: 1.4; letter-spacing: -.02em; margin: 16px 0 4px; }
 .personal-brief details { margin: 12px 0 20px; font-size: .8rem; }

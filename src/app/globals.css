@@ -13,7 +13,8 @@
   --border-active: #3a485c;
   --ink: #f3f6f9;
   --muted: #a2adbc;
-  --quiet: #6f7a8a;
+  /* Quiet labels (session / prior close / timestamps) must stay ≥4.5:1 on --card. */
+  --quiet: #788496;
 
   /* Selection + positive / Accumulating — same teal */
   --accent: #2dd4bf;
@@ -128,7 +129,8 @@ html[data-theme="cream"] {
   --border-active: #b8a487;
   --ink: #17231f;
   --muted: #5f6b65;
-  --quiet: #7d776c;
+  /* Quiet labels (session / prior close / timestamps) must stay ≥4.5:1 on --card. */
+  --quiet: #6f6a60;
   --accent: #087f72;
   --accent-dim: rgba(8, 127, 114, 0.11);
   --on-accent: #fafff8;
@@ -17484,11 +17486,10 @@ a.pulse-news-narrative-title:focus-visible {
   gap: 4px 6px;
   margin-top: 1px;
   color: var(--muted);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  line-height: 1.15;
-  opacity: 0.92;
+  line-height: 1.2;
 }
 
 .session-quote-reference {
@@ -17521,8 +17522,9 @@ a.pulse-news-narrative-title:focus-visible {
   gap: 5px;
 }
 
-.session-quote.is-compact .session-quote-extended {
-  font-size: 0.56rem;
+.session-quote.is-compact .session-quote-extended,
+.session-quote.is-compact .session-quote-reference {
+  font-size: 0.64rem;
 }
 
 @media (max-width: 767px) {
@@ -17562,10 +17564,11 @@ a.pulse-news-narrative-title:focus-visible {
     font-size: 0.64rem;
   }
 
-  .pulse-index-row .session-quote-extended {
+  .pulse-index-row .session-quote-extended,
+  .pulse-index-row .session-quote-reference {
     flex-wrap: nowrap;
     gap: 4px;
-    font-size: 0.54rem;
+    font-size: 0.64rem;
     max-width: 100%;
     overflow: hidden;
   }
@@ -17596,8 +17599,9 @@ a.pulse-news-narrative-title:focus-visible {
     gap: 4px;
   }
 
-  .pulse-index-row .session-quote-extended {
-    font-size: 0.5rem;
+  .pulse-index-row .session-quote-extended,
+  .pulse-index-row .session-quote-reference {
+    font-size: 0.62rem;
   }
 }
 
