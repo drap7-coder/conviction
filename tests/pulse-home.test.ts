@@ -66,8 +66,11 @@ describe("Home for-you overview", () => {
     );
   });
 
-  it("keeps PersonalDailyBrief on Portfolio Watchlist as well", () => {
-    expect(read("src/components/Watchlist.tsx")).toContain("<PersonalDailyBrief");
+  it("keeps the personal brief on Home only — not Portfolio Watchlist", () => {
+    expect(read("src/components/Watchlist.tsx")).not.toContain("PersonalDailyBrief");
+    expect(read("src/components/market/HomeOverview.tsx")).toContain(
+      "<PersonalDailyBrief",
+    );
     expect(read("src/components/market/PulseYourStocks.tsx")).toContain(
       "Build your watchlist",
     );

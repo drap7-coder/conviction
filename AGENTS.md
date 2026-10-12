@@ -6,9 +6,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
-### Personal daily brief (October 10, 2026)
+### Personal daily brief (October 12, 2026)
 
-Portfolio → Watchlist opens with `PersonalDailyBrief`, covering saved holdings and watched names. This replaces the research-workflow explainer, not the movers board. Markets stays a broad overview. The brief shows up to three sourced developments from the last 48 hours. Initially check six names (holdings first), then let the user check additional groups of six; keep concurrency at two and cache public news for 15 minutes. Show successful coverage counts, failed names, and the oldest successful fetch time (not a live-news timestamp). Refresh explicitly invalidates selected coverage. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.
+**Home (`/`)** owns `PersonalDailyBrief` — holdings-first coverage of saved names. Do not mount it on Portfolio → Watchlist (Watchlist is the movers board + composer only). The brief shows up to three sourced developments from the last 48 hours. Initially check six names (holdings first), then let the user check additional groups of six; keep concurrency at two and cache public news for 15 minutes. Show successful coverage counts, failed names, and the oldest successful fetch time (not a live-news timestamp). Refresh explicitly invalidates selected coverage. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.
 
 ### Current navigation decision (October 12, 2026)
 
@@ -16,7 +16,7 @@ Primary navigation is **Home**, Portfolio, News, then Menu. **Pulse** is Menu �
 
 ### Home = for you today (October 12, 2026)
 
-**Home (`/`)** is personal judgment, not a second tape: **Your daily brief** (`PersonalDailyBrief`, holdings-first) → **Market context** (DIA/SPY/QQQ/IWM strip + Open Pulse) → **Your Stocks** (≤6 names or build-watchlist invite). Do **not** put market-wide Today’s Brief / Worth Understanding / full Pulse boards on Home — those live on News and `/pulse`. **Pulse** is depth on demand. Keep Crowd off the initial homepage. Honest unavailable states — never fabricate quiet markets. Apex `/` is a real page (no 308 to `/pulse`). Portfolio → Watchlist may still show `PersonalDailyBrief`.
+**Home (`/`)** is personal judgment, not a second tape: **Your daily brief** (`PersonalDailyBrief`, holdings-first) → **Market context** (DIA/SPY/QQQ/IWM strip + Open Pulse) → **Your Stocks** (≤6 names or build-watchlist invite). Do **not** put market-wide Today’s Brief / Worth Understanding / full Pulse boards on Home — those live on News and `/pulse`. Do **not** remount `PersonalDailyBrief` on Portfolio Watchlist. **Pulse** is depth on demand. Keep Crowd off the initial homepage. Honest unavailable states — never fabricate quiet markets. Apex `/` is a real page (no 308 to `/pulse`).
 
 This is a single Next.js 16 (App Router, Turbopack) app named `conviction`. Package manager is **npm**. Standard commands live in `package.json`: `npm run dev` (port 3000), `npm run build`, `npm run typecheck` (`tsc --noEmit` — there is no ESLint/lint script), and `npm run test` / `npm run test:watch` (Vitest).
 

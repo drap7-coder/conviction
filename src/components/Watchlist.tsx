@@ -23,7 +23,6 @@ import {
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
-import { PersonalDailyBrief } from "@/components/PersonalDailyBrief";
 import { subscribeMarketData } from "@/lib/market/client-market-data";
 import { sanitizeWatchlistInput, isWatchlistSymbolFormat } from "@/lib/watchlist/sanitize-ticker";
 import {
@@ -577,7 +576,6 @@ export default function Watchlist({
 
   return (
     <div className="watchlist-daily">
-      <PersonalDailyBrief tickers={entries.map((entry) => entry.ticker)} loading={loading} watchlistError={Boolean(error)} onRetryWatchlist={() => void loadWatchlist()} />
       <p className="personal-brief-persistence">{entries.length} watched name{entries.length === 1 ? "" : "s"} · {persistenceLabel}</p>
 
       {loading ? (
