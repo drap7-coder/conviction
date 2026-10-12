@@ -24,7 +24,7 @@ function readBrowserWatchlistTickers(): string[] {
 }
 
 /**
- * Home = for you today: personal brief → compact market strip → your names.
+ * Home = for you today: personal brief → VIX/10Y → indexes → your names.
  * Full tape (Movers / Crypto / Intl) is /pulse — not a peer overview.
  */
 export function HomeOverview() {

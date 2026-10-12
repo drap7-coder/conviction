@@ -62,9 +62,18 @@ describe("Home for-you overview", () => {
     expect(stripSrc).toContain("Open Pulse");
     expect(stripSrc).toContain("<PulseMacroGauges");
     expect(stripSrc).toContain("<IndexScoreboard");
-    expect(stripSrc.indexOf("<PulseMacroGauges")).toBeLessThan(
-      stripSrc.indexOf("<IndexScoreboard"),
+    expect(stripSrc).toContain("home-macro-gauges");
+    expect(stripSrc).toContain("Major indexes");
+    expect(stripSrc.indexOf("home-macro-gauges")).toBeLessThan(
+      stripSrc.indexOf("home-market-indexes"),
     );
+    const pulseBoard = read("src/components/market/PulseMarketBoard.tsx");
+    const gaugesJsx = pulseBoard.indexOf("<PulseMacroGauges");
+    const indexesJsx = pulseBoard.indexOf("<IndexScoreboard");
+    const commoditiesJsx = pulseBoard.indexOf("<CommodityScoreboard");
+    expect(gaugesJsx).toBeGreaterThan(-1);
+    expect(gaugesJsx).toBeLessThan(indexesJsx);
+    expect(indexesJsx).toBeLessThan(commoditiesJsx);
   });
 
   it("keeps the personal brief on Home only — not Portfolio Watchlist", () => {
