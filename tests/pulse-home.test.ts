@@ -81,7 +81,7 @@ describe("Home for-you overview", () => {
     expect(read("src/components/market/HomeOverview.tsx")).toContain(
       "<PersonalDailyBrief",
     );
-    expect(read("src/components/market/PulseYourStocks.tsx")).toContain(
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain(
       "Build your watchlist",
     );
   });

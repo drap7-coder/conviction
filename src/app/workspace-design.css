@@ -303,6 +303,10 @@ body, html[data-theme="cream"] body { background-image: none; }
 .personal-brief footer a { text-decoration: underline; text-underline-offset: 4px; padding: 8px 0; }
 .personal-brief .personal-brief-coverage { margin-top: 24px; padding-top: 14px; border-top: 1px solid var(--divider); font-size: .72rem; }
 .personal-brief-empty { border-top: 1px solid var(--divider); padding: 8px 0; }
+.home-overview .personal-brief:has(.personal-brief-empty):not(:has(.personal-brief-trust)) { padding: 20px; }
+.home-overview .personal-brief:has(.personal-brief-empty) .personal-brief-header { margin-bottom: 12px; }
+.home-overview .brief-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; }
+.home-overview .pulse-home-state button { min-height: 44px; padding: 8px 12px; color: var(--ink); background: var(--card); border: 1px solid var(--divider); border-radius: 6px; cursor: pointer; }
 .personal-brief-trust { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: -4px 0 24px; color: var(--muted); font-size: .72rem; line-height: 1.6; }
 .personal-brief-edit { font-size: .8rem; padding: 10px 0; white-space: nowrap; text-underline-offset: 4px; }
 .personal-brief-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }

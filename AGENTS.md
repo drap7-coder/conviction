@@ -16,6 +16,8 @@ Primary navigation is **Home**, Portfolio, News, then Menu. **Pulse** is Menu �
 
 ### Home = for you today (October 12, 2026)
 
+Home loads personal names once through `loadHomeNames` for both the brief and stock snapshot. Read browser names only after an explicit guest response; an empty authenticated account remains empty, and unavailable storage/requests must remain an error with retry. Home is read-only (no implicit portfolio migration). Guests see one watchlist setup invitation in the brief, not repeated hero/stock invitations. Home market context refreshes at most once a minute while visible and on return to the tab; retain and label the last snapshot on refresh failure.
+
 **Home (`/`)** is personal judgment, not a second tape: **Your daily brief** (`PersonalDailyBrief`, holdings-first) → **VIX & 10Y** (above markets) → **Major indexes** (DIA/SPY/QQQ/IWM + Open Pulse) → **Your Stocks** (≤6 names or build-watchlist invite). Do not bury VIX/10Y only on Pulse; do not park gauges between index rows and other boards. Do **not** put market-wide Today’s Brief / Worth Understanding / full Pulse boards on Home — those live on News and `/pulse`. Do **not** remount `PersonalDailyBrief` on Portfolio Watchlist. **Pulse** is depth on demand. Keep Crowd off the initial homepage. Honest unavailable states — never fabricate quiet markets. Apex `/` is a real page (no 308 to `/pulse`).
 
 This is a single Next.js 16 (App Router, Turbopack) app named `conviction`. Package manager is **npm**. Standard commands live in `package.json`: `npm run dev` (port 3000), `npm run build`, `npm run typecheck` (`tsc --noEmit` — there is no ESLint/lint script), and `npm run test` / `npm run test:watch` (Vitest).
