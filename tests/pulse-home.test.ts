@@ -60,10 +60,10 @@ describe("Home for-you overview", () => {
     expect(pulse).not.toContain("PulseTodaysBrief");
     const stripSrc = read("src/components/market/HomeMarketStrip.tsx");
     expect(stripSrc).toContain("Open Pulse");
-    expect(stripSrc).toContain("PulseMacroGauges");
-    expect(stripSrc).toContain("IndexScoreboard");
-    expect(stripSrc.indexOf("PulseMacroGauges")).toBeLessThan(
-      stripSrc.indexOf("IndexScoreboard"),
+    expect(stripSrc).toContain("<PulseMacroGauges");
+    expect(stripSrc).toContain("<IndexScoreboard");
+    expect(stripSrc.indexOf("<PulseMacroGauges")).toBeLessThan(
+      stripSrc.indexOf("<IndexScoreboard"),
     );
   });
 
