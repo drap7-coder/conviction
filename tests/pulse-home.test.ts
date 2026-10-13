@@ -42,16 +42,18 @@ function theme(
 }
 
 describe("Home for-you overview", () => {
-  it("keeps Home mission HUD + brief and preserves Pulse's vertical market workspace", () => {
+  it("keeps Home brief+graphs only and preserves Pulse's vertical market workspace", () => {
     const home = read("src/components/market/HomeOverview.tsx");
     const pulse = read("src/components/market/PulseDashboard.tsx");
-    const strip = home.indexOf("<HomeMarketStrip");
-    const brief = home.indexOf("<PersonalDailyBrief");
-    expect(strip).toBeGreaterThan(-1);
-    expect(brief).toBeGreaterThan(strip);
+    expect(home).toContain("<PersonalDailyBrief");
+    expect(home).not.toContain("HomeMarketStrip");
     expect(home).not.toContain("PulseYourStocks");
+    expect(home).not.toContain("PulseMacroGauges");
+    expect(home).not.toContain("IndexScoreboard");
     expect(read("src/app/page.tsx")).toContain("Open Pulse");
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefIntelligence");
+    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-coverage-ring");
+    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-timeline-chart");
     expect(home).not.toContain("PulseTodaysBrief");
     expect(home).not.toContain("PulseWorthUnderstanding");
     expect(home).not.toContain("PulseMarketBoard");
@@ -59,11 +61,6 @@ describe("Home for-you overview", () => {
     expect(pulse).toContain("<PulseMarketBoard");
     expect(pulse).not.toContain("PersonalDailyBrief");
     expect(pulse).not.toContain("PulseTodaysBrief");
-    const stripSrc = read("src/components/market/HomeMarketStrip.tsx");
-    const stripGauges = stripSrc.indexOf("<PulseMacroGauges");
-    const stripIndexes = stripSrc.indexOf("<IndexScoreboard");
-    expect(stripGauges).toBeGreaterThan(-1);
-    expect(stripGauges).toBeLessThan(stripIndexes);
     const pulseBoard = read("src/components/market/PulseMarketBoard.tsx");
     const gaugesJsx = pulseBoard.indexOf("<PulseMacroGauges");
     const indexesJsx = pulseBoard.indexOf("<IndexScoreboard");

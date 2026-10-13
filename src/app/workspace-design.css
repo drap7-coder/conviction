@@ -545,101 +545,6 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
   border-radius: 16px;
   overflow: hidden;
 }
-.home-overview .home-mission-hud {
-  position: relative;
-  display: grid;
-  gap: 18px;
-  padding: 22px 22px 8px;
-  border-bottom: 1px solid var(--brief-line);
-  background: linear-gradient(180deg, rgba(18, 40, 52, 0.55), transparent);
-}
-.home-mission-rail {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: linear-gradient(180deg, var(--brief-accent), transparent 70%);
-  opacity: 0.85;
-}
-.home-mission-status {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px 16px;
-  padding-left: 10px;
-}
-.home-mission-status-label,
-.home-mission-status-meta {
-  margin: 0;
-  font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.home-mission-status-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--brief-accent);
-}
-.home-mission-status-meta { color: var(--brief-muted); }
-.home-overview .pulse-home-eyebrow {
-  color: var(--brief-accent);
-  font-family: var(--font-mono), ui-monospace, monospace;
-  letter-spacing: 0.1em;
-}
-.home-overview .pulse-home-section-head h2 { color: var(--brief-ink); }
-.home-overview .pulse-home-next {
-  color: var(--brief-accent);
-  font-family: var(--font-mono), ui-monospace, monospace;
-}
-.home-overview .home-macro-gauges,
-.home-overview .home-market-indexes {
-  padding-left: 10px;
-  animation: home-mission-arrive 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.home-overview .home-market-indexes { animation-delay: 90ms; }
-.home-overview .pulse-gauge-card {
-  padding: 10px 8px 8px;
-  border: 1px solid var(--brief-line);
-  border-radius: 10px;
-  background: rgba(13, 26, 36, 0.88);
-}
-.home-overview .pulse-gauge-kicker { color: var(--brief-muted); }
-.home-overview .pulse-gauge-readout strong { color: var(--brief-ink); }
-.home-overview .pulse-gauge-caption { color: var(--brief-muted); }
-.home-overview .pulse-gauge-fill--vix { stroke: #e2b15a; }
-.home-overview .pulse-gauge-fill--yield { stroke: var(--brief-accent); }
-.home-overview .pulse-gauge-fill {
-  stroke-dashoffset: 0;
-  animation: home-gauge-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-.home-overview .pulse-gauge-card--yield .pulse-gauge-fill { animation-delay: 120ms; }
-.home-overview .pulse-index-board,
-.home-overview .market-scoreboard {
-  --ink: #edf5fa;
-  --muted: #aec0ce;
-  --quiet: #7f97a8;
-  --card: #101e29;
-  --card-soft: #152733;
-  --divider: #293c49;
-  border: 1px solid var(--brief-line);
-  border-radius: 10px;
-  background: rgba(13, 26, 36, 0.72);
-  overflow: hidden;
-}
-.home-overview .pulse-index-row:hover,
-.home-overview .pulse-index-row:focus-visible {
-  background: rgba(140, 224, 219, 0.06);
-}
-.home-overview .pulse-home-state {
-  color: var(--brief-muted);
-}
-.home-overview .pulse-home-state button {
-  color: var(--brief-ink);
-  background: #172833;
-  border-color: #49616f;
-}
 .home-overview .personal-brief { background: transparent; color: inherit; border: 0; border-radius: 0; padding: 28px; }
 .home-overview .personal-brief-header { border-bottom: 1px solid var(--brief-line); padding-bottom: 24px; }
 .home-overview .personal-brief-header p,
@@ -672,13 +577,43 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 .brief-panel-label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: baseline; font-family: monospace; }
 .brief-panel-label h3 { margin: 0; font-size: .78rem; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; }
 .brief-panel-label > span { color: var(--brief-accent); font-size: .8rem; }
-.brief-coverage-bar { height: 5px; display: flex; background: #31414e; margin: 24px 0; border-radius: 2px; overflow: hidden; }
-.brief-coverage-bar > span {
-  background: var(--brief-accent);
-  transform-origin: left center;
-  animation: home-bar-fill 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.brief-scope-visual {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  margin: 18px 0 8px;
 }
-.brief-coverage-bar > .is-unavailable { background: var(--brief-warn); animation-delay: 80ms; }
+.brief-coverage-ring { width: 140px; height: 140px; display: block; }
+.brief-ring-track { stroke: #31414e; }
+.brief-ring-checked { stroke: #5fd0a5; stroke-linecap: butt; animation: home-ring-draw 700ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.brief-ring-failed { stroke: var(--brief-warn); stroke-linecap: butt; animation: home-ring-draw 700ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 80ms; }
+.brief-ring-pending { stroke: #687f90; stroke-linecap: butt; animation: home-ring-draw 700ms cubic-bezier(0.22, 1, 0.36, 1) both; animation-delay: 140ms; }
+.brief-ring-value { fill: var(--brief-ink); font: 700 1.6rem var(--font-mono), ui-monospace, monospace; }
+.brief-ring-caption { fill: var(--brief-muted); font: 500 0.62rem var(--font-mono), ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+.brief-coverage-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: var(--brief-muted);
+  letter-spacing: 0.04em;
+}
+.brief-coverage-legend span {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 8px;
+  border-radius: 2px;
+  background: #687f90;
+  vertical-align: middle;
+}
+.brief-coverage-legend .is-checked { background: #5fd0a5; }
+.brief-coverage-legend .is-unavailable { background: var(--brief-warn); }
+.brief-coverage-legend .is-pending { background: #687f90; }
 .brief-company-map { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; max-height: 240px; overflow: auto; padding: 4px; }
 .brief-company-map a {
   display: grid;
@@ -696,14 +631,14 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 .brief-company-map strong { font-family: monospace; font-size: .9rem; }
 .brief-company-map span { color: var(--brief-muted); font-size: .72rem; }
 .brief-intelligence p { color: var(--brief-muted); font-size: .78rem; line-height: 1.65; margin: 16px 0 0; }
-.brief-timeline svg { width: 100%; display: block; margin-top: 20px; }
+.brief-timeline-chart { width: 100%; display: block; margin-top: 12px; }
 .brief-chart-grid { stroke: #2a3b49; stroke-dasharray: 2 5; }
+.brief-chart-baseline { stroke: #3a5160; stroke-width: 1.25; }
 .brief-chart-track { stroke: #284453; }
-.brief-timeline circle {
+.brief-chart-drop { stroke: rgba(140, 224, 219, 0.28); stroke-dasharray: 2 4; }
+.brief-chart-dot-halo { fill: rgba(140, 224, 219, 0.2); }
+.brief-chart-dot {
   fill: var(--brief-accent);
-  stroke: #285c63;
-  stroke-width: 6;
-  paint-order: stroke;
   animation: home-timeline-ping 1.8s ease-in-out infinite;
 }
 .brief-timeline text { fill: #b7cbd9; font: 12px monospace; }
@@ -713,40 +648,34 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-@keyframes home-gauge-draw {
-  from { opacity: 0.35; filter: saturate(0.7); }
-  to { opacity: 1; filter: saturate(1); }
-}
-@keyframes home-bar-fill {
-  from { transform: scaleX(0.15); opacity: 0.5; }
-  to { transform: scaleX(1); opacity: 1; }
+@keyframes home-ring-draw {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
 }
 @keyframes home-timeline-ping {
   0%, 100% { opacity: 0.75; }
   50% { opacity: 1; }
 }
 @keyframes home-live-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(95, 208, 165, 0.45); }
-  70% { box-shadow: 0 0 0 8px rgba(95, 208, 165, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(95, 208, 165, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(140, 224, 219, 0.45); }
+  70% { box-shadow: 0 0 0 8px rgba(140, 224, 219, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(140, 224, 219, 0); }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .home-live-dot--live { animation: home-live-pulse 1.8s ease-out infinite; }
-  .home-page .home-live-dot:not([class*="--"]) { animation: home-live-pulse 1.8s ease-out infinite; }
+  .home-page .home-live-dot { animation: home-live-pulse 1.8s ease-out infinite; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .home-overview .home-macro-gauges,
-  .home-overview .home-market-indexes,
   .home-overview .personal-brief-stories article,
-  .home-overview .pulse-gauge-fill,
-  .brief-coverage-bar > span,
-  .brief-timeline circle,
-  .home-live-dot,
-  .home-live-dot--live { animation: none; }
+  .brief-ring-checked,
+  .brief-ring-failed,
+  .brief-ring-pending,
+  .brief-chart-dot,
+  .home-live-dot { animation: none; }
 }
 @media (max-width: 767px) {
   .brief-intelligence { grid-template-columns: 1fr; gap: 14px; }
+  .brief-scope-visual { grid-template-columns: 120px minmax(0, 1fr); }
+  .brief-coverage-ring { width: 120px; height: 120px; }
   .home-overview .personal-brief { padding: 18px; }
-  .home-overview .home-mission-hud { padding: 16px 14px 6px; }
   .brief-intelligence section { padding: 16px; }
 }
