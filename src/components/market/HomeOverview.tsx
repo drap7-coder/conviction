@@ -1,8 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 import { PersonalDailyBrief } from "@/components/PersonalDailyBrief";
+import { HomeMarketStrip } from "@/components/market/HomeMarketStrip";
 import { loadHomeNames, type HomeNames } from "@/lib/market/home-names";
 
+/**
+ * Home = mission HUD (VIX/10Y + indexes) then personal brief.
+ * Full Markets / Movers / Crypto / Intl depth stays on /pulse.
+ */
 export function HomeOverview() {
   const [names, setNames] = useState<HomeNames>({ held: [], watched: [], portfolioError: false, watchlistError: false });
   const [loading, setLoading] = useState(true);
@@ -20,6 +25,7 @@ export function HomeOverview() {
   const retryNames = () => setRetry((value) => value + 1);
   return (
     <div className="pulse-dashboard pulse-home home-overview">
+      <HomeMarketStrip />
       <PersonalDailyBrief tickers={names.watched} held={names.held} loading={loading}
         portfolioError={names.portfolioError} watchlistError={names.watchlistError} onRetryWatchlist={retryNames} />
     </div>

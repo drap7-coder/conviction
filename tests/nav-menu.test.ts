@@ -14,14 +14,15 @@ function read(path: string) {
 }
 
 describe("site menu nav", () => {
-  it("keeps daily tabs to Home, Portfolio, and News — Pulse is Menu → Daily", () => {
+  it("keeps daily tabs to Home, Pulse, Portfolio, and News", () => {
     expect(primaryNavTabs.map((tab) => tab.href)).toEqual([
       "/",
+      "/pulse",
       "/portfolio",
       "/news",
     ]);
     expect(navTabs).toEqual(primaryNavTabs);
-    expect(primaryNavTabs.some((tab) => tab.href === "/pulse")).toBe(false);
+    expect(primaryNavTabs.some((tab) => tab.href === "/pulse")).toBe(true);
     expect(primaryNavTabs.some((tab) => tab.href === "/smart-money")).toBe(false);
     expect(primaryNavTabs.some((tab) => tab.href === "/watchlist")).toBe(false);
     expect(primaryNavTabs.some((tab) => tab.href === "/crowd")).toBe(false);
@@ -30,14 +31,13 @@ describe("site menu nav", () => {
         (page) =>
           page.href === "/pulse" &&
           page.group === "daily" &&
-          page.tabBar === false,
+          page.tabBar !== false,
       ),
     ).toBe(true);
   });
 
-  it("puts Pulse, About, Q&A, and account pages in Menu — Smart Money is retired", () => {
+  it("puts Crowd, About, Q&A, and account pages in Menu — Smart Money is retired", () => {
     expect(menuNavPages.map((page) => page.href)).toEqual([
-      "/pulse",
       "/crowd",
       "/about",
       "/faq",
@@ -72,7 +72,7 @@ describe("site menu nav", () => {
     expect(isOverflowNavPath("/faq")).toBe(true);
     expect(isOverflowNavPath("/manage")).toBe(true);
     expect(isOverflowNavPath("/signin")).toBe(true);
-    expect(isOverflowNavPath("/pulse")).toBe(true);
+    expect(isOverflowNavPath("/pulse")).toBe(false);
     expect(isOverflowNavPath("/")).toBe(false);
   });
 
