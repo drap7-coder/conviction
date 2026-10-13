@@ -63,9 +63,31 @@ export function HomeMarketStrip() {
       })
     : null;
 
+  const linkStatus =
+    status === "ready" || data != null
+      ? "live"
+      : status === "loading"
+        ? "sync"
+        : "offline";
+
   return (
-    <div className="home-market-strip">
-      {status === "loading" ? (
+    <div className="home-market-strip home-mission-hud" data-link={linkStatus}>
+      <div className="home-mission-rail" aria-hidden="true" />
+      <header className="home-mission-status">
+        <p className="home-mission-status-label">
+          <span className={`home-live-dot home-live-dot--${linkStatus}`} />
+          {linkStatus === "live"
+            ? "Market link active"
+            : linkStatus === "sync"
+              ? "Syncing market link"
+              : "Market link offline"}
+        </p>
+        {updated ? (
+          <p className="home-mission-status-meta tnum">Snap {updated}</p>
+        ) : null}
+      </header>
+
+      {status === "loading" && data == null ? (
         <PageLoadingMotion
           label="Loading market context"
           compact
@@ -88,12 +110,12 @@ export function HomeMarketStrip() {
         >
           <header className="pulse-home-section-head">
             <div>
-              <p className="pulse-home-eyebrow">Regime</p>
+              <p className="pulse-home-eyebrow">01 / Regime</p>
               <h2 id="home-macro-gauges-heading">VIX &amp; 10Y</h2>
             </div>
           </header>
           <PulseMacroGauges
-            indicators={data?.indicators ?? []}
+            indicators={data.indicators ?? []}
             showShareTools={false}
           />
         </section>
@@ -106,7 +128,7 @@ export function HomeMarketStrip() {
         <header className="pulse-home-section-head">
           <div>
             <p className="pulse-home-eyebrow">
-              {data?.sessionLabel ?? "Markets"}
+              02 / {data?.sessionLabel ?? "Markets"}
               {updated ? ` · Updated ${updated}` : ""}
             </p>
             <h2 id="home-market-strip-heading">Major indexes</h2>
@@ -120,7 +142,7 @@ export function HomeMarketStrip() {
           <IndexScoreboard
             hideHeading
             markets={indexes}
-            sessionLabel={data?.sessionLabel ?? null}
+            sessionLabel={data.sessionLabel ?? null}
           />
         ) : null}
         {data != null && indexes.length === 0 ? (

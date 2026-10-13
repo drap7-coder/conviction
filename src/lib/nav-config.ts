@@ -33,7 +33,6 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "teal",
     group: "daily",
-    tabBar: false,
     blurb: "Full tape — markets, movers, crypto, and intl.",
   },
   {
@@ -94,7 +93,7 @@ export const navPages: NavPage[] = [
   },
 ];
 
-/** Tab-bar daily destinations (Home · Portfolio · News). Pulse is Menu → Daily. */
+/** Tab-bar daily destinations (Home · Pulse · Portfolio · News). */
 export const primaryNavTabs = navPages.filter(
   (page) => page.group === "daily" && page.tabBar !== false,
 );

@@ -57,7 +57,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is Pulse?",
     answer:
-      "Pulse is the full markets workspace (Menu → Daily, or Open Pulse from Home). Use the Markets / Movers / Crypto / Intl slicer. Markets opens with Major Indexes, VIX and 10Y gauges, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
+      "Pulse is the full markets workspace on the tab bar (also linked from Home). Use the Markets / Movers / Crypto / Intl slicer. Markets opens with VIX and 10Y gauges, Major Indexes, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
   },
   {
     question: "How is Watchlist different from Portfolio?",
