@@ -42,18 +42,25 @@ function theme(
 }
 
 describe("Home for-you overview", () => {
-  it("keeps Home brief+graphs only and preserves Pulse's vertical market workspace", () => {
+  it("keeps Home as one command brief with graphs — no Pulse vertical tape", () => {
     const home = read("src/components/market/HomeOverview.tsx");
     const pulse = read("src/components/market/PulseDashboard.tsx");
+    const page = read("src/app/page.tsx");
+    expect(home).toContain("home-command");
+    expect(home).toContain("Your world. In focus.");
     expect(home).toContain("<PersonalDailyBrief");
+    expect(home).toContain('href="/pulse"');
     expect(home).not.toContain("HomeMarketStrip");
     expect(home).not.toContain("PulseYourStocks");
     expect(home).not.toContain("PulseMacroGauges");
     expect(home).not.toContain("IndexScoreboard");
-    expect(read("src/app/page.tsx")).toContain("Open Pulse");
+    expect(page).toContain("<HomeOverview");
+    expect(page).not.toContain("Open Pulse");
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefIntelligence");
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("scaffold");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-coverage-ring");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-timeline-chart");
+    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-book-mix");
     expect(home).not.toContain("PulseTodaysBrief");
     expect(home).not.toContain("PulseWorthUnderstanding");
     expect(home).not.toContain("PulseMarketBoard");
