@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BriefIntelligence } from "@/components/BriefIntelligence";
 import { useEffect, useState } from "react";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { briefContext, briefNames } from "@/lib/watchlist/daily-brief";
@@ -56,7 +57,7 @@ export function PersonalDailyBrief({ tickers, held, loading, portfolioError = fa
   return (
     <section className="personal-brief" aria-labelledby="personal-brief-heading" aria-busy={busy}>
       <header className="personal-brief-header">
-        <div><span className="personal-brief-eyebrow">MY STOCKS</span>
+        <div><span className="personal-brief-eyebrow">DAILY INTELLIGENCE / 48H WINDOW</span>
           <h2 id="personal-brief-heading">Your daily brief</h2>
           <p>Recent reporting on your holdings and watchlist.</p></div>
         {names.length > 0 ? <Link href="/portfolio?view=watchlist" className="personal-brief-edit">Edit companies →</Link> : null}
@@ -71,6 +72,7 @@ export function PersonalDailyBrief({ tickers, held, loading, portfolioError = fa
           <span>Last 48 hours · {current?.checked.length ?? 0} of {names.length} names checked</span>
           {current?.fetchedAt != null ? <time dateTime={new Date(current.fetchedAt).toISOString()}>Coverage fetched {coverageTime(current.fetchedAt)}</time> : null}
         </div>
+        {current && names.length > 0 ? <BriefIntelligence names={names} coverage={current} /> : null}
         {current?.stories.length ? <div className="personal-brief-stories">
           {current.stories.map(({ ticker, held: isHeld, event }) => (
             <article key={ticker}>
