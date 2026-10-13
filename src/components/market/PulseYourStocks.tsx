@@ -10,79 +10,13 @@ import {
   getExtendedSessionQuote,
   getLivePrice,
 } from "@/lib/market/live-quote";
-import { personalSnapshotTickers } from "@/lib/market/pulse-home";
 import type { StockQuote } from "@/lib/market/quotes";
-import { loadPortfolioForViewer } from "@/lib/portfolio/client";
-import { loadPositions } from "@/lib/portfolio/persist";
 
-const WATCHLIST_STORAGE_KEY = "conviction-watchlist";
-
-function readBrowserWatchlistTickers(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(WATCHLIST_STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map((entry) =>
-        typeof entry?.ticker === "string" ? entry.ticker.toUpperCase() : "",
-      )
-      .filter(Boolean);
-  } catch {
-    return [];
-  }
-}
-
-type LoadState = "loading" | "ready" | "error";
-
-/**
- * Compact holdings/watchlist snapshot for Pulse home.
- * Empty guests get a build-watchlist invitation — not PersonalDailyBrief.
- */
-export function PulseYourStocks() {
-  const [tickers, setTickers] = useState<string[]>([]);
+/** Read-only snapshot; saved-name ownership and failure states come from Home. */
+export function PulseYourStocks({ tickers, loading, error, onRetry }: {
+  tickers: string[]; loading: boolean; error: boolean; onRetry: () => void;
+}) {
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
-  const [loadState, setLoadState] = useState<LoadState>("loading");
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadNames() {
-      try {
-        const [watchlistRes, portfolio] = await Promise.all([
-          fetch("/api/watchlist").then((response) =>
-            response.ok ? response.json() : null,
-          ),
-          loadPortfolioForViewer(),
-        ]);
-        if (cancelled) return;
-        const watched = watchlistRes?.authenticated
-          ? (watchlistRes.entries ?? []).map((entry: { ticker: string }) =>
-              entry.ticker.toUpperCase(),
-            )
-          : readBrowserWatchlistTickers();
-        const holdings = (
-          portfolio.positions.length > 0
-            ? portfolio.positions
-            : loadPositions()
-        ).map((position) => position.ticker.toUpperCase());
-        setTickers(personalSnapshotTickers(holdings, watched, 6));
-        setLoadState("ready");
-      } catch {
-        if (cancelled) return;
-        const holdings = loadPositions().map((position) =>
-          position.ticker.toUpperCase(),
-        );
-        const watched = readBrowserWatchlistTickers();
-        setTickers(personalSnapshotTickers(holdings, watched, 6));
-        setLoadState("ready");
-      }
-    }
-    void loadNames();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   useEffect(() => {
     if (tickers.length === 0) {
       setQuotes([]);
@@ -115,27 +49,19 @@ export function PulseYourStocks() {
           <h2 id="pulse-your-stocks-heading">Your Stocks</h2>
         </div>
         <Link href="/portfolio?view=watchlist" className="pulse-home-next">
-          {tickers.length ? "Watchlist" : "Build watchlist"}{" "}
+          Watchlist{" "}
           <span aria-hidden="true">→</span>
         </Link>
       </header>
 
-      {loadState === "loading" ? (
+      {loading ? (
         <p className="pulse-home-state">Loading your names…</p>
       ) : null}
 
-      {loadState !== "loading" && tickers.length === 0 ? (
-        <div className="pulse-home-invite">
-          <p>
-            <strong>Build your watchlist.</strong> Follow a few companies to see
-            what changed for you.
-          </p>
-          <Link
-            href="/portfolio?view=watchlist"
-            className="pulse-home-invite-cta"
-          >
-            Add companies <span aria-hidden="true">→</span>
-          </Link>
+      {!loading && error ? (
+        <div className="pulse-home-state" role="status">
+          <p>Some saved names could not be loaded. Your saved companies are unchanged.</p>
+          <button type="button" onClick={onRetry}>Retry saved names</button>
         </div>
       ) : null}
 

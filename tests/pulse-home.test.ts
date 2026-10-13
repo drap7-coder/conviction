@@ -42,15 +42,15 @@ function theme(
 }
 
 describe("Home for-you overview", () => {
-  it("composes personal brief → market strip → Your Stocks (not a second Pulse)", () => {
+  it("keeps Home brief-only and preserves Pulse's vertical market workspace", () => {
     const home = read("src/components/market/HomeOverview.tsx");
     const pulse = read("src/components/market/PulseDashboard.tsx");
     const brief = home.indexOf("<PersonalDailyBrief");
-    const strip = home.indexOf("<HomeMarketStrip");
-    const stocks = home.indexOf("<PulseYourStocks");
     expect(brief).toBeGreaterThan(-1);
-    expect(strip).toBeGreaterThan(brief);
-    expect(stocks).toBeGreaterThan(strip);
+    expect(home).not.toContain("HomeMarketStrip");
+    expect(home).not.toContain("PulseYourStocks");
+    expect(read("src/app/page.tsx")).toContain("Open Pulse");
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefIntelligence");
     expect(home).not.toContain("PulseTodaysBrief");
     expect(home).not.toContain("PulseWorthUnderstanding");
     expect(home).not.toContain("PulseMarketBoard");
@@ -58,15 +58,6 @@ describe("Home for-you overview", () => {
     expect(pulse).toContain("<PulseMarketBoard");
     expect(pulse).not.toContain("PersonalDailyBrief");
     expect(pulse).not.toContain("PulseTodaysBrief");
-    const stripSrc = read("src/components/market/HomeMarketStrip.tsx");
-    expect(stripSrc).toContain("Open Pulse");
-    expect(stripSrc).toContain("<PulseMacroGauges");
-    expect(stripSrc).toContain("<IndexScoreboard");
-    expect(stripSrc).toContain("home-macro-gauges");
-    expect(stripSrc).toContain("Major indexes");
-    expect(stripSrc.indexOf("home-macro-gauges")).toBeLessThan(
-      stripSrc.indexOf("home-market-indexes"),
-    );
     const pulseBoard = read("src/components/market/PulseMarketBoard.tsx");
     const gaugesJsx = pulseBoard.indexOf("<PulseMacroGauges");
     const indexesJsx = pulseBoard.indexOf("<IndexScoreboard");
@@ -81,7 +72,7 @@ describe("Home for-you overview", () => {
     expect(read("src/components/market/HomeOverview.tsx")).toContain(
       "<PersonalDailyBrief",
     );
-    expect(read("src/components/market/PulseYourStocks.tsx")).toContain(
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain(
       "Build your watchlist",
     );
   });

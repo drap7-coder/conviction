@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { PulseData } from "@/app/api/market/pulse/route";
+import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { PageLoadingMotion } from "@/components/PageLoadingMotion";
 import { IndexScoreboard } from "@/components/market/IndexScoreboard";
 import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
@@ -15,17 +16,18 @@ export function HomeMarketStrip() {
   const [data, setData] = useState<PulseData | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
+  const [retry, setRetry] = useState(0);
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
+    let inFlight = false;
+    let lastAttempt = 0;
     async function load() {
+      if (inFlight || (lastAttempt && Date.now() - lastAttempt < 60_000)) return;
+      inFlight = true;
+      lastAttempt = Date.now();
       try {
-        const response = await fetch("/api/market/pulse", {
-          cache: "no-store",
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("unavailable");
-        const payload = (await response.json()) as PulseData;
+        const payload = await fetchJsonWithTimeout<PulseData>("/api/market/pulse", 10000, controller.signal);
         if (cancelled) return;
         setData(payload);
         setStatus("ready");
@@ -33,14 +35,23 @@ export function HomeMarketStrip() {
         if (cancelled) return;
         if (error instanceof DOMException && error.name === "AbortError") return;
         setStatus("error");
+      } finally {
+        inFlight = false;
       }
     }
     void load();
+    const refreshVisible = () => { if (document.visibilityState === "visible") void load(); };
+    const interval = window.setInterval(refreshVisible, 60_000);
+    document.addEventListener("visibilitychange", refreshVisible);
+    window.addEventListener("focus", refreshVisible);
     return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", refreshVisible);
+      window.removeEventListener("focus", refreshVisible);
       cancelled = true;
       controller.abort();
     };
-  }, []);
+  }, [retry]);
 
   const indexes =
     data?.globalMarkets.filter((market) => market.category === "Major Index") ??
@@ -64,12 +75,13 @@ export function HomeMarketStrip() {
         />
       ) : null}
       {status === "error" ? (
-        <p className="pulse-home-state">
-          Market context is temporarily unavailable.
-        </p>
+        <div className="pulse-home-state" role="status">
+          <p>{data ? "Market refresh failed. Showing the last successful snapshot below." : "Market context is temporarily unavailable."}</p>
+          <button type="button" onClick={() => setRetry((value) => value + 1)}>Retry market data</button>
+        </div>
       ) : null}
 
-      {status === "ready" ? (
+      {data != null ? (
         <section
           className="pulse-home-section home-macro-gauges"
           aria-labelledby="home-macro-gauges-heading"
@@ -104,13 +116,14 @@ export function HomeMarketStrip() {
           </Link>
         </header>
 
-        {status === "ready" && indexes.length > 0 ? (
+        {data != null && indexes.length > 0 ? (
           <IndexScoreboard
+            hideHeading
             markets={indexes}
             sessionLabel={data?.sessionLabel ?? null}
           />
         ) : null}
-        {status === "ready" && indexes.length === 0 ? (
+        {data != null && indexes.length === 0 ? (
           <p className="pulse-home-state">No index quotes available right now.</p>
         ) : null}
       </section>

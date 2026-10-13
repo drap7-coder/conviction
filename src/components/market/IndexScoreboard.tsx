@@ -74,6 +74,7 @@ export function MarketScoreboard({
   showLogos = false,
   headerAction = null,
   footer = null,
+  hideHeading = false,
 }: {
   title: string;
   rows: PulseGlobalMarket[];
@@ -84,6 +85,7 @@ export function MarketScoreboard({
   showLogos?: boolean;
   headerAction?: ReactNode;
   footer?: ReactNode;
+  hideHeading?: boolean;
 }) {
   if (rows.length === 0 && !footer) return null;
   const boardTone = title === "Major Stock Market Indexes" ? "indexes"
@@ -105,7 +107,7 @@ export function MarketScoreboard({
 
   return (
     <section className={boardClass} aria-label={`${title} scoreboard`}>
-      <div className="market-heatmap-copy">
+      <div className={hideHeading ? "sr-only" : "market-heatmap-copy"}>
         <div className="market-panel-header pulse-index-board-head">
           <div className="pulse-index-board-title-row">
             <h2>{title}</h2>
@@ -182,13 +184,16 @@ export function MarketScoreboard({
 export function IndexScoreboard({
   markets,
   sessionLabel = null,
+  hideHeading = false,
 }: {
   markets: PulseGlobalMarket[];
   sessionLabel?: string | null;
+  hideHeading?: boolean;
 }) {
   return (
     <MarketScoreboard
       title="Major Stock Market Indexes"
+      hideHeading={hideHeading}
       rows={scoreboardIndexes(markets)}
       sessionLabel={sessionLabel}
       showSessionMoves
