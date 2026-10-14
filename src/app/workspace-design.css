@@ -676,8 +676,10 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 .home-coord-code { color: var(--ink); }
 .home-coord-sep { opacity: 0.45; }
 .home-coord-label { color: var(--accent); }
+.home-coord-dot {
+  opacity: 0.4;
+}
 .home-coord-meta {
-  margin-left: 4px;
   color: var(--quiet);
   letter-spacing: 0.08em;
 }

@@ -52,7 +52,14 @@ function HomeSectionCoord({
         /
       </span>
       <span className="home-coord-label">{label}</span>
-      {meta ? <span className="home-coord-meta tnum">{meta}</span> : null}
+      {meta ? (
+        <>
+          <span className="home-coord-dot" aria-hidden="true">
+            ·
+          </span>
+          <span className="home-coord-meta tnum">{meta}</span>
+        </>
+      ) : null}
       <span className="home-coord-mark" aria-hidden="true">
         ]
       </span>
