@@ -262,11 +262,18 @@ describe("production copy and fixture isolation", () => {
     expect(newsCss).toContain("grid-column: 1 / -1");
     expect(newsCss).toContain(".pulse-news-hero-media");
     expect(newsCss).toContain("aspect-ratio: 16 / 9");
+    expect(newsCss).toContain("max-height: 200px");
+    expect(newsCss).toContain(".pulse-news-narrative.is-dense");
     expect(newsCss).toContain(".pulse-news-filter-bar");
     expect(newsCss).toContain(".pulse-news-theme-menu");
     expect(newsCss).toContain("object-position: center");
     expect(newsCss).toContain("margin-inline: auto");
     expect(newsCss).toContain("@media (min-width: 768px)");
+    expect(feed).toContain("is-dense");
+    expect(feed).toContain("AssetChips");
+    const newsDesign = read("src/app/workspace-design.css");
+    expect(newsDesign).toContain("--ops-bg: #0d1117");
+    expect(newsDesign).toContain("--ops-border: #30363d");
     const narratives = read("src/lib/market/market-narratives.ts");
     expect(narratives).toContain("imageUrl?: string | null");
     expect(narratives).toContain("imageUrl: item.metadata?.imageUrl ?? null");
