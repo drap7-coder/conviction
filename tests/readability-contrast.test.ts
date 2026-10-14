@@ -80,6 +80,10 @@ describe("readability contrast for quiet labels", () => {
     expect(workspace).toMatch(
       /\.pulse-index-row,\s*\.pulse-index-board--sessions \.pulse-index-row \{[\s\S]*?padding:\s*12px;/,
     );
+    expect(workspace).toContain("Ops MarketDataGrid density");
+    expect(workspace).toMatch(
+      /\.pulse-page \.market-data-grid-row \{[\s\S]*?min-height:\s*44px;[\s\S]*?padding:\s*12px;/,
+    );
     expect(workspace).toContain("min-height: 44px");
   });
 });

@@ -26,7 +26,8 @@ describe("quote scoreboards (no product heatmaps)", () => {
     expect(pulse).toContain("InternationalScoreboard");
     expect(pulse).toContain("SectorScoreboard");
     expect(pulse).not.toContain("GlobalMarketsHeatmap");
-    expect(board).toContain("SessionQuoteStack");
+    expect(board).toContain("MarketDataGrid");
+    expect(board).not.toContain("SessionQuoteStack");
     expect(board).not.toContain("pulse-move-bar");
     expect(movers).toContain("SessionQuoteStack");
     expect(movers).not.toContain("pulse-move-bar");
