@@ -7,10 +7,11 @@ import {
 } from "@/lib/market/pulse-gauges";
 import { EmbedCode } from "@/components/EmbedCode";
 
-const RADIUS = 62;
-const STROKE = 10;
-const CX = 80;
-const CY = 84;
+/** Balanced semicircle geometry inside viewBox="0 0 200 110". */
+const RADIUS = 72;
+const STROKE = 7;
+const CX = 100;
+const CY = 94;
 const TRACK = Math.PI * RADIUS;
 
 function GaugeArc({ card }: { card: PulseGaugeCard }) {
@@ -19,7 +20,7 @@ function GaugeArc({ card }: { card: PulseGaugeCard }) {
   const d = `M ${CX - RADIUS} ${CY} A ${RADIUS} ${RADIUS} 0 0 1 ${CX + RADIUS} ${CY}`;
 
   return (
-    <svg className="pulse-gauge-arc" viewBox="0 0 160 96" aria-hidden="true">
+    <svg className="pulse-gauge-arc" viewBox="0 0 200 110" aria-hidden="true">
       <path
         d={d}
         fill="none"
@@ -50,11 +51,11 @@ function GaugeCard({ card }: { card: PulseGaugeCard }) {
         <GaugeArc card={card} />
         <div className="pulse-gauge-readout">
           <strong className="tnum">{card.value}</strong>
-          <span className={`pulse-gauge-pill pulse-gauge-pill--${card.tone}`}>
-            {card.status}
-          </span>
         </div>
       </div>
+      <span className={`pulse-gauge-pill pulse-gauge-pill--${card.tone}`}>
+        {card.status}
+      </span>
       <p className="pulse-gauge-caption">{card.caption}</p>
     </article>
   );

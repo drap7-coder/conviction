@@ -66,7 +66,8 @@ describe("surface scan polish", () => {
     expect(css).toMatch(/\.surface-slicer-pill\.is-active\s*\{[^}]*var\(--accent\)/s);
     expect(css).toMatch(/\.surface-slicer\s*\{[^}]*border-radius:\s*14px/s);
     expect(css).toMatch(/\.pulse-gauge-kicker\s*\{[^}]*text-align:\s*center/s);
-    expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*justify-items:\s*center/s);
+    expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*flex-direction:\s*column/s);
+    expect(css).toMatch(/\.pulse-gauge-card\s*\{[^}]*align-items:\s*center/s);
   });
 
   it("boots nav as IQBulls. then settles to IQBulls without a case flip", () => {
