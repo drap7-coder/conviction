@@ -58,9 +58,12 @@ describe("Home for-you overview", () => {
     expect(page).not.toContain("Open Pulse");
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefIntelligence");
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain("scaffold");
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefQuantOverlay");
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("Quantitative");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-coverage-ring");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-timeline-chart");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-book-mix");
+    expect(read("src/components/BriefQuantOverlay.tsx")).toContain("No style-factor model");
     expect(home).not.toContain("PulseTodaysBrief");
     expect(home).not.toContain("PulseWorthUnderstanding");
     expect(home).not.toContain("PulseMarketBoard");
