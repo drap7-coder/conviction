@@ -5,6 +5,23 @@ import type { BriefCoverage } from "@/lib/watchlist/brief-coverage";
 const RING = 54;
 const STROKE = 10;
 const CIRC = 2 * Math.PI * RING;
+const TICK_COUNT = 36;
+
+function radarTicks() {
+  return Array.from({ length: TICK_COUNT }, (_, i) => {
+    const angle = (i / TICK_COUNT) * Math.PI * 2 - Math.PI / 2;
+    const outer = 66;
+    const inner = i % 3 === 0 ? 58 : 61;
+    return {
+      key: i,
+      x1: 70 + Math.cos(angle) * inner,
+      y1: 70 + Math.sin(angle) * inner,
+      x2: 70 + Math.cos(angle) * outer,
+      y2: 70 + Math.sin(angle) * outer,
+      major: i % 3 === 0,
+    };
+  });
+}
 
 /** Charts describe verified briefing coverage, never price performance or portfolio weights. */
 export function BriefIntelligence({
@@ -33,6 +50,7 @@ export function BriefIntelligence({
   const pendingLen = names.length ? (pending / total) * CIRC : 0;
   const heldPct = names.length ? (heldCount / names.length) * 100 : 0;
   const watchedPct = names.length ? (watchedCount / names.length) * 100 : 0;
+  const batchKey = `${checked.size}-${failed.size}-${coverage.fetchedAt ?? 0}`;
 
   const timelinePoints = coverage.stories.map(({ ticker, event }, i) => {
     const x =
@@ -48,6 +66,12 @@ export function BriefIntelligence({
           .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x} ${point.y}`)
           .join(" ")
       : "";
+  const areaD =
+    timelinePoints.length > 1
+      ? `${pathD} L ${timelinePoints[timelinePoints.length - 1].x} 158 L ${timelinePoints[0].x} 158 Z`
+      : timelinePoints.length === 1
+        ? `M ${timelinePoints[0].x} ${timelinePoints[0].y} L ${timelinePoints[0].x} 158 Z`
+        : "";
 
   return (
     <div className={`brief-intelligence${scaffold ? " is-scaffold" : ""}`}>
@@ -69,7 +93,26 @@ export function BriefIntelligence({
                 : `${checked.size} of ${names.length} companies checked; ${failed.size} unavailable; ${pending} not checked.`
             }
           >
+            <defs>
+              <linearGradient id="brief-radar-sweep-fill" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="rgba(95, 208, 165, 0)" />
+                <stop offset="70%" stopColor="rgba(95, 208, 165, 0.08)" />
+                <stop offset="100%" stopColor="rgba(95, 208, 165, 0.38)" />
+              </linearGradient>
+            </defs>
             <circle className="brief-ring-track" cx="70" cy="70" r={RING} fill="none" strokeWidth={STROKE} />
+            <g className="brief-radar-ticks" key={batchKey}>
+              {radarTicks().map((tick) => (
+                <line
+                  key={tick.key}
+                  className={tick.major ? "is-major" : undefined}
+                  x1={tick.x1}
+                  y1={tick.y1}
+                  x2={tick.x2}
+                  y2={tick.y2}
+                />
+              ))}
+            </g>
             {names.length > 0 ? (
               <>
                 <circle
@@ -107,6 +150,14 @@ export function BriefIntelligence({
                 />
               </>
             ) : null}
+            <g className="brief-radar-sweep" aria-hidden="true">
+              <path
+                d="M70 70 L70 16 A54 54 0 0 1 118.5 47.5 Z"
+                fill="url(#brief-radar-sweep-fill)"
+              />
+              <line x1="70" y1="70" x2="70" y2="16" className="brief-radar-beam" />
+            </g>
+            <circle className="brief-radar-hub" cx="70" cy="70" r="3.5" />
             <text className="brief-ring-value" x="70" y="66" textAnchor="middle">
               {checked.size}
             </text>
@@ -212,18 +263,40 @@ export function BriefIntelligence({
               role="img"
               aria-label="Selected reports positioned by publication time within the 48 hours ending at the latest report or coverage fetch."
             >
-              {[40, 150, 260, 370, 480].map((x) => (
-                <line key={x} x1={x} x2={x} y1="18" y2="158" className="brief-chart-grid" />
+              <defs>
+                <linearGradient id="brief-timeline-area" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(140, 224, 219, 0.28)" />
+                  <stop offset="100%" stopColor="rgba(140, 224, 219, 0)" />
+                </linearGradient>
+              </defs>
+              {[40, 95, 150, 205, 260, 315, 370, 425, 480].map((x) => (
+                <line key={`v-${x}`} x1={x} x2={x} y1="18" y2="158" className="brief-chart-grid" />
+              ))}
+              {[40, 82, 124].map((y) => (
+                <line key={`h-${y}`} x1="40" x2="480" y1={y} y2={y} className="brief-chart-grid is-horiz" />
               ))}
               <line x1="40" x2="480" y1="158" y2="158" className="brief-chart-baseline" />
+              {areaD ? <path d={areaD} className="brief-chart-area" /> : null}
               {pathD ? <path d={pathD} className="brief-chart-path" fill="none" /> : null}
               {timelinePoints.map(({ ticker, event, x, y }) => (
-                <g key={ticker} className="brief-timeline-row">
+                <g key={ticker} className="brief-timeline-row" tabIndex={0}>
                   <title>
                     {ticker}: {event.title} — {event.date}
                   </title>
+                  <rect
+                    className="brief-chart-hit"
+                    x="36"
+                    y={y - 18}
+                    width="448"
+                    height="36"
+                  />
                   <line x1="40" x2="480" y1={y} y2={y} className="brief-chart-track" />
                   <line x1={x} x2={x} y1={y} y2="158" className="brief-chart-drop" />
+                  <g className="brief-chart-crosshair" aria-hidden="true">
+                    <line x1={x} x2={x} y1="18" y2="158" />
+                    <line x1="40" x2="480" y1={y} y2={y} />
+                    <polyline points={`${x - 5},${y - 5} ${x - 5},${y + 5} ${x + 5},${y + 5} ${x + 5},${y - 5}`} />
+                  </g>
                   <circle cx={x} cy={y} r="7" className="brief-chart-dot-halo" />
                   <circle cx={x} cy={y} r="4.5" className="brief-chart-dot" />
                   <text x="40" y={y - 10}>
@@ -251,8 +324,11 @@ export function BriefIntelligence({
               role="img"
               aria-label="Empty 48-hour report timeline. No verified reports plotted."
             >
-              {[40, 150, 260, 370, 480].map((x) => (
-                <line key={x} x1={x} x2={x} y1="24" y2="110" className="brief-chart-grid" />
+              {[40, 95, 150, 205, 260, 315, 370, 425, 480].map((x) => (
+                <line key={`v-${x}`} x1={x} x2={x} y1="24" y2="110" className="brief-chart-grid" />
+              ))}
+              {[40, 75].map((y) => (
+                <line key={`h-${y}`} x1="40" x2="480" y1={y} y2={y} className="brief-chart-grid is-horiz" />
               ))}
               <line x1="40" x2="480" y1="110" y2="110" className="brief-chart-baseline" />
               <text x="40" y="136">

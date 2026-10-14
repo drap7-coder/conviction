@@ -47,6 +47,8 @@ describe("Home for-you overview", () => {
     const pulse = read("src/components/market/PulseDashboard.tsx");
     const page = read("src/app/page.tsx");
     expect(home).toContain("home-command");
+    expect(home).toContain("home-telemetry-stream");
+    expect(home).toContain("home-status-pill");
     expect(home).toContain("Your world. In focus.");
     expect(home).toContain("<PersonalDailyBrief");
     expect(home).toContain('href="/pulse"');
@@ -61,6 +63,8 @@ describe("Home for-you overview", () => {
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefQuantOverlay");
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain("Quantitative");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-coverage-ring");
+    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-radar-sweep");
+    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-chart-crosshair");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-timeline-chart");
     expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-book-mix");
     expect(read("src/components/BriefQuantOverlay.tsx")).toContain("No style-factor model");
