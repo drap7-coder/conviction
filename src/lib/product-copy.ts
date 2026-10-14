@@ -13,12 +13,12 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Home",
     href: "/",
-    blurb: "Your daily brief on holdings and watchlist, a quick index strip, and your names.",
+    blurb: "Public market telemetry — VIX and 10Y, major indexes, commodities, and sectors.",
   },
   {
     name: "Pulse",
     href: "/pulse",
-    blurb: "Full tape when you need it — indexes, movers, crypto, and intl on one slicer.",
+    blurb: "Full public tape — indexes, movers, crypto, and intl on one slicer.",
   },
   {
     name: "Crowd",
@@ -28,12 +28,12 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Portfolio",
     href: "/portfolio",
-    blurb: "Know today’s move, sector mix, and concentration on the book you actually hold.",
+    blurb: "Your positions only — value, sector mix, concentration, and today’s move.",
   },
   {
     name: "Watchlist",
     href: "/portfolio?view=watchlist",
-    blurb: "Follow the tickers that matter and jump straight into quote and context.",
+    blurb: "Personal daily brief plus movers on the names you own and watch.",
   },
   {
     name: "News",
@@ -52,17 +52,17 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is IQBulls?",
     answer:
-      "IQBulls is a free market workspace. Home shows what matters today; Pulse is the live tape; Crowd covers campus picks and standings; Portfolio holds your book and watchlist; News briefs the market — not a single research gimmick.",
+      "IQBulls is a free market workspace. Home and Pulse cover public market telemetry; Portfolio is your personal book and watchlist brief; Crowd covers campus picks and standings; News briefs the market — not a single research gimmick.",
   },
   {
     question: "What is Pulse?",
     answer:
-      "Pulse is the full markets workspace on the tab bar (also linked from Home). Use the Markets / Movers / Crypto / Intl slicer. Markets opens with VIX and 10Y gauges, Major Indexes, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse.",
+      "Pulse is the full public markets workspace on the tab bar (also linked from Home). Use the Markets / Movers / Crypto / Intl slicer. Markets opens with VIX and 10Y gauges, Major Indexes, Commodities, and US Sectors. Movers, Crypto, and Intl each swap in their board without leaving Pulse. Personal holdings stay on Portfolio.",
   },
   {
     question: "How is Watchlist different from Portfolio?",
     answer:
-      "Both live on the Portfolio tab. Watchlist is the names you follow day to day. Live Portfolio is the book you own — value, today’s move, sector mix, concentration, and compare-against guidance. Use the Live / Watchlist / Study slicer to switch. Edit either from Manage.",
+      "Both live on the Portfolio tab — never on Home or Pulse. Watchlist opens with your personal daily brief plus today’s movers on names you follow. Live Portfolio is the book you own — value, today’s move, sector mix, and concentration. Use the Live / Watchlist / Study slicer to switch. Edit either from Manage.",
   },
   {
     question: "What is Study Mode on Portfolio?",

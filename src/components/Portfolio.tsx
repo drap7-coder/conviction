@@ -38,6 +38,7 @@ import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import Watchlist from "@/components/Watchlist";
+import { PortfolioPersonalBrief } from "@/components/PortfolioPersonalBrief";
 import SandboxPortfolio from "@/components/SandboxPortfolio";
 import { buildPortfolioValueBrief } from "@/lib/portfolio/value-brief";
 import { getStudyBrief } from "@/lib/portfolio/study-briefs";
@@ -762,6 +763,7 @@ export default function Portfolio() {
 
       {view === "watchlist" ? (
         <div className="pf-watchlist">
+          <PortfolioPersonalBrief />
           <Watchlist />
         </div>
       ) : view === "sandbox" ? (

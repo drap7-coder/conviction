@@ -25,7 +25,7 @@ export const navPages: NavPage[] = [
     icon: Home,
     tone: "amber",
     group: "daily",
-    blurb: "Your daily brief, market context, and your stocks.",
+    blurb: "Macro regime, indexes, commodities, and sector leadership.",
   },
   {
     href: "/pulse",
@@ -33,7 +33,7 @@ export const navPages: NavPage[] = [
     icon: BarChart3,
     tone: "teal",
     group: "daily",
-    blurb: "Full tape — markets, movers, crypto, and intl.",
+    blurb: "Full public tape — markets, movers, crypto, and intl.",
   },
   {
     href: "/crowd",
@@ -49,7 +49,7 @@ export const navPages: NavPage[] = [
     icon: Briefcase,
     tone: "blue",
     group: "daily",
-    blurb: "Live book, Watchlist, and Study.",
+    blurb: "Your book, watchlist brief, allocation, and Study.",
   },
   {
     href: "/news",

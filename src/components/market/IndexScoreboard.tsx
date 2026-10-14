@@ -102,12 +102,15 @@ export function IndexScoreboard({
 
 export function CommodityScoreboard({
   markets,
+  hideHeading = false,
 }: {
   markets: PulseGlobalMarket[];
+  hideHeading?: boolean;
 }) {
   return (
     <MarketScoreboard
       title="Commodity Prices Today"
+      hideHeading={hideHeading}
       rows={scoreboardCommodities(markets)}
       showSessionMoves
     />
@@ -117,13 +120,16 @@ export function CommodityScoreboard({
 export function SectorScoreboard({
   markets,
   sessionLabel = null,
+  hideHeading = false,
 }: {
   markets: PulseGlobalMarket[];
   sessionLabel?: string | null;
+  hideHeading?: boolean;
 }) {
   return (
     <MarketScoreboard
       title="Stock Market Sector Performance"
+      hideHeading={hideHeading}
       rows={markets}
       sessionLabel={sessionLabel}
       showSessionMoves

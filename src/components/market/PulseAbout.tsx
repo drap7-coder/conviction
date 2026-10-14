@@ -19,12 +19,14 @@ export function PulseAbout() {
         </h2>
         <div className="pulse-about-copy">
           <p>
-            IQBulls Pulse is a free market overview that pulls major stock indexes,
+            IQBulls Pulse is the full public market tape — major stock indexes,
             U.S. sectors, commodities, cryptocurrency, and international country funds
-            into one place. Use it to see what is moving before you dig into a single
-            ticker, your{" "}
-            <Link href="/portfolio">portfolio and watchlist</Link>, or the{" "}
-            <Link href="/crowd">campus Crowd</Link> competition.
+            on one slicer. Home keeps a shorter macro glance; personal holdings and
+            the daily brief stay on your{" "}
+            <Link href="/portfolio">portfolio and watchlist</Link>, separate from
+            this tape. Pair either surface with the{" "}
+            <Link href="/crowd">campus Crowd</Link> competition when you want school
+            picks.
           </p>
           <p>
             Premarket and after-hours labels mark extended-session prints when they

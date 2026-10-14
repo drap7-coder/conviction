@@ -137,7 +137,7 @@ export function PersonalDailyBrief({
             </div>
           ) : null}
           {names.length > 0 ? (
-            <Link href="/portfolio?view=watchlist" className="personal-brief-edit">
+            <Link href="/manage?view=watchlist" className="personal-brief-edit">
               Edit companies →
             </Link>
           ) : null}
@@ -157,7 +157,7 @@ export function PersonalDailyBrief({
             <h3>Start with a company you care about.</h3>
             <p>Your brief starts with the first name. No account required.</p>
             <Link
-              href="/portfolio?view=watchlist"
+              href="/manage?view=watchlist"
               className="brief-link"
               onClick={() => trackProductEvent("brief_setup_started")}
             >
