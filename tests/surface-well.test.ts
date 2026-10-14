@@ -32,7 +32,7 @@ describe("shared surface well", () => {
     expect(ladder).toContain('className="pf-allocation-list surface-well"');
     expect(scoreboard).toContain("MarketDataGrid");
     expect(read("src/components/market/MarketDataGrid.tsx")).toContain(
-      'className="market-data-grid surface-well"',
+      'className="market-data-grid surface-well is-tactical"',
     );
     expect(movers).toContain('className="surface-well pulse-movers-well"');
     expect(benchmark).toContain('className="pf-benchmark surface-shell"');
