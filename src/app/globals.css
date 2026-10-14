@@ -17221,17 +17221,23 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-gauge-card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   justify-items: center;
+  gap: 6px;
   min-width: 0;
-  padding: 4px 4px 2px;
+  min-height: 148px;
+  padding: 10px 8px 8px;
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
 .pulse-gauge-kicker {
-  margin: 0 0 2px;
+  flex: 0 0 auto;
+  margin: 0;
   width: 100%;
   color: var(--muted);
   font-family: var(--font-mono);
@@ -17243,11 +17249,14 @@ a.pulse-news-narrative-title:focus-visible {
 }
 
 .pulse-gauge-face {
-  /* Stack arc + readout in-flow so paint cannot bleed into the caption
+  /* Stack arc + value in-flow so paint cannot bleed into the caption
      or the Indexes header below. */
+  position: relative;
   display: grid;
+  flex: 1 1 auto;
+  align-content: end;
   width: 100%;
-  min-height: 86px;
+  min-height: 96px;
 }
 
 .pulse-gauge-arc,
@@ -17259,8 +17268,9 @@ a.pulse-news-narrative-title:focus-visible {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 92px;
+  max-height: 104px;
   justify-self: stretch;
+  align-self: end;
 }
 
 .pulse-gauge-fill--vix {
@@ -17276,10 +17286,10 @@ a.pulse-news-narrative-title:focus-visible {
   z-index: 1;
   display: grid;
   justify-items: center;
-  align-self: end;
+  align-self: center;
   justify-self: center;
-  gap: 5px;
-  padding: 0 0 8px;
+  /* Sit the metric in the bowl of the semicircle, clear of the track. */
+  margin-top: 10px;
   pointer-events: none;
 }
 
@@ -17296,9 +17306,11 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-gauge-pill {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   min-width: 3.6rem;
+  margin-top: 8px;
   padding: 3px 8px;
   border-radius: 999px;
   font-family: var(--font-mono);
@@ -17333,7 +17345,8 @@ a.pulse-news-narrative-title:focus-visible {
 .pulse-gauge-caption {
   position: relative;
   z-index: 1;
-  margin: 8px 0 0;
+  flex: 0 0 auto;
+  margin: 0;
   width: 100%;
   color: var(--quiet);
   font-size: 0.62rem;
@@ -21388,7 +21401,7 @@ input.has-mic {
   --ops-ink: #e6edf3;
   --ops-muted: #8b949e;
   --market-tape-sticky-height: 34px;
-  --pulse-ops-sticky-height: 92px;
+  --pulse-ops-sticky-height: 148px;
 }
 body:has(.pulse-page) .app-header {
   box-shadow: none;
@@ -21430,13 +21443,17 @@ body:has(.pulse-page) .session-quote {
 }
 .pulse-gauges--compact .pulse-gauge-grid { gap: 8px; }
 .pulse-gauges--compact .pulse-gauge-card {
-  padding: 0;
+  min-height: 132px;
+  padding: 8px 6px 6px;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  gap: 4px;
 }
-.pulse-gauges--compact .pulse-gauge-arc { max-height: 64px; }
-.pulse-gauges--compact .pulse-gauge-face { min-height: 58px; }
+.pulse-gauges--compact .pulse-gauge-kicker { margin: 0; }
+.pulse-gauges--compact .pulse-gauge-arc { max-height: 78px; }
+.pulse-gauges--compact .pulse-gauge-face { min-height: 78px; }
+.pulse-gauges--compact .pulse-gauge-readout { margin-top: 8px; }
 .pulse-gauges--compact .pulse-gauge-readout strong {
   font-family: var(--font-mono);
   font-size: 1.05rem;
@@ -21445,6 +21462,7 @@ body:has(.pulse-page) .session-quote {
 }
 .pulse-gauges--compact .pulse-gauge-caption { display: none; }
 .pulse-gauges--compact .pulse-gauge-pill {
+  margin-top: 6px;
   border-radius: 2px;
   border: 1px solid currentColor;
   background: transparent;
@@ -21687,7 +21705,7 @@ a.market-data-grid-row:focus-visible {
 @media (max-width: 767px) {
   .pulse-page {
     --market-tape-sticky-height: 32px;
-    --pulse-ops-sticky-height: 84px;
+    --pulse-ops-sticky-height: 136px;
   }
   .pulse-page .pulse-view-slicer {
     top: calc(

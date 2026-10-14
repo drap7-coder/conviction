@@ -117,6 +117,7 @@ describe("Pulse heatmap universe", () => {
     expect(indexesBlock).not.toContain("ProductStage");
     expect(gauges).toContain("pulse-gauge-grid");
     expect(gauges).toContain("pulse-gauges--compact");
+    expect(gauges).toContain('viewBox="0 0 200 110"');
     expect(gauges).not.toContain("ProductStage");
     expect(board).toContain("MarketDataGrid");
     expect(board).toContain("pulse-index-session");
