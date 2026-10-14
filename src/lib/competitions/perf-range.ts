@@ -82,9 +82,10 @@ export function resolvePickPeriodStart(input: {
 
 /**
  * Period return for one campus pick.
- * Always the ticker's return over the selected window (Today session %, or
- * history open → last for Weekly / Monthly / YTD) — never pick entry price.
- * Campus averages should match how those tickers performed on the tape.
+ * Today = ticker session % (never pick entry).
+ * Weekly / Monthly / YTD = fixed window open → last, except mid-window picks
+ * which anchor at entry so P&L compounds across the multi-day race instead of
+ * snapping to a calendar open (or UTC midnight) reset.
  */
 export function pickPeriodReturnPct(input: {
   range: H2HPerfRange;
@@ -113,7 +114,12 @@ export function pickPeriodReturnPct(input: {
     return periodReturnPct(start, current);
   }
 
-  const start = baseline.startPrice;
+  const start = resolvePickPeriodStart({
+    periodStartPrice: baseline.startPrice,
+    periodStartAt: baseline.startAt,
+    entryPrice: input.entryPrice,
+    pickedAt: input.pickedAt,
+  });
   const current = baseline.currentPrice;
   if (start === null || current === null) return null;
   return periodReturnPct(start, current);

@@ -136,6 +136,18 @@ describe("community ranking threshold", () => {
     expect(standings.every((row) => row.avgReturnPct !== null && row.avgReturnPct > 0)).toBe(true);
     expect(read("src/lib/community-picks/store.ts")).toContain("ensureCampusPickSeedsIfNeeded");
     expect(read("src/lib/community-picks/ensure-seeds.ts")).toContain("community_picks");
+    // Seed upsert must not reset entry / banked growth on daily reseed.
+    expect(read("src/lib/community-picks/ensure-seeds.ts")).not.toContain(
+      "entry_price = excluded.entry_price",
+    );
+    expect(read("src/lib/community-picks/ensure-seeds.ts")).not.toContain(
+      "banked_growth_factor = excluded.banked_growth_factor",
+    );
+    expect(read("src/lib/community-picks/store.ts")).not.toContain(
+      "periodReturnPct ?? pickView.lifetimeReturnPct",
+    );
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("community-standings-grid");
+    expect(read("src/components/SentimentPoll.tsx")).toContain("sentiment-consensus");
     expect(read("package.json")).toContain("seed:campus");
   });
 });

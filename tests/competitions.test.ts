@@ -149,25 +149,26 @@ describe("h2h performance ranges", () => {
     ).toBe(3);
   });
 
-  it("scores Weekly/Monthly/YTD as ticker period return, not pick entry", () => {
-    // Same-day seed picks still use history open → last, not fabricated entry.
+  it("scores Weekly/Monthly/YTD from period open, or entry for mid-window picks", () => {
+    // Mid-window pick anchors at entry so P&L compounds across the race.
     expect(
       pickPeriodReturnPct({
         range: "1w",
         entryPrice: 50,
-        pickedAt: new Date().toISOString(),
+        pickedAt: "2026-02-26T15:00:00.000Z",
         baseline: {
           startPrice: 100,
           startAt: "2026-02-24T14:30:00.000Z",
           currentPrice: 110,
         },
       }),
-    ).toBe(10);
+    ).toBe(120);
+    // Earlier pick (or null pickedAt) keeps the fixed weekly/YTD open.
     expect(
       pickPeriodReturnPct({
         range: "ytd",
         entryPrice: 200,
-        pickedAt: new Date().toISOString(),
+        pickedAt: "2025-12-15T15:00:00.000Z",
         baseline: {
           startPrice: 100,
           startAt: "2026-01-02T14:30:00.000Z",
@@ -175,6 +176,18 @@ describe("h2h performance ranges", () => {
         },
       }),
     ).toBe(20);
+    expect(
+      pickPeriodReturnPct({
+        range: "1w",
+        entryPrice: 50,
+        pickedAt: null,
+        baseline: {
+          startPrice: 100,
+          startAt: "2026-02-24T14:30:00.000Z",
+          currentPrice: 110,
+        },
+      }),
+    ).toBe(10);
   });
 
   it("scores Crowd H2H and standings on the same $100k window (no Performance chrome)", () => {
@@ -250,13 +263,15 @@ describe("community picks wiring", () => {
     );
     expect(read("src/lib/competitions/store.ts")).toContain("listHeadToHeadSchools");
     expect(read("src/lib/competitions/store.ts")).toContain("scoreCampusSide");
-    expect(read("src/lib/competitions/store.ts")).toContain('statusLabel: "Live"');
+    expect(read("src/lib/competitions/store.ts")).toContain("ACTIVE SYNDICATE");
+    expect(read("src/lib/competitions/store.ts")).toContain("campusNodeStatusPill");
     expect(read("src/lib/competitions/store.ts")).not.toContain("refreshCompetitionScores");
     expect(read("src/lib/competitions/types.ts")).toContain('kind: "member"');
     expect(read("src/lib/competitions/types.ts")).not.toContain("can_submit");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("SchoolSideSelect");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("Your side");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("Opponent");
+    expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("h2h-spread");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).toContain("Update your My Pick");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit Pick");
     expect(read("src/components/HeadToHeadMatchCard.tsx")).not.toContain("Submit weekly");

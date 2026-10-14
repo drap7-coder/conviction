@@ -22,12 +22,7 @@ import {
   isSubmissionOpen,
   weekWindowContaining,
 } from "@/lib/competitions/schedule";
-import {
-  activeGrowthFactor,
-  averageLifetimeReturnPct,
-  lifetimeReturnPct,
-  totalGrowthFactor,
-} from "@/lib/community-picks/growth";
+import { averageLifetimeReturnPct } from "@/lib/community-picks/growth";
 import { pricingSymbolForStored } from "@/lib/community-picks/asset-maps";
 import { CALL_SLOTS, CALLS_REQUIRED, type CallSlot } from "@/lib/community-picks/call-slots";
 import { ensureCampusPickSeedsIfNeeded } from "@/lib/community-picks/ensure-seeds";
@@ -37,25 +32,11 @@ import {
   pickPeriodReturnPct,
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
-import { fetchFreshStockQuotes } from "@/lib/market/quotes";
 import {
   fetchPeriodBaselines,
   type PeriodBaseline,
 } from "@/lib/competitions/period-baselines";
-
-async function currentPricesForSymbols(symbols: string[]): Promise<Map<string, number>> {
-  const unique = [...new Set(symbols.map((symbol) => symbol.toUpperCase()).filter(Boolean))];
-  if (unique.length === 0) return new Map();
-  const quotes = await fetchFreshStockQuotes(unique);
-  const prices = new Map<string, number>();
-  for (const quote of quotes) {
-    const spot = quote.price ?? quote.previousClose;
-    if (spot !== null && Number.isFinite(spot) && spot > 0) {
-      prices.set(quote.ticker.toUpperCase(), spot);
-    }
-  }
-  return prices;
-}
+import { campusNodeStatusPill, MIN_RANKED_MEMBERS } from "@/lib/community-picks/constants";
 
 type GroupLogoMeta = {
   name: string;
@@ -411,7 +392,6 @@ export async function scoreCampusSide(
     if (students.length === 0) return { avgReturnPct: 0, pickCount: 0 };
     const tickers = [...new Set(students.map((row) => row.ticker.toUpperCase()))];
     const periodBaselines = baselines ?? (await fetchPeriodBaselines(tickers, range));
-    const prices = await currentPricesForSymbols(tickers);
     const liveReturns: number[] = [];
     for (const student of students) {
       const symbol = student.ticker.toUpperCase();
@@ -421,17 +401,10 @@ export async function scoreCampusSide(
         pickedAt: null,
         baseline: periodBaselines.get(symbol) ?? null,
       });
+      // Period window only — never bleed lifetime into weekly/monthly boards.
       if (periodRet !== null && Number.isFinite(periodRet)) {
         liveReturns.push(periodRet);
-        continue;
       }
-      // Fall back to lifetime edge when Yahoo period history is missing.
-      const current = prices.get(symbol);
-      const active =
-        current === undefined ? 1 : activeGrowthFactor(student.entryPrice, current);
-      liveReturns.push(
-        lifetimeReturnPct(totalGrowthFactor(student.bankedGrowthFactor, active)),
-      );
     }
     return {
       avgReturnPct: averageLifetimeReturnPct(liveReturns) ?? 0,
@@ -463,7 +436,6 @@ export async function scoreCampusSide(
       ),
     ),
   ];
-  const prices = await currentPricesForSymbols(pricingSymbols);
   const periodBaselines = baselines ?? (await fetchPeriodBaselines(pricingSymbols, range));
 
   const byUser = new Map<string, typeof result.rows>();
@@ -480,24 +452,16 @@ export async function scoreCampusSide(
     for (const row of rows) {
       const symbol = pricingSymbolForStored(row.call_slot as CallSlot, row.ticker);
       const entry = Number(row.entry_price);
-      const banked = Number(row.banked_growth_factor);
-      const current = prices.get(symbol);
       const periodRet = pickPeriodReturnPct({
         range,
         entryPrice: entry,
         pickedAt: row.picked_at.toISOString(),
         baseline: periodBaselines.get(symbol) ?? null,
       });
+      // Period window only — never bleed lifetime into weekly/monthly boards.
       if (periodRet !== null && Number.isFinite(periodRet)) {
         slotReturns.set(row.call_slot, periodRet);
-        continue;
       }
-      // Fall back to lifetime when period baselines fail.
-      const active = current === undefined ? 1 : activeGrowthFactor(entry, current);
-      slotReturns.set(
-        row.call_slot,
-        lifetimeReturnPct(totalGrowthFactor(banked, active)),
-      );
     }
     if (slotReturns.size < CALLS_REQUIRED) continue;
     const values = CALL_SLOTS.map((slot) => slotReturns.get(slot)).filter(
@@ -669,12 +633,23 @@ export async function buildHeadToHeadPayload(input: {
     }
   }
 
+  const aPill = campusNodeStatusPill(groupA?.pickCount ?? 0);
+  const bPill = campusNodeStatusPill(groupB?.pickCount ?? 0);
+  const bothActive =
+    (groupA?.pickCount ?? 0) >= MIN_RANKED_MEMBERS &&
+    (groupB?.pickCount ?? 0) >= MIN_RANKED_MEMBERS;
+  const statusLabel = bothActive
+    ? "ACTIVE SYNDICATE"
+    : aPill.tone === "idle" && bPill.tone === "idle"
+      ? "SELECT NODES"
+      : `SYNCING: ${Math.min(groupA?.pickCount ?? 0, groupB?.pickCount ?? 0)}/${MIN_RANKED_MEMBERS} NODES`;
+
   return {
     available: true,
     competition: null,
     groupA,
     groupB,
-    statusLabel: "Live",
+    statusLabel,
     viewer,
     schools,
     viewerPrimaryGroupId,

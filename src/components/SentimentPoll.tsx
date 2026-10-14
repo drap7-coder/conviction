@@ -12,12 +12,14 @@ type Totals = {
   total: number;
   available: boolean;
 };
+
 export function SentimentPoll({ ticker }: { ticker: string }) {
   const symbol = ticker.toUpperCase();
   const [totals, setTotals] = useState<Totals | null>(null);
   const [choice, setChoice] = useState<SentimentVote | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     let active = true;
     fetch(`/api/sentiment?ticker=${encodeURIComponent(symbol)}`, {
@@ -32,7 +34,9 @@ export function SentimentPoll({ ticker }: { ticker: string }) {
               `iqbulls-sentiment:${symbol}:${data.date}`,
             );
             if (saved === "bullish" || saved === "bearish") setChoice(saved);
-          } catch {}
+          } catch {
+            /* ignore */
+          }
         }
       })
       .catch(() => undefined);
@@ -40,11 +44,19 @@ export function SentimentPoll({ ticker }: { ticker: string }) {
       active = false;
     };
   }, [symbol]);
-  const pct = useMemo(
-    () =>
-      totals?.total ? Math.round((totals.bullish / totals.total) * 100) : 50,
-    [totals],
-  );
+
+  const consensus = useMemo(() => {
+    if (!totals?.total) {
+      return { bullishPct: 50, bearishPct: 50, total: 0 };
+    }
+    const bullishPct = Math.round((totals.bullish / totals.total) * 100);
+    return {
+      bullishPct,
+      bearishPct: 100 - bullishPct,
+      total: totals.total,
+    };
+  }, [totals]);
+
   async function vote(next: SentimentVote) {
     const previous = choice;
     const previousTotals = totals;
@@ -76,7 +88,9 @@ export function SentimentPoll({ ticker }: { ticker: string }) {
       setTotals(data);
       try {
         localStorage.setItem(`iqbulls-sentiment:${symbol}:${data.date}`, next);
-      } catch {}
+      } catch {
+        /* ignore */
+      }
     } catch (e) {
       setChoice(previous);
       setTotals(previousTotals);
@@ -85,12 +99,34 @@ export function SentimentPoll({ ticker }: { ticker: string }) {
       setPending(false);
     }
   }
+
   return (
-    <section className="sentiment-poll" aria-labelledby={`sentiment-${symbol}`}>
-      <span className="data-manager-eyebrow">Daily sentiment</span>
-      <h2 id={`sentiment-${symbol}`}>
-        What is your sentiment on {symbol} today?
-      </h2>
+    <section className="sentiment-poll sentiment-poll--ops" aria-labelledby={`sentiment-${symbol}`}>
+      <header className="sentiment-ops-head">
+        <div>
+          <span className="data-manager-eyebrow">Live consensus</span>
+          <h2 id={`sentiment-${symbol}`}>{symbol} node sentiment</h2>
+        </div>
+        <span className="sentiment-ops-count tnum" aria-live="polite">
+          {consensus.total > 0 ? `${consensus.total} votes` : "Awaiting nodes"}
+        </span>
+      </header>
+
+      <div
+        className="sentiment-consensus"
+        role="img"
+        aria-label={`${consensus.bullishPct}% bullish, ${consensus.bearishPct}% bearish`}
+      >
+        <div className="sentiment-consensus-bar">
+          <i className="is-bull" style={{ width: `${consensus.bullishPct}%` }} />
+          <i className="is-bear" style={{ width: `${consensus.bearishPct}%` }} />
+        </div>
+        <div className="sentiment-consensus-labels">
+          <span className="is-bull tnum">{consensus.bullishPct}% bullish</span>
+          <span className="is-bear tnum">{consensus.bearishPct}% bearish</span>
+        </div>
+      </div>
+
       <div
         className="sentiment-actions"
         role="group"
@@ -113,18 +149,6 @@ export function SentimentPoll({ ticker }: { ticker: string }) {
           Bearish
         </button>
       </div>
-      {totals?.total ? (
-        <div className="sentiment-result" aria-live="polite">
-          <div>
-            <i style={{ width: `${pct}%` }} />
-          </div>
-          <p>
-            {pct}% bullish · {100 - pct}% bearish · {totals.total} votes
-          </p>
-        </div>
-      ) : (
-        <p aria-live="polite">Be among the first to vote today.</p>
-      )}
       {error ? <p role="alert">{error}</p> : null}
       {choice && !error ? (
         <p className="sentiment-sync">

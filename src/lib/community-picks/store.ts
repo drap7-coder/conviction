@@ -601,19 +601,17 @@ export async function loadCommunityPicks(
     }
 
     const periodBaseline = periodBaselines.get(symbol) ?? null;
-    const periodReturnPct = pickPeriodReturnPct({
+    const periodReturn = pickPeriodReturnPct({
       range,
       entryPrice: Number(row.entry_price),
       pickedAt: row.picked_at.toISOString(),
       baseline: periodBaseline,
     });
 
-    // If Yahoo period baselines fail, fall back to the lifetime/$100k edge
-    // so the board doesn't go empty.
-    const returnPctToUse = periodReturnPct ?? pickView.lifetimeReturnPct;
-    if (returnPctToUse === null) continue;
+    // Period window only — never bleed lifetime into weekly/monthly boards.
+    if (periodReturn === null || !Number.isFinite(periodReturn)) continue;
     const slotMap = memberSlotReturns.get(memberKey) ?? new Map();
-    slotMap.set(row.call_slot, returnPctToUse);
+    slotMap.set(row.call_slot, periodReturn);
     memberSlotReturns.set(memberKey, slotMap);
   }
 
