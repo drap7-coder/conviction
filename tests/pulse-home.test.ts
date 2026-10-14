@@ -41,36 +41,26 @@ function theme(
   };
 }
 
-describe("Home for-you overview", () => {
-  it("keeps Home as one command brief with graphs — no Pulse vertical tape", () => {
+describe("Home public macro overview", () => {
+  it("keeps Home as public market telemetry — no personal brief or holdings", () => {
     const home = read("src/components/market/HomeOverview.tsx");
+    const strip = read("src/components/market/HomeMarketStrip.tsx");
     const pulse = read("src/components/market/PulseDashboard.tsx");
     const page = read("src/app/page.tsx");
-    expect(home).toContain("home-command");
-    expect(home).toContain("Your world. In focus.");
-    expect(home).toContain("<PersonalDailyBrief");
-    expect(home).toContain('href="/pulse"');
-    expect(home).not.toContain("HomeMarketStrip");
+    expect(home).toContain("home-macro");
+    expect(home).toContain("<HomeMarketStrip");
+    expect(home).not.toContain("PersonalDailyBrief");
+    expect(home).not.toContain("loadHomeNames");
     expect(home).not.toContain("PulseYourStocks");
-    expect(home).not.toContain("PulseMacroGauges");
-    expect(home).not.toContain("IndexScoreboard");
+    expect(strip).toContain("PulseMacroGauges");
+    expect(strip).toContain("IndexScoreboard");
+    expect(strip).toContain("CommodityScoreboard");
+    expect(strip).toContain("SectorScoreboard");
+    expect(strip).toContain('href="/pulse"');
+    expect(strip).not.toContain("PersonalDailyBrief");
     expect(page).toContain("<HomeOverview");
-    expect(page).not.toContain("Open Pulse");
-    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefIntelligence");
-    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("scaffold");
-    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefQuantOverlay");
-    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("Quantitative");
-    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-coverage-ring");
-    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-timeline-chart");
-    expect(read("src/components/BriefIntelligence.tsx")).toContain("brief-book-mix");
-    expect(read("src/components/BriefQuantOverlay.tsx")).toContain("No style-factor model");
-    expect(home).not.toContain("PulseTodaysBrief");
-    expect(home).not.toContain("PulseWorthUnderstanding");
-    expect(home).not.toContain("PulseMarketBoard");
-    expect(home).not.toContain("pf-crowd-invite");
     expect(pulse).toContain("<PulseMarketBoard");
     expect(pulse).not.toContain("PersonalDailyBrief");
-    expect(pulse).not.toContain("PulseTodaysBrief");
     const pulseBoard = read("src/components/market/PulseMarketBoard.tsx");
     const gaugesJsx = pulseBoard.indexOf("<PulseMacroGauges");
     const indexesJsx = pulseBoard.indexOf("<IndexScoreboard");
@@ -80,14 +70,18 @@ describe("Home for-you overview", () => {
     expect(indexesJsx).toBeLessThan(commoditiesJsx);
   });
 
-  it("keeps the personal brief on Home only — not Portfolio Watchlist", () => {
-    expect(read("src/components/Watchlist.tsx")).not.toContain("PersonalDailyBrief");
-    expect(read("src/components/market/HomeOverview.tsx")).toContain(
+  it("keeps the personal brief on Portfolio Watchlist — not Home or Pulse", () => {
+    expect(read("src/components/Portfolio.tsx")).toContain("<PortfolioPersonalBrief");
+    expect(read("src/components/PortfolioPersonalBrief.tsx")).toContain("<PersonalDailyBrief");
+    expect(read("src/components/market/HomeOverview.tsx")).not.toContain(
       "<PersonalDailyBrief",
     );
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain(
       "Build your watchlist",
     );
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefIntelligence");
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("scaffold");
+    expect(read("src/components/PersonalDailyBrief.tsx")).toContain("<BriefQuantOverlay");
   });
 
   it("selects a distinct Worth Understanding story after the brief (helpers)", () => {

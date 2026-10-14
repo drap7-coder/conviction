@@ -379,8 +379,13 @@ body, html[data-theme="cream"] body { background-image: none; }
 .personal-brief-empty { border-top: 1px solid var(--divider); padding: 8px 0; }
 .home-overview .personal-brief:has(.personal-brief-empty):not(:has(.personal-brief-trust)) { padding: 20px; }
 .home-overview .personal-brief:has(.personal-brief-empty) .personal-brief-header { margin-bottom: 12px; }
-.home-overview .brief-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; }
-.home-overview .pulse-home-state button { min-height: 44px; padding: 8px 12px; color: var(--ink); background: var(--card); border: 1px solid var(--divider); border-radius: 6px; cursor: pointer; }
+.home-overview .brief-link,
+.pf-watchlist .brief-link { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 12px; }
+.home-overview .pulse-home-state button,
+.home-macro .pulse-home-state button { min-height: 44px; padding: 8px 12px; color: var(--ink); background: var(--card); border: 1px solid var(--divider); border-radius: 6px; cursor: pointer; }
+.pf-watchlist .personal-brief { margin-bottom: 18px; }
+.pf-watchlist .personal-brief:has(.personal-brief-empty):not(:has(.personal-brief-trust)) { padding: 20px; }
+.pf-watchlist .personal-brief:has(.personal-brief-empty) .personal-brief-header { margin-bottom: 12px; }
 .personal-brief-trust { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 0 0 20px; color: var(--muted); font-size: .72rem; line-height: 1.6; }
 .personal-brief-edit { font-size: .8rem; padding: 10px 0; white-space: nowrap; text-underline-offset: 4px; }
 .personal-brief-actions { display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px; margin-top: 28px; }
@@ -562,9 +567,99 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--brief-accent);
-  box-shadow: 0 0 0 0 rgba(140, 224, 219, 0.55);
+  background: var(--accent, #2dd4bf);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent, #2dd4bf) 45%, transparent);
   flex: 0 0 auto;
+}
+.home-live-dot--sync { background: var(--amber, #dbaa69); }
+.home-live-dot--offline { background: var(--quiet, #687f90); }
+/* Public macro Home — regime + cross-asset boards (no personal holdings) */
+.home-macro .home-market-strip {
+  position: relative;
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+  padding: 22px 22px 8px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, var(--card)) 0%, var(--card) 42%),
+    var(--card);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.home-mission-rail {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--accent), transparent 75%);
+}
+.home-mission-hero {
+  display: grid;
+  gap: 14px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--divider);
+}
+.home-mission-title-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 14px 24px;
+  align-items: end;
+}
+.home-mission-display {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: clamp(1.85rem, 4.2vw, 2.6rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+.home-macro .pulse-seo-lede {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+.home-mission-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.home-mission-status-label {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+}
+.home-mission-status-meta { margin: 0; color: var(--quiet); }
+.home-page .home-pulse-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0 2px;
+  color: var(--accent);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 160ms ease;
+}
+.home-page .home-pulse-link:hover { border-bottom-color: var(--accent); }
+.home-macro .pulse-home-section { margin: 0; padding: 4px 0 10px; }
+@media (max-width: 767px) {
+  .home-macro .home-market-strip { padding: 16px 14px 6px; border-radius: 14px; }
+  .home-mission-title-row { grid-template-columns: 1fr; gap: 10px; }
+  .home-mission-status .home-pulse-link { margin-left: 0; }
 }
 .home-page .home-overview.home-command {
   position: relative;
