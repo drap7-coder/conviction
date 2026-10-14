@@ -243,10 +243,24 @@ body, html[data-theme="cream"] body { background-image: none; }
 .portfolio-page .surface-well { box-shadow: none; background: var(--card); }
 .pf-section-eyebrow { color: var(--muted); }
 
-.crowd-page .h2h-card { padding: 24px; border-color: var(--border-active); }
-.h2h-side { background: var(--card-inset); box-shadow: none; }
-.h2h-return { font-family: var(--font-sans); font-size: clamp(1.6rem, 3vw, 2.5rem); letter-spacing: -0.035em; }
-.crowd-page .sentiment-poll { margin-top: 24px; background: none; box-shadow: none; backdrop-filter: none; }
+.crowd-page .h2h-card {
+  padding: 12px;
+  border: 1px solid #30363d;
+  border-radius: 0;
+  background: #0d1117;
+  box-shadow: none;
+}
+.crowd-page .h2h-side { background: color-mix(in srgb, #0d1117 92%, #fff 3%); box-shadow: none; border-radius: 0; }
+.crowd-page .h2h-return { font-family: var(--font-mono); font-size: clamp(1.15rem, 2.4vw, 1.55rem); letter-spacing: -0.02em; }
+.crowd-page .sentiment-poll {
+  margin-top: 12px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.crowd-page .community-standings { padding-top: 10px; }
 
 /* News ops density — flat obsidian feed matching Pulse boards. */
 .news-page {

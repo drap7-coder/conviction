@@ -329,58 +329,79 @@ export function CommunityPickCard({
       ) : null}
 
       {showStandings ? (
-        <div className={`community-standings${showPick ? "" : " is-standalone"}`}>
+        <div className={`community-standings community-standings--grid${showPick ? "" : " is-standalone"}`}>
           <div className="community-standings-head">
             <h3>Community standings</h3>
-            <span>Avg student balance · $100,000 book</span>
+            <span>Avg student balance · $100,000 book · weekly window</span>
           </div>
           {data.standings.length === 0 ? (
             <p className="crowd-empty">Standings begin with the first community pick.</p>
           ) : (
-            <ol>
+            <div className="community-standings-grid" role="table" aria-label="Campus standings">
+              <div className="community-standings-grid-row is-head" role="row">
+                <span role="columnheader">Rank</span>
+                <span role="columnheader">Institution / Node</span>
+                <span role="columnheader">Nodes</span>
+                <span role="columnheader">Avg book</span>
+                <span role="columnheader">Weekly α</span>
+              </div>
               {(() => {
                 let rank = 0;
                 return data.standings.map((standing) => {
                   if (standing.ranked) rank += 1;
                   const avgBalance = averageStudentBalanceUsd(standing.avgReturnPct);
                   const avgDelta = notionalDeltaUsd(standing.avgReturnPct);
+                  const status = standing.ranked
+                    ? "ACTIVE SYNDICATE"
+                    : `SYNCING · ${communityRankingRequirementLabel()}`;
                   return (
-                    <li key={standing.groupId} className={standing.ranked ? undefined : "is-unranked"}>
-                      <span className="community-standing-rank">
+                    <div
+                      key={standing.groupId}
+                      className={`community-standings-grid-row${standing.ranked ? "" : " is-unranked"}`}
+                      role="row"
+                      aria-label={`${standing.name}, ${status}`}
+                    >
+                      <span role="cell" className="community-standing-rank tnum">
                         {standing.ranked ? rank : "—"}
                       </span>
-                      <span className="community-standing-school">
+                      <span role="cell" className="community-standing-school">
                         <SchoolLogo
                           name={standing.name}
                           domain={standing.domain}
                           ncaaId={standing.ncaaId}
                           accentColor={standing.accentColor ?? standing.primaryColor}
-                          size={28}
+                          size={24}
                         />
                         <span className="community-standing-name">
                           <strong>{standing.name}</strong>
-                          <small>
-                            {standing.pickCount} {standing.pickCount === 1 ? "member" : "members"}
-                            {!standing.ranked && standing.pickCount > 0
-                              ? ` · unranked · ${communityRankingRequirementLabel()}`
-                              : ""}
-                          </small>
+                          {!standing.ranked ? (
+                            <small className="community-standing-badge">{status}</small>
+                          ) : null}
                         </span>
                       </span>
-                      <span className={`community-standing-perf is-${returnTone(standing.avgReturnPct)}`}>
+                      <span role="cell" className="community-standing-nodes tnum">
+                        {standing.pickCount}
+                      </span>
+                      <span
+                        role="cell"
+                        className={`community-standing-perf tnum is-${returnTone(standing.avgReturnPct)}`}
+                      >
                         <strong className="community-standing-return">
                           {formatUsd(avgBalance)}
                         </strong>
-                        <small>
-                          {formatUsdDelta(avgDelta)}
-                          <em>({formatReturn(standing.avgReturnPct ?? 0)})</em>
-                        </small>
+                        <small>{formatUsdDelta(avgDelta)}</small>
                       </span>
-                    </li>
+                      <span
+                        role="cell"
+                        className={`community-standing-alpha tnum is-${returnTone(standing.avgReturnPct)}`}
+                      >
+                        {formatReturn(standing.avgReturnPct ?? 0)}
+                      </span>
+                    </div>
                   );
                 });
               })()}
-            </ol>
+            </div>
           )}
         </div>
       ) : null}

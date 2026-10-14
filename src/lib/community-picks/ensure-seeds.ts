@@ -80,8 +80,6 @@ export async function ensureCampusPickSeeds(): Promise<{
          ) values ($1, $2, 'STOCK_1', $3, $4, $5, now(), now())
          on conflict (user_id, group_id, call_slot) do update set
            ticker = excluded.ticker,
-           entry_price = excluded.entry_price,
-           banked_growth_factor = excluded.banked_growth_factor,
            updated_at = now()`,
         [
           student.id,
@@ -111,7 +109,6 @@ export async function ensureCampusPickSeeds(): Promise<{
            ) values ($1, $2, $3, $4, $5, 1.0, now(), now())
            on conflict (user_id, group_id, call_slot) do update set
              ticker = excluded.ticker,
-             entry_price = excluded.entry_price,
              updated_at = now()`,
           [student.id, student.groupId, extra.slot, extra.ticker, extra.entry],
         );

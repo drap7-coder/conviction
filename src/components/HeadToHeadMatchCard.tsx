@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { SchoolLogo } from "@/components/crowd/SchoolLogo";
 import type {
+  CompetitionGroupSide,
   HeadToHeadPayload,
   HeadToHeadSchoolOption,
 } from "@/lib/competitions/types";
@@ -17,6 +18,7 @@ import {
   formatUsdDelta,
   notionalDeltaUsd,
 } from "@/lib/community-picks/notional";
+import { campusNodeStatusPill } from "@/lib/community-picks/constants";
 
 function formatReturn(value: number | null): string {
   if (value === null) return "—";
@@ -85,6 +87,35 @@ function SchoolSideSelect({
         </select>
       </span>
     </label>
+  );
+}
+
+function SideTelemetry({
+  group,
+  sideLabel,
+}: {
+  group: CompetitionGroupSide;
+  sideLabel: string;
+}) {
+  const balance = averageStudentBalanceUsd(group.avgReturnPct);
+  const status = campusNodeStatusPill(group.pickCount);
+  return (
+    <div className="h2h-side" aria-label={`${sideLabel} ${group.name}`}>
+      <div className="h2h-side-meta">
+        <span className="h2h-side-name">{group.name}</span>
+        <span className={`h2h-node-pill is-${status.tone}`}>{status.label}</span>
+      </div>
+      <strong className={`h2h-return is-${returnTone(group.avgReturnPct)} tnum`}>
+        {formatUsd(balance)}
+      </strong>
+      <span className={`h2h-delta is-${returnTone(group.avgReturnPct)} tnum`}>
+        {formatUsdDelta(notionalDeltaUsd(group.avgReturnPct))}
+        <em>({formatReturn(group.avgReturnPct ?? 0)})</em>
+      </span>
+      <span className="h2h-picks tnum">
+        {group.pickCount} {group.pickCount === 1 ? "node" : "nodes"} · avg book
+      </span>
+    </div>
   );
 }
 
@@ -166,6 +197,10 @@ export function HeadToHeadMatchCard({
   }
 
   const { groupA, groupB, statusLabel, viewer } = data;
+  const spread =
+    groupA && groupB && groupA.avgReturnPct !== null && groupB.avgReturnPct !== null
+      ? groupA.avgReturnPct - groupB.avgReturnPct
+      : null;
 
   async function changeSide(which: "a" | "b", groupId: string) {
     const nextA = which === "a" ? groupId : sideA;
@@ -177,7 +212,7 @@ export function HeadToHeadMatchCard({
   }
 
   return (
-    <section className="surface-shell h2h-card" aria-label="Head to head">
+    <section className="surface-shell h2h-card h2h-card--ops" aria-label="Head to head">
       <div className="h2h-card-head">
         <div className="h2h-rivalry h2h-rivalry--selectors">
           <SchoolSideSelect
@@ -196,33 +231,28 @@ export function HeadToHeadMatchCard({
             onChange={(groupId) => void changeSide("b", groupId)}
           />
         </div>
-        <span className={`h2h-status${statusLabel === "Live" ? " is-live" : ""}`}>
-          {statusLabel || "Live"}
+        <span
+          className={`h2h-status${
+            statusLabel === "ACTIVE SYNDICATE" || statusLabel === "Live" ? " is-live" : ""
+          }`}
+        >
+          {statusLabel || "ACTIVE SYNDICATE"}
         </span>
       </div>
 
       {data.available && groupA && groupB ? (
-        <div className="h2h-scoreboard">
-          {([groupA, groupB] as const).map((group, index) => {
-            const balance = averageStudentBalanceUsd(group.avgReturnPct);
-            return (
-              <div
-                key={group.groupId}
-                className="h2h-side"
-              >
-                <strong className={`h2h-return is-${returnTone(group.avgReturnPct)}`}>
-                  {formatUsd(balance)}
-                </strong>
-                <span className={`h2h-delta is-${returnTone(group.avgReturnPct)}`}>
-                  {formatUsdDelta(notionalDeltaUsd(group.avgReturnPct))}
-                  <em>({formatReturn(group.avgReturnPct ?? 0)})</em>
-                </span>
-                <span className="h2h-picks">
-                  {group.pickCount} {group.pickCount === 1 ? "member" : "members"} · avg book
-                </span>
-              </div>
-            );
-          })}
+        <div className="h2h-scoreboard h2h-scoreboard--ops">
+          <SideTelemetry group={groupA} sideLabel="Your side" />
+          <div className="h2h-spread" aria-label="Performance spread">
+            <span className="h2h-spread-label">Spread</span>
+            <strong className={`h2h-spread-value tnum is-${returnTone(spread)}`}>
+              {formatReturn(spread)}
+            </strong>
+            <span className={`h2h-spread-delta tnum is-${returnTone(spread)}`}>
+              {formatUsdDelta(notionalDeltaUsd(spread))}
+            </span>
+          </div>
+          <SideTelemetry group={groupB} sideLabel="Opponent" />
         </div>
       ) : (
         <p className="h2h-note">Pick two schools to compare campus scores.</p>
