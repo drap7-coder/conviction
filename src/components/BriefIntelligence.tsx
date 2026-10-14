@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import type { BriefName } from "@/lib/watchlist/daily-brief";
 import type { BriefCoverage } from "@/lib/watchlist/brief-coverage";
 
@@ -51,6 +54,7 @@ export function BriefIntelligence({
   const heldPct = names.length ? (heldCount / names.length) * 100 : 0;
   const watchedPct = names.length ? (watchedCount / names.length) * 100 : 0;
   const batchKey = `${checked.size}-${failed.size}-${coverage.fetchedAt ?? 0}`;
+  const [activeTicker, setActiveTicker] = useState<string | null>(null);
 
   const timelinePoints = coverage.stories.map(({ ticker, event }, i) => {
     const x =
@@ -283,8 +287,17 @@ export function BriefIntelligence({
                   0,
                   Math.round(48 - ((x - 40) / 440) * 48),
                 );
+                const isActive = activeTicker === ticker;
                 return (
-                <g key={ticker} className="brief-timeline-row" tabIndex={0}>
+                <g
+                  key={ticker}
+                  className={`brief-timeline-row${isActive ? " is-active" : ""}`}
+                  tabIndex={0}
+                  onMouseEnter={() => setActiveTicker(ticker)}
+                  onMouseLeave={() => setActiveTicker((current) => (current === ticker ? null : current))}
+                  onFocus={() => setActiveTicker(ticker)}
+                  onBlur={() => setActiveTicker((current) => (current === ticker ? null : current))}
+                >
                   <title>
                     {ticker}: {event.title} — {event.date}
                   </title>

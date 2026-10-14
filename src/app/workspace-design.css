@@ -1046,17 +1046,20 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 }
 .brief-timeline-row:hover .brief-chart-crosshair,
 .brief-timeline-row:focus-visible .brief-chart-crosshair,
-.brief-timeline-row:focus-within .brief-chart-crosshair {
+.brief-timeline-row:focus-within .brief-chart-crosshair,
+.brief-timeline-row.is-active .brief-chart-crosshair {
   opacity: 1;
 }
 .brief-timeline-row:hover .brief-chart-reticle path,
 .brief-timeline-row:focus-visible .brief-chart-reticle path,
-.brief-timeline-row:focus-within .brief-chart-reticle path {
+.brief-timeline-row:focus-within .brief-chart-reticle path,
+.brief-timeline-row.is-active .brief-chart-reticle path {
   stroke: rgba(237, 245, 250, 0.9);
 }
 .brief-timeline-row:hover .brief-chart-dot,
 .brief-timeline-row:focus-visible .brief-chart-dot,
-.brief-timeline-row:focus-within .brief-chart-dot {
+.brief-timeline-row:focus-within .brief-chart-dot,
+.brief-timeline-row.is-active .brief-chart-dot {
   fill: #edf5fa;
 }
 .brief-timeline-row:focus-visible { outline: none; }
