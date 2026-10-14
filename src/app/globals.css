@@ -17224,12 +17224,11 @@ a.pulse-news-narrative-title:focus-visible {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   justify-items: center;
-  gap: 6px;
+  gap: 0;
   min-width: 0;
-  min-height: 148px;
-  padding: 10px 8px 8px;
+  padding: 12px 10px 10px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -17237,7 +17236,7 @@ a.pulse-news-narrative-title:focus-visible {
 
 .pulse-gauge-kicker {
   flex: 0 0 auto;
-  margin: 0;
+  margin: 0 0 10px;
   width: 100%;
   color: var(--muted);
   font-family: var(--font-mono);
@@ -17253,10 +17252,10 @@ a.pulse-news-narrative-title:focus-visible {
      or the Indexes header below. */
   position: relative;
   display: grid;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   align-content: end;
   width: 100%;
-  min-height: 96px;
+  min-height: 0;
 }
 
 .pulse-gauge-arc,
@@ -17286,10 +17285,10 @@ a.pulse-news-narrative-title:focus-visible {
   z-index: 1;
   display: grid;
   justify-items: center;
-  align-self: center;
+  align-self: end;
   justify-self: center;
   /* Sit the metric in the bowl of the semicircle, clear of the track. */
-  margin-top: 10px;
+  margin-bottom: 18px;
   pointer-events: none;
 }
 
@@ -17310,7 +17309,7 @@ a.pulse-news-narrative-title:focus-visible {
   align-items: center;
   justify-content: center;
   min-width: 3.6rem;
-  margin-top: 8px;
+  margin-top: 6px;
   padding: 3px 8px;
   border-radius: 999px;
   font-family: var(--font-mono);
@@ -21401,7 +21400,7 @@ input.has-mic {
   --ops-ink: #e6edf3;
   --ops-muted: #8b949e;
   --market-tape-sticky-height: 34px;
-  --pulse-ops-sticky-height: 148px;
+  --pulse-ops-sticky-height: 132px;
 }
 body:has(.pulse-page) .app-header {
   box-shadow: none;
@@ -21443,17 +21442,15 @@ body:has(.pulse-page) .session-quote {
 }
 .pulse-gauges--compact .pulse-gauge-grid { gap: 8px; }
 .pulse-gauges--compact .pulse-gauge-card {
-  min-height: 132px;
-  padding: 8px 6px 6px;
+  padding: 10px 8px 8px;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  gap: 4px;
 }
-.pulse-gauges--compact .pulse-gauge-kicker { margin: 0; }
+.pulse-gauges--compact .pulse-gauge-kicker { margin: 0 0 8px; }
 .pulse-gauges--compact .pulse-gauge-arc { max-height: 78px; }
-.pulse-gauges--compact .pulse-gauge-face { min-height: 78px; }
-.pulse-gauges--compact .pulse-gauge-readout { margin-top: 8px; }
+.pulse-gauges--compact .pulse-gauge-face { min-height: 0; }
+.pulse-gauges--compact .pulse-gauge-readout { margin-bottom: 14px; }
 .pulse-gauges--compact .pulse-gauge-readout strong {
   font-family: var(--font-mono);
   font-size: 1.05rem;
@@ -21462,7 +21459,7 @@ body:has(.pulse-page) .session-quote {
 }
 .pulse-gauges--compact .pulse-gauge-caption { display: none; }
 .pulse-gauges--compact .pulse-gauge-pill {
-  margin-top: 6px;
+  margin-top: 4px;
   border-radius: 2px;
   border: 1px solid currentColor;
   background: transparent;
@@ -21705,7 +21702,7 @@ a.market-data-grid-row:focus-visible {
 @media (max-width: 767px) {
   .pulse-page {
     --market-tape-sticky-height: 32px;
-    --pulse-ops-sticky-height: 136px;
+    --pulse-ops-sticky-height: 124px;
   }
   .pulse-page .pulse-view-slicer {
     top: calc(
