@@ -203,8 +203,8 @@ body, html[data-theme="cream"] body { background-image: none; }
 }
 /* Ops MarketDataGrid density (Pulse indexes / commodities / sectors / crypto / intl). */
 .pulse-page .market-data-grid-row {
-  min-height: 48px;
-  padding: 11px 14px;
+  min-height: 44px;
+  padding: 12px;
 }
 .pulse-page .market-data-grid-name strong {
   font-size: 0.86rem;
@@ -656,6 +656,40 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 }
 .home-page .home-pulse-link:hover { border-bottom-color: var(--accent); }
 .home-macro .pulse-home-section { margin: 0; padding: 4px 0 10px; }
+.home-section-coord {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.home-coord-mark {
+  color: color-mix(in srgb, var(--accent) 55%, var(--quiet));
+  font-weight: 500;
+}
+.home-coord-code { color: var(--ink); }
+.home-coord-sep { opacity: 0.45; }
+.home-coord-label { color: var(--accent); }
+.home-coord-meta {
+  margin-left: 4px;
+  color: var(--quiet);
+  letter-spacing: 0.08em;
+}
+.home-coord-ticks {
+  display: inline-block;
+  width: 28px;
+  height: 6px;
+  margin-left: 4px;
+  background:
+    linear-gradient(90deg, var(--accent) 0 2px, transparent 2px 6px) 0 0 / 6px 100% repeat-x;
+  opacity: 0.55;
+}
 @media (max-width: 767px) {
   .home-macro .home-market-strip { padding: 16px 14px 6px; border-radius: 14px; }
   .home-mission-title-row { grid-template-columns: 1fr; gap: 10px; }

@@ -56,8 +56,13 @@ describe("Home public macro overview", () => {
     expect(strip).toContain("IndexScoreboard");
     expect(strip).toContain("CommodityScoreboard");
     expect(strip).toContain("SectorScoreboard");
+    expect(strip).toContain("HomeSectionCoord");
     expect(strip).toContain('href="/pulse"');
     expect(strip).not.toContain("PersonalDailyBrief");
+    expect(read("src/components/market/MarketDataGrid.tsx")).toContain("MarketGridSpark");
+    expect(read("src/components/market/MarketDataGrid.tsx")).toContain("buildSparklineGeometry");
+    expect(read("src/app/globals.css")).toContain("market-data-grid-spark");
+    expect(read("src/app/globals.css")).toContain("market-data-grid-row:hover::before");
     expect(page).toContain("<HomeOverview");
     expect(pulse).toContain("<PulseMarketBoard");
     expect(pulse).not.toContain("PersonalDailyBrief");
