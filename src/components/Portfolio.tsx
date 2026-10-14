@@ -899,6 +899,7 @@ export default function Portfolio() {
                   closeChangePercent={live?.label ? quote?.changePercent ?? null : null}
                   shares={pos.shares}
                   metrics={metrics}
+                  sector={resolveHoldingExposure(tickerKey, sectorProfiles[tickerKey])}
                 />
               );
             })}
