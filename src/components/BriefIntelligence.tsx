@@ -10,8 +10,8 @@ const TICK_COUNT = 36;
 function radarTicks() {
   return Array.from({ length: TICK_COUNT }, (_, i) => {
     const angle = (i / TICK_COUNT) * Math.PI * 2 - Math.PI / 2;
-    const outer = 66;
-    const inner = i % 3 === 0 ? 58 : 61;
+    const outer = 69;
+    const inner = i % 3 === 0 ? 61 : 64.5;
     return {
       key: i,
       x1: 70 + Math.cos(angle) * inner,
@@ -96,8 +96,8 @@ export function BriefIntelligence({
             <defs>
               <linearGradient id="brief-radar-sweep-fill" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="rgba(95, 208, 165, 0)" />
-                <stop offset="70%" stopColor="rgba(95, 208, 165, 0.08)" />
-                <stop offset="100%" stopColor="rgba(95, 208, 165, 0.38)" />
+                <stop offset="55%" stopColor="rgba(95, 208, 165, 0.12)" />
+                <stop offset="100%" stopColor="rgba(95, 208, 165, 0.55)" />
               </linearGradient>
             </defs>
             <circle className="brief-ring-track" cx="70" cy="70" r={RING} fill="none" strokeWidth={STROKE} />
@@ -152,10 +152,10 @@ export function BriefIntelligence({
             ) : null}
             <g className="brief-radar-sweep" aria-hidden="true">
               <path
-                d="M70 70 L70 16 A54 54 0 0 1 118.5 47.5 Z"
+                d="M70 70 L70 12 A58 58 0 0 1 122 42 Z"
                 fill="url(#brief-radar-sweep-fill)"
               />
-              <line x1="70" y1="70" x2="70" y2="16" className="brief-radar-beam" />
+              <line x1="70" y1="70" x2="70" y2="12" className="brief-radar-beam" />
             </g>
             <circle className="brief-radar-hub" cx="70" cy="70" r="3.5" />
             <text className="brief-ring-value" x="70" y="66" textAnchor="middle">

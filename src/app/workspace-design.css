@@ -865,18 +865,19 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 .brief-ring-value { fill: var(--brief-ink); font: 700 1.6rem var(--font-mono), ui-monospace, monospace; }
 .brief-ring-caption { fill: var(--brief-muted); font: 500 0.62rem var(--font-mono), ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
 .brief-radar-ticks line {
-  stroke: rgba(95, 208, 165, 0.28);
+  stroke: rgba(95, 208, 165, 0.4);
   stroke-width: 1;
   transform-origin: 70px 70px;
 }
-.brief-radar-ticks line.is-major { stroke: rgba(140, 224, 219, 0.42); stroke-width: 1.25; }
+.brief-radar-ticks line.is-major { stroke: rgba(140, 224, 219, 0.62); stroke-width: 1.35; }
 .brief-radar-sweep {
   transform-origin: 70px 70px;
   pointer-events: none;
+  mix-blend-mode: screen;
 }
 .brief-radar-beam {
-  stroke: rgba(95, 208, 165, 0.75);
-  stroke-width: 1.25;
+  stroke: rgba(180, 255, 230, 0.9);
+  stroke-width: 1.4;
 }
 .brief-radar-hub {
   fill: #5fd0a5;
@@ -1003,11 +1004,12 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 .brief-chart-baseline { stroke: #4a6576; stroke-width: 1.35; }
 .brief-chart-track { stroke: #284453; }
 .brief-chart-drop {
-  stroke: rgba(140, 224, 219, 0.42);
-  stroke-width: 1.25;
+  stroke: rgba(140, 224, 219, 0.55);
+  stroke-width: 1.5;
   stroke-dasharray: none;
+  opacity: 0.85;
 }
-.brief-chart-area { fill: url(#brief-timeline-area); opacity: 0.9; pointer-events: none; }
+.brief-chart-area { fill: url(#brief-timeline-area); opacity: 1; pointer-events: none; }
 .brief-chart-path {
   stroke: rgba(140, 224, 219, 0.72);
   stroke-width: 1.6;
@@ -1173,17 +1175,22 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
   to { transform: translateX(-50%); }
 }
 @keyframes home-status-radar {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(95, 208, 165, 0.55);
+  0% {
+    box-shadow: 0 0 0 0 rgba(95, 208, 165, 0.65);
     opacity: 1;
   }
-  55% {
-    box-shadow: 0 0 0 9px rgba(95, 208, 165, 0);
-    opacity: 0.85;
+  45% {
+    box-shadow: 0 0 0 11px rgba(95, 208, 165, 0);
+    opacity: 0.9;
   }
   70%, 100% {
     box-shadow: 0 0 0 0 rgba(95, 208, 165, 0);
+    opacity: 1;
   }
+}
+@keyframes home-status-pill-breathe {
+  0%, 100% { border-color: color-mix(in srgb, #5fd0a5 45%, var(--brief-line)); }
+  50% { border-color: color-mix(in srgb, #5fd0a5 75%, var(--brief-line)); }
 }
 @keyframes home-radar-spin {
   from { transform: rotate(0deg); }
