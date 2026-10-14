@@ -9,7 +9,10 @@ import {
   type H2HPerfRange,
 } from "@/lib/competitions/perf-range";
 import type { CommunityPicksPayload } from "@/lib/community-picks/types";
-import { communityRankingRequirementLabel } from "@/lib/community-picks/constants";
+import {
+  campusNodeStatusPill,
+  MIN_RANKED_MEMBERS,
+} from "@/lib/community-picks/constants";
 import {
   averageStudentBalanceUsd,
   formatUsd,
@@ -351,9 +354,8 @@ export function CommunityPickCard({
                   if (standing.ranked) rank += 1;
                   const avgBalance = averageStudentBalanceUsd(standing.avgReturnPct);
                   const avgDelta = notionalDeltaUsd(standing.avgReturnPct);
-                  const status = standing.ranked
-                    ? "ACTIVE SYNDICATE"
-                    : `SYNCING · ${communityRankingRequirementLabel()}`;
+                  const nodeStatus = campusNodeStatusPill(standing.pickCount);
+                  const status = nodeStatus.label;
                   return (
                     <div
                       key={standing.groupId}
@@ -375,12 +377,21 @@ export function CommunityPickCard({
                         <span className="community-standing-name">
                           <strong>{standing.name}</strong>
                           {!standing.ranked ? (
-                            <small className="community-standing-badge">{status}</small>
+                            <small
+                              className={`community-standing-badge is-${nodeStatus.tone}`}
+                            >
+                              {status}
+                            </small>
                           ) : null}
                         </span>
                       </span>
-                      <span role="cell" className="community-standing-nodes tnum">
-                        {standing.pickCount}
+                      <span
+                        role="cell"
+                        className={`community-standing-nodes tnum${standing.ranked ? "" : " is-syncing"}`}
+                      >
+                        {standing.ranked
+                          ? standing.pickCount
+                          : `${standing.pickCount}/${MIN_RANKED_MEMBERS}`}
                       </span>
                       <span
                         role="cell"
