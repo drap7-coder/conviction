@@ -117,13 +117,19 @@ export function BriefIntelligence({
           <div className="brief-scope-side">
             <ul className="brief-coverage-legend">
               <li>
-                <span className="is-checked" /> Checked · {checked.size}
+                <span className="is-checked" aria-hidden="true" />
+                <span className="brief-coverage-legend-label">Checked</span>
+                <span className="brief-coverage-legend-count tnum">{checked.size}</span>
               </li>
               <li>
-                <span className="is-unavailable" /> Unavailable · {failed.size}
+                <span className="is-unavailable" aria-hidden="true" />
+                <span className="brief-coverage-legend-label">Unavailable</span>
+                <span className="brief-coverage-legend-count tnum">{failed.size}</span>
               </li>
               <li>
-                <span className="is-pending" /> Not checked · {pending}
+                <span className="is-pending" aria-hidden="true" />
+                <span className="brief-coverage-legend-label">Not checked</span>
+                <span className="brief-coverage-legend-count tnum">{pending}</span>
               </li>
             </ul>
             <div
