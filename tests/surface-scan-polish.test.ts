@@ -35,7 +35,7 @@ describe("surface scan polish", () => {
   it("anchors Index and Crowd rows with dividers plus zebra", () => {
     const css = read("src/app/globals.css");
 
-    expect(css).toContain(".pulse-index-rows > li:nth-child(even) .pulse-index-row");
+    expect(css).toContain(".market-data-grid-row:nth-child(even):not(.is-head)");
     expect(css).toContain(".crowd-list > li:nth-child(even) .crowd-row");
     expect(css).toContain("color-mix(in srgb, #ffffff 5%, transparent)");
     expect(css).toContain("color-mix(in srgb, #ffffff 12%, transparent)");
@@ -47,6 +47,7 @@ describe("surface scan polish", () => {
 
     expect(css).toMatch(/\.session-quote\s*\{[^}]*font-family:\s*var\(--font-mono\)/s);
     expect(css).toMatch(/\.session-quote\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
+    expect(css).toMatch(/\.market-data-grid-num\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
     expect(css).toMatch(/\.crowd-rank\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
     expect(css).toMatch(/\.product-stage--portfolio\.product-stage--metrics-above \.product-stage-metrics > \.is-lead strong\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);
     expect(css).toMatch(/\.pulse-gauge-readout strong\s*\{[^}]*font-variant-numeric:\s*tabular-nums/s);

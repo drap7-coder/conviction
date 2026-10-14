@@ -193,6 +193,11 @@ body, html[data-theme="cream"] body { background-image: none; }
   min-height: 48px;
   padding: 12px;
 }
+/* Ops MarketDataGrid density (Pulse indexes / commodities / sectors / crypto / intl). */
+.pulse-page .market-data-grid-row {
+  min-height: 44px;
+  padding: 12px;
+}
 .pulse-index-name strong { font-family: var(--font-sans); font-size: 0.95rem; }
 .pulse-index-name small { font-size: 0.72rem; color: var(--quiet); }
 .session-quote-last { font-family: var(--font-sans); }
@@ -200,6 +205,7 @@ body, html[data-theme="cream"] body { background-image: none; }
 .session-quote-extended { color: var(--quiet); }
 .pulse-index-session { color: var(--quiet); font-weight: 650; }
 .pulse-gauge-card { background: var(--card); box-shadow: none; }
+.pulse-page .pulse-gauge-card { background: transparent; }
 
 /* Portfolio value is the focal point. Supporting readings stay quiet. */
 .product-stage--portfolio.product-stage--metrics-above {

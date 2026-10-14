@@ -61,22 +61,21 @@ describe("commodity scoreboard", () => {
 });
 
 describe("scoreboard logos", () => {
-  it("keeps MarketScoreboard text-only by default; crypto opts into LogoDisplay", () => {
+  it("keeps MarketScoreboard on MarketDataGrid; showLogos retained for CryptoBoard API only", () => {
     const board = read("src/components/market/IndexScoreboard.tsx");
-    expect(board).toContain("LogoDisplay");
+    const grid = read("src/components/market/MarketDataGrid.tsx");
+    expect(board).toContain("MarketDataGrid");
     expect(board).toContain("showLogos = false");
-    expect(board).toContain("pulse-index-board--logos");
-    expect(board).toContain("pulse-index-logo");
-    expect(board).toMatch(/showLogos\s*\?\s*\([\s\S]*LogoDisplay/);
+    expect(board).toContain("void showLogos");
+    expect(board).not.toContain("LogoDisplay");
+    expect(board).not.toContain("pulse-index-board--logos");
+    expect(grid).toContain("market-data-grid");
+    expect(grid).toContain("marketGridSessionPill");
 
     const css = read("src/app/globals.css");
-    expect(css).toContain(".pulse-index-logo");
-    expect(css).toContain(".pulse-index-board--logos .pulse-index-row");
-    expect(css).toContain("max-width: min(11.25rem, 46vw)");
-    expect(css).toMatch(/@media \(max-width: 767px\)[\s\S]*\.pulse-index-spark/);
-    expect(css).toMatch(
-      /@media \(max-width: 767px\)[\s\S]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+minmax\(0,\s*max-content\)/,
-    );
+    expect(css).toContain(".market-data-grid");
+    expect(css).toContain("#0d1117");
+    expect(css).toContain("#30363d");
 
     const crypto = read("src/components/market/CryptoBoard.tsx");
     expect(crypto).toContain("MarketScoreboard");

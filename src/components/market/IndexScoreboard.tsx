@@ -1,71 +1,17 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
-import Link from "next/link";
-import { LogoDisplay } from "@/app/components/LogoDisplay";
+import type { ReactNode } from "react";
 import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
-import { fmtDollarPrice, fmtPercent, fmtSignedDollar } from "@/lib/display/format";
-import {
-  buildSparklineGeometry,
-  sparklineStroke,
-  sparklineToneFromChange,
-} from "@/lib/display/sparkline";
-import { companyDetailHref } from "@/lib/market/company-detail-href";
 import {
   scoreboardCommodities,
   scoreboardIndexes,
 } from "@/lib/market/index-scoreboard";
-import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
+import { MarketDataGrid } from "@/components/market/MarketDataGrid";
 
-function IndexSpark({
-  values,
-  changePercent,
-}: {
-  values: number[];
-  changePercent: number | null;
-}) {
-  const tone = sparklineToneFromChange(changePercent);
-  const geometry = useMemo(
-    () => (values.length >= 2 ? buildSparklineGeometry(values, 72, 22) : null),
-    [values],
-  );
-  if (!geometry) return <span className="pulse-index-spark is-empty" aria-hidden="true" />;
-
-  return (
-    <svg
-      className="pulse-index-spark"
-      viewBox="0 0 72 22"
-      preserveAspectRatio="none"
-      aria-hidden="true"
-    >
-      <path
-        d={geometry.path}
-        fill="none"
-        stroke={sparklineStroke(tone)}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-}
-
-function rowAriaLabel(market: PulseGlobalMarket, showExtended: boolean): string {
-  const last = fmtDollarPrice(market.price);
-  const change = `${fmtSignedDollar(market.regularChange ?? null)} ${fmtPercent(market.regularChangePercent ?? market.changePercent, 2)}`;
-  if (
-    showExtended
-    && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
-  ) {
-    const extended = market.extendedNoTrades
-      ? "No trades"
-      : `${fmtDollarPrice(market.extendedPrice ?? null)} ${fmtSignedDollar(market.extendedChange ?? null)} ${fmtPercent(market.extendedChangePercent ?? null, 2)}`;
-    return `${market.name}, ${market.sessionLabel} ${extended}, previous close ${last}`;
-  }
-  return `${market.name}, ${last}, ${change}`;
-}
-
+/**
+ * Unified Pulse scoreboard shell — high-density MarketDataGrid rows.
+ * (Spark / quote-stack rows retired on these boards; Movers keep the dual-print stack.)
+ */
 export function MarketScoreboard({
   title,
   rows,
@@ -79,15 +25,16 @@ export function MarketScoreboard({
   title: string;
   rows: PulseGlobalMarket[];
   sessionLabel?: string | null;
-  /** When true, render the Pre/AH line under regular session change (TV-style). */
+  /** When true, show PM/AH session pill + previous close columns. */
   showSessionMoves?: boolean;
-  /** Opt-in logo column (crypto). Indexes/commodities/sectors/intl stay text-only. */
+  /** Retained for CryptoBoard API compat; logos omitted in ops grid density. */
   showLogos?: boolean;
   headerAction?: ReactNode;
   footer?: ReactNode;
   hideHeading?: boolean;
 }) {
   if (rows.length === 0 && !footer) return null;
+  void showLogos;
   const boardTone = title === "Major Stock Market Indexes" ? "indexes"
     : title === "Commodity Prices Today" ? "commodities"
       : title === "Stock Market Sector Performance" ? "sectors"
@@ -98,8 +45,8 @@ export function MarketScoreboard({
   const boardClass = [
     "market-heatmap-shell",
     "pulse-index-board",
+    "pulse-index-board--grid",
     showSessionMoves ? "pulse-index-board--sessions" : "",
-    showLogos ? "pulse-index-board--logos" : "",
     `pulse-board-tone-${boardTone}`,
   ]
     .filter(Boolean)
@@ -122,59 +69,11 @@ export function MarketScoreboard({
         </div>
       </div>
       {rows.length > 0 ? (
-        <div className="surface-well pulse-index-well">
-          <ol className="pulse-index-rows">
-            {rows.map((market) => {
-              const spark = (market.history ?? []).map((point) => point.close);
-              const href = companyDetailHref(market.ticker);
-              const regularPct = market.regularChangePercent ?? market.changePercent;
-              const extendedLabel =
-                showSessionMoves
-                && (market.sessionLabel === "Pre-Market" || market.sessionLabel === "After Hours")
-                  ? market.sessionLabel
-                  : null;
-              const label = rowAriaLabel(market, Boolean(extendedLabel));
-              const body: ReactNode = (
-                <>
-                  {showLogos ? (
-                    <span className="pulse-index-logo" aria-hidden="true">
-                      <LogoDisplay ticker={market.ticker} size="detail" />
-                    </span>
-                  ) : null}
-                  <span className="pulse-index-name">
-                    <strong>{market.name}</strong>
-                    <small>{market.ticker}</small>
-                  </span>
-                  <IndexSpark values={spark} changePercent={regularPct} />
-                  <SessionQuoteStack
-                    lastPrice={market.price}
-                    change={market.regularChange ?? null}
-                    changePercent={regularPct}
-                    extendedLabel={extendedLabel}
-                    extendedPrice={market.extendedPrice ?? null}
-                    extendedChange={market.extendedChange ?? null}
-                    extendedChangePercent={market.extendedChangePercent ?? null}
-                    extendedNoTrades={Boolean(market.extendedNoTrades)}
-                    activeSessionPrimary={Boolean(extendedLabel)}
-                  />
-                </>
-              );
-              return (
-                <li key={market.ticker}>
-                  {href ? (
-                    <Link href={href} className="pulse-index-row" aria-label={label}>
-                      {body}
-                    </Link>
-                  ) : (
-                    <div className="pulse-index-row" aria-label={label}>
-                      {body}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </div>
+        <MarketDataGrid
+          rows={rows}
+          showSessionMoves={showSessionMoves}
+          caption={title}
+        />
       ) : null}
       {footer}
     </section>

@@ -206,6 +206,12 @@ function PulseMarketBoardInner() {
         </div>
       </header>
 
+      {data ? (
+        <div className="pulse-ops-telemetry" aria-label="Macro risk telemetry">
+          <PulseMacroGauges indicators={data.indicators} compact showShareTools={false} />
+        </div>
+      ) : null}
+
       <SurfaceSlicer
         label="Pulse market view"
         options={PULSE_VIEWS}
@@ -231,7 +237,6 @@ function PulseMarketBoardInner() {
 
       {data && view === "markets" ? (
         <>
-          <PulseMacroGauges indicators={data.indicators} />
           <IndexScoreboard
             markets={majorIndexes}
             sessionLabel={data.sessionLabel}

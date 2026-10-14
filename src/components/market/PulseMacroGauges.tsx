@@ -63,16 +63,22 @@ function GaugeCard({ card }: { card: PulseGaugeCard }) {
 export function PulseMacroGauges({
   indicators,
   showShareTools = true,
+  compact = false,
 }: {
   indicators: PulseIndicator[];
   /** Embed share chrome — keep on Pulse; hide on Home market context. */
   showShareTools?: boolean;
+  /** Dense sticky ops rail on Pulse. */
+  compact?: boolean;
 }) {
   const cards = pulseMacroGauges(indicators);
   if (cards.length === 0) return null;
 
   return (
-    <section className="pulse-gauges" aria-label="VIX and 10-year yield">
+    <section
+      className={`pulse-gauges${compact ? " pulse-gauges--compact" : ""}`}
+      aria-label="VIX and 10-year yield"
+    >
       {showShareTools ? (
         <details className="pulse-gauge-share">
           <summary>Share market widgets</summary>

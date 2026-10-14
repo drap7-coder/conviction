@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./workspace-design.css";
 import { AppFrame } from "@/components/AppFrame";
@@ -22,7 +22,7 @@ const plexSans = IBM_Plex_Sans({
   display: "swap",
 });
 
-const plexMono = IBM_Plex_Mono({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-plex-mono",
@@ -112,7 +112,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${plexSans.variable} ${plexMono.variable}`}
+      className={`${plexSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body>
