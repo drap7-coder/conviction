@@ -278,7 +278,12 @@ export function BriefIntelligence({
               <line x1="40" x2="480" y1="158" y2="158" className="brief-chart-baseline" />
               {areaD ? <path d={areaD} className="brief-chart-area" /> : null}
               {pathD ? <path d={pathD} className="brief-chart-path" fill="none" /> : null}
-              {timelinePoints.map(({ ticker, event, x, y }) => (
+              {timelinePoints.map(({ ticker, event, x, y }) => {
+                const hoursFromLatest = Math.max(
+                  0,
+                  Math.round(48 - ((x - 40) / 440) * 48),
+                );
+                return (
                 <g key={ticker} className="brief-timeline-row" tabIndex={0}>
                   <title>
                     {ticker}: {event.title} — {event.date}
@@ -292,10 +297,22 @@ export function BriefIntelligence({
                   />
                   <line x1="40" x2="480" y1={y} y2={y} className="brief-chart-track" />
                   <line x1={x} x2={x} y1={y} y2="158" className="brief-chart-drop" />
+                  <g className="brief-chart-reticle" aria-hidden="true">
+                    <path d={`M${x - 9} ${y - 4} V${y - 9} H${x - 4}`} />
+                    <path d={`M${x + 9} ${y - 4} V${y - 9} H${x + 4}`} />
+                    <path d={`M${x - 9} ${y + 4} V${y + 9} H${x - 4}`} />
+                    <path d={`M${x + 9} ${y + 4} V${y + 9} H${x + 4}`} />
+                  </g>
                   <g className="brief-chart-crosshair" aria-hidden="true">
-                    <line x1={x} x2={x} y1="18" y2="158" />
-                    <line x1="40" x2="480" y1={y} y2={y} />
-                    <polyline points={`${x - 5},${y - 5} ${x - 5},${y + 5} ${x + 5},${y + 5} ${x + 5},${y - 5}`} />
+                    <line className="is-v" x1={x} x2={x} y1="18" y2="158" />
+                    <line className="is-h" x1="40" x2="480" y1={y} y2={y} />
+                    <path d={`M${x - 11} ${y - 5} V${y - 11} H${x - 5}`} />
+                    <path d={`M${x + 11} ${y - 5} V${y - 11} H${x + 5}`} />
+                    <path d={`M${x - 11} ${y + 5} V${y + 11} H${x - 5}`} />
+                    <path d={`M${x + 11} ${y + 5} V${y + 11} H${x + 5}`} />
+                    <text className="brief-chart-coord" x={Math.min(x + 14, 430)} y={y - 12}>
+                      {ticker} · −{hoursFromLatest}h
+                    </text>
                   </g>
                   <circle cx={x} cy={y} r="7" className="brief-chart-dot-halo" />
                   <circle cx={x} cy={y} r="4.5" className="brief-chart-dot" />
@@ -303,7 +320,8 @@ export function BriefIntelligence({
                     {ticker}
                   </text>
                 </g>
-              ))}
+              );
+              })}
               <text x="40" y="184">
                 −48h
               </text>
