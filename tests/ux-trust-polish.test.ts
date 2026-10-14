@@ -16,7 +16,8 @@ describe("UX trust polish", () => {
 
   it("uses a shared ranking requirement in scoring copy", () => {
     expect(communityRankingRequirementLabel()).toBe(`needs ${MIN_RANKED_MEMBERS} members`);
-    expect(read("src/components/CommunityPickCard.tsx")).toContain("communityRankingRequirementLabel()");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("campusNodeStatusPill");
+    expect(read("src/components/CommunityPickCard.tsx")).toContain("MIN_RANKED_MEMBERS");
     expect(read("src/components/CrowdBoard.tsx")).toContain("communityRankingRequirementLabel()");
   });
 

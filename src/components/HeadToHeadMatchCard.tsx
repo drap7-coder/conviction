@@ -245,12 +245,15 @@ export function HeadToHeadMatchCard({
           <SideTelemetry group={groupA} sideLabel="Your side" />
           <div className="h2h-spread" aria-label="Performance spread">
             <span className="h2h-spread-label">Spread</span>
-            <strong className={`h2h-spread-value tnum is-${returnTone(spread)}`}>
-              {formatReturn(spread)}
-            </strong>
-            <span className={`h2h-spread-delta tnum is-${returnTone(spread)}`}>
-              {formatUsdDelta(notionalDeltaUsd(spread))}
-            </span>
+            <div className="h2h-spread-figures">
+              <strong className={`h2h-spread-value tnum is-${returnTone(spread)}`}>
+                {formatReturn(spread)}
+              </strong>
+              <span className={`h2h-spread-delta tnum is-${returnTone(spread)}`}>
+                {formatUsdDelta(notionalDeltaUsd(spread))}
+                <em> gap</em>
+              </span>
+            </div>
           </div>
           <SideTelemetry group={groupB} sideLabel="Opponent" />
         </div>
