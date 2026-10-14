@@ -16,6 +16,11 @@ import {
 
 type ThemeFilter = string;
 
+type FeedAsset = {
+  ticker: string;
+  changePercent: number | null;
+};
+
 type FeedItem = {
   id: string;
   themeId: string;
@@ -25,7 +30,38 @@ type FeedItem = {
   date: string;
   publisher: string | null;
   marketTone: MarketNarrativeTheme["marketTone"];
+  assets: FeedAsset[];
 };
+
+function AssetChips({
+  assets,
+  label,
+}: {
+  assets: FeedAsset[];
+  label: string;
+}) {
+  if (assets.length === 0) return null;
+  return (
+    <div className="pulse-news-assets" aria-label={`${label} market moves`}>
+      {assets.slice(0, 3).map((asset) => (
+        <span
+          key={asset.ticker}
+          className={
+            asset.changePercent === null
+              ? "is-flat"
+              : asset.changePercent > 0
+                ? "is-up"
+                : asset.changePercent < 0
+                  ? "is-down"
+                  : "is-flat"
+          }
+        >
+          <b>{asset.ticker}</b> {formatMove(asset.changePercent)}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 const WHY_IT_MATTERS: Record<string, string> = {
   "ai-compute":
@@ -110,6 +146,10 @@ function buildMoreFeed(
         date: headline.date,
         publisher: headline.publisher ?? null,
         marketTone: theme.marketTone,
+        assets: theme.assets.map((asset) => ({
+          ticker: asset.ticker,
+          changePercent: asset.changePercent,
+        })),
       });
     }
   }
@@ -139,9 +179,9 @@ function NarrativeCard({
   const copy = (
     <>
       <div className="pulse-news-narrative-top">
-        <span className="pulse-news-narrative-label">{theme.label}</span>
         <div className="pulse-news-narrative-tags">
           {featured ? <span className="pulse-news-lead-chip">Lead</span> : null}
+          <span className="pulse-news-narrative-label">{theme.label}</span>
         </div>
       </div>
 
@@ -158,36 +198,20 @@ function NarrativeCard({
         <h3 className="pulse-news-narrative-title">{headline.title}</h3>
       )}
 
-      <p className="pulse-news-narrative-summary">{theme.summary}</p>
-      <p className="pulse-news-why">
-        <strong>Why it matters</strong>
-        <span>
-          {WHY_IT_MATTERS[theme.id] ??
-            "Coverage and price action are reinforcing the same market narrative."}
-        </span>
-      </p>
+      {featured ? (
+        <>
+          <p className="pulse-news-narrative-summary">{theme.summary}</p>
+          <p className="pulse-news-why">
+            <strong>Why it matters</strong>
+            <span>
+              {WHY_IT_MATTERS[theme.id] ??
+                "Coverage and price action are reinforcing the same market narrative."}
+            </span>
+          </p>
+        </>
+      ) : null}
 
-      <div
-        className="pulse-news-assets"
-        aria-label={`${theme.label} market moves`}
-      >
-        {theme.assets.slice(0, 3).map((asset) => (
-          <span
-            key={asset.ticker}
-            className={
-              asset.changePercent === null
-                ? "is-flat"
-                : asset.changePercent > 0
-                  ? "is-up"
-                  : asset.changePercent < 0
-                    ? "is-down"
-                    : "is-flat"
-            }
-          >
-            <b>{asset.ticker}</b> {formatMove(asset.changePercent)}
-          </span>
-        ))}
-      </div>
+      <AssetChips assets={theme.assets} label={theme.label} />
 
       <footer className="pulse-news-narrative-source">
         <span>{publisherLabel(headline)}</span>
@@ -202,7 +226,7 @@ function NarrativeCard({
       className={[
         "pulse-news-narrative",
         alt ? "is-alt" : "",
-        featured ? "is-featured" : "",
+        featured ? "is-featured" : "is-dense",
         showMedia ? "is-media-hero has-media" : "",
         imageFailed ? "has-media-fallback" : "",
         `tone-${theme.marketTone}`,
@@ -247,10 +271,16 @@ function HeadlineCard({
 }) {
   return (
     <article
-      className={`pulse-news-narrative${alt ? " is-alt" : ""} tone-${item.marketTone}`}
+      className={`pulse-news-narrative is-dense${alt ? " is-alt" : ""} tone-${item.marketTone}`}
     >
       <div className="pulse-news-narrative-top">
-        <span className="pulse-news-narrative-label">{item.themeLabel}</span>
+        <div className="pulse-news-narrative-tags">
+          <span className="pulse-news-narrative-label">{item.themeLabel}</span>
+        </div>
+        <footer className="pulse-news-narrative-source is-inline">
+          <span>{item.publisher?.trim() || "Market source"}</span>
+          <time dateTime={item.date}>{formatTime(item.date)}</time>
+        </footer>
       </div>
 
       {item.url ? (
@@ -266,11 +296,14 @@ function HeadlineCard({
         <h3 className="pulse-news-narrative-title">{item.title}</h3>
       )}
 
-      <footer className="pulse-news-narrative-source">
-        <span>{item.publisher?.trim() || "Market source"}</span>
-        <time dateTime={item.date}>{formatTime(item.date)}</time>
-        {item.url ? <span aria-hidden="true">Read ↗</span> : null}
-      </footer>
+      <div className="pulse-news-dense-meta">
+        <AssetChips assets={item.assets} label={item.themeLabel} />
+        {item.url ? (
+          <span className="pulse-news-read" aria-hidden="true">
+            Read ↗
+          </span>
+        ) : null}
+      </div>
     </article>
   );
 }
