@@ -94,13 +94,13 @@ body, html[data-theme="cream"] body { background-image: none; }
   outline-offset: -2px;
 }
 
-/* A useful introduction without pushing the market below the first screen. */
+/* Compact page chrome — gauges / slicer / boards own the first viewport. */
 .pulse-page .pulse-seo-intro {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px 24px;
-  margin: 8px 0 24px;
-  padding: 12px 0;
+  gap: 4px 16px;
+  margin: 4px 0 12px;
+  padding: 4px 0 8px;
   background: none;
   border: 0;
   border-radius: 0;
@@ -109,26 +109,34 @@ body, html[data-theme="cream"] body { background-image: none; }
 .pulse-seo-intro::after { display: none; }
 .pulse-seo-intro .pulse-product-label {
   grid-column: 1 / -1;
-  font: 600 0.75rem var(--font-sans);
-  letter-spacing: 0.06em;
-  color: var(--muted);
+  font: 600 0.68rem var(--font-mono), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--quiet);
 }
 .pulse-seo-intro h1 {
   max-width: none;
   font-family: var(--font-sans);
-  font-size: clamp(1.65rem, 3.4vw, 2.5rem);
-  letter-spacing: -0.045em;
-  line-height: 1.12;
+  font-size: clamp(1.25rem, 2.6vw, 1.65rem);
+  letter-spacing: -0.035em;
+  line-height: 1.15;
   text-wrap: balance;
 }
 .pulse-title-muted { color: var(--muted); font-weight: 400; }
-.pulse-seo-intro .pulse-seo-lede { font: 400 0.95rem/1.5 var(--font-sans); }
+.pulse-seo-intro .pulse-seo-lede {
+  grid-column: 1 / -1;
+  margin: 0;
+  font: 400 0.78rem/1.4 var(--font-sans);
+  color: var(--quiet);
+}
 .pulse-seo-intro .pulse-hero-actions {
   grid-column: 2;
-  grid-row: 2 / span 2;
+  grid-row: 2;
   align-self: center;
-  display: grid;
-  gap: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
   margin: 0;
 }
 .pulse-hero-actions a {
@@ -322,10 +330,10 @@ body, html[data-theme="cream"] body { background-image: none; }
 .news-page .pulse-news-theme-menu > span { font-size: .72rem; color: var(--ops-muted); white-space: nowrap; font-family: var(--font-mono); }
 
 @media (max-width: 767px) {
-  .pulse-page .pulse-seo-intro { grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 4px 0 16px; padding: 4px 0; }
-  .pulse-seo-intro h1 { font-size: clamp(1.65rem, 5.8vw, 2.2rem); text-wrap: initial; }
-  .pulse-seo-intro .pulse-seo-lede { font-size: 0.85rem; }
-  .pulse-seo-intro .pulse-hero-actions { display: flex; grid-column: 1; grid-row: auto; gap: 8px; margin-top: 6px; }
+  .pulse-page .pulse-seo-intro { grid-template-columns: minmax(0, 1fr); gap: 4px; margin: 2px 0 10px; padding: 2px 0 6px; }
+  .pulse-seo-intro h1 { font-size: clamp(1.2rem, 5vw, 1.45rem); text-wrap: initial; }
+  .pulse-seo-intro .pulse-seo-lede { font-size: 0.74rem; }
+  .pulse-seo-intro .pulse-hero-actions { display: flex; grid-column: 1; grid-row: auto; gap: 6px; margin-top: 4px; }
   .pulse-hero-actions a { width: auto; padding-inline: 12px; font-size: 0.78rem; }
   .pulse-glance-grid { grid-template-columns: minmax(0, 1fr); }
   .pulse-glance .pulse-glance-item { grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.2fr); align-items: center; gap: 8px; padding: 10px 0; }
