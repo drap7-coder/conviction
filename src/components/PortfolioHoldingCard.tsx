@@ -1,10 +1,12 @@
 /**
  * Compact portfolio holding card — logo + ticker stack, value + today move,
  * optional allocation bar. Edit/remove controls only when Manage passes handlers.
+ * Live Portfolio rows mirror the Concentration / Largest positions structure.
  */
 
 "use client";
 
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { LogoDisplay } from "@/app/components/LogoDisplay";
 import {
@@ -14,6 +16,7 @@ import {
   isFiniteNumber,
 } from "@/lib/display/format";
 import { changeToneClass } from "@/lib/display/heat-color";
+import { getSectorColor } from "@/lib/display/sector-colors";
 import type { PositionMetrics } from "@/lib/portfolio/types";
 
 export interface PortfolioHoldingCardProps {
@@ -29,9 +32,10 @@ export interface PortfolioHoldingCardProps {
   closeChangePercent: number | null;
   shares: number;
   metrics: PositionMetrics;
+  /** Industry / exposure — colors Live weight gauge like Largest positions. */
+  sector?: string | null;
   /**
-   * Allocation bar fill. Pass an industry color on Manage; omit on Live
-   * (Concentration owns the weight story).
+   * Bottom allocation bar fill on Manage only. Live uses the inline weight gauge.
    */
   barColor?: string | null;
   isEditing?: boolean;
@@ -75,6 +79,7 @@ export function PortfolioHoldingCard({
   closeChangePercent,
   shares,
   metrics,
+  sector = null,
   barColor = null,
   isEditing = false,
   formShares = "",
@@ -98,8 +103,10 @@ export function PortfolioHoldingCard({
   const allocation = metrics.weight;
   const displayName = companyName?.trim() || ticker;
   const barWidth = isFiniteNumber(allocation) ? Math.min(100, Math.max(0, allocation)) : 0;
+  const gaugeFill = isFiniteNumber(allocation) ? Math.min(100, (allocation / 25) * 100) : 0;
   const showBar = typeof barColor === "string" && barColor.length > 0;
   const editable = Boolean(onEdit && onAskRemove);
+  const weightColor = getSectorColor(sector);
   const sharesLabel = `${shares.toLocaleString("en-US", {
     maximumFractionDigits: 4,
   })} sh`;
@@ -107,7 +114,12 @@ export function PortfolioHoldingCard({
   return (
     <article
       id={`portfolio-holding-${ticker}`}
-      className={`pf-holding-card${isEditing ? " is-editing" : ""}${focused ? " focused-card" : ""}`}
+      className={`pf-holding-card${editable ? "" : " is-live-row"}${isEditing ? " is-editing" : ""}${focused ? " focused-card" : ""}`}
+      style={
+        editable
+          ? undefined
+          : ({ ["--holding-color" as string]: weightColor } as CSSProperties)
+      }
       aria-label={`${displayName} holding`}
     >
       <div className="pf-holding-main">
@@ -133,16 +145,26 @@ export function PortfolioHoldingCard({
           </span>
         </div>
 
+        {!editable ? (
+          <div
+            className="pf-holding-gauge"
+            aria-label={`${ticker} is ${isFiniteNumber(allocation) ? `${allocation.toFixed(1)}%` : "an unknown share"} of portfolio`}
+          >
+            <span style={{ width: `${gaugeFill}%` }} />
+          </div>
+        ) : null}
+
+        <strong className="pf-holding-weight tnum">{formatWeight(allocation)}</strong>
+
         <div className="pf-holding-figures">
           <strong className="pf-holding-value tnum">{fmtCompactCurrency(metrics.marketValue)}</strong>
           <span className={`pf-holding-day tnum ${dayChangeClass}`}>
-            {formatTodayDollars(metrics.dailyChange)}
+            <span className="pf-holding-day-dollars">{formatTodayDollars(metrics.dailyChange)}</span>
             {isFiniteNumber(metrics.dailyChangePercent) ? (
-              <span className="pf-holding-day-pct"> {fmtPercent(metrics.dailyChangePercent, 2)}</span>
+              <span className="pf-holding-day-pct">{fmtPercent(metrics.dailyChangePercent, 2)}</span>
             ) : null}
-            <span className="pf-holding-day-suffix"> today</span>
+            <span className="pf-holding-day-suffix">today</span>
           </span>
-          <span className="pf-holding-weight tnum">{formatWeight(allocation)}</span>
           {hasExtendedSession ? (
             <span className={`pf-holding-close tnum ${closeChangeClass}`}>
               Close {fmtDollarPrice(closePrice)}
@@ -232,7 +254,7 @@ export function PortfolioHoldingCard({
         </form>
       ) : null}
 
-      {showBar ? (
+      {editable && showBar ? (
         <div
           className="pf-holding-bar is-industry"
           aria-label={`${ticker} allocation ${isFiniteNumber(allocation) ? `${allocation.toFixed(1)} percent` : "unavailable"}`}
