@@ -203,8 +203,15 @@ body, html[data-theme="cream"] body { background-image: none; }
 }
 /* Ops MarketDataGrid density (Pulse indexes / commodities / sectors / crypto / intl). */
 .pulse-page .market-data-grid-row {
-  min-height: 44px;
-  padding: 12px;
+  min-height: 48px;
+  padding: 11px 14px;
+}
+.pulse-page .market-data-grid-name strong {
+  font-size: 0.86rem;
+}
+.pulse-page .market-data-grid-pill:not(.is-idle):not(.is-quiet) {
+  color: #0d1117;
+  background: color-mix(in srgb, var(--amber) 88%, #fff 12%);
 }
 .pulse-index-name strong { font-family: var(--font-sans); font-size: 0.95rem; }
 .pulse-index-name small { font-size: 0.72rem; color: var(--quiet); }
@@ -529,7 +536,8 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
   color: var(--quiet);
   font: 600 0.72rem/1.2 var(--font-sans);
 }
-.pulse-market-glance .pulse-view-slicer { margin-bottom: 4px; }
+.pulse-market-glance .pulse-macro-band { margin-bottom: 12px; }
+.pulse-market-glance .pulse-view-slicer { margin-bottom: 0; }
 .pulse-market-glance > .workspace-view-context { margin-top: 2px; }
 
 @media (max-width: 900px) {

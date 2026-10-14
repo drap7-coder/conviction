@@ -206,19 +206,25 @@ function PulseMarketBoardInner() {
         </div>
       </header>
 
-      {data ? (
-        <div className="pulse-ops-telemetry" aria-label="Macro risk telemetry">
-          <PulseMacroGauges indicators={data.indicators} compact showShareTools={false} />
-        </div>
-      ) : null}
+      <div className="pulse-macro-band">
+        {data ? (
+          <div className="pulse-ops-telemetry" aria-label="Macro environment">
+            <div className="pulse-macro-band-label">
+              <span>Macro environment</span>
+              {data.sessionLabel ? <em>{data.sessionLabel}</em> : null}
+            </div>
+            <PulseMacroGauges indicators={data.indicators} compact showShareTools={false} />
+          </div>
+        ) : null}
 
-      <SurfaceSlicer
-        label="Pulse market view"
-        options={PULSE_VIEWS}
-        activeId={view}
-        onChange={(id) => selectView(parsePulseView(id))}
-        className="pulse-view-slicer"
-      />
+        <SurfaceSlicer
+          label="Pulse market view"
+          options={PULSE_VIEWS}
+          activeId={view}
+          onChange={(id) => selectView(parsePulseView(id))}
+          className="pulse-view-slicer"
+        />
+      </div>
 
       {status === "loading" ? (
         <PageLoadingMotion
