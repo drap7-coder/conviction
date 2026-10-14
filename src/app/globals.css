@@ -21353,10 +21353,83 @@ input.has-mic {
 }
 
 .pulse-about {
-  margin: 28px 0 8px;
-  padding: 16px 0 4px;
-  border-top: 1px solid var(--border);
-  max-width: 46rem;
+  display: grid;
+  gap: 0;
+  margin: 20px 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  max-width: none;
+}
+
+.pulse-about--footer {
+  margin-top: 28px;
+  margin-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--ops-border, var(--border));
+}
+
+.pulse-about-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  min-height: 44px;
+  padding: 12px 2px;
+  list-style: none;
+  cursor: pointer;
+  color: var(--ops-muted, var(--quiet));
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+.pulse-about-summary::-webkit-details-marker { display: none; }
+.pulse-about-summary::marker { content: ""; }
+
+.pulse-about-summary-label {
+  position: relative;
+  padding-left: 16px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pulse-about-summary-label::before {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.45em;
+  height: 0.45em;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-65%) rotate(-45deg);
+  transition: transform 160ms ease;
+  content: "";
+}
+
+.pulse-about[open] .pulse-about-summary-label::before {
+  transform: translateY(-35%) rotate(45deg);
+}
+
+.pulse-about-summary-hint {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  opacity: 0.75;
+}
+
+.pulse-about-summary:hover,
+.pulse-about-summary:focus-visible {
+  color: var(--ops-ink, var(--ink));
+}
+
+.pulse-about-summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.pulse-about-panel {
+  padding: 0 0 14px;
 }
 
 .pulse-about h2 {
@@ -21368,10 +21441,11 @@ input.has-mic {
 
 .pulse-about-copy {
   display: grid;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
+  gap: 12px;
+  max-width: 42rem;
+  color: var(--ops-muted, var(--muted));
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
 
 .pulse-about-copy a {
@@ -21382,6 +21456,23 @@ input.has-mic {
 
 .pulse-about-copy a:hover {
   color: color-mix(in srgb, var(--accent) 80%, var(--ink));
+}
+
+.pulse-page .pulse-about--footer {
+  border-top-color: var(--ops-border);
+}
+
+.pulse-page .pulse-about-summary {
+  color: var(--ops-muted);
+}
+
+.pulse-page .pulse-about-summary:hover,
+.pulse-page .pulse-about-summary:focus-visible {
+  color: var(--ops-ink);
+}
+
+.pulse-page .pulse-about-copy {
+  color: color-mix(in srgb, var(--ops-muted) 92%, transparent);
 }
 /* ── Pulse conversion pass: premium entry, rapid orientation, less tool noise ── */
 .pulse-page { position: relative; }

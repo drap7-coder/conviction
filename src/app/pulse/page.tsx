@@ -16,15 +16,14 @@ export default function PulsePage() {
           Markets in one place.
         </h1>
         <p className="pulse-seo-lede">
-          Indexes, movers, crypto, and international boards — session-aware and
-          refreshable.
+          Indexes · movers · crypto · international
         </p>
         <div className="pulse-hero-actions" aria-label="Related">
-          <Link className="pulse-hero-primary" href="/">
-            Back to Home <span aria-hidden="true">→</span>
+          <Link className="pulse-hero-secondary" href="/">
+            Home
           </Link>
           <Link className="pulse-hero-secondary" href="/news">
-            Open News
+            News
           </Link>
         </div>
       </header>
