@@ -656,6 +656,13 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
 }
 .home-page .home-pulse-link:hover { border-bottom-color: var(--accent); }
 .home-macro .pulse-home-section { margin: 0; padding: 4px 0 10px; }
+.home-personal-brief {
+  margin: 8px 0 20px;
+  min-width: 0;
+}
+.home-personal-brief .personal-brief {
+  margin: 0;
+}
 .home-section-coord {
   display: inline-flex;
   flex-wrap: wrap;

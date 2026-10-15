@@ -25,7 +25,7 @@ export const navPages: NavPage[] = [
     icon: Home,
     tone: "amber",
     group: "daily",
-    blurb: "Macro regime, indexes, commodities, and sector leadership.",
+    blurb: "Macro tape plus your personal coverage graphs and daily brief.",
   },
   {
     href: "/pulse",

@@ -15,8 +15,9 @@ describe("watch → research → ownership loop", () => {
     expect(brief).toContain("Your daily brief");
     expect(brief).toContain("Read source");
     expect(brief).toContain("Why it matters");
-    expect(read("src/components/market/HomeOverview.tsx")).not.toContain("<PersonalDailyBrief");
+    expect(read("src/components/market/HomeOverview.tsx")).toContain("<PortfolioPersonalBrief");
     expect(read("src/components/market/PulseDashboard.tsx")).not.toContain("PersonalDailyBrief");
+    expect(read("src/components/market/PulseDashboard.tsx")).not.toContain("PortfolioPersonalBrief");
     expect(watchlist).toContain("Private sync on");
     expect(watchlist).toContain("MarketMoversBoard");
     expect(watchlist).not.toContain("<WatchlistDailyBrief");
