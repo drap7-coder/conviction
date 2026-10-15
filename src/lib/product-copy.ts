@@ -62,7 +62,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "How is Watchlist different from Portfolio?",
     answer:
-      "Both live on the Portfolio tab — never on Home or Pulse. Watchlist opens with your personal daily brief plus today’s movers on names you follow. Live Portfolio is the book you own — value, today’s move, sector mix, and concentration. Use the Live / Watchlist / Study slicer to switch. Edit either from Manage.",
+      "Watchlist lives on the Portfolio tab (and the same personal daily brief also appears on Home under the macro tape). Never on Pulse. Watchlist opens with your personal daily brief plus today’s movers on names you follow. Live Portfolio is the book you own — value, today’s move, sector mix, and concentration. Use the Live / Watchlist / Study slicer to switch. Edit either from Manage.",
   },
   {
     question: "What is Study Mode on Portfolio?",

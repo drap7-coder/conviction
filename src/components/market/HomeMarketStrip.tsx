@@ -150,8 +150,8 @@ export function HomeMarketStrip() {
         <div className="home-mission-title-row">
           <p className="home-mission-display">The tape. In focus.</p>
           <p className="pulse-seo-lede">
-            Macro regime, major indexes, commodities, and sector leadership — public market
-            context only. Your holdings and watchlist live on Portfolio.
+            Macro regime, major indexes, commodities, and sector leadership — then your
+            personal coverage graphs and sourced brief on the names you own and watch.
           </p>
         </div>
         <div className="home-mission-status" role="status">

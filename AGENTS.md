@@ -6,17 +6,17 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
-### Personal daily brief (October 14, 2026)
+### Personal daily brief (October 15, 2026)
 
-**Portfolio → Watchlist** owns `PersonalDailyBrief` / `PortfolioPersonalBrief` — holdings-first coverage of saved names. Do **not** mount it on Home or Pulse (those surfaces are public macro only). Watchlist still keeps the movers board + composer under the brief. The brief shows up to three sourced developments from the last 48 hours. Initially check six names (holdings first), then let the user check additional groups of six; keep concurrency at two and cache public news for 15 minutes. Show successful coverage counts, failed names, and the oldest successful fetch time (not a live-news timestamp). Refresh explicitly invalidates selected coverage. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.
+**Home** and **Portfolio → Watchlist** both mount `PortfolioPersonalBrief` / `PersonalDailyBrief` — holdings-first coverage graphs (radar, report timeline, quant overlay) plus sourced stories on saved names. Do **not** mount it on Pulse (Pulse stays public tape only). Watchlist still keeps the movers board + composer under the brief. The brief shows up to three sourced developments from the last 48 hours. Initially check six names (holdings first), then let the user check additional groups of six; keep concurrency at two and cache public news for 15 minutes. Show successful coverage counts, failed names, and the oldest successful fetch time (not a live-news timestamp). Refresh explicitly invalidates selected coverage. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.
 
-### Current navigation decision (October 14, 2026)
+### Current navigation decision (October 15, 2026)
 
-Primary navigation is **Home**, **Pulse**, **Portfolio**, News, then Menu. **Home** and **Pulse** are public market telemetry only — no personal holdings, watchlist chips, or daily brief. Pulse remains the full Markets / Movers / Crypto / Intl workspace at `/pulse` (linked from Home). **Portfolio** is the isolated personal workspace (Live book / Watchlist brief + movers / Study). Crowd stays under Menu → More (“Campus competition”); `/crowd` remains available and activates Menu. After a first holding is saved through Portfolio onboarding, show a dismissible invitation to Crowd for that visit.
+Primary navigation is **Home**, **Pulse**, **Portfolio**, News, then Menu. **Home** is public macro telemetry **plus** the personal daily brief charts. **Pulse** stays public market telemetry only (no personal brief). Pulse remains the full Markets / Movers / Crypto / Intl workspace at `/pulse` (linked from Home). **Portfolio** remains the personal workspace (Live book / Watchlist brief + movers / Study). Crowd stays under Menu → More (“Campus competition”); `/crowd` remains available and activates Menu. After a first holding is saved through Portfolio onboarding, show a dismissible invitation to Crowd for that visit.
 
-### Home = public macro glance (October 14, 2026)
+### Home = macro glance + personal brief (October 15, 2026)
 
-**Home (`/`)** mounts `HomeMarketStrip` only: VIX/10Y regime gauges, major indexes, commodities, and US sectors from `/api/market/pulse` — never `loadHomeNames`, never `PersonalDailyBrief`, never `PulseYourStocks`. Personal names stay segmented on Portfolio. **Pulse** owns the full Markets / Movers / Crypto / Intl slicer (sticky tape + gauges → indexes → commodities → sectors as `MarketDataGrid`). Open Pulse remains linked from Home. Keep Crowd off Home. Apex `/` remains a real page.
+**Home (`/`)** mounts `HomeMarketStrip` (VIX/10Y, indexes, commodities, sectors from `/api/market/pulse`) then `PortfolioPersonalBrief` (coverage radar / timeline / quant + stories). Never `PulseYourStocks` on Home. **Pulse** owns the full Markets / Movers / Crypto / Intl slicer (sticky tape + gauges → indexes → commodities → sectors as `MarketDataGrid`) and must not mount the personal brief. Open Pulse remains linked from Home. Keep Crowd off Home. Apex `/` remains a real page.
 
 This is a single Next.js 16 (App Router, Turbopack) app named `conviction`. Package manager is **npm**. Standard commands live in `package.json`: `npm run dev` (port 3000), `npm run build`, `npm run typecheck` (`tsc --noEmit` — there is no ESLint/lint script), and `npm run test` / `npm run test:watch` (Vitest).
 

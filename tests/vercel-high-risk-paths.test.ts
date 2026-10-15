@@ -196,7 +196,7 @@ describe("Vercel high-risk path fixes", () => {
       "Your book, watchlist brief, allocation, and Study",
     );
     expect(read("src/lib/nav-config.ts")).toContain(
-      "Macro regime, indexes, commodities, and sector leadership",
+      "Macro tape plus your personal coverage graphs and daily brief",
     );
     expect(read("src/lib/product-copy.ts")).not.toContain("Where are Most held and Most watched?");
     expect(read("src/lib/product-copy.ts")).not.toContain("What is Smart Money?");

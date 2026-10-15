@@ -5,8 +5,8 @@ import { PersonalDailyBrief } from "@/components/PersonalDailyBrief";
 import { loadHomeNames, type HomeNames } from "@/lib/market/home-names";
 
 /**
- * Personal daily brief for Portfolio → Watchlist.
- * Loads held + watched names once; never mounts on Home or Pulse.
+ * Personal daily brief (coverage radar, report timeline, quant overlay).
+ * Mounted on Home and Portfolio → Watchlist. Never on Pulse.
  */
 export function PortfolioPersonalBrief() {
   const [names, setNames] = useState<HomeNames>({
