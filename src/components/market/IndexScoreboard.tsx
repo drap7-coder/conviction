@@ -9,8 +9,8 @@ import {
 import { MarketDataGrid } from "@/components/market/MarketDataGrid";
 
 /**
- * Unified Pulse scoreboard shell — high-density MarketDataGrid rows.
- * (Spark / quote-stack rows retired on these boards; Movers keep the dual-print stack.)
+ * Unified Pulse / Home scoreboard shell — high-density MarketDataGrid rows
+ * with inline sparklines beside names. Movers keep the dual-print stack.
  */
 export function MarketScoreboard({
   title,

@@ -32,6 +32,42 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
   }));
 }
 
+/** Bracketed ops eyebrow: `[ 01 / REGIME ]` with status ticks. */
+function HomeSectionCoord({
+  code,
+  label,
+  meta,
+}: {
+  code: string;
+  label: string;
+  meta?: string | null;
+}) {
+  return (
+    <p className="pulse-home-eyebrow home-section-coord">
+      <span className="home-coord-mark" aria-hidden="true">
+        [
+      </span>
+      <span className="home-coord-code">{code}</span>
+      <span className="home-coord-sep" aria-hidden="true">
+        /
+      </span>
+      <span className="home-coord-label">{label}</span>
+      {meta ? (
+        <>
+          <span className="home-coord-dot" aria-hidden="true">
+            ·
+          </span>
+          <span className="home-coord-meta tnum">{meta}</span>
+        </>
+      ) : null}
+      <span className="home-coord-mark" aria-hidden="true">
+        ]
+      </span>
+      <i className="home-coord-ticks" aria-hidden="true" />
+    </p>
+  );
+}
+
 /**
  * Home market telemetry: VIX/10Y, major indexes, commodities, US sectors.
  * Personal holdings never appear here — Portfolio owns that. Full Movers /
@@ -167,7 +203,7 @@ export function HomeMarketStrip() {
         >
           <header className="pulse-home-section-head">
             <div>
-              <p className="pulse-home-eyebrow">01 / Regime</p>
+              <HomeSectionCoord code="01" label="Regime" />
               <h2 id="home-macro-gauges-heading">VIX &amp; 10Y</h2>
             </div>
           </header>
@@ -181,10 +217,11 @@ export function HomeMarketStrip() {
       >
         <header className="pulse-home-section-head">
           <div>
-            <p className="pulse-home-eyebrow">
-              02 / {data?.sessionLabel ?? "Markets"}
-              {updated ? ` · Updated ${updated}` : ""}
-            </p>
+            <HomeSectionCoord
+              code="02"
+              label={data?.sessionLabel ?? "Markets"}
+              meta={updated ? `SNAP ${updated}` : null}
+            />
             <h2 id="home-market-strip-heading">Major indexes</h2>
           </div>
           <Link href="/pulse" className="pulse-home-next">
@@ -211,7 +248,7 @@ export function HomeMarketStrip() {
         >
           <header className="pulse-home-section-head">
             <div>
-              <p className="pulse-home-eyebrow">03 / Cross-asset</p>
+              <HomeSectionCoord code="03" label="Cross-asset" />
               <h2 id="home-commodities-heading">Commodities</h2>
             </div>
           </header>
@@ -226,7 +263,7 @@ export function HomeMarketStrip() {
         >
           <header className="pulse-home-section-head">
             <div>
-              <p className="pulse-home-eyebrow">04 / Leadership</p>
+              <HomeSectionCoord code="04" label="Leadership" />
               <h2 id="home-sectors-heading">US sectors</h2>
             </div>
             <Link href="/pulse" className="pulse-home-next">
