@@ -22051,29 +22051,37 @@ a.market-data-grid-row:focus-visible::after,
   .pulse-macro-band { margin-bottom: 12px; }
   .pulse-ops-telemetry { padding: 8px 10px 6px; }
   .pulse-page .pulse-index-board { padding: 10px 10px 8px; margin-bottom: 10px; }
+  /* Phone: keep name + spark readable; drop Prev (still in aria-label). */
   .market-data-grid-row {
     grid-template-columns:
-      minmax(0, 1.15fr)
-      2.8rem
-      repeat(3, minmax(3.2rem, 0.65fr))
-      2.4rem
-      minmax(3.2rem, 0.65fr);
-    column-gap: 6px;
+      minmax(5.5rem, 1.55fr)
+      2.2rem
+      minmax(3.1rem, 0.75fr)
+      minmax(2.9rem, 0.7fr)
+      minmax(2.9rem, 0.7fr)
+      2.2rem;
+    column-gap: 5px;
     min-height: 44px;
-    padding: 10px 10px;
+    padding: 10px 8px;
     font-size: 0.72rem;
   }
-  .market-data-grid-row.is-head { padding: 7px 10px; }
-  .market-data-grid-name strong { font-size: 0.78rem; }
-  .market-data-grid-spark {
-    width: 40px;
-    height: 16px;
+  .market-data-grid-row > :nth-child(7),
+  .market-data-grid-row.is-head > :nth-child(7) {
+    display: none;
   }
-  .market-data-grid-spark.is-empty { width: 40px; }
+  .market-data-grid-row.is-head { padding: 7px 8px; }
+  .market-data-grid-name strong { font-size: 0.74rem; }
+  .market-data-grid-num { font-size: 0.72rem; }
+  .market-data-grid-spark {
+    width: 32px;
+    height: 14px;
+  }
+  .market-data-grid-spark.is-empty { width: 32px; }
   .market-data-grid-pill {
-    min-width: 1.9rem;
+    min-width: 1.75rem;
     min-height: 18px;
-    padding: 0 4px;
+    padding: 0 3px;
+    font-size: 0.54rem;
   }
 
   .pulse-seo-intro {
