@@ -13,7 +13,7 @@ export const PRODUCT_SURFACES: Array<{ name: string; href: string; blurb: string
   {
     name: "Home",
     href: "/",
-    blurb: "Public market telemetry — VIX and 10Y, major indexes, commodities, and sectors.",
+    blurb: "Your daily brief — sourced reporting, coverage visuals, and company analytics.",
   },
   {
     name: "Pulse",
@@ -52,7 +52,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "What is IQBulls?",
     answer:
-      "IQBulls is a free market workspace. Home and Pulse cover public market telemetry; Portfolio is your personal book and watchlist brief; Crowd covers campus picks and standings; News briefs the market — not a single research gimmick.",
+      "IQBulls is a free market workspace. Home connects your companies to sourced reporting and briefing visuals; Pulse covers the full market tape; Portfolio holds your book and watchlist; Crowd covers campus picks and standings; News briefs the market.",
   },
   {
     question: "What is Pulse?",
@@ -62,7 +62,7 @@ export const PRODUCT_FAQ: FaqItem[] = [
   {
     question: "How is Watchlist different from Portfolio?",
     answer:
-      "Both live on the Portfolio tab — never on Home or Pulse. Watchlist opens with your personal daily brief plus today’s movers on names you follow. Live Portfolio is the book you own — value, today’s move, sector mix, and concentration. Use the Live / Watchlist / Study slicer to switch. Edit either from Manage.",
+      "Both are managed on the Portfolio tab. Home briefs the companies you own and follow; Watchlist shows their movers. Live Portfolio is the book you own — value, today’s move, sector mix, and concentration. Use the Live / Watchlist / Study slicer to switch. Edit either from Manage.",
   },
   {
     question: "What is Study Mode on Portfolio?",

@@ -42,12 +42,6 @@ export function BriefIntelligence({
     const y = 40 + i * 42;
     return { ticker, event, x, y };
   });
-  const pathD =
-    timelinePoints.length > 1
-      ? timelinePoints
-          .map((point, i) => `${i === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-          .join(" ")
-      : "";
 
   return (
     <div className={`brief-intelligence${scaffold ? " is-scaffold" : ""}`}>
@@ -137,8 +131,8 @@ export function BriefIntelligence({
               role="img"
               aria-label={
                 names.length
-                  ? `Book mix: ${heldCount} owned, ${watchedCount} watched.`
-                  : "Book mix idle. No companies in scope."
+                  ? `Company counts: ${heldCount} owned, ${watchedCount} watched. Not portfolio weights.`
+                  : "No companies in scope."
               }
             >
               <div className="brief-book-mix-label">
@@ -216,7 +210,6 @@ export function BriefIntelligence({
                 <line key={x} x1={x} x2={x} y1="18" y2="158" className="brief-chart-grid" />
               ))}
               <line x1="40" x2="480" y1="158" y2="158" className="brief-chart-baseline" />
-              {pathD ? <path d={pathD} className="brief-chart-path" fill="none" /> : null}
               {timelinePoints.map(({ ticker, event, x, y }) => (
                 <g key={ticker} className="brief-timeline-row">
                   <title>
@@ -241,7 +234,7 @@ export function BriefIntelligence({
                 Latest
               </text>
             </svg>
-            <p>Publication times of the reports below. Up to three selected stories; not total news volume.</p>
+            <p>Publication times of the selected reports. Up to three stories; not total news volume.</p>
           </>
         ) : (
           <div className="brief-timeline-idle">
