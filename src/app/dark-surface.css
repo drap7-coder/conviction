@@ -45,3 +45,20 @@ html[data-theme="dark"] :is(.market-data-grid, .brief-quant-panel, .brief-intell
 html[data-theme="dark"] :is(.app-header, .bottom-tab-bar) {
   background-color: var(--bg);
 }
+
+/* Small brand accents: atmosphere and orientation, never financial meaning. */
+html[data-theme="dark"] .app-header {
+  border-bottom: 1px solid transparent;
+  border-image: linear-gradient(90deg, #75dcb0, #294b3c 48%, #cbb784) 1;
+}
+html[data-theme="dark"] .pulse-seo-intro {
+  border-left: 2px solid #75dcb0;
+  padding-left: 18px;
+  background-image: linear-gradient(100deg, rgb(117 220 176 / 5%), transparent 65%);
+}
+html[data-theme="dark"] .desktop-nav-item.active {
+  box-shadow: inset 0 -2px 0 #75dcb0;
+}
+html[data-theme="dark"] .bottom-tab-item.active .bottom-tab-icon {
+  box-shadow: inset 0 -2px 0 #75dcb0;
+}
