@@ -3,6 +3,7 @@ import Script from "next/script";
 import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./workspace-design.css";
+import "./dark-surface.css";
 import { AppFrame } from "@/components/AppFrame";
 import { GroupAccentProvider } from "@/components/GroupAccentProvider";
 import {
@@ -100,7 +101,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0A0E14",
+  themeColor: "#091310",
   colorScheme: "dark",
 };
 
@@ -112,12 +113,14 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-theme="dark"
+      data-accent="green"
       className={`${plexSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body>
         <Script id="iqbulls-theme" strategy="beforeInteractive">
-          {`try{var t=localStorage.getItem('iqbulls-theme');if(t==='cream'){document.documentElement.dataset.theme='cream';document.documentElement.style.colorScheme='light'}var a=localStorage.getItem('iqbulls-accent');if(a==='green'||a==='blue'||a==='violet'||a==='pink'||a==='mono'){document.documentElement.dataset.accent=a}else{document.documentElement.dataset.accent='green'}}catch(e){}`}
+          {`try{localStorage.removeItem('iqbulls-theme');var a=localStorage.getItem('iqbulls-accent');if(a==='green'||a==='blue'||a==='violet'||a==='pink'||a==='mono'){document.documentElement.dataset.accent=a}}catch(e){}`}
         </Script>
         <script
           type="application/ld+json"

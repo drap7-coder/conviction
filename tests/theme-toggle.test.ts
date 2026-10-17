@@ -1,41 +1,42 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
-describe("site theme option", () => {
-  it("mounts an accessible theme control in the shared header", () => {
-    const header = read("src/components/AppHeader.tsx");
-    const picker = read("src/components/ThemePicker.tsx");
-    expect(header).toContain("<ThemeToggle");
-    expect(picker).toContain("aria-label");
-    expect(picker).toContain("iqbulls-theme");
-    expect(picker).toContain("iqbulls-accent");
-    expect(header).not.toContain("AccentPicker");
-  });
-
-  it("applies the saved theme before hydration and defines a cream palette", () => {
-    expect(read("src/app/layout.tsx")).toContain('strategy="beforeInteractive"');
-    const css = read("src/app/globals.css");
-    expect(css).toContain('html[data-theme="cream"]');
-    expect(css).toContain("--bg: #f4eddf");
-    expect(css).toContain(".theme-toggle");
-  });
-
-  it("persists surface and accent without a FOUC boot script", () => {
+describe("dark-only site appearance", () => {
+  it("sets dark mode before hydration and ignores saved light mode", () => {
     const layout = read("src/app/layout.tsx");
-    expect(layout).toContain("iqbulls-theme");
-    expect(layout).toContain("iqbulls-accent");
-    expect(read("src/components/ThemePicker.tsx")).toContain("Bull Green");
-    expect(read("src/components/ThemePicker.tsx")).toContain("AccentPicker");
-    expect(read("src/app/globals.css")).toContain('html[data-accent="pink"]');
-    expect(read("src/app/globals.css")).toContain("--green:");
+    expect(layout).toContain('data-theme="dark"');
+    expect(layout).toContain("localStorage.removeItem('iqbulls-theme')");
+    expect(layout).not.toContain("dataset.theme='cream'");
+    expect(read("src/components/AppHeader.tsx")).not.toContain("ThemeToggle");
+    expect(read("src/components/ThemePicker.tsx")).not.toContain("applySurfaceTheme");
   });
-
-  it("runs the bull animation only from Manage accent personalization", () => {
-    expect(read("src/components/RunningBull.tsx")).toContain("prefers-reduced-motion");
-    expect(read("src/app/globals.css")).toContain("running-bull-layer");
-    expect(read("src/components/ThemePicker.tsx")).toContain("RunningBull");
-    expect(read("src/components/AppHeader.tsx")).not.toContain("RunningBull");
+  it("shares green surfaces without recoloring financial data", () => {
+    const css = read("src/app/dark-surface.css");
+    expect(read("src/app/layout.tsx")).toContain('import "./dark-surface.css"');
+    expect(css).toContain("--bg: #091310");
+    expect(css).toContain("--chart-surface:");
+    expect(css).not.toMatch(/--(?:green|red):/);
+    expect(css).not.toContain("filter:");
+  });
+  it("retains accent personalization", () => {
+    expect(read("src/components/ThemePicker.tsx")).toContain("AccentPicker");
+    expect(read("src/app/layout.tsx")).toContain("iqbulls-accent");
+  });
+  it("keeps muted and quiet text above 4.5:1 on green panels", () => {
+    const css = read("src/app/dark-surface.css");
+    const color = (token: string) => css.match(new RegExp(`${token}: (#[0-9a-f]{6})`))![1];
+    const luminance = (hex: string) => {
+      const rgb = hex.slice(1).match(/../g)!.map((part) => {
+        const value = parseInt(part, 16) / 255;
+        return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4;
+      });
+      return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+    };
+    for (const text of ["--muted", "--quiet"]) {
+      for (const panel of ["--card", "--card-soft", "--surface-elevated"]) {
+        expect((luminance(color(text)) + .05) / (luminance(color(panel)) + .05)).toBeGreaterThanOrEqual(4.5);
+      }
+    }
   });
 });

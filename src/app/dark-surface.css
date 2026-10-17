@@ -1,0 +1,47 @@
+/* One dark green canvas across every workspace. No filters over financial data. */
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #091310;
+  --surface: #0e1c18;
+  --surface-elevated: #142820;
+  --card: #11231d;
+  --card-soft: #172e25;
+  --card-inset: #0c1b16;
+  --border: #304c40;
+  --divider: #253e33;
+  --border-active: #537b67;
+  --ink: #eef5f1;
+  --muted: #b0c2b8;
+  --quiet: #9bafa3;
+  --ink-panel: #0d1f18;
+  --ink-panel-elevated: #152b22;
+  --on-ink: #eef5f1;
+  --on-ink-muted: #b0c2b8;
+  --on-ink-quiet: #9bafa3;
+  --on-ink-border: #304c40;
+  --color-surface-neutral: #15271f;
+  --color-surface-neutral-hover: #1d352a;
+  --color-border-neutral: #304c40;
+  --chart-surface: #0d1f18;
+  --chart-grid: #253e33;
+  --chart-border: #304c40;
+}
+html[data-theme="dark"] body {
+  background-color: var(--bg);
+  background-image: radial-gradient(ellipse at 12% 0%, rgb(65 145 105 / 11%), transparent 65%);
+  background-repeat: no-repeat;
+}
+/* Dense market/news surfaces use fixed ops colors; bring their canvas into the family. */
+html[data-theme="dark"] :is(.pulse-page, .news-page, .crowd-page) {
+  --ops-bg: var(--card-inset);
+  --ops-border: var(--border);
+  --ops-ink: var(--ink);
+  --ops-muted: var(--muted);
+}
+html[data-theme="dark"] :is(.market-data-grid, .brief-quant-panel, .brief-intelligence section, .personal-brief-stories article) {
+  background-color: var(--card);
+  border-color: var(--border);
+}
+html[data-theme="dark"] :is(.app-header, .bottom-tab-bar) {
+  background-color: var(--bg);
+}
