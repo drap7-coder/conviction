@@ -1,13 +1,10 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
 import { useEffect, useState, type CSSProperties } from "react";
 import { RunningBull } from "@/components/RunningBull";
 
-export type SurfaceTheme = "dark" | "cream";
 export type AccentTheme = "green" | "blue" | "violet" | "pink" | "mono";
 
-const SURFACE_KEY = "iqbulls-theme";
 const ACCENT_KEY = "iqbulls-accent";
 
 export const ACCENT_OPTIONS: Array<{ id: AccentTheme; label: string; swatch: string }> = [
@@ -24,14 +21,6 @@ function isAccent(value: string | null | undefined): value is AccentTheme {
     || value === "violet"
     || value === "pink"
     || value === "mono";
-}
-
-export function applySurfaceTheme(theme: SurfaceTheme) {
-  document.documentElement.dataset.theme = theme;
-  document.documentElement.style.colorScheme = theme === "cream" ? "light" : "dark";
-  document
-    .querySelector('meta[name="theme-color"]')
-    ?.setAttribute("content", theme === "cream" ? "#F4EDDF" : "#0A0E14");
 }
 
 export function applyAccentTheme(accent: AccentTheme) {
@@ -95,45 +84,5 @@ export function AccentPicker({ onAccentChange }: AccentPickerProps) {
       </div>
       <RunningBull playToken={bullToken} />
     </>
-  );
-}
-
-export function ThemeToggle() {
-  const [surface, setSurface] = useState<SurfaceTheme>("dark");
-
-  useEffect(() => {
-    const initial = document.documentElement.dataset.theme === "cream" ? "cream" : "dark";
-    setSurface(initial);
-    applySurfaceTheme(initial);
-
-    const sync = (event: StorageEvent) => {
-      if (event.key !== SURFACE_KEY) return;
-      const next = event.newValue === "cream" ? "cream" : "dark";
-      setSurface(next);
-      applySurfaceTheme(next);
-    };
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
-  }, []);
-
-  function toggleSurface() {
-    const next = surface === "cream" ? "dark" : "cream";
-    setSurface(next);
-    applySurfaceTheme(next);
-    localStorage.setItem(SURFACE_KEY, next);
-  }
-
-  const nextLabel = surface === "cream" ? "Use dark theme" : "Use light theme";
-  return (
-    <button
-      type="button"
-      className="theme-toggle"
-      aria-label={nextLabel}
-      title={nextLabel}
-      onClick={toggleSurface}
-    >
-      {surface === "cream" ? <Moon size={15} aria-hidden="true" /> : <Sun size={15} aria-hidden="true" />}
-      <span>{surface === "cream" ? "Dark" : "Light"}</span>
-    </button>
   );
 }
