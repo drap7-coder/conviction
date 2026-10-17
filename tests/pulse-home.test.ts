@@ -41,16 +41,16 @@ function theme(
   };
 }
 
-describe("Home public macro overview", () => {
-  it("keeps Home as public market telemetry — no personal brief or holdings", () => {
+describe("Home personal intelligence", () => {
+  it("keeps the brief on Home and market tables on Pulse", () => {
     const home = read("src/components/market/HomeOverview.tsx");
     const strip = read("src/components/market/HomeMarketStrip.tsx");
     const pulse = read("src/components/market/PulseDashboard.tsx");
     const page = read("src/app/page.tsx");
-    expect(home).toContain("home-macro");
-    expect(home).toContain("<HomeMarketStrip");
-    expect(home).not.toContain("PersonalDailyBrief");
-    expect(home).not.toContain("loadHomeNames");
+    expect(home).not.toContain("home-macro");
+    expect(home).not.toContain("<HomeMarketStrip");
+    expect(home).toContain("<HomePersonalBrief");
+    expect(read("src/components/HomePersonalBrief.tsx")).toContain("loadHomeNames");
     expect(home).not.toContain("PulseYourStocks");
     expect(strip).toContain("PulseMacroGauges");
     expect(strip).toContain("IndexScoreboard");
@@ -75,11 +75,11 @@ describe("Home public macro overview", () => {
     expect(indexesJsx).toBeLessThan(commoditiesJsx);
   });
 
-  it("keeps the personal brief on Portfolio Watchlist — not Home or Pulse", () => {
-    expect(read("src/components/Portfolio.tsx")).toContain("<PortfolioPersonalBrief");
-    expect(read("src/components/PortfolioPersonalBrief.tsx")).toContain("<PersonalDailyBrief");
-    expect(read("src/components/market/HomeOverview.tsx")).not.toContain(
-      "<PersonalDailyBrief",
+  it("keeps the personal brief on Home — not Portfolio or Pulse", () => {
+    expect(read("src/components/Portfolio.tsx")).not.toContain("PersonalBrief");
+    expect(read("src/components/HomePersonalBrief.tsx")).toContain("<PersonalDailyBrief");
+    expect(read("src/components/market/HomeOverview.tsx")).toContain(
+      "<HomePersonalBrief",
     );
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain(
       "Build your watchlist",

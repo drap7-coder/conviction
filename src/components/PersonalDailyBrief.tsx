@@ -124,7 +124,7 @@ export function PersonalDailyBrief({
                 aria-pressed={view === "narrative"}
                 onClick={() => setView("narrative")}
               >
-                Narrative
+                Brief
               </button>
               <button
                 type="button"
@@ -132,7 +132,7 @@ export function PersonalDailyBrief({
                 aria-pressed={view === "quant"}
                 onClick={() => setView("quant")}
               >
-                Quantitative
+                Analytics
               </button>
             </div>
           ) : null}
@@ -152,7 +152,6 @@ export function PersonalDailyBrief({
 
       {emptyScope ? (
         <>
-          <BriefIntelligence names={[]} coverage={EMPTY_COVERAGE} scaffold />
           <div className="personal-brief-empty personal-brief-cta">
             <h3>Start with a company you care about.</h3>
             <p>Your brief starts with the first name. No account required.</p>
@@ -164,6 +163,7 @@ export function PersonalDailyBrief({
               Build your watchlist →
             </Link>
           </div>
+          <BriefIntelligence names={[]} coverage={EMPTY_COVERAGE} scaffold />
         </>
       ) : null}
 
@@ -183,16 +183,13 @@ export function PersonalDailyBrief({
                   </time>
                 ) : null}
               </div>
-              {current && names.length > 0 ? (
-                <BriefIntelligence names={names} coverage={current} />
-              ) : null}
               {current?.stories.length ? (
                 <div className="personal-brief-stories">
                   {current.stories.map(({ ticker, held: isHeld, event }, index) => (
                     <article key={ticker} className={index === 0 ? "is-lead" : undefined}>
                       <div className="personal-brief-meta">
                         <span className="personal-brief-index">
-                          {String(index + 3).padStart(2, "0")} / Report
+                          {String(index + 1).padStart(2, "0")} / Report
                         </span>
                         <span>{ticker}</span>
                         <span>{isHeld ? "You own" : "You watch"}</span>
@@ -245,6 +242,9 @@ export function PersonalDailyBrief({
                   </p>
                 </div>
               )}
+              {current && names.length > 0 ? (
+                <BriefIntelligence names={names} coverage={current} />
+              ) : null}
               {portfolioError || watchlistError || Boolean(current?.failed.length) ? (
                 <p role="status" className="personal-brief-warning">
                   {portfolioError ? "Holdings could not be loaded. " : ""}

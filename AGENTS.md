@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Home restoration (October 16, 2026 — supersedes October 14 macro-only Home below)
+
+Home owns `HomePersonalBrief` → `PersonalDailyBrief`: sourced company reporting, coverage ring/map, report timeline, and on-demand Analytics. Do not mount `HomeMarketStrip`, market gauges, index/commodity/sector tables, or a Pulse slicer on Home. Portfolio owns holdings/watchlist editing and movers, not a duplicated brief. Pulse retains its existing vertical market workspace and navigation. Preserve bounded news/history fetches, explicit coverage gaps, and guest setup before empty chart scaffolds. Never replace this separation with two market homes. The October 14 macro-only Home and Portfolio brief ownership paragraphs below are historical, not current instructions.
+
 ### Personal daily brief (October 14, 2026)
 
 **Portfolio → Watchlist** owns `PersonalDailyBrief` / `PortfolioPersonalBrief` — holdings-first coverage of saved names. Do **not** mount it on Home or Pulse (those surfaces are public macro only). Watchlist still keeps the movers board + composer under the brief. The brief shows up to three sourced developments from the last 48 hours. Initially check six names (holdings first), then let the user check additional groups of six; keep concurrency at two and cache public news for 15 minutes. Show successful coverage counts, failed names, and the oldest successful fetch time (not a live-news timestamp). Refresh explicitly invalidates selected coverage. Do not represent limited or unavailable coverage as a quiet market. No personal tickers or holdings are sent to analytics.

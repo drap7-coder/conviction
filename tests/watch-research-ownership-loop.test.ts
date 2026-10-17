@@ -9,8 +9,8 @@ describe("watch → research → ownership loop", () => {
   it("turns Watchlist into a clear research queue without replacing the movers board", () => {
     const watchlist = read("src/components/Watchlist.tsx");
 
-    expect(read("src/components/Portfolio.tsx")).toContain("<PortfolioPersonalBrief");
-    expect(read("src/components/PortfolioPersonalBrief.tsx")).toContain("<PersonalDailyBrief");
+    expect(read("src/components/market/HomeOverview.tsx")).toContain("<HomePersonalBrief");
+    expect(read("src/components/HomePersonalBrief.tsx")).toContain("<PersonalDailyBrief");
     const brief = read("src/components/PersonalDailyBrief.tsx");
     expect(brief).toContain("Your daily brief");
     expect(brief).toContain("Read source");
