@@ -8,11 +8,11 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <main className="markets-page pulse-page home-page">
-      <header className="pulse-seo-intro">
-        <p className="pulse-product-label">IQBulls / Daily intelligence</p>
-        <h1>What changed. What matters.</h1>
-        <p className="pulse-seo-lede">Your companies, connected to the evidence. Start with the brief; investigate what deserves your attention.</p>
-        <Link className="home-pulse-link" href="/pulse">Open Pulse · Full market tape ↗</Link>
+      <header className="pulse-seo-intro home-dashboard-intro">
+        <p className="pulse-product-label">IQBulls / Market intelligence</p>
+        <h1>Markets first. What matters next.</h1>
+        <p className="pulse-seo-lede">A live command view first, followed by the evidence tied to your companies.</p>
+        <Link className="home-pulse-link" href="/pulse">Open full Pulse ↗</Link>
       </header>
       <HomeOverview />
     </main>
