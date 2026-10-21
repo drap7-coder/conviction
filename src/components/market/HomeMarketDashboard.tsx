@@ -3,9 +3,28 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import type { PulseData, PulseGlobalMarket } from "@/app/api/market/pulse/route";
+import type { PulseData } from "@/app/api/market/pulse/route";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
+import { fetchMarketQuotes } from "@/lib/market/client-market-data";
+import { getLivePrice } from "@/lib/market/live-quote";
 import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
+import type { StockHistoryPoint } from "@/lib/market/quotes";
+
+const HOME_MARKETS = [
+  { ticker: "^GSPC", symbol: "SPX", name: "S&P 500" },
+  { ticker: "USO", symbol: "OIL", name: "Crude Oil · USO" },
+  { ticker: "GLD", symbol: "GOLD", name: "Gold · GLD" },
+] as const;
+
+interface DashboardMarket {
+  ticker: string;
+  symbol: string;
+  name: string;
+  price: number | null;
+  changePercent: number | null;
+  session: string;
+  history: StockHistoryPoint[];
+}
 
 function formatPrice(value: number | null | undefined): string {
   if (typeof value !== "number" || !Number.isFinite(value)) return "—";
@@ -18,16 +37,7 @@ function formatChange(value: number | null | undefined): string {
   return `${value > 0 ? "+" : "−"}${Math.abs(value).toFixed(2)}%`;
 }
 
-function liveValues(market: PulseGlobalMarket) {
-  const extended = market.extendedPrice != null && !market.extendedNoTrades;
-  return {
-    price: extended ? market.extendedPrice : market.price,
-    change: extended ? market.extendedChangePercent : market.changePercent,
-    session: extended ? market.sessionLabel : "Regular",
-  };
-}
-
-function sparklinePath(history: PulseGlobalMarket["history"]): string {
+function sparklinePath(history: StockHistoryPoint[]): string {
   const values = history.map((point) => point.close).filter(Number.isFinite);
   if (values.length < 2) return "";
   const min = Math.min(...values);
@@ -42,29 +52,27 @@ function sparklinePath(history: PulseGlobalMarket["history"]): string {
     .join(" ");
 }
 
-function IndexTile({ market, order }: { market: PulseGlobalMarket; order: number }) {
-  const values = liveValues(market);
-  const tone = (values.change ?? 0) > 0 ? "up" : (values.change ?? 0) < 0 ? "down" : "flat";
-  const shortName = market.ticker === "DIA" ? "Dow" : market.ticker === "SPY" ? "S&P 500" : market.ticker === "QQQ" ? "Nasdaq 100" : "Russell 2000";
+function MarketTile({ market, order }: { market: DashboardMarket; order: number }) {
+  const tone = (market.changePercent ?? 0) > 0 ? "up" : (market.changePercent ?? 0) < 0 ? "down" : "flat";
   const path = sparklinePath(market.history);
 
   return (
     <Link
-      href={`/companies/${market.ticker}`}
+      href="/pulse"
       className={`home-index-tile is-${tone}`}
       style={{ "--tile-order": order } as CSSProperties}
-      aria-label={`${shortName}, ${formatPrice(values.price)}, ${formatChange(values.change)}`}
+      aria-label={`${market.name}, ${formatPrice(market.price)}, ${formatChange(market.changePercent)}`}
     >
       <header>
         <div>
-          <span className="home-index-symbol">{market.ticker}</span>
-          <span className="home-index-name">{shortName}</span>
+          <span className="home-index-symbol">{market.symbol}</span>
+          <span className="home-index-name">{market.name}</span>
         </div>
-        <span className="home-index-session">{values.session}</span>
+        <span className="home-index-session">{market.session}</span>
       </header>
       <div className="home-index-quote">
-        <strong className="tnum">{formatPrice(values.price)}</strong>
-        <span className="tnum">{formatChange(values.change)}</span>
+        <strong className="tnum">{formatPrice(market.price)}</strong>
+        <span className="tnum">{formatChange(market.changePercent)}</span>
       </div>
       <div className="home-index-spark" aria-hidden="true">
         <svg viewBox="0 0 100 34" preserveAspectRatio="none">
@@ -78,6 +86,7 @@ function IndexTile({ market, order }: { market: PulseGlobalMarket; order: number
 
 export function HomeMarketDashboard() {
   const [data, setData] = useState<PulseData | null>(null);
+  const [markets, setMarkets] = useState<DashboardMarket[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
@@ -89,8 +98,27 @@ export function HomeMarketDashboard() {
       inFlight = true;
       lastAttempt = Date.now();
       try {
-        const payload = await fetchJsonWithTimeout<PulseData>("/api/market/pulse", 10000, controller.signal);
+        const [payload, quotes] = await Promise.all([
+          fetchJsonWithTimeout<PulseData>("/api/market/pulse", 10000, controller.signal),
+          fetchMarketQuotes(HOME_MARKETS.map((market) => market.ticker), {
+            reason: "initial",
+            signal: controller.signal,
+          }),
+        ]);
         if (controller.signal.aborted) return;
+        const quoteByTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
+        setMarkets(HOME_MARKETS.flatMap((asset) => {
+          const quote = quoteByTicker.get(asset.ticker);
+          if (!quote) return [];
+          const live = getLivePrice(quote);
+          return [{
+            ...asset,
+            price: live.price,
+            changePercent: live.changePercent,
+            session: live.label ?? (live.session === "closed" ? "Closed" : "Regular"),
+            history: quote.sparkline,
+          }];
+        }));
         setData(payload);
         setStatus("ready");
       } catch (error) {
@@ -115,7 +143,6 @@ export function HomeMarketDashboard() {
     };
   }, []);
 
-  const indexes = data?.globalMarkets.filter((market) => market.category === "Major Index") ?? [];
   const gauges = pulseMacroGauges(data?.indicators ?? []);
   const sectors = data?.sectors ?? [];
   const advancing = sectors.filter((sector) => (sector.changePercent ?? 0) > 0).length;
@@ -146,8 +173,8 @@ export function HomeMarketDashboard() {
 
       {data ? (
         <>
-          <div className="home-index-grid" aria-label="Major index performance">
-            {indexes.map((market, index) => <IndexTile key={market.ticker} market={market} order={index} />)}
+          <div className="home-index-grid home-index-grid--cross-asset" aria-label="S&P 500, oil, and gold performance">
+            {markets.map((market, index) => <MarketTile key={market.ticker} market={market} order={index} />)}
           </div>
 
           <div className="home-command-context">

@@ -448,6 +448,7 @@ body, html[data-theme="cream"] body { background-image: none; }
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
+.home-index-grid--cross-asset { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .home-index-tile {
   --tile-accent: #92a7b4;
   position: relative;
@@ -546,6 +547,8 @@ body, html[data-theme="cream"] body { background-image: none; }
   .home-market-command-head { align-items: flex-start; flex-direction: column; gap: 10px; }
   .home-command-meta { justify-content: flex-start; }
   .home-index-grid { gap: 7px; }
+  .home-index-grid--cross-asset { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .home-index-grid--cross-asset .home-index-tile:last-child { grid-column: 1 / -1; }
   .home-index-tile { gap: 9px; padding: 11px 10px 8px; }
   .home-index-name { font-size: .64rem; }
   .home-index-session { display: none; }
