@@ -62,3 +62,220 @@ html[data-theme="dark"] .desktop-nav-item.active {
 html[data-theme="dark"] .bottom-tab-item.active .bottom-tab-icon {
   box-shadow: inset 0 -2px 0 #75dcb0;
 }
+
+/* Site-wide visual-pop pass. Brand color guides orientation; red/green remain financial. */
+html[data-theme="dark"] {
+  --brand-aqua: #58e0c0;
+  --brand-cyan: #55c7ff;
+  --brand-violet: #9b87f5;
+  --brand-gold: #f3c969;
+  --brand-coral: #ff7f72;
+  --brand-blue-dim: rgb(85 199 255 / 10%);
+  --brand-violet-dim: rgb(155 135 245 / 10%);
+  --brand-gold-dim: rgb(243 201 105 / 9%);
+}
+
+html[data-theme="dark"] body {
+  background-image:
+    radial-gradient(ellipse at 8% 0%, rgb(88 224 192 / 13%), transparent 48%),
+    radial-gradient(ellipse at 92% 24%, rgb(85 199 255 / 8%), transparent 38%),
+    radial-gradient(ellipse at 84% 82%, rgb(155 135 245 / 7%), transparent 42%);
+  background-attachment: fixed;
+}
+
+html[data-theme="dark"] .app-header {
+  background:
+    linear-gradient(90deg, rgb(88 224 192 / 5%), transparent 32%, rgb(155 135 245 / 4%)),
+    color-mix(in srgb, var(--bg) 94%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+html[data-theme="dark"] .app-logo {
+  filter: drop-shadow(0 7px 14px rgb(88 224 192 / 18%));
+}
+
+html[data-theme="dark"] .desktop-nav-item,
+html[data-theme="dark"] .bottom-tab-item {
+  transition: color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+html[data-theme="dark"] .desktop-nav-item:nth-child(2).active,
+html[data-theme="dark"] .bottom-tab-item:nth-child(2).active { color: var(--brand-cyan); }
+html[data-theme="dark"] .desktop-nav-item:nth-child(3).active,
+html[data-theme="dark"] .bottom-tab-item:nth-child(3).active { color: var(--brand-violet); }
+html[data-theme="dark"] .desktop-nav-item:nth-child(4).active,
+html[data-theme="dark"] .bottom-tab-item:nth-child(4).active { color: var(--brand-gold); }
+
+html[data-theme="dark"] :is(
+  .pulse-page:not(.home-page),
+  .portfolio-page,
+  .news-page,
+  .crowd-page,
+  .company-detail-page,
+  .data-manage-page
+) {
+  position: relative;
+  isolation: isolate;
+}
+
+html[data-theme="dark"] :is(
+  .pulse-page:not(.home-page),
+  .portfolio-page,
+  .news-page,
+  .crowd-page,
+  .company-detail-page,
+  .data-manage-page
+)::before {
+  position: absolute;
+  z-index: -1;
+  top: 2rem;
+  right: -12rem;
+  width: min(26rem, 62vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--page-glow, var(--brand-cyan));
+  filter: blur(100px);
+  opacity: 0.09;
+  pointer-events: none;
+  content: "";
+  animation: site-color-drift 16s ease-in-out infinite alternate;
+}
+
+html[data-theme="dark"] .pulse-page:not(.home-page) { --page-glow: var(--brand-cyan); }
+html[data-theme="dark"] .portfolio-page { --page-glow: var(--brand-violet); }
+html[data-theme="dark"] .news-page { --page-glow: #e86ca8; }
+html[data-theme="dark"] .crowd-page { --page-glow: var(--brand-gold); }
+html[data-theme="dark"] .company-detail-page { --page-glow: var(--brand-aqua); }
+html[data-theme="dark"] .data-manage-page { --page-glow: var(--brand-violet); }
+
+html[data-theme="dark"] :is(
+  .pulse-page:not(.home-page),
+  .news-page,
+  .crowd-page,
+  .company-detail-page,
+  .data-manage-page
+) > .pulse-seo-intro,
+html[data-theme="dark"] :is(.workspace-view-context, .detail-context) {
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--page-glow, var(--brand-aqua)) 28%, var(--border));
+  background:
+    linear-gradient(132deg, color-mix(in srgb, var(--page-glow, var(--brand-aqua)) 9%, transparent), transparent 48%),
+    var(--card);
+}
+
+html[data-theme="dark"] :is(.workspace-view-context, .detail-context)::before {
+  position: absolute;
+  inset: 0 auto auto -28%;
+  width: 28%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand-cyan), var(--brand-aqua), var(--brand-gold), transparent);
+  content: "";
+  animation: site-accent-sweep 6s ease-in-out infinite;
+}
+
+html[data-theme="dark"] .surface-slicer {
+  border-color: color-mix(in srgb, var(--brand-cyan) 18%, var(--border));
+  background:
+    linear-gradient(90deg, var(--brand-blue-dim), transparent 34%, var(--brand-violet-dim)),
+    var(--card-inset);
+}
+
+html[data-theme="dark"] .surface-slicer-pill.is-active {
+  box-shadow:
+    inset 0 -2px 0 var(--slicer-accent, var(--brand-aqua)),
+    0 8px 20px color-mix(in srgb, var(--slicer-accent, var(--brand-aqua)) 12%, transparent);
+}
+
+html[data-theme="dark"] :is(.surface-shell, .surface-well, .market-data-grid, .pulse-news-brief-grid > article, .crowd-board) {
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+}
+
+html[data-theme="dark"] :is(.pf-section, .pf-study-board, .crowd-board, .pulse-news-brief-grid > article):nth-of-type(3n + 1) {
+  border-color: color-mix(in srgb, var(--brand-cyan) 24%, var(--border));
+  background-image: linear-gradient(145deg, var(--brand-blue-dim), transparent 42%);
+}
+
+html[data-theme="dark"] :is(.pf-section, .pf-study-board, .crowd-board, .pulse-news-brief-grid > article):nth-of-type(3n + 2) {
+  border-color: color-mix(in srgb, var(--brand-violet) 24%, var(--border));
+  background-image: linear-gradient(145deg, var(--brand-violet-dim), transparent 42%);
+}
+
+html[data-theme="dark"] :is(.pf-section, .pf-study-board, .crowd-board, .pulse-news-brief-grid > article):nth-of-type(3n + 3) {
+  border-color: color-mix(in srgb, var(--brand-gold) 22%, var(--border));
+  background-image: linear-gradient(145deg, var(--brand-gold-dim), transparent 42%);
+}
+
+html[data-theme="dark"] .product-stage--portfolio.product-stage--metrics-above {
+  border-color: color-mix(in srgb, var(--brand-violet) 28%, var(--border));
+  background:
+    radial-gradient(circle at 88% 10%, rgb(155 135 245 / 16%), transparent 32%),
+    radial-gradient(circle at 8% 110%, rgb(88 224 192 / 12%), transparent 36%),
+    linear-gradient(135deg, #0d201b, #152238 62%, #211d35);
+  box-shadow: 0 24px 64px rgb(2 8 23 / 28%);
+}
+
+html[data-theme="dark"] .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
+  background: linear-gradient(145deg, rgb(85 199 255 / 10%), rgb(13 31 24 / 94%));
+}
+
+html[data-theme="dark"] .market-data-grid {
+  background:
+    linear-gradient(145deg, rgb(85 199 255 / 4%), transparent 34%),
+    var(--card);
+}
+
+html[data-theme="dark"] .news-page .pulse-news-brief-grid > article.is-lead,
+html[data-theme="dark"] .news-page .pulse-news-brief-grid > article.is-media-hero {
+  border-color: color-mix(in srgb, #e86ca8 34%, var(--border));
+  background-image: linear-gradient(135deg, rgb(232 108 168 / 12%), rgb(85 199 255 / 5%) 52%, transparent);
+}
+
+html[data-theme="dark"] .company-detail-page :is(.company-overview-stack, .company-catalyst-stack) > :nth-child(3n + 1) {
+  border-color: color-mix(in srgb, var(--brand-aqua) 24%, var(--border));
+}
+
+html[data-theme="dark"] .company-detail-page :is(.company-overview-stack, .company-catalyst-stack) > :nth-child(3n + 2) {
+  border-color: color-mix(in srgb, var(--brand-cyan) 22%, var(--border));
+}
+
+html[data-theme="dark"] .company-detail-page :is(.company-overview-stack, .company-catalyst-stack) > :nth-child(3n + 3) {
+  border-color: color-mix(in srgb, var(--brand-violet) 22%, var(--border));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme="dark"] :is(.surface-shell, .crowd-board, .pulse-news-brief-grid > article):hover {
+    border-color: color-mix(in srgb, var(--page-glow, var(--brand-aqua)) 38%, var(--border));
+    box-shadow: 0 16px 36px rgb(2 8 23 / 24%);
+    transform: translateY(-2px);
+  }
+
+  html[data-theme="dark"] :is(.desktop-nav-item, .bottom-tab-item):hover {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes site-color-drift {
+  from { transform: translate3d(0, 0, 0) scale(0.94); }
+  to { transform: translate3d(-3rem, 3rem, 0) scale(1.08); }
+}
+
+@keyframes site-accent-sweep {
+  0%, 16% { left: -28%; opacity: 0; }
+  30%, 72% { opacity: 1; }
+  88%, 100% { left: 100%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="dark"] :is(
+    .pulse-page:not(.home-page),
+    .portfolio-page,
+    .news-page,
+    .crowd-page,
+    .company-detail-page,
+    .data-manage-page
+  )::before,
+  html[data-theme="dark"] :is(.workspace-view-context, .detail-context)::before {
+    animation: none;
+  }
+}
