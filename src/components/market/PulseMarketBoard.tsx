@@ -199,10 +199,11 @@ function PulseMarketBoardInner() {
       className="pulse-home-section pulse-market-glance"
       aria-labelledby="pulse-market-glance-heading"
     >
-      <header className="pulse-home-section-head">
+      <header className="pulse-home-section-head pulse-workspace-head">
         <div>
-          <p className="pulse-home-eyebrow">Markets</p>
-          <h2 id="pulse-market-glance-heading">Pulse</h2>
+          <p className="pulse-home-eyebrow">Pulse</p>
+          <h2 id="pulse-market-glance-heading">Markets in one place.</h2>
+          <p className="pulse-workspace-lede">Indexes · movers · crypto · international</p>
         </div>
       </header>
 

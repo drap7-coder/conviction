@@ -266,6 +266,96 @@ html[data-theme="dark"] .company-detail-page :is(.company-overview-stack, .compa
   88%, 100% { left: 100%; opacity: 0; }
 }
 
+/* Pulse is an information-dense workspace: keep the color, lose the stacked hero treatment. */
+html[data-theme="dark"] .pulse-page:not(.home-page)::before { opacity: 0.055; }
+html[data-theme="dark"] .pulse-page .pulse-market-glance { gap: 10px; }
+html[data-theme="dark"] .pulse-page .pulse-workspace-head { margin: 0; padding: 10px 2px 2px; }
+html[data-theme="dark"] .pulse-page .pulse-workspace-head h2 {
+  margin: 2px 0 0;
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+html[data-theme="dark"] .pulse-page .pulse-workspace-lede {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.025em;
+}
+html[data-theme="dark"] .pulse-page .pulse-macro-band {
+  border-color: #293944;
+  background: rgb(10 16 22 / 96%);
+}
+html[data-theme="dark"] .pulse-page .pulse-ops-telemetry { padding: 8px 12px 5px; }
+html[data-theme="dark"] .pulse-page .pulse-macro-band-label { margin-bottom: 2px; }
+html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-grid { gap: 6px 18px; }
+html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-card { padding: 4px 8px 3px; }
+html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-kicker { margin-bottom: 2px; }
+html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-arc { max-height: 58px; }
+html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-readout { margin-bottom: 9px; }
+html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-readout strong { font-size: 0.94rem; }
+html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-pill {
+  margin-top: 1px;
+  padding: 2px 6px;
+  font-size: 0.52rem;
+}
+html[data-theme="dark"] .pulse-page .pulse-view-slicer .surface-slicer-track {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: visible;
+}
+html[data-theme="dark"] .pulse-page .pulse-view-slicer .surface-slicer-pill {
+  min-width: 0;
+  padding-inline: 8px;
+}
+html[data-theme="dark"] .pulse-page .workspace-view-context {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 0;
+  margin: 0 0 6px;
+  padding: 9px 12px;
+  border: 1px solid #283742;
+  border-left: 2px solid var(--pulse-context-accent);
+  border-radius: 0;
+  background: rgb(12 18 24 / 78%);
+  box-shadow: none;
+}
+html[data-theme="dark"] .pulse-page .workspace-view-context::before { display: none; animation: none; }
+html[data-theme="dark"] .pulse-page .workspace-view-context strong { font-size: 0.95rem; }
+html[data-theme="dark"] .pulse-page .workspace-view-context p {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+html[data-theme="dark"] .pulse-page .workspace-view-context time {
+  align-self: center;
+  font-size: 0.66rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme="dark"] .pulse-page .surface-shell:hover { box-shadow: none; transform: none; }
+}
+
+@media (max-width: 520px) {
+  html[data-theme="dark"] .pulse-page .pulse-workspace-head { padding-top: 7px; }
+  html[data-theme="dark"] .pulse-page .pulse-workspace-head h2 { font-size: 1.3rem; }
+  html[data-theme="dark"] .pulse-page .pulse-ops-telemetry { padding-inline: 8px; }
+  html[data-theme="dark"] .pulse-page .pulse-gauges--compact .pulse-gauge-grid { gap: 2px 8px; }
+  html[data-theme="dark"] .pulse-page .pulse-view-slicer { padding-inline: 4px; }
+  html[data-theme="dark"] .pulse-page .pulse-view-slicer .surface-slicer-pill {
+    padding: 7px 2px;
+    font-size: 0.64rem;
+    letter-spacing: 0;
+  }
+  html[data-theme="dark"] .pulse-page .workspace-view-context {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
+    padding: 8px 9px;
+  }
+  html[data-theme="dark"] .pulse-page .workspace-view-context time { grid-column: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html[data-theme="dark"] :is(
     .pulse-page:not(.home-page),
