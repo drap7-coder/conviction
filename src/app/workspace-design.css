@@ -1397,6 +1397,35 @@ a.pulse-home-worth-title:hover { color: var(--accent); }
   }
 }
 
+/* Keep the market dashboard above the fold: this is a title rail, not a landing hero. */
+.home-page > .pulse-seo-intro.home-dashboard-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-height: 0;
+  padding: 18px 22px 20px;
+}
+
+.home-page > .pulse-seo-intro.home-dashboard-intro h1 {
+  max-width: none;
+  margin: 0;
+  font-size: clamp(2rem, 4.2vw, 3.25rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+@media (max-width: 600px) {
+  .home-page > .pulse-seo-intro.home-dashboard-intro {
+    gap: 5px;
+    padding: 13px 16px 15px;
+  }
+
+  .home-page > .pulse-seo-intro.home-dashboard-intro h1 {
+    max-width: 15ch;
+    font-size: clamp(1.65rem, 8vw, 2.1rem);
+  }
+}
+
 /* Home color pass — analogous market tones with a few earned contrast pops. */
 .home-page {
   --home-aqua: #58e0c0;
