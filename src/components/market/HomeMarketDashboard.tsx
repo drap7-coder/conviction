@@ -11,19 +11,25 @@ import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 
 const HOME_MARKETS = [
-  { ticker: "^GSPC", symbol: "SPX", name: "S&P 500" },
-  { ticker: "USO", symbol: "OIL", name: "Crude Oil · USO" },
-  { ticker: "GLD", symbol: "GOLD", name: "Gold · GLD" },
+  { ticker: "^GSPC", symbol: "SPX", name: "S&P 500", category: "Broad market", note: "Large U.S. companies" },
+  { ticker: "QQQ", symbol: "QQQ", name: "Growth stocks", category: "Growth", note: "Tech-led market leaders" },
+  { ticker: "SCHD", symbol: "SCHD", name: "Dividend stocks", category: "Income", note: "Quality companies that pay dividends" },
+  { ticker: "USO", symbol: "OIL", name: "Oil", category: "Inflation", note: "Energy and global demand" },
+  { ticker: "GLD", symbol: "GOLD", name: "Gold", category: "Defense", note: "A traditional safe haven" },
 ] as const;
 
 interface DashboardMarket {
   ticker: string;
   symbol: string;
   name: string;
+  category: string;
+  note: string;
   price: number | null;
   changePercent: number | null;
   session: string;
   history: StockHistoryPoint[];
+  primaryValue?: string;
+  secondaryValue?: string;
 }
 
 function formatPrice(value: number | null | undefined): string {
@@ -61,18 +67,18 @@ function MarketTile({ market, order }: { market: DashboardMarket; order: number 
       href="/pulse"
       className={`home-index-tile asset-${market.symbol.toLowerCase()} is-${tone}`}
       style={{ "--tile-order": order } as CSSProperties}
-      aria-label={`${market.name}, ${formatPrice(market.price)}, ${formatChange(market.changePercent)}`}
+      aria-label={`${market.name}, ${market.primaryValue ?? formatChange(market.changePercent)}, ${market.secondaryValue ?? formatPrice(market.price)}`}
     >
       <header>
         <div>
-          <span className="home-index-symbol">{market.symbol}</span>
+          <span className="home-index-category">{market.category}</span>
           <span className="home-index-name">{market.name}</span>
         </div>
-        <span className="home-index-session">{market.session}</span>
+        <span className="home-index-symbol">{market.symbol}</span>
       </header>
       <div className="home-index-quote">
-        <strong className="home-index-move tnum">{formatChange(market.changePercent)}</strong>
-        <span className="home-index-level tnum">Level {formatPrice(market.price)}</span>
+        <strong className="home-index-move tnum">{market.primaryValue ?? formatChange(market.changePercent)}</strong>
+        <span className="home-index-level tnum">{market.secondaryValue ?? `Level ${formatPrice(market.price)}`}</span>
       </div>
       <div className="home-index-spark" aria-hidden="true">
         <svg viewBox="0 0 100 34" preserveAspectRatio="none">
@@ -80,6 +86,10 @@ function MarketTile({ market, order }: { market: DashboardMarket; order: number 
           {path ? <path className="home-index-spark-line" d={path} /> : null}
         </svg>
       </div>
+      <footer>
+        <span>{market.note}</span>
+        <span>{market.session}</span>
+      </footer>
     </Link>
   );
 }
@@ -144,6 +154,24 @@ export function HomeMarketDashboard() {
   }, []);
 
   const gauges = pulseMacroGauges(data?.indicators ?? []);
+  const yieldGauge = gauges.find((gauge) => gauge.id === "yield");
+  const yieldIndicator = data?.indicators.find((indicator) => indicator.ticker === "^TNX");
+  const dashboardMarkets: DashboardMarket[] = [
+    ...markets,
+    ...(yieldIndicator ? [{
+      ticker: yieldIndicator.ticker,
+      symbol: "10Y",
+      name: "Bond yield",
+      category: "Interest rates",
+      note: "The rate that shapes borrowing costs",
+      price: yieldIndicator.price,
+      changePercent: yieldIndicator.changePercent,
+      session: data?.sessionLabel ?? "Latest",
+      history: yieldIndicator.history,
+      primaryValue: yieldGauge?.value ?? "—",
+      secondaryValue: `${formatChange(yieldIndicator.changePercent)} today`,
+    }] : []),
+  ];
   const sectors = data?.sectors ?? [];
   const advancing = sectors.filter((sector) => (sector.changePercent ?? 0) > 0).length;
   const declining = sectors.filter((sector) => (sector.changePercent ?? 0) < 0).length;
@@ -173,12 +201,17 @@ export function HomeMarketDashboard() {
 
       {data ? (
         <>
-          <div className="home-index-grid home-index-grid--cross-asset" aria-label="S&P 500, oil, and gold performance">
-            {markets.map((market, index) => <MarketTile key={market.ticker} market={market} order={index} />)}
+          <div className="home-dashboard-guide">
+            <strong>Six signals. One market picture.</strong>
+            <span>Stocks show appetite for risk. Oil and gold show pressure and protection. Rates set the cost of money.</span>
+          </div>
+
+          <div className="home-index-grid home-index-grid--cross-asset" aria-label="The broad market, growth, income, oil, gold, and interest rates">
+            {dashboardMarkets.map((market, index) => <MarketTile key={market.ticker} market={market} order={index} />)}
           </div>
 
           <div className="home-command-context">
-            {gauges.map((gauge) => (
+            {gauges.filter((gauge) => gauge.id !== "yield").map((gauge) => (
               <article className={`home-context-card is-${gauge.tone} is-${gauge.id}`} key={gauge.id}>
                 <span>{gauge.label}</span>
                 <strong className="tnum">{gauge.value}</strong>
