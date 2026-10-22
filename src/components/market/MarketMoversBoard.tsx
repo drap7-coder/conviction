@@ -6,7 +6,7 @@ import { LogoDisplay } from "@/app/components/LogoDisplay";
 import { fmtDollarPrice, fmtPercent, fmtSignedDollar, isFiniteNumber } from "@/lib/display/format";
 import { companyDetailHref } from "@/lib/market/company-detail-href";
 import { type MarketMoverRow } from "@/lib/market/market-movers";
-import { SessionQuoteStack } from "@/components/market/SessionQuoteStack";
+import { SessionQuoteStack, sessionQuoteTone } from "@/components/market/SessionQuoteStack";
 
 function MoverCard({
   title,
@@ -59,6 +59,10 @@ function MoverCard({
                   ? row.sessionLabel
                   : null;
               const priorClose = Boolean(row.priorCloseSecondary);
+              const primaryPercent = extendedLabel && !row.extendedNoTrades && !priorClose
+                ? row.extendedChangePercent
+                : row.changePercent;
+              const rowTone = `is-${sessionQuoteTone(primaryPercent)}`;
               const changeLabel = `${fmtSignedDollar(row.change ?? null)} ${fmtPercent(row.changePercent, 2)}`;
               const extendedAria = extendedLabel
                 ? row.extendedNoTrades
@@ -98,11 +102,11 @@ function MoverCard({
               return (
                 <li key={row.ticker}>
                   {href ? (
-                    <Link href={href} className="pulse-movers-row" aria-label={aria}>
+                    <Link href={href} className={`pulse-movers-row ${rowTone}`} aria-label={aria}>
                       {body}
                     </Link>
                   ) : (
-                    <div className="pulse-movers-row" aria-label={aria}>
+                    <div className={`pulse-movers-row ${rowTone}`} aria-label={aria}>
                       {body}
                     </div>
                   )}

@@ -490,6 +490,36 @@ html[data-theme="dark"] .pulse-market-glance > :is(.pulse-index-board, .market-p
   border-left-color: color-mix(in srgb, var(--pulse-view-accent) 46%, var(--border));
 }
 
+html[data-theme="dark"] .pulse-page .market-data-grid-row:not(.is-head).is-up,
+html[data-theme="dark"] .pulse-page .pulse-movers-row.is-up {
+  background:
+    linear-gradient(90deg, rgb(88 224 192 / 14%), rgb(88 224 192 / 4%) 58%, transparent),
+    #0d1718;
+  box-shadow: inset 3px 0 0 rgb(88 224 192 / 72%);
+}
+html[data-theme="dark"] .pulse-page .market-data-grid-row:not(.is-head).is-down,
+html[data-theme="dark"] .pulse-page .pulse-movers-row.is-down {
+  background:
+    linear-gradient(90deg, rgb(255 127 114 / 14%), rgb(255 127 114 / 4%) 58%, transparent),
+    #181214;
+  box-shadow: inset 3px 0 0 rgb(255 127 114 / 72%);
+}
+html[data-theme="dark"] .pulse-page .market-data-grid-row:not(.is-head).is-flat,
+html[data-theme="dark"] .pulse-page .pulse-movers-row.is-flat {
+  background: #0d1117;
+  box-shadow: inset 3px 0 0 rgb(139 148 158 / 22%);
+}
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme="dark"] .pulse-page .market-data-grid-row:not(.is-head).is-up:hover,
+  html[data-theme="dark"] .pulse-page .pulse-movers-row.is-up:hover {
+    background: linear-gradient(90deg, rgb(88 224 192 / 21%), rgb(88 224 192 / 6%) 65%, transparent);
+  }
+  html[data-theme="dark"] .pulse-page .market-data-grid-row:not(.is-head).is-down:hover,
+  html[data-theme="dark"] .pulse-page .pulse-movers-row.is-down:hover {
+    background: linear-gradient(90deg, rgb(255 127 114 / 21%), rgb(255 127 114 / 6%) 65%, transparent);
+  }
+}
+
 @keyframes pulse-ops-live {
   0%, 100% { opacity: 0.58; transform: scale(0.82); }
   50% { opacity: 1; transform: scale(1); }
