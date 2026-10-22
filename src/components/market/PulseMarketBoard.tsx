@@ -203,9 +203,9 @@ function PulseMarketBoardInner() {
     >
       <header className="pulse-home-section-head pulse-workspace-head">
         <div>
-          <p className="pulse-home-eyebrow">Pulse</p>
-          <h2 id="pulse-market-glance-heading">Markets in one place.</h2>
-          <p className="pulse-workspace-lede">Indexes · movers · crypto · international</p>
+          <p className="pulse-home-eyebrow">IQBulls / Pulse</p>
+          <h2 id="pulse-market-glance-heading">Go deeper than the headline.</h2>
+          <p className="pulse-workspace-lede">Markets · movers · crypto · world</p>
         </div>
       </header>
 

@@ -574,3 +574,153 @@ html[data-theme="dark"] .pulse-page .pulse-movers-row.is-flat {
   }
   html[data-theme="dark"] .pulse-ops-live { animation: none; }
 }
+
+/* Pulse 2.0 — Home's colorful clarity, tuned for deeper exploration. */
+html[data-theme="dark"] .pulse-page:not(.home-page) {
+  --pulse-indexes: #55c7ff;
+  --pulse-commodities: #f3c969;
+  --pulse-sectors: #58e0c0;
+  --pulse-crypto: #9b87f5;
+  --pulse-international: #e86ca8;
+}
+
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-market-glance {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(14px, 2.4vw, 24px);
+  border: 1px solid rgb(85 199 255 / 22%);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 92% 0%, rgb(155 135 245 / 14%), transparent 30%),
+    radial-gradient(circle at 0% 70%, rgb(88 224 192 / 8%), transparent 34%),
+    linear-gradient(145deg, rgb(12 28 38 / 98%), rgb(7 14 21 / 99%) 42%);
+  box-shadow: 0 24px 64px rgb(2 8 23 / 32%);
+}
+
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-market-glance::before {
+  position: absolute;
+  inset: 0 auto auto -30%;
+  width: 28%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--pulse-indexes), var(--pulse-sectors), var(--pulse-commodities), transparent);
+  content: "";
+  animation: iq-home-sweep 6s ease-in-out infinite;
+}
+
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-workspace-head {
+  position: relative;
+  padding: 4px 4px 12px;
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-home-eyebrow {
+  color: var(--pulse-sectors);
+  font: 750 .62rem/1.2 var(--font-mono);
+  letter-spacing: .12em;
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-workspace-head h2 {
+  color: #f5fbff;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: -.05em;
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-workspace-lede {
+  color: #8fa5b3;
+  font-size: .7rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-ops-rail {
+  margin-bottom: 2px;
+  border-color: color-mix(in srgb, var(--pulse-view-accent) 32%, #2c3a44);
+  border-radius: 8px;
+  background:
+    linear-gradient(110deg, var(--pulse-view-tint), transparent 52%),
+    rgb(8 16 23 / 94%);
+  box-shadow: 0 14px 32px rgb(2 8 23 / 24%);
+}
+
+html[data-theme="dark"] .pulse-page:not(.home-page) .workspace-view-context {
+  margin: 8px 0 4px;
+  padding: 12px 14px;
+  border-color: color-mix(in srgb, var(--pulse-view-accent) 34%, #283742);
+  border-left-width: 3px;
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, var(--pulse-view-tint), transparent 54%),
+    rgb(10 18 25 / 88%);
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .workspace-view-context strong {
+  color: #eef7fb;
+  font-size: 1.05rem;
+}
+
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board {
+  --board-accent: #8b949e;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--board-accent) 30%, #30363d);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--board-accent) 7%, transparent), transparent 35%),
+    #0a1118;
+  box-shadow: 0 14px 32px rgb(2 8 23 / 18%);
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-board-tone-indexes { --board-accent: var(--pulse-indexes); }
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-board-tone-commodities { --board-accent: var(--pulse-commodities); }
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-board-tone-sectors { --board-accent: var(--pulse-sectors); }
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-board-tone-crypto { --board-accent: var(--pulse-crypto); }
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-board-tone-international { --board-accent: var(--pulse-international); }
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: 3px;
+  background: linear-gradient(180deg, var(--board-accent), color-mix(in srgb, var(--board-accent) 16%, transparent) 82%, transparent);
+  content: "";
+  pointer-events: none;
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board > .market-heatmap-copy {
+  padding: 13px 15px 11px;
+  border-bottom: 1px solid color-mix(in srgb, var(--board-accent) 17%, #30363d);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--board-accent) 10%, transparent), transparent 58%);
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board-title-row > div {
+  display: grid;
+  gap: 2px;
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board-title-row h2 {
+  color: #edf6fa;
+  font-size: 1rem;
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board-title-row p {
+  margin: 0;
+  color: color-mix(in srgb, var(--board-accent) 72%, #8b949e);
+  font: 600 .58rem/1.3 var(--font-mono);
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board .market-data-grid {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board:hover {
+    border-color: color-mix(in srgb, var(--board-accent) 48%, #30363d);
+    box-shadow: 0 18px 42px color-mix(in srgb, var(--board-accent) 8%, rgb(2 8 23 / 30%));
+  }
+}
+
+@media (max-width: 600px) {
+  html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-market-glance {
+    padding: 12px 8px;
+    border-radius: 14px;
+  }
+  html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-workspace-head h2 { font-size: 1.55rem; }
+  html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board { border-radius: 7px; }
+  html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-index-board > .market-heatmap-copy { padding: 10px 11px 9px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="dark"] .pulse-page:not(.home-page) .pulse-market-glance::before { animation: none; }
+}

@@ -35,12 +35,18 @@ export function MarketScoreboard({
 }) {
   if (rows.length === 0 && !footer) return null;
   void showLogos;
-  const boardTone = title === "Major Stock Market Indexes" ? "indexes"
-    : title === "Commodity Prices Today" ? "commodities"
-      : title === "Stock Market Sector Performance" ? "sectors"
-        : title === "Cryptocurrency Market Overview" ? "crypto"
-          : title === "International Markets" ? "international"
+  const boardTone = title === "Major indexes" ? "indexes"
+    : title === "Commodities" ? "commodities"
+      : title === "U.S. sectors" ? "sectors"
+        : title === "Crypto" ? "crypto"
+          : title === "International" ? "international"
             : "neutral";
+  const boardDescription = boardTone === "indexes" ? "The broad U.S. market"
+    : boardTone === "commodities" ? "Inflation, demand and defense"
+      : boardTone === "sectors" ? "Where money is rotating"
+        : boardTone === "crypto" ? "Always-on risk appetite"
+          : boardTone === "international" ? "The world beyond U.S. stocks"
+            : null;
 
   const boardClass = [
     "market-heatmap-shell",
@@ -57,7 +63,10 @@ export function MarketScoreboard({
       <div className={hideHeading ? "sr-only" : "market-heatmap-copy"}>
         <div className="market-panel-header pulse-index-board-head">
           <div className="pulse-index-board-title-row">
-            <h2>{title}</h2>
+            <div>
+              <h2>{title}</h2>
+              {boardDescription ? <p>{boardDescription}</p> : null}
+            </div>
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>
                 <i className="pulse-index-session-dot" aria-hidden="true" />
@@ -91,7 +100,7 @@ export function IndexScoreboard({
 }) {
   return (
     <MarketScoreboard
-      title="Major Stock Market Indexes"
+      title="Major indexes"
       hideHeading={hideHeading}
       rows={scoreboardIndexes(markets)}
       sessionLabel={sessionLabel}
@@ -109,7 +118,7 @@ export function CommodityScoreboard({
 }) {
   return (
     <MarketScoreboard
-      title="Commodity Prices Today"
+      title="Commodities"
       hideHeading={hideHeading}
       rows={scoreboardCommodities(markets)}
       showSessionMoves
@@ -128,7 +137,7 @@ export function SectorScoreboard({
 }) {
   return (
     <MarketScoreboard
-      title="Stock Market Sector Performance"
+      title="U.S. sectors"
       hideHeading={hideHeading}
       rows={markets}
       sessionLabel={sessionLabel}
@@ -142,5 +151,5 @@ export function InternationalScoreboard({
 }: {
   markets: PulseGlobalMarket[];
 }) {
-  return <MarketScoreboard title="International Markets" rows={markets} />;
+  return <MarketScoreboard title="International" rows={markets} />;
 }
