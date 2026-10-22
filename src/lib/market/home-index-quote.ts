@@ -8,7 +8,9 @@ import {
 /**
  * Cash indexes (^GSPC / SPX) often have no Yahoo pre/AH print while the ETF
  * proxy (SPY) does. During extended hours, prefer the proxy session move so
- * Home does not keep painting yesterday's regular close as "live."
+ * Home / Pulse do not keep painting yesterday's regular close as "live."
+ *
+ * Informational only — no expense-ratio or tracking-basis adjustment.
  */
 export function resolveHomeIndexLiveQuote(
   quote: LiveQuoteInput,

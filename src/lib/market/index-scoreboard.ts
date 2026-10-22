@@ -3,7 +3,8 @@ import type { PulseGlobalMarket } from "@/app/api/market/pulse/route";
 /** Scoreboard names — short enough to read in one compact row. */
 export const INDEX_SCOREBOARD: Array<{ ticker: string; name: string }> = [
   { ticker: "DIA", name: "Dow Jones" },
-  { ticker: "SPY", name: "S&P 500" },
+  /** Cash SPX level; Pulse API fills extended % via SPY when Yahoo has no ^GSPC print. */
+  { ticker: "SPX", name: "S&P 500" },
   { ticker: "QQQ", name: "Nasdaq 100" },
   { ticker: "IWM", name: "Russell 2000" },
 ];

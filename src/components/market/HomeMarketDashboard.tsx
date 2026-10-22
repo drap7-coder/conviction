@@ -75,8 +75,8 @@ function MarketTile({ market, order }: { market: DashboardMarket; order: number 
         <span className="home-index-session">{market.session}</span>
       </header>
       <div className="home-index-quote">
-        <strong className="home-index-move tnum">{formatChange(market.changePercent)}</strong>
-        <span className="home-index-level tnum">Level {formatPrice(market.price)}</span>
+        <strong className="home-index-level tnum">{formatPrice(market.price)}</strong>
+        <span className="home-index-move tnum">{formatChange(market.changePercent)}</span>
       </div>
       <div className="home-index-spark" aria-hidden="true">
         <svg viewBox="0 0 100 34" preserveAspectRatio="none">
