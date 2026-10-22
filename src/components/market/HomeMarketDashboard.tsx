@@ -6,12 +6,16 @@ import type { CSSProperties } from "react";
 import type { PulseData } from "@/app/api/market/pulse/route";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { fetchMarketQuotes } from "@/lib/market/client-market-data";
-import { getLivePrice } from "@/lib/market/live-quote";
+import {
+  homeIndexSessionLabel,
+  resolveHomeIndexLiveQuote,
+} from "@/lib/market/home-index-quote";
 import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 
 const HOME_MARKETS = [
-  { ticker: "^GSPC", symbol: "SPX", name: "S&P 500" },
+  /** Cash SPX has no Yahoo pre/AH print — SPY carries the live session move. */
+  { ticker: "^GSPC", proxyTicker: "SPY", symbol: "SPX", name: "S&P 500" },
   { ticker: "USO", symbol: "OIL", name: "Crude Oil · USO" },
   { ticker: "GLD", symbol: "GOLD", name: "Gold · GLD" },
 ] as const;
@@ -98,9 +102,14 @@ export function HomeMarketDashboard() {
       inFlight = true;
       lastAttempt = Date.now();
       try {
+        const quoteTickers = HOME_MARKETS.flatMap((market) =>
+          "proxyTicker" in market && market.proxyTicker
+            ? [market.ticker, market.proxyTicker]
+            : [market.ticker],
+        );
         const [payload, quotes] = await Promise.all([
           fetchJsonWithTimeout<PulseData>("/api/market/pulse", 10000, controller.signal),
-          fetchMarketQuotes(HOME_MARKETS.map((market) => market.ticker), {
+          fetchMarketQuotes(quoteTickers, {
             reason: "initial",
             signal: controller.signal,
           }),
@@ -108,15 +117,24 @@ export function HomeMarketDashboard() {
         if (controller.signal.aborted) return;
         const quoteByTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
         setMarkets(HOME_MARKETS.flatMap((asset) => {
-          const quote = quoteByTicker.get(asset.ticker);
+          const quote = quoteByTicker.get(asset.ticker.toUpperCase());
           if (!quote) return [];
-          const live = getLivePrice(quote);
+          const proxyTicker =
+            "proxyTicker" in asset && asset.proxyTicker
+              ? asset.proxyTicker.toUpperCase()
+              : null;
+          const proxy = proxyTicker ? quoteByTicker.get(proxyTicker) : null;
+          const live = resolveHomeIndexLiveQuote(quote, proxy);
+          const historySource =
+            live.label && proxy && proxy.sparkline.length >= 2 ? proxy : quote;
           return [{
-            ...asset,
+            ticker: asset.ticker,
+            symbol: asset.symbol,
+            name: asset.name,
             price: live.price,
             changePercent: live.changePercent,
-            session: live.label ?? (live.session === "closed" ? "Closed" : "Regular"),
-            history: quote.sparkline,
+            session: homeIndexSessionLabel(live),
+            history: historySource.sparkline,
           }];
         }));
         setData(payload);
