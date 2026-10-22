@@ -59,7 +59,7 @@ function MarketTile({ market, order }: { market: DashboardMarket; order: number 
   return (
     <Link
       href="/pulse"
-      className={`home-index-tile is-${tone}`}
+      className={`home-index-tile asset-${market.symbol.toLowerCase()} is-${tone}`}
       style={{ "--tile-order": order } as CSSProperties}
       aria-label={`${market.name}, ${formatPrice(market.price)}, ${formatChange(market.changePercent)}`}
     >
@@ -71,8 +71,8 @@ function MarketTile({ market, order }: { market: DashboardMarket; order: number 
         <span className="home-index-session">{market.session}</span>
       </header>
       <div className="home-index-quote">
-        <strong className="tnum">{formatPrice(market.price)}</strong>
-        <span className="tnum">{formatChange(market.changePercent)}</span>
+        <strong className="home-index-move tnum">{formatChange(market.changePercent)}</strong>
+        <span className="home-index-level tnum">Level {formatPrice(market.price)}</span>
       </div>
       <div className="home-index-spark" aria-hidden="true">
         <svg viewBox="0 0 100 34" preserveAspectRatio="none">
@@ -179,7 +179,7 @@ export function HomeMarketDashboard() {
 
           <div className="home-command-context">
             {gauges.map((gauge) => (
-              <article className={`home-context-card is-${gauge.tone}`} key={gauge.id}>
+              <article className={`home-context-card is-${gauge.tone} is-${gauge.id}`} key={gauge.id}>
                 <span>{gauge.label}</span>
                 <strong className="tnum">{gauge.value}</strong>
                 <em>{gauge.status}</em>

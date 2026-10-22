@@ -481,9 +481,23 @@ body, html[data-theme="cream"] body { background-image: none; }
   letter-spacing: .05em;
   text-transform: uppercase;
 }
-.home-index-quote { align-items: baseline; }
-.home-index-quote strong { font: 700 clamp(1.15rem, 2vw, 1.55rem) var(--font-mono); letter-spacing: -.04em; }
-.home-index-quote span { color: var(--tile-accent); font: 750 .78rem var(--font-mono); }
+.home-index-quote {
+  display: grid;
+  align-items: start;
+  justify-content: stretch;
+  gap: 4px;
+}
+.home-index-quote .home-index-move {
+  color: var(--tile-accent);
+  font: 780 clamp(1.75rem, 3.2vw, 2.5rem)/.95 var(--font-mono);
+  letter-spacing: -.065em;
+}
+.home-index-quote .home-index-level {
+  color: #8095a3;
+  font: 650 .62rem/1.2 var(--font-mono);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
 .home-index-spark { height: 48px; margin: 0 -3px -2px; }
 .home-index-spark svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .home-index-spark path { fill: none; vector-effect: non-scaling-stroke; }
@@ -552,8 +566,9 @@ body, html[data-theme="cream"] body { background-image: none; }
   .home-index-tile { gap: 9px; padding: 11px 10px 8px; }
   .home-index-name { font-size: .64rem; }
   .home-index-session { display: none; }
-  .home-index-quote { display: grid; gap: 3px; }
-  .home-index-quote strong { font-size: 1.02rem; }
+  .home-index-quote { gap: 3px; }
+  .home-index-quote .home-index-move { font-size: 1.55rem; }
+  .home-index-quote .home-index-level { font-size: .55rem; }
   .home-index-spark { height: 38px; }
   .home-command-context { grid-template-columns: 1fr 1fr; gap: 6px; }
   .home-context-card { grid-template-columns: 1fr; padding: 9px; }
