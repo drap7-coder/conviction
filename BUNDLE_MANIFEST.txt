@@ -1,0 +1,5 @@
+commit=870d914e79871ec66591622431994123e890c6f1
+branch=cursor/semantic-metric-tone-a59a
+requires=3726ad85bff32d1604ae908d8606eb56eb47f1dc
+sha256=18ebc1fdc86ccd6f3f0237a777f3c840c2e5f7b3f1ae86786723de9527ab54ce
+published_at=2026-10-26T19:56:04Z
