@@ -10,7 +10,7 @@ describe("Pulse API stays lean and cached", () => {
     const route = read("src/app/api/market/pulse/route.ts");
 
     expect(route).toContain("unstable_cache");
-    expect(route).toContain("market-pulse-v3");
+    expect(route).toContain("market-pulse-v4");
     expect(route).toContain("s-maxage=60");
     expect(route).toContain("export const revalidate = 300");
     expect(route).not.toContain("force-dynamic");
@@ -25,9 +25,12 @@ describe("Pulse API stays lean and cached", () => {
     expect(route).not.toContain("marketNarratives");
     expect(route).not.toMatch(/\btriage\b/);
 
-    // Gauges only need VIX + 10Y; indexes stay DIA/SPY/QQQ/IWM (no MDY/RSP).
+    // Gauges only need VIX + 10Y; indexes stay DIA / cash SPX(+SPY proxy) / QQQ / IWM.
     expect(route).toContain('"^VIX"');
     expect(route).toContain('"^TNX"');
+    expect(route).toContain('"^GSPC"');
+    expect(route).toContain('proxyTicker: "SPY"');
+    expect(route).toContain("resolveHomeIndexLiveQuote");
     expect(route).not.toContain('ticker: "UUP"');
     expect(route).not.toContain('ticker: "MDY"');
     expect(route).not.toContain('ticker: "RSP"');

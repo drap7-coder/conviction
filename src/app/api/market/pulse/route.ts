@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { fetchStockQuotes } from "@/lib/market/quotes";
+import { resolveHomeIndexLiveQuote } from "@/lib/market/home-index-quote";
 import { easternSessionCacheKey, getExtendedSessionQuote, getLivePrice } from "@/lib/market/live-quote";
 import { SECTORS } from "@/lib/market/industries";
 
@@ -25,12 +26,22 @@ const INDICATORS: Array<{
 ];
 
 /**
- * Scoreboard universe. DIA/SPY/QQQ/IWM only for indexes (no MDY/RSP).
- * Crypto excludes Solana. International stays six countries.
+ * Scoreboard universe. DIA / cash SPX (+ SPY proxy) / QQQ / IWM for indexes
+ * (no MDY/RSP). Crypto excludes Solana. International stays six countries.
+ *
+ * Cash ^GSPC has no Yahoo pre/AH print — fetch SPY as `proxyTicker` and surface
+ * the row as display ticker SPX with an implied extended level.
  */
 const GLOBAL_MARKETS = [
   { ticker: "DIA", name: "Dow Jones Industrial Average", weight: 14, category: "Major Index" },
-  { ticker: "SPY", name: "S&P 500", weight: 30, category: "Major Index" },
+  {
+    ticker: "^GSPC",
+    displayTicker: "SPX",
+    proxyTicker: "SPY",
+    name: "S&P 500",
+    weight: 30,
+    category: "Major Index",
+  },
   { ticker: "QQQ", name: "Nasdaq 100", weight: 18, category: "Major Index" },
   { ticker: "IWM", name: "Russell 2000", weight: 9, category: "Major Index" },
   { ticker: "USO", name: "Crude Oil", weight: 8, category: "Commodity" },
@@ -134,21 +145,32 @@ async function buildPulsePayload(): Promise<Omit<PulseData, "fetchedAt">> {
   const allTickers = [
     ...INDICATORS.map((i) => i.ticker),
     ...sectorTickers,
-    ...GLOBAL_MARKETS.map((market) => market.ticker),
+    ...GLOBAL_MARKETS.flatMap((market) =>
+      "proxyTicker" in market && market.proxyTicker
+        ? [market.ticker, market.proxyTicker]
+        : [market.ticker],
+    ),
   ];
   const quotes = await fetchStockQuotes(allTickers);
-  const quoteMap = new Map(quotes.map((q) => [q.ticker, q]));
+  const quoteMap = new Map(quotes.map((q) => [q.ticker.toUpperCase(), q]));
   const liveFor = (ticker: string) => {
-    const quote = quoteMap.get(ticker);
+    const quote = quoteMap.get(ticker.toUpperCase());
     return quote ? getLivePrice(quote) : null;
   };
 
   let sessionLabel: string | null = null;
   // Prefer US listed pulse names so crypto / intl clocks don’t smear Pre-Market onto the badge.
   for (const market of GLOBAL_MARKETS) {
-    const quote = quoteMap.get(market.ticker);
+    const quote = quoteMap.get(market.ticker.toUpperCase());
+    const proxy =
+      "proxyTicker" in market && market.proxyTicker
+        ? quoteMap.get(market.proxyTicker.toUpperCase())
+        : null;
     if (!quote) continue;
-    const label = getExtendedSessionQuote(quote).sessionLabel ?? getLivePrice(quote).label;
+    const label =
+      resolveHomeIndexLiveQuote(quote, proxy).label
+      ?? getExtendedSessionQuote(quote).sessionLabel
+      ?? getLivePrice(quote).label;
     if (label) {
       sessionLabel = label;
       break;
@@ -205,27 +227,45 @@ async function buildPulsePayload(): Promise<Omit<PulseData, "fetchedAt">> {
   sectors.sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0));
 
   const globalMarkets: PulseGlobalMarket[] = GLOBAL_MARKETS.map((market) => {
-    const live = liveFor(market.ticker);
-    const quote = quoteMap.get(market.ticker);
-    const extended = quote ? getExtendedSessionQuote(quote) : null;
-    const inExtended = Boolean(extended?.sessionLabel);
+    const quote = quoteMap.get(market.ticker.toUpperCase());
+    const proxy =
+      "proxyTicker" in market && market.proxyTicker
+        ? quoteMap.get(market.proxyTicker.toUpperCase())
+        : null;
+    const live = quote ? resolveHomeIndexLiveQuote(quote, proxy) : liveFor(market.ticker);
+    const nativeExtended = quote ? getExtendedSessionQuote(quote) : null;
+    const sessionFromLive = live?.label ?? null;
+    const inExtended = Boolean(sessionFromLive || nativeExtended?.sessionLabel);
+    const displayTicker =
+      "displayTicker" in market && market.displayTicker ? market.displayTicker : market.ticker;
+    const historySource =
+      sessionFromLive && proxy && proxy.sparkline.length >= 2 ? proxy : quote;
+
     return {
-      ...market,
+      ticker: displayTicker,
+      name: market.name,
+      weight: market.weight,
+      category: market.category,
+      // RTH close stays in `price` during extended so the grid can promote live last.
       price: inExtended
         ? (quote?.price ?? null)
         : (live?.price ?? quote?.price ?? null),
       changePercent: inExtended
         ? (quote?.changePercent ?? null)
         : (live?.changePercent ?? quote?.changePercent ?? null),
-      history: quote?.sparkline.slice(-15) ?? [],
+      history: historySource?.sparkline.slice(-15) ?? [],
       regularPrice: quote?.price ?? null,
       regularChange: quote?.change ?? null,
       regularChangePercent: quote?.changePercent ?? null,
-      extendedPrice: extended?.price ?? null,
-      extendedChange: extended?.change ?? null,
-      extendedChangePercent: extended?.changePercent ?? null,
-      extendedNoTrades: extended?.noTrades ?? false,
-      sessionLabel: extended?.sessionLabel ?? null,
+      extendedPrice: inExtended ? (live?.price ?? nativeExtended?.price ?? null) : null,
+      extendedChange: inExtended ? (live?.change ?? nativeExtended?.change ?? null) : null,
+      extendedChangePercent: inExtended
+        ? (live?.changePercent ?? nativeExtended?.changePercent ?? null)
+        : null,
+      extendedNoTrades: inExtended
+        ? (live?.price == null && (nativeExtended?.noTrades ?? true))
+        : false,
+      sessionLabel: sessionFromLive ?? nativeExtended?.sessionLabel ?? null,
     };
   });
 
@@ -239,7 +279,7 @@ async function buildPulsePayload(): Promise<Omit<PulseData, "fetchedAt">> {
 
 const loadPulse = unstable_cache(
   async (_sessionKey: string) => buildPulsePayload(),
-  ["market-pulse-v3"],
+  ["market-pulse-v4"],
   { revalidate: 300 },
 );
 
