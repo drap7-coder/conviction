@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Recovery provenance (October 27, 2026)
+
+The complete October 24 UI source is commit `d1c269650835b6fbcf01fb021021d678216c3023`, not the older remote `codex/unified-dark-green` snapshot at `281c836`. PR #433 recovered only that older snapshot. Current Home includes both `HomeMarketDashboard` and `HomeMarketDrivers` (large-cap activity plus sourced headlines), SPY as the explicitly labeled tradable S&P proxy, and intraday chart labels. Preserve the completed Pulse card-wall/movers styling and bull branding. Restoration is additive on current main; retain current CI and no-color-filter safeguards. Fetch current main before work and compare commit IDs, not branch names alone. Do not restore an old checkout or force-reset user work.
+
 ### Site appearance (October 17, 2026)
 
 The main site is dark-only, with a shared green-tinted canvas in `dark-surface.css`. Root HTML sets `data-theme="dark"` before hydration; legacy `iqbulls-theme` preferences are discarded. Do not restore the header light/dark toggle. Keep gain/loss colors semantic, avoid color filters over charts or media, and preserve Manage accent personalization. Legacy embed theme URLs remain compatible independently of the main-site appearance.
