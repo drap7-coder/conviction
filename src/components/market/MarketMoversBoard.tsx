@@ -27,6 +27,9 @@ function MoverCard({
   const tone = title === "Gainers" || title === "Leaders" ? "gainers"
     : title === "Losers" || title === "Laggards" ? "losers"
       : "volume";
+  const description = tone === "gainers" ? "Strongest price momentum"
+    : tone === "losers" ? "Weakest price momentum"
+      : "Where trading is concentrated";
 
   return (
     <section
@@ -36,7 +39,10 @@ function MoverCard({
       <div className="market-heatmap-copy">
         <div className="market-panel-header pulse-index-board-head">
           <div className="pulse-index-board-title-row">
-            <h2>{title}</h2>
+            <div>
+              <h2>{title}</h2>
+              <p>{description}</p>
+            </div>
             {sessionLabel ? (
               <span className="pulse-index-session" aria-label={`${sessionLabel} session`}>
                 <i className="pulse-index-session-dot" aria-hidden="true" />
@@ -88,6 +94,7 @@ function MoverCard({
                     extendedChangePercent={row.extendedChangePercent ?? null}
                     extendedNoTrades={Boolean(row.extendedNoTrades)}
                     priorCloseSecondary={priorClose}
+                    activeSessionPrimary={Boolean(extendedLabel)}
                     compact
                   />
                 </>

@@ -11,7 +11,7 @@ import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
 
 const HOME_MARKETS = [
-  { ticker: "^GSPC", symbol: "SPX", name: "S&P 500", category: "Broad market", note: "Large U.S. companies" },
+  { ticker: "SPY", symbol: "SPY", name: "S&P 500", category: "Broad market", note: "Tradable S&P 500 proxy" },
   { ticker: "QQQ", symbol: "QQQ", name: "Growth stocks", category: "Growth", note: "Tech-led market leaders" },
   { ticker: "SCHD", symbol: "SCHD", name: "Dividend stocks", category: "Income", note: "Quality companies that pay dividends" },
   { ticker: "USO", symbol: "OIL", name: "Oil", category: "Inflation", note: "Energy and global demand" },
@@ -81,6 +81,7 @@ function MarketTile({ market, order }: { market: DashboardMarket; order: number 
         <span className="home-index-level tnum">{market.secondaryValue ?? `Level ${formatPrice(market.price)}`}</span>
       </div>
       <div className="home-index-spark" aria-hidden="true">
+        <span>Intraday</span>
         <svg viewBox="0 0 100 34" preserveAspectRatio="none">
           <path className="home-index-spark-baseline" d="M0 17 L100 17" />
           {path ? <path className="home-index-spark-line" d={path} /> : null}

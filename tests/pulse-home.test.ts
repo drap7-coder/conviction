@@ -50,6 +50,12 @@ describe("Home personal intelligence", () => {
     expect(home).not.toContain("home-macro");
     expect(home).not.toContain("<HomeMarketStrip");
     expect(home).toContain("<HomeMarketDashboard");
+    expect(home).toContain("<HomeMarketDrivers");
+    const dashboard = read("src/components/market/HomeMarketDashboard.tsx");
+    expect(dashboard).toContain('ticker: "SPY", symbol: "SPY"');
+    expect(dashboard).toContain("Tradable S&P 500 proxy");
+    expect(dashboard).toContain("<span>Intraday</span>");
+    expect(read("src/components/market/HomeMarketDrivers.tsx")).toContain("Three headlines to know");
     expect(home).not.toContain("<HomePersonalBrief");
     expect(home).not.toContain("PulseYourStocks");
     expect(strip).toContain("PulseMacroGauges");
