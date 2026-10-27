@@ -59,8 +59,8 @@ describe("Pulse heatmap universe", () => {
     const gauges = read("src/components/market/PulseMacroGauges.tsx");
     const css = read("src/app/globals.css");
     const marketsBlockStart = page.indexOf('view === "markets"');
-    const gaugesStart = page.indexOf("<PulseMacroGauges");
-    const opsRail = page.indexOf("pulse-ops-telemetry");
+    const gaugesStart = page.indexOf("pulse-ops-snapshot");
+    const opsRail = page.indexOf("pulse-ops-rail");
     const indexesStart = page.indexOf("<IndexScoreboard", marketsBlockStart);
     const commoditiesStart = page.indexOf("<CommodityScoreboard", marketsBlockStart);
     const sectorsStart = page.indexOf("<SectorScoreboard", marketsBlockStart);
@@ -106,8 +106,8 @@ describe("Pulse heatmap universe", () => {
     expect(page).not.toContain("PULSE_TABS");
     expect(page).not.toContain("pulse-panel-trending");
     expect(page).not.toContain('id="industries"');
-    expect(page).toContain("PulseMacroGauges");
-    expect(page).toContain("compact");
+    expect(page).toContain("pulseMacroGauges");
+    expect(page).toContain("pulse-ops-snapshot");
     expect(page).toContain("IndexScoreboard");
     expect(page).toContain("CommodityScoreboard");
     expect(page).toContain("MarketMovesPanel");
@@ -127,7 +127,7 @@ describe("Pulse heatmap universe", () => {
     expect(board).not.toContain("moverBarHeight");
     expect(board).not.toContain("pulse-index-sessions");
     expect(board).not.toContain("IndexSessionMoves");
-    expect(board).toContain('title="Commodity Prices Today"');
+    expect(board).toContain('title="Commodities"');
     expect(board).toMatch(/CommodityScoreboard[\s\S]*showSessionMoves/);
     expect(board).toContain("SectorScoreboard");
     expect(board).toContain("InternationalScoreboard");

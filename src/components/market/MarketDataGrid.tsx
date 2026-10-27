@@ -148,6 +148,7 @@ export function MarketDataGrid({
         const pct = promote
           ? market.extendedChangePercent ?? null
           : market.regularChangePercent ?? market.changePercent;
+        const rowTone = toneClass(pct);
         const prev = marketGridPreviousClose(market);
         const label = rowLabel(market, showSessionMoves);
         const cells = (
@@ -194,14 +195,14 @@ export function MarketDataGrid({
           <Link
             key={market.ticker}
             href={href}
-            className="market-data-grid-row"
+            className={`market-data-grid-row ${rowTone}`}
             role="row"
             aria-label={label}
           >
             {cells}
           </Link>
         ) : (
-          <div key={market.ticker} className="market-data-grid-row" role="row" aria-label={label}>
+          <div key={market.ticker} className={`market-data-grid-row ${rowTone}`} role="row" aria-label={label}>
             {cells}
           </div>
         );
