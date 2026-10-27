@@ -39,7 +39,7 @@ describe("Pulse API stays lean and cached", () => {
 
   it("Pulse page only consumes scoreboard fields from the lean payload", () => {
     const page = read("src/components/market/PulseMarketBoard.tsx");
-    expect(page).toContain("data.indicators");
+    expect(page).toContain("data?.indicators");
     expect(page).toContain("data?.globalMarkets");
     expect(page).toContain("data?.sectors");
     expect(page).toContain("data.sessionLabel");

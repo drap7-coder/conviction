@@ -10,9 +10,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 The main site is dark-only, with a shared green-tinted canvas in `dark-surface.css`. Root HTML sets `data-theme="dark"` before hydration; legacy `iqbulls-theme` preferences are discarded. Do not restore the header light/dark toggle. Keep gain/loss colors semantic, avoid color filters over charts or media, and preserve Manage accent personalization. Legacy embed theme URLs remain compatible independently of the main-site appearance.
 
-### Home restoration (October 16, 2026 — supersedes October 14 macro-only Home below)
+### Home market command (October 27, 2026 — supersedes October 16 brief-on-Home)
 
-Home owns `HomePersonalBrief` → `PersonalDailyBrief`: sourced company reporting, coverage ring/map, report timeline, and on-demand Analytics. Do not mount `HomeMarketStrip`, market gauges, index/commodity/sector tables, or a Pulse slicer on Home. Portfolio owns holdings/watchlist editing and movers, not a duplicated brief. Pulse retains its existing vertical market workspace and navigation. Preserve bounded news/history fetches, explicit coverage gaps, and guest setup before empty chart scaffolds. Never replace this separation with two market homes. The October 14 macro-only Home and Portfolio brief ownership paragraphs below are historical, not current instructions.
+Home owns `HomeMarketDashboard` — the live market situation overview (indexes / cross-asset tiles + macro context). Do **not** mount `HomePersonalBrief` / `PersonalDailyBrief` on Home; personal company intelligence stays on Portfolio → Watchlist. Do not mount `HomeMarketStrip` or a Pulse slicer on Home. Pulse retains the full Markets / Movers / Crypto / Intl workspace. Never replace this separation with two market homes. The October 16 Home-brief and October 14 macro-only paragraphs below are historical, not current instructions.
 
 ### Personal daily brief (October 14, 2026)
 

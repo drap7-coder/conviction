@@ -42,15 +42,15 @@ function theme(
 }
 
 describe("Home personal intelligence", () => {
-  it("keeps the brief on Home and market tables on Pulse", () => {
+  it("keeps the market command on Home and market tables on Pulse", () => {
     const home = read("src/components/market/HomeOverview.tsx");
     const strip = read("src/components/market/HomeMarketStrip.tsx");
     const pulse = read("src/components/market/PulseDashboard.tsx");
     const page = read("src/app/page.tsx");
     expect(home).not.toContain("home-macro");
     expect(home).not.toContain("<HomeMarketStrip");
-    expect(home).toContain("<HomePersonalBrief");
-    expect(read("src/components/HomePersonalBrief.tsx")).toContain("loadHomeNames");
+    expect(home).toContain("<HomeMarketDashboard");
+    expect(home).not.toContain("<HomePersonalBrief");
     expect(home).not.toContain("PulseYourStocks");
     expect(strip).toContain("PulseMacroGauges");
     expect(strip).toContain("IndexScoreboard");
@@ -67,18 +67,18 @@ describe("Home personal intelligence", () => {
     expect(pulse).toContain("<PulseMarketBoard");
     expect(pulse).not.toContain("PersonalDailyBrief");
     const pulseBoard = read("src/components/market/PulseMarketBoard.tsx");
-    const gaugesJsx = pulseBoard.indexOf("<PulseMacroGauges");
+    const opsRail = pulseBoard.indexOf("pulse-ops-rail");
     const indexesJsx = pulseBoard.indexOf("<IndexScoreboard");
     const commoditiesJsx = pulseBoard.indexOf("<CommodityScoreboard");
-    expect(gaugesJsx).toBeGreaterThan(-1);
-    expect(gaugesJsx).toBeLessThan(indexesJsx);
+    expect(opsRail).toBeGreaterThan(-1);
+    expect(opsRail).toBeLessThan(indexesJsx);
     expect(indexesJsx).toBeLessThan(commoditiesJsx);
   });
 
-  it("keeps the personal brief on Home — not Portfolio or Pulse", () => {
+  it("keeps the personal brief off Home — Portfolio and Pulse stay clean", () => {
     expect(read("src/components/Portfolio.tsx")).not.toContain("PersonalBrief");
     expect(read("src/components/HomePersonalBrief.tsx")).toContain("<PersonalDailyBrief");
-    expect(read("src/components/market/HomeOverview.tsx")).toContain(
+    expect(read("src/components/market/HomeOverview.tsx")).not.toContain(
       "<HomePersonalBrief",
     );
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain(
