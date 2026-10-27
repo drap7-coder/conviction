@@ -1,4 +1,5 @@
 import { HomeOverview } from "@/components/market/HomeOverview";
+import Link from "next/link";
 
 /**
  * IQBulls Home — personal intelligence, distinct from the full market tape.
@@ -7,9 +8,11 @@ import { HomeOverview } from "@/components/market/HomeOverview";
 export default function HomePage() {
   return (
     <main className="markets-page pulse-page home-page">
-      <header className="pulse-seo-intro home-dashboard-intro">
-        <p className="pulse-product-label">IQBulls / Market intelligence</p>
-        <h1>Markets first. What matters next.</h1>
+      <header className="pulse-seo-intro">
+        <p className="pulse-product-label">IQBulls / Daily intelligence</p>
+        <h1>What changed. What matters.</h1>
+        <p className="pulse-seo-lede">Your companies, connected to the evidence. Start with the brief; investigate what deserves your attention.</p>
+        <Link className="home-pulse-link" href="/pulse">Open Pulse · Full market tape ↗</Link>
       </header>
       <HomeOverview />
     </main>

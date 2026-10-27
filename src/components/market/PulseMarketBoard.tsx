@@ -13,8 +13,8 @@ import {
   SectorScoreboard,
 } from "@/components/market/IndexScoreboard";
 import { CryptoBoard } from "@/components/market/CryptoBoard";
+import { PulseMacroGauges } from "@/components/market/PulseMacroGauges";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
-import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import { trackProductEvent } from "@/lib/product-analytics";
 
 type PulseView = "markets" | "movers" | "crypto" | "international";
@@ -193,39 +193,27 @@ function PulseMarketBoardInner() {
   const cryptoMarkets = marketsByCategory("Crypto");
   const internationalMarkets = marketsByCategory("International");
   const sectorMarkets = sectorsToMarkets(data?.sectors ?? []);
-  const macroCards = pulseMacroGauges(data?.indicators ?? []);
 
   return (
     <section
       className="pulse-home-section pulse-market-glance"
-      data-view={view}
       aria-labelledby="pulse-market-glance-heading"
     >
-      <header className="pulse-home-section-head pulse-workspace-head">
+      <header className="pulse-home-section-head">
         <div>
-          <p className="pulse-home-eyebrow">Pulse</p>
-          <h2 id="pulse-market-glance-heading">Markets in one place.</h2>
-          <p className="pulse-workspace-lede">Indexes · movers · crypto · international</p>
+          <p className="pulse-home-eyebrow">Markets</p>
+          <h2 id="pulse-market-glance-heading">Pulse</h2>
         </div>
       </header>
 
-      <div className="pulse-ops-rail">
+      <div className="pulse-macro-band">
         {data ? (
-          <div className="pulse-ops-snapshot" aria-label="Market operating context">
-            <div className="pulse-ops-session">
-              <span className="pulse-ops-live" aria-hidden="true" />
-              <div>
-                <small>Session</small>
-                <strong>{data.sessionLabel ?? "Regular market"}</strong>
-              </div>
+          <div className="pulse-ops-telemetry" aria-label="Macro environment">
+            <div className="pulse-macro-band-label">
+              <span>Macro environment</span>
+              {data.sessionLabel ? <em>{data.sessionLabel}</em> : null}
             </div>
-            {macroCards.map((card) => (
-              <div className={`pulse-ops-stat pulse-ops-stat--${card.id}`} key={card.id}>
-                <small>{card.label}</small>
-                <strong className="tnum">{card.value}</strong>
-                <em>{card.status}</em>
-              </div>
-            ))}
+            <PulseMacroGauges indicators={data.indicators} compact showShareTools={false} />
           </div>
         ) : null}
 
