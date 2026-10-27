@@ -28,17 +28,17 @@ function market(overrides: Partial<PulseGlobalMarket>): PulseGlobalMarket {
 
 describe("index scoreboard", () => {
   it("keeps Dow, S&P, Nasdaq, and Russell in that order and drops extra index ETFs", () => {
-    expect(INDEX_SCOREBOARD.map((entry) => entry.ticker)).toEqual(["DIA", "SPX", "QQQ", "IWM"]);
+    expect(INDEX_SCOREBOARD.map((entry) => entry.ticker)).toEqual(["DIA", "SPY", "QQQ", "IWM"]);
     const rows = scoreboardIndexes([
       market({ ticker: "RSP", name: "S&P 500 Equal Weight" }),
       market({ ticker: "IWM", name: "Russell 2000" }),
       market({ ticker: "QQQ", name: "Nasdaq 100" }),
       market({ ticker: "MDY", name: "S&P MidCap 400" }),
-      market({ ticker: "SPX", name: "S&P 500" }),
+      market({ ticker: "SPY", name: "S&P 500" }),
       market({ ticker: "DIA" }),
     ]);
 
-    expect(rows.map((row) => row.ticker)).toEqual(["DIA", "SPX", "QQQ", "IWM"]);
+    expect(rows.map((row) => row.ticker)).toEqual(["DIA", "SPY", "QQQ", "IWM"]);
     expect(rows[0]?.name).toBe("Dow Jones");
     expect(rows.some((row) => row.ticker === "MDY" || row.ticker === "RSP")).toBe(false);
   });

@@ -55,9 +55,6 @@ export function SessionQuoteStack({
   /** Secondary line shows prior RTH close (Gainers/Losers/Volume in pre/AH). */
   priorCloseSecondary = false,
   activeSessionPrimary = false,
-  /** Optional prior RTH $ / % for the previous-close context line. */
-  priorCloseChange = null,
-  priorCloseChangePercent = null,
   compact = false,
   onHeat = false,
 }: {
@@ -72,8 +69,6 @@ export function SessionQuoteStack({
   priorCloseSecondary?: boolean;
   /** Promote the active Pre/AH print and demote regular close to context. */
   activeSessionPrimary?: boolean;
-  priorCloseChange?: number | null;
-  priorCloseChangePercent?: number | null;
   /** Tighter type for Market Movers columns. */
   compact?: boolean;
   /** Dark heatmap tile foot — left-aligned, light-on-fill colors. */
@@ -81,7 +76,6 @@ export function SessionQuoteStack({
 }) {
   const tone = sessionQuoteTone(change);
   const extendedTone = sessionQuoteTone(extendedChange);
-  const priorTone = sessionQuoteTone(priorCloseChange ?? change);
   const showExtended = Boolean(extendedLabel);
   const promoteExtended = activeSessionPrimary && hasExtendedPrint({ sessionLabel: extendedLabel, extendedPrice, extendedNoTrades });
   const primaryPrice = promoteExtended ? extendedPrice : lastPrice;
@@ -89,9 +83,6 @@ export function SessionQuoteStack({
   const primaryChangePercent = promoteExtended ? extendedChangePercent : changePercent;
   const primaryTone = sessionQuoteTone(primaryChange);
   const secondaryName = priorCloseSecondary ? "Prior close" : extendedLabel;
-  const showPriorMove =
-    promoteExtended &&
-    (isFiniteNumber(priorCloseChangePercent) || isFiniteNumber(priorCloseChange));
   const classes = [
     "session-quote",
     compact ? "is-compact" : null,
@@ -107,23 +98,10 @@ export function SessionQuoteStack({
         {promoteExtended ? <span className="session-quote-tag" aria-label={extendedLabel === "Pre-Market" ? "Pre-Market" : "After Hours"}>{extendedLabel === "Pre-Market" ? "PRE" : "AH"}</span> : null}
       </span>
       {promoteExtended ? (
-        <span
-          className={`session-quote-reference tnum${showPriorMove ? ` is-${priorTone}` : ""}`}
-          aria-label={
-            showPriorMove
-              ? `Prior close ${fmtDollarPrice(lastPrice)}, ${fmtSignedDollar(priorCloseChange ?? change)} ${fmtPercent(priorCloseChangePercent ?? changePercent, 2)}`
-              : `Previous close ${fmtDollarPrice(lastPrice)}`
-          }
-        >
+        <span className="session-quote-reference tnum">
           <SessionIcon kind={extendedLabel!} />
-          <em>Prior close</em>
+          <em>Previous close</em>
           <span>{fmtDollarPrice(lastPrice)}</span>
-          {showPriorMove ? (
-            <>
-              <span>{fmtSignedDollar(priorCloseChange ?? change)}</span>
-              <span>{fmtPercent(priorCloseChangePercent ?? changePercent, 2)}</span>
-            </>
-          ) : null}
         </span>
       ) : showExtended && extendedLabel ? (
         <span
