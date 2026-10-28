@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Home editorial perspective (October 28, 2026 — current)
+
+Home now leads with one SPY chart and three supporting signals (QQQ, GLD, 10Y), followed by factual “What changed”, explanatory “Why it matters”, expandable source/timing notes and three sourced headlines. Use scoped `HomeEditorial.module.css`; do not restore the equal-weight six-tile grid, decorative live pips, or Home movers ranking. Keep Pulse, Portfolio and News intact. Snapshot fetch time is not trade time; charts and quotes can differ in session coverage. Product specification and responsive wireframes: `docs/product/home-editorial-redesign.md`. Earlier recovery notes identify the source baseline, not an instruction to undo this redesign.
+
 ### Recovery provenance (October 27, 2026)
 
 The complete October 24 UI source is commit `d1c269650835b6fbcf01fb021021d678216c3023`, not the older remote `codex/unified-dark-green` snapshot at `281c836`. PR #433 recovered only that older snapshot. Current Home includes both `HomeMarketDashboard` and `HomeMarketDrivers` (large-cap activity plus sourced headlines), SPY as the explicitly labeled tradable S&P proxy, and intraday chart labels. Preserve the completed Pulse card-wall/movers styling and bull branding. Restoration is additive on current main; retain current CI and no-color-filter safeguards. Fetch current main before work and compare commit IDs, not branch names alone. Do not restore an old checkout or force-reset user work.

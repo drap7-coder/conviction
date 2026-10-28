@@ -1,0 +1,32 @@
+import { describe, expect, it } from "vitest";
+import { homeChart, marketTakeaway } from "@/lib/market/home-editorial";
+
+describe("Home editorial evidence", () => {
+  it("does not turn missing or invalid quotes into a flat market", () => {
+    for (const value of [null, undefined, NaN, Infinity]) {
+      expect(marketTakeaway(value)).toBe("The market picture is still coming together.");
+    }
+    expect(marketTakeaway(0)).toBe("U.S. stocks are little changed.");
+    expect(marketTakeaway(.4)).toBe("U.S. stocks are moving higher.");
+    expect(marketTakeaway(-.4)).toBe("U.S. stocks are moving lower.");
+  });
+  it("does not fabricate a chart from missing, invalid or single-time data", () => {
+    expect(homeChart([])).toBeNull();
+    expect(homeChart([{ date: "invalid", close: 10 }])).toBeNull();
+    expect(homeChart([{ date: "2026-10-28T12:00:00Z", close: 10 }, { date: "2026-10-28T12:00:00Z", close: 11 }])).toBeNull();
+  });
+  it("orders actual timestamps and spaces gaps by elapsed time", () => {
+    const chart = homeChart([
+      { date: "2026-10-28T16:00:00Z", close: 120 },
+      { date: "2026-10-28T12:00:00Z", close: 100 },
+      { date: "2026-10-28T13:00:00Z", close: 110 },
+      { date: "2026-10-28T14:00:00Z", close: NaN },
+    ]);
+    expect(chart?.path).toBe("M0.00 90.00 L25.00 50.00 L100.00 10.00");
+    expect(chart?.low).toBe(100);
+    expect(chart?.high).toBe(120);
+  });
+  it("centers flat prices instead of drawing a misleading bottomed-out chart", () => {
+    expect(homeChart([{ date: "2026-10-28T12:00:00Z", close: 100 }, { date: "2026-10-28T13:00:00Z", close: 100 }])?.path).toBe("M0.00 50.00 L100.00 50.00");
+  });
+});
