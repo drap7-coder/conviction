@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Home consumer styling (October 29, 2026)
+
+Home retains the editorial hierarchy, with Pulse-inspired grid/bull overlay, a blue/navy palette and a finite arrival/light-sweep sequence. Reuse the existing bull asset. Motion must stop after arrival and respect reduced-motion; never animate quote values or suggest live connectivity. Gain/loss colors remain semantic.
+
 ### Home editorial perspective (October 28, 2026 — current)
 
 Home now leads with one SPY chart and three supporting signals (QQQ, GLD, 10Y), followed by factual “What changed”, explanatory “Why it matters”, expandable source/timing notes and three sourced headlines. Use scoped `HomeEditorial.module.css`; do not restore the equal-weight six-tile grid, decorative live pips, or Home movers ranking. Keep Pulse, Portfolio and News intact. Snapshot fetch time is not trade time; charts and quotes can differ in session coverage. Product specification and responsive wireframes: `docs/product/home-editorial-redesign.md`. Earlier recovery notes identify the source baseline, not an instruction to undo this redesign.

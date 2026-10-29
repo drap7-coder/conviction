@@ -1,3 +1,4 @@
+import Image from "next/image";
 import styles from "@/components/market/HomeEditorial.module.css";
 import { HomeOverview } from "@/components/market/HomeOverview";
 
@@ -9,7 +10,10 @@ export default function HomePage() {
   return (
     <main className={styles.page}>
       <header className={styles.masthead}>
-        <h1>IQBulls / The daily perspective</h1>
+        <div className={styles.brandLockup}>
+          <Image src="/iqbulls-bull.png" width={48} height={48} alt="" className={styles.brandMark} />
+          <h1>IQBulls / The daily perspective</h1>
+        </div>
         <p>Understand the market. Build your conviction.</p>
       </header>
       <HomeOverview />

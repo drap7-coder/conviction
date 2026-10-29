@@ -132,6 +132,7 @@ export function HomeMarketDashboard() {
 
   return <section className={styles.overview} aria-labelledby="home-market-command-heading">
     <header className={styles.storyHeader}>
+      <span className={styles.motionWash} aria-hidden="true" />
       <p className={styles.eyebrow}>The market in perspective</p>
       <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : marketTakeaway(lead?.changePercent)}</h2>
       <p className={styles.dek}>Start with the broad market. See the context. Follow what matters to you.</p>
