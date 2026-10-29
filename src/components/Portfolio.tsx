@@ -34,6 +34,7 @@ import { ConcentrationNotice } from "@/components/ConcentrationNotice";
 import { PortfolioManager } from "@/components/PortfolioManager";
 import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
+import { PortfolioRiskXRay } from "@/components/PortfolioRiskXRay";
 import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
@@ -44,6 +45,7 @@ import { getStudyBrief } from "@/lib/portfolio/study-briefs";
 import { PROFILE_BENCHMARK } from "@/lib/portfolio/fit";
 import type { BookHolding } from "@/lib/portfolio/sleeves";
 import { generateSleeveMoves, visibleCompareMoves } from "@/lib/portfolio/sleeve-moves";
+import { buildPortfolioRiskXRay } from "@/lib/portfolio/risk-xray";
 import {
   buildSparklineGeometry,
   sparklineStroke,
@@ -428,6 +430,10 @@ export default function Portfolio() {
 
   const valueBrief = useMemo(
     () => buildPortfolioValueBrief(bookHoldings),
+    [bookHoldings],
+  );
+  const riskXRay = useMemo(
+    () => buildPortfolioRiskXRay(bookHoldings.map((holding) => ({ ticker: holding.ticker, weight: holding.weight, exposure: holding.exposure ?? null }))),
     [bookHoldings],
   );
 
@@ -838,6 +844,7 @@ export default function Portfolio() {
         ) : null}
         {sectorMixCard}
         {allocationPanel}
+        <PortfolioRiskXRay result={riskXRay} />
         <PortfolioBenchmarkChart
           positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
           benchmarkTicker={benchmark.ticker}
