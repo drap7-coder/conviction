@@ -38,3 +38,7 @@ Fetch time is labeled as a snapshot fetch, not a trade time. Quotes may be delay
 ## Verification
 
 Check desktop and a 390px-wide viewport. Verify loading, unavailable and empty states; sparse/invalid chart data; keyboard access to methodology; actual source links and mobile overflow. Keep Pulse components and navigation untouched. Run typecheck, Vitest and production build. Product acceptance: a newcomer can state the broad-market move quickly; an experienced reader can find session, source and timeframe without hunting.
+
+## October 29 visual update
+
+Home adds the existing bull mark and a Pulse-inspired grid/watermark overlay. Navy surfaces and stronger cyan/blue accents replace the muted green Home panels. A finite arrival sequence and light sweep run once in under four seconds; reduced-motion disables both. Charts and quote values do not animate. This supersedes the earlier no-motion/emerald-only visual direction while preserving the reading order and data contract.
