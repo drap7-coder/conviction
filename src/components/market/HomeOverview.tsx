@@ -10,7 +10,7 @@ import { HomeMarketDrivers } from "@/components/market/HomeMarketDrivers";
  */
 export function HomeOverview() {
   return (
-    <div className="pulse-dashboard pulse-home home-overview home-dashboard-overview">
+    <div className="home-editorial-overview">
       <HomeMarketDashboard />
       <HomeMarketDrivers />
     </div>

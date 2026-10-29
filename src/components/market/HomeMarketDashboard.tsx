@@ -2,104 +2,70 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import type { CSSProperties } from "react";
 import type { PulseData } from "@/app/api/market/pulse/route";
 import { fetchJsonWithTimeout } from "@/app/components/evidence-request";
 import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
+import { homeChart, marketTakeaway } from "@/lib/market/home-editorial";
+import styles from "./HomeEditorial.module.css";
 
 const HOME_MARKETS = [
-  { ticker: "SPY", symbol: "SPY", name: "S&P 500", category: "Broad market", note: "Tradable S&P 500 proxy" },
-  { ticker: "QQQ", symbol: "QQQ", name: "Growth stocks", category: "Growth", note: "Tech-led market leaders" },
-  { ticker: "SCHD", symbol: "SCHD", name: "Dividend stocks", category: "Income", note: "Quality companies that pay dividends" },
-  { ticker: "USO", symbol: "OIL", name: "Oil", category: "Inflation", note: "Energy and global demand" },
-  { ticker: "GLD", symbol: "GOLD", name: "Gold", category: "Defense", note: "A traditional safe haven" },
+  { ticker: "SPY", symbol: "SPY", name: "S&P 500", note: "Tradable S&P 500 proxy" },
+  { ticker: "QQQ", symbol: "QQQ", name: "Growth stocks", note: "Nasdaq-100 ETF · a view of large growth companies." },
+  { ticker: "GLD", symbol: "GLD", name: "Gold", note: "Gold ETF · another perspective beyond stocks." },
 ] as const;
 
 interface DashboardMarket {
   ticker: string;
   symbol: string;
   name: string;
-  category: string;
   note: string;
   price: number | null;
   changePercent: number | null;
   session: string;
   history: StockHistoryPoint[];
-  primaryValue?: string;
-  secondaryValue?: string;
 }
 
-function formatPrice(value: number | null | undefined): string {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
-  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function formatPrice(value: number | null | undefined) {
+  return value != null && Number.isFinite(value)
+    ? value.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
 }
-
-function formatChange(value: number | null | undefined): string {
-  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
-  if (value === 0) return "0.00%";
-  return `${value > 0 ? "+" : "−"}${Math.abs(value).toFixed(2)}%`;
+function formatChange(value: number | null | undefined) {
+  return value != null && Number.isFinite(value)
+    ? `${value > 0 ? "+" : value < 0 ? "−" : ""}${Math.abs(value).toFixed(2)}%` : "—";
 }
-
-function sparklinePath(history: StockHistoryPoint[]): string {
-  const values = history.map((point) => point.close).filter(Number.isFinite);
-  if (values.length < 2) return "";
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  return values
-    .map((value, index) => {
-      const x = (index / (values.length - 1)) * 100;
-      const y = 30 - ((value - min) / span) * 26;
-      return `${index === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`;
-    })
-    .join(" ");
+function tone(value: number | null | undefined) {
+  return value != null && value > 0 ? styles.up : value != null && value < 0 ? styles.down : "";
 }
-
-function MarketTile({ market, order }: { market: DashboardMarket; order: number }) {
-  const tone = (market.changePercent ?? 0) > 0 ? "up" : (market.changePercent ?? 0) < 0 ? "down" : "flat";
-  const path = sparklinePath(market.history);
-
-  return (
-    <Link
-      href="/pulse"
-      className={`home-index-tile asset-${market.symbol.toLowerCase()} is-${tone}`}
-      style={{ "--tile-order": order } as CSSProperties}
-      aria-label={`${market.name}, ${market.primaryValue ?? formatChange(market.changePercent)}, ${market.secondaryValue ?? formatPrice(market.price)}`}
-    >
-      <header>
-        <div>
-          <span className="home-index-category">{market.category}</span>
-          <span className="home-index-name">{market.name}</span>
-        </div>
-        <span className="home-index-symbol">{market.symbol}</span>
-      </header>
-      <div className="home-index-quote">
-        <strong className="home-index-move tnum">{market.primaryValue ?? formatChange(market.changePercent)}</strong>
-        <span className="home-index-level tnum">{market.secondaryValue ?? `Level ${formatPrice(market.price)}`}</span>
-      </div>
-      <div className="home-index-spark" aria-hidden="true">
-        <span>Intraday</span>
-        <svg viewBox="0 0 100 34" preserveAspectRatio="none">
-          <path className="home-index-spark-baseline" d="M0 17 L100 17" />
-          {path ? <path className="home-index-spark-line" d={path} /> : null}
-        </svg>
-      </div>
-      <footer>
-        <span>{market.note}</span>
-        <span>{market.session}</span>
-      </footer>
-    </Link>
-  );
+function chartTime(iso: string) {
+  return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
+}
+function Chart({ history, label, compact = false }: { history: StockHistoryPoint[]; label: string; compact?: boolean }) {
+  const chart = homeChart(history);
+  if (!chart) return <p className={styles.chartEmpty}>Chart unavailable</p>;
+  return <figure className={compact ? styles.smallChart : styles.chart}>
+    {!compact ? <div className={styles.chartLabels}><span>Intraday</span><span>Price range {formatPrice(chart.low)}–{formatPrice(chart.high)}</span></div> : null}
+    <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}, ${chartTime(chart.first)} to ${chartTime(chart.last)} ET. Range ${formatPrice(chart.low)} to ${formatPrice(chart.high)}.`}>
+      {[10, 50, 90].map(y => <path key={y} d={`M0 ${y} L100 ${y}`} className={styles.gridline} />)}
+      <path d={`${chart.path} L100 100 L0 100 Z`} className={styles.chartFill} />
+      <path d={chart.path} className={styles.chartLine} />
+    </svg>
+    {compact ? <figcaption>Through {chartTime(chart.last)} ET</figcaption> : <figcaption><span>{chartTime(chart.first)}</span><span>{chartTime(chart.last)} ET</span></figcaption>}
+  </figure>;
 }
 
 export function HomeMarketDashboard() {
   const [data, setData] = useState<PulseData | null>(null);
   const [markets, setMarkets] = useState<DashboardMarket[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
   useEffect(() => {
     const controller = new AbortController();
     let lastAttempt = 0;
@@ -120,7 +86,7 @@ export function HomeMarketDashboard() {
         const quoteByTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
         setMarkets(HOME_MARKETS.flatMap((asset) => {
           const quote = quoteByTicker.get(asset.ticker);
-          if (!quote) return [];
+          if (!quote) return [{ ...asset, price: null, changePercent: null, session: "Unavailable", history: [] }];
           const live = getLivePrice(quote);
           return [{
             ...asset,
@@ -154,87 +120,58 @@ export function HomeMarketDashboard() {
     };
   }, []);
 
+  const lead = markets.find(m => m.ticker === "SPY");
   const gauges = pulseMacroGauges(data?.indicators ?? []);
-  const yieldGauge = gauges.find((gauge) => gauge.id === "yield");
-  const yieldIndicator = data?.indicators.find((indicator) => indicator.ticker === "^TNX");
-  const dashboardMarkets: DashboardMarket[] = [
-    ...markets,
-    ...(yieldIndicator ? [{
-      ticker: yieldIndicator.ticker,
-      symbol: "10Y",
-      name: "Bond yield",
-      category: "Interest rates",
-      note: "The rate that shapes borrowing costs",
-      price: yieldIndicator.price,
-      changePercent: yieldIndicator.changePercent,
-      session: data?.sessionLabel ?? "Latest",
-      history: yieldIndicator.history,
-      primaryValue: yieldGauge?.value ?? "—",
-      secondaryValue: `${formatChange(yieldIndicator.changePercent)} today`,
-    }] : []),
-  ];
-  const sectors = data?.sectors ?? [];
-  const advancing = sectors.filter((sector) => (sector.changePercent ?? 0) > 0).length;
-  const declining = sectors.filter((sector) => (sector.changePercent ?? 0) < 0).length;
-  const ranked = [...sectors].sort((a, b) => (b.changePercent ?? -Infinity) - (a.changePercent ?? -Infinity));
-  const leader = ranked[0];
-  const laggard = ranked.at(-1);
-  const updated = data?.fetchedAt
-    ? new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-    : null;
+  const yieldGauge = gauges.find(g => g.id === "yield");
+  const yieldIndicator = data?.indicators.find(g => g.ticker === "^TNX");
+  const sectors = (data?.sectors ?? []).filter(s => s.changePercent != null && Number.isFinite(s.changePercent));
+  const advancing = sectors.filter(s => s.changePercent! > 0).length;
+  const declining = sectors.filter(s => s.changePercent! < 0).length;
+  const fetched = data?.fetchedAt ? Date.parse(data.fetchedAt) : NaN;
+  const stale = Number.isFinite(fetched) && now - fetched > 15 * 60_000;
 
-  return (
-    <section className="home-market-command" aria-labelledby="home-market-command-heading">
-      <header className="home-market-command-head">
-        <div>
-          <p className="home-command-kicker"><span aria-hidden="true" /> Live market command</p>
-          <h2 id="home-market-command-heading">The market, right now.</h2>
-        </div>
-        <div className="home-command-meta">
-          <span>{data?.sessionLabel ?? "Market snapshot"}</span>
-          {updated ? <time dateTime={data?.fetchedAt}>Updated {updated}</time> : null}
-          <Link href="/pulse">Open full Pulse <span aria-hidden="true">→</span></Link>
-        </div>
-      </header>
-
-      {status === "loading" && !data ? <div className="home-command-loading" role="status">Syncing live market telemetry…</div> : null}
-      {status === "error" && !data ? <div className="home-command-loading" role="status">Market telemetry is temporarily unavailable.</div> : null}
-
-      {data ? (
-        <>
-          <div className="home-dashboard-guide">
-            <strong>Six signals. One market picture.</strong>
-            <span>Stocks show appetite for risk. Oil and gold show pressure and protection. Rates set the cost of money.</span>
-          </div>
-
-          <div className="home-index-grid home-index-grid--cross-asset" aria-label="The broad market, growth, income, oil, gold, and interest rates">
-            {dashboardMarkets.map((market, index) => <MarketTile key={market.ticker} market={market} order={index} />)}
-          </div>
-
-          <div className="home-command-context">
-            {gauges.filter((gauge) => gauge.id !== "yield").map((gauge) => (
-              <article className={`home-context-card is-${gauge.tone} is-${gauge.id}`} key={gauge.id}>
-                <span>{gauge.label}</span>
-                <strong className="tnum">{gauge.value}</strong>
-                <em>{gauge.status}</em>
-                <small>{gauge.caption}</small>
-              </article>
-            ))}
-            <article className="home-context-card home-breadth-card">
-              <span>Sector breadth</span>
-              <strong className="tnum">{advancing}↑ <b>/</b> {declining}↓</strong>
-              <em>{advancing > declining ? "RISK ON" : advancing < declining ? "DEFENSIVE" : "MIXED"}</em>
-              <small>Advancing vs. declining</small>
-            </article>
-            <article className="home-context-card home-leadership-card">
-              <span>Leadership</span>
-              <strong>{leader?.name ?? "—"}</strong>
-              <em className="tnum">{formatChange(leader?.changePercent)}</em>
-              <small>{laggard ? `Laggard: ${laggard.name} ${formatChange(laggard.changePercent)}` : "Sector rotation"}</small>
-            </article>
-          </div>
-        </>
-      ) : null}
-    </section>
-  );
+  return <section className={styles.overview} aria-labelledby="home-market-command-heading">
+    <header className={styles.storyHeader}>
+      <p className={styles.eyebrow}>The market in perspective</p>
+      <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : marketTakeaway(lead?.changePercent)}</h2>
+      <p className={styles.dek}>Start with the broad market. See the context. Follow what matters to you.</p>
+      <div className={styles.status}>
+        <span>{data?.sessionLabel ?? "Market snapshot"}</span>
+        <span>Quotes may be delayed</span>
+        {Number.isFinite(fetched) ? <time dateTime={data!.fetchedAt}>Snapshot fetched {chartTime(data!.fetchedAt)} ET</time> : null}
+      </div>
+    </header>
+    {status === "loading" ? <p className={styles.empty} role="status">Loading the market picture…</p> : null}
+    {status === "error" || stale ? <p className={styles.notice} role="status">{data ? "This snapshot may be out of date. A fresh update is not available yet." : "Market data is temporarily unavailable. You can still read the headlines below."}</p> : null}
+    {data ? <>
+      <div className={styles.marketLayout}>
+        <article className={styles.lead}>
+          <div className={styles.panelHeading}><div><p className={styles.eyebrow}>The broad market</p><h3>S&P 500 <span className={styles.symbol}>SPY</span></h3></div><Link href="/pulse" className={styles.textLink}>Explore Pulse →</Link></div>
+          <div className={styles.quote}><strong className={tone(lead?.changePercent)}>{formatChange(lead?.changePercent)}</strong><span>{lead?.session ?? "Unavailable"} change</span></div>
+          <p className={styles.price}>SPY share price <b>${formatPrice(lead?.price)}</b> · USD</p>
+          <Chart history={lead?.history ?? []} label="SPY share price" />
+          <p className={styles.caption}>Tradable S&P 500 proxy. Chart shows available intraday prices; the change above uses the labeled quote session.</p>
+        </article>
+        <aside className={styles.signals} aria-label="Three supporting signals">
+          {markets.filter(m => m.ticker !== "SPY").map(m => <article key={m.ticker} className={styles.signal}>
+            <div className={styles.signalTop}><h3>{m.name}</h3><span className={styles.symbol}>{m.symbol}</span></div>
+            <div className={styles.signalValue}><strong className={tone(m.changePercent)}>{formatChange(m.changePercent)}</strong><span>{m.session}</span></div>
+            <Chart history={m.history} label={m.name} compact />
+            <p>{m.note}</p>
+          </article>)}
+          <article className={styles.signal}>
+            <div className={styles.signalTop}><h3>Borrowing costs</h3><span className={styles.symbol}>10Y</span></div>
+            <div className={styles.signalValue}><strong>{yieldGauge?.value ?? "—"}</strong><span>Treasury yield</span></div>
+            <Chart history={yieldIndicator?.history ?? []} label="10-year Treasury yield" compact />
+            <p>A benchmark for interest rates across the economy.</p>
+          </article>
+        </aside>
+      </div>
+      <div className={styles.explainer}>
+        <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `SPY ${formatChange(lead.changePercent)} in the ${lead.session.toLowerCase()} session.`}</h3><p>{sectors.length ? `${advancing} of ${sectors.length} available sectors are higher and ${declining} are lower. Sector readings can cover different quote sessions.` : "Sector coverage is unavailable; we cannot assess how widely the move is shared."}</p></article>
+        <article><p className={styles.eyebrow}>Why it matters</p><h3>One index is only part of the story.</h3><p>SPY tracks large U.S. companies. Compare growth stocks, gold and rates to put its move in context. These signals describe prices; they do not establish what caused a move.</p></article>
+      </div>
+      <details className={styles.details}><summary>Sources, timing & how to read this</summary><p>Market quotes and charts: Yahoo Finance. SPY, QQQ and GLD are funds, not index levels or spot prices. The 10-year figure is a Treasury yield. Each chart uses its own price scale, so line steepness is not comparable.</p><p>Regular-session changes use the previous close; pre-market and after-hours changes use the regular-session close. Snapshot fetch time is not the time of a trade. Quotes may be delayed, and charts may end before the displayed quote. Refresh checks run about once a minute while this page is visible.</p><Link href="/pulse" className={styles.textLink}>Open the complete market workspace →</Link></details>
+    </> : null}
+  </section>;
 }
