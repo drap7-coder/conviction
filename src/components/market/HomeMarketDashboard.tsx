@@ -8,13 +8,14 @@ import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
-import { homeChart, marketTakeaway } from "@/lib/market/home-editorial";
+import { homeChart, marketTakeaway, oilSignalContext, shouldShowOilSignal } from "@/lib/market/home-editorial";
 import styles from "./HomeEditorial.module.css";
 
 const HOME_MARKETS = [
   { ticker: "SPY", symbol: "SPY", name: "S&P 500", note: "Tradable S&P 500 proxy" },
   { ticker: "QQQ", symbol: "QQQ", name: "Growth stocks", note: "Nasdaq-100 ETF · a view of large growth companies." },
   { ticker: "GLD", symbol: "GLD", name: "Gold", note: "Gold ETF · another perspective beyond stocks." },
+  { ticker: "USO", symbol: "USO", name: "Oil", note: "Oil ETF proxy · not the spot price of crude." },
 ] as const;
 
 interface DashboardMarket {
@@ -121,6 +122,8 @@ export function HomeMarketDashboard() {
   }, []);
 
   const lead = markets.find(m => m.ticker === "SPY");
+  const oil = markets.find(m => m.ticker === "USO");
+  const showOil = shouldShowOilSignal(oil?.changePercent, lead?.changePercent);
   const gauges = pulseMacroGauges(data?.indicators ?? []);
   const yieldGauge = gauges.find(g => g.id === "yield");
   const yieldIndicator = data?.indicators.find(g => g.ticker === "^TNX");
@@ -154,7 +157,7 @@ export function HomeMarketDashboard() {
           <p className={styles.caption}>Tradable S&P 500 proxy. Chart shows available intraday prices; the change above uses the labeled quote session.</p>
         </article>
         <aside className={styles.signals} aria-label="Three supporting signals">
-          {markets.filter(m => m.ticker !== "SPY").map(m => <article key={m.ticker} className={styles.signal}>
+          {markets.filter(m => m.ticker !== "SPY" && m.ticker !== "USO").map(m => <article key={m.ticker} className={styles.signal}>
             <div className={styles.signalTop}><h3>{m.name}</h3><span className={styles.symbol}>{m.symbol}</span></div>
             <div className={styles.signalValue}><strong className={tone(m.changePercent)}>{formatChange(m.changePercent)}</strong><span>{m.session}</span></div>
             <Chart history={m.history} label={m.name} compact />
@@ -169,10 +172,10 @@ export function HomeMarketDashboard() {
         </aside>
       </div>
       <div className={styles.explainer}>
-        <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `SPY ${formatChange(lead.changePercent)} in the ${lead.session.toLowerCase()} session.`}</h3><p>{sectors.length ? `${advancing} of ${sectors.length} available sectors are higher and ${declining} are lower. Sector readings can cover different quote sessions.` : "Sector coverage is unavailable; we cannot assess how widely the move is shared."}</p></article>
+        <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `SPY ${formatChange(lead.changePercent)} in the ${lead.session.toLowerCase()} session.`}</h3><p>{sectors.length ? `${advancing} of ${sectors.length} available sectors are higher and ${declining} are lower. Sector readings can cover different quote sessions.` : "Sector coverage is unavailable; we cannot assess how widely the move is shared."}</p>{showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} Oil can affect inflation expectations and energy margins. USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}</article>
         <article><p className={styles.eyebrow}>Why it matters</p><h3>One index is only part of the story.</h3><p>SPY tracks large U.S. companies. Compare growth stocks, gold and rates to put its move in context. These signals describe prices; they do not establish what caused a move.</p></article>
       </div>
-      <details className={styles.details}><summary>Sources, timing & how to read this</summary><p>Market quotes and charts: Yahoo Finance. SPY, QQQ and GLD are funds, not index levels or spot prices. The 10-year figure is a Treasury yield. Each chart uses its own price scale, so line steepness is not comparable.</p><p>Regular-session changes use the previous close; pre-market and after-hours changes use the regular-session close. Snapshot fetch time is not the time of a trade. Quotes may be delayed, and charts may end before the displayed quote. Refresh checks run about once a minute while this page is visible.</p><Link href="/pulse" className={styles.textLink}>Open the complete market workspace →</Link></details>
+      <details className={styles.details}><summary>Sources, timing & how to read this</summary><p>Market quotes and charts: Yahoo Finance. SPY, QQQ, GLD and the conditional USO oil signal are funds, not index levels or spot prices. The 10-year figure is a Treasury yield. Each chart uses its own price scale, so line steepness is not comparable.</p><p>Regular-session changes use the previous close; pre-market and after-hours changes use the regular-session close. Snapshot fetch time is not the time of a trade. Quotes may be delayed, and charts may end before the displayed quote. Refresh checks run about once a minute while this page is visible.</p><Link href="/pulse" className={styles.textLink}>Open the complete market workspace →</Link></details>
     </> : null}
   </section>;
 }

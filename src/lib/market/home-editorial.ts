@@ -7,6 +7,33 @@ export function marketTakeaway(change: number | null | undefined): string {
   return change > 0 ? "U.S. stocks are moving higher." : "U.S. stocks are moving lower.";
 }
 
+/** Oil earns Home space only when its move is independently meaningful. */
+export function shouldShowOilSignal(
+  oilChange: number | null | undefined,
+  broadMarketChange: number | null | undefined,
+): boolean {
+  if (oilChange == null || !Number.isFinite(oilChange)) return false;
+  if (Math.abs(oilChange) >= 2) return true;
+  return broadMarketChange != null
+    && Number.isFinite(broadMarketChange)
+    && Math.abs(oilChange - broadMarketChange) >= 2.5;
+}
+
+export function oilSignalContext(
+  oilChange: number,
+  broadMarketChange: number | null | undefined,
+): string {
+  if (broadMarketChange != null && Number.isFinite(broadMarketChange)) {
+    if (oilChange * broadMarketChange < 0) {
+      return `Oil is moving ${oilChange > 0 ? "higher" : "lower"} while stocks move the other way—a cross-asset divergence worth watching.`;
+    }
+    if (Math.abs(oilChange - broadMarketChange) >= 2.5) {
+      return "Oil’s move is materially outpacing the broad market.";
+    }
+  }
+  return "Oil is making a material session move.";
+}
+
 export function homeChart(history: StockHistoryPoint[]) {
   const points = history.filter(p => Number.isFinite(p.close) && Number.isFinite(Date.parse(p.date)))
     .toSorted((a, b) => Date.parse(a.date) - Date.parse(b.date));

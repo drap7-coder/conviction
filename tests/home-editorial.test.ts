@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { homeChart, marketTakeaway } from "@/lib/market/home-editorial";
+import { homeChart, marketTakeaway, oilSignalContext, shouldShowOilSignal } from "@/lib/market/home-editorial";
 
 describe("Home editorial evidence", () => {
   it("does not turn missing or invalid quotes into a flat market", () => {
@@ -28,5 +28,15 @@ describe("Home editorial evidence", () => {
   });
   it("centers flat prices instead of drawing a misleading bottomed-out chart", () => {
     expect(homeChart([{ date: "2026-10-28T12:00:00Z", close: 100 }, { date: "2026-10-28T13:00:00Z", close: 100 }])?.path).toBe("M0.00 50.00 L100.00 50.00");
+  });
+  it("only promotes oil when the move or divergence is material", () => {
+    expect(shouldShowOilSignal(null, 0)).toBe(false);
+    expect(shouldShowOilSignal(1.2, 0.4)).toBe(false);
+    expect(shouldShowOilSignal(2, 0.4)).toBe(true);
+    expect(shouldShowOilSignal(1.2, -1.4)).toBe(true);
+  });
+  it("describes divergence without claiming a cause", () => {
+    expect(oilSignalContext(2.4, -0.5)).toContain("while stocks move the other way");
+    expect(oilSignalContext(2.4, 0.5)).toBe("Oil is making a material session move.");
   });
 });

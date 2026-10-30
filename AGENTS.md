@@ -10,6 +10,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Home retains the editorial hierarchy, with Pulse-inspired grid/bull overlay, a blue/navy palette and a finite arrival/light-sweep sequence. Reuse the existing bull asset. Motion must stop after arrival and respect reduced-motion; never animate quote values or suggest live connectivity. Gain/loss colors remain semantic.
 
+Home may show a compact USO oil context inside “What changed” only when the oil session move is at least 2% or diverges from SPY by at least 2.5 percentage points. Keep the three standing supporting signals unchanged. Label USO as an ETF proxy rather than spot crude, describe divergence without claiming causation, and link to Pulse for full commodity telemetry.
+
 ### Portfolio Risk X-Ray (October 29, 2026 — supersedes the older Live order)
 
 Place Risk X-Ray after the Concentration ladder and before Book vs Benchmark. It is a transparent directional lens derived from holding weights and classified exposures; show factor percentages, named drivers, classification coverage, and an explicit not-a-forecast disclaimer. It must not claim institutional precision, add a market-data fan-out, or prescribe trades.
