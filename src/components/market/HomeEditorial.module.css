@@ -102,6 +102,14 @@
 .explainer { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; padding: 30px 0; }
 .explainer h3 { font-size: 1.12rem; font-weight: 500; margin-bottom: 8px; }
 .explainer article > p:last-child { color: var(--editor-muted); font-size: 1rem; line-height: 1.65; }
+.oilContext { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; margin-top: 18px; padding: 14px 16px; border: 1px solid #d9914c66; border-left: 3px solid #f4a65e; border-radius: 10px; background: linear-gradient(110deg, #3a251f99, #14243a); }
+.oilContext > div { display: grid; grid-template-columns: auto auto; align-items: baseline; gap: 2px 8px; min-width: 96px; }
+.oilContext > div span { grid-column: 1 / -1; color: #ffc481; font: 650 .7rem var(--font-mono); letter-spacing: .07em; text-transform: uppercase; }
+.oilContext > div strong { font: 600 1rem var(--font-mono); }
+.oilContext > div small { color: var(--editor-muted); font-size: .68rem; }
+.oilContext p { color: var(--editor-muted); font-size: .8rem; line-height: 1.5; }
+.oilLink { color: #ffd0a1 !important; font-size: .78rem; text-decoration: none; white-space: nowrap; }
+.oilLink:hover { text-decoration: underline; text-underline-offset: 3px; }
 .details { border-top: 1px solid var(--editor-edge); border-bottom: 1px solid var(--editor-edge); color: var(--editor-muted); font-size: .9rem; }
 .details summary { cursor: pointer; padding: 16px 0; min-height: 48px; color: var(--editor-ink); }
 .details p { margin: 0 0 14px; max-width: 85ch; line-height: 1.65; }
@@ -131,6 +139,8 @@
   .signal { padding: 16px; }
   .smallChart svg { height: 42px; }
   .explainer { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .oilContext { grid-template-columns: minmax(0, 1fr); gap: 9px; }
+  .oilLink { justify-self: start; }
   .stories li { gap: 12px; grid-template-columns: 24px minmax(0, 1fr); }
 }
 
