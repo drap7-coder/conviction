@@ -14,6 +14,10 @@ Home retains the editorial hierarchy, with Pulse-inspired grid/bull overlay, a b
 
 Place Risk X-Ray after the Concentration ladder and before Book vs Benchmark. It is a transparent directional lens derived from holding weights and classified exposures; show factor percentages, named drivers, classification coverage, and an explicit not-a-forecast disclaimer. It must not claim institutional precision, add a market-data fan-out, or prescribe trades.
 
+### Portfolio Event HUD (October 29, 2026)
+
+Place Event HUD directly after Risk X-Ray. It combines published official macro schedules with a short cached Nasdaq earnings window filtered to the current holdings. Every event needs a source, explicit timing, and named exposed holdings when classified. Never guess an earnings date; partial provider coverage must remain visible. Keep the shared earnings request cached and bounded rather than fetching per holding.
+
 ### Home editorial perspective (October 28, 2026 — current)
 
 Home now leads with one SPY chart and three supporting signals (QQQ, GLD, 10Y), followed by factual “What changed”, explanatory “Why it matters”, expandable source/timing notes and three sourced headlines. Use scoped `HomeEditorial.module.css`; do not restore the equal-weight six-tile grid, decorative live pips, or Home movers ranking. Keep Pulse, Portfolio and News intact. Snapshot fetch time is not trade time; charts and quotes can differ in session coverage. Product specification and responsive wireframes: `docs/product/home-editorial-redesign.md`. Earlier recovery notes identify the source baseline, not an instruction to undo this redesign.
