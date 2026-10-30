@@ -35,6 +35,7 @@ import { PortfolioManager } from "@/components/PortfolioManager";
 import SectorDonut from "@/components/SectorDonut";
 import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { PortfolioRiskXRay } from "@/components/PortfolioRiskXRay";
+import { PortfolioEventHud } from "@/components/PortfolioEventHud";
 import { ProductStage } from "@/components/ProductStage";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
@@ -845,6 +846,7 @@ export default function Portfolio() {
         {sectorMixCard}
         {allocationPanel}
         <PortfolioRiskXRay result={riskXRay} />
+        <PortfolioEventHud tickers={positions.map((position) => position.ticker)} risk={riskXRay} />
         <PortfolioBenchmarkChart
           positions={positions.map((position) => ({ ticker: position.ticker, shares: position.shares }))}
           benchmarkTicker={benchmark.ticker}
