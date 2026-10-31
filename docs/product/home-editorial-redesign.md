@@ -42,3 +42,9 @@ Check desktop and a 390px-wide viewport. Verify loading, unavailable and empty s
 ## October 29 visual update
 
 Home adds the existing bull mark and a Pulse-inspired grid/watermark overlay. Navy surfaces and stronger cyan/blue accents replace the muted green Home panels. A finite arrival sequence and light sweep run once in under four seconds; reduced-motion disables both. Charts and quote values do not animate. This supersedes the earlier no-motion/emerald-only visual direction while preserving the reading order and data contract.
+
+## October 31 publication update
+
+Masthead: IQBulls Daily Briefing, Eastern calendar date, explicit weekend edition, and “What happened. Why it matters. What to watch.” The date updates in the client rather than freezing at build time. Market session and snapshot timestamps remain separate from the edition date.
+
+Lead copy reports the SPY proxy's available session move without inventing a causal explanation. Market at a glance groups the existing lead chart and three supporting perspectives. Original headlines serve as sourced takeaways; “What to watch” questions are explicitly educational reading lenses, not article summaries. Source and publication time remain visible. Keep the conditional oil context and all Portfolio additions.

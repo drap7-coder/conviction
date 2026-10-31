@@ -1,5 +1,6 @@
 "use client";
 
+import { HOME_READING_LENSES } from "@/lib/market/home-editorial";
 import Link from "next/link";
 import { primaryHeadline } from "@/lib/market/news-hero";
 import { usePulseHomeNews } from "@/components/market/PulseTodaysBrief";
@@ -15,10 +16,10 @@ export function HomeMarketDrivers() {
 
   return <section className={styles.news} aria-labelledby="home-driver-news-heading">
     <header className={styles.panelHeading}>
-      <div><p className={styles.eyebrow}>Keep the bigger picture</p><h2 id="home-driver-news-heading">Three headlines to know</h2></div>
+      <div><p className={styles.eyebrow}>From the editorial desk</p><h2 id="home-driver-news-heading">Three stories shaping the conversation</h2></div>
       <Link href="/news" className={styles.textLink}>Explore News →</Link>
     </header>
-    <p className={styles.dek}>Reporting behind the market conversation. Open a story to read the source.</p>
+    <p className={styles.dek}>Original reporting, clearly attributed. The questions below are reading lenses, not claims about what caused today’s market moves.</p>
     {news.status === "loading" ? <p className={styles.empty} role="status">Finding sourced market headlines…</p> : null}
     {news.status === "unavailable" ? <p className={styles.empty} role="status">Headlines are temporarily unavailable. Try News again later.</p> : null}
     {news.status === "ready" && stories.length === 0 ? <p className={styles.empty}>No sourced headlines are available right now. This does not mean there is no market news.</p> : null}
@@ -28,7 +29,8 @@ export function HomeMarketDrivers() {
         <article>
           <p className={styles.eyebrow}>{theme.label}</p>
           <h3>{headline.url ? <a href={headline.url} target="_blank" rel="noopener noreferrer">{headline.title}<span className="sr-only"> (opens in a new tab)</span></a> : headline.title}</h3>
-          <p className={styles.byline}>{headline.publisher?.trim() || "Market source"}{Number.isFinite(Date.parse(headline.date)) ? <> · <time dateTime={headline.date}>{new Date(headline.date).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })} ET</time></> : null}</p>
+          {HOME_READING_LENSES[theme.id] ? <p className={styles.readingLens}><strong>What to watch</strong> {HOME_READING_LENSES[theme.id]}</p> : null}
+          <p className={styles.byline}>{headline.url ? <a href={headline.url} target="_blank" rel="noopener noreferrer">Read via {headline.publisher?.trim() || "source"}<span className="sr-only"> (opens in a new tab)</span></a> : (headline.publisher?.trim() || "Market source")}{Number.isFinite(Date.parse(headline.date)) ? <> · <time dateTime={headline.date}>{new Date(headline.date).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" })} ET</time></> : null}</p>
         </article>
       </li>)}
     </ol>

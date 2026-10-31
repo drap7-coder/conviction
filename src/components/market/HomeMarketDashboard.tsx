@@ -8,13 +8,13 @@ import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
-import { homeChart, marketTakeaway, oilSignalContext, shouldShowOilSignal } from "@/lib/market/home-editorial";
+import { homeChart, briefingLead, oilSignalContext, shouldShowOilSignal } from "@/lib/market/home-editorial";
 import styles from "./HomeEditorial.module.css";
 
 const HOME_MARKETS = [
   { ticker: "SPY", symbol: "SPY", name: "S&P 500", note: "Tradable S&P 500 proxy" },
-  { ticker: "QQQ", symbol: "QQQ", name: "Growth stocks", note: "Nasdaq-100 ETF · a view of large growth companies." },
-  { ticker: "GLD", symbol: "GLD", name: "Gold", note: "Gold ETF · another perspective beyond stocks." },
+  { ticker: "QQQ", symbol: "QQQ", name: "Growth stocks", note: "QQQ tracks large Nasdaq-listed nonfinancial companies, with substantial technology exposure." },
+  { ticker: "GLD", symbol: "GLD", name: "Gold", note: "GLD offers exposure to gold prices. Its move alone does not explain investor motives." },
   { ticker: "USO", symbol: "USO", name: "Oil", note: "Oil ETF proxy · not the spot price of crude." },
 ] as const;
 
@@ -136,9 +136,9 @@ export function HomeMarketDashboard() {
   return <section className={styles.overview} aria-labelledby="home-market-command-heading">
     <header className={styles.storyHeader}>
       <span className={styles.motionWash} aria-hidden="true" />
-      <p className={styles.eyebrow}>The market in perspective</p>
-      <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : marketTakeaway(lead?.changePercent)}</h2>
-      <p className={styles.dek}>Start with the broad market. See the context. Follow what matters to you.</p>
+      <p className={styles.eyebrow}>The big picture</p>
+      <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : briefingLead(lead?.changePercent, lead?.session)}</h2>
+      <p className={styles.dek}>A view of large U.S. companies, alongside growth, gold and borrowing costs. Read the market snapshot, then explore the reporting behind the conversation.</p>
       <div className={styles.status}>
         <span>{data?.sessionLabel ?? "Market snapshot"}</span>
         <span>Quotes may be delayed</span>
@@ -148,6 +148,8 @@ export function HomeMarketDashboard() {
     {status === "loading" ? <p className={styles.empty} role="status">Loading the market picture…</p> : null}
     {status === "error" || stale ? <p className={styles.notice} role="status">{data ? "This snapshot may be out of date. A fresh update is not available yet." : "Market data is temporarily unavailable. You can still read the headlines below."}</p> : null}
     {data ? <>
+      <section className={styles.marketGlance} aria-labelledby="home-glance-heading">
+      <header className={styles.glanceHeading}><div><p className={styles.eyebrow}>The numbers in context</p><h2 id="home-glance-heading">Market at a glance</h2></div><p>One broad-market chart. Three supporting perspectives.</p></header>
       <div className={styles.marketLayout}>
         <article className={styles.lead}>
           <div className={styles.panelHeading}><div><p className={styles.eyebrow}>The broad market</p><h3>S&P 500 <span className={styles.symbol}>SPY</span></h3></div><Link href="/pulse" className={styles.textLink}>Explore Pulse →</Link></div>
@@ -171,6 +173,7 @@ export function HomeMarketDashboard() {
           </article>
         </aside>
       </div>
+      </section>
       <div className={styles.explainer}>
         <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `SPY ${formatChange(lead.changePercent)} in the ${lead.session.toLowerCase()} session.`}</h3><p>{sectors.length ? `${advancing} of ${sectors.length} available sectors are higher and ${declining} are lower. Sector readings can cover different quote sessions.` : "Sector coverage is unavailable; we cannot assess how widely the move is shared."}</p>{showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} Oil can affect inflation expectations and energy margins. USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}</article>
         <article><p className={styles.eyebrow}>Why it matters</p><h3>One index is only part of the story.</h3><p>SPY tracks large U.S. companies. Compare growth stocks, gold and rates to put its move in context. These signals describe prices; they do not establish what caused a move.</p></article>

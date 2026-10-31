@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Home publication structure (October 31, 2026)
+
+Home uses IQBulls Daily Briefing with a client-updated Eastern date and weekend edition label. The lead describes the available quote session, never an inferred news cause. A grouped Market at a glance preserves the lead SPY chart and three supporting signals. The editorial desk retains original source headlines and labels educational prompts as reading lenses. Preserve conditional oil context and newer Portfolio features.
+
 ### Home consumer styling (October 29, 2026)
 
 Home retains the editorial hierarchy, with Pulse-inspired grid/bull overlay, a blue/navy palette and a finite arrival/light-sweep sequence. Reuse the existing bull asset. Motion must stop after arrival and respect reduced-motion; never animate quote values or suggest live connectivity. Gain/loss colors remain semantic.

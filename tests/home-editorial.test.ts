@@ -40,3 +40,16 @@ describe("Home editorial evidence", () => {
     expect(oilSignalContext(2.4, 0.5)).toBe("Oil is making a material session move.");
   });
 });
+
+import { briefingEdition, briefingLead } from "@/lib/market/home-editorial";
+describe("publication timing", () => {
+  it("uses Eastern date across UTC midnight and identifies weekends", () => {
+    expect(briefingEdition(new Date("2026-11-01T01:00:00Z"))).toEqual({iso:"2026-10-31",label:"Saturday, October 31, 2026",weekend:true});
+    expect(briefingEdition(new Date("2026-11-02T15:00:00Z")).weekend).toBe(false);
+  });
+  it("describes available sessions without inventing a cause or current trading", () => {
+    expect(briefingLead(.19,"After Hours")).toBe("S&P 500 proxy edges higher in the after-hours snapshot.");
+    expect(briefingLead(-1.2,"Closed")).toBe("S&P 500 proxy falls in the latest completed session.");
+    expect(briefingLead(null,"Regular")).toBe("The market picture is still coming together.");
+  });
+});

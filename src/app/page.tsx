@@ -1,3 +1,4 @@
+import { BriefingDate } from "@/components/market/BriefingDate";
 import Image from "next/image";
 import styles from "@/components/market/HomeEditorial.module.css";
 import { HomeOverview } from "@/components/market/HomeOverview";
@@ -12,9 +13,9 @@ export default function HomePage() {
       <header className={styles.masthead}>
         <div className={styles.brandLockup}>
           <Image src="/iqbulls-bull.png" width={48} height={48} alt="" className={styles.brandMark} />
-          <h1>IQBulls / The daily perspective</h1>
+          <div><h1>IQBulls Daily Briefing</h1><BriefingDate /></div>
         </div>
-        <p>Understand the market. Build your conviction.</p>
+        <p>What happened. Why it matters. What to watch.</p>
       </header>
       <HomeOverview />
     </main>
