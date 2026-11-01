@@ -8,7 +8,7 @@ import { fetchMarketQuotes } from "@/lib/market/client-market-data";
 import { getLivePrice } from "@/lib/market/live-quote";
 import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import type { StockHistoryPoint } from "@/lib/market/quotes";
-import { homeChart, briefingLead, oilSignalContext, shouldShowOilSignal } from "@/lib/market/home-editorial";
+import { homeChart, briefingLead, signalTakeaway, oilSignalContext, shouldShowOilSignal } from "@/lib/market/home-editorial";
 import styles from "./HomeEditorial.module.css";
 
 const HOME_MARKETS = [
@@ -153,7 +153,8 @@ export function HomeMarketDashboard() {
       <div className={styles.marketLayout}>
         <article className={styles.lead}>
           <div className={styles.panelHeading}><div><p className={styles.eyebrow}>The broad market</p><h3>S&P 500 <span className={styles.symbol}>SPY</span></h3></div><Link href="/pulse" className={styles.textLink}>Explore Pulse →</Link></div>
-          <div className={styles.quote}><strong className={tone(lead?.changePercent)}>{formatChange(lead?.changePercent)}</strong><span>{lead?.session ?? "Unavailable"} change</span></div>
+          <div className={styles.quote}><strong>{signalTakeaway(lead?.changePercent)}</strong></div>
+          <p className={styles.signalDetail}>S&P 500 proxy · <span className={tone(lead?.changePercent)}>{formatChange(lead?.changePercent)}</span> · {lead?.session ?? "Unavailable"}</p>
           <p className={styles.price}>SPY share price <b>${formatPrice(lead?.price)}</b> · USD</p>
           <Chart history={lead?.history ?? []} label="SPY share price" />
           <p className={styles.caption}>Tradable S&P 500 proxy. Chart shows available intraday prices; the change above uses the labeled quote session.</p>
@@ -161,13 +162,15 @@ export function HomeMarketDashboard() {
         <aside className={styles.signals} aria-label="Three supporting signals">
           {markets.filter(m => m.ticker !== "SPY" && m.ticker !== "USO").map(m => <article key={m.ticker} className={styles.signal}>
             <div className={styles.signalTop}><h3>{m.name}</h3><span className={styles.symbol}>{m.symbol}</span></div>
-            <div className={styles.signalValue}><strong className={tone(m.changePercent)}>{formatChange(m.changePercent)}</strong><span>{m.session}</span></div>
+            <div className={styles.signalValue}><strong>{signalTakeaway(m.changePercent)}</strong></div>
+            <p className={styles.signalDetail}><span className={tone(m.changePercent)}>{formatChange(m.changePercent)}</span> · {m.session}</p>
             <Chart history={m.history} label={m.name} compact />
             <p>{m.note}</p>
           </article>)}
           <article className={styles.signal}>
             <div className={styles.signalTop}><h3>Borrowing costs</h3><span className={styles.symbol}>10Y</span></div>
-            <div className={styles.signalValue}><strong>{yieldGauge?.value ?? "—"}</strong><span>Treasury yield</span></div>
+            <div className={styles.signalValue}><strong>The interest-rate backdrop</strong></div>
+            <p className={styles.signalDetail}>10-year Treasury yield: <span>{yieldGauge?.value ?? "—"}</span></p>
             <Chart history={yieldIndicator?.history ?? []} label="10-year Treasury yield" compact />
             <p>A benchmark for interest rates across the economy.</p>
           </article>
@@ -175,7 +178,7 @@ export function HomeMarketDashboard() {
       </div>
       </section>
       <div className={styles.explainer}>
-        <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `SPY ${formatChange(lead.changePercent)} in the ${lead.session.toLowerCase()} session.`}</h3><p>{sectors.length ? `${advancing} of ${sectors.length} available sectors are higher and ${declining} are lower. Sector readings can cover different quote sessions.` : "Sector coverage is unavailable; we cannot assess how widely the move is shared."}</p>{showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} Oil can affect inflation expectations and energy margins. USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}</article>
+        <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `Large U.S. stocks: ${signalTakeaway(lead.changePercent).toLowerCase()}.`}</h3><p>{sectors.length ? `${advancing} of ${sectors.length} available sectors are higher and ${declining} are lower. Sector readings can cover different quote sessions.` : "Sector coverage is unavailable; we cannot assess how widely the move is shared."}</p>{showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} Oil can affect inflation expectations and energy margins. USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}</article>
         <article><p className={styles.eyebrow}>Why it matters</p><h3>One index is only part of the story.</h3><p>SPY tracks large U.S. companies. Compare growth stocks, gold and rates to put its move in context. These signals describe prices; they do not establish what caused a move.</p></article>
       </div>
       <details className={styles.details}><summary>Sources, timing & how to read this</summary><p>Market quotes and charts: Yahoo Finance. SPY, QQQ, GLD and the conditional USO oil signal are funds, not index levels or spot prices. The 10-year figure is a Treasury yield. Each chart uses its own price scale, so line steepness is not comparable.</p><p>Regular-session changes use the previous close; pre-market and after-hours changes use the regular-session close. Snapshot fetch time is not the time of a trade. Quotes may be delayed, and charts may end before the displayed quote. Refresh checks run about once a minute while this page is visible.</p><Link href="/pulse" className={styles.textLink}>Open the complete market workspace →</Link></details>

@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Home readable signals (October 31, 2026)
+
+Home signal cards lead with neutral plain-language direction, not large percentages. Exact signed changes and sessions remain visible in secondary lines; Treasury yield is explicitly labeled as a rate, never a gain. Preserve the charts and Pulse numeric density.
+
 ### Home publication structure (October 31, 2026)
 
 Home uses IQBulls Daily Briefing with a client-updated Eastern date and weekend edition label. The lead describes the available quote session, never an inferred news cause. A grouped Market at a glance preserves the lead SPY chart and three supporting signals. The editorial desk retains original source headlines and labels educational prompts as reading lenses. Preserve conditional oil context and newer Portfolio features.

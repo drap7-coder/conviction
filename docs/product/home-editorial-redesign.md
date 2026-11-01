@@ -48,3 +48,7 @@ Home adds the existing bull mark and a Pulse-inspired grid/watermark overlay. Na
 Masthead: IQBulls Daily Briefing, Eastern calendar date, explicit weekend edition, and “What happened. Why it matters. What to watch.” The date updates in the client rather than freezing at build time. Market session and snapshot timestamps remain separate from the edition date.
 
 Lead copy reports the SPY proxy's available session move without inventing a causal explanation. Market at a glance groups the existing lead chart and three supporting perspectives. Original headlines serve as sourced takeaways; “What to watch” questions are explicitly educational reading lenses, not article summaries. Source and publication time remain visible. Keep the conditional oil context and all Portfolio additions.
+
+## Plain-language signal hierarchy
+
+Home cards lead with direction words; exact percentages and quote sessions are secondary, visible evidence. Treasury yield is a clearly labeled rate beneath explanatory copy. Missing values say unavailable. Pulse retains quantitative depth.
