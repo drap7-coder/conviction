@@ -74,7 +74,7 @@
 .page .textLink { color: var(--editor-accent); min-height: 44px; display: inline-flex; align-items: center; font-size: .9rem; font-weight: 500; text-decoration: none; transition: color 160ms ease, transform 160ms ease; }
 .page .textLink:hover { color: #c5e7ff; transform: translateX(3px); text-decoration: underline; text-underline-offset: 4px; }
 .quote { margin-top: 28px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
-.quote strong { font: 500 clamp(2.2rem, 4vw, 3.3rem)/1.2 var(--font-mono); letter-spacing: -.05em; }
+.quote strong { font: 500 clamp(1.5rem, 3vw, 2rem)/1.25 var(--font-plex-sans), sans-serif; letter-spacing: -.02em; }
 .quote > span, .page .price { color: var(--editor-muted); font-size: .86rem; }
 .page .price { margin-top: 8px; }
 .price b { color: var(--editor-ink); font-family: var(--font-mono); font-weight: 400; }
@@ -92,7 +92,7 @@
 .signalTop, .signalValue { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .signal h3 { font-size: 1rem; font-weight: 500; }
 .signalValue { margin-top: 6px; }
-.signalValue strong { font: 500 1.5rem var(--font-mono); }
+.signalValue strong { font: 500 1.05rem/1.4 var(--font-plex-sans), sans-serif; }
 .signalValue span { font-size: .75rem; color: var(--editor-muted); }
 .signal p { color: var(--editor-muted); font-size: .8rem; line-height: 1.5; }
 .smallChart svg { display: block; width: 100%; height: 36px; margin: 8px 0; }
@@ -186,3 +186,6 @@
   .glanceHeading { flex-direction: column; align-items: flex-start; gap: 8px; padding: 0 6px; }
   .glanceHeading > p { max-width: none; }
 }
+
+.page .signalDetail { color: var(--editor-muted); font-size: .85rem; line-height: 1.6; margin-top: 8px; }
+.signalDetail span { font-family: var(--font-mono); font-size: .85rem; font-weight: 400; }

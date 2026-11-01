@@ -53,3 +53,16 @@ describe("publication timing", () => {
     expect(briefingLead(null,"Regular")).toBe("The market picture is still coming together.");
   });
 });
+
+
+import { signalTakeaway } from "@/lib/market/home-editorial";
+describe("readable signal direction", () => {
+  it("distinguishes missing data, flat prices and signed moves", () => {
+    for (const value of [null, undefined, NaN, Infinity]) expect(signalTakeaway(value)).toBe("Update unavailable");
+    expect(signalTakeaway(0)).toBe("Little changed");
+    expect(signalTakeaway(.19)).toBe("Slightly higher");
+    expect(signalTakeaway(-.33)).toBe("Slightly lower");
+    expect(signalTakeaway(1)).toBe("Higher this session");
+    expect(signalTakeaway(-1)).toBe("Lower this session");
+  });
+});

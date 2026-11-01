@@ -79,3 +79,11 @@ export const HOME_READING_LENSES: Record<string, string> = {
   "trade-supply": "Which supply chains and international markets are directly affected?",
   "consumer-demand": "What does this reveal about customers, company earnings or sector demand?",
 };
+
+/** Price direction in everyday language; unknown data must never read as flat. */
+export function signalTakeaway(change: number | null | undefined): string {
+  if (change == null || !Number.isFinite(change)) return "Update unavailable";
+  if (Math.abs(change) < 0.05) return "Little changed";
+  if (Math.abs(change) < 1) return change > 0 ? "Slightly higher" : "Slightly lower";
+  return change > 0 ? "Higher this session" : "Lower this session";
+}
