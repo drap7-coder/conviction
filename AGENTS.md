@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Restrained site palette (November 2, 2026 — supersedes prior appearance notes)
+
+All main-site pages use matte charcoal, warm off-white, readable gray and one blue interaction/chart accent. `restrained-theme.css` is the final shared presentation layer. Home inherits these tokens; no decorative grid, neon wash or perpetual light sweep. Preserve actual logos, financial gain/loss/warning colors, chart categories, and community identity colors. Main-site accent personalization is retired; saved theme/accent preferences are discarded before hydration. Embed appearance URLs remain independent. Preserve all Home/Pulse hierarchy and data behavior.
+
 ### Pulse approachable presentation (November 1, 2026)
 
 Pulse keeps all four views and detailed quotes. `pulse/pulse-readable.css` scopes quieter numeric hierarchy, larger names and supporting labels, and a one-column phone layout to Pulse. The optional reading guide explains session changes, VIX and yield; do not turn Pulse into a second Home. Preserve exact values and gain/loss semantics.

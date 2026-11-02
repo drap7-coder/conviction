@@ -1,0 +1,108 @@
+/* Final main-site presentation layer. Data colors and embedded widgets stay independent. */
+html[data-theme="dark"][data-accent="blue"] {
+  --accent: #79b5ff;
+  --accent-dim: rgb(121 181 255 / 12%);
+  --on-accent: #101214;
+  --on-ink-accent: #79b5ff;
+  --border-raised: var(--border);
+  --brand-aqua: var(--accent);
+  --brand-cyan: var(--accent);
+  --brand-violet: var(--accent);
+  --brand-gold: var(--accent);
+  --brand-blue-dim: var(--accent-dim);
+  --brand-violet-dim: var(--accent-dim);
+  --brand-gold-dim: var(--accent-dim);
+}
+html[data-theme="dark"][data-accent="blue"] body {
+  background: var(--bg);
+}
+html[data-theme="dark"][data-accent="blue"] :is(.app-header, .bottom-tab-bar, .market-tape) {
+  background: var(--bg);
+  border-color: var(--border);
+  border-image-source: none;
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item, .bottom-tab-item) {
+  --tab-accent: var(--accent);
+}
+html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item.active, .bottom-tab-item.active, .bottom-tab-item.active .bottom-tab-icon) {
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+html[data-theme="dark"][data-accent="blue"] :is(.pulse-page:not(.home-page), .portfolio-page, .news-page, .crowd-page, .company-detail-page, .data-manage-page)::before,
+html[data-theme="dark"][data-accent="blue"] :is(.workspace-view-context, .detail-context, .product-stage)::before {
+  content: none;
+  animation: none;
+}
+html[data-theme="dark"][data-accent="blue"] :is(.surface-shell, .surface-well, .pf-section, .pf-study-board, .crowd-board, .pulse-news-brief-grid > article, .product-stage, .workspace-view-context, .detail-context, .market-data-grid, .pulse-seo-intro) {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] :is(.pf-section, .pf-study-board, .crowd-board, .pulse-news-brief-grid > article):nth-of-type(n),
+html[data-theme="dark"][data-accent="blue"] .news-page .pulse-news-brief-grid > article:is(.is-lead, .is-media-hero),
+html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above,
+html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] .surface-slicer {
+  --slicer-accent: var(--accent);
+  background: var(--card-inset);
+  border-color: var(--border);
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] .surface-slicer .surface-slicer-pill:is(.is-active, [aria-checked="true"]) {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) {
+  --pulse-indexes: var(--accent);
+  --pulse-commodities: var(--accent);
+  --pulse-sectors: var(--accent);
+  --pulse-crypto: var(--accent);
+  --pulse-international: var(--accent);
+}
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-market-glance[data-view] {
+  --pulse-view-accent: var(--accent);
+  --pulse-view-tint: var(--accent-dim);
+}
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pulse-market-glance, .pulse-ops-rail, .workspace-view-context, .pulse-index-board, .pulse-index-board > .market-heatmap-copy, .pulse-reading-guide) {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pulse-market-glance, .pulse-index-board)::before,
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pulse-market-glance, .pulse-index-board > .market-heatmap-copy)::after {
+  content: none;
+  animation: none;
+}
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.market-data-grid-row:not(.is-head), .pulse-market-moves .pulse-movers-row) {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-ops-rail .surface-slicer-pill[aria-checked="true"] {
+  background: var(--accent-dim);
+  color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+html[data-theme="dark"][data-accent="blue"] :is(.surface-shell, .crowd-board, .pulse-news-brief-grid > article):hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border-active);
+}
+html[data-theme="dark"][data-accent="blue"] :is(a, button, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.pf-empty-prompt, .data-manager-compose, .product-stage-mark) {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] .pf-empty-prompt::after { content: none; }

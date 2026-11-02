@@ -1,30 +1,30 @@
-/* One dark green canvas across every workspace. No filters over financial data. */
+/* One charcoal canvas across every workspace. No filters over financial data. */
 html[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #091310;
-  --surface: #0e1c18;
-  --surface-elevated: #142820;
-  --card: #11231d;
-  --card-soft: #172e25;
-  --card-inset: #0c1b16;
-  --border: #304c40;
-  --divider: #253e33;
-  --border-active: #537b67;
-  --ink: #eef5f1;
-  --muted: #b0c2b8;
-  --quiet: #9bafa3;
-  --ink-panel: #0d1f18;
-  --ink-panel-elevated: #152b22;
-  --on-ink: #eef5f1;
-  --on-ink-muted: #b0c2b8;
-  --on-ink-quiet: #9bafa3;
-  --on-ink-border: #304c40;
-  --color-surface-neutral: #15271f;
-  --color-surface-neutral-hover: #1d352a;
-  --color-border-neutral: #304c40;
-  --chart-surface: #0d1f18;
-  --chart-grid: #253e33;
-  --chart-border: #304c40;
+  --bg: #101214;
+  --surface: #171a1e;
+  --surface-elevated: #24282e;
+  --card: #1b1e23;
+  --card-soft: #24282e;
+  --card-inset: #14171b;
+  --border: #3b414a;
+  --divider: #2e333b;
+  --border-active: #79b5ff;
+  --ink: #f1f0ec;
+  --muted: #bfc4cb;
+  --quiet: #a7afb9;
+  --ink-panel: #171a1e;
+  --ink-panel-elevated: #24282e;
+  --on-ink: #f1f0ec;
+  --on-ink-muted: #bfc4cb;
+  --on-ink-quiet: #a7afb9;
+  --on-ink-border: #3b414a;
+  --color-surface-neutral: #1b1e23;
+  --color-surface-neutral-hover: #292e35;
+  --color-border-neutral: #3b414a;
+  --chart-surface: #171a1e;
+  --chart-grid: #2e333b;
+  --chart-border: #3b414a;
 }
 html[data-theme="dark"] body {
   background-color: var(--bg);
