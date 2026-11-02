@@ -1,0 +1,35 @@
+/* Pulse remains the detailed workspace, with a clearer first-read hierarchy. */
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-workspace-head h2 { font-family: var(--font-plex-sans), sans-serif; font-weight: 500; font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.2; max-width: 25ch; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-workspace-lede { font-family: var(--font-plex-sans), sans-serif; font-size: .95rem; line-height: 1.6; color: #b9c9d5; }
+.pulse-reading-guide { margin: 18px 0; border: 1px solid #365065; border-radius: 12px; background: #10202c; color: #c2cfda; font: 400 .92rem/1.65 var(--font-plex-sans), sans-serif; }
+.pulse-reading-guide summary { padding: 14px 18px; cursor: pointer; min-height: 48px; color: #dcecf6; }
+.pulse-reading-guide summary:focus-visible { outline: 2px solid #83cfff; outline-offset: 3px; }
+.pulse-reading-guide > div { padding: 0 18px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
+.pulse-reading-guide p { margin: 0 0 8px; }
+.pulse-reading-guide strong { color: #edf4f8; font-weight: 600; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-index-board .market-data-grid { grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 12px; padding: 14px; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row:not(.is-head) { padding: 16px; gap: 12px; border-radius: 12px; grid-template-areas: "name name" "spark spark" "percent session" "last net" "previous previous"; min-height: 190px; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-name strong { font: 600 1rem/1.4 var(--font-plex-sans), sans-serif; white-space: normal; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-name small { color: #adbfcd; font-size: .78rem; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :nth-child(5) { font-size: .95rem; font-weight: 500; letter-spacing: 0; line-height: 1.4; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :is(:nth-child(3), :nth-child(4), :nth-child(6), :nth-child(7)) { font-size: .78rem; color: #b8c9d6; flex-wrap: wrap; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :is(:nth-child(3), :nth-child(4), :nth-child(7))::before { font: 400 .75rem/1.4 var(--font-plex-sans), sans-serif; color: #b8c9d6; letter-spacing: 0; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :nth-child(3)::before { content: "Price"; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :nth-child(4)::before { content: "Change"; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :nth-child(7)::before { content: "Previous close"; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :nth-child(7) { justify-content: space-between; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-ops-stat strong { font-size: 1rem; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-ops-stat small { font: 500 .72rem/1.4 var(--font-plex-sans), sans-serif; text-transform: none; letter-spacing: 0; color: #b8c9d6; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-market-moves .session-quote-change > span:nth-child(2) { font-size: .95rem; font-weight: 500; letter-spacing: 0; }
+@media (max-width: 600px) {
+  .pulse-reading-guide > div { grid-template-columns: minmax(0, 1fr); }
+  html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-index-board .market-data-grid { grid-template-columns: minmax(0, 1fr); padding: 10px; }
+  html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row:not(.is-head) { min-height: 180px; }
+}
+
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-market-moves .pulse-movers-id small { font: 400 .8rem/1.4 var(--font-plex-sans), sans-serif; color: #b8c9d6; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-market-moves .pulse-movers-id strong { font-size: .95rem; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-workspace-lede { text-transform: none; letter-spacing: 0; }
+@media (min-width: 601px) {
+  html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid:has(> .market-data-grid-row:nth-child(5):last-child) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

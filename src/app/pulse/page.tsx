@@ -1,3 +1,4 @@
+import "./pulse-readable.css";
 import { PulseAbout } from "@/components/market/PulseAbout";
 import { PulseDashboard } from "@/components/market/PulseDashboard";
 
@@ -7,7 +8,7 @@ import { PulseDashboard } from "@/components/market/PulseDashboard";
  */
 export default function PulsePage() {
   return (
-    <main className="markets-page pulse-page">
+    <main className="markets-page pulse-page pulse-approachable">
       <h1>
         <span className="sr-only">Real-Time Market Dashboard: Markets in one place.</span>
       </h1>
