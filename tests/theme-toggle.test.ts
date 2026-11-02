@@ -9,21 +9,20 @@ describe("dark-only site appearance", () => {
     expect(layout).toContain("localStorage.removeItem('iqbulls-theme')");
     expect(layout).not.toContain("dataset.theme='cream'");
     expect(read("src/components/AppHeader.tsx")).not.toContain("ThemeToggle");
-    expect(read("src/components/ThemePicker.tsx")).not.toContain("applySurfaceTheme");
   });
-  it("shares green surfaces without recoloring financial data", () => {
+  it("shares charcoal surfaces without recoloring financial data", () => {
     const css = read("src/app/dark-surface.css");
     expect(read("src/app/layout.tsx")).toContain('import "./dark-surface.css"');
-    expect(css).toContain("--bg: #091310");
+    expect(css).toContain("--bg: #101214");
     expect(css).toContain("--chart-surface:");
     expect(css).not.toMatch(/--(?:green|red):/);
     expect(css).not.toContain("filter:");
   });
-  it("retains accent personalization", () => {
-    expect(read("src/components/ThemePicker.tsx")).toContain("AccentPicker");
-    expect(read("src/app/layout.tsx")).toContain("iqbulls-accent");
+  it("uses one blue accent before hydration", () => {
+    expect(read("src/app/layout.tsx")).toContain('data-accent="blue"');
+    expect(read("src/app/layout.tsx")).toContain("localStorage.removeItem('iqbulls-accent')");
   });
-  it("keeps muted and quiet text above 4.5:1 on green panels", () => {
+  it("keeps muted and quiet text above 4.5:1 on charcoal panels", () => {
     const css = read("src/app/dark-surface.css");
     const color = (token: string) => css.match(new RegExp(`${token}: (#[0-9a-f]{6})`))![1];
     const luminance = (hex: string) => {

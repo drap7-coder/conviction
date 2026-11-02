@@ -4,6 +4,7 @@ import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./workspace-design.css";
 import "./dark-surface.css";
+import "./restrained-theme.css";
 import { AppFrame } from "@/components/AppFrame";
 import { GroupAccentProvider } from "@/components/GroupAccentProvider";
 import {
@@ -101,7 +102,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#091310",
+  themeColor: "#101214",
   colorScheme: "dark",
 };
 
@@ -114,13 +115,13 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme="dark"
-      data-accent="green"
+      data-accent="blue"
       className={`${plexSans.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body>
         <Script id="iqbulls-theme" strategy="beforeInteractive">
-          {`try{localStorage.removeItem('iqbulls-theme');var a=localStorage.getItem('iqbulls-accent');if(a==='green'||a==='blue'||a==='violet'||a==='pink'||a==='mono'){document.documentElement.dataset.accent=a}}catch(e){}`}
+          {`try{localStorage.removeItem('iqbulls-theme');localStorage.removeItem('iqbulls-accent');}catch(e){}`}
         </Script>
         <script
           type="application/ld+json"

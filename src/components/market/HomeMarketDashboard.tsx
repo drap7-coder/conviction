@@ -135,7 +135,6 @@ export function HomeMarketDashboard() {
 
   return <section className={styles.overview} aria-labelledby="home-market-command-heading">
     <header className={styles.storyHeader}>
-      <span className={styles.motionWash} aria-hidden="true" />
       <p className={styles.eyebrow}>The big picture</p>
       <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : briefingLead(lead?.changePercent, lead?.session)}</h2>
       <p className={styles.dek}>A view of large U.S. companies, alongside growth, gold and borrowing costs. Read the market snapshot, then explore the reporting behind the conversation.</p>
