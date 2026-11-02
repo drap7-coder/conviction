@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Pulse approachable presentation (November 1, 2026)
+
+Pulse keeps all four views and detailed quotes. `pulse/pulse-readable.css` scopes quieter numeric hierarchy, larger names and supporting labels, and a one-column phone layout to Pulse. The optional reading guide explains session changes, VIX and yield; do not turn Pulse into a second Home. Preserve exact values and gain/loss semantics.
+
 ### Home readable signals (October 31, 2026)
 
 Home signal cards lead with neutral plain-language direction, not large percentages. Exact signed changes and sessions remain visible in secondary lines; Treasury yield is explicitly labeled as a rate, never a gain. Preserve the charts and Pulse numeric density.

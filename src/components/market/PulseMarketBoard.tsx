@@ -69,7 +69,7 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
               ? "After the bell"
               : "Market at a glance",
         detail: data?.sessionLabel
-          ? "Session moves · Previous close below each quote"
+          ? "Price changes for the displayed session. Open a card to explore the company or fund."
           : "Prices and moves for the regular session",
         tone: "markets",
       };
@@ -77,8 +77,8 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
     case "movers":
       context = {
         kicker: "Action",
-        title: "Leaders, laggards & volume",
-        detail: "See where attention and price are moving fastest.",
+        title: "Stocks rising, falling and trading most",
+        detail: "Compare price moves and trading activity across stocks.",
         tone: "movers",
       };
       break;
@@ -204,8 +204,8 @@ function PulseMarketBoardInner() {
       <header className="pulse-home-section-head pulse-workspace-head">
         <div>
           <p className="pulse-home-eyebrow">IQBulls / Pulse</p>
-          <h2 id="pulse-market-glance-heading">Go deeper than the headline.</h2>
-          <p className="pulse-workspace-lede">Markets · movers · crypto · world</p>
+          <h2 id="pulse-market-glance-heading">Explore the market, one view at a time.</h2>
+          <p className="pulse-workspace-lede">Start with the broad market. Choose a tab when you want to explore more.</p>
         </div>
       </header>
 
@@ -213,7 +213,7 @@ function PulseMarketBoardInner() {
         {data ? (
           <div className="pulse-ops-snapshot" aria-label="Market operating context">
             <div className="pulse-ops-session">
-              <span className="pulse-ops-live" aria-hidden="true" />
+
               <div>
                 <small>Session</small>
                 <strong>{data.sessionLabel ?? "Regular market"}</strong>
@@ -221,7 +221,7 @@ function PulseMarketBoardInner() {
             </div>
             {macroCards.map((card) => (
               <div className={`pulse-ops-stat pulse-ops-stat--${card.id}`} key={card.id}>
-                <small>{card.label}</small>
+                <small>{card.id === "yield" ? "Borrowing costs · 10Y" : card.id === "vix" ? "Expected volatility · VIX" : card.label}</small>
                 <strong className="tnum">{card.value}</strong>
                 <em>{card.status}</em>
               </div>
@@ -237,6 +237,16 @@ function PulseMarketBoardInner() {
           className="pulse-view-slicer"
         />
       </div>
+
+      <details className="pulse-reading-guide">
+        <summary>New to Pulse? Here’s how to read it.</summary>
+        <div>
+          <p><strong>Start with the name.</strong> Each card shows a company, fund or asset. The line chart gives you a quick view of its available price history.</p>
+          <p><strong>Changes describe a session.</strong> A plus means higher; a minus means lower. Pre-market and after-hours changes compare with the regular close; regular-session changes compare with the previous close.</p>
+          <p><strong>Two useful benchmarks.</strong> VIX reflects expected stock-market volatility, not a prediction of direction. The 10-year Treasury yield is a benchmark for borrowing costs, not an investment return.</p>
+          <p><strong>Keep the timing in mind.</strong> Quotes may be delayed. Markets follows U.S. sessions; crypto trades around the clock, while country funds follow their own listing hours. ETF prices are not index levels or spot commodity prices.</p>
+        </div>
+      </details>
 
       {status === "loading" ? (
         <PageLoadingMotion
