@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Welcoming daily briefing (November 2, 2026)
+
+Home leads with a 60-second plain-language briefing, retains sourced charts and exact session labels, and offers an accessible range control to explore actual SPY history points. A short optional learning reveal explains index breadth; it is educational, never a trading prompt or fabricated daily news. Preserve honest missing data and the distinction between chart history and current quotes. Pulse remains the deeper workspace.
+
 ### Restrained site palette (November 2, 2026 — supersedes prior appearance notes)
 
 All main-site pages use matte charcoal, warm off-white, readable gray and one blue interaction/chart accent. `restrained-theme.css` is the final shared presentation layer. Home inherits these tokens; no decorative grid, neon wash or perpetual light sweep. Preserve actual logos, financial gain/loss/warning colors, chart categories, and community identity colors. Main-site accent personalization is retired; saved theme/accent preferences are discarded before hydration. Embed appearance URLs remain independent. Preserve all Home/Pulse hierarchy and data behavior.

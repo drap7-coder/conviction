@@ -44,15 +44,27 @@ function chartTime(iso: string) {
   return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/New_York" });
 }
 function Chart({ history, label, compact = false }: { history: StockHistoryPoint[]; label: string; compact?: boolean }) {
+  const [selected, setSelected] = useState<number | null>(null);
   const chart = homeChart(history);
   if (!chart) return <p className={styles.chartEmpty}>Chart unavailable</p>;
+  const index = Math.min(selected ?? chart.points.length - 1, chart.points.length - 1);
+  const point = chart.points[index];
+  const markerX = (Date.parse(point.date) - Date.parse(chart.first)) / (Date.parse(chart.last) - Date.parse(chart.first)) * 100;
   return <figure className={compact ? styles.smallChart : styles.chart}>
     {!compact ? <div className={styles.chartLabels}><span>Intraday</span><span>Price range {formatPrice(chart.low)}–{formatPrice(chart.high)}</span></div> : null}
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={`${label}, ${chartTime(chart.first)} to ${chartTime(chart.last)} ET. Range ${formatPrice(chart.low)} to ${formatPrice(chart.high)}.`}>
       {[10, 50, 90].map(y => <path key={y} d={`M0 ${y} L100 ${y}`} className={styles.gridline} />)}
       <path d={`${chart.path} L100 100 L0 100 Z`} className={styles.chartFill} />
       <path d={chart.path} className={styles.chartLine} />
+      {!compact && selected !== null ? <path d={`M${markerX} 0 L${markerX} 100`} className={styles.chartMarker} /> : null}
     </svg>
+    {!compact ? <div className={styles.chartExplorer}>
+      <label>Explore the chart
+        <input type="range" min={0} max={chart.points.length - 1} value={index} onChange={event => setSelected(Number(event.target.value))} aria-valuetext={`${chartTime(point.date)} ET, $${formatPrice(point.close)}`} />
+      </label>
+      <output>{chartTime(point.date)} ET · ${formatPrice(point.close)}</output>
+      <p>Slide to see a price. Use arrow keys when the slider is selected.</p>
+    </div> : null}
     {compact ? <figcaption>Through {chartTime(chart.last)} ET</figcaption> : <figcaption><span>{chartTime(chart.first)}</span><span>{chartTime(chart.last)} ET</span></figcaption>}
   </figure>;
 }
@@ -135,9 +147,14 @@ export function HomeMarketDashboard() {
 
   return <section className={styles.overview} aria-labelledby="home-market-command-heading">
     <header className={styles.storyHeader}>
-      <p className={styles.eyebrow}>The big picture</p>
+      <p className={styles.eyebrow}>Your market day in 60 seconds</p>
       <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : briefingLead(lead?.changePercent, lead?.session)}</h2>
-      <p className={styles.dek}>A view of large U.S. companies, alongside growth, gold and borrowing costs. Read the market snapshot, then explore the reporting behind the conversation.</p>
+      <p className={styles.dek}>Start with the story. Explore a chart. Leave knowing a little more.</p>
+      {data ? <ul className={styles.quickTakeaways} aria-label="Your quick briefing">
+        <li><span>01</span><div><strong>Stocks: {signalTakeaway(lead?.changePercent).toLowerCase()}.</strong><p>Our broad-market view follows SPY, a fund tracking large U.S. companies.</p></div></li>
+        <li><span>02</span><div><strong>{sectors.length ? `${advancing} of ${sectors.length} sectors are higher.` : "The wider picture is unavailable."}</strong><p>{sectors.length ? "A sector is a group of businesses, like technology or energy. Readings may cover different sessions." : "Missing data does not mean nothing happened."}</p></div></li>
+        <li><span>03</span><div><strong>Keep an eye on borrowing costs.</strong><p>Treasury yields help shape the cost of financing for companies and households.</p></div></li>
+      </ul> : null}
       <div className={styles.status}>
         <span>{data?.sessionLabel ?? "Market snapshot"}</span>
         <span>Quotes may be delayed</span>
@@ -148,7 +165,7 @@ export function HomeMarketDashboard() {
     {status === "error" || stale ? <p className={styles.notice} role="status">{data ? "This snapshot may be out of date. A fresh update is not available yet." : "Market data is temporarily unavailable. You can still read the headlines below."}</p> : null}
     {data ? <>
       <section className={styles.marketGlance} aria-labelledby="home-glance-heading">
-      <header className={styles.glanceHeading}><div><p className={styles.eyebrow}>The numbers in context</p><h2 id="home-glance-heading">Market at a glance</h2></div><p>One broad-market chart. Three supporting perspectives.</p></header>
+      <header className={styles.glanceHeading}><div><p className={styles.eyebrow}>The numbers in context</p><h2 id="home-glance-heading">Market at a glance</h2></div><p>How are stocks doing—and what else is moving?</p></header>
       <div className={styles.marketLayout}>
         <article className={styles.lead}>
           <div className={styles.panelHeading}><div><p className={styles.eyebrow}>The broad market</p><h3>S&P 500 <span className={styles.symbol}>SPY</span></h3></div><Link href="/pulse" className={styles.textLink}>Explore Pulse →</Link></div>
@@ -180,6 +197,10 @@ export function HomeMarketDashboard() {
         <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `Large U.S. stocks: ${signalTakeaway(lead.changePercent).toLowerCase()}.`}</h3><p>{sectors.length ? `${advancing} of ${sectors.length} available sectors are higher and ${declining} are lower. Sector readings can cover different quote sessions.` : "Sector coverage is unavailable; we cannot assess how widely the move is shared."}</p>{showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} Oil can affect inflation expectations and energy margins. USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}</article>
         <article><p className={styles.eyebrow}>Why it matters</p><h3>One index is only part of the story.</h3><p>SPY tracks large U.S. companies. Compare growth stocks, gold and rates to put its move in context. These signals describe prices; they do not establish what caused a move.</p></article>
       </div>
+      <section className={styles.learnPanel} aria-labelledby="learn-market-heading">
+        <div><p className={styles.eyebrow}>A little smarter in 30 seconds</p><h2 id="learn-market-heading">A rising market means every stock is up. Right?</h2><p>Take a guess, then open the answer.</p></div>
+        <details><summary>Show me the answer</summary><p><strong>Not necessarily.</strong> An index combines many companies. Some have more influence than others, so a few large companies can lift the index while other stocks fall.</p><p>That is why we also look at sectors: they help show how widely a move is shared.</p><Link href="/pulse" className={styles.textLink}>See the sectors in Pulse →</Link></details>
+      </section>
       <details className={styles.details}><summary>Sources, timing & how to read this</summary><p>Market quotes and charts: Yahoo Finance. SPY, QQQ, GLD and the conditional USO oil signal are funds, not index levels or spot prices. The 10-year figure is a Treasury yield. Each chart uses its own price scale, so line steepness is not comparable.</p><p>Regular-session changes use the previous close; pre-market and after-hours changes use the regular-session close. Snapshot fetch time is not the time of a trade. Quotes may be delayed, and charts may end before the displayed quote. Refresh checks run about once a minute while this page is visible.</p><Link href="/pulse" className={styles.textLink}>Open the complete market workspace →</Link></details>
     </> : null}
   </section>;

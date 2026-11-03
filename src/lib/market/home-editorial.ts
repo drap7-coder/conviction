@@ -49,7 +49,7 @@ export function homeChart(history: StockHistoryPoint[]) {
     const y = span ? 90 - (p.close - low) / span * 80 : 50;
     return `${i ? "L" : "M"}${x.toFixed(2)} ${y.toFixed(2)}`;
   }).join(" ");
-  return { path, low, high, first: points[0].date, last: points[points.length - 1].date };
+  return { path, low, high, points, first: points[0].date, last: points[points.length - 1].date };
 }
 
 export function briefingEdition(now: Date) {
@@ -65,10 +65,10 @@ export function briefingEdition(now: Date) {
 /** The banner describes the available print, not today's calendar or a presumed cause. */
 export function briefingLead(change: number | null | undefined, session: string | undefined) {
   if (change == null || !Number.isFinite(change)) return "The market picture is still coming together.";
-  const direction = Math.abs(change) < .05 ? "holds steady" : change > 0 ? "edges higher" : "edges lower";
-  const strongDirection = Math.abs(change) >= 1 ? (change > 0 ? "climbs" : "falls") : direction;
-  const timing = session === "Pre-Market" ? "in the pre-market snapshot" : session === "After Hours" ? "in the after-hours snapshot" : session === "Closed" ? "in the latest completed session" : "in the latest session snapshot";
-  return `S&P 500 proxy ${strongDirection} ${timing}.`;
+  const direction = Math.abs(change) < .05 ? "hold steady" : change > 0 ? "edge higher" : "edge lower";
+  const strongDirection = Math.abs(change) >= 1 ? (change > 0 ? "climb" : "fall") : direction;
+  const timing = session === "Pre-Market" ? "before the opening bell" : session === "After Hours" ? "after the closing bell" : session === "Closed" ? "in the latest completed session" : "in the latest market snapshot";
+  return `U.S. stocks ${strongDirection} ${timing}.`;
 }
 
 export const HOME_READING_LENSES: Record<string, string> = {

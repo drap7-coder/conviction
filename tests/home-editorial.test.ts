@@ -25,6 +25,7 @@ describe("Home editorial evidence", () => {
     expect(chart?.path).toBe("M0.00 90.00 L25.00 50.00 L100.00 10.00");
     expect(chart?.low).toBe(100);
     expect(chart?.high).toBe(120);
+    expect(chart?.points.map(point => point.close)).toEqual([100, 110, 120]);
   });
   it("centers flat prices instead of drawing a misleading bottomed-out chart", () => {
     expect(homeChart([{ date: "2026-10-28T12:00:00Z", close: 100 }, { date: "2026-10-28T13:00:00Z", close: 100 }])?.path).toBe("M0.00 50.00 L100.00 50.00");
@@ -48,8 +49,8 @@ describe("publication timing", () => {
     expect(briefingEdition(new Date("2026-11-02T15:00:00Z")).weekend).toBe(false);
   });
   it("describes available sessions without inventing a cause or current trading", () => {
-    expect(briefingLead(.19,"After Hours")).toBe("S&P 500 proxy edges higher in the after-hours snapshot.");
-    expect(briefingLead(-1.2,"Closed")).toBe("S&P 500 proxy falls in the latest completed session.");
+    expect(briefingLead(.19,"After Hours")).toBe("U.S. stocks edge higher after the closing bell.");
+    expect(briefingLead(-1.2,"Closed")).toBe("U.S. stocks fall in the latest completed session.");
     expect(briefingLead(null,"Regular")).toBe("The market picture is still coming together.");
   });
 });
