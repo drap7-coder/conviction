@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Retirement planner (November 5, 2026)
+
+Portfolio → Retirement (`?view=retirement`) owns a client-only illustrative planning model. All amounts are today's purchasing power, including inflation-linked savings, spending and outside income. Convert effective nominal returns to monthly real returns. Personal holdings import is optional and requires all prices; never import sample books or overwrite manual savings automatically. The initial-withdrawal target and horizon spending projection are separate, neither a guarantee. Social Security starts at its specified age, pensions/net rent at retirement. Inputs are not persisted or sent to services; do not include them in analytics. Tests cover zero/negative returns, inflation, income timing, depletion and validation.
+
 ### Welcoming daily briefing (November 2, 2026)
 
 Home leads with a 60-second plain-language briefing, retains sourced charts and exact session labels, and offers an accessible range control to explore actual SPY history points. A short optional learning reveal explains index breadth; it is educational, never a trading prompt or fabricated daily news. Preserve honest missing data and the distinction between chart history and current quotes. Pulse remains the deeper workspace.

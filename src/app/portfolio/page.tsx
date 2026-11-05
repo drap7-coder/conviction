@@ -17,12 +17,14 @@ export async function generateMetadata({
   const view = Array.isArray(params.view) ? params.view[0] : params.view;
   const isWatchlist = view === "watchlist" && mode !== "study";
 
+  const isRetirement = view === "retirement" && mode !== "study";
+
   return pageMetadata({
-    title: isWatchlist ? "Watchlist" : "Portfolio",
-    description: isWatchlist
+    title: isRetirement ? "Retirement planner" : isWatchlist ? "Watchlist" : "Portfolio",
+    description: isRetirement ? "Explore retirement savings, spending and income with transparent illustrative scenarios." : isWatchlist
       ? "Follow the tickers that matter with today’s dollar and percent moves — open any name for quote, chart, and context."
       : "See today’s P&L, sector mix, and concentration on your live book — then switch to Watchlist or Study templates without leaving Portfolio.",
-    path: isWatchlist ? "/portfolio?view=watchlist" : "/portfolio",
+    path: isRetirement ? "/portfolio?view=retirement" : isWatchlist ? "/portfolio?view=watchlist" : "/portfolio",
     index: mode !== "study",
   });
 }

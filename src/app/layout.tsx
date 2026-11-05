@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import "./workspace-design.css";
 import "./dark-surface.css";
@@ -17,16 +17,16 @@ import {
 } from "@/lib/site";
 import { siteJsonLd } from "@/lib/seo";
 
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const plexSans = localFont({
+  src: "./fonts/ibm-plex-sans-latin.woff2",
+  weight: "400 700",
   variable: "--font-plex-sans",
   display: "swap",
 });
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const jetbrainsMono = localFont({
+  src: "./fonts/jetbrains-mono-latin.woff2",
+  weight: "400 700",
   variable: "--font-plex-mono",
   display: "swap",
 });
