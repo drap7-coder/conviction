@@ -1927,3 +1927,9 @@
     padding: 14px;
   }
 }
+
+/* Keep all four personal workspaces visible on phones. */
+@media (max-width: 480px) {
+  .pf .pf-view-slicer .surface-slicer-track { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .pf .pf-view-slicer .surface-slicer-pill { min-width: 0; width: 100%; }
+}
