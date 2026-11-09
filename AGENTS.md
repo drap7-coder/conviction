@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Visual retirement and allocation (November 9, 2026)
+
+Retirement includes an accessible age explorer and a first-year target ratio, never a success probability. The separate allocation sandbox takes manually grouped stock/bond/cash balances, explicit target weights totaling 100%, and new contributions. Allocate new money proportionally to post-contribution dollar shortfalls with cent rounding; never model sales or imply suitability, tax optimization, or fund look-through. Mix choices do not change retirement return assumptions. Inputs remain ephemeral and excluded from analytics.
+
 ### Retirement planner (November 5, 2026)
 
 Portfolio → Retirement (`?view=retirement`) owns a client-only illustrative planning model. All amounts are today's purchasing power, including inflation-linked savings, spending and outside income. Convert effective nominal returns to monthly real returns. Personal holdings import is optional and requires all prices; never import sample books or overwrite manual savings automatically. The initial-withdrawal target and horizon spending projection are separate, neither a guarantee. Social Security starts at its specified age, pensions/net rent at retirement. Inputs are not persisted or sent to services; do not include them in analytics. Tests cover zero/negative returns, inflation, income timing, depletion and validation.
