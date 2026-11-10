@@ -14,11 +14,12 @@ function read(path: string) {
 }
 
 describe("site menu nav", () => {
-  it("keeps daily tabs to Home, Pulse, Portfolio, and News", () => {
+  it("keeps daily tabs to Home, Pulse, Portfolio, Retirement, and News", () => {
     expect(primaryNavTabs.map((tab) => tab.href)).toEqual([
       "/",
       "/pulse",
       "/portfolio",
+      "/retirement",
       "/news",
     ]);
     expect(navTabs).toEqual(primaryNavTabs);
@@ -58,6 +59,7 @@ describe("site menu nav", () => {
       "/",
       "/pulse",
       "/portfolio",
+      "/retirement",
       "/news",
     ]);
     expect(read("src/app/globals.css")).toContain(".site-menu-root--sheet .site-menu");

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Portfolio from "@/components/Portfolio";
@@ -17,19 +18,21 @@ export async function generateMetadata({
   const view = Array.isArray(params.view) ? params.view[0] : params.view;
   const isWatchlist = view === "watchlist" && mode !== "study";
 
-  const isRetirement = view === "retirement" && mode !== "study";
 
   return pageMetadata({
-    title: isRetirement ? "Retirement planner" : isWatchlist ? "Watchlist" : "Portfolio",
-    description: isRetirement ? "Explore retirement savings, spending and income with transparent illustrative scenarios." : isWatchlist
+    title: isWatchlist ? "Watchlist" : "Portfolio",
+    description: isWatchlist
       ? "Follow the tickers that matter with today’s dollar and percent moves — open any name for quote, chart, and context."
       : "See today’s P&L, sector mix, and concentration on your live book — then switch to Watchlist or Study templates without leaving Portfolio.",
-    path: isRetirement ? "/portfolio?view=retirement" : isWatchlist ? "/portfolio?view=watchlist" : "/portfolio",
+    path: isWatchlist ? "/portfolio?view=watchlist" : "/portfolio",
     index: mode !== "study",
   });
 }
 
-export default function PortfolioPage() {
+export default async function PortfolioPage({ searchParams }: { searchParams: Promise<{ view?: string | string[] }> }) {
+  const params = await searchParams;
+  const view = Array.isArray(params.view) ? params.view[0] : params.view;
+  if (view === "retirement") redirect("/retirement");
   return (
     <main className="portfolio-page">
       <h1 className="sr-only">Portfolio</h1>

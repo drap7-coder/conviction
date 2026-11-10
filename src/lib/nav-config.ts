@@ -1,4 +1,4 @@
-import { Briefcase, BarChart3, CircleHelp, Home, Info, LogIn, Newspaper, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
+import { Briefcase, BarChart3, CircleHelp, Target, Home, Info, LogIn, Newspaper, SlidersHorizontal, Users, type LucideIcon } from "lucide-react";
 
 export type NavTone = "teal" | "blue" | "amber" | "rose" | "violet";
 export type NavGroup = "daily" | "more" | "about" | "account";
@@ -52,6 +52,14 @@ export const navPages: NavPage[] = [
     blurb: "Your book, watchlist brief, allocation, and Study.",
   },
   {
+    href: "/retirement",
+    label: "Retirement",
+    icon: Target,
+    tone: "blue",
+    group: "daily",
+    blurb: "Plan your future and explore your investment mix.",
+  },
+  {
     href: "/news",
     label: "News",
     icon: Newspaper,
@@ -93,7 +101,7 @@ export const navPages: NavPage[] = [
   },
 ];
 
-/** Tab-bar daily destinations (Home · Pulse · Portfolio · News). */
+/** Tab-bar daily destinations (Home · Pulse · Portfolio · Retirement · News). */
 export const primaryNavTabs = navPages.filter(
   (page) => page.group === "daily" && page.tabBar !== false,
 );
