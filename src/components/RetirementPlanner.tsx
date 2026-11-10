@@ -55,14 +55,14 @@ export function RetirementPlanner() {
     : 50;
 
   return <section className={styles.planner} aria-labelledby="retirement-title">
-    <header className={styles.header}><p className={styles.kicker}>Retirement command center</p><h2 id="retirement-title">Design the life after work.</h2><p>Shape the timeline. Test the tradeoffs. See your future respond.</p><p className={styles.note}>Illustrative starting assumptions—replace them with your own. All amounts below are in today’s dollars. Inputs stay in this view and are not saved or sent to a planning service.</p></header>
     <section className={styles.journeyStage} aria-label="Retirement journey overview">
       <div className={styles.stageGlow} aria-hidden="true" />
       <div className={styles.stageCopy}>
-        <p className={styles.stageLabel}><span /> Live scenario</p>
-        <h3>Your path to<br /><em>time freedom.</em></h3>
-        <p>Move one control and the entire journey recalculates—from the final working years to the life you are funding.</p>
-        <nav className={styles.jumpLinks} aria-label="Planning sections"><a href="#retirement-projection">Enter the simulation <span aria-hidden="true">↘</span></a></nav>
+        <p className={styles.stageLabel}><span /> Your private planning sandbox</p>
+        <h2 id="retirement-title">See the years<br /><em>ahead.</em></h2>
+        <p>Set a few basics. Your projection updates instantly.</p>
+        <nav className={styles.jumpLinks} aria-label="Planning sections"><a href="#retirement-start">Start your plan <span aria-hidden="true">↓</span></a></nav>
+        <p className={styles.stagePrivacy}>Illustrative only · Today&apos;s dollars · Nothing is saved</p>
       </div>
       <div className={styles.futureOrb} aria-hidden="true">
         <div className={styles.orbitOne} /><div className={styles.orbitTwo} />
@@ -77,22 +77,22 @@ export function RetirementPlanner() {
     </section>
     <div className={styles.layout}>
       <div className={styles.controls}>
-        <section className={styles.card} aria-labelledby="retirement-start"><h3 id="retirement-start">Start with you</h3><div className={styles.fields}>{field('currentAge')}{field('endAge')}{field('retirementAge', true)}{field('savings')}{field('monthlySavings', true)}{field('annualSpending')}</div>
+        <section className={styles.card} aria-labelledby="retirement-start"><p className={styles.stepLabel}>Step 1</p><h3 id="retirement-start">Set the basics</h3><p className={styles.note}>Use rough numbers now. You can refine them anytime.</p><div className={styles.fields}>{field('currentAge')}{field('endAge')}{field('retirementAge', true)}{field('savings')}{field('monthlySavings', true)}{field('annualSpending')}</div>
           <button type="button" disabled={portfolioValue === null || portfolioValue > INPUT_LIMITS.savings[1]} onClick={() => { update('savings', String(Math.round(portfolioValue!))); setImported(true); }}>Use my holdings value{portfolioValue !== null ? ` · ${money(portfolioValue)}` : ''}</button>
           <p className={styles.note} role="status">{imported ? 'Copied your current quoted holdings value. Add other retirement savings manually; this figure will not auto-update.' : portfolioValue === null ? 'Add holdings and load all their prices to use this shortcut. You can always enter savings yourself.' : 'Optional snapshot of tracked holdings, not your total net worth. Quotes may be delayed.'}</p>
         </section>
-        <details className={styles.card}><summary>Income beyond your investments</summary><p className={styles.note}>Use your own estimates; zero means none assumed. Pension and net rental income start at retirement. All three are assumed to keep pace with inflation.</p><div className={styles.fields}>{field('socialSecurity')}{field('socialSecurityAge')}{field('pension')}{field('rentalIncome')}</div><a href="https://www.ssa.gov/benefits/retirement/planner/AnypiaApplet.html" target="_blank" rel="noopener noreferrer">Get a Social Security estimate in today’s dollars ↗</a></details>
-        <details className={styles.card}><summary>Growth, inflation & withdrawals</summary><p className={styles.note}>Annual return assumptions are after fees, before tax. Lower and higher scenarios vary both returns by two percentage points; these are examples, not confidence intervals.</p><div className={styles.fields}>{field('preReturn')}{field('postReturn')}{field('inflation')}{field('withdrawalRate')}</div></details>
+        <details className={styles.card}><summary>Add retirement income</summary><p className={styles.note}>Optional: Social Security, pension, or net rent. Zero means none assumed.</p><div className={styles.fields}>{field('socialSecurity')}{field('socialSecurityAge')}{field('pension')}{field('rentalIncome')}</div><a href="https://www.ssa.gov/benefits/retirement/planner/AnypiaApplet.html" target="_blank" rel="noopener noreferrer">Get a Social Security estimate ↗</a></details>
+        <details className={styles.card}><summary>Fine-tune assumptions</summary><p className={styles.note}>Optional: adjust returns, inflation, and the initial withdrawal assumption.</p><div className={styles.fields}>{field('preReturn')}{field('postReturn')}{field('inflation')}{field('withdrawalRate')}</div></details>
       </div>
       <div id="retirement-projection" className={styles.results}>
         {errors.length ? <div className={styles.card} role="alert"><h3>Let’s check those inputs</h3><ul>{errors.map(error => <li key={error}>{Object.entries(labels).reduce((message, [key, label]) => message.replace(key, label), error)}</li>)}</ul></div> : base && scenarios ? <>
-          <section className={styles.card} aria-labelledby="retirement-result"><p className={styles.kicker}>Under your assumptions</p><h3 id="retirement-result">{base.gap > 0 ? 'There’s a savings gap to explore.' : base.depletedAge !== null ? 'The target is met, but the money may run short.' : 'This scenario covers your plan.'}</h3><p className={styles.note}>A projection, not a promise. Real returns vary, and losses early in retirement can change the outcome.</p>
+          <section className={styles.card} aria-labelledby="retirement-result"><p className={styles.stepLabel}>Step 2 · Your outlook</p><h3 id="retirement-result">{base.gap > 0 ? 'There’s a gap to work on.' : base.depletedAge !== null ? 'On target now, but short later.' : 'Your plan covers the full timeline.'}</h3><p className={styles.note}>This is a projection, not a promise.</p>
             <div className={styles.targetOverview}><div className={styles.progressRing} style={{ background: `conic-gradient(var(--accent) ${Math.min(100, targetProgress ?? 100)}%, var(--border) 0)` }}><div><strong>{targetProgress === null ? '—' : `${Math.round(targetProgress)}%`}</strong><span>of initial target</span></div></div><p className={styles.note}>{targetProgress === null ? 'Outside income covers the first year’s modeled spending.' : 'Projected savings compared with your first-year withdrawal target.'}<br />This is not a probability of success.</p></div>
             <div className={styles.metrics}><div><span>Projected at {input.retirementAge}</span><strong>{money(base.projected)}</strong></div><div><span>First-year withdrawal target</span><strong>{money(base.target)}</strong></div><div><span>{base.gap > 0 ? 'Gap to that target' : 'Above that target'}</span><strong>{money(Math.abs(base.gap))}</strong></div></div>
             <p>{base.depletedAge !== null ? `The model cannot cover all planned spending from about age ${base.depletedAge.toFixed(1)}.` : `The model covers planned spending through age ${input.endAge}, ending with ${money(base.endingBalance)}.`}</p>
             {base.gap > 0 ? <p>{base.extraMonthly === null ? 'There is no accumulation period left in this scenario. Try changing spending, income or retirement timing.' : `${money(base.extraMonthly)} more per month would close the withdrawal-target gap under these assumptions. It does not guarantee funding through age ${input.endAge}.`}</p> : null}
           </section>
-          <figure className={styles.card}><h3>Your future, in perspective</h3><p className={styles.note}>Savings grow before retirement, then fund spending. Today’s dollars · USD.</p>
+          <figure className={styles.card}><p className={styles.stepLabel}>Step 3</p><h3>Explore the journey</h3><p className={styles.note}>Move through time to see how your balance could change.</p>
             <div className={styles.axis}><span>Balance · $0 at bottom</span><span>Scale up to {money(maxBalance)}</span></div>
             <svg className={styles.chart} viewBox="0 0 800 250" role="img" aria-label={`Three illustrative savings paths from age ${input.currentAge} to ${input.endAge}. Full values are in the scenario table and yearly breakdown below.`}>
               {[0, .5, 1].map(fraction => <g key={fraction}><line x1="45" x2="745" y1={y(maxBalance * fraction)} y2={y(maxBalance * fraction)} className={styles.grid} /></g>)}

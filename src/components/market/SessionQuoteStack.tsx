@@ -77,7 +77,13 @@ export function SessionQuoteStack({
   const tone = sessionQuoteTone(change);
   const extendedTone = sessionQuoteTone(extendedChange);
   const showExtended = Boolean(extendedLabel);
-  const promoteExtended = activeSessionPrimary && hasExtendedPrint({ sessionLabel: extendedLabel, extendedPrice, extendedNoTrades });
+  // Movers rows with priorCloseSecondary are already normalized so the active
+  // pre/AH print is primary and the regular session is secondary. Promoting
+  // again would swap the regular move back into the primary slot while the row
+  // keeps its active-session (potentially opposite) color and column.
+  const promoteExtended = activeSessionPrimary
+    && !priorCloseSecondary
+    && hasExtendedPrint({ sessionLabel: extendedLabel, extendedPrice, extendedNoTrades });
   const primaryPrice = promoteExtended ? extendedPrice : lastPrice;
   const primaryChange = promoteExtended ? extendedChange : change;
   const primaryChangePercent = promoteExtended ? extendedChangePercent : changePercent;
