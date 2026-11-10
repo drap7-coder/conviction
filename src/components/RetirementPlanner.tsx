@@ -50,9 +50,31 @@ export function RetirementPlanner() {
   const selectedAge = base ? Math.max(input.currentAge, Math.min(input.endAge, exploreAge ?? input.retirementAge)) : 0;
   const selectedPoint = base?.points.find(point => point.age === selectedAge);
   const targetProgress = base && base.target > 0 ? base.projected / base.target * 100 : null;
+  const retirementProgress = Number.isFinite(input.currentAge) && Number.isFinite(input.retirementAge) && Number.isFinite(input.endAge) && input.endAge > input.currentAge
+    ? Math.max(0, Math.min(100, (input.retirementAge - input.currentAge) / (input.endAge - input.currentAge) * 100))
+    : 50;
 
   return <section className={styles.planner} aria-labelledby="retirement-title">
-    <header className={styles.header}><p className={styles.kicker}>Your next chapter</p><h2 id="retirement-title">What could retirement look like?</h2><p>Try an age. Adjust your savings. See how the picture changes.</p><p className={styles.note}>Illustrative starting assumptions—replace them with your own. All amounts below are in today’s dollars. Inputs stay in this view and are not saved or sent to a planning service.</p><nav className={styles.jumpLinks} aria-label="Planning sections"><a href="#retirement-projection">Explore your future ↓</a></nav></header>
+    <header className={styles.header}><p className={styles.kicker}>Retirement command center</p><h2 id="retirement-title">Design the life after work.</h2><p>Shape the timeline. Test the tradeoffs. See your future respond.</p><p className={styles.note}>Illustrative starting assumptions—replace them with your own. All amounts below are in today’s dollars. Inputs stay in this view and are not saved or sent to a planning service.</p></header>
+    <section className={styles.journeyStage} aria-label="Retirement journey overview">
+      <div className={styles.stageGlow} aria-hidden="true" />
+      <div className={styles.stageCopy}>
+        <p className={styles.stageLabel}><span /> Live scenario</p>
+        <h3>Your path to<br /><em>time freedom.</em></h3>
+        <p>Move one control and the entire journey recalculates—from the final working years to the life you are funding.</p>
+        <nav className={styles.jumpLinks} aria-label="Planning sections"><a href="#retirement-projection">Enter the simulation <span aria-hidden="true">↘</span></a></nav>
+      </div>
+      <div className={styles.futureOrb} aria-hidden="true">
+        <div className={styles.orbitOne} /><div className={styles.orbitTwo} />
+        <div className={styles.orbCore}><span>Projected at {Number.isFinite(input.retirementAge) ? input.retirementAge : '—'}</span><strong>{base ? money(base.projected) : '—'}</strong><small>in today&apos;s dollars</small></div>
+      </div>
+      <div className={styles.missionStrip}>
+        <div><span>Now</span><strong>{Number.isFinite(input.currentAge) ? input.currentAge : '—'}</strong><small>Build</small></div>
+        <div className={styles.timelineTrack} aria-label={`${Math.round(retirementProgress)}% of the modeled timeline until retirement`}><i style={{ width: `${retirementProgress}%` }} /><b style={{ left: `${retirementProgress}%` }} /></div>
+        <div><span>Retire</span><strong>{Number.isFinite(input.retirementAge) ? input.retirementAge : '—'}</strong><small>Unlock</small></div>
+        <div><span>Horizon</span><strong>{Number.isFinite(input.endAge) ? input.endAge : '—'}</strong><small>Explore</small></div>
+      </div>
+    </section>
     <div className={styles.layout}>
       <div className={styles.controls}>
         <section className={styles.card} aria-labelledby="retirement-start"><h3 id="retirement-start">Start with you</h3><div className={styles.fields}>{field('currentAge')}{field('endAge')}{field('retirementAge', true)}{field('savings')}{field('monthlySavings', true)}{field('annualSpending')}</div>
