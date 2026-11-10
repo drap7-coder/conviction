@@ -37,7 +37,6 @@ import { PortfolioBenchmarkChart } from "@/components/PortfolioBenchmarkChart";
 import { PortfolioRiskXRay } from "@/components/PortfolioRiskXRay";
 import { PortfolioEventHud } from "@/components/PortfolioEventHud";
 import { ProductStage } from "@/components/ProductStage";
-import { RetirementPlanner } from "@/components/RetirementPlanner";
 import { SurfaceSlicer, type SurfaceSlicerOption } from "@/components/SurfaceSlicer";
 import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import Watchlist from "@/components/Watchlist";
@@ -248,13 +247,12 @@ function enrichWithPrices(
 
 // ── Main Component ──────────────────────────────────────────────────────────
 
-type PortfolioView = "live" | "watchlist" | "sandbox" | "study" | "retirement";
+type PortfolioView = "live" | "watchlist" | "sandbox" | "study";
 
 const PORTFOLIO_VIEWS: SurfaceSlicerOption[] = [
   { id: "live", label: "Live" },
   { id: "watchlist", label: "Watchlist" },
   { id: "sandbox", label: "Sandbox" },
-  { id: "retirement", label: "Retirement" },
 ];
 
 function parsePortfolioView(searchParams: URLSearchParams): PortfolioView {
@@ -262,7 +260,6 @@ function parsePortfolioView(searchParams: URLSearchParams): PortfolioView {
   const view = searchParams.get("view");
   if (view === "watchlist") return "watchlist";
   if (view === "sandbox") return "sandbox";
-  if (view === "retirement") return "retirement";
   // Legacy Most held / Most watched boards are gone — land on Live.
   return "live";
 }
@@ -624,13 +621,7 @@ export default function Portfolio() {
     if (next === "live") goLive();
     else if (next === "watchlist") goWatchlist();
     else if (next === "sandbox") goSandbox();
-    else if (next === "retirement") {
-      const params = new URLSearchParams(searchParams.toString());
-      params.delete("mode");
-      params.delete("template");
-      params.set("view", "retirement");
-      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    } else goStudy();
+    else goStudy();
   }
 
   const sectorMixCard = hasData && !calcFailed && sectorMixData.length > 0 ? (
@@ -776,9 +767,7 @@ export default function Portfolio() {
         <WorkspaceViewContext kicker="Study mode" title="Learn the shape of a portfolio" detail="Explore proven allocation templates, what each sleeve does, and what can break the approach." tone="study" />
       ) : null}
 
-      {view === "retirement" ? (
-        <RetirementPlanner />
-      ) : view === "watchlist" ? (
+      {view === "watchlist" ? (
         <div className="pf-watchlist">
           <Watchlist />
         </div>

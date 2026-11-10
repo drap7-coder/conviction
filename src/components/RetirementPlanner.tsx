@@ -1,6 +1,5 @@
 "use client";
 
-import { AllocationBuilder } from './AllocationBuilder';
 import { useState } from 'react';
 import { usePortfolioData } from '@/components/PortfolioData';
 import { getLivePrice } from '@/lib/market/live-quote';
@@ -53,7 +52,7 @@ export function RetirementPlanner() {
   const targetProgress = base && base.target > 0 ? base.projected / base.target * 100 : null;
 
   return <section className={styles.planner} aria-labelledby="retirement-title">
-    <header className={styles.header}><p className={styles.kicker}>Your next chapter</p><h2 id="retirement-title">What could retirement look like?</h2><p>Try an age. Adjust your savings. See how the picture changes.</p><p className={styles.note}>Illustrative starting assumptions—replace them with your own. All amounts below are in today’s dollars. Inputs stay in this view and are not saved or sent to a planning service.</p><nav className={styles.jumpLinks} aria-label="Planning sections"><a href="#retirement-projection">Explore your future ↓</a><a href="#allocation-builder">Build your mix ↓</a></nav></header>
+    <header className={styles.header}><p className={styles.kicker}>Your next chapter</p><h2 id="retirement-title">What could retirement look like?</h2><p>Try an age. Adjust your savings. See how the picture changes.</p><p className={styles.note}>Illustrative starting assumptions—replace them with your own. All amounts below are in today’s dollars. Inputs stay in this view and are not saved or sent to a planning service.</p><nav className={styles.jumpLinks} aria-label="Planning sections"><a href="#retirement-projection">Explore your future ↓</a></nav></header>
     <div className={styles.layout}>
       <div className={styles.controls}>
         <section className={styles.card} aria-labelledby="retirement-start"><h3 id="retirement-start">Start with you</h3><div className={styles.fields}>{field('currentAge')}{field('endAge')}{field('retirementAge', true)}{field('savings')}{field('monthlySavings', true)}{field('annualSpending')}</div>
@@ -86,7 +85,6 @@ export function RetirementPlanner() {
         </> : null}
       </div>
     </div>
-    <AllocationBuilder />
     <details className={styles.card}><summary>How this estimate works</summary><p>All displayed money is in today’s purchasing power. Effective monthly real returns remove inflation from the annual return assumptions. Contributions arrive at month-end until retirement; withdrawals occur at month-start afterward. Contributions, spending and outside income therefore rise with inflation in nominal dollars. Fixed pensions or rents may not behave this way.</p><p>The withdrawal target divides first-year spending not covered by outside income by your chosen initial withdrawal rate. The default 4% is a rule of thumb, not a safe-return guarantee. It does not change with the planning horizon; the separate spending projection does. Delayed Social Security is included only from the selected starting age. Extra savings shown close only the target gap.</p><p>Returns are smooth assumptions. Taxes, benefit eligibility, changing benefit laws, debt, healthcare shocks and the order of market gains and losses are not modeled. Include taxes and healthcare in your spending estimate. Net rent means after property costs; rental and other income are not guaranteed. Once savings cannot cover spending, the shortfall remains flagged even if later income reduces withdrawals.</p><p><a href="https://retirementcalculator.nga.finra.org/" target="_blank" rel="noopener noreferrer">FINRA retirement calculator and assumptions ↗</a> · <a href="https://www.ssa.gov/OACT/quickcalc/" target="_blank" rel="noopener noreferrer">Social Security estimates ↗</a></p></details>
   </section>;
 }

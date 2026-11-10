@@ -84,3 +84,7 @@
 .efficiencyGrid h3 { color:var(--ink); }
 @media(max-width:900px) { .allocationLayout { grid-template-columns:1fr; } }
 @media(max-width:480px) { .allocationHeader { flex-direction:column; } .targetOverview { gap:16px; } .progressRing { width:128px; height:128px; } .mixOverview { flex-direction:column; } .mixLegend { width:100%; } .mixPreview { padding:16px; } .efficiencyGrid { grid-template-columns:1fr; gap:8px; } .mixInputs > div { gap:8px; } }
+
+.workspaceTabs { display:flex; gap:8px; border-bottom:1px solid var(--border); padding-bottom:12px; margin-top:20px; }
+.workspaceTabs a { display:flex; align-items:center; min-height:44px; padding:8px 18px; border-radius:8px; text-decoration:none; color:var(--muted); border:1px solid transparent; }
+.workspaceTabs a[aria-current=page] { color:var(--accent); background:var(--accent-dim); border-color:var(--accent); }

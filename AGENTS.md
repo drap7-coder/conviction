@@ -6,6 +6,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Cursor Cloud specific instructions
 
+### Retirement destination (November 9, 2026)
+
+Retirement is a primary navigation destination at `/retirement`, separate from Portfolio. Internal sections are Your plan and Build your mix (`?view=allocation`). Keep both mounted while switching to preserve ephemeral inputs. Legacy `/portfolio?view=retirement` redirects to `/retirement`.
+
 ### Visual retirement and allocation (November 9, 2026)
 
 Retirement includes an accessible age explorer and a first-year target ratio, never a success probability. The separate allocation sandbox takes manually grouped stock/bond/cash balances, explicit target weights totaling 100%, and new contributions. Allocate new money proportionally to post-contribution dollar shortfalls with cent rounding; never model sales or imply suitability, tax optimization, or fund look-through. Mix choices do not change retirement return assumptions. Inputs remain ephemeral and excluded from analytics.
