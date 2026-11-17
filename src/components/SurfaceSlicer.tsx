@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useRef, type CSSProperties, type KeyboardEvent } from "react";
 
 export type SurfaceSlicerTone = "default" | "up" | "down";
 
@@ -35,6 +35,20 @@ export function SurfaceSlicer({
   style,
   role = "radiogroup",
 }: SurfaceSlicerProps) {
+  const optionRefs = useRef<Array<HTMLButtonElement | null>>([]);
+
+  function moveSelection(event: KeyboardEvent<HTMLButtonElement>, index: number) {
+    let nextIndex: number | null = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (index + 1) % options.length;
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (index - 1 + options.length) % options.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = options.length - 1;
+    if (nextIndex === null) return;
+    event.preventDefault();
+    onChange(options[nextIndex].id);
+    optionRefs.current[nextIndex]?.focus();
+  }
+
   return (
     <div
       className={["surface-slicer", className].filter(Boolean).join(" ")}
@@ -43,12 +57,13 @@ export function SurfaceSlicer({
       aria-label={label}
     >
       <div className="surface-slicer-track">
-        {options.map((option) => {
+        {options.map((option, index) => {
           const selected = activeId === option.id;
           const tone = option.tone ?? "default";
           return (
             <button
               key={option.id}
+              ref={(element) => { optionRefs.current[index] = element; }}
               type="button"
               role={role === "tablist" ? "tab" : role === "radiogroup" ? "radio" : undefined}
               aria-checked={role === "radiogroup" ? selected : undefined}
@@ -63,6 +78,7 @@ export function SurfaceSlicer({
                 .filter(Boolean)
                 .join(" ")}
               onClick={() => onChange(option.id)}
+              onKeyDown={(event) => moveSelection(event, index)}
             >
               {option.label}
             </button>

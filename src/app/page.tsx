@@ -15,7 +15,6 @@ export default function HomePage() {
           <Image src="/iqbulls-bull.png" width={48} height={48} alt="" className={styles.brandMark} />
           <div><h1>IQBulls Daily Briefing</h1><BriefingDate /></div>
         </div>
-        <p>What happened. Why it matters. What to watch.</p>
       </header>
       <HomeOverview />
     </main>

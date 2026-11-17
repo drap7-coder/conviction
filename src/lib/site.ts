@@ -31,12 +31,12 @@ export const SITE_DESCRIPTION =
 
 /** Pulse markets workspace SERP / share copy (not the site homepage). */
 export const PULSE_TITLE =
-  "Real-Time Market Dashboard: Stocks, Sectors & Crypto | IQBulls";
-export const PULSE_OG_TITLE = "Real-Time Market Dashboard | IQBulls";
+  "Market Dashboard: Stocks, Sectors & Crypto | IQBulls";
+export const PULSE_OG_TITLE = "Market Dashboard | IQBulls";
 export const PULSE_DESCRIPTION =
-  "Track the stock market today with live indexes, market movers, sectors, commodities, crypto, volatility and Treasury yields—all in one free dashboard.";
+  "Track current market snapshots for indexes, market movers, sectors, commodities, crypto, volatility and Treasury yields—all in one free dashboard.";
 /** Stable JSON-LD name for the Pulse WebPage entity. */
-export const PULSE_WEBPAGE_NAME = "Real-Time Market Dashboard";
+export const PULSE_WEBPAGE_NAME = "Market Dashboard";
 
 export const SITE_OG_IMAGE = {
   // Canonical share card. Do not reintroduce /iqbulls-og.png — scrapers cache that stale path.

@@ -142,10 +142,11 @@ export function MarketDataGrid({
       {rows.map((market) => {
         const href = companyDetailHref(market.ticker);
         const pill = showSessionMoves ? marketGridSessionPill(market.sessionLabel) : null;
-        const promote = Boolean(pill) && !market.extendedNoTrades && isFiniteNumber(market.extendedPrice);
-        const last = promote ? market.extendedPrice ?? null : market.price;
-        const net = promote ? market.extendedChange ?? null : market.regularChange ?? null;
-        const pct = promote
+        const noExtendedTrades = Boolean(pill) && Boolean(market.extendedNoTrades);
+        const promote = Boolean(pill) && !noExtendedTrades && isFiniteNumber(market.extendedPrice);
+        const last = noExtendedTrades ? null : promote ? market.extendedPrice ?? null : market.price;
+        const net = noExtendedTrades ? null : promote ? market.extendedChange ?? null : market.regularChange ?? null;
+        const pct = noExtendedTrades ? null : promote
           ? market.extendedChangePercent ?? null
           : market.regularChangePercent ?? market.changePercent;
         const rowTone = toneClass(pct);
@@ -180,7 +181,7 @@ export function MarketDataGrid({
                   className={`market-data-grid-pill${market.extendedNoTrades ? " is-quiet" : ""}`}
                   aria-label={pill === "PM" ? "Pre-Market" : "After Hours"}
                 >
-                  {pill}
+                  {market.extendedNoTrades ? `No ${pill}` : pill}
                 </span>
               ) : (
                 <span className="market-data-grid-pill is-idle">—</span>

@@ -7,6 +7,7 @@ html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-wo
 .pulse-reading-guide > div { padding: 0 18px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 24px; }
 .pulse-reading-guide p { margin: 0 0 8px; }
 .pulse-reading-guide strong { color: #edf4f8; font-weight: 600; }
+.pulse-ops-updated { display: block; margin-top: 3px; color: #9fb0bc; font: 500 .66rem/1.35 var(--font-plex-sans), sans-serif; white-space: nowrap; }
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-index-board .market-data-grid { grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 12px; padding: 14px; }
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row:not(.is-head) { padding: 16px; gap: 12px; border-radius: 12px; grid-template-areas: "name name" "spark spark" "percent session" "last net" "previous previous"; min-height: 190px; }
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-name strong { font: 600 1rem/1.4 var(--font-plex-sans), sans-serif; white-space: normal; }

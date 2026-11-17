@@ -88,7 +88,7 @@ export function HomeMarketDashboard() {
       inFlight = true;
       lastAttempt = Date.now();
       try {
-        const [payload, quotes] = await Promise.all([
+        const [payloadResult, quotesResult] = await Promise.allSettled([
           fetchJsonWithTimeout<PulseData>("/api/market/pulse", 10000, controller.signal),
           fetchMarketQuotes(HOME_MARKETS.map((market) => market.ticker), {
             reason: "initial",
@@ -96,6 +96,8 @@ export function HomeMarketDashboard() {
           }),
         ]);
         if (controller.signal.aborted) return;
+        const payload = payloadResult.status === "fulfilled" ? payloadResult.value : null;
+        const quotes = quotesResult.status === "fulfilled" ? quotesResult.value : [];
         const quoteByTicker = new Map(quotes.map((quote) => [quote.ticker.toUpperCase(), quote]));
         setMarkets(HOME_MARKETS.flatMap((asset) => {
           const quote = quoteByTicker.get(asset.ticker);
@@ -109,8 +111,9 @@ export function HomeMarketDashboard() {
             history: quote.sparkline,
           }];
         }));
-        setData(payload);
-        setStatus("ready");
+        if (payload) setData(payload);
+        if (payload || quotes.length > 0) setStatus("ready");
+        else setStatus("error");
       } catch (error) {
         if (controller.signal.aborted || (error instanceof DOMException && error.name === "AbortError")) return;
         setStatus("error");

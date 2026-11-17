@@ -18,7 +18,7 @@
 .page h1, .page h2, .page h3 { font-family: var(--font-plex-sans), sans-serif; color: var(--editor-ink); text-wrap: balance; }
 .page a { color: inherit; }
 .page a:focus-visible, .page summary:focus-visible { outline: 2px solid var(--editor-cyan); outline-offset: 5px; border-radius: 3px; }
-.masthead { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-bottom: 22px; border-bottom: 1px solid var(--editor-edge); }
+.masthead { display: flex; align-items: center; gap: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--editor-edge); }
 .masthead h1 { font-size: 1.1rem; font-weight: 600; }
 .masthead p { color: var(--editor-muted); font-size: .9rem; }
 .overview { min-width: 0; position: relative; }
@@ -26,8 +26,8 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding: 34px 30px;
-  margin: 22px 0;
+  padding: 28px 30px;
+  margin: 16px 0 22px;
   border: 1px solid var(--border);
   border-radius: 22px;
   background: var(--editor-card);
@@ -103,7 +103,7 @@
 .notice { border-color: #927447; color: #efcf95; }
 @media (max-width: 767px) {
   .page { padding: 20px 16px 48px; }
-  .masthead { align-items: flex-start; flex-direction: column; gap: 4px; padding-bottom: 16px; }
+  .masthead { padding-bottom: 12px; }
   .storyHeader { padding: 26px 18px; border-radius: 16px; }
   .brandMark { width: 40px; height: 40px; }
   .marketLayout { grid-template-columns: minmax(0, 1fr); }
