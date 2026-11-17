@@ -207,7 +207,7 @@ describe("SEO metadata", () => {
     expect(read("src/app/news/page.tsx")).toContain('sr-only');
     expect(read("src/app/not-found.tsx")).toContain("index: false");
     expect(read("src/app/pulse/page.tsx")).toContain("<h1>");
-    expect(read("src/app/pulse/page.tsx")).toContain("Real-Time Market Dashboard");
+    expect(read("src/app/pulse/page.tsx")).toContain("Market Dashboard");
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
@@ -256,7 +256,7 @@ describe("SEO metadata", () => {
     expect(read("src/app/pulse/layout.tsx")).toContain("PULSE_TITLE");
     expect(read("src/app/pulse/layout.tsx")).toContain("PULSE_DESCRIPTION");
     expect(read("src/app/pulse/layout.tsx")).toContain("pulsePageJsonLd");
-    expect(read("src/app/pulse/page.tsx")).toContain("Real-Time Market Dashboard");
+    expect(read("src/app/pulse/page.tsx")).toContain("Market Dashboard");
     expect(read("src/app/pulse/page.tsx")).toContain("PulseAbout");
     expect(read("src/components/market/PulseAbout.tsx")).toContain("About IQBulls Pulse");
   });

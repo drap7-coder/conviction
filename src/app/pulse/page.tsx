@@ -10,7 +10,7 @@ export default function PulsePage() {
   return (
     <main className="markets-page pulse-page pulse-approachable">
       <h1>
-        <span className="sr-only">Real-Time Market Dashboard: Markets in one place.</span>
+        <span className="sr-only">Market Dashboard: Markets in one place.</span>
       </h1>
       <PulseDashboard />
       <PulseAbout />

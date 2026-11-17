@@ -103,7 +103,7 @@ function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | n
     <WorkspaceViewContext
       {...context}
       meta={
-        updated && context.tone === "markets" ? (
+        updated ? (
           <time dateTime={data?.fetchedAt}>Updated {updated}</time>
         ) : undefined
       }
@@ -204,8 +204,7 @@ function PulseMarketBoardInner() {
       <header className="pulse-home-section-head pulse-workspace-head">
         <div>
           <p className="pulse-home-eyebrow">IQBulls / Pulse</p>
-          <h2 id="pulse-market-glance-heading">Explore the market, one view at a time.</h2>
-          <p className="pulse-workspace-lede">Start with the broad market. Choose a tab when you want to explore more.</p>
+          <h2 id="pulse-market-glance-heading">Markets in one place.</h2>
         </div>
       </header>
 
@@ -217,6 +216,11 @@ function PulseMarketBoardInner() {
               <div>
                 <small>Session</small>
                 <strong>{data.sessionLabel ?? "Regular market"}</strong>
+                {data.fetchedAt ? (
+                  <time className="pulse-ops-updated" dateTime={data.fetchedAt}>
+                    Updated {new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                  </time>
+                ) : null}
               </div>
             </div>
             {macroCards.map((card) => (
@@ -238,16 +242,6 @@ function PulseMarketBoardInner() {
         />
       </div>
 
-      <details className="pulse-reading-guide">
-        <summary>New to Pulse? Here’s how to read it.</summary>
-        <div>
-          <p><strong>Start with the name.</strong> Each card shows a company, fund or asset. The line chart gives you a quick view of its available price history.</p>
-          <p><strong>Changes describe a session.</strong> A plus means higher; a minus means lower. Pre-market and after-hours changes compare with the regular close; regular-session changes compare with the previous close.</p>
-          <p><strong>Two useful benchmarks.</strong> VIX reflects expected stock-market volatility, not a prediction of direction. The 10-year Treasury yield is a benchmark for borrowing costs, not an investment return.</p>
-          <p><strong>Keep the timing in mind.</strong> Quotes may be delayed. Markets follows U.S. sessions; crypto trades around the clock, while country funds follow their own listing hours. ETF prices are not index levels or spot commodity prices.</p>
-        </div>
-      </details>
-
       {status === "loading" ? (
         <PageLoadingMotion
           label="Loading pulse"
@@ -258,7 +252,9 @@ function PulseMarketBoardInner() {
         />
       ) : null}
       {status === "error" || (status === "success" && !data) ? (
-        <div className="market-empty">Market data is temporarily unavailable.</div>
+        <div className="market-empty" role="status">
+          {data ? "A fresh update is unavailable. Showing the last successful snapshot." : "Market data is temporarily unavailable."}
+        </div>
       ) : null}
 
       {status !== "loading" ? <PulseViewContext view={view} data={data} /> : null}
@@ -292,6 +288,16 @@ function PulseMarketBoardInner() {
       {data && view === "international" ? (
         <InternationalScoreboard markets={internationalMarkets} />
       ) : null}
+
+      <details className="pulse-reading-guide">
+        <summary>How to read Pulse</summary>
+        <div>
+          <p><strong>Start with the name.</strong> Each card shows a company, fund or asset. The line chart gives you a quick view of its available price history.</p>
+          <p><strong>Changes describe a session.</strong> A plus means higher; a minus means lower. Pre-market and after-hours changes compare with the regular close; regular-session changes compare with the previous close.</p>
+          <p><strong>Two useful benchmarks.</strong> VIX reflects expected stock-market volatility, not a prediction of direction. The 10-year Treasury yield is a benchmark for borrowing costs, not an investment return.</p>
+          <p><strong>Keep the timing in mind.</strong> Quotes may be delayed. Markets follows U.S. sessions; crypto trades around the clock, while country funds follow their own listing hours. ETF prices are not index levels or spot commodity prices.</p>
+        </div>
+      </details>
     </section>
   );
 }
