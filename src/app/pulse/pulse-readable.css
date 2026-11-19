@@ -9,7 +9,7 @@ html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-wo
 .pulse-reading-guide strong { color: #edf4f8; font-weight: 600; }
 .pulse-ops-updated { display: block; margin-top: 3px; color: #9fb0bc; font: 500 .66rem/1.35 var(--font-plex-sans), sans-serif; white-space: nowrap; }
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-index-board .market-data-grid { grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 12px; padding: 14px; }
-html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row:not(.is-head) { padding: 16px; gap: 12px; border-radius: 12px; grid-template-areas: "name name" "spark spark" "percent session" "last net" "previous previous"; min-height: 190px; }
+html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row:not(.is-head) { padding: 16px; gap: 12px; border-radius: 12px; grid-template-areas: "name name" "spark spark" "percent session" "last net" "previous previous"; min-height: 214px; }
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-name strong { font: 600 1rem/1.4 var(--font-plex-sans), sans-serif; white-space: normal; }
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-name small { color: #adbfcd; font-size: .78rem; }
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row > :nth-child(5) { font-size: .95rem; font-weight: 500; letter-spacing: 0; line-height: 1.4; }
@@ -25,7 +25,7 @@ html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-ma
 @media (max-width: 600px) {
   .pulse-reading-guide > div { grid-template-columns: minmax(0, 1fr); }
   html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-index-board .market-data-grid { grid-template-columns: minmax(0, 1fr); padding: 10px; }
-  html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row:not(.is-head) { min-height: 180px; }
+  html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .market-data-grid-row:not(.is-head) { min-height: 204px; }
 }
 
 html[data-theme="dark"] .pulse-page.pulse-approachable:not(.home-page) .pulse-market-moves .pulse-movers-id small { font: 400 .8rem/1.4 var(--font-plex-sans), sans-serif; color: #b8c9d6; }
