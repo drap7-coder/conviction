@@ -19,8 +19,9 @@ import { sessionQuoteTone } from "@/components/market/SessionQuoteStack";
 
 export type MarketGridSessionPill = "PM" | "AH" | null;
 
-const SPARK_W = 52;
-const SPARK_H = 18;
+const SPARK_W = 160;
+const SPARK_H = 54;
+const SPARK_PAD = 3;
 
 export function marketGridSessionPill(
   sessionLabel: string | null | undefined,
@@ -76,9 +77,9 @@ function MarketGridSpark({
     sparkline: history,
     price,
     previousClose,
-    limit: 15,
+    limit: 28,
   });
-  const geometry = values.length >= 2 ? buildSparklineGeometry(values, SPARK_W, SPARK_H, 1.5) : null;
+  const geometry = values.length >= 2 ? buildSparklineGeometry(values, SPARK_W, SPARK_H, SPARK_PAD) : null;
   const tone = sparklineToneFromChange(changePercent);
   if (!geometry) {
     return <span className="market-data-grid-spark is-empty" aria-hidden="true" />;
@@ -89,14 +90,25 @@ function MarketGridSpark({
       viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
       width={SPARK_W}
       height={SPARK_H}
+      preserveAspectRatio="none"
       aria-hidden="true"
       focusable="false"
     >
       <path
+        d={`M${SPARK_PAD} ${SPARK_H / 2} H${SPARK_W - SPARK_PAD}`}
+        className="market-data-grid-spark-guide"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d={`${geometry.path} L${SPARK_W - SPARK_PAD} ${SPARK_H - SPARK_PAD} L${SPARK_PAD} ${SPARK_H - SPARK_PAD} Z`}
+        className="market-data-grid-spark-fill"
+        fill={sparklineStroke(tone)}
+      />
+      <path
         d={geometry.path}
         fill="none"
         stroke={sparklineStroke(tone)}
-        strokeWidth="1.25"
+        strokeWidth="2.25"
         strokeLinecap="round"
         strokeLinejoin="round"
         vectorEffect="non-scaling-stroke"
@@ -104,8 +116,9 @@ function MarketGridSpark({
       <circle
         cx={geometry.lastX}
         cy={geometry.lastY}
-        r="1.6"
+        r="3"
         fill={sparklineStroke(tone)}
+        className="market-data-grid-spark-point"
       />
     </svg>
   );

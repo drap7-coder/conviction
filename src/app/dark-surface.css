@@ -842,12 +842,12 @@ html[data-theme="dark"] .pulse-page:not(.home-page) .market-data-grid-spark-cell
   grid-area: spark;
   align-self: end;
   width: 100%;
-  padding: 5px 0 3px;
-  border-bottom: 1px dotted color-mix(in srgb, currentColor 24%, transparent);
+  padding: 8px 0 5px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
 }
 html[data-theme="dark"] .pulse-page:not(.home-page) .market-data-grid-spark {
   width: 100%;
-  height: 30px;
+  height: 58px;
 }
 html[data-theme="dark"] .pulse-page:not(.home-page) .market-data-grid-row > :nth-child(3) { grid-area: last; }
 html[data-theme="dark"] .pulse-page:not(.home-page) .market-data-grid-row > :nth-child(4) { grid-area: net; }
