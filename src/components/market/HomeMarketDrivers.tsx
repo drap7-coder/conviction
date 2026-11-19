@@ -9,7 +9,7 @@ import styles from "./HomeEditorial.module.css";
 /** Editorial entry point; full movers and news browsing remain on their own pages. */
 export function HomeMarketDrivers() {
   const news = usePulseHomeNews();
-  const stories = news.todaysBrief.flatMap(theme => {
+  const stories = news.todaysBrief.filter(theme => theme.label !== "Sector Leadership").flatMap(theme => {
     const headline = primaryHeadline(theme);
     return headline ? [{ theme, headline }] : [];
   }).slice(0, 3);
