@@ -110,43 +110,73 @@ html[data-theme="dark"][data-accent="blue"] .pf-empty-prompt::after { content: n
 /* Signature finish: instrument-grade restraint with warm metal details.
    Blue remains the only interaction/chart accent; champagne is material trim. */
 html[data-theme="dark"][data-accent="blue"] {
-  --bg: #080d0c;
-  --surface: #0c1412;
-  --surface-elevated: #111b18;
-  --card: #101917;
-  --card-soft: #15211d;
-  --card-inset: #0b1311;
-  --divider: #202e29;
-  --border: #2b3b35;
-  --border-active: #52685f;
-  --ink: #f4f1e9;
-  --muted: #b4b2aa;
-  --quiet: #8d948e;
-  --accent: #83b7f4;
-  --accent-dim: rgb(131 183 244 / 12%);
-  --brand-iq: #d1b779;
-  --brand-horn: #f1eadb;
+  --bg: #f4f0e7;
+  --surface: #ebe5d9;
+  --surface-elevated: #fffdf8;
+  --card: #fffdf8;
+  --card-soft: #f0eadf;
+  --card-inset: #f7f3eb;
+  --divider: #ded6c7;
+  --border: #d3cab9;
+  --border-active: #8b9b91;
+  --ink: #17231f;
+  --muted: #526159;
+  --quiet: #626e68;
+  --accent: #176b58;
+  --accent-dim: rgb(23 107 88 / 11%);
+  --on-accent: #fffdf8;
+  --brand-iq: #d4bd7e;
+  --brand-horn: #fffaf0;
   --luxury-metal: #c7aa6b;
-  --luxury-metal-soft: rgb(199 170 107 / 13%);
-  --luxury-green: #1f6d55;
-  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 4%), 0 10px 28px rgb(0 0 0 / 22%);
-  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 5%), 0 18px 44px rgb(0 0 0 / 30%);
-  --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 6%), 0 30px 72px rgb(0 0 0 / 38%);
+  --luxury-metal-soft: rgb(199 170 107 / 15%);
+  --luxury-green: #103f34;
+  --green: #137353;
+  --green-dim: rgb(19 115 83 / 10%);
+  --red: #b5443e;
+  --red-dim: rgb(181 68 62 / 10%);
+  --amber: #9b681f;
+  --amber-dim: rgb(155 104 31 / 11%);
+  --on-ink: #f8f4eb;
+  --on-ink-muted: #c8cec9;
+  --on-ink-quiet: #9ba69f;
+  --on-ink-border: #385148;
+  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 80%), 0 8px 24px rgb(50 41 25 / 8%);
+  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 88%), 0 18px 44px rgb(50 41 25 / 12%);
+  --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 10%), 0 30px 72px rgb(25 34 29 / 22%);
   --radius: 16px;
 }
 
 html[data-theme="dark"][data-accent="blue"] body {
   background:
-    radial-gradient(900px 540px at 50% -330px, rgb(199 170 107 / 8%), transparent 72%),
-    radial-gradient(720px 520px at 105% 38%, rgb(31 109 85 / 7%), transparent 75%),
+    radial-gradient(900px 540px at 50% -330px, rgb(255 255 255 / 86%), transparent 72%),
+    radial-gradient(720px 520px at 105% 38%, rgb(31 109 85 / 6%), transparent 75%),
     var(--bg);
 }
 
 html[data-theme="dark"][data-accent="blue"] .app-header {
-  border-bottom-color: color-mix(in srgb, var(--luxury-metal) 24%, var(--border));
-  background: rgb(8 13 12 / 88%);
-  box-shadow: 0 18px 44px rgb(0 0 0 / 24%);
+  border-bottom-color: rgb(199 170 107 / 42%);
+  background: rgb(16 63 52 / 96%);
+  box-shadow: 0 18px 44px rgb(20 47 38 / 18%);
   backdrop-filter: blur(22px) saturate(1.1);
+}
+
+html[data-theme="dark"][data-accent="blue"] .app-header :is(.desktop-nav-item, .global-search-icon) {
+  color: #e8e5dc;
+}
+
+html[data-theme="dark"][data-accent="blue"] .app-header .global-search-pill {
+  color: #f8f4eb;
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 22%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 8%);
+}
+
+html[data-theme="dark"][data-accent="blue"] .app-header .global-search-input {
+  color: #fffdf8;
+}
+
+html[data-theme="dark"][data-accent="blue"] .app-header .global-search-input::placeholder {
+  color: #d4d9d5;
 }
 
 html[data-theme="dark"][data-accent="blue"] .app-logo {
@@ -158,7 +188,7 @@ html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item, .bottom-tab-i
 }
 
 html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item.active, .bottom-tab-item.active, .bottom-tab-item.active .bottom-tab-icon) {
-  color: var(--ink);
+  color: #fffdf8;
   background: linear-gradient(180deg, rgb(199 170 107 / 12%), rgb(199 170 107 / 5%));
   box-shadow: inset 0 -2px 0 var(--luxury-metal);
 }
@@ -198,7 +228,7 @@ html[data-theme="dark"][data-accent="blue"] :is(h1, h2, h3, .product-stage-headl
 }
 
 html[data-theme="dark"][data-accent="blue"] .surface-slicer {
-  background: rgb(11 19 17 / 92%);
+  background: rgb(255 253 248 / 92%);
   border-color: color-mix(in srgb, var(--luxury-metal) 14%, var(--border));
 }
 
@@ -214,6 +244,13 @@ html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-st
     linear-gradient(135deg, #0d1d18, #101917 58%, #161a16);
   border-color: color-mix(in srgb, var(--luxury-metal) 30%, var(--border));
   box-shadow: var(--shadow-lg);
+}
+
+html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above {
+  --ink: #f8f4eb;
+  --muted: #c5ccc7;
+  --quiet: #9eaaa3;
+  --border: #355147;
 }
 
 html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
@@ -242,11 +279,87 @@ html[data-theme="dark"][data-accent="blue"] :is(input, select, textarea) {
   border-color: color-mix(in srgb, var(--luxury-metal) 12%, var(--border));
 }
 
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.market-data-grid-name strong, .market-panel-header h2, .pulse-index-board-title-row h2) {
+  color: var(--ink);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.market-data-grid-name small, .market-data-grid-row > :is(:nth-child(3), :nth-child(4), :nth-child(6), :nth-child(7))) {
+  color: var(--muted);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-data-grid-row:not(.is-head) {
+  background: var(--card);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.market-data-grid, .pulse-ops-rail, .pulse-market-glance, .pulse-index-board, .pulse-reading-guide) {
+  color: var(--ink);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-seo-intro {
+  margin: 4px 0 12px;
+  padding: 4px 0 10px;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-seo-intro::after {
+  display: none;
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-seo-intro h1 {
+  color: var(--ink);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-ops-rail {
+  background: rgb(255 253 248 / 94%);
+  border-color: var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-market-glance::after {
+  display: none;
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-workspace-head {
+  padding: 2px 4px 6px;
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-workspace-head h2 {
+  color: var(--ink);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pulse-ops-session strong, .pulse-ops-stat strong) {
+  color: var(--ink);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pulse-ops-session small, .pulse-ops-stat small) {
+  color: var(--quiet);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pulse-ops-stat, .pulse-ops-snapshot) {
+  border-color: var(--border);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-data-grid-num:is(.is-flat, .is-prev),
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-data-grid-row > :is(:nth-child(3), :nth-child(4), :nth-child(6), :nth-child(7)) {
+  color: #526159;
+  opacity: 1;
+}
+
 @media (max-width: 767px) {
   html[data-theme="dark"][data-accent="blue"] .bottom-tab-bar {
-    background: rgb(8 13 12 / 94%);
+    background: rgb(255 253 248 / 94%);
     border-top-color: color-mix(in srgb, var(--luxury-metal) 22%, var(--border));
-    box-shadow: 0 -16px 36px rgb(0 0 0 / 30%);
+    box-shadow: 0 -16px 36px rgb(50 41 25 / 12%);
     backdrop-filter: blur(22px);
+  }
+
+  html[data-theme="dark"][data-accent="blue"] :is(.bottom-tab-item.active, .bottom-tab-item.active .bottom-tab-icon) {
+    color: var(--luxury-green);
   }
 }
