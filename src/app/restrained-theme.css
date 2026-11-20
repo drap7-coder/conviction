@@ -110,15 +110,15 @@ html[data-theme="dark"][data-accent="blue"] .pf-empty-prompt::after { content: n
 /* Signature finish: instrument-grade restraint with warm metal details.
    Blue remains the only interaction/chart accent; champagne is material trim. */
 html[data-theme="dark"][data-accent="blue"] {
-  --bg: #f4f0e7;
-  --surface: #ebe5d9;
-  --surface-elevated: #fffdf8;
-  --card: #fffdf8;
-  --card-soft: #f0eadf;
-  --card-inset: #f7f3eb;
-  --divider: #ded6c7;
-  --border: #d3cab9;
-  --border-active: #8b9b91;
+  --bg: #f8faf9;
+  --surface: #f1f4f2;
+  --surface-elevated: #ffffff;
+  --card: #ffffff;
+  --card-soft: #f4f7f5;
+  --card-inset: #f8faf9;
+  --divider: #e2e7e4;
+  --border: #d8dfdb;
+  --border-active: #8da198;
   --ink: #17231f;
   --muted: #526159;
   --quiet: #626e68;
@@ -128,7 +128,7 @@ html[data-theme="dark"][data-accent="blue"] {
   --brand-iq: #d4bd7e;
   --brand-horn: #fffaf0;
   --luxury-metal: #c7aa6b;
-  --luxury-metal-soft: rgb(199 170 107 / 15%);
+  --luxury-metal-soft: rgb(199 170 107 / 10%);
   --luxury-green: #103f34;
   --green: #137353;
   --green-dim: rgb(19 115 83 / 10%);
@@ -140,17 +140,14 @@ html[data-theme="dark"][data-accent="blue"] {
   --on-ink-muted: #c8cec9;
   --on-ink-quiet: #9ba69f;
   --on-ink-border: #385148;
-  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 80%), 0 8px 24px rgb(50 41 25 / 8%);
-  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 88%), 0 18px 44px rgb(50 41 25 / 12%);
+  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 88%), 0 8px 24px rgb(23 45 36 / 6%);
+  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 94%), 0 18px 44px rgb(23 45 36 / 9%);
   --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 10%), 0 30px 72px rgb(25 34 29 / 22%);
   --radius: 16px;
 }
 
 html[data-theme="dark"][data-accent="blue"] body {
-  background:
-    radial-gradient(900px 540px at 50% -330px, rgb(255 255 255 / 86%), transparent 72%),
-    radial-gradient(720px 520px at 105% 38%, rgb(31 109 85 / 6%), transparent 75%),
-    var(--bg);
+  background: var(--bg);
 }
 
 html[data-theme="dark"][data-accent="blue"] .app-header {
@@ -202,13 +199,13 @@ html[data-theme="dark"][data-accent="blue"] .market-tape-item::before {
 }
 
 html[data-theme="dark"][data-accent="blue"] :is(.surface-shell, .surface-well, .pf-section, .pf-study-board, .crowd-board, .pulse-news-brief-grid > article, .product-stage, .market-data-grid) {
-  border-color: color-mix(in srgb, var(--luxury-metal) 10%, var(--border));
+  border-color: color-mix(in srgb, var(--luxury-metal) 5%, var(--border));
   box-shadow: var(--shadow-sm);
 }
 
 html[data-theme="dark"][data-accent="blue"] :is(.surface-shell, .pf-section, .crowd-board, .pulse-news-brief-grid > article) {
   background:
-    linear-gradient(145deg, rgb(255 255 255 / 2.2%), transparent 38%),
+    linear-gradient(145deg, rgb(255 255 255 / 92%), transparent 38%),
     var(--card);
 }
 
@@ -228,8 +225,8 @@ html[data-theme="dark"][data-accent="blue"] :is(h1, h2, h3, .product-stage-headl
 }
 
 html[data-theme="dark"][data-accent="blue"] .surface-slicer {
-  background: rgb(255 253 248 / 92%);
-  border-color: color-mix(in srgb, var(--luxury-metal) 14%, var(--border));
+  background: rgb(255 255 255 / 94%);
+  border-color: color-mix(in srgb, var(--luxury-metal) 7%, var(--border));
 }
 
 html[data-theme="dark"][data-accent="blue"] .surface-slicer .surface-slicer-pill:is(.is-active, [aria-checked="true"]) {
@@ -316,7 +313,7 @@ html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-s
 }
 
 html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-ops-rail {
-  background: rgb(255 253 248 / 94%);
+  background: rgb(255 255 255 / 96%);
   border-color: var(--border);
   box-shadow: var(--shadow-sm);
 }
@@ -353,7 +350,7 @@ html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-
 
 @media (max-width: 767px) {
   html[data-theme="dark"][data-accent="blue"] .bottom-tab-bar {
-    background: rgb(255 253 248 / 94%);
+    background: rgb(255 255 255 / 96%);
     border-top-color: color-mix(in srgb, var(--luxury-metal) 22%, var(--border));
     box-shadow: 0 -16px 36px rgb(50 41 25 / 12%);
     backdrop-filter: blur(22px);
