@@ -151,11 +151,11 @@ export function HomeMarketDashboard() {
       <p className={styles.eyebrow}>Your market day in 60 seconds</p>
       <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : briefingLead(lead?.changePercent, lead?.session)}</h2>
       <p className={styles.dek}>Start with the story. Explore a chart. Leave knowing a little more.</p>
-      {data ? <ul className={styles.quickTakeaways} aria-label="Your quick briefing">
-        <li><span>01</span><div><strong>Broad market: {signalTakeaway(lead?.changePercent).toLowerCase()}.</strong><p>SPY is our quick read on large U.S. companies.</p></div></li>
-        <li><span>02</span><div><strong>Growth stocks: {signalTakeaway(growth?.changePercent).toLowerCase()}.</strong><p>QQQ highlights large growth-oriented companies.</p></div></li>
-        <li><span>03</span><div><strong>Borrowing costs: {yieldGauge?.value ?? "unavailable"}.</strong><p>The 10-year Treasury yield influences rates across the economy.</p></div></li>
-      </ul> : null}
+      {data ? <div className={styles.briefingStrip} aria-label="Your quick briefing">
+        <span><small>Broad market</small><strong>{signalTakeaway(lead?.changePercent)}</strong></span>
+        <span><small>Growth stocks</small><strong>{signalTakeaway(growth?.changePercent)}</strong></span>
+        <span><small>10-year yield</small><strong>{yieldGauge?.value ?? "Unavailable"}</strong></span>
+      </div> : null}
       <div className={styles.status}>
         <span>{data?.sessionLabel ?? "Market snapshot"}</span>
         <span>Quotes may be delayed</span>
@@ -194,10 +194,7 @@ export function HomeMarketDashboard() {
         </aside>
       </div>
       </section>
-      <div className={styles.explainer}>
-        <article><p className={styles.eyebrow}>What changed</p><h3>{lead?.changePercent == null ? "The broad-market quote is unavailable." : `Large U.S. stocks: ${signalTakeaway(lead.changePercent).toLowerCase()}.`}</h3><p>{growth?.changePercent == null ? "The growth-stock comparison is unavailable." : `Growth stocks are ${signalTakeaway(growth.changePercent).toLowerCase()}, giving you a second view beyond the broad market.`}</p>{showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} Oil can affect inflation expectations and energy margins. USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}</article>
-        <article><p className={styles.eyebrow}>Why it matters</p><h3>One index is only part of the story.</h3><p>SPY tracks large U.S. companies. Compare growth stocks, gold and rates to put its move in context. These signals describe prices; they do not establish what caused a move.</p></article>
-      </div>
+      {showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}
       <section className={styles.learnPanel} aria-labelledby="learn-market-heading">
         <div><p className={styles.eyebrow}>A little smarter in 30 seconds</p><h2 id="learn-market-heading">What is SPY, exactly?</h2><p>Open the answer for the plain-English version.</p></div>
         <details><summary>Show me the answer</summary><p><strong>SPY is a fund designed to track the S&amp;P 500.</strong> It gives us a convenient snapshot of large U.S. companies without pretending every stock moved the same way.</p><p>It is a useful starting point, not the whole market.</p><Link href="/pulse" className={styles.textLink}>Explore the full market in Pulse →</Link></details>

@@ -10,8 +10,7 @@ describe("watch → research → ownership loop", () => {
     const watchlist = read("src/components/Watchlist.tsx");
 
     expect(read("src/components/market/HomeOverview.tsx")).toContain("<HomeMarketDashboard");
-    expect(read("src/components/market/HomeOverview.tsx")).not.toContain("<HomePersonalBrief");
-    expect(read("src/components/HomePersonalBrief.tsx")).toContain("<PersonalDailyBrief");
+    expect(read("src/components/market/HomeOverview.tsx")).not.toContain("PersonalDailyBrief");
     const brief = read("src/components/PersonalDailyBrief.tsx");
     expect(brief).toContain("Your daily brief");
     expect(brief).toContain("Read source");

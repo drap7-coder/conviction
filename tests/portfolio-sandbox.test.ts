@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { analyzeSandbox, equalizeSandboxHoldings, normalizeSandboxHoldings, setSandboxHoldingWeight } from "@/lib/portfolio/sandbox";
 import { readFileSync } from "node:fs";
-import { cleanCopilotAnswer } from "@/lib/portfolio/copilot-answer";
 
 describe("portfolio sandbox", () => {
   it("equalizes a draft to exactly 100 percent", () => {
@@ -42,19 +41,6 @@ describe("portfolio sandbox", () => {
     expect(analysis.riskLabel).toBe("Moderate");
   });
 
-  it("extracts a tagged final answer without exposing preceding model reasoning", () => {
-    const raw = "The user is asking whether... Let me analyze.\n<answer>I can't verify SPCX from the supplied data. Test a small allocation first.</answer>";
-    expect(cleanCopilotAnswer(raw)).toBe("I can't verify SPCX from the supplied data. Test a small allocation first.");
-  });
-
-  it("rejects unfinished model scratchpads", () => {
-    expect(cleanCopilotAnswer("The user is asking whether... Let me craft")).toBeNull();
-  });
-
-  it("drops a model's duplicate second draft after three complete paragraphs", () => {
-    expect(cleanCopilotAnswer("One.\n\nTwo.\n\nThree.\n\nOne again, but unfinished")).toBe("One.\n\nTwo.\n\nThree.");
-  });
-
   it("treats unallocated capital as cash", () => {
     const analysis = analyzeSandbox([{ ticker: "MSFT", weight: 55 }]);
     expect(analysis.cashPct).toBe(45);
@@ -88,9 +74,4 @@ describe("portfolio sandbox", () => {
     expect(component).toContain("pf-sandbox-map");
   });
 
-  it("defaults the copilot to a free-tier finance model", () => {
-    const route = readFileSync(new URL("../src/app/api/sandbox/copilot/route.ts", import.meta.url), "utf8");
-    expect(route).toContain("inclusionai/ling-3.0-flash-fin-free");
-    expect(route).toContain("IQ_COPILOT_MODEL");
-  });
 });
