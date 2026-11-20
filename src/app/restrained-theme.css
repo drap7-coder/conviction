@@ -106,3 +106,147 @@ html[data-theme="dark"][data-accent="blue"] :is(.pf-empty-prompt, .data-manager-
   box-shadow: none;
 }
 html[data-theme="dark"][data-accent="blue"] .pf-empty-prompt::after { content: none; }
+
+/* Signature finish: instrument-grade restraint with warm metal details.
+   Blue remains the only interaction/chart accent; champagne is material trim. */
+html[data-theme="dark"][data-accent="blue"] {
+  --bg: #080d0c;
+  --surface: #0c1412;
+  --surface-elevated: #111b18;
+  --card: #101917;
+  --card-soft: #15211d;
+  --card-inset: #0b1311;
+  --divider: #202e29;
+  --border: #2b3b35;
+  --border-active: #52685f;
+  --ink: #f4f1e9;
+  --muted: #b4b2aa;
+  --quiet: #8d948e;
+  --accent: #83b7f4;
+  --accent-dim: rgb(131 183 244 / 12%);
+  --brand-iq: #d1b779;
+  --brand-horn: #f1eadb;
+  --luxury-metal: #c7aa6b;
+  --luxury-metal-soft: rgb(199 170 107 / 13%);
+  --luxury-green: #1f6d55;
+  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 4%), 0 10px 28px rgb(0 0 0 / 22%);
+  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 5%), 0 18px 44px rgb(0 0 0 / 30%);
+  --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 6%), 0 30px 72px rgb(0 0 0 / 38%);
+  --radius: 16px;
+}
+
+html[data-theme="dark"][data-accent="blue"] body {
+  background:
+    radial-gradient(900px 540px at 50% -330px, rgb(199 170 107 / 8%), transparent 72%),
+    radial-gradient(720px 520px at 105% 38%, rgb(31 109 85 / 7%), transparent 75%),
+    var(--bg);
+}
+
+html[data-theme="dark"][data-accent="blue"] .app-header {
+  border-bottom-color: color-mix(in srgb, var(--luxury-metal) 24%, var(--border));
+  background: rgb(8 13 12 / 88%);
+  box-shadow: 0 18px 44px rgb(0 0 0 / 24%);
+  backdrop-filter: blur(22px) saturate(1.1);
+}
+
+html[data-theme="dark"][data-accent="blue"] .app-logo {
+  filter: drop-shadow(0 5px 12px rgb(0 0 0 / 38%));
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item, .bottom-tab-item) {
+  letter-spacing: .015em;
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item.active, .bottom-tab-item.active, .bottom-tab-item.active .bottom-tab-icon) {
+  color: var(--ink);
+  background: linear-gradient(180deg, rgb(199 170 107 / 12%), rgb(199 170 107 / 5%));
+  box-shadow: inset 0 -2px 0 var(--luxury-metal);
+}
+
+html[data-theme="dark"][data-accent="blue"] .market-tape {
+  border-top-color: color-mix(in srgb, var(--luxury-metal) 18%, var(--border));
+}
+
+html[data-theme="dark"][data-accent="blue"] .market-tape-item::before {
+  color: color-mix(in srgb, var(--luxury-metal) 48%, transparent);
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.surface-shell, .surface-well, .pf-section, .pf-study-board, .crowd-board, .pulse-news-brief-grid > article, .product-stage, .market-data-grid) {
+  border-color: color-mix(in srgb, var(--luxury-metal) 10%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.surface-shell, .pf-section, .crowd-board, .pulse-news-brief-grid > article) {
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 2.2%), transparent 38%),
+    var(--card);
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.surface-shell, .crowd-board, .pulse-news-brief-grid > article):hover {
+  border-color: color-mix(in srgb, var(--luxury-metal) 30%, var(--border));
+  box-shadow: var(--shadow-md);
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(.pf-section-eyebrow, .product-stage-eyebrow, .workspace-view-context-kicker, .pulse-product-label) {
+  color: var(--luxury-metal);
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(h1, h2, h3, .product-stage-headline) {
+  text-wrap: balance;
+}
+
+html[data-theme="dark"][data-accent="blue"] .surface-slicer {
+  background: rgb(11 19 17 / 92%);
+  border-color: color-mix(in srgb, var(--luxury-metal) 14%, var(--border));
+}
+
+html[data-theme="dark"][data-accent="blue"] .surface-slicer .surface-slicer-pill:is(.is-active, [aria-checked="true"]) {
+  color: var(--ink);
+  background: var(--luxury-metal-soft);
+  box-shadow: inset 0 -2px 0 var(--luxury-metal);
+}
+
+html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above {
+  background:
+    radial-gradient(circle at 88% 4%, rgb(199 170 107 / 14%), transparent 34%),
+    linear-gradient(135deg, #0d1d18, #101917 58%, #161a16);
+  border-color: color-mix(in srgb, var(--luxury-metal) 30%, var(--border));
+  box-shadow: var(--shadow-lg);
+}
+
+html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
+  background: linear-gradient(145deg, rgb(255 255 255 / 4%), rgb(8 13 12 / 40%));
+  border-color: color-mix(in srgb, var(--luxury-metal) 24%, var(--border));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
+}
+
+html[data-theme="dark"][data-accent="blue"] .market-data-grid-spark :is(path:not(.market-data-grid-spark-guide):not(.market-data-grid-spark-fill)) {
+  stroke-width: 2.8;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+html[data-theme="dark"][data-accent="blue"] .market-data-grid-spark-fill {
+  opacity: .17;
+}
+
+html[data-theme="dark"][data-accent="blue"] .market-data-grid-spark-point {
+  stroke-width: 2;
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(input, select, textarea) {
+  background: var(--card-inset);
+  border-color: color-mix(in srgb, var(--luxury-metal) 12%, var(--border));
+}
+
+@media (max-width: 767px) {
+  html[data-theme="dark"][data-accent="blue"] .bottom-tab-bar {
+    background: rgb(8 13 12 / 94%);
+    border-top-color: color-mix(in srgb, var(--luxury-metal) 22%, var(--border));
+    box-shadow: 0 -16px 36px rgb(0 0 0 / 30%);
+    backdrop-filter: blur(22px);
+  }
+}
