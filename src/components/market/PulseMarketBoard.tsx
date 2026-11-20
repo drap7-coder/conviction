@@ -13,7 +13,6 @@ import {
   SectorScoreboard,
 } from "@/components/market/IndexScoreboard";
 import { CryptoBoard } from "@/components/market/CryptoBoard";
-import { WorkspaceViewContext } from "@/components/WorkspaceViewContext";
 import { pulseMacroGauges } from "@/lib/market/pulse-gauges";
 import { trackProductEvent } from "@/lib/product-analytics";
 
@@ -52,64 +51,6 @@ function sectorsToMarkets(sectors: PulseSector[]): PulseGlobalMarket[] {
 }
 
 const PULSE_REFRESH_MS = 60_000;
-
-function PulseViewContext({ view, data }: { view: PulseView; data: PulseData | null }) {
-  const updated = data?.fetchedAt
-    ? new Date(data.fetchedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-    : null;
-  let context: { kicker: string; title: string; detail: string; tone: PulseView };
-  switch (view) {
-    case "markets":
-      context = {
-        kicker: data?.sessionLabel ?? "Regular Market",
-        title:
-          data?.sessionLabel === "Pre-Market"
-            ? "Before the bell"
-            : data?.sessionLabel === "After Hours"
-              ? "After the bell"
-              : "Market at a glance",
-        detail: data?.sessionLabel
-          ? "Price changes for the displayed session. Open a card to explore the company or fund."
-          : "Prices and moves for the regular session",
-        tone: "markets",
-      };
-      break;
-    case "movers":
-      context = {
-        kicker: "Action",
-        title: "Stocks rising, falling and trading most",
-        detail: "Compare price moves and trading activity across stocks.",
-        tone: "movers",
-      };
-      break;
-    case "crypto":
-      context = {
-        kicker: "24 / 7",
-        title: "Always-on markets",
-        detail: "A quick read on the largest digital assets in the mix.",
-        tone: "crypto",
-      };
-      break;
-    default:
-      context = {
-        kicker: "Global lens",
-        title: "Markets around the world",
-        detail: "Country funds offer one comparable view across different local sessions.",
-        tone: "international",
-      };
-  }
-
-  return (
-    <WorkspaceViewContext
-      {...context}
-      meta={
-        updated ? (
-          <time dateTime={data?.fetchedAt}>Updated {updated}</time>
-        ) : undefined
-      }
-    />
-  );
-}
 
 function PulseMarketBoardInner() {
   const searchParams = useSearchParams();
@@ -199,15 +140,14 @@ function PulseMarketBoardInner() {
     <section
       className="pulse-home-section pulse-market-glance"
       data-view={view}
-      aria-labelledby="pulse-market-glance-heading"
+      aria-label="Pulse market workspace"
     >
       <header className="pulse-home-section-head pulse-workspace-head">
         <div>
-          <p className="pulse-home-eyebrow">IQBulls / Pulse</p>
-          <h2 id="pulse-market-glance-heading">Markets in one place.</h2>
+          <p className="pulse-home-eyebrow">Live market workspace</p>
+          <h2>Pulse</h2>
         </div>
       </header>
-
       <div className="pulse-ops-rail">
         {data ? (
           <div className="pulse-ops-snapshot" aria-label="Market operating context">
@@ -256,8 +196,6 @@ function PulseMarketBoardInner() {
           {data ? "A fresh update is unavailable. Showing the last successful snapshot." : "Market data is temporarily unavailable."}
         </div>
       ) : null}
-
-      {status !== "loading" ? <PulseViewContext view={view} data={data} /> : null}
 
       {data && view === "markets" ? (
         <>

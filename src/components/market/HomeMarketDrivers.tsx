@@ -12,11 +12,11 @@ export function HomeMarketDrivers() {
   const stories = news.todaysBrief.filter(theme => theme.label !== "Sector Leadership").flatMap(theme => {
     const headline = primaryHeadline(theme);
     return headline ? [{ theme, headline }] : [];
-  }).slice(0, 3);
+  }).slice(0, 1);
 
   return <section className={styles.news} aria-labelledby="home-driver-news-heading">
     <header className={styles.panelHeading}>
-      <div><p className={styles.eyebrow}>From the editorial desk</p><h2 id="home-driver-news-heading">Three stories shaping the conversation</h2></div>
+      <div><p className={styles.eyebrow}>From the editorial desk</p><h2 id="home-driver-news-heading">One story worth your time</h2></div>
       <Link href="/news" className={styles.textLink}>Explore News →</Link>
     </header>
     <p className={styles.dek}>Original reporting, clearly attributed. The questions below are reading lenses, not claims about what caused today’s market moves.</p>

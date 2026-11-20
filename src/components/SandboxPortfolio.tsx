@@ -34,9 +34,6 @@ export default function SandboxPortfolio() {
   const [quotes, setQuotes] = useState<StockQuote[]>([]);
   const [tickerInput, setTickerInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<string | null>(null);
-  const [asking, setAsking] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [syncReady, setSyncReady] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
@@ -157,18 +154,6 @@ export default function SandboxPortfolio() {
     setHoldings((current) => setSandboxHoldingWeight(current, ticker, requested));
   }
 
-  async function askIq(prompt = question) {
-    if (!prompt.trim() || asking) return;
-    setQuestion(prompt); setAsking(true); setAnswer(null);
-    try {
-      const response = await fetch("/api/sandbox/copilot", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: prompt, holdings, analysis, currentValue, dayPct }) });
-      const data = await response.json() as { answer?: string; error?: string };
-      if (!response.ok) throw new Error(data.error || "Ask IQ is unavailable.");
-      setAnswer(data.answer ?? null);
-    } catch (caught) { setAnswer(caught instanceof Error ? caught.message : "Ask IQ is unavailable."); }
-    finally { setAsking(false); }
-  }
-
   return <div className="pf-sandbox">
     <section className="pf-sandbox-hero surface-shell">
       <div><span className="pf-section-eyebrow">Personal sandbox</span><h1>{money.format(currentValue)}</h1><p>Start with a fictional $100K. Try ideas without touching your real portfolio.</p><span className={`pf-sandbox-sync is-${syncStatus}`}>{syncStatus === "syncing" ? "Syncing…" : syncStatus === "synced" ? "Saved to your IQ Bulls account" : syncStatus === "error" ? "Saved here · account sync retrying" : "Saved on this device"}</span></div>
@@ -219,13 +204,5 @@ export default function SandboxPortfolio() {
     {holdings.length ? <section className="pf-sandbox-readout surface-shell"><span className="pf-section-eyebrow">What the gauges say</span><ul>{analysis.observations.map((observation) => <li key={observation}>{observation}</li>)}</ul></section> : null}
     {chartPositions.length ? <PortfolioBenchmarkChart positions={chartPositions} benchmarkTicker="SPY" benchmarkLabel="S&P 500" /> : null}
 
-    <section className="pf-sandbox-copilot surface-shell">
-      <header><div><span className="pf-section-eyebrow">Ask IQ</span><h2>Your portfolio copilot</h2></div><span className="pf-sandbox-ai-dot">AI</span></header>
-      <p>Ask in plain English. IQ uses the sandbox numbers above—it does not place trades.</p>
-      <div className="pf-sandbox-prompts">{["What is my biggest risk?", "How could I make this steadier?", "Explain this portfolio to a beginner."].map((prompt) => <button type="button" key={prompt} onClick={() => askIq(prompt)}>{prompt}</button>)}</div>
-      <form onSubmit={(event) => { event.preventDefault(); void askIq(); }}><textarea value={question} onChange={(event) => setQuestion(event.target.value)} maxLength={800} placeholder="Ask about concentration, trade-offs, or a what-if…"/><button type="submit" disabled={!question.trim() || asking}>{asking ? "Thinking…" : "Ask IQ"}</button></form>
-      {answer ? <div className="pf-sandbox-answer" aria-live="polite">{answer}</div> : null}
-      <small>Educational sandbox only. Results are estimates, not investment advice.</small>
-    </section>
   </div>;
 }

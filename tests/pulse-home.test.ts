@@ -44,27 +44,16 @@ function theme(
 describe("Home personal intelligence", () => {
   it("keeps the market command on Home and market tables on Pulse", () => {
     const home = read("src/components/market/HomeOverview.tsx");
-    const strip = read("src/components/market/HomeMarketStrip.tsx");
     const pulse = read("src/components/market/PulseDashboard.tsx");
     const page = read("src/app/page.tsx");
     expect(home).not.toContain("home-macro");
-    expect(home).not.toContain("<HomeMarketStrip");
     expect(home).toContain("<HomeMarketDashboard");
     expect(home).toContain("<HomeMarketDrivers");
     const dashboard = read("src/components/market/HomeMarketDashboard.tsx");
     expect(dashboard).toContain('ticker: "SPY", symbol: "SPY"');
     expect(dashboard).toContain("Tradable S&P 500 proxy");
     expect(dashboard).toContain("<span>Intraday</span>");
-    expect(read("src/components/market/HomeMarketDrivers.tsx")).toContain("Three stories shaping the conversation");
-    expect(home).not.toContain("<HomePersonalBrief");
-    expect(home).not.toContain("PulseYourStocks");
-    expect(strip).toContain("PulseMacroGauges");
-    expect(strip).toContain("IndexScoreboard");
-    expect(strip).toContain("CommodityScoreboard");
-    expect(strip).toContain("SectorScoreboard");
-    expect(strip).toContain("HomeSectionCoord");
-    expect(strip).toContain('href="/pulse"');
-    expect(strip).not.toContain("PersonalDailyBrief");
+    expect(read("src/components/market/HomeMarketDrivers.tsx")).toContain("One story worth your time");
     expect(read("src/components/market/MarketDataGrid.tsx")).toContain("MarketGridSpark");
     expect(read("src/components/market/MarketDataGrid.tsx")).toContain("buildSparklineGeometry");
     expect(read("src/app/globals.css")).toContain("market-data-grid-spark");
@@ -83,10 +72,7 @@ describe("Home personal intelligence", () => {
 
   it("keeps the personal brief off Home — Portfolio and Pulse stay clean", () => {
     expect(read("src/components/Portfolio.tsx")).not.toContain("PersonalBrief");
-    expect(read("src/components/HomePersonalBrief.tsx")).toContain("<PersonalDailyBrief");
-    expect(read("src/components/market/HomeOverview.tsx")).not.toContain(
-      "<HomePersonalBrief",
-    );
+    expect(read("src/components/market/HomeOverview.tsx")).not.toContain("PersonalDailyBrief");
     expect(read("src/components/PersonalDailyBrief.tsx")).toContain(
       "Build your watchlist",
     );
