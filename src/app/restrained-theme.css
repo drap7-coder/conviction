@@ -120,8 +120,8 @@ html[data-theme="dark"][data-accent="blue"] {
   --border: #d8dfdb;
   --border-active: #8da198;
   --ink: #17231f;
-  --muted: #526159;
-  --quiet: #626e68;
+  --muted: #46584f;
+  --quiet: #56665e;
   --accent: #176b58;
   --accent-dim: rgb(23 107 88 / 11%);
   --on-accent: #fffdf8;
@@ -344,7 +344,7 @@ html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pul
 
 html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-data-grid-num:is(.is-flat, .is-prev),
 html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-data-grid-row > :is(:nth-child(3), :nth-child(4), :nth-child(6), :nth-child(7)) {
-  color: #526159;
+  color: #46584f;
   opacity: 1;
 }
 
