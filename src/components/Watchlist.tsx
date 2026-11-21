@@ -588,6 +588,19 @@ export default function Watchlist({
         />
       ) : null}
 
+      {!loading && entries.length === 0 && !children ? (
+        <section className="watchlist-empty-state surface-shell" aria-labelledby="watchlist-empty-title">
+          <span className="pf-section-eyebrow">Watchlist</span>
+          <h2 id="watchlist-empty-title">Build your market shortlist.</h2>
+          <p>
+            Add the companies you want to follow. Their live moves and daily context will appear here.
+          </p>
+          <Link href="/manage?view=watchlist" className="watchlist-empty-action">
+            Add your first company →
+          </Link>
+        </section>
+      ) : null}
+
       {loading || entries.length > 0 || children ? (
         <>
           <SurfaceSlicer

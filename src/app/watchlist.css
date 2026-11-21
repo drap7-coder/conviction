@@ -7,6 +7,52 @@
   padding: 14px var(--page-gutter-mobile) 24px;
 }
 
+.watchlist-empty-state {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: clamp(22px, 4vw, 34px);
+  background:
+    radial-gradient(circle at 100% 0%, var(--luxury-metal-soft, transparent), transparent 38%),
+    var(--card);
+}
+
+.watchlist-empty-state h2 {
+  margin: 2px 0 0;
+  color: var(--ink);
+  font-size: clamp(1.35rem, 3vw, 1.8rem);
+  letter-spacing: -0.04em;
+}
+
+.watchlist-empty-state p {
+  max-width: 38rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
+.watchlist-empty-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  margin-top: 8px;
+  padding: 9px 14px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
+  border-radius: 10px;
+  color: var(--on-accent);
+  background: var(--accent);
+  font-size: .78rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.watchlist-empty-action:hover,
+.watchlist-empty-action:focus-visible {
+  filter: brightness(1.06);
+}
+
 .watchlist-daily {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
