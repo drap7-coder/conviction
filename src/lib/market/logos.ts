@@ -131,18 +131,18 @@ const SECTOR_COLORS: Record<string, { c1: string; c2: string; label: string }> =
   XLB:  { c1: "#F59E0B", c2: "#c47d08", label: "Materials" },
 };
 
-const FAVICON_BASE = "https://www.google.com/s2/favicons";
-
 /**
- * Returns a favicon URL for known companies, or undefined for sector ETFs.
+ * Returns a same-origin logo URL for known companies. The route caches the
+ * remote favicon and always returns a deterministic SVG badge on failure.
  */
 export function getLogoUrl(ticker: string): string | undefined {
   const upper = ticker.toUpperCase();
-  const domain = DOMAIN_MAP[upper];
-  if (domain) {
-    return `${FAVICON_BASE}?domain=${domain}&sz=64`;
-  }
-  return undefined;
+  return DOMAIN_MAP[upper] ? `/api/logos/${encodeURIComponent(upper)}` : undefined;
+}
+
+/** Server-only lookup used by the bounded logo proxy route. */
+export function getLogoDomain(ticker: string): string | undefined {
+  return DOMAIN_MAP[ticker.toUpperCase()];
 }
 
 /** Returns true if this ticker has a known domain for favicon lookup. */
