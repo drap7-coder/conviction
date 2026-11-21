@@ -256,6 +256,64 @@ html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-st
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
 }
 
+/* Portfolio intelligence panels were authored for the former charcoal canvas.
+ * Recast their nested cards for the porcelain system so body copy keeps full
+ * contrast while category color remains a small, semantic signal. */
+html[data-theme="dark"][data-accent="blue"] .pf-risk-xray-coverage {
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--border));
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-risk-factor {
+  --risk-accent: var(--accent);
+  background: var(--card-inset);
+  border-color: var(--border);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-risk-factor.is-economic-cycle {
+  --risk-accent: var(--amber);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-risk-factor.is-inflation {
+  --risk-accent: var(--red);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-risk-factor.is-defensive {
+  --risk-accent: var(--green);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-risk-factor-track {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-risk-factor-drivers span {
+  color: var(--muted);
+  background: var(--card);
+  border-color: var(--border);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-event-list li {
+  --event-accent: var(--accent);
+  background: var(--card-inset);
+  border-color: var(--border);
+  border-left-color: var(--event-accent);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-event-list li.is-earnings {
+  --event-accent: #6f5fb7;
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-event-list li.is-inflation {
+  --event-accent: var(--red);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pf-event-list li.is-labor {
+  --event-accent: var(--amber);
+}
+
 html[data-theme="dark"][data-accent="blue"] .market-data-grid-spark :is(path:not(.market-data-grid-spark-guide):not(.market-data-grid-spark-fill)) {
   stroke-width: 2.8;
   vector-effect: non-scaling-stroke;
