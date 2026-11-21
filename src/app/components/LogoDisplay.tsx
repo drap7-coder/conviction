@@ -13,10 +13,11 @@ interface LogoDisplayProps {
  * a colored gradient badge for sector ETFs, or a ticker-initial fallback.
  */
 export function LogoDisplay({ ticker, size = "card" }: LogoDisplayProps) {
-  const [hasError, setHasError] = useState(false);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const upper = ticker.toUpperCase();
   const logoUrl = getLogoUrl(upper);
   const sectorColors = getSectorColors(upper);
+  const hasError = Boolean(logoUrl && failedUrl === logoUrl);
 
   // Sector ETFs get a branded gradient badge
   if (sectorColors) {
@@ -54,8 +55,9 @@ export function LogoDisplay({ ticker, size = "card" }: LogoDisplayProps) {
         src={logoUrl}
         alt=""
         className={`card-logo card-logo-${size}`}
-        onError={() => setHasError(true)}
+        onError={() => setFailedUrl(logoUrl)}
         loading="lazy"
+        decoding="async"
       />
     );
   }
