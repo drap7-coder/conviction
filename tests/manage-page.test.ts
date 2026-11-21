@@ -79,6 +79,8 @@ describe("data management workspace", () => {
     const holdingCard = read("src/components/PortfolioHoldingCard.tsx");
 
     expect(watchlist).toContain('href="/manage?view=watchlist"');
+    expect(watchlist).toContain("Build your market shortlist.");
+    expect(watchlist).toContain("watchlist-empty-state");
     expect(watchlist).toContain('if (mode === "manage")');
     expect(watchlist).toContain("LogoDisplay");
     expect(watchlist).toContain("data-manager-logo");
