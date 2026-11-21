@@ -424,7 +424,9 @@
   font-size: 0.8rem;
 }
 
-@media (min-width: 720px) {
+/* The side-by-side mix reads cleanly well before the desktop breakpoint and
+ * avoids turning the donut into a full-screen stop on compact tablets. */
+@media (min-width: 560px) {
   .portfolio-page .pf-sector-mix-donut .pf-donut-wrap {
     display: grid;
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
@@ -470,8 +472,36 @@
 
 @media (max-width: 520px) {
   .portfolio-page .pf-sector-mix-donut {
-    padding: 12px 8px 14px;
+    padding: 10px 8px 12px;
   }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-stage {
+    width: 148px;
+    height: 116px;
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-chart {
+    width: 116px;
+    height: 116px;
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-wrap {
+    gap: 10px;
+  }
+
+  .portfolio-page .pf-sector-mix-donut .pf-donut-legend {
+    gap: 6px 12px;
+  }
+}
+
+/* Keep the threshold captions on opposite sides of their markers. Centering
+ * both labels makes 12% / 20% collide on narrow allocation tracks. */
+.portfolio-page .pf-allocation-scale-track .is-watch {
+  transform: translateX(-100%);
+}
+
+.portfolio-page .pf-allocation-scale-track .is-high {
+  transform: none;
 }
 
 .portfolio-page .pf-sector-bars {
