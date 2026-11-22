@@ -137,6 +137,7 @@ html[data-theme="dark"][data-accent="blue"] {
   --amber: #9b681f;
   --amber-dim: rgb(155 104 31 / 11%);
   --on-ink: #f7f9fc;
+  --on-ink-accent: #91a4bd;
   --on-ink-muted: #c7d0dc;
   --on-ink-quiet: #96a3b5;
   --on-ink-border: #40516a;
@@ -144,6 +145,42 @@ html[data-theme="dark"][data-accent="blue"] {
   --shadow-md: inset 0 1px 0 rgb(255 255 255 / 94%), 0 18px 44px rgb(24 39 62 / 9%);
   --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 10%), 0 30px 72px rgb(13 25 44 / 24%);
   --radius: 16px;
+}
+
+/* Navigation and workspace taxonomy use one interface accent. Directional
+   gain/loss colors remain owned by the underlying market components. */
+html[data-theme="dark"][data-accent="blue"] .site-menu-link {
+  --tab-accent: var(--accent) !important;
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(
+  .pulse-board-tone-indexes,
+  .pulse-board-tone-commodities,
+  .pulse-board-tone-sectors,
+  .pulse-board-tone-crypto,
+  .pulse-board-tone-international,
+  .pulse-board-tone-volume
+) {
+  --pulse-board-accent: var(--accent) !important;
+  --pulse-board-tint: var(--accent-dim) !important;
+}
+
+html[data-theme="dark"][data-accent="blue"] .workspace-view-context {
+  --pulse-context-accent: var(--accent) !important;
+  --pulse-context-tint: var(--accent-dim) !important;
+}
+
+html[data-theme="dark"][data-accent="blue"] .company-detail-page {
+  --dashboard-accent: #91a4bd;
+}
+
+html[data-theme="dark"][data-accent="blue"] :is(
+  .pulse-view-slicer,
+  .pf-view-slicer,
+  .pulse-news-filters,
+  .crowd-page .surface-slicer
+) .surface-slicer-pill {
+  --slicer-accent: var(--accent) !important;
 }
 
 html[data-theme="dark"][data-accent="blue"] body {
