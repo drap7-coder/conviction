@@ -5,7 +5,8 @@
   --editor-card: var(--card);
   --editor-accent: var(--accent);
   --editor-cyan: var(--accent);
-  --editor-metal: var(--luxury-metal, #c7aa6b);
+  --editor-metal: var(--luxury-metal, #8b97a8);
+  --editor-chart: var(--green, #137353);
   color: var(--editor-ink);
   font-family: var(--font-plex-sans), sans-serif;
   max-width: 1180px;
@@ -32,7 +33,7 @@
   border: 1px solid color-mix(in srgb, var(--editor-metal) 30%, var(--editor-edge));
   border-left: 4px solid var(--editor-metal);
   border-radius: 22px;
-  background: radial-gradient(circle at 92% 6%, rgb(199 170 107 / 13%), transparent 34%), linear-gradient(135deg, rgb(255 255 255 / 3%), transparent 42%), var(--editor-card);
+  background: radial-gradient(circle at 92% 6%, rgb(91 108 132 / 12%), transparent 34%), linear-gradient(135deg, rgb(255 255 255 / 3%), transparent 42%), var(--editor-card);
   box-shadow: var(--shadow-md);
 }
 .storyHeader > * { position: relative; }
@@ -49,7 +50,7 @@
 .panelHeading h2 { font-size: 1.7rem; font-weight: 500; line-height: 1.25; }
 .symbol { color: var(--editor-muted); font: 500 .78rem var(--font-mono); margin-left: 10px; }
 .page .textLink { color: var(--editor-accent); min-height: 44px; display: inline-flex; align-items: center; font-size: .9rem; font-weight: 500; text-decoration: none; transition: color 160ms ease, transform 160ms ease; }
-.page .textLink:hover { color: #c5e7ff; transform: translateX(3px); text-decoration: underline; text-underline-offset: 4px; }
+.page .textLink:hover { color: color-mix(in srgb, var(--editor-accent) 78%, #000); transform: translateX(3px); text-decoration: underline; text-underline-offset: 4px; }
 .quote { margin-top: 28px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; }
 .quote strong { font: 500 clamp(1.5rem, 3vw, 2rem)/1.25 var(--font-plex-sans), sans-serif; letter-spacing: -.02em; }
 .quote > span, .page .price { color: var(--editor-muted); font-size: .86rem; }
@@ -60,14 +61,14 @@
 .page .chart { margin-top: 36px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 .chartLabels, .chart figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; font-size: .75rem; color: var(--editor-muted); }
 .chart svg { display: block; width: 100%; height: 210px; margin: 12px 0; overflow: visible; }
-.chartLine { fill: none; stroke: var(--editor-cyan); stroke-width: 2.75; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
-.chartFill { fill: var(--editor-cyan); opacity: .1; }
+.chartLine { fill: none; stroke: var(--editor-chart); stroke-width: 2.75; vector-effect: non-scaling-stroke; stroke-linecap: round; stroke-linejoin: round; }
+.chartFill { fill: var(--editor-chart); opacity: .1; }
 .gridline { fill: none; stroke: var(--editor-edge); stroke-width: 1; vector-effect: non-scaling-stroke; stroke-dasharray: 3 5; }
 .page .caption { margin-top: 24px; font-size: .8rem; line-height: 1.6; color: var(--editor-muted); }
 .signals { display: grid; gap: 12px; min-width: 0; }
-.signal { border: 1px solid color-mix(in srgb, var(--editor-metal) 16%, var(--editor-edge)); border-top: 2px solid var(--editor-metal); border-radius: 12px; background: linear-gradient(180deg, rgb(199 170 107 / 6%), transparent 42%), var(--editor-card); box-shadow: var(--shadow-sm); padding: 16px 20px; }
-.signal:nth-child(2) { border-top-color: color-mix(in srgb, var(--editor-metal) 72%, var(--editor-edge)); background: linear-gradient(180deg, rgb(199 170 107 / 5%), transparent 42%), var(--editor-card); }
-.signal:nth-child(3) { border-top-color: color-mix(in srgb, var(--editor-cyan) 70%, var(--editor-edge)); background: linear-gradient(180deg, rgb(131 183 244 / 5%), transparent 42%), var(--editor-card); }
+.signal { border: 1px solid color-mix(in srgb, var(--editor-metal) 16%, var(--editor-edge)); border-top: 2px solid var(--editor-metal); border-radius: 12px; background: linear-gradient(180deg, rgb(91 108 132 / 6%), transparent 42%), var(--editor-card); box-shadow: var(--shadow-sm); padding: 16px 20px; }
+.signal:nth-child(2) { border-top-color: color-mix(in srgb, var(--editor-metal) 72%, var(--editor-edge)); background: linear-gradient(180deg, rgb(91 108 132 / 5%), transparent 42%), var(--editor-card); }
+.signal:nth-child(3) { border-top-color: color-mix(in srgb, var(--editor-accent) 70%, var(--editor-edge)); background: linear-gradient(180deg, rgb(31 58 95 / 5%), transparent 42%), var(--editor-card); }
 .signalTop, .signalValue { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .signal h3 { font-size: 1rem; font-weight: 500; }
 .signalValue { margin-top: 6px; }
@@ -91,9 +92,9 @@
 .details p { margin: 0 0 14px; max-width: 85ch; line-height: 1.65; }
 .news { margin-top: 38px; }
 .stories { list-style: none; padding: 0; margin: 24px 0 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
-.stories li { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-content: start; gap: 12px; min-width: 0; padding: 20px 16px; border: 1px solid color-mix(in srgb, var(--editor-metal) 18%, var(--editor-edge)); border-top: 2px solid var(--editor-metal); border-radius: 12px; background: linear-gradient(180deg, rgb(199 170 107 / 6%), transparent 38%), var(--editor-card); box-shadow: var(--shadow-sm); }
-.stories li:nth-child(2) { border-top-color: #58e0c0; background: linear-gradient(180deg, rgb(88 224 192 / 8%), transparent 38%), var(--editor-card); }
-.stories li:nth-child(3) { border-top-color: #e86ca8; background: linear-gradient(180deg, rgb(232 108 168 / 8%), transparent 38%), var(--editor-card); }
+.stories li { display: grid; grid-template-columns: 26px minmax(0, 1fr); align-content: start; gap: 12px; min-width: 0; padding: 20px 16px; border: 1px solid color-mix(in srgb, var(--editor-metal) 18%, var(--editor-edge)); border-top: 2px solid var(--editor-metal); border-radius: 12px; background: linear-gradient(180deg, rgb(91 108 132 / 6%), transparent 38%), var(--editor-card); box-shadow: var(--shadow-sm); }
+.stories li:nth-child(2) { border-top-color: #667790; background: linear-gradient(180deg, rgb(102 119 144 / 7%), transparent 38%), var(--editor-card); }
+.stories li:nth-child(3) { border-top-color: #2f4b72; background: linear-gradient(180deg, rgb(47 75 114 / 7%), transparent 38%), var(--editor-card); }
 .storyNumber { color: var(--editor-muted); font: 400 .85rem var(--font-mono); padding-top: 4px; }
 .stories h3 { font-size: clamp(1.1rem, 2.2vw, 1.4rem); line-height: 1.4; font-weight: 500; max-width: 68ch; }
 .stories h3 a { text-decoration: none; display: inline-block; min-height: 44px; }
