@@ -197,7 +197,7 @@ html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item, .bottom-tab-i
   letter-spacing: .015em;
 }
 
-html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item.active, .bottom-tab-item.active, .bottom-tab-item.active .bottom-tab-icon) {
+html[data-theme="dark"][data-accent="blue"] :is(.bottom-tab-item.active, .bottom-tab-item.active .bottom-tab-icon) {
   color: #fffdf8;
   background: linear-gradient(180deg, rgb(199 170 107 / 12%), rgb(199 170 107 / 5%));
   box-shadow: inset 0 -2px 0 var(--luxury-metal);
