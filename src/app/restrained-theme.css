@@ -107,42 +107,42 @@ html[data-theme="dark"][data-accent="blue"] :is(.pf-empty-prompt, .data-manager-
 }
 html[data-theme="dark"][data-accent="blue"] .pf-empty-prompt::after { content: none; }
 
-/* Signature finish: instrument-grade restraint with warm metal details.
-   Blue remains the only interaction/chart accent; champagne is material trim. */
+/* Signature finish: institutional navy and cool-gray interface chrome.
+   Directional market colors remain semantic and independent. */
 html[data-theme="dark"][data-accent="blue"] {
-  --bg: #f8faf9;
-  --surface: #f1f4f2;
+  --bg: #f6f8fb;
+  --surface: #eef2f6;
   --surface-elevated: #ffffff;
   --card: #ffffff;
-  --card-soft: #f4f7f5;
-  --card-inset: #f8faf9;
-  --divider: #e2e7e4;
-  --border: #d8dfdb;
-  --border-active: #8da198;
-  --ink: #17231f;
-  --muted: #46584f;
-  --quiet: #56665e;
-  --accent: #176b58;
-  --accent-dim: rgb(23 107 88 / 11%);
-  --on-accent: #fffdf8;
-  --brand-iq: #d4bd7e;
-  --brand-horn: #fffaf0;
-  --luxury-metal: #c7aa6b;
-  --luxury-metal-soft: rgb(199 170 107 / 10%);
-  --luxury-green: #103f34;
+  --card-soft: #f2f5f8;
+  --card-inset: #f7f9fc;
+  --divider: #e1e6ed;
+  --border: #d6dde7;
+  --border-active: #8795a9;
+  --ink: #172238;
+  --muted: #46546a;
+  --quiet: #687589;
+  --accent: #1f3a5f;
+  --accent-dim: rgb(31 58 95 / 10%);
+  --on-accent: #ffffff;
+  --brand-iq: #1f3a5f;
+  --brand-horn: #f4f7fb;
+  --luxury-metal: #8b97a8;
+  --luxury-metal-soft: rgb(91 108 132 / 10%);
+  --luxury-green: #1f3a5f;
   --green: #137353;
   --green-dim: rgb(19 115 83 / 10%);
   --red: #b5443e;
   --red-dim: rgb(181 68 62 / 10%);
   --amber: #9b681f;
   --amber-dim: rgb(155 104 31 / 11%);
-  --on-ink: #f8f4eb;
-  --on-ink-muted: #c8cec9;
-  --on-ink-quiet: #9ba69f;
-  --on-ink-border: #385148;
-  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 88%), 0 8px 24px rgb(23 45 36 / 6%);
-  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 94%), 0 18px 44px rgb(23 45 36 / 9%);
-  --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 10%), 0 30px 72px rgb(25 34 29 / 22%);
+  --on-ink: #f7f9fc;
+  --on-ink-muted: #c7d0dc;
+  --on-ink-quiet: #96a3b5;
+  --on-ink-border: #40516a;
+  --shadow-sm: inset 0 1px 0 rgb(255 255 255 / 88%), 0 8px 24px rgb(24 39 62 / 6%);
+  --shadow-md: inset 0 1px 0 rgb(255 255 255 / 94%), 0 18px 44px rgb(24 39 62 / 9%);
+  --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 10%), 0 30px 72px rgb(13 25 44 / 24%);
   --radius: 16px;
 }
 
@@ -153,7 +153,7 @@ html[data-theme="dark"][data-accent="blue"] body {
 html[data-theme="dark"][data-accent="blue"] .app-header {
   border-bottom-color: color-mix(in srgb, var(--luxury-metal) 24%, var(--border));
   background: rgb(255 255 255 / 94%);
-  box-shadow: 0 12px 32px rgb(23 45 36 / 8%);
+  box-shadow: 0 12px 32px rgb(24 39 62 / 8%);
   backdrop-filter: blur(22px) saturate(1.1);
 }
 
@@ -177,7 +177,7 @@ html[data-theme="dark"][data-accent="blue"] .app-header .global-search-input::pl
 }
 
 html[data-theme="dark"][data-accent="blue"] .app-logo {
-  filter: drop-shadow(0 5px 10px rgb(20 47 38 / 18%));
+  filter: drop-shadow(0 5px 10px rgb(24 39 62 / 16%));
 }
 
 html[data-theme="dark"][data-accent="blue"] .app-header .app-title-bulls {
@@ -185,7 +185,7 @@ html[data-theme="dark"][data-accent="blue"] .app-header .app-title-bulls {
 }
 
 html[data-theme="dark"][data-accent="blue"] .app-header .app-title-iq {
-  color: #92733b;
+  color: var(--accent);
 }
 
 html[data-theme="dark"][data-accent="blue"] .app-header .desktop-nav-item.active {
@@ -198,8 +198,8 @@ html[data-theme="dark"][data-accent="blue"] :is(.desktop-nav-item, .bottom-tab-i
 }
 
 html[data-theme="dark"][data-accent="blue"] :is(.bottom-tab-item.active, .bottom-tab-item.active .bottom-tab-icon) {
-  color: #fffdf8;
-  background: linear-gradient(180deg, rgb(199 170 107 / 12%), rgb(199 170 107 / 5%));
+  color: #ffffff;
+  background: linear-gradient(180deg, rgb(31 58 95 / 14%), rgb(31 58 95 / 6%));
   box-shadow: inset 0 -2px 0 var(--luxury-metal);
 }
 
@@ -250,21 +250,21 @@ html[data-theme="dark"][data-accent="blue"] .surface-slicer .surface-slicer-pill
 
 html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above {
   background:
-    radial-gradient(circle at 88% 4%, rgb(199 170 107 / 14%), transparent 34%),
-    linear-gradient(135deg, #0d1d18, #101917 58%, #161a16);
+    radial-gradient(circle at 88% 4%, rgb(139 151 168 / 16%), transparent 34%),
+    linear-gradient(135deg, #101a2b, #152238 58%, #1b283d);
   border-color: color-mix(in srgb, var(--luxury-metal) 30%, var(--border));
   box-shadow: var(--shadow-lg);
 }
 
 html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above {
-  --ink: #f8f4eb;
-  --muted: #c5ccc7;
-  --quiet: #9eaaa3;
-  --border: #355147;
+  --ink: #f7f9fc;
+  --muted: #c7d0dc;
+  --quiet: #9aa7b8;
+  --border: #40516a;
 }
 
 html[data-theme="dark"][data-accent="blue"] .product-stage--portfolio.product-stage--metrics-above .product-stage-metrics > .is-lead {
-  background: linear-gradient(145deg, rgb(255 255 255 / 4%), rgb(8 13 12 / 40%));
+  background: linear-gradient(145deg, rgb(255 255 255 / 5%), rgb(8 16 30 / 42%));
   border-color: color-mix(in srgb, var(--luxury-metal) 24%, var(--border));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 5%);
 }
@@ -316,7 +316,7 @@ html[data-theme="dark"][data-accent="blue"] .pf-event-list li {
 }
 
 html[data-theme="dark"][data-accent="blue"] .pf-event-list li.is-earnings {
-  --event-accent: #6f5fb7;
+  --event-accent: #536b8d;
 }
 
 html[data-theme="dark"][data-accent="blue"] .pf-event-list li.is-inflation {
@@ -415,7 +415,7 @@ html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.pul
 
 html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-data-grid-num:is(.is-flat, .is-prev),
 html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-data-grid-row > :is(:nth-child(3), :nth-child(4), :nth-child(6), :nth-child(7)) {
-  color: #46584f;
+  color: var(--muted);
   opacity: 1;
 }
 
@@ -423,7 +423,7 @@ html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-
   html[data-theme="dark"][data-accent="blue"] .bottom-tab-bar {
     background: rgb(255 255 255 / 96%);
     border-top-color: color-mix(in srgb, var(--luxury-metal) 22%, var(--border));
-    box-shadow: 0 -16px 36px rgb(50 41 25 / 12%);
+    box-shadow: 0 -16px 36px rgb(24 39 62 / 12%);
     backdrop-filter: blur(22px);
   }
 
