@@ -388,6 +388,14 @@ html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.mar
   color: var(--ink);
 }
 
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-market-moves .pulse-movers-id strong {
+  color: var(--ink);
+}
+
+html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .pulse-market-moves .pulse-movers-id small {
+  color: var(--muted);
+}
+
 html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) :is(.market-data-grid-name small, .market-data-grid-row > :is(:nth-child(3), :nth-child(4), :nth-child(6), :nth-child(7))) {
   color: var(--muted);
 }
