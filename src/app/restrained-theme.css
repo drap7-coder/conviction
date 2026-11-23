@@ -110,6 +110,22 @@ html[data-theme="dark"][data-accent="blue"] .pf-empty-prompt::after { content: n
 /* Signature finish: institutional navy and cool-gray interface chrome.
    Directional market colors remain semantic and independent. */
 html[data-theme="dark"][data-accent="blue"] {
+  --bg-paper: #ffffff;
+  --bg-newsprint-tint: #f7f7f5;
+  --bg-hover-tint: #f2f2ef;
+  --ink-primary: #121212;
+  --ink-secondary: #363636;
+  --ink-muted: #666666;
+  --ink-subtle: #888888;
+  --accent-editorial: #326891;
+  --market-up: #137333;
+  --market-down: #b3261e;
+  --rule-hairline: #e2e2e2;
+  --rule-medium: #cccccc;
+  --rule-heavy: #121212;
+  --font-editorial: Georgia, "Times New Roman", serif;
+  --font-ui: var(--font-plex-sans), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-data: var(--font-plex-mono), "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --bg: #f6f8fb;
   --surface: #eef2f6;
   --surface-elevated: #ffffff;
@@ -145,6 +161,108 @@ html[data-theme="dark"][data-accent="blue"] {
   --shadow-md: inset 0 1px 0 rgb(255 255 255 / 94%), 0 18px 44px rgb(24 39 62 / 9%);
   --shadow-lg: inset 0 1px 0 rgb(255 255 255 / 10%), 0 30px 72px rgb(13 25 44 / 24%);
   --radius: 16px;
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-headline-banner {
+  color: var(--ink-primary);
+  font-family: var(--font-editorial);
+  font-size: clamp(2rem, 3.5vw, 2.85rem);
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.08;
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-headline-feature {
+  color: var(--ink-primary);
+  font-family: var(--font-editorial);
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 600;
+  letter-spacing: -.015em;
+  line-height: 1.15;
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-headline-brief {
+  color: var(--ink-primary);
+  font-family: var(--font-editorial);
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.22;
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-deck {
+  color: var(--ink-secondary);
+  font-family: var(--font-editorial);
+  font-size: 1.125rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-kicker {
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: .6875rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-data-figure {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-masthead-rule {
+  padding: .5rem 0;
+  border-top: 1px solid var(--rule-hairline);
+  border-bottom: 3px double var(--rule-heavy);
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-section-header {
+  margin-bottom: 1.25rem;
+  padding: .5rem 0;
+  border-top: 2px solid var(--rule-heavy);
+  border-bottom: 1px solid var(--rule-hairline);
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-item-divider {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--rule-hairline);
+}
+
+html[data-theme="dark"][data-accent="blue"] .nyt-callout-box {
+  padding: 1rem 1.25rem;
+  background: var(--bg-newsprint-tint);
+  border: 0;
+  border-top: 2px solid var(--rule-heavy);
+  border-bottom: 1px solid var(--rule-medium);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+html[data-theme="dark"][data-accent="blue"] .news-page :is(h1, h2, h3) {
+  color: var(--ink-primary);
+  font-family: var(--font-editorial);
+}
+
+html[data-theme="dark"][data-accent="blue"] .news-page .pulse-news-brief-grid > article {
+  border-color: var(--rule-hairline);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+@media (min-width: 1024px) {
+  html[data-theme="dark"][data-accent="blue"] .nyt-col-divider-right {
+    padding-right: 1.75rem;
+    border-right: 1px solid var(--rule-hairline);
+  }
+
+  html[data-theme="dark"][data-accent="blue"] .nyt-col-divider-left {
+    padding-left: 1.75rem;
+  }
 }
 
 /* Navigation and workspace taxonomy use one interface accent. Directional
