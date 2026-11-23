@@ -148,9 +148,9 @@ export function HomeMarketDashboard() {
 
   return <section className={styles.overview} aria-labelledby="home-market-command-heading">
     <header className={styles.storyHeader}>
-      <p className={styles.eyebrow}>Your market day in 60 seconds</p>
-      <h2 id="home-market-command-heading">{status === "loading" ? "Your market day, made clearer." : briefingLead(lead?.changePercent, lead?.session)}</h2>
-      <p className={styles.dek}>Start with the story. Explore a chart. Leave knowing a little more.</p>
+      <p className={styles.eyebrow}>The daily scene · markets in 60 seconds</p>
+      <h2 id="home-market-command-heading">{status === "loading" ? "The day’s market story is taking shape." : briefingLead(lead?.changePercent, lead?.session)}</h2>
+      <p className={styles.dek}>The money story behind the mood—clear enough to follow before the next meeting.</p>
       {data ? <div className={styles.briefingStrip} aria-label="Your quick briefing">
         <span><small>Broad market</small><strong>{signalTakeaway(lead?.changePercent)}</strong></span>
         <span><small>Growth stocks</small><strong>{signalTakeaway(growth?.changePercent)}</strong></span>
@@ -166,17 +166,17 @@ export function HomeMarketDashboard() {
     {status === "error" || stale ? <p className={styles.notice} role="status">{data ? "This snapshot may be out of date. A fresh update is not available yet." : "Market data is temporarily unavailable. You can still read the headlines below."}</p> : null}
     {data ? <>
       <section className={styles.marketGlance} aria-labelledby="home-glance-heading">
-      <header className={styles.glanceHeading}><div><p className={styles.eyebrow}>The numbers in context</p><h2 id="home-glance-heading">Market at a glance</h2></div><p>How are stocks doing—and what else is moving?</p></header>
+      <header className={styles.glanceHeading}><div><p className={styles.eyebrow}>What’s shaping the day</p><h2 id="home-glance-heading">The story behind the numbers</h2></div><p>A quick read on the forces setting the market’s tone.</p></header>
       <div className={styles.marketLayout}>
         <article className={styles.lead}>
-          <div className={styles.panelHeading}><div><p className={styles.eyebrow}>The broad market</p><h3>S&P 500 <span className={styles.symbol}>SPY</span></h3></div><Link href="/pulse" className={styles.textLink}>Explore Pulse →</Link></div>
+          <div className={styles.panelHeading}><div><p className={styles.eyebrow}>The big picture</p><h3>S&P 500 <span className={styles.symbol}>SPY</span></h3></div><Link href="/pulse" className={styles.textLink}>Explore Pulse →</Link></div>
           <div className={styles.quote}><strong>{signalTakeaway(lead?.changePercent)}</strong></div>
           <p className={styles.signalDetail}>S&P 500 proxy · <span className={tone(lead?.changePercent)}>{formatChange(lead?.changePercent)}</span> · {lead?.session ?? "Unavailable"}</p>
           <p className={styles.price}>SPY share price <b>${formatPrice(lead?.price)}</b> · USD</p>
           <Chart history={lead?.history ?? []} label="SPY share price" />
           <p className={styles.caption}>Tradable S&P 500 proxy. Chart shows available intraday prices; the change above uses the labeled quote session.</p>
         </article>
-        <aside className={styles.signals} aria-label="Three supporting signals">
+        <aside className={styles.signals} aria-label="What is shaping the market story">
           {markets.filter(m => m.ticker !== "SPY" && m.ticker !== "USO").map(m => <article key={m.ticker} className={styles.signal}>
             <div className={styles.signalTop}><h3>{m.name}</h3><span className={styles.symbol}>{m.symbol}</span></div>
             <div className={styles.signalValue}><strong>{signalTakeaway(m.changePercent)}</strong></div>
@@ -196,7 +196,7 @@ export function HomeMarketDashboard() {
       </section>
       {showOil && oil?.changePercent != null ? <aside className={styles.oilContext} aria-label="Material oil move"><div><span>Oil · USO</span><strong className={tone(oil.changePercent)}>{formatChange(oil.changePercent)}</strong><small>{oil.session}</small></div><p>{oilSignalContext(oil.changePercent, lead?.changePercent)} USO is an ETF proxy, not spot crude.</p><Link href="/pulse" className={styles.oilLink}>Oil in Pulse →</Link></aside> : null}
       <section className={styles.learnPanel} aria-labelledby="learn-market-heading">
-        <div><p className={styles.eyebrow}>A little smarter in 30 seconds</p><h2 id="learn-market-heading">What is SPY, exactly?</h2><p>Open the answer for the plain-English version.</p></div>
+        <div><p className={styles.eyebrow}>The quick explainer</p><h2 id="learn-market-heading">What is SPY, exactly?</h2><p>The plain-English version, without the finance lecture.</p></div>
         <details><summary>Show me the answer</summary><p><strong>SPY is a fund designed to track the S&amp;P 500.</strong> It gives us a convenient snapshot of large U.S. companies without pretending every stock moved the same way.</p><p>It is a useful starting point, not the whole market.</p><Link href="/pulse" className={styles.textLink}>Explore the full market in Pulse →</Link></details>
       </section>
       <details className={styles.details}><summary>Sources, timing & how to read this</summary><p>Market quotes and charts: Yahoo Finance. SPY, QQQ, GLD and the conditional USO oil signal are funds, not index levels or spot prices. The 10-year figure is a Treasury yield. Each chart uses its own price scale, so line steepness is not comparable.</p><p>Regular-session changes use the previous close; pre-market and after-hours changes use the regular-session close. Snapshot fetch time is not the time of a trade. Quotes may be delayed, and charts may end before the displayed quote. Refresh checks run about once a minute while this page is visible.</p><Link href="/pulse" className={styles.textLink}>Open the complete market workspace →</Link></details>
