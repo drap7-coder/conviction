@@ -64,20 +64,39 @@ export function briefingEdition(now: Date) {
 
 /** The banner describes the available print, not today's calendar or a presumed cause. */
 export function briefingLead(change: number | null | undefined, session: string | undefined) {
-  if (change == null || !Number.isFinite(change)) return "The market picture is still coming together.";
-  const direction = Math.abs(change) < .05 ? "hold steady" : change > 0 ? "edge higher" : "edge lower";
-  const strongDirection = Math.abs(change) >= 1 ? (change > 0 ? "climb" : "fall") : direction;
-  const timing = session === "Pre-Market" ? "before the opening bell" : session === "After Hours" ? "after the closing bell" : session === "Closed" ? "in the latest completed session" : "in the latest market snapshot";
-  return `U.S. stocks ${strongDirection} ${timing}.`;
+  if (change == null || !Number.isFinite(change)) return "The day’s market story is still taking shape.";
+  const flat = Math.abs(change) < .05;
+  const strong = Math.abs(change) >= 1;
+  const higher = change > 0;
+
+  if (flat) {
+    if (session === "Pre-Market") return "The market is waiting for its opening cue.";
+    if (session === "After Hours") return "After the close, the market is holding its place.";
+    return "The market is pausing between scenes.";
+  }
+  if (session === "Pre-Market") {
+    if (higher) return strong ? "The market is setting up for an energetic opening." : "The day is opening on a brighter note.";
+    return strong ? "A sharp change in mood is shaping the opening." : "A more cautious opening is taking shape.";
+  }
+  if (session === "After Hours") {
+    if (higher) return strong ? "Stocks found a powerful second wind after the close." : "Stocks found a second wind after the close.";
+    return strong ? "The mood shifted sharply after the close." : "Stocks lost some momentum after the close.";
+  }
+  if (session === "Closed") {
+    if (higher) return strong ? "Stocks ended the latest session with real momentum." : "Stocks ended the latest session on an upbeat note.";
+    return strong ? "Stocks closed the latest session on a decidedly downbeat note." : "Stocks ended the latest session on a softer note.";
+  }
+  if (higher) return strong ? "Momentum is giving the market a lift today." : "The market is taking a modestly upbeat turn.";
+  return strong ? "A sharp change in mood is weighing on the market today." : "The market is taking a more cautious turn.";
 }
 
 export const HOME_READING_LENSES: Record<string, string> = {
-  "ai-compute": "What does this mean for demand, spending or competition in technology?",
-  "rates-fed": "What could this change about borrowing costs and company financing?",
-  "energy-oil": "Could supply, transport costs or demand change the energy picture?",
-  "crypto-liquidity": "What does the reporting say about liquidity and appetite for risk?",
-  "trade-supply": "Which supply chains and international markets are directly affected?",
-  "consumer-demand": "What does this reveal about customers, company earnings or sector demand?",
+  "ai-compute": "What could this change about production, advertising, streaming or the tools creative teams use?",
+  "rates-fed": "Could this reshape deal financing, budgets or what audiences have left to spend?",
+  "energy-oil": "Could this raise the cost of production, travel or getting entertainment to market?",
+  "crypto-liquidity": "What does this reveal about risk appetite, attention and where speculative money is flowing?",
+  "trade-supply": "Which global businesses, production pipelines or consumer markets are directly exposed?",
+  "consumer-demand": "What does this say about subscriptions, discretionary spending and the fight for audience attention?",
 };
 
 /** Price direction in everyday language; unknown data must never read as flat. */

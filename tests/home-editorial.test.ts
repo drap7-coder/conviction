@@ -49,9 +49,10 @@ describe("publication timing", () => {
     expect(briefingEdition(new Date("2026-11-02T15:00:00Z")).weekend).toBe(false);
   });
   it("describes available sessions without inventing a cause or current trading", () => {
-    expect(briefingLead(.19,"After Hours")).toBe("U.S. stocks edge higher after the closing bell.");
-    expect(briefingLead(-1.2,"Closed")).toBe("U.S. stocks fall in the latest completed session.");
-    expect(briefingLead(null,"Regular")).toBe("The market picture is still coming together.");
+    expect(briefingLead(.19,"After Hours")).toBe("Stocks found a second wind after the close.");
+    expect(briefingLead(-1.2,"Closed")).toBe("Stocks closed the latest session on a decidedly downbeat note.");
+    expect(briefingLead(1.2,"Pre-Market")).toBe("The market is setting up for an energetic opening.");
+    expect(briefingLead(null,"Regular")).toBe("The day’s market story is still taking shape.");
   });
 });
 
