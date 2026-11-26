@@ -1,0 +1,8 @@
+import type { Brief } from './briefing';
+import { signed, stamp } from './briefing';
+import s from './Producer.module.css';
+export function GreenlightMeter({ brief:b }: { brief: Brief }) {
+ const gold=b.signals.GLD;
+ const items=[['Debt / gap financing climate',b.signals['^TNX'].usable ? 'Reprice the bridge, not the whole slate.' : 'Wait for fresh terms.', 'Compare lender spread, fees, collateral and collection timing. A Treasury print alone cannot tell you whether gap financing is available.'],['Investor appetite',b.spread === null ? 'No confirmed cross-asset read.' : `QQQ − GLD: ${b.spread.toFixed(2)} pp`,b.spread !== null && b.spread > 0 ? 'Growth leads gold. Use that as a prompt to test appetite for original swings; keep distribution commitments and recoupment evidence in the room.' : 'Lead with downside protection and a credible recoupment path. Safe IP still needs an honest acquisition price and marketing budget.'],['Safe-haven bid',`GLD ${signed(gold.move)}`,`${gold.usable ? 'Snapshot' : 'Delayed / unavailable'} · ${stamp(gold.asOf)}. Gold strength is not proof of capital leaving entertainment; ask investors what their liquidity budget actually permits.`],['Greenlight discipline','Fund the downside. Retain the upside.','Model a delayed delivery, a financing extension and a smaller sale. Greenlight decisions need project economics, not a market score.']];
+ return <section className={s.section}><div className={s.sectionHead}><p className={s.kicker}>02 / Financing & risk appetite</p><h2>Greenlight meter</h2><span>A deal lens, not an approval score</span></div><div className={s.grid2}>{items.map(([label,title,copy])=><article key={label}><h3>{label}</h3><h4>{title}</h4><p>{copy}</p></article>)}</div></section>;
+}

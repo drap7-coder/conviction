@@ -211,7 +211,7 @@ describe("SEO metadata", () => {
     expect(read("src/app/crowd/page.tsx")).toContain('sr-only');
     expect(read("src/app/international/page.tsx")).toContain("permanentRedirect");
     expect(read("src/app/sectors/page.tsx")).toContain("permanentRedirect");
-    expect(read("src/app/page.tsx")).toContain("<HomeOverview");
+    expect(read("src/app/page.tsx")).toContain("<ColdOpen");
     expect(read("src/app/page.tsx")).not.toContain("permanentRedirect");
     expect(read("src/app/layout.tsx")).toContain('canonical: "/"');
     expect(read("next.config.ts")).toContain('source: "/"');
