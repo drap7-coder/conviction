@@ -58,7 +58,8 @@ describe("Home personal intelligence", () => {
     expect(read("src/components/market/MarketDataGrid.tsx")).toContain("buildSparklineGeometry");
     expect(read("src/app/globals.css")).toContain("market-data-grid-spark");
     expect(read("src/app/globals.css")).toContain("market-data-grid-row:hover::before");
-    expect(page).toContain("<HomeOverview");
+    expect(page).toContain("<ColdOpen");
+    expect(page).toContain("<ScenesToWatch");
     expect(pulse).toContain("<PulseMarketBoard");
     expect(pulse).not.toContain("PersonalDailyBrief");
     const pulseBoard = read("src/components/market/PulseMarketBoard.tsx");

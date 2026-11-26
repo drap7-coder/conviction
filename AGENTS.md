@@ -10,6 +10,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Cursor Cloud specific instructions
 
+### Producer Edition Home (November 26, 2026 — supersedes earlier Home presentation)
+
+Home is a server-rendered producer briefing: Cold Open, Greenlight Meter, Friction, Power Shifts, Scenes to Watch. Reuse five Yahoo quotes and existing narrative news fetchers. Regular-session spreads require fresh, aligned quote timestamps; stale values remain labeled but cannot drive conclusions. Producer implications are conditional diligence prompts, never inferred loan terms, insurance prices or audience demand. Keep header/navigation and Pulse intact. Scoped CSS is used because Tailwind is not installed and no dependencies were authorized.
+
 ### Retirement destination (November 9, 2026)
 
 Retirement is a primary navigation destination at `/retirement`, separate from Portfolio. Internal sections are Your plan and Build your mix (`?view=allocation`). Keep both mounted while switching to preserve ephemeral inputs. Legacy `/portfolio?view=retirement` redirects to `/retirement`.
