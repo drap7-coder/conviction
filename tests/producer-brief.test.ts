@@ -13,6 +13,9 @@ describe('producer briefing signal discipline', () => {
   const b=buildBrief([quote('QQQ',2),quote('GLD',.5),quote('USO',1),quote('SPY',-1)],null,now);
   expect(b.spread).toBe(1.5); expect(b.divergence).toBe(true);
  });
+ it('uses neutral language when growth and gold are tied', () => {
+  expect(buildBrief([quote('QQQ',1),quote('GLD',1)],null,now).headline).toContain('Growth and gold are level');
+ });
  it('keeps stale numbers but suppresses conclusions', () => {
   const b=buildBrief([quote('QQQ',2,'2026-11-24T15:59:00Z'),quote('GLD',.5)],null,now);
   expect(b.signals.QQQ.move).toBe(2); expect(b.spread).toBeNull();
