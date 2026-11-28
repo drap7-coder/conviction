@@ -173,3 +173,17 @@
   .workspaceTabs { width:100%; justify-content:stretch; }
   .workspaceTabs a { flex:1; justify-content:center; white-space:nowrap; padding-inline:14px; }
 }
+
+/* Match the shared editorial rhythm without changing planning controls or charts. */
+.planner .header h2, .planner .allocationHeader h2, .planner .card h3 {
+  font-family: var(--font-editorial, Georgia, serif);
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
+.planner .card, .planner .allocation, .planner .mixPreview, .planner .tableWrap {
+  border-radius: 0;
+  box-shadow: none;
+  border-color: var(--rule-hairline, var(--border));
+}
+.planner .allocationHeader { border-bottom: 1px solid var(--border); padding-bottom: 20px; }
+.planner .metrics { border-top: 1px solid var(--border); padding-top: 18px; font-variant-numeric: tabular-nums; }
