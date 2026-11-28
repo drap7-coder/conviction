@@ -594,3 +594,30 @@ html[data-theme="dark"][data-accent="blue"] .pulse-page:not(.home-page) .market-
     color: var(--luxury-green);
   }
 }
+
+/* Producer Edition rhythm across workspaces; data and control styling stay semantic. */
+html[data-theme="dark"][data-accent="blue"] :is(.pulse-page, .portfolio-page, .news-page) :is(h1, h2) {
+  font-family: var(--font-editorial, Georgia, serif);
+  font-weight: 400;
+  letter-spacing: -.025em;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+html[data-theme="dark"][data-accent="blue"] :is(.pulse-page, .portfolio-page, .news-page) :is(.surface-shell, .pf-section, .pf-study-board, .market-data-grid, .pulse-seo-intro, .workspace-view-context) {
+  border-radius: 0;
+  border-color: var(--rule-hairline, var(--border));
+  box-shadow: none;
+}
+html[data-theme="dark"][data-accent="blue"] :is(.pulse-page, .portfolio-page, .news-page) :is(.pf-section-head, .pf-sector-mix-head, .pulse-home-section-head) {
+  border-top: 1px solid var(--rule-hairline, var(--border));
+  padding-top: 16px;
+  margin-bottom: 16px;
+}
+html[data-theme="dark"][data-accent="blue"] :is(.pulse-page, .portfolio-page, .news-page) :is(table, time) {
+  font-variant-numeric: tabular-nums;
+}
+html[data-theme="dark"][data-accent="blue"] .pulse-page.pulse-approachable:not(.home-page) .pulse-workspace-head h2 {
+  font-family: var(--font-editorial, Georgia, serif);
+  font-weight: 400;
+  letter-spacing: -.025em;
+}
